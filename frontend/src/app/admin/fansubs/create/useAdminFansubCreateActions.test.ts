@@ -88,6 +88,7 @@ function baseForm(overrides: Partial<FormState> = {}): FormState {
   return {
     name: "Neue Gruppe",
     slug: "neue-gruppe",
+    kuerzel: "",
     status: "active",
     groupType: "group",
     country: "",
@@ -200,7 +201,7 @@ describe("useAdminFansubCreateActions", () => {
 
       await actions.addAlias();
 
-      expect(setAliasError).toHaveBeenCalledWith("Tag existiert bereits.");
+      expect(setAliasError).toHaveBeenCalledWith("Alias existiert bereits.");
       expect(createFansubAliasMock).not.toHaveBeenCalled();
       expect(setAliasDrafts).not.toHaveBeenCalled();
     });
@@ -224,7 +225,7 @@ describe("useAdminFansubCreateActions", () => {
       expect(setAliasDrafts).toHaveBeenCalledWith(["Alt", "Neu"]);
       expect(setInitialAliasDrafts).toHaveBeenCalledWith(["Alt", "Neu"]);
       expect(setAliasInput).toHaveBeenCalledWith("");
-      expect(setToast).toHaveBeenCalledWith("Tag hinzugefügt.");
+      expect(setToast).toHaveBeenCalledWith("Alias hinzugefügt.");
     });
 
     it("API failure: sets the error message via errMessage and resets the busy flag", async () => {
@@ -265,7 +266,7 @@ describe("useAdminFansubCreateActions", () => {
       expect(setAliases).toHaveBeenCalledWith([]);
       expect(setAliasDrafts).toHaveBeenCalledWith([]);
       expect(setInitialAliasDrafts).toHaveBeenCalledWith([]);
-      expect(setToast).toHaveBeenCalledWith("Tag entfernt.");
+      expect(setToast).toHaveBeenCalledWith("Alias entfernt.");
     });
   });
 
@@ -296,6 +297,7 @@ describe("useAdminFansubCreateActions", () => {
       expect(createFansubGroupMock).toHaveBeenCalledWith({
         name: "Neue Gruppe",
         slug: "neue-gruppe",
+        kuerzel: null,
         status: "active",
         group_type: "group",
         country: null,
@@ -355,6 +357,7 @@ describe("useAdminFansubCreateActions", () => {
       expect(updateFansubGroupMock).toHaveBeenCalledWith(50, {
         name: "Neue Gruppe",
         slug: "neue-gruppe",
+        kuerzel: null,
         status: "active",
         group_type: "group",
         country: "DE",
@@ -404,6 +407,7 @@ describe("useAdminFansubCreateActions", () => {
       expect(setForm).toHaveBeenCalledWith({
         name: "Legacy Gruppe",
         slug: "legacy-gruppe",
+        kuerzel: "",
         status: "active",
         groupType: "group",
         country: "DE",

@@ -62,9 +62,15 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 		return models.FansubGroupCreateInput{}, "country ist zu lang"
 	}
 
+	kuerzel := normalizeNullableString(req.Kuerzel)
+	if kuerzel != nil && len([]rune(*kuerzel)) > 32 {
+		return models.FansubGroupCreateInput{}, "ungültiger kuerzel parameter"
+	}
+
 	return models.FansubGroupCreateInput{
 		Slug:          *slug,
 		Name:          *name,
+		Kuerzel:       kuerzel,
 		LogoID:        req.LogoID,
 		BannerID:      req.BannerID,
 		LogoURL:       normalizeNullableString(req.LogoURL),

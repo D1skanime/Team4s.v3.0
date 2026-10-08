@@ -190,6 +190,7 @@ function baseForm(overrides: Partial<FormState> = {}): FormState {
   return {
     name: "Neue Gruppe",
     slug: "neue-gruppe",
+    kuerzel: "",
     status: "active",
     groupType: "group",
     country: "",
@@ -204,6 +205,7 @@ describe("formToCreatePayload", () => {
     expect(formToCreatePayload(baseForm())).toEqual({
       name: "Neue Gruppe",
       slug: "neue-gruppe",
+      kuerzel: null,
       status: "active",
       group_type: "group",
       country: null,
@@ -220,12 +222,19 @@ describe("formToCreatePayload", () => {
     ).toEqual({
       name: "Neue Gruppe",
       slug: "neue-gruppe",
+      kuerzel: null,
       status: "active",
       group_type: "group",
       country: "DE",
       founded_year: 2015,
       dissolved_year: 2020,
     });
+  });
+
+  it("trims a populated kuerzel through (Scope Addition 2: Frontend-Payload-Mapping enthält kuerzel)", () => {
+    expect(
+      formToCreatePayload(baseForm({ kuerzel: "  BDnP  " })),
+    ).toMatchObject({ kuerzel: "BDnP" });
   });
 });
 
@@ -234,6 +243,7 @@ describe("formToPatchPayload", () => {
     expect(formToPatchPayload(baseForm(), null, null)).toEqual({
       name: "Neue Gruppe",
       slug: "neue-gruppe",
+      kuerzel: null,
       status: "active",
       group_type: "group",
       country: null,
@@ -256,6 +266,7 @@ describe("formToPatchPayload", () => {
     ).toEqual({
       name: "Neue Gruppe",
       slug: "neue-gruppe",
+      kuerzel: null,
       status: "active",
       group_type: "group",
       country: "DE",
@@ -266,6 +277,12 @@ describe("formToPatchPayload", () => {
       logo_url: "https://logo.example/",
       banner_url: null,
     });
+  });
+
+  it("trims a populated kuerzel through on patch too", () => {
+    expect(
+      formToPatchPayload(baseForm({ kuerzel: "  BDnP  " }), null, null),
+    ).toMatchObject({ kuerzel: "BDnP" });
   });
 });
 
@@ -281,6 +298,7 @@ describe("mapGroupToForm", () => {
     expect(mapGroupToForm(group)).toEqual({
       name: "Legacy Gruppe",
       slug: "legacy-gruppe",
+      kuerzel: "",
       status: "active",
       groupType: "group",
       country: "DE",
@@ -295,6 +313,12 @@ describe("mapGroupToForm", () => {
     expect(result.country).toBe("");
     expect(result.foundedYear).toBe("");
     expect(result.dissolvedYear).toBe("");
+  });
+
+  it("maps a present kuerzel through, and defaults a null/absent kuerzel to an empty string", () => {
+    expect(mapGroupToForm(fansubGroupFixture({ kuerzel: "BDnP" })).kuerzel).toBe("BDnP");
+    expect(mapGroupToForm(fansubGroupFixture({ kuerzel: null })).kuerzel).toBe("");
+    expect(mapGroupToForm(fansubGroupFixture()).kuerzel).toBe("");
   });
 });
 
@@ -409,6 +433,7 @@ describe("emptyForm / createEmptyLink", () => {
     expect(emptyForm()).toEqual({
       name: "",
       slug: "",
+      kuerzel: "",
       status: "active",
       groupType: "group",
       country: "",

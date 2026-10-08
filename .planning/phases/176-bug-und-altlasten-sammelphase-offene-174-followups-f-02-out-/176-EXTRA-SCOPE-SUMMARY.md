@@ -168,3 +168,252 @@ Add to the 176 closing UAT: open "Mitwirkende: <Anime>" (AnimeContributionModal)
 genuinely assignable roles like Übersetzung/Encoding/etc. appear); repeat the same check in
 the Release-Besetzung drawer ("Rollen ändern") and in the Fansub-Gruppe "Standard-Team"
 tab's role dropdown. No backend call is needed for this — it is a pure UI confirmation.
+
+## Scope Addition 2: Kürzel-Feld + Aliase-Umbenennung (Anlegeseite)
+
+**User report (2026-10-08, verbatim decision):** The Fansub-Anlegeseite
+(`/admin/fansubs/create`) lacked a Kürzel field entirely, while the matching
+Bearbeitungsseite already supported it with full server-side uniqueness
+enforcement (GAP-05). Decision: reuse the existing `FansubGroupKuerzelField`
+component verbatim (move it to a shared location if needed, build no new UI),
+give the Create endpoint the exact same Kürzel validation/conflict behavior as
+Patch (validated only at save time, not live-as-you-type), surface the 409
+through the create page's existing save-error path, and rename the "Tags"
+section on the create page to "Aliase" to match the edit page's terminology
+for the same alias table.
+
+### What was found
+
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubGroupKuerzelField.tsx` was a
+  small, already-complete, `@/components/ui`-based presentational component
+  (`FormField` + `Input`, value/disabled/onChange props only) used by
+  `FansubBasicInfoTab.tsx` on the edit page. No React import-path barrier
+  actually prevented reusing it cross-route (Next.js App Router only treats
+  `page.tsx`/`layout.tsx`/etc. specially; arbitrary named `.tsx` files are
+  plain modules) — the create page's `AdminFansubCreateAliasesSection.tsx`
+  already imported a CSS module from the sibling `[id]/edit/` directory the
+  same way. Moved it anyway per the user's explicit "ggf. an einen
+  gemeinsamen Ort verschieben" instruction, to a shared admin location
+  (`frontend/src/components/admin/`, alongside `MediaUpload.tsx`) rather than
+  `frontend/src/components/fansubs/` (that directory is exclusively public
+  fansub-profile display components — `FansubHeroSection`, `FansubTeamSection`,
+  etc. — a different domain from admin forms).
+- Backend: `FansubRepository.UpdateGroup`'s Kürzel branch (around
+  `fansub_repository_groups.go:300`) was the only place that called
+  `normalizeAliasKey` + `findFansubKuerzelOrAliasOwner` + set
+  `kuerzel`/`normalized_kuerzel`. `CreateGroup` never accepted or inserted a
+  Kürzel at all — both columns always received their table defaults (`NULL`)
+  on insert, and `fansubGroupCreateRequest`/`FansubGroupCreateInput` had no
+  `Kuerzel` field to carry one in.
+- The exact conflict message format (`"Kürzel gehört bereits zu %s."`,
+  returned as a 409 via `*repository.ConflictOwnerError`) lives in
+  `UpdateFansub`'s handler branch in `fansub_groups.go`; `CreateFansub` had no
+  equivalent branch, so the same repository error would have fallen through
+  to `errors.Is(err, repository.ErrConflict)` → the generic
+  "fansubgruppe bereits vorhanden" message, or further down to the generic
+  500 branch (since `*ConflictOwnerError` does not satisfy `errors.Is(err,
+  repository.ErrConflict)` — it is a distinct wrapped type), had the create
+  path started producing it without a matching `errors.As` branch.
+- The create page's `formToPatchPayload` (used for every *second* save once
+  a group already exists) never included `kuerzel` either, even though its
+  sibling `FansubGroupPatchRequest`/backend Patch path already fully supports
+  it. Left as-is, a user who filled in the new Kürzel field on first create
+  and then edited it again from the same create-page UI (post-creation, pre
+  navigating to the dedicated edit page) would have silently lost that edit
+  on the next save — the Patch request simply wouldn't carry the field.
+  Fixed as part of this scope addition (Rule 1/2 — direct, necessary
+  consequence of adding `kuerzel` to the shared `FormState` both save paths
+  read from).
+
+### What was changed
+
+**Backend:**
+- `backend/internal/models/fansub.go`: added `Kuerzel *string` to
+  `FansubGroupCreateInput`.
+- `backend/internal/handlers/fansub_requests.go`: added
+  `Kuerzel *string \`json:"kuerzel"\`` to `fansubGroupCreateRequest`.
+- `backend/internal/handlers/fansub_group_create_validation.go`:
+  `validateFansubGroupCreateRequest` now normalizes Kürzel via the same
+  `normalizeNullableString` helper the Patch validator uses (empty/
+  whitespace-only → `nil`) and rejects anything over 32 runes with the same
+  `"ungültiger kuerzel parameter"` message the Patch path already used.
+- `backend/internal/repository/fansub_repository_groups.go`: `CreateGroup`
+  now runs the identical Kürzel-conflict check `UpdateGroup` already ran
+  (`normalizeAliasKey` → `findFansubKuerzelOrAliasOwner(ctx, normalized, 0)`
+  — `0` as the exclude-id since the new group has no id yet and
+  `fansub_groups.id` is a `BIGSERIAL` starting at 1, so `<> 0` never
+  excludes a real row) before the `INSERT`, returning
+  `*repository.ConflictOwnerError` on conflict exactly like the Patch path.
+  The `INSERT` statement now writes both `kuerzel` and `normalized_kuerzel`
+  columns instead of leaving them at their table defaults.
+- `backend/internal/handlers/fansub_groups.go`: `CreateFansub` gained the
+  same `var ownerErr *repository.ConflictOwnerError; if errors.As(err,
+  &ownerErr)` branch `UpdateFansub` already had, responding `409` with
+  `fmt.Sprintf("Kürzel gehört bereits zu %s.", ownerErr.OwnerGroupName)` —
+  byte-identical message format to the Patch path.
+
+**Contracts:**
+- `shared/contracts/fansubs.yaml` and `shared/contracts/openapi.yaml`:
+  added the optional `kuerzel` field to `FansubGroupCreateRequest`
+  (`string | null`, max 32, documenting the save-time-only uniqueness check
+  and the 409 message format). `FansubGroupPatchRequest`'s OpenAPI schema
+  was found to already be missing `kuerzel` from an earlier phase — a
+  pre-existing, unrelated contract-documentation gap, logged below rather
+  than fixed (out of this scope addition's boundary: Create only).
+
+**Frontend:**
+- Moved `FansubGroupKuerzelField.tsx` from
+  `frontend/src/app/admin/fansubs/[id]/edit/` to
+  `frontend/src/components/admin/FansubGroupKuerzelField.tsx` (byte-identical
+  contents); updated the one existing import in
+  `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.tsx`.
+- `frontend/src/types/fansub.ts`: added `kuerzel?: string | null;` to
+  `FansubGroupCreateRequest`.
+- `frontend/src/app/admin/fansubs/create/adminFansubCreateHelpers.ts`: added
+  `kuerzel: string` to `FormState`; `emptyForm()`/`mapGroupToForm()` default
+  it to `""` (mirroring every other optional text field); `toOptional(form.
+  kuerzel)` wired into both `formToCreatePayload` (new field) and
+  `formToPatchPayload` (the Rule 1/2 fix described above).
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateBasicInfoSection.tsx`:
+  renders `<FansubGroupKuerzelField value={form.kuerzel} disabled={false}
+  onChange={...} />` directly below the Name field in the same
+  `responsiveFieldGrid`, matching the edit page's placement. No permission
+  gating applies on the create page (unlike the edit page's
+  `disabled={!canEditGeneral}`) since the whole route is already behind
+  `PlatformAdminGate` with no per-field capability scoping.
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateAliasesSection.tsx`:
+  section heading `"Tags"` → `"Aliase"`; added the edit page's
+  `placeholder="Alias hinzufügen"` to the alias input (previously had no
+  placeholder at all).
+- `frontend/src/app/admin/fansubs/create/useAdminFansubCreateActions.ts`:
+  `"Tag existiert bereits."` → `"Alias existiert bereits."`,
+  `"Tag hinzugefügt."` → `"Alias hinzugefügt."`,
+  `"Tag entfernt."` → `"Alias entfernt."`.
+- The 409 conflict message (from either Create or a later Patch) surfaces
+  through the create page's existing generic save-error path — the
+  `catch` block in `useAdminFansubCreateActions.save` already calls
+  `setError(errMessage(nextError))`, and `page.tsx` already renders
+  `{error ? <div className={styles.errorBox}>{error}</div> : null}` right
+  above the form fields. No new error-display wiring was needed.
+
+### Tests added (logic only, no render/click tests, per explicit instruction)
+
+- `backend/internal/repository/phase176_fansub_create_kuerzel_test.go` (new,
+  real-Postgres, reusing the Phase-167 fixture
+  `testsupport.OpenPhase167Postgres`):
+  `TestFansubGroupCreateKuerzel_SetsFreshKuerzel` (fresh Kürzel persists and
+  round-trips through `GetGroupByID`), `TestFansubGroupCreateKuerzel_
+  EmptyKuerzelBecomesNull` (nil input → `NULL` in both the returned struct
+  and on reload), `TestFansubGroupCreateKuerzel_ConflictsWithExistingKuerzel`
+  (a different-casing Kürzel match against another group's Kürzel rejects
+  with `*ConflictOwnerError` naming that group, **and** proves no partial
+  row was inserted via a follow-up `GetGroupBySlug` → `ErrNotFound`),
+  `TestFansubGroupCreateKuerzel_ConflictsWithExistingAlias` (a Kürzel
+  matching another group's existing alias text rejects the same way).
+- `backend/internal/handlers/fansub_group_create_validation_test.go` (new,
+  pure function tests calling the real `validateFansubGroupCreateRequest`):
+  omitted Kürzel stays `nil`, whitespace-only Kürzel normalizes to `nil`,
+  a populated Kürzel is trimmed and kept, a 33-rune Kürzel is rejected with
+  the length-validation message.
+- `frontend/src/app/admin/fansubs/create/adminFansubCreateHelpers.test.ts`:
+  extended `mapGroupToForm`/`emptyForm`/`formToCreatePayload`/
+  `formToPatchPayload` assertions with `kuerzel`; added two new cases
+  proving `formToCreatePayload`/`formToPatchPayload` trim a populated
+  Kürzel through, and one proving `mapGroupToForm` maps a present Kürzel
+  through while defaulting a null/absent one to `""`.
+- `frontend/src/app/admin/fansubs/create/useAdminFansubCreateActions.test.ts`
+  and `.../page.test.tsx`: updated existing payload-equality assertions to
+  include `kuerzel: null` (no new test cases needed here — the existing
+  save-flow tests already exercise the payload shape end-to-end).
+
+### Verification performed
+
+- `docker exec team4sv30-backend go build ./...` and `go vet ./internal/...`
+  — clean.
+- Confirmed pre-existing-and-unrelated backend test failures via revert/
+  re-run isolation (see `deferred-items.md` → "Scope Addition 2" for the
+  full list and method): none touch any file this scope addition modified.
+- `docker exec team4sv30-backend go test ./internal/handlers/... -run
+  TestValidateFansubGroupCreateRequest` — all 7 PASS (4 new + 3 pre-existing
+  sibling cases in the same describe-block file).
+- Created a disposable `team4s_phase167_test_scope2` Postgres database
+  (`CREATE EXTENSION unaccent`, same fixture shape the existing Phase-167
+  Kürzel-conflict suite already uses) and ran `go test ./internal/
+  repository/... -run 'TestFansubGroupCreateKuerzel|
+  TestFansubGroupKuerzelUniqueness'` with `TEAM4S_PHASE167_TEST_DSN` set —
+  all 9 PASS (4 new + 5 pre-existing sibling cases, confirming no
+  regression on the existing Patch-path conflict suite). Database dropped
+  immediately after.
+- `docker exec team4sv30-backend go test ./internal/repository/...`
+  (full package, no DSN overrides) — the 4 new tests correctly `SKIP` (DSN
+  not set in that run); all other failures present were independently
+  confirmed pre-existing/environment-dependent (live Keycloak creds,
+  external-host connectivity, a known `release_version_media.reorder`
+  capability-registry gap already logged under 176-12/176-13) — none
+  mention `fansub`/`kuerzel` beyond one unrelated `fansub_group_app_members_
+  repository_test.go` failure, confirmed unrelated by file/feature.
+- `docker exec team4sv30-frontend npx tsc --noEmit` — clean.
+- `docker exec team4sv30-frontend npx eslint` on every touched/created
+  frontend file — clean.
+- `docker exec team4sv30-frontend npx vitest run` (full suite) — **364
+  test files passed, 1 pre-existing skip, 3256 tests passed, 3 pre-existing
+  todos** — including all touched files
+  (`adminFansubCreateHelpers.test.ts`, `useAdminFansubCreateActions.test.ts`,
+  `page.test.tsx`, `FansubBasicInfoTab.test.tsx`).
+- Backend rebuilt: `docker compose up -d --build team4sv30-backend` →
+  `/health` returns `{"status":"ok"}`.
+- Frontend restarted: `docker restart team4sv30-frontend` →
+  `http://192.168.235.196:3000/admin/fansubs/create` returns 200.
+
+### Files changed
+
+- `backend/internal/models/fansub.go`
+- `backend/internal/handlers/fansub_requests.go`
+- `backend/internal/handlers/fansub_group_create_validation.go`
+- `backend/internal/handlers/fansub_group_create_validation_test.go` (new)
+- `backend/internal/handlers/fansub_groups.go`
+- `backend/internal/repository/fansub_repository_groups.go`
+- `backend/internal/repository/phase176_fansub_create_kuerzel_test.go` (new)
+- `shared/contracts/fansubs.yaml`
+- `shared/contracts/openapi.yaml`
+- `frontend/src/components/admin/FansubGroupKuerzelField.tsx` (new, moved
+  from `frontend/src/app/admin/fansubs/[id]/edit/FansubGroupKuerzelField.tsx`,
+  which was deleted)
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.tsx`
+- `frontend/src/types/fansub.ts`
+- `frontend/src/app/admin/fansubs/create/adminFansubCreateHelpers.ts`
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateBasicInfoSection.tsx`
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateAliasesSection.tsx`
+- `frontend/src/app/admin/fansubs/create/useAdminFansubCreateActions.ts`
+- `frontend/src/app/admin/fansubs/create/adminFansubCreateHelpers.test.ts`
+- `frontend/src/app/admin/fansubs/create/useAdminFansubCreateActions.test.ts`
+- `frontend/src/app/admin/fansubs/create/page.test.tsx`
+
+`.planning/sketches/` was not touched.
+
+### Known gaps (not fixed, out of this scope's boundary)
+
+- `shared/contracts/openapi.yaml`'s `FansubGroupPatchRequest` schema is
+  missing the `kuerzel` property entirely, even though the Patch handler/
+  repository have fully supported it since GAP-05 (an earlier phase). Only
+  `FansubGroupCreateRequest` (this scope addition's actual target) was
+  updated. Pre-existing, unrelated to Create — flagged for a future pass.
+
+### Recommended live-UAT additions for the phase's final checkpoint (176-15)
+
+Add to the 176 closing UAT:
+1. Open `/admin/fansubs/create`, confirm a "Kürzel" field is visible directly
+   below "Name" (same hint text as the edit page: "Muss systemweit eindeutig
+   sein..."), type a value, and confirm there is **no** live/as-you-type
+   validation feedback (no network call, no inline error) — only save-time
+   validation.
+2. Fill in Name + a brand-new, unused Kürzel and click "Anlegen" — confirm
+   the group is created successfully and the Kürzel persists (e.g. visible
+   after navigating to the group's Edit-Seite).
+3. Create a second group reusing an already-assigned Kürzel (or an alias
+   text already used by another group) — confirm a 409 appears in the same
+   error box used for other save failures on this page, reading exactly
+   "Kürzel gehört bereits zu <Gruppe>." with the correct owning group name.
+4. Confirm the alias section heading now reads "Aliase" (not "Tags"), the
+   input placeholder reads "Alias hinzufügen", and adding/removing an alias
+   shows "Alias hinzugefügt."/"Alias entfernt." toasts (not "Tag...").

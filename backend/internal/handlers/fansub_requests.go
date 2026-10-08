@@ -6,6 +6,7 @@ import "team4s.v3/backend/internal/models"
 type fansubGroupCreateRequest struct {
 	Slug          string  `json:"slug"`
 	Name          string  `json:"name"`
+	Kuerzel       *string `json:"kuerzel"`
 	LogoID        *int64  `json:"logo_id"`
 	BannerID      *int64  `json:"banner_id"`
 	LogoURL       *string `json:"logo_url"`

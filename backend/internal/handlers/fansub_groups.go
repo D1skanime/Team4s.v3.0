@@ -101,6 +101,15 @@ func (h *FansubHandler) CreateFansub(c *gin.Context) {
 	}
 
 	item, err := h.fansubRepo.CreateGroup(c.Request.Context(), input)
+	var ownerErr *repository.ConflictOwnerError
+	if errors.As(err, &ownerErr) {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"message": fmt.Sprintf("Kürzel gehört bereits zu %s.", ownerErr.OwnerGroupName),
+			},
+		})
+		return
+	}
 	if errors.Is(err, repository.ErrConflict) {
 		c.JSON(http.StatusConflict, gin.H{
 			"error": gin.H{

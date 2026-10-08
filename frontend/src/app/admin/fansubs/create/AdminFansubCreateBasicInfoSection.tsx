@@ -11,6 +11,7 @@
 import { Dispatch, SetStateAction } from "react";
 
 import { Input, Select, YearPicker } from "@/components/ui";
+import { FansubGroupKuerzelField } from "@/components/admin/FansubGroupKuerzelField";
 import { FansubGroupType, FansubStatus } from "@/types/fansub";
 
 import sharedStyles from "../../admin.module.css";
@@ -77,6 +78,18 @@ export function AdminFansubCreateBasicInfoSection({
             {nameError ? (
               <p className={styles.fansubEditInlineError}>{nameError}</p>
             ) : null}
+          </div>
+          <div className={styles.field}>
+            <FansubGroupKuerzelField
+              value={form.kuerzel}
+              disabled={false}
+              onChange={(value) =>
+                setForm((current) => ({
+                  ...current,
+                  kuerzel: value,
+                }))
+              }
+            />
           </div>
           <div className={styles.field}>
             <label>

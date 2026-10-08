@@ -15065,6 +15065,15 @@ components:
           type: string
           minLength: 1
           maxLength: 120
+        kuerzel:
+          type: string
+          description: >-
+            Optional, systemwide-unique short code checked at save-time against every
+            other group's kuerzel AND aliases (case/diacritic-insensitive). Empty or
+            whitespace-only normalizes to null. Returns 409 with
+            "Kürzel gehört bereits zu <Gruppe>." on conflict.
+          maxLength: 32
+          nullable: true
         logo_id:
           type: integer
           format: int64

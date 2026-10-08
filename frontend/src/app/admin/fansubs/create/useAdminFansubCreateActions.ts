@@ -133,7 +133,7 @@ export function useAdminFansubCreateActions({
     if (
       aliasDrafts.some((item) => item.toLowerCase() === value.toLowerCase())
     ) {
-      setAliasError("Tag existiert bereits.");
+      setAliasError("Alias existiert bereits.");
       return;
     }
 
@@ -157,7 +157,7 @@ export function useAdminFansubCreateActions({
       setAliasDrafts(nextDrafts);
       setInitialAliasDrafts(nextDrafts);
       setAliasInput("");
-      setToast("Tag hinzugefügt.");
+      setToast("Alias hinzugefügt.");
     } catch (nextError) {
       setError(errMessage(nextError));
     } finally {
@@ -190,7 +190,7 @@ export function useAdminFansubCreateActions({
       setAliases(nextAliases);
       setAliasDrafts(nextDrafts);
       setInitialAliasDrafts(nextDrafts);
-      setToast("Tag entfernt.");
+      setToast("Alias entfernt.");
     } catch (nextError) {
       setError(errMessage(nextError));
     } finally {

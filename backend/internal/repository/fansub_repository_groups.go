@@ -70,12 +70,32 @@ func (r *FansubRepository) CreateGroup(
 	ctx context.Context,
 	input models.FansubGroupCreateInput,
 ) (*models.FansubGroup, error) {
+	// GAP-05 parity with UpdateGroup (176-EXTRA Scope Addition 2): a non-empty
+	// Kürzel must be cross-checked against every OTHER group's Kürzel/Alias
+	// before insert. excludeGroupID is 0 here because the new group has no id
+	// yet -- fansub_groups.id is a BIGSERIAL starting at 1, so "<> 0" never
+	// excludes a real row.
+	var normalizedKuerzel *string
+	if input.Kuerzel != nil {
+		normalizedValue := normalizeAliasKey(*input.Kuerzel)
+		if normalizedValue != "" {
+			owner, err := r.findFansubKuerzelOrAliasOwner(ctx, normalizedValue, 0)
+			if err != nil {
+				return nil, err
+			}
+			if owner != nil {
+				return nil, &ConflictOwnerError{OwnerGroupID: owner.ID, OwnerGroupName: owner.Name}
+			}
+			normalizedKuerzel = &normalizedValue
+		}
+	}
+
 	query := `
 		INSERT INTO fansub_groups (
-			slug, name, logo_id, banner_id, logo_url, banner_url, founded_year,
+			slug, name, kuerzel, normalized_kuerzel, logo_id, banner_id, logo_url, banner_url, founded_year,
 			dissolved_year, status, website_url, discord_url, irc_url, country
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 		RETURNING
 			id, slug, name, kuerzel, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
@@ -88,6 +108,8 @@ func (r *FansubRepository) CreateGroup(
 		query,
 		input.Slug,
 		input.Name,
+		input.Kuerzel,
+		normalizedKuerzel,
 		input.LogoID,
 		input.BannerID,
 		input.LogoURL,

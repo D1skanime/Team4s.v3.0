@@ -95,3 +95,29 @@ touch `admin_content_release_version_media_replace*.go`, `media_service_display_
 2. `TestPhase137EffectiveRightsOverrideMutationConcurrentConflictSerializes` fails with the
    same pre-existing `release_version_media.reorder` capability-registry gap already logged
    under 176-12 above. Not fixed, per Scope Boundary.
+
+## Scope Addition 2 (Kürzel-Feld + Aliase-Umbenennung, Anlegeseite)
+
+Pre-existing, out-of-scope failures observed while running
+`go test ./internal/handlers/... -run TestCreateFansub` during this scope addition. None
+touch any file modified by this scope addition (`fansub_group_create_validation.go`,
+`fansub_groups.go`, `fansub_requests.go`, `models/fansub.go`,
+`fansub_repository_groups.go`).
+
+1. `TestCreateFansubGroupAppMemberMapsDuplicateMembershipConflict`,
+   `TestCreateFansubGroupAppMemberPassesHistoricalMemberLink`,
+   `TestCreateFansubGroupAppMemberAllowsHistoricalLinkWithoutExplicitRoles`,
+   `TestCreateFansubGroupInvitationReturnsOneTimeInviteLink`,
+   `TestCreateFansubGroupInvitationSendsMailOnSuccess`,
+   `TestCreateFansubGroupInvitationMailContainsGroupContextAndEmailHint`,
+   `TestCreateFansubGroupInvitationMailFallsBackWithoutFansubRepo`,
+   `TestCreateFansubGroupInvitationCancelsOnMailFailure`,
+   `TestCreateFansubGroupInvitationAuditLogContainsNoRawToken` (all in `app_auth_test.go`,
+   testing `AppAuthHandler.CreateFansubGroupAppMember`/invitation flows, unrelated to
+   `FansubHandler.CreateFansub`) — all fail with `403 insufficient_role` instead of their
+   expected success/conflict codes. Verified pre-existing and unrelated by reverting this
+   scope addition's 5 backend files via `git checkout --` and re-running
+   `TestCreateFansubGroupAppMemberMapsDuplicateMembershipConflict` in isolation: it fails
+   identically on the unmodified tree. Root cause is a `permissionResolverStub`/
+   `permissions.Service` role-matrix gap in `app_auth_test.go` itself, unrelated to the
+   Kürzel create-path work. Not fixed, per Scope Boundary.

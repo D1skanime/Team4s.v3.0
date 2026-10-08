@@ -199,6 +199,7 @@ type AnimeFansubAliasCandidate struct {
 type FansubGroupCreateInput struct {
 	Slug          string
 	Name          string
+	Kuerzel       *string
 	LogoID        *int64
 	BannerID      *int64
 	LogoURL       *string

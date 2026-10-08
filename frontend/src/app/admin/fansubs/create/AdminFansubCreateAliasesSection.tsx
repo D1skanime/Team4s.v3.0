@@ -1,6 +1,8 @@
-// Aliases ("Tags") section, extracted verbatim from AdminFansubCreateContent
+// Aliases ("Aliase") section, extracted verbatim from AdminFansubCreateContent
 // (174-14, D-14). Props-driven, presentational; state and mutation logic
 // (addAlias/removeAlias) stay owned by the page component / its action hook.
+// 176-EXTRA Scope Addition 2: section heading/texts renamed from "Tags" to
+// "Aliase" to match the edit page's terminology for the same alias table.
 
 import { Dispatch, SetStateAction } from "react";
 
@@ -34,7 +36,7 @@ export function AdminFansubCreateAliasesSection({
 }: AdminFansubCreateAliasesSectionProps) {
   return (
     <details className={styles.fansubEditSection} open>
-      <summary className={styles.fansubEditSectionSummary}>Tags</summary>
+      <summary className={styles.fansubEditSectionSummary}>Aliase</summary>
       <div className={styles.fansubEditSectionBody}>
         <p className={styles.fansubEditHint}>
           Alternative Gruppennamen. Vor dem ersten Speichern werden sie lokal
@@ -45,6 +47,7 @@ export function AdminFansubCreateAliasesSection({
           <Input
             value={aliasInput}
             invalid={Boolean(aliasError)}
+            placeholder="Alias hinzufügen"
             onChange={(event) => {
               setAliasInput(event.target.value);
               setAliasError(null);

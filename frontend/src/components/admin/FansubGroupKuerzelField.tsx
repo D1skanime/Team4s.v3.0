@@ -9,7 +9,9 @@ type FansubGroupKuerzelFieldProps = {
 };
 
 // GAP-05: Kürzel-Eingabefeld neben dem Namensfeld auf der Gruppen-Bearbeitungsseite.
-// Ausgelagert, damit FansubBasicInfoTab.tsx nicht ueber die 450-Zeilen-Obergrenze waechst.
+// Moved out of the [id]/edit route (176-EXTRA Scope Addition 2) into a shared admin
+// location so the Anlegeseite (admin/fansubs/create) can reuse it verbatim instead of
+// rebuilding its own Kürzel UI.
 export function FansubGroupKuerzelField({ value, disabled, onChange }: FansubGroupKuerzelFieldProps) {
   return (
     <FormField

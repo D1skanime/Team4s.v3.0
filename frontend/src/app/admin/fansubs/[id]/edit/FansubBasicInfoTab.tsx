@@ -9,10 +9,10 @@ import {
   MediaUpload,
 } from "@/components/admin/MediaUpload";
 import { Badge, Button, Card, FormField, Input, Select } from "@/components/ui";
+import { FansubGroupKuerzelField } from "@/components/admin/FansubGroupKuerzelField";
 import { canEditFansubBranding } from "./fansubEditAccess";
 import { labelForFansubStatus, slugify } from "./fansubEditFormatters";
 import { createEmptyLink } from "./fansubEditFormMapping";
-import { FansubGroupKuerzelField } from "./FansubGroupKuerzelField";
 import { YEAR_MAX, YEAR_MIN, YearSelectField } from "./YearSelectField";
 import type { FansubDetailsForm } from "./useFansubDetailsForm";
 

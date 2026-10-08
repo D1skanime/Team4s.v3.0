@@ -29,6 +29,7 @@ const URL_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
 export type FormState = {
   name: string;
   slug: string;
+  kuerzel: string;
   status: FansubStatus;
   groupType: FansubGroupType;
   country: string;
@@ -82,6 +83,7 @@ export function mapGroupToForm(group: FansubGroup): FormState {
   return {
     name: group.name || "",
     slug: group.slug || "",
+    kuerzel: group.kuerzel || "",
     status: group.status,
     groupType: "group",
     country: group.country || "",
@@ -158,6 +160,7 @@ export function emptyForm(): FormState {
   return {
     name: "",
     slug: "",
+    kuerzel: "",
     status: "active",
     groupType: "group",
     country: "",
@@ -182,6 +185,7 @@ export function formToCreatePayload(form: FormState): FansubGroupCreateRequest {
   return {
     name: form.name.trim(),
     slug: form.slug.trim(),
+    kuerzel: toOptional(form.kuerzel),
     status: form.status,
     group_type: form.groupType,
     country: toOptional(form.country),
@@ -200,6 +204,7 @@ export function formToPatchPayload(
   return {
     name: form.name.trim(),
     slug: form.slug.trim(),
+    kuerzel: toOptional(form.kuerzel),
     status: form.status,
     group_type: form.groupType,
     country: toOptional(form.country),

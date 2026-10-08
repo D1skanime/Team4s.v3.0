@@ -534,6 +534,7 @@ types:
   FansubGroupCreateRequest:
     slug: string (required, min: 1, max: 120)
     name: string (required, min: 1, max: 120)
+    kuerzel: string | null (optional, max: 32, must be systemwide-unique against other groups' kuerzel AND aliases; empty/whitespace-only normalizes to null; 409 on conflict naming the owning group)
     logo_id: int64 | null
     banner_id: int64 | null
     logo_url: string | null

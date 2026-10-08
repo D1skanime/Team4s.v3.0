@@ -236,6 +236,7 @@ describe("AdminFansubCreatePage — Helfer-Verhalten (indirekt über Rendering/I
     expect(createFansubGroupMock).toHaveBeenCalledWith({
       name: "Neue Gruppe",
       slug: "neue-gruppe",
+      kuerzel: null,
       status: "active",
       group_type: "group",
       country: null,

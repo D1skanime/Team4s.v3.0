@@ -311,6 +311,7 @@ export interface AnimeFansubListResponse {
 export interface FansubGroupCreateRequest {
   slug: string;
   name: string;
+  kuerzel?: string | null;
   logo_id?: number | null;
   banner_id?: number | null;
   logo_url?: string | null;
