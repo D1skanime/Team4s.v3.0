@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 176-13-PLAN.md
-last_updated: "2026-10-08T09:37:40.952Z"
+last_updated: "2026-10-08T09:53:55.342Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 41
   completed_phases: 35
   total_plans: 388
-  completed_plans: 382
+  completed_plans: 383
   percent: 85
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 176 (bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-) — EXECUTING
-Plan: 14 of 15
+Plan: 15 of 15
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -964,6 +964,7 @@ Last activity: 2026-10-08
 - [Phase 176]: 176-11: kept barrel-exported anime-taxonomy.ts getAdminTagTokens as canonical over admin-anime-intake.ts duplicate (barrel-export + sibling usage) — Confirmed apiClientFetch is a thin wrapper around authorizedFetch, so no behavioral difference affects the caller
 - [Phase 176]: 176-12: D-09 closed via real behavior tests for the 4 named source-grep tests; preview-exclusivity test proven at repository-orchestration level to avoid a services->handlers import cycle. — Plan's own acceptance criteria run the test from package services, and calling the Gin handler would require services to import handlers, which already imports services.
 - [Phase 176-13]: D-10: displayVariantFileName in services exportiert statt neuer Wrapper; D-20: Migration 0180 entfernt review_status_id/FK/Index von anime_contributions reversibel
+- [Phase 176]: D-12/D-11 (176-14): Alle 16 admin/fansubs/[id]/edit-Dateien nutzen jetzt den Proxy-Style-Merge statt Objekt-Spread; getAdminFansubAnime-Assertion in AnimeProjectNotesSection.test.tsx ans Testende verschoben, um suite-load-Flackern deterministisch zu beheben.
 
 ### Pending Todos
 
@@ -1568,10 +1569,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 176 P11 | 20min | 2 tasks | 4 files |
 | Phase 176 P12 | 95min | 2 tasks | 4 files |
 | Phase 176 P13 | 25min | 2 tasks | 7 files |
+| Phase 176 P14 | 20min | 2 tasks | 17 files |
 
 ## Session Continuity
 
-Last session: 2026-10-08T09:37:40.923Z
+Last session: 2026-10-08T09:53:18.134Z
 Stopped at: Completed 176-13-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 

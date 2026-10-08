@@ -2445,7 +2445,7 @@ Plans:
 **Goal:** Alle 23 in 176-CONTEXT.md entschiedenen offenen Bugs und Altlasten aus Phase 174/175 sind behoben oder bewusst bereinigt entfernt -- in fünf voneinander getrennten, nacheinander abgeschlossenen Arbeitspaketen (A-E), ohne neue Features oder Parallelsystem-Zusammenführungen.
 **Requirements**: Kein REQUIREMENTS.md-Mapping -- Decision-Coverage via D-01 bis D-23 in `176-CONTEXT.md` (jede Plan-Datei trägt die zutreffenden D-IDs in ihren must_haves).
 **Depends on:** Phase 175
-**Plans:** 13/15 plans executed
+**Plans:** 14/15 plans executed
 
   - Wave 1: 176-01 (Paket A -- Member-Group-Story-Entfernung, D-16)
   - Wave 2: 176-02 (Paket B -- Theme-Typ-Kürzel aus DB, D-01)
@@ -2488,7 +2488,7 @@ Plans:
 - [x] 176-11-PLAN.md — getAdminTagTokens-Dopplung klären und konsolidieren (D-08).
 - [x] 176-12-PLAN.md — Quelltext-Inspektionstests durch Verhaltenstests ersetzen (D-09).
 - [x] 176-13-PLAN.md — displayVariantFileName/rvmReplaceDisplayPath zusammenführen + tote review_status_id-Spalte entfernen (D-10, D-20).
-- [ ] 176-14-PLAN.md — CSS-Proxy-Merge-Muster in 16 Dateien + wackeligen Test deflaken (D-11, D-12).
+- [x] 176-14-PLAN.md — CSS-Proxy-Merge-Muster in 16 Dateien + wackeligen Test deflaken (D-11, D-12).
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
