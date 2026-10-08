@@ -4,6 +4,8 @@
 
 import { Dispatch, SetStateAction } from "react";
 
+import { Input } from "@/components/ui";
+
 import sharedStyles from "../../admin.module.css";
 import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
 
@@ -40,8 +42,9 @@ export function AdminFansubCreateAliasesSection({
           Edit-Flow.
         </p>
         <div className={styles.inputRow}>
-          <input
+          <Input
             value={aliasInput}
+            invalid={Boolean(aliasError)}
             onChange={(event) => {
               setAliasInput(event.target.value);
               setAliasError(null);

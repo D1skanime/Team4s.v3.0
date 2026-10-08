@@ -6,6 +6,7 @@
 import { ExternalLink, Plus, Trash2 } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 
+import { Input, Select } from "@/components/ui";
 import { FansubGroupLinkType } from "@/types/fansub";
 
 import sharedStyles from "../../admin.module.css";
@@ -63,7 +64,7 @@ export function AdminFansubCreateLinksSection({
             const urlError = linkErrors[index];
             return (
               <div key={link.key} className={styles.fansubEditLinkRow}>
-                <select
+                <Select
                   value={link.link_type}
                   onChange={(event) =>
                     setLinks((current) =>
@@ -84,8 +85,8 @@ export function AdminFansubCreateLinksSection({
                       {option}
                     </option>
                   ))}
-                </select>
-                <input
+                </Select>
+                <Input
                   value={link.name}
                   onChange={(event) =>
                     setLinks((current) =>
@@ -101,7 +102,7 @@ export function AdminFansubCreateLinksSection({
                 <div
                   className={`${styles.fansubEditLinkInput} ${urlError ? styles.fansubEditLinkInputInvalid : ""}`}
                 >
-                  <input
+                  <Input
                     value={link.url}
                     onChange={(event) =>
                       setLinks((current) =>

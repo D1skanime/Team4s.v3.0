@@ -7,14 +7,9 @@ import { Save, X } from "lucide-react";
 
 import { getFansubList } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
-import { YearPicker, useConfirmDialog } from "@/components/ui";
+import { useConfirmDialog } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
-import {
-  FansubAlias,
-  FansubGroup,
-  FansubGroupType,
-  FansubStatus,
-} from "@/types/fansub";
+import { FansubAlias, FansubGroup } from "@/types/fansub";
 import {
   buildFansubLogoFallback,
   buildMediaPreviewURL,
@@ -35,12 +30,11 @@ import {
 } from "./adminFansubCreateHelpers";
 import { useAdminFansubCreateActions } from "./useAdminFansubCreateActions";
 import { AdminFansubCreateAliasesSection } from "./AdminFansubCreateAliasesSection";
+import { AdminFansubCreateBasicInfoSection } from "./AdminFansubCreateBasicInfoSection";
 import { AdminFansubCreateLinksSection } from "./AdminFansubCreateLinksSection";
 import { AdminFansubCreateMediaSection } from "./AdminFansubCreateMediaSection";
 
 const styles = { ...sharedStyles, ...fansubEditStyles };
-
-const STATUS_OPTIONS: FansubStatus[] = ["active", "inactive", "dissolved"];
 
 const YEAR_MIN = 1900;
 const YEAR_MAX = new Date().getFullYear();
@@ -365,198 +359,20 @@ function AdminFansubCreateContent() {
 
           <div className={styles.fansubEditColumns}>
             <div className={styles.fansubEditLeftColumn}>
-              <details className={styles.fansubEditSection} open>
-                <summary className={styles.fansubEditSectionSummary}>
-                  Basic Information
-                </summary>
-                <div className={styles.fansubEditSectionBody}>
-                  <div className={styles.responsiveFieldGrid}>
-                    <div className={styles.field}>
-                      <label>
-                        Name{" "}
-                        <span className={styles.fansubEditRequired}>*</span>
-                      </label>
-                      <input
-                        value={form.name}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            name: event.target.value,
-                          }))
-                        }
-                        required
-                        minLength={2}
-                        aria-invalid={Boolean(nameError)}
-                        className={
-                          nameError ? styles.fansubEditInputInvalid : undefined
-                        }
-                      />
-                      {nameError ? (
-                        <p className={styles.fansubEditInlineError}>
-                          {nameError}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className={styles.field}>
-                      <label>
-                        Slug{" "}
-                        <span className={styles.fansubEditRequired}>*</span>
-                      </label>
-                      <div className={styles.fansubEditSlugRow}>
-                        <input
-                          value={form.slug}
-                          onChange={(event) => {
-                            setManualSlug(true);
-                            setForm((current) => ({
-                              ...current,
-                              slug: event.target.value,
-                            }));
-                          }}
-                          aria-invalid={
-                            Boolean(slugFormatError) || slugConflict
-                          }
-                          className={
-                            slugFormatError || slugConflict
-                              ? styles.fansubEditInputInvalid
-                              : undefined
-                          }
-                        />
-                        <button
-                          type="button"
-                          className={styles.buttonSecondary}
-                          onClick={() => {
-                            setManualSlug(false);
-                            setForm((current) => ({
-                              ...current,
-                              slug: slugify(current.name),
-                            }));
-                          }}
-                        >
-                          Auto
-                        </button>
-                      </div>
-                      {slugChecking ? (
-                        <p className={styles.fansubEditHint}>Pruefe Slug...</p>
-                      ) : null}
-                      {slugFormatError ? (
-                        <p className={styles.fansubEditInlineError}>
-                          {slugFormatError}
-                        </p>
-                      ) : null}
-                      {!slugFormatError && slugConflict ? (
-                        <p className={styles.fansubEditInlineError}>
-                          Slug ist bereits vergeben.
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className={styles.field}>
-                      <label>
-                        Status{" "}
-                        <span className={styles.fansubEditRequired}>*</span>
-                      </label>
-                      <select
-                        value={form.status}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            status: event.target.value as FansubStatus,
-                          }))
-                        }
-                      >
-                        {STATUS_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className={styles.field}>
-                      <label>
-                        Typ <span className={styles.fansubEditRequired}>*</span>
-                      </label>
-                      <select
-                        value={form.groupType}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            groupType: event.target.value as FansubGroupType,
-                          }))
-                        }
-                      >
-                        <option value="group">Gruppe</option>
-                      </select>
-                    </div>
-                    <div className={styles.field}>
-                      <label>Country</label>
-                      <input
-                        value={form.country}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            country: event.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label htmlFor="fansub-group-create-founded-year">
-                        Gründungsjahr
-                      </label>
-                      <YearPicker
-                        id="fansub-group-create-founded-year"
-                        label="Gründungsjahr"
-                        value={form.foundedYear}
-                        minYear={YEAR_MIN}
-                        maxYear={YEAR_MAX}
-                        invalid={Boolean(foundedError)}
-                        onChange={(value) =>
-                          setForm((current) => ({
-                            ...current,
-                            foundedYear: value,
-                          }))
-                        }
-                      />
-                      {foundedError ? (
-                        <p className={styles.fansubEditInlineError}>
-                          {foundedError}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className={styles.field}>
-                      <label htmlFor="fansub-group-create-dissolved-year">
-                        Auflösungsjahr
-                      </label>
-                      <YearPicker
-                        id="fansub-group-create-dissolved-year"
-                        label="Auflösungsjahr"
-                        value={form.dissolvedYear}
-                        minYear={YEAR_MIN}
-                        maxYear={YEAR_MAX}
-                        invalid={
-                          Boolean(dissolvedError) ||
-                          Boolean(dissolvedAfterFoundedError)
-                        }
-                        onChange={(value) =>
-                          setForm((current) => ({
-                            ...current,
-                            dissolvedYear: value,
-                          }))
-                        }
-                      />
-                      {dissolvedError ? (
-                        <p className={styles.fansubEditInlineError}>
-                          {dissolvedError}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                  {dissolvedAfterFoundedError ? (
-                    <p className={styles.fansubEditInlineError}>
-                      {dissolvedAfterFoundedError}
-                    </p>
-                  ) : null}
-                </div>
-              </details>
+              <AdminFansubCreateBasicInfoSection
+                form={form}
+                setForm={setForm}
+                setManualSlug={setManualSlug}
+                nameError={nameError}
+                slugFormatError={slugFormatError}
+                slugConflict={slugConflict}
+                slugChecking={slugChecking}
+                foundedError={foundedError}
+                dissolvedError={dissolvedError}
+                dissolvedAfterFoundedError={dissolvedAfterFoundedError}
+                yearMin={YEAR_MIN}
+                yearMax={YEAR_MAX}
+              />
 
               <AdminFansubCreateAliasesSection
                 aliasDrafts={aliasDrafts}
