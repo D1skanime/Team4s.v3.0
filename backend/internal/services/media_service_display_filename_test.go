@@ -15,12 +15,12 @@ func TestDisplayVariantFileNameIsUniquePerOriginal(t *testing.T) {
 		{"/media/anime/1/segment_preview/a364/original.png", "webp", "display.webp"},
 	}
 	for _, tc := range cases {
-		if got := displayVariantFileName(tc.original, tc.ext); got != tc.want {
+		if got := DisplayVariantFileName(tc.original, tc.ext); got != tc.want {
 			t.Errorf("%s: got %q, want %q", tc.original, got, tc.want)
 		}
 	}
-	banner := displayVariantFileName("/app/media/fansub/1/banner_a.png", "jpg")
-	gallery := displayVariantFileName("/app/media/fansub/1/image_b.jpg", "jpg")
+	banner := DisplayVariantFileName("/app/media/fansub/1/banner_a.png", "jpg")
+	gallery := DisplayVariantFileName("/app/media/fansub/1/image_b.jpg", "jpg")
 	if banner == gallery {
 		t.Fatalf("banner and gallery image in the same group folder must not share a display file: %q", banner)
 	}

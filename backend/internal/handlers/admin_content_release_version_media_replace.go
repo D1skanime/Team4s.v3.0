@@ -266,7 +266,7 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 	assetDir := filepath.Join(h.mediaStorageDir, "release-version", versionIDStr, assetUUID)
 	originalPath := filepath.Join(assetDir, "original."+ext)
 	thumbPath := filepath.Join(assetDir, "thumb.jpg")
-	displayPath := rvmReplaceDisplayPath(assetDir, displayExt)
+	displayPath := filepath.Join(assetDir, services.DisplayVariantFileName(originalPath, displayExt))
 
 	if err := os.MkdirAll(assetDir, 0o755); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "verzeichnis konnte nicht erstellt werden", "error_code": "STORAGE_FAILED"}})
