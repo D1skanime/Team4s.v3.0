@@ -118,3 +118,14 @@ Both tasks are complete and verified: Task 1's automated work (6/6 `NotesTab.tes
 ---
 *Phase: 176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-*
 *Status as of this summary: Complete — both tasks done, checkpoint approved 2026-10-08*
+
+## Self-Check: PASSED
+
+- FOUND: frontend/src/app/admin/fansubs/[id]/edit/NotesTab.tsx
+- FOUND: frontend/src/app/admin/fansubs/[id]/edit/NotesTab.helpers.tsx
+- FOUND: frontend/src/app/admin/fansubs/[id]/edit/FansubEditSecondaryTabs.tsx
+- FOUND: frontend/src/app/admin/fansubs/[id]/edit/NotesTab.test.tsx
+- FOUND commit b457d24b (test, RED)
+- FOUND commit eac02214 (feat, GREEN)
+- FOUND commit 7c45b192 (docs, interim summary)
+- FOUND commit db6dfda3 (docs, final plan-metadata commit)
