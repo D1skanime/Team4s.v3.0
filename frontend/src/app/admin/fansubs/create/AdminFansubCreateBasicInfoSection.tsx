@@ -10,7 +10,7 @@
 
 import { Dispatch, SetStateAction } from "react";
 
-import { Input, Select, YearPicker } from "@/components/ui";
+import { Button, Input, Select, YearPicker } from "@/components/ui";
 import { FansubGroupKuerzelField } from "@/components/admin/FansubGroupKuerzelField";
 import { getFansubStatusLabel } from "@/lib/fansub-labels";
 import { FansubStatus } from "@/types/fansub";
@@ -109,9 +109,9 @@ export function AdminFansubCreateBasicInfoSection({
                 }}
                 invalid={Boolean(slugFormatError) || slugConflict}
               />
-              <button
+              <Button
                 type="button"
-                className={styles.buttonSecondary}
+                variant="secondary"
                 onClick={() => {
                   setManualSlug(false);
                   setForm((current) => ({
@@ -121,7 +121,7 @@ export function AdminFansubCreateBasicInfoSection({
                 }}
               >
                 Auto
-              </button>
+              </Button>
             </div>
             {slugChecking ? (
               <p className={styles.fansubEditHint}>Prüfe Slug...</p>
