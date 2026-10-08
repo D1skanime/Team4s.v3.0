@@ -121,8 +121,6 @@ describe('AnimeProjectNotesSection', () => {
       />,
     )
 
-    expect(getAdminFansubAnimeMock).not.toHaveBeenCalled()
-
     fireEvent.click(screen.getByRole('button', { name: /bleach ausklappen/i }))
 
     const titleInput = await screen.findByPlaceholderText(/titel des projekttexts/i)
@@ -152,6 +150,12 @@ describe('AnimeProjectNotesSection', () => {
       expect(screen.getByText('Das war ein besonderes Projekt.')).not.toBeNull()
       expect(screen.queryByPlaceholderText(/titel des projekttexts/i)).toBeNull()
     })
+
+    // Checked at the end of the full render-to-save lifecycle (not synchronously after
+    // `render()`) so any delayed/async call would have had ample time to occur by now.
+    // This makes the assertion deterministic regardless of suite-load timing (174-FOLLOWUPS.md
+    // F-24) while still genuinely covering "no extra admin-anime load when animes is supplied".
+    expect(getAdminFansubAnimeMock).not.toHaveBeenCalled()
   })
 
   it('zeigt vorhandene Projekttexte zuerst als Vorschau und öffnet den Editor erst über Bearbeiten', async () => {
