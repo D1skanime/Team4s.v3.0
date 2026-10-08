@@ -508,8 +508,6 @@ endpoints:
 types:
   FansubStatus:
     enum: [active, inactive, dissolved]
-  FansubGroupType:
-    enum: [group]
   FansubGroupListResponse:
     data: FansubGroup[]
     meta: PaginationMeta
@@ -542,7 +540,6 @@ types:
     founded_year: int32 | null
     dissolved_year: int32 | null
     status: FansubStatus (required)
-    group_type: FansubGroupType (optional, default: group)
     website_url: string | null
     discord_url: string | null
     irc_url: string | null
@@ -557,7 +554,6 @@ types:
     founded_year: int32 | null
     dissolved_year: int32 | null
     status: FansubStatus (optional)
-    group_type: FansubGroupType (optional)
     website_url: string | null
     discord_url: string | null
     irc_url: string | null
@@ -622,7 +618,6 @@ types:
     founded_year: int32 | null
     dissolved_year: int32 | null
     status: FansubStatus
-    group_type: FansubGroupType
     website_url: string | null
     discord_url: string | null
     irc_url: string | null

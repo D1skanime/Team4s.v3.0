@@ -36,21 +36,11 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 		}
 		req.Status.Value = value
 	}
-	if req.GroupType.Set {
-		value := normalizeRequiredString(req.GroupType.Value)
-		if value == nil {
-			return models.FansubGroupPatchInput{}, "ungültiger group_type parameter"
-		}
-
-		parsedGroupType := models.FansubGroupType(*value)
-		switch parsedGroupType {
-		case models.FansubGroupTypeGroup:
-			normalizedGroupType := string(parsedGroupType)
-			req.GroupType.Value = &normalizedGroupType
-		default:
-			return models.FansubGroupPatchInput{}, "ungültiger group_type parameter"
-		}
-	}
+	// group_type ist totes Erbe der in Phase 81 abgelösten Kollaborations-Gruppen
+	// (DB-Spalte per Migration 0102 entfernt). Ein von einem alten Client noch
+	// mitgeschicktes group_type im Request-Body wird von encoding/json beim Bind
+	// in models.FansubGroupPatchInput automatisch ignoriert (kein Feld mehr
+	// vorhanden, kein 400) -- siehe 176-EXTRA-SCOPE-SUMMARY.md Scope Addition 3.
 	if req.LogoID.Set && req.LogoID.Value != nil && *req.LogoID.Value <= 0 {
 		return models.FansubGroupPatchInput{}, "ungültiger logo_id parameter"
 	}
@@ -125,7 +115,6 @@ func hasAnyFansubGroupPatchField(req models.FansubGroupPatchInput) bool {
 		req.FoundedYear.Set ||
 		req.DissolvedYear.Set ||
 		req.Status.Set ||
-		req.GroupType.Set ||
 		req.WebsiteURL.Set ||
 		req.DiscordURL.Set ||
 		req.IrcURL.Set ||

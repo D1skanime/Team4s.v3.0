@@ -28,7 +28,7 @@ import { PublicPreviewPanel } from './PublicPreviewPanel'
 import ownStyles from './ReadinessTab.module.css'
 
 // Minimale Props-Schnittstelle für die Felder, die ReadinessTab tatsächlich nutzt.
-// Ermöglicht Test-Fixtures ohne exakten FansubStatus/FansubGroupType-Cast.
+// Ermöglicht Test-Fixtures ohne exakten FansubStatus-Cast.
 interface ReadinessGroupProps {
   logo_url?: string | null
   banner_url?: string | null

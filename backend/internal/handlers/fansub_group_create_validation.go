@@ -25,21 +25,11 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 		return models.FansubGroupCreateInput{}, "ungültiger status parameter"
 	}
 
-	groupType := models.FansubGroupTypeGroup
-	if req.GroupType != nil {
-		value := normalizeRequiredString(req.GroupType)
-		if value == nil {
-			return models.FansubGroupCreateInput{}, "ungültiger group_type parameter"
-		}
-
-		parsedGroupType := models.FansubGroupType(*value)
-		switch parsedGroupType {
-		case models.FansubGroupTypeGroup:
-			groupType = parsedGroupType
-		default:
-			return models.FansubGroupCreateInput{}, "ungültiger group_type parameter"
-		}
-	}
+	// group_type ist totes Erbe der in Phase 81 abgelösten Kollaborations-Gruppen
+	// (DB-Spalte per Migration 0102 entfernt). Ein von einem alten Client noch
+	// mitgeschicktes group_type im Request-Body wird von encoding/json beim Bind
+	// in fansubGroupCreateRequest automatisch ignoriert (kein Feld mehr vorhanden,
+	// kein 400) -- siehe 176-EXTRA-SCOPE-SUMMARY.md Scope Addition 3.
 
 	if req.FoundedYear != nil && *req.FoundedYear <= 0 {
 		return models.FansubGroupCreateInput{}, "ungültiger founded_year parameter"
@@ -78,7 +68,6 @@ func validateFansubGroupCreateRequest(req fansubGroupCreateRequest) (models.Fans
 		FoundedYear:   req.FoundedYear,
 		DissolvedYear: req.DissolvedYear,
 		Status:        *status,
-		GroupType:     groupType,
 		WebsiteURL:    normalizeNullableString(req.WebsiteURL),
 		DiscordURL:    normalizeNullableString(req.DiscordURL),
 		IrcURL:        normalizeNullableString(req.IrcURL),

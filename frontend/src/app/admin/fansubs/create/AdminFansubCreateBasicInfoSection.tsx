@@ -1,5 +1,5 @@
 // Basic-information section, extracted from AdminFansubCreateContent as part
-// of the D-04 primitive migration (176-07): name/slug/status/groupType/country
+// of the D-04 primitive migration (176-07): name/slug/status/country
 // plus the founded/dissolved year pickers move into their own presentational
 // component, matching the AdminFansubCreateAliasesSection/
 // AdminFansubCreateLinksSection/AdminFansubCreateMediaSection split already
@@ -12,7 +12,8 @@ import { Dispatch, SetStateAction } from "react";
 
 import { Input, Select, YearPicker } from "@/components/ui";
 import { FansubGroupKuerzelField } from "@/components/admin/FansubGroupKuerzelField";
-import { FansubGroupType, FansubStatus } from "@/types/fansub";
+import { getFansubStatusLabel } from "@/lib/fansub-labels";
+import { FansubStatus } from "@/types/fansub";
 
 import sharedStyles from "../../admin.module.css";
 import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
@@ -54,7 +55,7 @@ export function AdminFansubCreateBasicInfoSection({
   return (
     <details className={styles.fansubEditSection} open>
       <summary className={styles.fansubEditSectionSummary}>
-        Basic Information
+        Grunddaten
       </summary>
       <div className={styles.fansubEditSectionBody}>
         <div className={styles.responsiveFieldGrid}>
@@ -152,29 +153,13 @@ export function AdminFansubCreateBasicInfoSection({
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option} value={option}>
-                  {option}
+                  {getFansubStatusLabel(option)}
                 </option>
               ))}
             </Select>
           </div>
           <div className={styles.field}>
-            <label>
-              Typ <span className={styles.fansubEditRequired}>*</span>
-            </label>
-            <Select
-              value={form.groupType}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  groupType: event.target.value as FansubGroupType,
-                }))
-              }
-            >
-              <option value="group">Gruppe</option>
-            </Select>
-          </div>
-          <div className={styles.field}>
-            <label>Country</label>
+            <label>Land</label>
             <Input
               value={form.country}
               onChange={(event) =>

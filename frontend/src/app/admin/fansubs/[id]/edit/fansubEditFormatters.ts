@@ -1,4 +1,5 @@
 import { ApiError, resolveApiUrl } from "@/lib/api";
+import { getFansubStatusLabel } from "@/lib/fansub-labels";
 import type { AdminAnimeThemeSegment, AdminFansubAnimeEntry } from "@/types/admin";
 import type {
   AdminFansubRelease,
@@ -6,12 +7,6 @@ import type {
   FansubStatus,
 } from "@/types/fansub";
 import type { ReleaseSegmentCard, ReleaseSegmentStatus } from "./fansubEditTypes";
-
-const STATUS_LABELS: Record<FansubStatus, string> = {
-  active: "aktiv",
-  inactive: "inaktiv",
-  dissolved: "aufgelöst",
-};
 
 const DEFAULT_LINK_PROTOCOLS = new Set(["http:", "https:"]);
 const IRC_LINK_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
@@ -213,7 +208,7 @@ export function themeSegmentTimeRange(
 }
 
 export function labelForFansubStatus(status: FansubStatus): string {
-  return STATUS_LABELS[status] || status;
+  return getFansubStatusLabel(status);
 }
 
 export function errMessage(error: unknown): string {

@@ -3,6 +3,9 @@ package models
 import "time"
 
 // FansubGroupType unterscheidet regulaere Fansub-Gruppen (einziger erlaubter Wert nach Phase 81).
+// Seit 176-EXTRA Scope Addition 3 rein intern (episode_import_repository_fansub_helpers.go) --
+// kein Request-/Response-/DB-Feld mehr; die fansub_groups.group_type-Spalte wurde bereits per
+// Migration 0102 (Phase 81) entfernt.
 type FansubGroupType string
 
 // FansubGroupLinkType beschreibt die erlaubten generischen Link-Typen fuer Fansub-Gruppen.
@@ -48,7 +51,6 @@ type FansubGroup struct {
 	DissolvedYear           *int32            `json:"dissolved_year,omitempty"`
 	ClosedYear              *int32            `json:"closed_year,omitempty"`
 	Status                  string            `json:"status"`
-	GroupType               FansubGroupType   `json:"group_type"`
 	WebsiteURL              *string           `json:"website_url,omitempty"`
 	DiscordURL              *string           `json:"discord_url,omitempty"`
 	IrcURL                  *string           `json:"irc_url,omitempty"`
@@ -207,7 +209,6 @@ type FansubGroupCreateInput struct {
 	FoundedYear   *int32
 	DissolvedYear *int32
 	Status        string
-	GroupType     FansubGroupType
 	WebsiteURL    *string
 	DiscordURL    *string
 	IrcURL        *string
@@ -232,7 +233,6 @@ type FansubGroupPatchInput struct {
 	FoundedYear   OptionalInt32  `json:"founded_year"`
 	DissolvedYear OptionalInt32  `json:"dissolved_year"`
 	Status        OptionalString `json:"status"`
-	GroupType     OptionalString `json:"group_type"`
 	WebsiteURL    OptionalString `json:"website_url"`
 	DiscordURL    OptionalString `json:"discord_url"`
 	IrcURL        OptionalString `json:"irc_url"`

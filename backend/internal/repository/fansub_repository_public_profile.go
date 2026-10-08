@@ -86,7 +86,7 @@ func (r *FansubRepository) getPublicGroupBase(ctx context.Context, slug string) 
 	query := `
 		SELECT
 			id, slug, name, logo_id, banner_id, logo_url, banner_url,
-			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
+			founded_year, dissolved_year, closed_year, status, website_url, discord_url, irc_url, country,
 			created_at, updated_at,
 			logo_display.path AS logo_display_path,
 			banner_display.path AS banner_display_path
@@ -118,7 +118,6 @@ func (r *FansubRepository) getPublicGroupBase(ctx context.Context, slug string) 
 		&item.DissolvedYear,
 		&item.ClosedYear,
 		&item.Status,
-		&item.GroupType,
 		&item.WebsiteURL,
 		&item.DiscordURL,
 		&item.IrcURL,

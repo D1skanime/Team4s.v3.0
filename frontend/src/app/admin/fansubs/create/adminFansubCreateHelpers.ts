@@ -19,7 +19,6 @@ import {
   FansubGroupLink,
   FansubGroupLinkType,
   FansubGroupPatchRequest,
-  FansubGroupType,
   FansubStatus,
 } from "@/types/fansub";
 import { EditableMediaValue } from "@/components/admin/MediaUpload";
@@ -31,7 +30,6 @@ export type FormState = {
   slug: string;
   kuerzel: string;
   status: FansubStatus;
-  groupType: FansubGroupType;
   country: string;
   foundedYear: string;
   dissolvedYear: string;
@@ -85,7 +83,6 @@ export function mapGroupToForm(group: FansubGroup): FormState {
     slug: group.slug || "",
     kuerzel: group.kuerzel || "",
     status: group.status,
-    groupType: "group",
     country: group.country || "",
     foundedYear: group.founded_year ? String(group.founded_year) : "",
     dissolvedYear: group.dissolved_year ? String(group.dissolved_year) : "",
@@ -162,7 +159,6 @@ export function emptyForm(): FormState {
     slug: "",
     kuerzel: "",
     status: "active",
-    groupType: "group",
     country: "",
     foundedYear: "",
     dissolvedYear: "",
@@ -187,7 +183,6 @@ export function formToCreatePayload(form: FormState): FansubGroupCreateRequest {
     slug: form.slug.trim(),
     kuerzel: toOptional(form.kuerzel),
     status: form.status,
-    group_type: form.groupType,
     country: toOptional(form.country),
     founded_year: founded === null ? null : founded,
     dissolved_year: dissolved === null ? null : dissolved,
@@ -206,7 +201,6 @@ export function formToPatchPayload(
     slug: form.slug.trim(),
     kuerzel: toOptional(form.kuerzel),
     status: form.status,
-    group_type: form.groupType,
     country: toOptional(form.country),
     founded_year: founded === null ? null : founded,
     dissolved_year: dissolved === null ? null : dissolved,

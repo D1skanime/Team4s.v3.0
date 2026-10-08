@@ -6,7 +6,6 @@ import type {
   AdminFansubRelease,
   FansubGroupCapabilities,
   FansubGroupLinkType,
-  FansubGroupType,
   FansubStatus,
 } from "@/types/fansub";
 import type { MainTab as MainTabType } from "./mainTabRouting";
@@ -38,7 +37,6 @@ export type FormState = {
   kuerzel: string;
   slug: string;
   status: FansubStatus;
-  groupType: FansubGroupType;
   country: string;
   websiteURL: string;
   discordURL: string;

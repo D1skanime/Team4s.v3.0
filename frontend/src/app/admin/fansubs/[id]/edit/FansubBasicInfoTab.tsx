@@ -214,17 +214,6 @@ export function FansubBasicInfoTab({
                 ))}
               </Select>
             </div>
-            <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
-              <label htmlFor="fansub-group-type">Gruppentyp</label>
-              <Select
-                id="fansub-group-type"
-                value={form.groupType}
-                disabled={!canEditBroad}
-                onChange={(event) => setForm((current) => ({ ...current, groupType: event.target.value as typeof current.groupType }))}
-              >
-                <option value="group">Fansubgruppe</option>
-              </Select>
-            </div>
             <div
               className={`${styles.field} ${styles.fansubEditBasicField}`}
             >

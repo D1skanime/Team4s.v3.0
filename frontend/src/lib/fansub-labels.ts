@@ -1,4 +1,4 @@
-import type { FansubGroupLinkType } from '@/types/fansub'
+import type { FansubGroupLinkType, FansubStatus } from '@/types/fansub'
 
 /** AO5-08: zentrale deutsche Labels für Fansub-Gruppenmedien-Kategorien. */
 export const FANSUB_MEDIA_CATEGORY_LABELS: Record<string, string> = {
@@ -31,4 +31,23 @@ export function getFansubMediaCategoryLabel(category: string): string {
 /** Übersetzt einen Community-Link-Typ in ein deutsches Label; unbekannte Werte liefern den Rohwert zurück. */
 export function getFansubLinkTypeLabel(linkType: string): string {
   return FANSUB_LINK_TYPE_LABELS[linkType as FansubGroupLinkType] ?? linkType
+}
+
+/**
+ * 176-EXTRA Scope Addition 3: zentrale deutsche Labels für Fansub-Gruppen-
+ * Status. Die gespeicherten Rohwerte (active/inactive/dissolved) bleiben
+ * unverändert -- nur die Anzeige in Status-Auswahlfeldern/-Badges wird
+ * eingedeutscht. Einziger Label-Helfer für FansubStatus; wird sowohl von der
+ * Anlege- als auch von der Bearbeitungsseite (und deren Fansub-Leader-Sicht)
+ * verwendet.
+ */
+export const FANSUB_STATUS_LABELS: Record<FansubStatus, string> = {
+  active: 'Aktiv',
+  inactive: 'Inaktiv',
+  dissolved: 'Aufgelöst',
+}
+
+/** Übersetzt einen Fansub-Gruppen-Status in sein deutsches Anzeige-Label. */
+export function getFansubStatusLabel(status: FansubStatus): string {
+  return FANSUB_STATUS_LABELS[status] ?? status
 }

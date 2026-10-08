@@ -83,7 +83,6 @@ describe("AdminFansubsPage", () => {
           name: "Sakura Subs",
           kuerzel: "BDnP",
           status: "active",
-          group_type: "group",
           founded_year: 2004,
           dissolved_year: null,
           anime_relations_count: 0,

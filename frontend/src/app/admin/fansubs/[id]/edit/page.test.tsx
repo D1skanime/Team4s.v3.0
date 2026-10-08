@@ -203,7 +203,6 @@ beforeEach(() => {
       name: 'SubGroup',
       slug: 'subgroup',
       status: 'active',
-      group_type: 'group',
       country: null,
       founded_year: null,
       dissolved_year: null,
@@ -612,8 +611,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
     apiMocks.getFansubByID.mockResolvedValue({
       data: {
-        id: 88, name: 'SubGroup', slug: 'subgroup', status: 'active', group_type: 'group',
-        country: null, founded_year: null, dissolved_year: null, logo_url: null,
+        id: 88, name: 'SubGroup', slug: 'subgroup', status: 'active', country: null, founded_year: null, dissolved_year: null, logo_url: null,
         banner_url: null, logo_id: null, banner_id: null,
         website_url: 'javascript:alert(1)', discord_url: null, irc_url: null,
         links: [{ id: 1, group_id: 88, link_type: 'website', name: null, url: 'https://valid.example', created_at: '2026-05-20T00:00:00Z' }], updated_at: '2026-05-20T00:00:00Z',
@@ -674,7 +672,6 @@ describe('AdminFansubEditPage token-free wiring', () => {
         name: 'SubGroup',
         slug: 'subgroup',
         status: 'dissolved',
-        group_type: 'group',
         country: null,
         founded_year: null,
         dissolved_year: 2020,

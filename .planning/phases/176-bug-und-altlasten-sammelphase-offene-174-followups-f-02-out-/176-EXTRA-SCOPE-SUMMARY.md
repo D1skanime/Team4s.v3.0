@@ -417,3 +417,352 @@ Add to the 176 closing UAT:
 4. Confirm the alias section heading now reads "Aliase" (not "Tags"), the
    input placeholder reads "Alias hinzufügen", and adding/removing an alias
    shows "Alias hinzugefügt."/"Alias entfernt." toasts (not "Tag...").
+
+## Scope Addition 3: Gruppentyp entfernen + Land/Status eindeutschen
+
+**User report (2026-10-08, verbatim decision):** The "Typ"/Gruppentyp field on
+both the Fansub-Anlegeseite and the Bearbeitungsseite is dead legacy from the
+Phase-81-retired collaboration groups — `fansub_groups.group_type` was dropped
+by migration 0102, the dropdown only ever offers "Gruppe", and the backend
+only accepts `'group'` and persists nothing. Decision: remove the field
+everywhere groups are created or edited (admin AND fansub-leader view, via the
+capability-gated single edit surface), relabel "Country" → "Land", show
+German status labels ("Aktiv"/"Inaktiv"/"Aufgelöst") instead of raw
+active/inactive/dissolved values, keep backward compatibility (an old client
+still sending `group_type` must not get a 400), add logic-only tests, and
+sweep the same forms for other obviously-English labels.
+
+### What was found
+
+- **Scope confirmation via grep + live DB check:** `database/migrations/0102_drop_collaboration_schema.up.sql`
+  does `ALTER TABLE fansub_groups DROP COLUMN IF EXISTS group_type` (Phase 81,
+  D-02) and `\d fansub_groups` against the live `team4s_v2` database confirmed
+  no `group_type`/`type` column exists today. The backend had nonetheless kept
+  carrying a literal `'group' AS group_type` SQL alias through 7 SELECT
+  statements across `fansub_repository_groups.go` (6x) and
+  `fansub_repository_public_profile.go` (1x), scanning it into
+  `models.FansubGroup.GroupType` and re-serializing it in every single
+  `FansubGroup` JSON response (`group_type: "group"`, always, for every
+  group) — a derived constant carrying zero information, matching the user's
+  "totes Erbe" framing exactly.
+- **Single shared edit surface confirmed for admin + fansub-leader:**
+  `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.tsx` is the one
+  component both roles render through (`page.tsx` → `FansubDetailsTab.tsx` →
+  `FansubBasicInfoTab.tsx`, gated by `isPlatformAdmin`/`capabilities` props,
+  not by a separate route) — there is no separate `/me/...` fansub-group
+  master-data edit surface; `frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx`
+  is project-scoped (anime project notes/timeline) and has zero overlap with
+  name/slug/status/type/country fields. The Fansub-Anlegeseite
+  (`/admin/fansubs/create`) is platform-admin-only (behind `PlatformAdminGate`,
+  confirmed in Scope Addition 2's notes) — leaders cannot create groups, only
+  edit their own, so the edit page is the only surface needing the
+  dual-role check.
+- **Backend special case found exactly as flagged:**
+  `FansubRepository.UpdateGroup` had `if len(assignments) == 1 { if
+  input.GroupType.Set { return r.GetGroupByID(ctx, id) } ... }` — a short-circuit
+  that, when a patch body contained *only* `group_type` (now meaningless), skipped
+  the `UPDATE` entirely and just re-read the row. Removed along with the field.
+- **Narrow-role permission test coupling discovered during removal:**
+  `requiredFansubGroupPatchActions` mapped `input.GroupType.Set` to the same
+  `ActionFansubGroupEdit` permission as `status`, and a dedicated Phase-136
+  test (`TestPhase136ForbiddenStatusAndGroupTypeReturn403`) asserted a
+  co_leader got `403` for a `{"group_type":"group"}`-only PATCH body. Removing
+  the field changes this specific case's outcome: since `group_type` is no
+  longer a bindable struct field, that body unmarshals to an *empty* patch and
+  is now correctly rejected with `400` ("mindestens ein feld ist erforderlich")
+  by `hasAnyFansubGroupPatchField`'s guard *before* the permission loop even
+  runs — not `403`. The obsolete sub-case was removed from the test (renamed
+  `TestPhase136ForbiddenStatusReturn403`, "status" case kept) rather than
+  patched to assert the new 400, since testing "does a now-nonexistent field
+  reach the permission layer" no longer has anything to prove; the
+  ignore-silently behavior itself is covered by two new tests in
+  `fansub_test.go` instead.
+- **No existing central status-label helper, found one planned location
+  already in use:** `frontend/src/lib/fansub-labels.ts` already centralizes
+  `getFansubMediaCategoryLabel`/`getFansubLinkTypeLabel` for this exact
+  domain (Fansub-Gruppen) — the natural home for a new
+  `getFansubStatusLabel`, rather than inventing a new file. A *local*
+  `labelForFansubStatus` already existed in the edit page's
+  `fansubEditFormatters.ts` (lowercase "aktiv"/"inaktiv"/"aufgelöst", used by
+  both the Status `<Select>` options in `FansubBasicInfoTab.tsx` and the
+  status badge in `FansubEditHeaderCard.tsx`) — the create page's Status
+  `<Select>` had no label mapping at all and rendered the raw enum value
+  (`active`/`inactive`/`dissolved`) as option text.
+- **Sweep of the same two forms surfaced two more same-pattern raw-value
+  leaks, not named by the user but directly adjacent:** both the create
+  page's `AdminFansubCreateLinksSection.tsx` and the edit page's
+  `FansubCommunityLinksList.tsx` render their community-link-type `<Select>`
+  options as the raw `FansubGroupLinkType` value (`website`/`discord`/
+  `twitter`/`github`/`irc`) even though `getFansubLinkTypeLabel` (German:
+  Webseite/Discord/Twitter-X/GitHub/IRC) already existed in the same
+  `fansub-labels.ts` file and was already used elsewhere for *display* of
+  stored links — just never wired into these two option lists. Fixed as part
+  of this sweep (Rule 1 — same bug class as the Status dropdown, ready-made
+  fix, zero new code). The create page's "Media" section heading was also
+  plain English; renamed to "Logo und Banner" to match the edit page's
+  established heading for the identical logo/banner upload section.
+- **Found and deliberately left alone (documented in `deferred-items.md`):**
+  the Fansub-Verwaltung **list** page (`frontend/src/app/admin/fansubs/page.tsx`,
+  a different component from the two Stammdaten-Formulare named by the user)
+  has its own English-only `statusLabel()`/`statusFilterOptions`/
+  `bulkStatusOptions` plus literal "Edit"/"Delete" button text in its mobile
+  card menu. Same bug class, same ready-made fix available, but a different
+  file with no other connection to this scope addition and its own separate
+  native-`<select>`-vs-`@/components/ui` migration gap — fixing it would
+  blur this scope addition's boundary. Logged as a recommended follow-up
+  instead of fixed.
+- **False-positive check confirmed:** `backend/internal/repository/episode_import_repository_fansub_helpers.go`
+  uses `models.FansubGroupType`/`models.FansubGroupTypeGroup` as a purely
+  internal, never-externally-settable marker (`upsertImportFansubGroup`'s
+  last parameter is intentionally always `FansubGroupTypeGroup` and is
+  `_`-ignored in the function body) documenting "imported groups are always
+  type group, never collaboration" — this has no `json` tag, is never bound
+  from a request, and was correctly left untouched per the user's own
+  "falls danach ungenutzt entfernen" conditional (it is still used, so it
+  stays). The backend Go type itself was kept; only its three
+  request/response/DB-facing field usages were removed.
+
+### What was changed
+
+**Backend — group_type removed from request, validation, response, and DB
+query layers; backward-compatible (no 400 for a legacy group_type):**
+- `backend/internal/models/fansub.go`: removed `GroupType` from
+  `FansubGroup` (response), `FansubGroupCreateInput`, and
+  `FansubGroupPatchInput`. Kept the `FansubGroupType` type/`FansubGroupTypeGroup`
+  constant (still used internally, see above) with an updated comment
+  clarifying it is no longer request/response/DB-facing.
+- `backend/internal/handlers/fansub_requests.go`: removed
+  `GroupType *string \`json:"group_type"\`` from `fansubGroupCreateRequest`.
+- `backend/internal/handlers/fansub_group_create_validation.go` and
+  `fansub_group_patch_validation.go`: removed all group_type parsing/
+  validation branches, replaced with a comment explaining the
+  encoding/json-silently-ignores-unknown-fields backward-compat mechanism.
+- `backend/internal/handlers/fansub_groups.go`:
+  `requiredFansubGroupPatchActions` no longer checks `input.GroupType.Set`
+  (status alone still maps to `ActionFansubGroupEdit`).
+- `backend/internal/repository/fansub_repository_groups.go`: removed the
+  `'group' AS group_type` SQL alias and `&item.GroupType` scan target from
+  all 6 occurrences (`ListGroups`, `CreateGroup`, `GetGroupByID`,
+  `GetGroupBySlug`, `UpdateGroup`, `scanFansubGroup`); removed the
+  `if input.GroupType.Set { return r.GetGroupByID(ctx, id) }` short-circuit
+  in `UpdateGroup`'s zero-fields guard.
+- `backend/internal/repository/fansub_repository_public_profile.go`: same
+  removal in `getPublicGroupBase`'s SELECT/Scan (the 7th occurrence).
+
+**Contracts:**
+- `shared/contracts/fansubs.yaml`: removed the `FansubGroupType` type and the
+  `group_type` field from `FansubGroupCreateRequest`, `FansubGroupPatchRequest`,
+  and `FansubGroup`.
+- `shared/contracts/openapi.yaml`: removed the `FansubGroupType` schema
+  (whose enum `[group, collaboration]` was itself already stale/drifted from
+  `fansubs.yaml`'s `[group]`-only definition — further evidence of dead
+  documentation), the `group_type` property + `required` entry from the
+  `FansubGroup` schema, and the `group_type` property from
+  `FansubGroupCreateRequest`/`FansubGroupPatchRequest`.
+
+**Frontend — field removed from both forms, Land/Status/link-type labels
+eindeutscht:**
+- `frontend/src/types/fansub.ts`: removed the `FansubGroupType` type and the
+  `group_type` field from `FansubGroupCreateRequest`/`FansubGroupPatchRequest`.
+- `frontend/src/lib/fansub-labels.ts`: added `FANSUB_STATUS_LABELS` +
+  `getFansubStatusLabel(status: FansubStatus): string` — the single new
+  central status-label helper, alongside the existing media-category/
+  link-type label helpers in the same file.
+- `frontend/src/app/admin/fansubs/[id]/edit/fansubEditFormatters.ts`:
+  `labelForFansubStatus` now delegates to `getFansubStatusLabel` instead of
+  its own local lowercase `STATUS_LABELS` map — output changes from
+  lowercase ("aktiv") to capitalized ("Aktiv") everywhere it's already used
+  (`FansubBasicInfoTab.tsx`'s Status `<Select>` options and
+  `FansubEditHeaderCard.tsx`'s status badge), matching the user's requested
+  casing. No call-site changes needed since the function signature/name is
+  unchanged.
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.tsx`: removed
+  the entire "Gruppentyp" field block (label + `<Select>` with its single
+  "Fansubgruppe" option). The Status `<Select>` already called
+  `labelForFansubStatus(s)` for option text (now capitalized via the shared
+  helper) — no change needed there beyond the field removal.
+- `frontend/src/app/admin/fansubs/[id]/edit/fansubEditTypes.ts`: removed
+  `groupType: FansubGroupType` from `FormState` and the now-unused
+  `FansubGroupType` import.
+- `frontend/src/app/admin/fansubs/[id]/edit/fansubEditFormMapping.ts`:
+  removed `groupType: "group"` from `mapGroupToForm`/`emptyForm` and
+  `payload.group_type = form.groupType` from `formToPayload`.
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateBasicInfoSection.tsx`:
+  removed the "Typ" field block entirely; "Country" label → "Land"; Status
+  `<Select>` options now render `getFansubStatusLabel(option)` instead of
+  the raw value; section heading "Basic Information" → "Grunddaten" (matching
+  the edit page's existing tab-navigation term for the same section, found
+  via `ReadinessTab.tsx`'s `'In Grunddaten ergänzen'` hint).
+- `frontend/src/app/admin/fansubs/create/adminFansubCreateHelpers.ts`:
+  removed `groupType: FansubGroupType` from `FormState`, the now-unused
+  `FansubGroupType` import, `groupType: "group"` from `mapGroupToForm`/
+  `emptyForm`, and `group_type: form.groupType` from both
+  `formToCreatePayload` and `formToPatchPayload`.
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateLinksSection.tsx`
+  and `frontend/src/app/admin/fansubs/[id]/edit/FansubCommunityLinksList.tsx`:
+  community-link-type `<Select>` options now render
+  `getFansubLinkTypeLabel(option)` instead of the raw `website`/`discord`/
+  `twitter`/`github`/`irc` value (sweep finding, same bug class as Status).
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateMediaSection.tsx`:
+  section heading "Media" → "Logo und Banner" (sweep finding, matches the
+  edit page's heading for the identical section).
+- `frontend/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx`: updated a
+  comment referencing the now-removed `FansubGroupType` (no behavior change,
+  the component never used the type itself — only its own narrow
+  `ReadinessGroupProps` interface, which never had a type field).
+
+### Tests added (logic only, no render/click tests, per explicit instruction)
+
+- `backend/internal/handlers/fansub_test.go`: replaced
+  `TestValidateFansubGroupCreateRequest_InvalidGroupType` and the two
+  `TestValidateFansubGroupPatchRequest_*GroupType*` tests (which tested
+  validation rules for a field that no longer exists) with
+  `TestValidateFansubGroupCreateRequest_IgnoresLegacyGroupType` (raw JSON with
+  `group_type` unmarshals and validates cleanly, no 400) and two patch-side
+  equivalents: `TestValidateFansubGroupPatchRequest_IgnoresLegacyGroupType`
+  (group_type-only body → the normal "mindestens ein feld" message, not a
+  group_type-specific error) and
+  `..._IgnoresLegacyGroupTypeAlongsideRealField` (group_type sent together
+  with a real field like `name` doesn't block that field's own validation).
+  `TestValidateFansubGroupCreateRequest` itself was kept but stripped of its
+  now-impossible `GroupType: &groupType` struct-literal field.
+- `backend/internal/handlers/phase136_narrow_role_defaults_enforcement_test.go`:
+  removed the `groupType := requiredFansubGroupPatchActions(...)` assertion
+  from `TestPhase136NarrowRoleDefaultsLifecyclePatchActions` (field no longer
+  exists) and renamed/narrowed `TestPhase136ForbiddenStatusAndGroupTypeReturn403`
+  to `TestPhase136ForbiddenStatusReturn403` (status-only case kept; see "What
+  was found" above for why the group_type case's expected outcome changed
+  from 403 to 400 and is now covered elsewhere instead of patched in place).
+- `frontend/src/lib/__tests__/fansub-labels.test.ts`: added a
+  `getFansubStatusLabel` describe block asserting all three German labels
+  ("Aktiv"/"Inaktiv"/"Aufgelöst") for all three `FansubStatus` values.
+- Existing render tests referencing the removed field/labels were updated
+  (not added) to match the new UI, per the plan's own "update, don't
+  re-test" boundary: `FansubBasicInfoTab.test.tsx` (3 `getByLabelText('Gruppentyp')`
+  assertions removed from 3 existing test cases — the field no longer
+  renders), `create/page.test.tsx` (`getLabeledInput(container, "Country")` →
+  `"Land"`, and `group_type: "group"` removed from one payload-equality
+  assertion).
+
+### Verification performed
+
+- `docker exec team4sv30-backend go build ./...` and `go vet ./...` — clean.
+- `docker exec team4sv30-backend go test ./internal/handlers/... -run
+  'TestValidateFansubGroupCreateRequest|TestValidateFansubGroupPatchRequest|TestPhase136'`
+  — all PASS, including both new "IgnoresLegacyGroupType" tests and the
+  renamed `TestPhase136ForbiddenStatusReturn403`.
+- `docker exec team4sv30-backend go test ./internal/handlers/...` (full
+  package) — only the 3 pre-existing jellyfin-fixture failures already
+  logged under 176-05/Scope-Addition-1 (confirmed via grep: zero mentions of
+  `fansub`/`group_type`/`Gruppentyp` in the failure output).
+- `docker exec team4sv30-backend go test ./internal/repository/...` (full
+  package) — only pre-existing live-Keycloak/external-host/capability-registry
+  failures already logged under 176-12/176-13/Scope-Addition-1 (confirmed via
+  grep: zero mentions of `fansub`/`group_type`/`kuerzel`).
+- `docker exec team4sv30-backend go test ./internal/migrations/... -run
+  TestPhase81` — both PASS (migration-file-content tests unaffected, migration
+  0102 itself was not touched).
+- `docker exec team4sv30-frontend npx tsc --noEmit` — clean.
+- `docker exec team4sv30-frontend npx eslint` on every touched/created
+  frontend file — clean.
+- `docker exec team4sv30-frontend npx vitest run` (full suite, run twice —
+  once after the core field-removal pass, once after the link-type-label
+  sweep fixes): first run — 364 test files passed, 1 pre-existing skip, 3257
+  tests passed. Second run — 1 unrelated flaky failure
+  (`src/app/members/[slug]/not-found.test.tsx`, a `waitFor` timeout on an
+  unrelated member-profile page); re-ran that single file immediately after
+  in isolation and both its tests passed cleanly. A full follow-up run
+  scoped to every fansub-related test file (`src/app/admin/fansubs/**`,
+  `src/lib/fansub-labels*`, `src/lib/api.auth-refresh.test.ts`,
+  `src/components/fansubs/**`) confirmed 75 files / 607 tests all green.
+- Live DB check: `\d fansub_groups` against the real `team4s_v2` database —
+  no `group_type`/`type` column exists (confirms the "DB-Spalte bereits
+  entfernt" premise before touching any backend code).
+- Backend rebuilt: `docker compose up -d --build team4sv30-backend` →
+  `/health` returns `{"status":"ok"}`.
+- Frontend restarted: `docker restart team4sv30-frontend` →
+  `http://192.168.235.196:3000/admin/fansubs/create`,
+  `/admin/fansubs/1/edit`, and `/admin/fansubs` all return 200; backend/
+  frontend container logs show clean `200`-only request traffic for these
+  routes against the real group id 1, no errors.
+
+### Files changed
+
+- `backend/internal/models/fansub.go`
+- `backend/internal/handlers/fansub_requests.go`
+- `backend/internal/handlers/fansub_group_create_validation.go`
+- `backend/internal/handlers/fansub_group_patch_validation.go`
+- `backend/internal/handlers/fansub_groups.go`
+- `backend/internal/handlers/fansub_test.go`
+- `backend/internal/handlers/phase136_narrow_role_defaults_enforcement_test.go`
+- `backend/internal/repository/fansub_repository_groups.go`
+- `backend/internal/repository/fansub_repository_public_profile.go`
+- `shared/contracts/fansubs.yaml`
+- `shared/contracts/openapi.yaml`
+- `frontend/src/types/fansub.ts`
+- `frontend/src/lib/fansub-labels.ts`
+- `frontend/src/lib/__tests__/fansub-labels.test.ts`
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.tsx`
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.test.tsx`
+- `frontend/src/app/admin/fansubs/[id]/edit/fansubEditTypes.ts`
+- `frontend/src/app/admin/fansubs/[id]/edit/fansubEditFormMapping.ts`
+- `frontend/src/app/admin/fansubs/[id]/edit/fansubEditFormatters.ts`
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubCommunityLinksList.tsx`
+- `frontend/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx`
+- `frontend/src/app/admin/fansubs/[id]/edit/ReadinessTab.test.tsx` (test-fixture
+  cleanup only, `group_type: 'group'` removed from a mock `FansubGroup`-shaped
+  object — the field was never part of the `FansubGroup` type)
+- `frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx` (test-fixture
+  cleanup, same as above, across 3 mock responses)
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateBasicInfoSection.tsx`
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateLinksSection.tsx`
+- `frontend/src/app/admin/fansubs/create/AdminFansubCreateMediaSection.tsx`
+- `frontend/src/app/admin/fansubs/create/adminFansubCreateHelpers.ts`
+- `frontend/src/app/admin/fansubs/create/adminFansubCreateHelpers.test.ts`
+- `frontend/src/app/admin/fansubs/create/useAdminFansubCreateActions.test.ts`
+  (test-fixture cleanup only)
+- `frontend/src/app/admin/fansubs/create/page.test.tsx`
+- `frontend/src/app/admin/fansubs/page.test.tsx` (test-fixture cleanup only)
+- `frontend/src/components/fansubs/__tests__/FansubStorySection.test.tsx`
+  (test-fixture cleanup only)
+- `frontend/src/lib/api.auth-refresh.test.ts` (test call-site/fixture cleanup
+  — `createFansubGroup(...)` calls could no longer pass `group_type` once the
+  TS request type dropped the field)
+
+`.planning/sketches/` was not touched.
+
+### Deferred (not fixed, logged in `deferred-items.md` under "Scope Addition 3")
+
+- The Fansub-Verwaltung list page (`frontend/src/app/admin/fansubs/page.tsx`)
+  has the same raw-English-status-value bug (plus literal "Edit"/"Delete"
+  button text) but is a different component from the two forms named in this
+  scope addition's instructions — logged as a recommended small follow-up
+  rather than fixed, to keep this scope addition's diff bounded to the named
+  surfaces.
+
+### Recommended live-UAT additions for the phase's final checkpoint (176-15)
+
+Add to the 176 closing UAT:
+1. **As platform admin**, open `/admin/fansubs/create`: confirm there is no
+   "Typ"/Gruppentyp field anywhere on the page, the country field is labeled
+   "Land" (not "Country"), the Status dropdown shows "Aktiv"/"Inaktiv"/
+   "Aufgelöst" (not raw `active`/`inactive`/`dissolved`), and the community-
+   link-type dropdown shows German labels ("Webseite"/"Discord"/"Twitter/X"/
+   "GitHub"/"IRC") instead of the raw English values. Create a group and
+   confirm the save succeeds (no 400).
+2. **As platform admin**, open an existing group's `/admin/fansubs/{id}/edit`
+   (Grunddaten tab): confirm the same three things (no Gruppentyp field,
+   "Land" label, German status labels) plus the German community-link-type
+   labels in that page's link rows. Edit the name and save; confirm the save
+   succeeds.
+3. **As a fansub leader** (a user with `can_edit_group`/`can_edit_group_general`
+   capabilities but not platform-admin), open the same group's edit page:
+   confirm the Gruppentyp field is absent there too (it was gated the same
+   way as other fields, not hidden only from admins), "Land" label is shown,
+   and the Status dropdown (if visible to this role) shows German labels.
+   Leaders cannot reach the Create page at all (platform-admin-only) — no
+   check needed there for this role.
+4. No backend call/curl is needed for any of the above — all four are pure
+   UI confirmations layered on top of this scope addition's own automated
+   backend tests proving the backward-compatibility (`group_type` silently
+   ignored, no 400) and label-helper behavior.

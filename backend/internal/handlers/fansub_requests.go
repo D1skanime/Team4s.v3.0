@@ -14,7 +14,6 @@ type fansubGroupCreateRequest struct {
 	FoundedYear   *int32  `json:"founded_year"`
 	DissolvedYear *int32  `json:"dissolved_year"`
 	Status        string  `json:"status"`
-	GroupType     *string `json:"group_type"`
 	WebsiteURL    *string `json:"website_url"`
 	DiscordURL    *string `json:"discord_url"`
 	IrcURL        *string `json:"irc_url"`

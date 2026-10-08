@@ -7,6 +7,7 @@ import { ExternalLink, Plus, Trash2 } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 
 import { Input, Select } from "@/components/ui";
+import { getFansubLinkTypeLabel } from "@/lib/fansub-labels";
 import { FansubGroupLinkType } from "@/types/fansub";
 
 import sharedStyles from "../../admin.module.css";
@@ -82,7 +83,7 @@ export function AdminFansubCreateLinksSection({
                 >
                   {LINK_TYPE_OPTIONS.map((option) => (
                     <option key={option} value={option}>
-                      {option}
+                      {getFansubLinkTypeLabel(option)}
                     </option>
                   ))}
                 </Select>

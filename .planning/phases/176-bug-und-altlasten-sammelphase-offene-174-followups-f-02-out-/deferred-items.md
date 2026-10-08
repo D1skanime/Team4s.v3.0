@@ -96,6 +96,52 @@ touch `admin_content_release_version_media_replace*.go`, `media_service_display_
    same pre-existing `release_version_media.reorder` capability-registry gap already logged
    under 176-12 above. Not fixed, per Scope Boundary.
 
+## Scope Addition 3 (Gruppentyp entfernen + Land/Status eindeutschen)
+
+**Out-of-scope English-label finding (not fixed, logged per Scope Boundary):**
+
+1. `frontend/src/app/admin/fansubs/page.tsx` (the Fansub-Verwaltung **list** page, not a
+   create/edit "Stammdaten-Formular") has its own `statusLabel()` helper and two literal
+   option arrays (`statusFilterOptions`, `bulkStatusOptions`) that render **raw English**
+   text for the exact same `FansubStatus` values this scope addition just eindeutscht on the
+   create/edit forms: the status filter shows "active"/"inactive"/"archived", the bulk
+   status-reassignment dropdown shows the same, and the two status badges per row
+   (desktop table + mobile card) call the local `statusLabel()` which returns `"archived"`
+   for `dissolved` and the raw value otherwise. The mobile card's row-menu also has literal
+   English "Edit"/"Delete" button labels. This is the same bug class as the Status-Select
+   issue fixed in this scope addition, with the exact fix already available
+   (`getFansubStatusLabel` in `frontend/src/lib/fansub-labels.ts`) — but the list page is a
+   different component from the two "Stammdaten-Formulare" (create + edit/
+   `FansubBasicInfoTab`) the user's instruction named, and it also uses native `<select>`/
+   `<input>` elements throughout (a separate, larger, pre-existing `@/components/ui`
+   migration gap, same pattern already tracked for other admin surfaces under D-04). Fixing
+   it would require touching a file with no other connection to this scope addition and
+   would blur the Typ/Land/Status fix into an unrelated page. Recommended as a small,
+   separate follow-up: swap `statusLabel()` for `getFansubStatusLabel`, translate the two
+   option-label arrays, and translate "Edit"/"Delete" to "Bearbeiten"/"Löschen".
+
+**Pre-existing, out-of-scope test observations during this scope addition's verification
+runs (none touch any file this scope addition modified):**
+
+1. `go test ./internal/handlers/...` (full package): `TestEpisodeImport11eyesEnumeratesEveryPhysicalSource`,
+   `Test11eyesSourceSelection_AllActualItemsAndPermutations`,
+   `TestJellyfinSourceBatch11eyes_OneCollectionNoAlternativeDiscovery` fail with missing
+   `docs/audits/2026-09-15-jellyfin12/fixtures/11eyes-*.json` fixture files — same
+   pre-existing gap already logged under 176-05/176-13/Scope Addition 1.
+2. `go test ./internal/repository/...` (full package): several `TestPhase134Matrix*` tests
+   fail with live Keycloak/external-host connectivity errors
+   (`192.168.235.196:18093 connection refused`, `invalid_grant`), and
+   `TestPhase141RevokedDelegationImmediateEffect` fails with the pre-existing
+   `release_version_media.reorder` capability-registry gap already logged under
+   176-12/176-13/Scope Addition 1. None reference `fansub`, `group_type`, or `kuerzel`.
+3. `npx vitest run` (full suite, both runs of this scope addition): one run showed
+   `src/app/members/[slug]/not-found.test.tsx` failing on a `waitFor` timeout looking for a
+   "Cached..." heading; re-ran that single file in isolation immediately after and both its
+   tests passed cleanly (294ms/11ms). Flaky/timing-dependent, unrelated to any fansub file —
+   confirmed by a full subsequent run that included every `src/app/admin/fansubs/**`,
+   `src/lib/fansub-labels*`, `src/lib/api.auth-refresh.test.ts`, and
+   `src/components/fansubs/**` test file (75 files, 607 tests, all green).
+
 ## Scope Addition 2 (Kürzel-Feld + Aliase-Umbenennung, Anlegeseite)
 
 Pre-existing, out-of-scope failures observed while running

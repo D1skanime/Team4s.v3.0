@@ -358,7 +358,7 @@ func requiredFansubGroupPatchActions(input models.FansubGroupPatchInput) []permi
 	if input.Name.Set || input.Country.Set || input.Kuerzel.Set {
 		add(permissions.ActionFansubGroupPageGeneralEdit)
 	}
-	if input.Status.Set || input.GroupType.Set {
+	if input.Status.Set {
 		add(permissions.ActionFansubGroupEdit)
 	}
 	if input.WebsiteURL.Set || input.DiscordURL.Set || input.IrcURL.Set {

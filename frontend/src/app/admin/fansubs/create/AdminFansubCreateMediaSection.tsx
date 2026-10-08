@@ -43,7 +43,7 @@ export function AdminFansubCreateMediaSection({
 }: AdminFansubCreateMediaSectionProps) {
   return (
     <details className={styles.fansubEditSection} open>
-      <summary className={styles.fansubEditSectionSummary}>Media</summary>
+      <summary className={styles.fansubEditSectionSummary}>Logo und Banner</summary>
       <div className={styles.fansubEditSectionBody}>
         {createdGroup ? (
           <div className={styles.fansubEditMediaGrid}>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getFansubLinkTypeLabel, getFansubMediaCategoryLabel } from '../fansub-labels'
+import { getFansubLinkTypeLabel, getFansubMediaCategoryLabel, getFansubStatusLabel } from '../fansub-labels'
 
 describe('getFansubMediaCategoryLabel', () => {
   it('übersetzt alle bekannten Medien-Kategorien ins Deutsche', () => {
@@ -30,5 +30,15 @@ describe('getFansubLinkTypeLabel', () => {
 
   it('fällt bei unbekannten Link-Typen auf den Rohwert zurück', () => {
     expect(getFansubLinkTypeLabel('unbekannt')).toBe('unbekannt')
+  })
+})
+
+// 176-EXTRA Scope Addition 3: zentraler deutscher Label-Helfer für FansubStatus,
+// verwendet von der Anlege- und der Bearbeitungsseite (inkl. Fansub-Leader-Sicht).
+describe('getFansubStatusLabel', () => {
+  it('übersetzt alle drei Status-Rohwerte ins Deutsche', () => {
+    expect(getFansubStatusLabel('active')).toBe('Aktiv')
+    expect(getFansubStatusLabel('inactive')).toBe('Inaktiv')
+    expect(getFansubStatusLabel('dissolved')).toBe('Aufgelöst')
   })
 })

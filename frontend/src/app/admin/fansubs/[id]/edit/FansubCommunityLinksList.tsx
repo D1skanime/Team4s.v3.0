@@ -5,6 +5,7 @@ import { ExternalLink, Trash2 } from "lucide-react";
 
 import type { FansubGroupLinkType } from "@/types/fansub";
 import { Button, FormField, Input, Select } from "@/components/ui";
+import { getFansubLinkTypeLabel } from "@/lib/fansub-labels";
 import { createEmptyLink } from "./fansubEditFormMapping";
 import { defaultCommunityLinkURL } from "./fansubEditFormatters";
 import type { CommunityLinkDraft } from "./fansubEditTypes";
@@ -71,7 +72,7 @@ export function FansubCommunityLinksList({
               >
                 {LINK_TYPE_OPTIONS.map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {getFansubLinkTypeLabel(option)}
                   </option>
                 ))}
               </Select>

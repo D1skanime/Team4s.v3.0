@@ -40,13 +40,11 @@ func (*fansubAliasAuditCaptureDB) QueryRow(context.Context, string, ...any) pgx.
 func TestValidateFansubGroupCreateRequest(t *testing.T) {
 	founded := int32(2010)
 	dissolved := int32(2015)
-	groupType := "group"
 
 	input, message := validateFansubGroupCreateRequest(fansubGroupCreateRequest{
 		Slug:          " gax ",
 		Name:          " Group A ",
 		Status:        "active",
-		GroupType:     &groupType,
 		FoundedYear:   &founded,
 		DissolvedYear: &dissolved,
 	})
@@ -59,8 +57,27 @@ func TestValidateFansubGroupCreateRequest(t *testing.T) {
 	if input.Name != "Group A" {
 		t.Fatalf("expected normalized name, got %q", input.Name)
 	}
-	if input.GroupType != models.FansubGroupTypeGroup {
-		t.Fatalf("expected group_type group, got %q", input.GroupType)
+}
+
+// TestValidateFansubGroupCreateRequest_IgnoresLegacyGroupType sichert die
+// Abwärtskompatibilität (176-EXTRA Scope Addition 3): group_type ist totes
+// Erbe der in Phase 81 abgelösten Kollaborations-Gruppen (DB-Spalte per
+// Migration 0102 entfernt). fansubGroupCreateRequest hat seit dieser Scope
+// Addition kein GroupType-Feld mehr -- ein von einem alten Client noch
+// mitgeschicktes group_type im rohen JSON-Body wird beim Unmarshal in den
+// Request-Typ automatisch verworfen, führt also zu KEINEM 400.
+func TestValidateFansubGroupCreateRequest_IgnoresLegacyGroupType(t *testing.T) {
+	var req fansubGroupCreateRequest
+	if err := json.Unmarshal([]byte(`{"slug":"gax","name":"Group A","status":"active","group_type":"group"}`), &req); err != nil {
+		t.Fatalf("unmarshal create request: %v", err)
+	}
+
+	input, message := validateFansubGroupCreateRequest(req)
+	if message != "" {
+		t.Fatalf("expected legacy group_type to be ignored without validation error, got %q", message)
+	}
+	if input.Slug != "gax" || input.Name != "Group A" {
+		t.Fatalf("expected the other fields to still validate normally, got %#v", input)
 	}
 }
 
@@ -80,23 +97,32 @@ func TestValidateFansubGroupCreateRequest_InvalidYearRange(t *testing.T) {
 	}
 }
 
-func TestValidateFansubGroupCreateRequest_InvalidGroupType(t *testing.T) {
-	groupType := "invalid"
+// TestValidateFansubGroupPatchRequest_IgnoresLegacyGroupType sichert die
+// Abwärtskompatibilität (176-EXTRA Scope Addition 3) auf dem Patch-Pfad:
+// models.FansubGroupPatchInput hat kein GroupType-Feld mehr -- ein von einem
+// alten Client noch mitgeschicktes group_type im rohen JSON-Body wird beim
+// Unmarshal automatisch verworfen. Ohne ein weiteres echtes Patch-Feld bleibt
+// der Request dadurch leer und wird korrekt mit der normalen "mindestens ein
+// feld"-Meldung abgelehnt (kein 400 wegen group_type selbst, sondern weil gar
+// kein unterstütztes Feld übrig bleibt).
+func TestValidateFansubGroupPatchRequest_IgnoresLegacyGroupType(t *testing.T) {
+	var patch models.FansubGroupPatchInput
+	if err := json.Unmarshal([]byte(`{"group_type":"group"}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
 
-	_, message := validateFansubGroupCreateRequest(fansubGroupCreateRequest{
-		Slug:      "gax",
-		Name:      "Group A",
-		Status:    "active",
-		GroupType: &groupType,
-	})
-	if message != "ungültiger group_type parameter" {
+	_, message := validateFansubGroupPatchRequest(patch)
+	if message != "mindestens ein feld ist erforderlich" {
 		t.Fatalf("unexpected message: %q", message)
 	}
 }
 
-func TestValidateFansubGroupPatchRequest_GroupTypeOnly(t *testing.T) {
+// TestValidateFansubGroupPatchRequest_IgnoresLegacyGroupTypeAlongsideRealField
+// proves a legacy group_type sent together with a real patchable field (name)
+// is silently dropped and does not block the otherwise-valid patch.
+func TestValidateFansubGroupPatchRequest_IgnoresLegacyGroupTypeAlongsideRealField(t *testing.T) {
 	var patch models.FansubGroupPatchInput
-	if err := json.Unmarshal([]byte(`{"group_type":"group"}`), &patch); err != nil {
+	if err := json.Unmarshal([]byte(`{"group_type":"group","name":"Neuer Name"}`), &patch); err != nil {
 		t.Fatalf("unmarshal patch: %v", err)
 	}
 
@@ -104,23 +130,8 @@ func TestValidateFansubGroupPatchRequest_GroupTypeOnly(t *testing.T) {
 	if message != "" {
 		t.Fatalf("expected no validation error, got %q", message)
 	}
-	if !validated.GroupType.Set || validated.GroupType.Value == nil {
-		t.Fatalf("expected group_type to be set")
-	}
-	if *validated.GroupType.Value != "group" {
-		t.Fatalf("expected group_type group (collaboration entfernt in Phase 81), got %q", *validated.GroupType.Value)
-	}
-}
-
-func TestValidateFansubGroupPatchRequest_InvalidGroupType(t *testing.T) {
-	var patch models.FansubGroupPatchInput
-	if err := json.Unmarshal([]byte(`{"group_type":"invalid"}`), &patch); err != nil {
-		t.Fatalf("unmarshal patch: %v", err)
-	}
-
-	_, message := validateFansubGroupPatchRequest(patch)
-	if message != "ungültiger group_type parameter" {
-		t.Fatalf("unexpected message: %q", message)
+	if !validated.Name.Set || validated.Name.Value == nil || *validated.Name.Value != "Neuer Name" {
+		t.Fatalf("expected name to validate normally despite legacy group_type, got %#v", validated.Name)
 	}
 }
 

@@ -1,7 +1,6 @@
 import { PaginationMeta } from "@/types/anime";
 
 export type FansubStatus = "active" | "inactive" | "dissolved";
-export type FansubGroupType = "group";
 export type FansubGroupLinkType =
   | "website"
   | "discord"
@@ -319,7 +318,6 @@ export interface FansubGroupCreateRequest {
   founded_year?: number | null;
   dissolved_year?: number | null;
   status: FansubStatus;
-  group_type?: FansubGroupType;
   website_url?: string | null;
   discord_url?: string | null;
   irc_url?: string | null;
@@ -337,7 +335,6 @@ export interface FansubGroupPatchRequest {
   founded_year?: number | null;
   dissolved_year?: number | null;
   status?: FansubStatus | null;
-  group_type?: FansubGroupType;
   website_url?: string | null;
   discord_url?: string | null;
   irc_url?: string | null;

@@ -225,7 +225,7 @@ describe("AdminFansubCreatePage — Helfer-Verhalten (indirekt über Rendering/I
     fireEvent.change(getLabeledInput(container, "Name"), {
       target: { value: "Neue Gruppe" },
     });
-    // Country bleibt leer -> toOptional("") === null
+    // Land bleibt leer -> toOptional("") === null
     fireEvent.click(screen.getByRole("button", { name: "Gründungsjahr" }));
     fireEvent.click(screen.getByRole("button", { name: "2015" }));
     // Auflösungsjahr bleibt leer -> parseYear("") === null
@@ -238,7 +238,6 @@ describe("AdminFansubCreatePage — Helfer-Verhalten (indirekt über Rendering/I
       slug: "neue-gruppe",
       kuerzel: null,
       status: "active",
-      group_type: "group",
       country: null,
       founded_year: 2015,
       dissolved_year: null,
@@ -291,7 +290,7 @@ describe("AdminFansubCreatePage — Helfer-Verhalten (indirekt über Rendering/I
     await waitFor(() => expect(getFansubByIDMock).toHaveBeenCalled());
     await screen.findByRole("button", { name: "Speichern" });
 
-    expect(getLabeledInput(container, "Country").value).toBe("DE");
+    expect(getLabeledInput(container, "Land").value).toBe("DE");
     expect(
       screen.getByRole("button", { name: "Gründungsjahr" }).textContent,
     ).toContain("2010");

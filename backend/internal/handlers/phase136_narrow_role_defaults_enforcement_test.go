@@ -109,8 +109,6 @@ func TestPhase136NarrowRoleDefaultsLifecyclePatchActions(t *testing.T) {
 	require.Equal(t, []permissions.Action{permissions.ActionFansubGroupPageGeneralEdit}, general)
 	status := requiredFansubGroupPatchActions(models.FansubGroupPatchInput{Status: models.OptionalString{Set: true}})
 	require.Equal(t, []permissions.Action{permissions.ActionFansubGroupEdit}, status)
-	groupType := requiredFansubGroupPatchActions(models.FansubGroupPatchInput{GroupType: models.OptionalString{Set: true}})
-	require.Equal(t, []permissions.Action{permissions.ActionFansubGroupEdit}, groupType)
 }
 
 func TestPhase136NarrowRoleDefaultsMixedPatchRequiresEveryAction(t *testing.T) {
@@ -154,9 +152,16 @@ func phase136NarrowPermissionService(t *testing.T, role string) *permissions.Ser
 	t.Helper(); loadAppAuthCapabilityTestCache(t)
 	return permissions.NewService(permissionResolverStub{context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{41}}, roles: map[int64][]string{41: {role}}})
 }
-func TestPhase136ForbiddenStatusAndGroupTypeReturn403(t *testing.T) {
+// TestPhase136ForbiddenStatusReturn403: group_type was removed as a scoped
+// case here in 176-EXTRA Scope Addition 3 -- it is dead legacy (DB column
+// dropped in migration 0102) and no longer a bindable patch field, so a
+// request body containing only group_type now unmarshals to an empty patch
+// and is rejected with 400 ("mindestens ein feld ist erforderlich") before
+// the permission check ever runs, not 403. That behavior is covered by
+// TestValidateFansubGroupPatchRequest_IgnoresLegacyGroupType in fansub_test.go.
+func TestPhase136ForbiddenStatusReturn403(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	for name, body := range map[string]string{"status": `{"status":"inactive"}`, "group_type": `{"group_type":"group"}`} {
+	for name, body := range map[string]string{"status": `{"status":"inactive"}`} {
 		t.Run(name, func(t *testing.T) { h := &FansubHandler{permissionSvc: phase136NarrowPermissionService(t, "co_leader")}; c, recorder := phase136ForbiddenContext(http.MethodPatch, "/api/v1/admin/fansubs/41", body, gin.Param{Key: "id", Value: "41"}); h.UpdateFansub(c); require.Equal(t, http.StatusForbidden, recorder.Code, recorder.Body.String()) })
 	}
 }

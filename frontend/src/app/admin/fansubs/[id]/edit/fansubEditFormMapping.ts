@@ -18,7 +18,6 @@ export function mapGroupToForm(group: FansubGroup): FormState {
     kuerzel: group.kuerzel || "",
     slug: group.slug || "",
     status: group.status,
-    groupType: "group",
     country: group.country || "",
     websiteURL: group.website_url || "",
     discordURL: group.discord_url || "",
@@ -109,7 +108,7 @@ export function formToPayload(
 ): FansubGroupPatchRequest {
   const payload: FansubGroupPatchRequest = {};
   if (options.includeGeneral !== false) { payload.name = form.name.trim(); payload.kuerzel = form.kuerzel.trim() ? form.kuerzel.trim() : null; payload.country = toOptional(form.country); }
-  if (options.includeLifecycle !== false) { payload.status = form.status; payload.group_type = form.groupType; }
+  if (options.includeLifecycle !== false) { payload.status = form.status; }
   if (options.includeFounding !== false) {
     const founded = parseYear(form.foundedYear); const dissolved = parseYear(form.dissolvedYear);
     payload.founded_year = founded === null ? null : founded; payload.dissolved_year = dissolved === null ? null : dissolved;
@@ -128,7 +127,6 @@ export function emptyForm(): FormState {
     kuerzel: "",
     slug: "",
     status: "active",
-    groupType: "group",
     country: "",
     websiteURL: "",
     discordURL: "",

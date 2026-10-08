@@ -511,7 +511,7 @@ describe('authorized auth refresh flow', () => {
 
     await Promise.all([
       getEpisodeImportContext(15),
-      createFansubGroup({ name: 'AnimeMiako', slug: 'animemiako', status: 'active', group_type: 'group' }),
+      createFansubGroup({ name: 'AnimeMiako', slug: 'animemiako', status: 'active' }),
     ])
 
     expect(refreshKeycloakTokenMock).toHaveBeenCalledTimes(1)
@@ -565,12 +565,12 @@ describe('authorized auth refresh flow', () => {
         makeCurrentUserResponse(),
       )
       .mockResolvedValueOnce(
-        makeResponse({ data: { id: 55, name: 'AnimeMiako', slug: 'animemiako', status: 'active', group_type: 'group' } }, { ok: true, status: 200 }),
+        makeResponse({ data: { id: 55, name: 'AnimeMiako', slug: 'animemiako', status: 'active' } }, { ok: true, status: 200 }),
       )
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(createFansubGroup({ name: 'AnimeMiako', slug: 'animemiako', status: 'active', group_type: 'group' })).resolves.toEqual({
-      data: { id: 55, name: 'AnimeMiako', slug: 'animemiako', status: 'active', group_type: 'group' },
+    await expect(createFansubGroup({ name: 'AnimeMiako', slug: 'animemiako', status: 'active' })).resolves.toEqual({
+      data: { id: 55, name: 'AnimeMiako', slug: 'animemiako', status: 'active' },
     })
 
     expect(refreshKeycloakTokenMock).toHaveBeenCalledWith('refresh-token-1')
@@ -715,7 +715,7 @@ describe('authorized auth refresh flow', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      createFansubGroup({ name: 'AnimeMiako', slug: 'animemiako', status: 'active', group_type: 'group' }),
+      createFansubGroup({ name: 'AnimeMiako', slug: 'animemiako', status: 'active' }),
     ).rejects.toBeInstanceOf(ApiError)
 
     expect(fetchMock).toHaveBeenCalledTimes(3)

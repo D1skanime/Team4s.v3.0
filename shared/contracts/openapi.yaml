@@ -13069,9 +13069,6 @@ components:
     FansubStatus:
       type: string
       enum: [active, inactive, dissolved]
-    FansubGroupType:
-      type: string
-      enum: [group, collaboration]
     FansubMediaKind:
       type: string
       enum: [logo, banner, image]
@@ -14666,7 +14663,6 @@ components:
         - slug
         - name
         - status
-        - group_type
         - created_at
         - updated_at
       properties:
@@ -14711,8 +14707,6 @@ components:
           nullable: true
         status:
           $ref: "#/components/schemas/FansubStatus"
-        group_type:
-          $ref: "#/components/schemas/FansubGroupType"
         website_url:
           type: string
           nullable: true
@@ -15098,8 +15092,6 @@ components:
           nullable: true
         status:
           $ref: "#/components/schemas/FansubStatus"
-        group_type:
-          $ref: "#/components/schemas/FansubGroupType"
         website_url:
           type: string
           nullable: true
@@ -15149,8 +15141,6 @@ components:
           nullable: true
         status:
           $ref: "#/components/schemas/FansubStatus"
-        group_type:
-          $ref: "#/components/schemas/FansubGroupType"
         website_url:
           type: string
           nullable: true

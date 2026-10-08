@@ -62,7 +62,6 @@ function makeGroup(overrides: Record<string, unknown> = {}) {
     slug: 'subgroup',
     name: 'SubGroup',
     status: 'active',
-    group_type: 'group',
     logo_url: null,
     banner_url: null,
     anime_relations_count: 0,
