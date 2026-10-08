@@ -77,13 +77,11 @@ Template-Skala — alle Werte Vielfache von 4:
 | Token | Value | Usage im Viewer |
 |-------|-------|-------|
 | `--space-1` | 4px | Icon-Innenabstand in Badge/Counter |
-| `--space-2` | 8px | Abstand zwischen Metadaten-Zeilen |
-| `--space-3` | 12px | Abstand Bild↔Metadaten-Block (kompakt, mobile) |
+| `--space-2` | 8px | Abstand zwischen Metadaten-Zeilen; Abstand Bild↔Metadaten-Block (kompakt, mobile) |
 | `--space-4` | 16px | Standardabstand Metadaten-Panel-Innenpadding |
 | `--space-5` | 24px | Innenpadding Stage (Desktop), Abstand Close-Button zum Panelrand |
 | `--space-6` | 32px | **Swipe-Schwellenwert** (siehe Interaktionsvertrag) — bewusst ein deklarierter Spacing-Wert, kein Magic Number |
 | `--space-7` | 48px | Große Layout-Lücken (z. B. Grid-Gap in den Galerie-Grids, unverändert) |
-| `--space-8` / `--space-9` | 64px / 80px | nicht im Viewer selbst genutzt (Seitenebene) |
 
 **Exceptions:**
 - **Touch-Targets:** alle interaktiven Viewer-Controls (Close, Zoom-Toggle, Prev/Next) sind
