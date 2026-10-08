@@ -2445,7 +2445,7 @@ Plans:
 **Goal:** Alle 23 in 176-CONTEXT.md entschiedenen offenen Bugs und Altlasten aus Phase 174/175 sind behoben oder bewusst bereinigt entfernt -- in fünf voneinander getrennten, nacheinander abgeschlossenen Arbeitspaketen (A-E), ohne neue Features oder Parallelsystem-Zusammenführungen.
 **Requirements**: Kein REQUIREMENTS.md-Mapping -- Decision-Coverage via D-01 bis D-23 in `176-CONTEXT.md` (jede Plan-Datei trägt die zutreffenden D-IDs in ihren must_haves).
 **Depends on:** Phase 175
-**Plans:** 8/15 plans executed
+**Plans:** 9/15 plans executed
 
   - Wave 1: 176-01 (Paket A -- Member-Group-Story-Entfernung, D-16)
   - Wave 2: 176-02 (Paket B -- Theme-Typ-Kürzel aus DB, D-01)
@@ -2483,7 +2483,7 @@ Plans:
 
 - [x] 176-07-PLAN.md — Fansub-Anlegeseite: Umlaute + native Felder auf UI-Primitives (D-03, D-04).
 - [x] 176-08-PLAN.md — 6 bekannte rote Frontend-Tests + openapi.yaml-Duplikat beheben (D-05).
-- [ ] 176-09-PLAN.md — Phase-107-Test-Fixture um Capability-Registry-Schema nachziehen (D-06).
+- [x] 176-09-PLAN.md — Phase-107-Test-Fixture um Capability-Registry-Schema nachziehen (D-06).
 - [ ] 176-10-PLAN.md — Sticky-Speichern-Button-Überlapp auf schmalen Viewports beheben (D-07).
 - [ ] 176-11-PLAN.md — getAdminTagTokens-Dopplung klären und konsolidieren (D-08).
 - [ ] 176-12-PLAN.md — Quelltext-Inspektionstests durch Verhaltenstests ersetzen (D-09).
