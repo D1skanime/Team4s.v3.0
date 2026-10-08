@@ -36,8 +36,8 @@ patterns-established:
 requirements-completed: []
 
 # Metrics
-duration: ~15min (Task 1 only; plan paused at mandatory human-verify checkpoint)
-completed: 2026-10-07
+duration: ~15min (Task 1) + checkpoint approval
+completed: 2026-10-08
 ---
 
 # Phase 176 Plan 06: NotesTab canEditNotes gating (D-18) Summary
@@ -46,7 +46,17 @@ completed: 2026-10-07
 
 ## Status
 
-**1 of 2 tasks complete.** Task 1 (TDD) is implemented, tested, and committed. Task 2 is a mandatory `checkpoint:human-verify` (live-UAT) — execution paused there per the plan's blocking gate; no further automated work remains for this plan until the human verification step is performed.
+**2 of 2 tasks complete. Plan closed.** Task 1 (TDD) is implemented, tested, and committed. Task 2, the mandatory `checkpoint:human-verify` (live-UAT), has been approved by the human on 2026-10-08.
+
+## Checkpoint Approval (Task 2)
+
+**Approved:** 2026-10-08 (user response: "approved — Live-UAT 176-06 bestanden (Nutzer 2026-10-08)")
+
+Confirmed in the live UI:
+- As admin: Hinzufügen/Bearbeiten/Löschen von Gruppennotizen funktionieren wie bisher (full CRUD rights preserved for `can_edit_group`/`can_edit_notes`/platform-admin).
+- With a test account that is only Gründer (founding-history-only capability, no `can_edit_notes`, no `can_edit_group`): Notizen sind sichtbar (read access preserved), aber ohne Hinzufügen/Bearbeiten/Löschen (mutation controls correctly hidden); Gründungsgeschichte bleibt bearbeitbar (adjacent `GroupHistorySection` founding-only editing unaffected by this plan).
+
+Both capability tiers behave exactly as specified in the plan's `how-to-verify` steps and `success_criteria`. No issues reported.
 
 ## Performance
 
@@ -69,7 +79,7 @@ Task 1 followed the mandatory RED/GREEN TDD cycle:
 
 No REFACTOR commit was needed (implementation was minimal and clean on first pass).
 
-**Plan metadata:** pending (will be added if/when the plan closes after checkpoint approval)
+**Plan metadata:** `docs(176-06): complete plan (checkpoint approved)` closes this plan after Task 2 checkpoint approval.
 
 ## Files Created/Modified
 - `frontend/src/app/admin/fansubs/[id]/edit/NotesTab.tsx` - added `canEditNotes` prop (default `true`), wraps the add button and passes the prop to `GroupNoteEditor`/`GroupNotePreview`
@@ -103,10 +113,8 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-Task 1's automated work is complete and verified (6/6 `NotesTab.test.tsx` tests green, no TypeScript errors introduced, both touched files well under the 450-line cap, no new native `<button>`/`<input>` elements introduced).
-
-**Blocker:** Task 2 is a mandatory `checkpoint:human-verify` (`gate="blocking"`) requiring live browser verification of both capability tiers against `http://127.0.0.1:3300/admin/fansubs/{id}/edit` (Notizen tab). This plan cannot be marked complete, and STATE.md/ROADMAP.md position should not advance past 176-06, until that checkpoint is resolved ("approved" or issues reported) by a human.
+Both tasks are complete and verified: Task 1's automated work (6/6 `NotesTab.test.tsx` tests green, no TypeScript errors introduced, both touched files well under the 450-line cap, no new native `<button>`/`<input>` elements introduced) and Task 2's live-UAT checkpoint (approved 2026-10-08, both capability tiers confirmed correct in the real UI). Permission-Matrix rows 6.1/6.2 (D-18) are closed. Plan 176-06 is complete; the phase's plan counter advances to 6/15.
 
 ---
 *Phase: 176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-*
-*Status as of this summary: In progress — paused at checkpoint, task 1/2 complete*
+*Status as of this summary: Complete — both tasks done, checkpoint approved 2026-10-08*

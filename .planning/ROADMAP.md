@@ -2445,7 +2445,7 @@ Plans:
 **Goal:** Alle 23 in 176-CONTEXT.md entschiedenen offenen Bugs und Altlasten aus Phase 174/175 sind behoben oder bewusst bereinigt entfernt -- in fünf voneinander getrennten, nacheinander abgeschlossenen Arbeitspaketen (A-E), ohne neue Features oder Parallelsystem-Zusammenführungen.
 **Requirements**: Kein REQUIREMENTS.md-Mapping -- Decision-Coverage via D-01 bis D-23 in `176-CONTEXT.md` (jede Plan-Datei trägt die zutreffenden D-IDs in ihren must_haves).
 **Depends on:** Phase 175
-**Plans:** 5/15 plans executed
+**Plans:** 6/15 plans executed
 
   - Wave 1: 176-01 (Paket A -- Member-Group-Story-Entfernung, D-16)
   - Wave 2: 176-02 (Paket B -- Theme-Typ-Kürzel aus DB, D-01)
@@ -2477,7 +2477,7 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 176-05-PLAN.md — Rechte-/Sicherheitsfixes: Claim-Invite disabled-Check, Legacy-Member-Delete entfernen, Memorial-Guard zusammenführen (D-17, D-19, D-21).
-- [ ] 176-06-PLAN.md — Notizen-Tab-Gate/Buttons mit foundingOnly-Pendant absichern (D-18).
+- [x] 176-06-PLAN.md — Notizen-Tab-Gate/Buttons mit foundingOnly-Pendant absichern (D-18).
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
