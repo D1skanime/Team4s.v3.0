@@ -362,7 +362,6 @@ func (h *ContributionsMeHandler) updateAnimeContributionVisibility(
 			member_id,
 			dispute_state,
 			visibility_id,
-			review_status_id,
 			member_reason,
 			review_note
 		)
@@ -386,7 +385,6 @@ func (h *ContributionsMeHandler) updateAnimeContributionVisibility(
 			member_id,
 			dispute_state,
 			visibility_id,
-			review_status_id,
 			member_reason,
 			review_note
 		FROM anime_contributions

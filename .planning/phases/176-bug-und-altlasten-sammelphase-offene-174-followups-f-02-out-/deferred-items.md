@@ -79,3 +79,19 @@ during 176-12 execution. Does not touch any file modified by this plan
    `role_capabilities`), unrelated to this plan's D-09 test-style remediation. Confirmed
    unrelated via `git log` on the test file (last touched in unrelated commits `824e29b4`/
    `96185b9b`, long before 176). Not fixed, per Scope Boundary.
+
+## 176-13
+
+Pre-existing, out-of-scope failures observed while running
+`go test ./internal/handlers/... ./internal/services/...` during 176-13 execution. None
+touch `admin_content_release_version_media_replace*.go`, `media_service_display_variant.go`,
+`contributions_me_handler.go`, or the new migration 0180.
+
+1. `TestEpisodeImport11eyesEnumeratesEveryPhysicalSource`,
+   `Test11eyesSourceSelection_AllActualItemsAndPermutations`,
+   `TestJellyfinSourceBatch11eyes_OneCollectionNoAlternativeDiscovery` all fail with
+   `open ../../../docs/audits/2026-09-15-jellyfin12/fixtures/11eyes-*.json: no such file or
+   directory` — missing fixture files on disk, unrelated to D-10/D-20.
+2. `TestPhase137EffectiveRightsOverrideMutationConcurrentConflictSerializes` fails with the
+   same pre-existing `release_version_media.reorder` capability-registry gap already logged
+   under 176-12 above. Not fixed, per Scope Boundary.
