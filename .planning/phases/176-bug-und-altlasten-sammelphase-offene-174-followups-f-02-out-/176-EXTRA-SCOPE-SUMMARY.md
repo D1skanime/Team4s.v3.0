@@ -766,3 +766,161 @@ Add to the 176 closing UAT:
    UI confirmations layered on top of this scope addition's own automated
    backend tests proving the backward-compatibility (`group_type` silently
    ignored, no 400) and label-helper behavior.
+
+## Scope Addition 4: Doppelte Alias-Fläche entfernen
+
+**User report (2026-10-08, verbatim decision):** On `/admin/fansubs/[id]/edit?tab=basic`
+the aliases appeared twice: (1) an "ALIASE" field with its own "Hinzufügen" button and
+chip row inside the Grunddaten form (`FansubBasicInfoTab.tsx`), and (2) the
+"Aliase dieser Gruppe" section below it (`FansubAliasSection.tsx`, a full table with
+Alias/Erstellt am/Aktionen and "Umhängen…"/"Alias hinzufügen"). Decision: keep only
+the lower `FansubAliasSection`; remove the Grunddaten alias field together with any
+form-state/handlers/payload keys that exist solely for it, for all role views
+(platform-admin and fansub-leader). The Anlegeseite (`/admin/fansubs/create`) keeps its
+own alias field untouched (no group/table exists yet there; its "Tags"→"Aliase"
+relabeling was already handled in Scope Addition 2 — not touched again here).
+
+### What was found
+
+- **Confirmed fully independent, non-overlapping alias surfaces.** The duplicate
+  field's state/handlers (`aliases`, `aliasInput`, `setAliasInput`, `aliasError`,
+  `setAliasError`, `aliasBusy`, `addAlias`, `removeAlias`, plus the loader callback
+  `setAliasesFromLoad`) all lived in `useFansubDetailsForm.ts` and were consumed
+  **only** by `FansubBasicInfoTab.tsx` and the group-load hook that fed it. A repo-wide
+  grep (`frontend/src --include=*.tsx --include=*.ts`) confirmed zero other consumers.
+  `FansubAliasSection.tsx` — the surviving section — has its own completely separate
+  state (`aliases`, `newAliasText`, `reassignTargetByAliasID`, …) and its own direct API
+  calls (`getFansubAliases`, `createFansubAlias`, `deleteFansubAlias`,
+  `reassignFansubAlias`), so none of the hook plumbing feeding the duplicate field was
+  needed by the surviving UI. Safe to delete entirely rather than just hiding the render.
+- **Found an extra, previously invisible redundant network call as part of tracing the
+  dead state's producer side.** `hooks/useFansubEditGroupLoad.ts` ran
+  `Promise.all([getFansubByID(fansubID), getFansubAliases(fansubID)])` on every page
+  load purely to populate the now-removed chip UI via `setAliasesFromLoad` — a second,
+  independent `getFansubAliases` call that `FansubAliasSection` was already making on
+  its own in its own `useEffect`. This was a genuine duplicate backend round-trip on
+  every edit-page load, not just duplicate UI; removing the dead state let this second
+  call be dropped too (Rule 1/3 — direct, necessary consequence of deleting the dead
+  consumer, not a speculative optimization).
+- **Verified the Grunddaten save payload never carried aliases at all** — read
+  `formToPayload` in `fansubEditFormMapping.ts` and the `FansubGroupPatchRequest` type
+  in `types/fansub.ts` end to end: neither has ever had an `aliases` key. The main
+  group PATCH endpoint has never been an alias-persistence path; `FansubAliasSection`'s
+  own direct `createFansubAlias`/`deleteFansubAlias`/`reassignFansubAlias` calls are and
+  always were the only persistence path for aliases. **No dead payload key existed to
+  remove** — the user's "verify, don't assume" instruction on this point resolved to "no
+  change needed here," confirmed by reading both paths rather than inferring from naming.
+- **Confirmed no role-specific gating gap.** `FansubDetailsTab.tsx` renders
+  `FansubAliasSection` unconditionally whenever `activeMainTab === "basic"` (same
+  condition as `FansubBasicInfoTab` itself), for both platform-admin and fansub-leader
+  capability views — there is no separate per-role surface to also clean up.
+- **Found and fixed a stale test exercising the exact UI being removed.**
+  `page.test.tsx`'s `'renders aliases as global badge text with a separate remove
+  action'` test asserted on `aria-label="Alias AO entfernen"` — the remove button from
+  the duplicate chip row being deleted. Updated (not deleted) to assert against
+  `FansubAliasSection`'s own equivalent affordance (`aria-label="Alias AO löschen"`),
+  to confirm the duplicate field's label (`getByLabelText('Aliase')`) no longer renders,
+  and to wait on the table's async load (`findAllByText` instead of `getAllByText`,
+  since removing the second `getFansubAliases` call means "AO" now only appears once
+  `FansubAliasSection`'s own async load resolves, not synchronously from `applyGroup`).
+
+### What was changed
+
+**Frontend only — no backend/contract changes were needed or made:**
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.tsx`: removed the entire
+  "Aliase" `FormField` + `Input`/"Hinzufügen"-`Button` + chip row block (the
+  `FansubEditBasicFieldWide` div directly after the Gründungsjahr/Auflösungsjahr fields,
+  right before the `Card`'s closing tag). Removed the now-unused `aliases`, `aliasInput`,
+  `setAliasInput`, `aliasError`, `setAliasError`, `aliasBusy`, `addAlias`, `removeAlias`
+  destructuring from `details`. Removed the now-unused `Badge`/`FormField` imports from
+  `@/components/ui` and the now-unused `X` import from `lucide-react` (`Plus` is still
+  used by the surviving "Link hinzufügen" button, kept).
+- `frontend/src/app/admin/fansubs/[id]/edit/useFansubDetailsForm.ts`: removed the
+  `aliases`/`aliasInput`/`aliasError`/`aliasBusy` state, the `setAliasesFromLoad`,
+  `addAlias`, and `removeAlias` callbacks, their entries in the hook's return object, and
+  the now-unused `createFansubAlias`/`deleteFansubAlias` imports from `@/lib/api` and the
+  `FansubAlias` type import.
+- `frontend/src/app/admin/fansubs/[id]/edit/hooks/useFansubEditGroupLoad.ts`: removed the
+  `setAliasesFromLoad` parameter and the parallel `getFansubAliases(fansubID)` call —
+  the hook now only fetches `getFansubByID(fansubID)` (the redundant-network-call fix
+  described above).
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubEditClient.tsx`: stopped destructuring
+  `setAliasesFromLoad` from `details` and stopped passing it into
+  `useFansubEditGroupLoad`.
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubEdit.module.css`: removed the four now-
+  dead CSS classes that existed solely for the removed chip UI
+  (`.fansubEditAliasBadgeRow`, `.fansubEditAliasBadgeBox`, `.fansubEditAliasBadgeItem`,
+  `.fansubEditAliasControls` including its `@media (max-width: 640px)` override) —
+  confirmed via grep that none of these classes were referenced anywhere else in the
+  directory before removal.
+- `frontend/src/app/admin/fansubs/create/` and `FansubAliasSection.tsx`/
+  `FansubAliasSection.test.tsx`: untouched, per instruction.
+
+### Tests updated (no new render/click tests added, per explicit instruction)
+
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.test.tsx`: removed the
+  now-nonexistent `aliases`/`aliasInput`/`aliasError`/`aliasBusy`/`addAlias`/
+  `removeAlias` fields from the shared `details` test fixture object (no assertions
+  referenced them, so no test cases were removed — only fixture cleanup).
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubEditClient.test.tsx`: removed the now-
+  nonexistent `setAliasesFromLoad: vi.fn()` entry from the mocked
+  `useFansubDetailsForm` return value (fixture cleanup only).
+- `frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx`: updated (not added) the one
+  test exercising the duplicate field's remove button, per "What was found" above —
+  renamed to `'renders aliases only via the sole FansubAliasSection table (no duplicate
+  Grunddaten alias field)'`, now asserting the surviving table's own delete-button label,
+  the absence of the old field's label and remove-button label, and correctly awaiting
+  the table's async alias load.
+
+### Verification performed
+
+- `docker exec team4sv30-frontend npx tsc --noEmit` — clean.
+- `docker exec team4sv30-frontend npx eslint` on every touched file (`FansubBasicInfoTab.tsx`,
+  `FansubBasicInfoTab.test.tsx`, `useFansubDetailsForm.ts`, `hooks/useFansubEditGroupLoad.ts`,
+  `FansubEditClient.tsx`, `FansubEditClient.test.tsx`, `page.test.tsx`) — clean.
+- `docker exec team4sv30-frontend npx vitest run src/app/admin/fansubs` — 44 test files
+  passed, 353 tests passed (first run surfaced the `getAllByText`/`findAllByText` timing
+  issue described above from dropping the redundant `getFansubAliases` call; fixed, then
+  this run was clean).
+- `docker exec team4sv30-frontend npx vitest run` (full suite) — **364 test files
+  passed, 1 pre-existing skip, 3257 tests passed, 3 pre-existing todos** — no regressions
+  outside the fansub-edit area touched by this scope addition.
+- No backend code was touched, so no backend rebuild was required. Frontend restarted:
+  `docker restart team4sv30-frontend` → `http://192.168.235.196:3000/admin/fansubs/1/edit`
+  and `http://192.168.235.196:3000/admin/fansubs/create` both return 200.
+- Confirmed via grep that no remaining references to the removed hook fields
+  (`aliasBusy`, `aliasInput`, `aliasError`, `setAliasesFromLoad`) or the removed CSS
+  classes exist anywhere under `frontend/src/app/admin/fansubs/`.
+
+### Files changed
+
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.tsx`
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubBasicInfoTab.test.tsx`
+- `frontend/src/app/admin/fansubs/[id]/edit/useFansubDetailsForm.ts`
+- `frontend/src/app/admin/fansubs/[id]/edit/hooks/useFansubEditGroupLoad.ts`
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubEditClient.tsx`
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubEditClient.test.tsx`
+- `frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx`
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubEdit.module.css`
+
+`.planning/sketches/` was not touched.
+
+### Recommended live-UAT additions for the phase's final checkpoint (176-15)
+
+Add to the 176 closing UAT:
+1. **As platform admin**, open `/admin/fansubs/{id}/edit` (Grunddaten tab): confirm the
+   "ALIASE" field with its own "Hinzufügen" button/chips is gone from the Grunddaten
+   card, and that exactly one alias surface remains — the "Aliase dieser Gruppe" table
+   below it (Alias/Erstellt am/Aktionen, "Umhängen…"/"Alias hinzufügen"). Add a new
+   alias via that table's "Alias hinzufügen" button and confirm it appears in the table.
+2. **As a fansub leader** (capability-gated, non-platform-admin), open the same group's
+   edit page: confirm the same thing — only the lower alias table is present, no
+   duplicate field anywhere in Grunddaten.
+3. Confirm saving the Grunddaten form (e.g. editing the name and clicking "Speichern")
+   still succeeds with no errors, confirming the save payload change (none needed, none
+   made) didn't break anything.
+4. Confirm `/admin/fansubs/create` is unaffected — its own "Aliase" field (from Scope
+   Addition 2) still works exactly as before, since this scope addition did not touch
+   the create page.
+5. No backend call/curl is needed for any of the above — this scope addition's changes
+   are frontend-only and are already covered by the full passing vitest suite.

@@ -72,13 +72,11 @@ export function FansubEditClient({
     onToast: handleDetailsToast,
     onError: handleDetailsError,
   });
-  const { form, logoMedia, bannerMedia, applyGroup, setAliasesFromLoad } =
-    details;
+  const { form, logoMedia, bannerMedia, applyGroup } = details;
 
   const { loading } = useFansubEditGroupLoad({
     fansubID,
     applyGroup,
-    setAliasesFromLoad,
     onGroupLoaded: handleDetailsGroupUpdated,
     onError: handleDetailsError,
   });

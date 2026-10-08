@@ -3,14 +3,12 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import {
-  createFansubAlias,
-  deleteFansubAlias,
   getFansubByID,
   getFansubList,
   updateFansubGroup,
 } from "@/lib/api";
 import type { EditableMediaValue } from "@/components/admin/MediaUpload";
-import type { FansubAlias, FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
+import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import {
   communityLinkURLError,
   errMessage,
@@ -55,14 +53,10 @@ export function useFansubDetailsForm({
 }: UseFansubDetailsFormArgs) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [initialForm, setInitialForm] = useState<FormState>(emptyForm);
-  const [aliases, setAliases] = useState<FansubAlias[]>([]);
-  const [aliasInput, setAliasInput] = useState("");
-  const [aliasError, setAliasError] = useState<string | null>(null);
   const [links, setLinks] = useState<CommunityLinkDraft[]>([]);
   const [initialLinks, setInitialLinks] = useState<CommunityLinkDraft[]>([]);
   const [manualSlug, setManualSlug] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [aliasBusy, setAliasBusy] = useState(false);
   const [logoMedia, setLogoMedia] = useState<EditableMediaValue | null>(null);
   const [bannerMedia, setBannerMedia] = useState<EditableMediaValue | null>(
     null,
@@ -92,10 +86,6 @@ export function useFansubDetailsForm({
     setInitialLogoMedia(nextMedia.logo);
     setInitialBannerMedia(nextMedia.banner);
     setManualSlug(nextForm.slug !== slugify(nextForm.name));
-  }, []);
-
-  const setAliasesFromLoad = useCallback((next: FansubAlias[]) => {
-    setAliases(next);
   }, []);
 
   const handleLogoMediaBusyChange = useCallback((isBusy: boolean) => {
@@ -243,49 +233,6 @@ export function useFansubDetailsForm({
     (isPlatformAdmin && slugChecking) ||
     anyMediaBusy;
 
-  const addAlias = useCallback(async () => {
-    const value = aliasInput.trim();
-    if (!value || !hasAuthSession) return;
-    if (
-      aliases.some((item) => item.alias.toLowerCase() === value.toLowerCase())
-    ) {
-      setAliasError("Tag existiert bereits.");
-      return;
-    }
-    setAliasBusy(true);
-    setAliasError(null);
-    try {
-      const response = await createFansubAlias(fansubID, { alias: value });
-      setAliases((current) =>
-        [...current, response.data].sort((a, b) =>
-          a.alias.localeCompare(b.alias, "de"),
-        ),
-      );
-      setAliasInput("");
-    } catch (nextError) {
-      onError(errMessage(nextError));
-    } finally {
-      setAliasBusy(false);
-    }
-  }, [aliasInput, aliases, fansubID, hasAuthSession, onError]);
-
-  const removeAlias = useCallback(
-    async (alias: FansubAlias) => {
-      if (!hasAuthSession) return;
-      setAliasBusy(true);
-      setAliasError(null);
-      try {
-        await deleteFansubAlias(fansubID, alias.id);
-        setAliases((current) => current.filter((item) => item.id !== alias.id));
-      } catch (nextError) {
-        onError(errMessage(nextError));
-      } finally {
-        setAliasBusy(false);
-      }
-    },
-    [fansubID, hasAuthSession, onError],
-  );
-
   const save = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -350,17 +297,11 @@ export function useFansubDetailsForm({
     // state
     form,
     setForm,
-    aliases,
-    aliasInput,
-    setAliasInput,
-    aliasError,
-    setAliasError,
     links,
     setLinks,
     manualSlug,
     setManualSlug,
     saving,
-    aliasBusy,
     logoMedia,
     setLogoMedia,
     bannerMedia,
@@ -381,12 +322,9 @@ export function useFansubDetailsForm({
     invalid,
     // setters used by parent loader
     applyGroup,
-    setAliasesFromLoad,
     // handlers
     handleLogoMediaBusyChange,
     handleBannerMediaBusyChange,
-    addAlias,
-    removeAlias,
     save,
   };
 }

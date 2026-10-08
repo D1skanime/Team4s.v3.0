@@ -1,14 +1,14 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import type { FansubGroup, FansubGroupCapabilities, FansubStatus } from "@/types/fansub";
 import {
   EditableMediaValue,
   MediaUpload,
 } from "@/components/admin/MediaUpload";
-import { Badge, Button, Card, FormField, Input, Select } from "@/components/ui";
+import { Button, Card, Input, Select } from "@/components/ui";
 import { FansubGroupKuerzelField } from "@/components/admin/FansubGroupKuerzelField";
 import { canEditFansubBranding } from "./fansubEditAccess";
 import { labelForFansubStatus, slugify } from "./fansubEditFormatters";
@@ -52,15 +52,9 @@ export function FansubBasicInfoTab({
   const {
     form,
     setForm,
-    aliases,
-    aliasInput,
-    setAliasInput,
-    aliasError,
-    setAliasError,
     setLinks,
     setManualSlug,
     saving,
-    aliasBusy,
     logoMedia,
     setLogoMedia,
     bannerMedia,
@@ -76,8 +70,6 @@ export function FansubBasicInfoTab({
     slugChecking,
     handleLogoMediaBusyChange,
     handleBannerMediaBusyChange,
-    addAlias,
-    removeAlias,
   } = details;
 
   const canEditBroad = isPlatformAdmin || Boolean(capabilities?.can_edit_group);
@@ -283,67 +275,6 @@ export function FansubBasicInfoTab({
                   {dissolvedError || dissolvedAfterFoundedError}
                 </p>
               ) : null}
-            </div>
-            <div
-              className={`${styles.fansubEditBasicField} ${styles.fansubEditBasicFieldWide}`}
-            >
-              <FormField
-                label="Aliase"
-                htmlFor="fansub-group-alias-input"
-                error={aliasError || undefined}
-              >
-                <div className={styles.fansubEditAliasControls}>
-                  <Input
-                    id="fansub-group-alias-input"
-                    value={aliasInput}
-                    invalid={Boolean(aliasError)}
-                    onChange={(e) => {
-                      setAliasInput(e.target.value);
-                      setAliasError(null);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        void addAlias();
-                      }
-                    }}
-                    placeholder="Alias hinzufügen"
-                  />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    leftIcon={<Plus size={14} />}
-                    onClick={() => void addAlias()}
-                    disabled={aliasBusy}
-                  >
-                    Hinzufügen
-                  </Button>
-                </div>
-              </FormField>
-              <div className={styles.fansubEditAliasBadgeBox}>
-                <div className={styles.fansubEditAliasBadgeRow}>
-                  {aliases.map((alias) => (
-                    <span
-                      key={alias.id}
-                      className={styles.fansubEditAliasBadgeItem}
-                    >
-                      <Badge variant="muted">
-                        {alias.alias}
-                      </Badge>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        iconOnly
-                        aria-label={`Alias ${alias.alias} entfernen`}
-                        onClick={() => void removeAlias(alias)}
-                        disabled={aliasBusy}
-                        leftIcon={<X size={14} />}
-                      />
-                    </span>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </Card>

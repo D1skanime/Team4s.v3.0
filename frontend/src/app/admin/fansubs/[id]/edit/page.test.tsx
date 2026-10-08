@@ -707,7 +707,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.queryByRole('button', { name: 'Löschen' })).toBeNull()
   })
 
-  it('renders aliases as global badge text with a separate remove action', async () => {
+  it('renders aliases only via the sole FansubAliasSection table (no duplicate Grunddaten alias field)', async () => {
     apiMocks.getFansubAliases.mockResolvedValue({
       data: [
         {
@@ -723,9 +723,10 @@ describe('AdminFansubEditPage token-free wiring', () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
-    expect(screen.getAllByText('AO').length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: 'Alias AO entfernen' })).not.toBeNull()
-    expect(screen.queryByRole('button', { name: 'AO x' })).toBeNull()
+    expect((await screen.findAllByText('AO')).length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Alias AO löschen' })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Alias AO entfernen' })).toBeNull()
+    expect(screen.queryByLabelText('Aliase')).toBeNull()
   })
 
   it('renders branding uploads on Grunddaten and not in the media tab', async () => {

@@ -50,7 +50,6 @@ vi.mock('./useFansubDetailsForm', () => ({
     logoMedia: null,
     bannerMedia: null,
     applyGroup: vi.fn(),
-    setAliasesFromLoad: vi.fn(),
     links: [],
     setLinks: vi.fn(),
     linkErrors: {},

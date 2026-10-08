@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-import { getFansubAliases, getFansubByID } from "@/lib/api";
-import type { FansubAlias, FansubGroup } from "@/types/fansub";
+import { getFansubByID } from "@/lib/api";
+import type { FansubGroup } from "@/types/fansub";
 import { errMessage } from "../fansubEditFormatters";
 
 type UseFansubEditGroupLoadArgs = {
   fansubID: number;
   applyGroup: (group: FansubGroup) => void;
-  setAliasesFromLoad: (aliases: FansubAlias[]) => void;
   onGroupLoaded: (group: FansubGroup) => void;
   onError: (message: string | null) => void;
 };
@@ -17,7 +16,6 @@ type UseFansubEditGroupLoadArgs = {
 export function useFansubEditGroupLoad({
   fansubID,
   applyGroup,
-  setAliasesFromLoad,
   onGroupLoaded,
   onError,
 }: UseFansubEditGroupLoadArgs) {
@@ -34,13 +32,12 @@ export function useFansubEditGroupLoad({
 
     let active = true;
     setLoading(true);
-    Promise.all([getFansubByID(fansubID), getFansubAliases(fansubID)])
-      .then(([groupResponse, aliasResponse]) => {
+    getFansubByID(fansubID)
+      .then((groupResponse) => {
         if (!active) return;
         const nextGroup = groupResponse.data;
         onGroupLoaded(nextGroup);
         applyGroup(nextGroup);
-        setAliasesFromLoad(aliasResponse.data);
       })
       .catch((nextError) => {
         if (active) onError(errMessage(nextError));
@@ -52,7 +49,7 @@ export function useFansubEditGroupLoad({
     return () => {
       active = false;
     };
-  }, [fansubID, applyGroup, onError, onGroupLoaded, setAliasesFromLoad]);
+  }, [fansubID, applyGroup, onError, onGroupLoaded]);
 
   return { loading };
 }
