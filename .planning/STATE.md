@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 176 was final phase)
-last_updated: 2026-10-08T12:40:05.978Z
+status: completed
+stopped_at: Phase 177 UI-SPEC approved
+last_updated: "2026-10-08T22:26:22.003Z"
 last_activity: 2026-10-08
 progress:
-  total_phases: 41
+  total_phases: 42
   completed_phases: 36
   total_plans: 388
-  completed_plans: 439
-  percent: 88
+  completed_plans: 385
+  percent: 86
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -1577,9 +1577,9 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-10-08T11:54:32.117Z
-Stopped at: 176-15 Task 1 complete; checkpoint (final live-UAT sign-off) awaiting human verification
+Last session: 2026-10-08T22:26:21.980Z
+Stopped at: Phase 177 UI-SPEC approved
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 
-.planning/phases/176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-/176-15-PLAN.md
+.planning/phases/177-einheitlicher-bild-viewer-f-18-ein-gemeinsamer-viewer-bauste/177-UI-SPEC.md
