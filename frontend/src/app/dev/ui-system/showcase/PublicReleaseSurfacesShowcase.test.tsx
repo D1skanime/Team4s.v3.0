@@ -34,6 +34,9 @@ describe('PublicReleaseSurfacesShowcase', () => {
     expect(screen.getAllByText('Entscheidung am Himmel über Fort Daiva').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Signal im Regen').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Mitten im Regen').length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('link', { name: 'Release öffnen' })).toHaveLength(2)
+    // DesktopReleaseRow (seit c01b41af) rendert pro Zeile zwei aria-label-gleiche Links
+    // (Vorschaubild + Pfeil), benannt nach episodeLabel(episode) + ' öffnen'.
+    expect(screen.getAllByRole('link', { name: 'Folge 12 öffnen' })).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: 'Folge 11 öffnen' })).toHaveLength(2)
   })
 })
