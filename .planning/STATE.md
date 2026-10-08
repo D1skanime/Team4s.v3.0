@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 176-11-PLAN.md
-last_updated: "2026-10-08T09:03:40.624Z"
+stopped_at: Completed 176-12-PLAN.md
+last_updated: "2026-10-08T09:30:55.305Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 41
   completed_phases: 35
   total_plans: 388
-  completed_plans: 380
+  completed_plans: 381
   percent: 85
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 176 (bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-) — EXECUTING
-Plan: 12 of 15
+Plan: 13 of 15
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -962,6 +962,7 @@ Last activity: 2026-10-08
 - [Phase 176]: 176-09: phase107_postgres.go now runs the real 0085/0100/0108/0112/0146/0150 migration chain (mirroring phase137) instead of hand-rolled stubs; added a read-only revision-conflict guard for non-uploader release-media metadata edits, preserving BUG-174-04's no-re-review decision
 - [Phase 176-10]: D-07 geschlossen -- Sticky-Speichern-Balken-Ueberlapp auf /admin/fansubs/[id]/edit per 80px Bottom-Padding-Reservierung im existierenden @media (max-width: 900px)-Block behoben; Desktop/Tablet-Layout unveraendert. Live-UAT abgenommen 2026-10-08 (Nutzer, Fansub-Admin-Rolle, /admin/fansubs/[id]/edit?tab=basic).
 - [Phase 176]: 176-11: kept barrel-exported anime-taxonomy.ts getAdminTagTokens as canonical over admin-anime-intake.ts duplicate (barrel-export + sibling usage) — Confirmed apiClientFetch is a thin wrapper around authorizedFetch, so no behavioral difference affects the caller
+- [Phase 176]: 176-12: D-09 closed via real behavior tests for the 4 named source-grep tests; preview-exclusivity test proven at repository-orchestration level to avoid a services->handlers import cycle. — Plan's own acceptance criteria run the test from package services, and calling the Gin handler would require services to import handlers, which already imports services.
 
 ### Pending Todos
 
@@ -1564,11 +1565,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 176 P09 | 95min | 2 tasks | 8 files |
 | Phase 176 P10 | ~10min | 2 tasks | 1 files |
 | Phase 176 P11 | 20min | 2 tasks | 4 files |
+| Phase 176 P12 | 95min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-08T09:03:40.584Z
-Stopped at: Completed 176-11-PLAN.md
+Last session: 2026-10-08T09:30:55.281Z
+Stopped at: Completed 176-12-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 
