@@ -962,6 +962,38 @@ func TestPatchReleaseVersionMediaNonUploaderRevisionConflictProtection(t *testin
 			"BUG-174-04 (Option 1): a non-uploader's metadata edit must never change the review state")
 		assert.Equal(t, "von leitung korrigiert", captionAfter, "the accepted edit must still persist")
 	})
+
+	// WR-02 (176-REVIEW): omitting source_revision entirely used to be silently treated as
+	// "caller opted out of the concurrency check" (a no-op), giving a non-uploader's edit zero
+	// optimistic-concurrency protection whenever the client simply didn't send the field. This
+	// proves a non-uploader PATCH without source_revision is now rejected outright (400) instead
+	// of silently succeeding unprotected, and that the rejected request changes nothing.
+	t.Run("missing source_revision from a non-uploader is rejected and changes nothing", func(t *testing.T) {
+		revisionBeforeThis, stateBeforeThis, captionBeforeThis := rvmExecMediaLifecycleSnapshot(t, pool, relationID)
+
+		body := bytes.NewBufferString(`{"caption":"ohne source revision"}`)
+		req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/release-versions/41/media/%d", relationID), body)
+		req.Header.Set("Content-Type", "application/json")
+		c, rec := replaceRVMContext(req,
+			gin.Params{{Key: "versionId", Value: "41"}, {Key: "relationId", Value: strconv.FormatInt(relationID, 10)}},
+			lead)
+
+		h.PatchReleaseVersionMedia(c)
+
+		require.Equal(t, http.StatusBadRequest, rec.Code, rec.Body.String())
+		var errBody struct {
+			Error struct {
+				ErrorCode string `json:"error_code"`
+			} `json:"error"`
+		}
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &errBody))
+		assert.Equal(t, "SOURCE_REVISION_REQUIRED", errBody.Error.ErrorCode)
+
+		revisionAfter, stateAfter, captionAfter := rvmExecMediaLifecycleSnapshot(t, pool, relationID)
+		assert.Equal(t, revisionBeforeThis, revisionAfter, "a rejected non-uploader edit must not change the revision")
+		assert.Equal(t, stateBeforeThis, stateAfter, "a rejected non-uploader edit must not change the review state")
+		assert.Equal(t, captionBeforeThis, captionAfter, "a rejected non-uploader edit must not persist its caption")
+	})
 }
 
 // ---------------------------------------------------------------------------

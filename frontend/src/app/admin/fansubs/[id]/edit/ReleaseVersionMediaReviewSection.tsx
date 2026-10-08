@@ -159,10 +159,17 @@ function ReleaseVersionMediaReviewSectionInner({ versionId, externalMedia, owner
     try {
       // patchReleaseVersionMediaItem: erweitert mit visibility/review_status (78-05, Lock K).
       // Schreibt NUR Sichtbarkeit/Prüfstatus in media_assets — KEIN owner-Feld (D-05, Lock G).
+      // WR-02 (176-REVIEW): dieser Aufruf kommt von der Leitungs-/Review-Fläche, nicht vom
+      // Hochladenden selbst — der Server verlangt jetzt source_revision für jede
+      // Nicht-Hochladenden-Änderung, sonst wird mit 400 SOURCE_REVISION_REQUIRED abgelehnt.
       await patchReleaseVersionMediaItem(
         versionId,
         item.id,
-        { visibility: draft.visibility, review_status: draft.review_status },
+        {
+          visibility: draft.visibility,
+          review_status: draft.review_status,
+          ...(item.source_revision != null ? { source_revision: item.source_revision } : {}),
+        },
         undefined,
       )
       setToast('Prüfstatus aktualisiert.')

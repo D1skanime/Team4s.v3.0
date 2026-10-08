@@ -233,6 +233,19 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 				writeInternalErrorResponse(c, "interner serverfehler", err, "Review-Lifecycle konnte nicht aktualisiert werden.")
 				return
 			}
+		} else if expectedRevision == nil {
+			// WR-02 (176-REVIEW): a non-uploader's metadata-only edit never calls
+			// SubmitMedia (BUG-174-04, Option 1 -- no re-review on non-uploader
+			// corrections), so CheckMediaRevisionConflict below is this path's only
+			// optimistic-concurrency protection. Treating a missing source_revision as
+			// "no-op, skip the check" (the original D-06 behavior) made the guard
+			// opt-in per request instead of enforced server-side. Non-uploaders must
+			// now always send source_revision; omitting it is rejected outright.
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{
+				"message":    "Source-Revision ist erforderlich, wenn jemand anderes als der Hochladende Metadaten ändert.",
+				"error_code": "SOURCE_REVISION_REQUIRED",
+			}})
+			return
 		} else if err := repository.NewReleaseReviewLifecycleRepository(tx).CheckMediaRevisionConflict(
 			c.Request.Context(), relationID, expectedRevision,
 		); err != nil {

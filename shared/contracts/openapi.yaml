@@ -7842,6 +7842,15 @@ paths:
     patch:
       tags: [Admin]
       summary: Update release-version media metadata
+      description: >-
+        WR-02 (176-REVIEW): when the actor is NOT the relation's uploader, source_revision
+        is required on any metadata-mutating edit (title/caption/category/
+        is_preview_candidate) -- omitting it is rejected with 400
+        SOURCE_REVISION_REQUIRED instead of silently skipping the optimistic-concurrency
+        check. A non-uploader edit whose source_revision no longer matches the lifecycle's
+        current revision is rejected with 409 SOURCE_REVISION_CONFLICT. The uploader's own
+        edit keeps the pre-existing SubmitMedia contract, where source_revision stays
+        optional.
       operationId: patchReleaseVersionMedia
       security:
         - bearerAuth: []
@@ -7874,7 +7883,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ReleaseVersionMediaItem"
         "400":
-          description: Invalid patch request
+          description: >-
+            Invalid patch request, including a non-uploader edit that omits
+            source_revision (error_code SOURCE_REVISION_REQUIRED)
           content:
             application/json:
               schema:
@@ -7893,6 +7904,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Media relation not found or not scoped to this release version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Stale source_revision (error_code SOURCE_REVISION_CONFLICT)
           content:
             application/json:
               schema:

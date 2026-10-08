@@ -193,6 +193,34 @@ describe('ReleaseVersionMediaReviewSection — SC3: Speichern-Mutation', () => {
       )
     })
   })
+
+  // WR-02 (176-REVIEW): the backend now rejects a non-uploader PATCH that omits
+  // source_revision (SOURCE_REVISION_REQUIRED). This section is the Leitungs-/Review-Fläche
+  // (not the uploader's own save path), so it must forward the item's current source_revision
+  // whenever one is known, or the server rejects every "Änderungen speichern" click outright.
+  it('sendet source_revision mit, wenn das Medium eine Revision besitzt', async () => {
+    const mediaWithRevision = { ...sampleMedia[0], source_revision: 7 }
+    patchReleaseVersionMediaItem.mockResolvedValue(mediaWithRevision)
+
+    render(
+      <ReleaseVersionMediaReviewSection
+        versionId={42}
+        capabilities={fullCapabilities}
+        media={[mediaWithRevision]}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('button', { name: /Änderungen speichern/ }))
+
+    await waitFor(() => {
+      expect(patchReleaseVersionMediaItem).toHaveBeenCalledWith(
+        42,
+        201,
+        expect.objectContaining({ source_revision: 7 }),
+        undefined,
+      )
+    })
+  })
 })
 
 // --- D-05: Owner-Inkonsistenz-Flag (kein Owner-Edit-Feld) ---
