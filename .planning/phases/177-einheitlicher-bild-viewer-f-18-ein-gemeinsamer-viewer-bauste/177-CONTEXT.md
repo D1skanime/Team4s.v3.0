@@ -93,8 +93,8 @@ Gruppen-Assets, Mitgliederprofil) verhalten sollen.
   sobald der Baustein erweitert ist, ohne eigene Anpassung.
 - **D-08:** Admin-Formular-Varianten #6 (`ReleaseVersionMediaSection`-Drawer „Medium bearbeiten")
   und #8 (`GroupMediaReviewDetailDrawer.tsx`) sind laut Inventur keine Navigations-Viewer, sondern
-  Bearbeitungsformulare — sie werden in dieser Phase **nicht** angefasst (siehe aber „Offene
-  Fragen an den Nutzer" zur endgültigen Trennungs-Bestätigung).
+  Bearbeitungsformulare — sie werden in dieser Phase **nicht** angefasst (endgültig bestätigt,
+  siehe D-17).
 - **D-09:** Sketch-Nutzung (D-08 aus `175-INVENTORY.md`) — `.planning/sketches/010-galerie-detailansicht`
   dient ausschließlich als gelesene Design-Referenz für die öffentliche Release-Galerie und wird
   von dieser Phase nicht verändert oder committet.
@@ -118,28 +118,34 @@ Gruppen-Assets, Mitgliederprofil) verhalten sollen.
   Logik getrennt).
 - **D-16 (Projektregel):** Ein Commit je Änderung auf `main` (kein Sammel-Commit über mehrere
   fachlich getrennte Schritte); kein `git stash` bei offenen Änderungen.
+- **D-17:** Admin-Formular-Drawer #6/#8 (Nutzer 2026-10-08, Antwort 1a) — `ReleaseVersionMediaSection`-
+  Drawer „Medium bearbeiten" (#6) und `GroupMediaReviewDetailDrawer.tsx` (#8) bleiben dauerhaft
+  getrennt und sind **nicht** Teil dieser Phase, auch nicht in ihrer Bild-Anzeige-/
+  Navigationslogik — sie sind Bearbeitungsformulare, keine Navigations-Viewer. Keine
+  Teilübernahme in den gemeinsamen Baustein.
+- **D-18:** Video-Medien (Nutzer 2026-10-08, Antwort 2a) — Bild und Video bleiben strukturell
+  getrennt. Der neue gemeinsame Viewer-Baustein navigiert ausschließlich durch Bilder; Videos
+  öffnen weiterhin über das bestehende `VideoPlayerModal`. Eine Video-Integration in den
+  gemeinsamen Baustein (z. B. gemischte Navigationsreihenfolge) ist ausdrücklich **nicht** Teil
+  dieser Phase.
+- **D-19:** Metadaten-Overlay-Inhalt und Sichtbarkeitsfilter (Nutzer 2026-10-08, Antwort 3a) — Das
+  Overlay zeigt Titel, Kategorie, Folge (`episode_label`), Release-Version (`release_version_label`)
+  und Bildunterschrift (`caption`) — auch auf öffentlich zugänglichen Flächen. Harte Regel: Medien
+  mit interner/nicht-öffentlicher Sichtbarkeit dürfen **niemals** im öffentlichen Viewer erscheinen;
+  der Sichtbarkeitsfilter muss serverseitig/datenseitig greifen (nicht nur clientseitig/UI-seitig
+  verborgen werden) und ist mit einem Logik-Test zu belegen (vgl. D-13 Teststil-Regel).
 </decisions>
 
 <open_questions>
-## Offene Fragen an den Nutzer
+## Offene Fragen an den Nutzer — beantwortet
 
-Diese Fragen werden hier nur dokumentiert, nicht entschieden — eine Entscheidung erfordert
-Nutzer-Input vor oder während der Planung:
+Alle drei ursprünglich offenen Fragen wurden am 2026-10-08 vom Nutzer entschieden; die
+Entscheidungen sind oben als D-17, D-18 und D-19 festgehalten. Keine offenen Fragen mehr
+ausstehend.
 
-1. **Admin-Formular-Drawer #6/#8:** Bleiben `ReleaseVersionMediaSection`-Drawer „Medium bearbeiten"
-   und `GroupMediaReviewDetailDrawer.tsx` wirklich dauerhaft als getrennte Bearbeitungsformulare
-   bestehen (so die Inventur-Einschätzung), oder soll geprüft werden, ob zumindest ihre
-   Bild-Anzeige-/Navigationslogik (nicht das Formular selbst) den neuen gemeinsamen Baustein
-   mitnutzen kann?
-2. **Verhalten bei Video-Medien:** `GroupAssetsExperience.tsx` trennt Bild (Lightbox, wird abgelöst)
-   und Video (`VideoPlayerModal`, bleibt unberührt) bereits sauber. Soll der neue gemeinsame
-   Bild-Viewer-Baustein so gebaut werden, dass er künftig auch Video-Einträge in derselben
-   Navigationsreihenfolge überspringen/anzeigen kann, oder bleibt die Trennung Bild/Video
-   strukturell endgültig getrennt (kein gemeinsamer Medien-Viewer über diese Phase hinaus)?
-3. **Metadaten-Overlay-Sichtbarkeit:** Welche Metadaten aus der reichhaltigsten Sidebar
-   (`ProjectMemberMediaViewer.tsx`) dürfen im neuen Overlay auf öffentlich zugänglichen Flächen
-   (z. B. Release-Galerie) sichtbar sein, und welche bleiben auf interne/Admin-Kontexte beschränkt
-   (z. B. Uploader-Identität, interne Review-Metadaten)?
+1. ~~**Admin-Formular-Drawer #6/#8**~~ → beantwortet, siehe D-17.
+2. ~~**Verhalten bei Video-Medien**~~ → beantwortet, siehe D-18.
+3. ~~**Metadaten-Overlay-Sichtbarkeit**~~ → beantwortet, siehe D-19.
 </open_questions>
 
 <references>
