@@ -1,5 +1,5 @@
 // Pure Mapping-Funktion: ProjectMemberMediaItem -> PublicImageLightboxItem (Phase 177 Plan 06).
-// Reproduziert das alte ProjectMemberMediaViewer-Feld-Mapping (Kategorie-Label-Fallback,
+// Reproduziert das alte, inzwischen entfernte bespoke-Viewer-Feld-Mapping (Kategorie-Label-Fallback,
 // Release-Link) 1:1 auf das vom gemeinsamen Viewer (FansubMediaLightbox) erwartete, erweiterte
 // Kontrakt-Format. Keine React-/DOM-Importe (D-13-konform direkt testbar).
 

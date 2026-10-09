@@ -7,7 +7,8 @@ import type { ProjectMemberMediaItem } from '@/types/projectMember'
 import type { CursorPage } from '@/types/releaseDetail'
 
 const getProjectMemberMedia = vi.fn()
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/api')>()),
   getProjectMemberMedia: (...args: unknown[]) => getProjectMemberMedia(...args),
 }))
 
@@ -59,7 +60,7 @@ describe('ProjectMemberMediaGallery', () => {
     const card = await screen.findByRole('button', { name: '<b>Abschlussschild</b> – Folge 08 öffnen' })
     expect(within(card).getByText(item.title!)).not.toBeNull()
     fireEvent.click(card)
-    const dialog = screen.getByRole('dialog', { name: 'Medienansicht' })
+    const dialog = screen.getByRole('dialog', { name: item.title! })
     expect(within(dialog).getByRole('heading', { name: item.title! })).not.toBeNull()
     expect(within(dialog).getByText(item.caption!)).not.toBeNull()
     expect(within(dialog).getByText('Fansub Screenshot')).not.toBeNull()
@@ -94,12 +95,12 @@ describe('ProjectMemberMediaGallery', () => {
     renderGallery()
     await waitFor(() => expect(cards()).toHaveLength(3))
     fireEvent.click(cards()[0])
-    const dialog = screen.getByRole('dialog', { name: 'Medienansicht' })
+    const dialog = screen.getByRole('dialog', { name: 'Fansub Screenshot' })
     expect(dialog).not.toBeNull()
     expect(screen.getByText('1 / 3')).not.toBeNull()
     expect(screen.getByText('Release öffnen →')).not.toBeNull()
-    fireEvent.keyDown(window, { key: 'Escape' })
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Medienansicht' })).toBeNull())
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Fansub Screenshot' })).toBeNull())
   })
 
   it('renders no "Alle N angezeigt" pager text once every medium is loaded', async () => {
