@@ -48,8 +48,8 @@ interface FansubMediaLightboxProps {
  * ArrowRight/Home/End), Touch-Swipe oder Mausrad, mit Wrap-around durch ALLE
  * Medien der Gruppe -- einheitlich über wrapIndex(). Escape, role='dialog'/
  * aria-modal, Fokus-Falle und Fokus-Rückgabe übernimmt Modal; die
- * zweistufige Escape-Sequenz fuer das Caption-"Weiterlesen"-Panel (D-31)
- * laeuft ueber Modals additiven onEscapeKeyDown-Hook.
+ * dreistufige Escape-Sequenz (Zoom -> Caption-"Weiterlesen"-Panel (D-31) ->
+ * Viewer, D-37) laeuft ueber Modals additiven onEscapeKeyDown-Hook.
  */
 export function FansubMediaLightbox({ media, index, onClose, onNavigate }: FansubMediaLightboxProps) {
   const total = media.length
