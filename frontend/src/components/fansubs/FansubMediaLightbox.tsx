@@ -15,6 +15,12 @@ export interface PublicImageLightboxItem {
   description?: string | null
   media_type: string
   original_url?: string | null
+  display_url?: string | null
+  thumbnail_url?: string | null
+  category?: string | null
+  episode_label?: string | null
+  release_version_label?: string | null
+  release_href?: string | null
 }
 
 interface FansubMediaLightboxProps {
