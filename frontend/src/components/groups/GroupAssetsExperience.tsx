@@ -1,14 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Play } from 'lucide-react'
 
 import VideoPlayerModal from '@/app/episodes/[id]/components/VideoPlayerModal'
+import { FansubMediaLightbox } from '@/components/fansubs/FansubMediaLightbox'
 import { GroupAssetImage, GroupAssetMedia, GroupAssetMediaType, GroupEpisodeAssets } from '@/types/groupAsset'
 import { MediaAsset } from '@/types/mediaAsset'
 import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
+import { toGroupAssetLightboxItem } from './groupAssetMediaMapping'
 import styles from './GroupAssetsExperience.module.css'
 
 interface GroupAssetsExperienceProps {
@@ -60,45 +62,12 @@ export function GroupAssetsExperience({
   episodes,
   errorMessage = null,
 }: GroupAssetsExperienceProps) {
-  const [lightboxImages, setLightboxImages] = useState<GroupAssetImage[]>([])
-  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [openGallery, setOpenGallery] = useState<{ images: GroupAssetImage[]; index: number } | null>(null)
   const [playingAsset, setPlayingAsset] = useState<MediaAsset | null>(null)
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
 
   const hasEpisodes = episodes.length > 0
-  const lightboxOpen = lightboxImages.length > 0
-  const activeImage = lightboxImages[activeImageIndex] ?? null
   const episodeCountLabel = useMemo(() => `${episodes.length} Episodenbereiche`, [episodes.length])
-
-  useEffect(() => {
-    if (!lightboxOpen) {
-      return
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key) {
-        case 'Escape':
-          setLightboxImages([])
-          break
-        case 'ArrowLeft':
-          event.preventDefault()
-          setActiveImageIndex((current) => Math.max(0, current - 1))
-          break
-        case 'ArrowRight':
-          event.preventDefault()
-          setActiveImageIndex((current) => Math.min(lightboxImages.length - 1, current + 1))
-          break
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [lightboxImages.length, lightboxOpen])
-
-  const openGallery = (images: GroupAssetImage[], index: number) => {
-    setLightboxImages(images)
-    setActiveImageIndex(index)
-  }
 
   const openVideo = (asset: GroupAssetMedia) => {
     setPlayingAsset(toPlayableAsset(asset))
@@ -156,7 +125,7 @@ export function GroupAssetsExperience({
                         key={image.id}
                         type="button"
                         className={styles.imageButton}
-                        onClick={() => openGallery(episode.images, index)}
+                        onClick={() => setOpenGallery({ images: episode.images, index })}
                         aria-label={`${image.title} gross anzeigen`}
                       >
                         <img src={resolveApiUrl(image.thumbnail_url)} alt={image.title} className={styles.imageThumbnail} />
@@ -208,40 +177,12 @@ export function GroupAssetsExperience({
         })}
       </section>
 
-      {lightboxOpen && activeImage ? (
-        <div className={styles.lightbox} role="dialog" aria-modal="true" aria-label="Bildansicht" onClick={() => setLightboxImages([])}>
-          <div className={styles.lightboxContent} onClick={(event) => event.stopPropagation()}>
-            <img src={resolveApiUrl(activeImage.image_url)} alt={activeImage.title} className={styles.lightboxImage} />
-            <button type="button" className={styles.closeButton} onClick={() => setLightboxImages([])} aria-label="Schließen">
-              <X size={22} />
-            </button>
-            <button
-              type="button"
-              className={`${styles.navButton} ${styles.navButtonLeft}`}
-              onClick={() => setActiveImageIndex((current) => Math.max(0, current - 1))}
-              disabled={activeImageIndex === 0}
-              aria-label="Vorheriges Bild"
-            >
-              <ChevronLeft size={22} />
-            </button>
-            <button
-              type="button"
-              className={`${styles.navButton} ${styles.navButtonRight}`}
-              onClick={() => setActiveImageIndex((current) => Math.min(lightboxImages.length - 1, current + 1))}
-              disabled={activeImageIndex >= lightboxImages.length - 1}
-              aria-label="Nächstes Bild"
-            >
-              <ChevronRight size={22} />
-            </button>
-            <div className={styles.lightboxMeta}>
-              <span>{activeImage.title}</span>
-              <span>
-                {activeImageIndex + 1} / {lightboxImages.length}
-              </span>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <FansubMediaLightbox
+        media={openGallery ? openGallery.images.map(toGroupAssetLightboxItem) : []}
+        index={openGallery ? openGallery.index : null}
+        onClose={() => setOpenGallery(null)}
+        onNavigate={(index) => setOpenGallery((current) => (current ? { ...current, index } : null))}
+      />
 
       <VideoPlayerModal
         key={playingAsset?.id ?? 'closed'}

@@ -212,79 +212,9 @@
   font-size: 14px;
 }
 
-.lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(7, 5, 8, 0.88);
-}
-
-.lightboxContent {
-  position: relative;
-  width: min(1100px, 100%);
-}
-
-.lightboxImage {
-  display: block;
-  width: 100%;
-  max-height: 82vh;
-  object-fit: contain;
-  border-radius: 18px;
-  background: #000;
-}
-
-.closeButton,
-.navButton {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 42px;
-  height: 42px;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.56);
-  color: var(--color-white);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.closeButton {
-  top: 18px;
-  right: 18px;
-  transform: none;
-}
-
-.navButtonLeft {
-  left: 18px;
-}
-
-.navButtonRight {
-  right: 18px;
-}
-
-.navButton:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.lightboxMeta {
-  margin-top: 12px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: var(--color-white);
-}
-
 @media (max-width: 768px) {
   .groupAssetsHeader,
-  .episodeHeader,
-  .lightboxMeta {
+  .episodeHeader {
     grid-template-columns: 1fr;
     display: grid;
   }
@@ -292,22 +222,5 @@
   .imageGrid,
   .mediaGrid {
     grid-template-columns: 1fr;
-  }
-
-  .lightbox {
-    padding: 16px;
-  }
-
-  .navButtonLeft {
-    left: 8px;
-  }
-
-  .navButtonRight {
-    right: 8px;
-  }
-
-  .closeButton {
-    top: 8px;
-    right: 8px;
   }
 }
