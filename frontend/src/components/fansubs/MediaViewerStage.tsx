@@ -100,6 +100,12 @@ export function MediaViewerStage({
     preload.onload = () => {
       if (!cancelled) setOriginalLoaded(true)
     }
+    preload.onerror = () => {
+      // Original 404s, CORS-blocked, or otherwise fails to load: give up rather
+      // than leaving the "wird geladen …" pill shown forever (the visible <img>
+      // keeps showing display_url/thumbnail_url via selectDisplaySrc regardless).
+      if (!cancelled) setOriginalLoaded(true)
+    }
     preload.src = originalUrl
 
     return () => {
