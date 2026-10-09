@@ -172,3 +172,69 @@ None — no hardcoded empty values, placeholder text, or unwired data sources we
 - FOUND: commit 7ea3b5ed (Task 2)
 - FOUND: commit 81b2b9a0 (Task 3)
 - FOUND: commit 2795f85f (doc follow-up)
+
+## Post-177-14 hotfix: viewport-overflow layout fix
+
+A live browser check on route `/anime/1/group/1/releases/27` (viewport 2018x1282) after
+Plan 177-14 landed surfaced two concrete layout bugs, fixed directly (no new PLAN.md/CONTEXT.md
+decision — this is an implementation-correctness fix of the already-decided D-25/D-30/D-37 layout
+contract, not a new design decision): commit `a50589ce`.
+
+**Bug 1 — header overlay + content pushed below viewport.** `MediaViewerHeader.module.css`'s
+`.header` was `position: absolute`, rendering the title/meta row on top of the image stage instead
+of occupying its own space above it. Combined with `FansubMediaLightbox.module.css`'s
+`.lightboxBody` being a 3-row CSS grid (`minmax(0, 1fr) auto auto`) sized for only 3 of its 4
+rendered children (Header, Stage, Caption, ThumbnailStrip — Header was never meant to consume a
+row since it overlaid instead), the caption and thumbnail strip were added on top of an
+already-near-full-height image stage rather than carved out of a shared height budget, pushing the
+thumbnail strip below the visible viewport with no way to scroll to it. Fix: converted
+`.lightboxBody` to `display: flex; flex-direction: column; height: 100%`, made `.header` a normal
+flex child (`flex: 0 0 auto; margin-inline: auto`, dropping the absolute positioning but keeping
+all existing width/centering rules), gave `.stage` `flex: 1 1 auto; min-height: 0` so it consumes
+exactly the remaining space, and gave `.caption`/`.strip` (ThumbnailStrip) `flex: 0 0 auto` so they
+always render at their natural height. Verified the height-propagation chain up through
+`Modal.module.css`: `.modalPanelStage` has `height: 100dvh` with a single explicit `1fr` grid row,
+`.modalBody`/`.modalBodyStage` is the sole item in that row (grid items default to
+`align-self: stretch`, and `align-content: normal` computes to `stretch` for a CSS grid container,
+so the single implicit row absorbs all available height) — this already gives `.lightboxBody`'s
+`height: 100%` a definite basis without any further change needed in `Modal.module.css`.
+
+**Bug 2 — zoomed image overflowing into header/caption/arrows.** At 2x/4x D-37 zoom, the
+transformed `<img>` visually extended beyond `.stage`'s own box into the surrounding chrome because
+`.stage` had `overflow: auto` (native scrolling), the wrong clipping mode for a gesture-driven CSS
+`transform: translate(...) scale(...)`. Fixed by the same `.stage` change above: `overflow: hidden`
+is now a hard visual safety net (the D-37 pan-clamp math in `mediaViewerZoom.ts` already keeps the
+transformed image's edges within the stage bounds at every zoom level; `overflow: hidden` guards
+against any transient transform state mid-gesture, e.g. mid-pinch). No change to any pan-clamp
+math — confirmed `useMediaViewerZoomPan.ts` only reads `getBoundingClientRect()` on the stage
+container for all its arithmetic, never native `scrollLeft`/`scrollTop`, so switching the overflow
+mode affects nothing it relies on. Also confirmed `NavArrow`/the loading pill remain visually
+un-clipped: both are children of `.stage` in `MediaViewerStage.tsx`'s JSX, absolutely positioned
+with `left`/`right`/`top: 50%` offsets that place them inside `.stage`'s own content-box rectangle
+by construction — absolutely-positioned descendants are only clipped by an ancestor's
+`overflow: hidden` if they fall outside that ancestor's own box, which these do not.
+
+**Space-distribution logic test — assessed, not written, with reasoning.** The user asked for a
+pure-function logic test for "available image height = viewport minus header/caption/strip" if one
+could be meaningfully expressed. It cannot, and inventing one would be dishonest test theater: the
+fix above delegates all space distribution to native CSS flexbox (`flex: 1 1 auto; min-height: 0`
+on the stage, `flex: 0 0 auto` on the other three rows) — the browser's flex layout algorithm
+natively and correctly computes "available height = container height minus the auto-sized
+siblings' heights." There is no bespoke arithmetic in application code performing that
+subtraction; a hand-written function that just re-implemented
+`containerHeight - headerHeight - captionHeight - stripHeight` would not exercise any real decision
+logic, only duplicate what the flex properties already guarantee by construction, and a unit test
+of that duplicate would not catch any real regression the way the existing `mediaViewerZoom.ts`
+pure functions do for the actual zoom/pan decisions (those functions encode real branching/clamping
+logic that the browser has no opinion on). This mirrors the "closest-analog can't override a
+hard rule" principle from the other direction: a contrived pure function here would be a
+closest-analog pattern applied where it doesn't actually fit.
+
+**Verification:** `docker compose exec team4sv30-frontend npx tsc --noEmit` clean (after clearing
+a stale, unrelated `.next/dev/types` generated-file error predating this change); `vitest run
+src/components/fansubs/ src/lib/mediaViewerZoom.test.ts src/lib/mediaViewerNavigation.test.ts
+src/lib/mediaViewerCaptionPanel.test.ts src/components/ui/` — 48 test files, 396 tests, all passing
+(including the previously-flaky `ResponsiveImage.config.test.ts`, confirming that was
+environment noise, not caused by this or the prior plan). No consumer call sites touched (D-07);
+no CONTEXT.md/STATE.md/ROADMAP.md changes (this is a hotfix layered on an already-completed plan,
+not a new plan).
