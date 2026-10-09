@@ -26,7 +26,7 @@
   right: 0;
   bottom: 0;
   height: 2.4em;
-  background: linear-gradient(to bottom, transparent, transparent);
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.72));
 }
 .moreButton {
   justify-self: start;
