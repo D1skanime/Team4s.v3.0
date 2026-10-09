@@ -1,0 +1,39 @@
+.panel {
+  display: grid;
+  gap: var(--space-2);
+  background: var(--surface-card);
+  padding: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.cta {
+  justify-self: start;
+  color: var(--accent-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cta:hover {
+  text-decoration: underline;
+}
