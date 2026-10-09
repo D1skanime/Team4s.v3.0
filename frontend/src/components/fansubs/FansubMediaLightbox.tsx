@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { Button, Modal } from '@/components/ui'
 import { ThumbnailStrip } from '@/components/ui/ThumbnailStrip'
 import { resolveApiUrl } from '@/lib/api'
-import { resetCaptionPanelOpen, resolveEscapeTarget } from '@/lib/mediaViewerCaptionPanel'
+import { resetCaptionPanelOpen, resolveEscapeTarget, resolveWheelOrSwipeTarget } from '@/lib/mediaViewerCaptionPanel'
 import { resolveAccessibleTitle, resolveThumbnailUrl } from '@/lib/mediaViewerMetadata'
 import { wrapIndex } from '@/lib/mediaViewerNavigation'
 import { cycleZoomLevel, isZoomed, resetZoomLevel } from '@/lib/mediaViewerZoom'
@@ -70,6 +70,10 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
 
     function handleKeyDown(event: KeyboardEvent) {
       if (index === null) return
+      // The open "Weiterlesen" panel owns these keys' intent the same way it already
+      // owns wheel/swipe (resolveWheelOrSwipeTarget) -- don't silently navigate away
+      // from an open reading panel.
+      if (resolveWheelOrSwipeTarget(captionPanelOpen) === 'panel') return
 
       if (event.key === 'ArrowRight') {
         event.preventDefault()
@@ -88,7 +92,7 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, index, total, onNavigate])
+  }, [isOpen, index, total, onNavigate, captionPanelOpen])
 
   if (!isOpen || index === null) {
     return null
