@@ -4,13 +4,14 @@ import { Image as ImageIcon } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
 import { Button, SectionHeader } from '@/components/ui'
+import { FansubMediaLightbox } from '@/components/fansubs/FansubMediaLightbox'
 import { getProjectMemberMedia } from '@/lib/api'
 import type { ProjectMemberMediaItem } from '@/types/projectMember'
 
 import { ProjectMemberMediaCard } from './ProjectMemberMediaCard'
 import styles from './ProjectMemberMediaGallery.module.css'
-import { ProjectMemberMediaViewer } from './ProjectMemberMediaViewer'
 import pageStyles from './ProjectMemberPage.module.css'
+import { toProjectMemberLightboxItem } from './projectMemberMediaMapping'
 import { useProjectMemberCollection } from './useProjectMemberCollection'
 
 const INITIAL_LIMIT = 24
@@ -100,15 +101,12 @@ export function ProjectMemberMediaGallery({
           ) : null}
         </div>
       </div>
-      {openIndex !== null ? (
-        <ProjectMemberMediaViewer
-          items={shown}
-          index={openIndex}
-          projectPath={projectPath}
-          onClose={closeViewer}
-          onIndexChange={setOpenIndex}
-        />
-      ) : null}
+      <FansubMediaLightbox
+        media={shown.map((item) => toProjectMemberLightboxItem(item, projectPath))}
+        index={openIndex}
+        onClose={closeViewer}
+        onNavigate={setOpenIndex}
+      />
     </section>
   )
 }
