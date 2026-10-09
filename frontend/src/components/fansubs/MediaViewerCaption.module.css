@@ -1,0 +1,83 @@
+.caption {
+  position: relative;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-stage);
+  display: grid;
+  gap: var(--space-2);
+}
+.clamped {
+  margin: 0;
+  max-height: 6em;
+  line-height: 1.5;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 16px;
+}
+.clampedFading {
+  position: relative;
+}
+.clampedFading::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2.4em;
+  background: linear-gradient(to bottom, transparent, var(--surface-stage));
+}
+.moreButton {
+  justify-self: start;
+  color: #ffffff;
+}
+.cta {
+  justify-self: start;
+  color: var(--accent-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.cta:hover {
+  text-decoration: underline;
+}
+.panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 30%;
+  z-index: 2;
+  background: var(--surface-stage);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding: var(--space-5);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  overflow: hidden;
+}
+.panelClose {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-card) 96%, transparent);
+  color: var(--text-soft);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.panelText {
+  margin: 0;
+  overflow-y: auto;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 16px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+@media (max-width: 767px) {
+  .panel {
+    top: 15%;
+  }
+}
