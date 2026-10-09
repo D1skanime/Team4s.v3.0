@@ -158,3 +158,17 @@ None — no hardcoded empty values, placeholder text, or unwired data sources we
 ---
 *Phase: 177-einheitlicher-bild-viewer-f-18-ein-gemeinsamer-viewer-bauste*
 *Completed: 2026-10-09*
+
+## Self-Check: PASSED
+
+- FOUND: frontend/src/components/fansubs/useMediaViewerZoomPan.ts
+- FOUND: frontend/src/components/fansubs/MediaViewerStage.tsx
+- FOUND: frontend/src/components/fansubs/MediaViewerStage.module.css
+- FOUND: frontend/src/lib/mediaViewerNavigation.ts
+- FOUND: frontend/src/lib/mediaViewerNavigation.test.ts
+- FOUND: frontend/src/components/fansubs/FansubMediaLightbox.tsx
+- FOUND: frontend/src/components/fansubs/FansubMediaLightbox.module.css
+- FOUND: commit 92e96c1f (Task 1)
+- FOUND: commit 7ea3b5ed (Task 2)
+- FOUND: commit 81b2b9a0 (Task 3)
+- FOUND: commit 2795f85f (doc follow-up)
