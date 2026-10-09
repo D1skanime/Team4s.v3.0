@@ -47,6 +47,11 @@ export default function ScreenshotGallery({ animeId, groupId, releaseVersionId, 
         setHasMore(page.has_more)
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Ein Fehler ist aufgetreten.')
+        // Stop auto-retrying via the IntersectionObserver: without this, a failing
+        // page-2+ fetch with the load-trigger still visible would re-fire immediately
+        // on every effect rerun with no backoff. The existing "Erneut versuchen"
+        // button (handleRetry) already resets hasMore(true) to resume loading.
+        setHasMore(false)
       } finally {
         setLoading(false)
       }
