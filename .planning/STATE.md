@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 177-11-PLAN.md
-last_updated: "2026-10-09T16:16:52.305Z"
+status: verifying
+stopped_at: Completed 177-12-PLAN.md
+last_updated: "2026-10-09T17:41:15.272Z"
 last_activity: 2026-10-09
 progress:
   total_phases: 42
   completed_phases: 36
-  total_plans: 399
-  completed_plans: 395
+  total_plans: 402
+  completed_plans: 396
   percent: 86
 ---
 
@@ -288,7 +288,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 177 (einheitlicher-bild-viewer-f-18-ein-gemeinsamer-viewer-bauste) — EXECUTING
 Plan: 11 of 11
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -979,6 +979,10 @@ Last activity: 2026-10-09
 - [Phase 177]: ThumbnailStrip not barrel-exported from components/ui/index.ts, following ResponsiveImage.tsx precedent, to avoid same-wave index.ts conflict with Plan 177-09
 - [Phase 177]: 177-11: MediaViewerCaption's non-render gate stays narrower than literal UI-SPEC wording (!caption && !hasReleaseHref) to preserve the already-tested CTA-without-caption case — Keeps ProjectMemberMediaGallery.test.tsx's existing Release-öffnen assertion green without weakening graceful omission for the genuinely-empty case
 - [Phase 177]: 177-11: captionPanelOpen lifted into FansubMediaLightbox rather than local to MediaViewerCaption — Modal's onEscapeKeyDown and MediaViewerStage's wheel/swipe gating both need to read the same panel-open state as the caption component itself
+- [Phase ?]: D-33: translucent blurred veil (Modal's .modalPanelStage only) replaces the flat opaque --surface-stage fill across viewer chrome, with an @supports fallback
+- [Phase ?]: D-34: header/caption/thumbnail-strip share one centered horizontal axis; caption capped at 70ch with left-aligned inner text
+- [Phase ?]: D-35: viewer title activates the already-documented Display typography role (32px/700/1.2)
+- [Phase ?]: D-36: NavArrow size=large darkened to match the veil tone; icon recolored to white (contrast-computed, --ui-arrow fails 3:1 against the new dark background)
 
 ### Pending Todos
 
@@ -1595,11 +1599,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 177 P09 | 15min | 2 tasks | 7 files |
 | Phase 177 P10 | 8min | 2 tasks | 6 files |
 | Phase 177 P11 | 17min | 3 tasks | 10 files |
+| Phase 177 P12 | 17min | 2 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-09T16:16:52.283Z
-Stopped at: Completed 177-11-PLAN.md
+Last session: 2026-10-09T17:41:15.245Z
+Stopped at: Completed 177-12-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 
