@@ -135,3 +135,19 @@
     padding: 14px 18px 18px;
   }
 }
+
+.modalWrapStage {
+  padding: 0;
+}
+
+.modalPanelStage {
+  width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  max-width: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--surface-stage);
+  grid-template-rows: 1fr;
+}

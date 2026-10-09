@@ -36,6 +36,13 @@ export interface ModalProps {
    * rendert dadurch byte-identisch zu vorher.
    */
   variant?: 'default' | 'stage'
+  /**
+   * Phase 177 Gap-Fix D-31: wenn gesetzt und der Rückgabewert `true` ist, überspringt Modal
+   * das eigene `onClose` für diesen Escape-Tastendruck (z. B. um zuerst nur ein internes
+   * Panel zu schliessen). Additiv -- jeder bestehende Aufrufer lässt dieses Feld weg und
+   * schliesst per Escape weiterhin genauso wie heute.
+   */
+  onEscapeKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => boolean
 }
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
@@ -65,6 +72,7 @@ export function Modal({
   size = 'md',
   panelClassName,
   variant = 'default',
+  onEscapeKeyDown,
 }: ModalProps) {
   const titleID = useId()
   const panelRef = useRef<HTMLDivElement | null>(null)
@@ -87,6 +95,7 @@ export function Modal({
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape') {
       event.preventDefault()
+      if (onEscapeKeyDown?.(event)) return
       onClose()
       return
     }
@@ -115,13 +124,26 @@ export function Modal({
   }
 
   const modal = (
-    <div className={styles.modalWrap} role="dialog" aria-modal="true" aria-labelledby={titleID} onKeyDown={handleKeyDown}>
+    <div
+      className={[styles.modalWrap, variant === 'stage' ? styles.modalWrapStage : null]
+        .filter(Boolean)
+        .join(' ')}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleID}
+      onKeyDown={handleKeyDown}
+    >
       <div className={styles.overlay} aria-hidden="true" />
       {variant !== 'stage' ? (
         <button type="button" className={styles.overlayClose} aria-label="Modal schließen" onClick={onClose} />
       ) : null}
       <div
-        className={[styles.modalPanel, size === 'lg' ? styles.modalPanelLg : null, panelClassName]
+        className={[
+          styles.modalPanel,
+          size === 'lg' ? styles.modalPanelLg : null,
+          variant === 'stage' ? styles.modalPanelStage : null,
+          panelClassName,
+        ]
           .filter(Boolean)
           .join(' ')}
         ref={panelRef}
