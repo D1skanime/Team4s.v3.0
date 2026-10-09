@@ -2299,6 +2299,7 @@ Public-UI-Abnahme (D-13) erfolgt live innerhalb dieser Phase, nicht als Folgepha
 **Plans:** 16/16 plans complete
 
 Plans:
+
 - [x] 173-01-PLAN.md — globaler Uploader: statische + animierte display-Variante (processImage)
 - [x] 173-02-PLAN.md — RVM-Display-Helper + Release-Version-Media-Upload-Verdrahtung
 - [x] 173-03-PLAN.md — Release-Version-Media-Replace-Verdrahtung
@@ -2510,11 +2511,22 @@ Plans:
 **UI hint**: yes
 
 Plans:
+**Wave 1**
+
 - [ ] 177-01-PLAN.md — Pure viewer-logic module (wrapIndex, swipe threshold, zoom toggle, progressive-load URL selection) + D-13-compliant tests.
 - [ ] 177-02-PLAN.md — Modal "stage" variant + Button "floating" variant + --surface-stage token + delete dead ReleaseVersionMediaDetailPanel.tsx.
 - [ ] 177-03-PLAN.md — Backend D-24 fix: ListReleaseVersionImagesCursor gains the missing mf_display JOIN + visibility-predicate regression test.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 177-04-PLAN.md — Shared viewer shell: extended FansubMediaLightbox + new MediaViewerStage + MediaViewerMetadataPanel.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 177-05-PLAN.md — ScreenshotGallery migrated onto getGroupReleaseImages + the shared viewer.
 - [ ] 177-06-PLAN.md — ProjectMemberMediaGallery swapped onto the shared viewer; ProjectMemberMediaViewer deleted.
 - [ ] 177-07-PLAN.md — GroupAssetsExperience's image lightbox migrated; video path untouched.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 177-08-PLAN.md — Full automated gate + Live-UAT checkpoint across all five surfaces.
