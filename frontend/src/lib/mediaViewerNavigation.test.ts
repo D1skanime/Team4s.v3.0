@@ -20,6 +20,10 @@ describe('wrapIndex', () => {
     expect(wrapIndex(1, 3, 1)).toBe(2)
   })
 
+  it('bewegt sich rückwärts innerhalb der Mitte ohne Wrap-around', () => {
+    expect(wrapIndex(1, 3, -1)).toBe(0)
+  })
+
   it('wirft bei einer Liste mit nur einem Element weder NaN noch einen Fehler', () => {
     expect(wrapIndex(0, 1, 1)).toBe(0)
   })
