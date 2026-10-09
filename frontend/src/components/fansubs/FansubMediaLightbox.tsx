@@ -1,11 +1,15 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Modal } from '@/components/ui'
+import { ThumbnailStrip } from '@/components/ui/ThumbnailStrip'
+import { resolveApiUrl } from '@/lib/api'
+import { resetCaptionPanelOpen, resolveEscapeTarget } from '@/lib/mediaViewerCaptionPanel'
 import { wrapIndex } from '@/lib/mediaViewerNavigation'
 
-import { MediaViewerMetadataPanel } from './MediaViewerMetadataPanel'
+import { MediaViewerCaption } from './MediaViewerCaption'
+import { MediaViewerHeader } from './MediaViewerHeader'
 import { MediaViewerStage } from './MediaViewerStage'
 import styles from './FansubMediaLightbox.module.css'
 
@@ -33,17 +37,28 @@ interface FansubMediaLightboxProps {
 
 /**
  * AO6-12 / Phase 177 (F-18): gemeinsamer Bild-Viewer auf Basis des
- * @/components/ui Modal (variant="stage"). Zeigt die Bild-Bühne
- * (MediaViewerStage: Zoom, Progressive Load, Prefetch, Swipe) gefolgt vom
- * gestapelten Metadaten-Panel (MediaViewerMetadataPanel, D-21). Navigation
- * per Button, Tastatur (ArrowLeft/ArrowRight/Home/End) oder Touch-Swipe, mit
- * Wrap-around durch ALLE Medien der Gruppe -- einheitlich über
- * wrapIndex(). Escape, role='dialog'/aria-modal, Fokus-Falle und
- * Fokus-Rückgabe übernimmt Modal.
+ * @/components/ui Modal (variant="stage"). Zeigt den Kopfbereich
+ * (MediaViewerHeader, D-30), die Bild-Bühne (MediaViewerStage: Zoom,
+ * Progressive Load, Prefetch, Swipe, Mausrad-Navigation D-29), die
+ * Bildunterschrift (MediaViewerCaption, D-30/D-31) und die Thumbnail-Leiste
+ * (ThumbnailStrip, D-28). Navigation per Button, Tastatur (ArrowLeft/
+ * ArrowRight/Home/End), Touch-Swipe oder Mausrad, mit Wrap-around durch ALLE
+ * Medien der Gruppe -- einheitlich über wrapIndex(). Escape, role='dialog'/
+ * aria-modal, Fokus-Falle und Fokus-Rückgabe übernimmt Modal; die
+ * zweistufige Escape-Sequenz fuer das Caption-"Weiterlesen"-Panel (D-31)
+ * laeuft ueber Modals additiven onEscapeKeyDown-Hook.
  */
 export function FansubMediaLightbox({ media, index, onClose, onNavigate }: FansubMediaLightboxProps) {
   const total = media.length
   const isOpen = index !== null && index >= 0 && index < total
+  const currentItemID = index !== null ? media[index]?.id : undefined
+  const [captionPanelOpen, setCaptionPanelOpen] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen || index === null) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCaptionPanelOpen(resetCaptionPanelOpen())
+  }, [isOpen, index, currentItemID])
 
   useEffect(() => {
     if (!isOpen || index === null) return
@@ -81,6 +96,10 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
   const nextIndex = wrapIndex(currentIndex, total, 1)
   const prevOriginalUrl = media[prevIndex]?.original_url
   const nextOriginalUrl = media[nextIndex]?.original_url
+  const thumbnailItems = media.map((m) => ({
+    key: m.id,
+    thumbnailUrl: resolveApiUrl(m.thumbnail_url ?? m.display_url ?? m.original_url ?? ''),
+  }))
 
   function goToPrevious() {
     onNavigate(wrapIndex(currentIndex, total, -1))
@@ -90,13 +109,25 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
     onNavigate(wrapIndex(currentIndex, total, 1))
   }
 
-  function handleSwipeNavigate(direction: 'prev' | 'next') {
+  function handleGestureNavigate(direction: 'prev' | 'next') {
     onNavigate(wrapIndex(currentIndex, total, direction === 'next' ? 1 : -1))
   }
 
   return (
-    <Modal open={isOpen} onClose={onClose} title={title} size="lg" variant="stage">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      title={title}
+      size="lg"
+      variant="stage"
+      onEscapeKeyDown={() => {
+        if (resolveEscapeTarget(captionPanelOpen) !== 'panel') return false
+        setCaptionPanelOpen(false)
+        return true
+      }}
+    >
       <div className={styles.lightboxBody}>
+        <MediaViewerHeader item={currentItem} />
         <MediaViewerStage
           item={currentItem}
           title={title}
@@ -104,11 +135,13 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
           total={total}
           prevOriginalUrl={prevOriginalUrl}
           nextOriginalUrl={nextOriginalUrl}
-          onSwipeNavigate={handleSwipeNavigate}
+          captionPanelOpen={captionPanelOpen}
+          onGestureNavigate={handleGestureNavigate}
           onPrevious={goToPrevious}
           onNext={goToNext}
         />
-        <MediaViewerMetadataPanel item={currentItem} />
+        <MediaViewerCaption item={currentItem} panelOpen={captionPanelOpen} onPanelOpenChange={setCaptionPanelOpen} />
+        <ThumbnailStrip items={thumbnailItems} activeIndex={currentIndex} onSelect={onNavigate} regionLabel="Bildvorschau" />
       </div>
     </Modal>
   )

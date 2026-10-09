@@ -34,6 +34,7 @@ export function MediaViewerCaption({ item, panelOpen, onPanelOpenChange }: Media
   useLayoutEffect(() => {
     const node = clampedRef.current
     if (!node) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOverflowing(false)
       return
     }
