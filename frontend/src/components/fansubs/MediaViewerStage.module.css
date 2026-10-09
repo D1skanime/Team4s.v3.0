@@ -26,7 +26,9 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 1;
+  /* Above MediaViewerCaption.module.css's .panel (z-index: 2) -- arrows must stay
+     operable even when the "Weiterlesen" panel is open and covers the lower stage. */
+  z-index: 3;
 }
 
 .navPrev {

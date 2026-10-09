@@ -1,5 +1,4 @@
 .caption {
-  position: relative;
   flex: 0 0 auto;
   padding: var(--space-4) var(--space-5);
   background: transparent;
@@ -47,9 +46,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  top: 30%;
+  top: 40%;
   z-index: 2;
-  background: transparent;
+  background: color-mix(in srgb, var(--text-strong) 96%, transparent);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   padding: var(--space-5);
   display: grid;
@@ -73,6 +72,9 @@
 }
 .panelText {
   margin: 0;
+  max-width: 70ch;
+  margin-inline: auto;
+  width: 100%;
   overflow-y: auto;
   color: rgba(255, 255, 255, 0.92);
   font-size: 16px;
@@ -81,6 +83,6 @@
 }
 @media (max-width: 767px) {
   .panel {
-    top: 15%;
+    top: 20%;
   }
 }

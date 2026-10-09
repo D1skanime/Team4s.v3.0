@@ -46,13 +46,15 @@ export function MediaViewerCaption({ item, panelOpen, onPanelOpenChange }: Media
     const resizeObserver = new ResizeObserver(measure)
     resizeObserver.observe(node)
     return () => resizeObserver.disconnect()
-  }, [caption])
+    // panelOpen: the preview <p> unmounts while the panel is open (see render below) and
+    // remounts on close -- re-attach the observer to the fresh node instead of measuring stale.
+  }, [caption, panelOpen])
 
   if (!caption && !hasReleaseHref) return null
 
   return (
     <div className={styles.caption}>
-      {caption ? (
+      {caption && !panelOpen ? (
         <>
           <p ref={clampedRef} className={overflowing ? `${styles.clamped} ${styles.clampedFading}` : styles.clamped}>
             {caption}
