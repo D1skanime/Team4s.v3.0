@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 177-12-PLAN.md
-last_updated: "2026-10-09T17:47:49.534Z"
+status: executing
+stopped_at: Completed 177-14-PLAN.md
+last_updated: "2026-10-09T18:01:22.403Z"
 last_activity: 2026-10-09
 progress:
   total_phases: 42
   completed_phases: 36
   total_plans: 402
-  completed_plans: 397
+  completed_plans: 398
   percent: 86
 ---
 
@@ -287,8 +287,8 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 177 (einheitlicher-bild-viewer-f-18-ein-gemeinsamer-viewer-bauste) — EXECUTING
-Plan: 13 of 14
-Status: Gap-Closure Live-UAT Runde 2 in progress — 177-13 (D-37 pure zoom/pan math) complete; 177-14 (viewer-shell wiring) remains
+Plan: 14 of 14
+Status: Gap-Closure Live-UAT Runde 2 complete — 177-14 (real multi-level zoom/pan viewer shell wiring, D-37/D-38/D-39) closes the final gap. All 14 plans done; orchestrator re-runs Plan 177-08's Task 2 Live-UAT checkpoint for the third time.
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -984,6 +984,7 @@ Last activity: 2026-10-09
 - [Phase ?]: D-35: viewer title activates the already-documented Display typography role (32px/700/1.2)
 - [Phase ?]: D-36: NavArrow size=large darkened to match the veil tone; icon recolored to white (contrast-computed, --ui-arrow fails 3:1 against the new dark background)
 - [Phase 177]: resolveEscapeTarget signature extended in place (leading zoomed boolean) rather than wrapped, preserving D-31 behavior exactly when zoomed=false — Escape has exactly one decision point; a new wrapping function would duplicate logic (177-13)
+- [Phase 177]: D-37/D-38: real multi-level zoom/pan viewer shell wired end-to-end via new useMediaViewerZoomPan hook — Live-UAT Runde 2 required replacing the binary fit/100% toggle with fit->2x->4x cycle, clamped pan, cursor-anchored wheel-zoom, and a relocated top-bar magnifier button
 
 ### Pending Todos
 
@@ -1602,11 +1603,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 177 P11 | 17min | 3 tasks | 10 files |
 | Phase 177 P12 | 17min | 2 tasks | 7 files |
 | Phase 177 P13 | 2min | 2 tasks | 4 files |
+| Phase 177 P14 | 38min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-09T17:47:19.537Z
-Stopped at: Completed 177-13-PLAN.md
+Last session: 2026-10-09T18:01:22.381Z
+Stopped at: Completed 177-14-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 
