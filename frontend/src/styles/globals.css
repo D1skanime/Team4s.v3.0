@@ -132,6 +132,15 @@
   /* Scoped exclusively to the new Bild-Viewer's dunkler Image-Stage (Phase 177, D-21/Sketch 010) --
      not a sitewide dominant/secondary surface replacement. */
   --surface-stage: #10141c;
+  /* Phase 177 Gap-Fix D-33 (Live-UAT Runde 2): translucent "Schleier" for the Bild-Viewer-Chrome,
+     derived from --text-strong (not a new raw hex) -- replaces the flat --surface-stage fill on
+     Modal's stage panel ONLY, combined with a backdrop-filter blur so the real page stays
+     faintly visible/darkened behind the viewer instead of a solid opaque fill. This token must
+     NEVER be applied as a second, un-blurred flat background anywhere else in the viewer chrome
+     -- see Modal.module.css's .modalPanelStage comment for why stacking it twice compounds to
+     near-total opacity. */
+  --surface-stage-veil: color-mix(in srgb, var(--text-strong) 86%, transparent);
+  --surface-stage-veil-blur: 20px;
 
   --text-strong: #171513;
   --text-body: #2d2926;

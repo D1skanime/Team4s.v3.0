@@ -148,6 +148,14 @@
   border: none;
   border-radius: 0;
   box-shadow: none;
-  background: var(--surface-stage);
+  background: var(--surface-stage-veil);
+  backdrop-filter: blur(var(--surface-stage-veil-blur));
+  -webkit-backdrop-filter: blur(var(--surface-stage-veil-blur));
   grid-template-rows: 1fr;
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .modalPanelStage {
+    background: color-mix(in srgb, var(--text-strong) 96%, transparent);
+  }
 }

@@ -6,7 +6,7 @@
   width: 100%;
   height: 100%;
   overflow: auto;
-  background: var(--surface-stage);
+  background: transparent;
   padding-inline: 96px;
 }
 

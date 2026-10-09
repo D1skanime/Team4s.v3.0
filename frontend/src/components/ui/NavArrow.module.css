@@ -35,11 +35,12 @@
   height: 56px;
   min-height: 56px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-card) 96%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  background: color-mix(in srgb, var(--text-strong) 55%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
 .navArrowLarge:hover {
-  background: var(--surface-card);
+  background: color-mix(in srgb, var(--text-strong) 75%, transparent);
   opacity: 1;
 }
