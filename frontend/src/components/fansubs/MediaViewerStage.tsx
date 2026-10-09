@@ -1,19 +1,29 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
+import { ZoomIn, ZoomOut } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { TouchEvent } from 'react'
 
-import { Button } from '@/components/ui'
+import { Button, NavArrow } from '@/components/ui'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { resolveApiUrl } from '@/lib/api'
-import { computeSwipeNavigation, nextZoomState, selectDisplaySrc } from '@/lib/mediaViewerNavigation'
+import { resolveWheelOrSwipeTarget } from '@/lib/mediaViewerCaptionPanel'
+import {
+  computeSwipeNavigation,
+  nextZoomState,
+  resolveWheelNavigation,
+  selectDisplaySrc,
+  shouldShowNavigationControls,
+  shouldThrottleWheelNavigation,
+} from '@/lib/mediaViewerNavigation'
 
 import type { PublicImageLightboxItem } from './FansubMediaLightbox'
 import styles from './MediaViewerStage.module.css'
 
 // Horizontaler Schwellenwert fuer Touch-Swipe-Navigation, identisch zu --space-6 (32px).
 const SWIPE_THRESHOLD = 32
+// Mindestabstand zwischen zwei Mausrad-Navigationsschritten (D-29), verhindert Durchrasen.
+const WHEEL_THROTTLE_MS = 500
 
 interface MediaViewerStageProps {
   item: PublicImageLightboxItem
@@ -22,7 +32,8 @@ interface MediaViewerStageProps {
   total: number
   prevOriginalUrl?: string | null
   nextOriginalUrl?: string | null
-  onSwipeNavigate: (direction: 'prev' | 'next') => void
+  captionPanelOpen: boolean
+  onGestureNavigate: (direction: 'prev' | 'next') => void
   onPrevious: () => void
   onNext: () => void
 }
@@ -57,7 +68,8 @@ export function MediaViewerStage({
   total,
   prevOriginalUrl,
   nextOriginalUrl,
-  onSwipeNavigate,
+  captionPanelOpen,
+  onGestureNavigate,
   onPrevious,
   onNext,
 }: MediaViewerStageProps) {
@@ -65,6 +77,8 @@ export function MediaViewerStage({
   const [originalLoaded, setOriginalLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  const lastWheelAtRef = useRef<number | null>(null)
 
   const displayUrl = item.display_url ? resolveApiUrl(item.display_url) : null
   const originalUrl = item.original_url ? resolveApiUrl(item.original_url) : null
@@ -100,8 +114,30 @@ export function MediaViewerStage({
     prefetch(nextOriginalUrl ? resolveApiUrl(nextOriginalUrl) : null)
   }, [prevOriginalUrl, nextOriginalUrl])
 
+  // Gedrosselte Mausrad-Navigation ueber der Bild-Buehne (D-29): deaktiviert
+  // solange gezoomt oder solange das Caption-"Weiterlesen"-Panel offen ist
+  // (D-31 -- dort scrollt das Rad den Text, nicht die Bilder).
+  useEffect(() => {
+    const stage = stageRef.current
+    if (!stage) return
+    if (zoomed || resolveWheelOrSwipeTarget(captionPanelOpen) !== 'stage') return
+
+    function handleWheel(event: WheelEvent) {
+      const direction = resolveWheelNavigation(event.deltaY)
+      if (!direction) return
+      if (shouldThrottleWheelNavigation(Date.now(), lastWheelAtRef.current, WHEEL_THROTTLE_MS)) return
+      lastWheelAtRef.current = Date.now()
+      event.preventDefault()
+      onGestureNavigate(direction)
+    }
+
+    stage.addEventListener('wheel', handleWheel, { passive: false })
+    return () => stage.removeEventListener('wheel', handleWheel)
+  }, [zoomed, captionPanelOpen, onGestureNavigate])
+
   const displaySrc = selectDisplaySrc({ displayUrl, originalUrl, thumbnailUrl, originalLoaded })
   const showLoadingPill = !hasError && shouldShowLoadingPill(displayUrl, originalUrl, originalLoaded)
+  const showNavigationControls = shouldShowNavigationControls(total)
 
   function toggleZoom() {
     setZoomed((current) => nextZoomState(current))
@@ -114,6 +150,11 @@ export function MediaViewerStage({
   }
 
   function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (resolveWheelOrSwipeTarget(captionPanelOpen) === 'panel') {
+      touchStartRef.current = null
+      return
+    }
+
     const start = touchStartRef.current
     touchStartRef.current = null
     if (!start) return
@@ -125,13 +166,14 @@ export function MediaViewerStage({
     const deltaY = touch.clientY - start.y
     const direction = computeSwipeNavigation(deltaX, deltaY, SWIPE_THRESHOLD)
     if (direction) {
-      onSwipeNavigate(direction)
+      onGestureNavigate(direction)
     }
   }
 
   return (
     <div
-      className={styles.stage}
+      ref={stageRef}
+      className={[styles.stage, !showNavigationControls ? styles.stageSingle : null].filter(Boolean).join(' ')}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -154,30 +196,24 @@ export function MediaViewerStage({
         />
       ) : null}
 
-      <Button
-        type="button"
-        variant="floating"
-        iconOnly
-        aria-label="Vorheriges Bild"
-        className={styles.navPrev}
-        onClick={onPrevious}
-      >
-        <ChevronLeft size={20} />
-      </Button>
-      <Button
-        type="button"
-        variant="floating"
-        iconOnly
-        aria-label="Nächstes Bild"
-        className={styles.navNext}
-        onClick={onNext}
-      >
-        <ChevronRight size={20} />
-      </Button>
-
-      <span className={styles.counter}>
-        {index + 1} / {total}
-      </span>
+      {showNavigationControls ? (
+        <>
+          <NavArrow
+            direction="previous"
+            size="large"
+            label="Vorheriges Bild"
+            className={styles.navPrev}
+            onClick={onPrevious}
+          />
+          <NavArrow
+            direction="next"
+            size="large"
+            label="Nächstes Bild"
+            className={styles.navNext}
+            onClick={onNext}
+          />
+        </>
+      ) : null}
 
       <Button
         type="button"
