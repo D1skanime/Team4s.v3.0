@@ -625,7 +625,7 @@ cited (`[VERIFIED: codebase grep/read]`-equivalent confidence). The three items 
 *judgment calls* about scope, not unverified facts, and are listed here because the planner/user may
 want to confirm them explicitly before locking task scope.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does D-19's "server-side visibility filter" apply to `GroupAssetsExperience`, which has no
    `media_assets`/`visibility`/`review_status` row at all?**
@@ -639,6 +639,7 @@ want to confirm them explicitly before locking task scope.
    - Recommendation: surface this explicitly to the user during planning/discuss-phase before writing
      a task for it — do not silently add new filtering logic, and do not silently skip D-19 for this
      consumer without the user's explicit sign-off either way.
+   - **RESOLVED:** see D-20 in `177-CONTEXT.md` (hard visibility filter scoped to the 4 database-backed consumers; `GroupAssetsExperience` stays access-unchanged, no new filtering logic introduced).
 
 2. **How should the metadata overlay degrade for consumers with thinner data shapes?**
    - What we know: D-19 specifies title, category, episode_label, release_version_label, caption as
@@ -655,6 +656,7 @@ want to confirm them explicitly before locking task scope.
    - Recommendation: plan for graceful per-field omission (render only the fields present on a given
      item) rather than forcing every consumer to supply the full field set — this keeps the shared
      component's prop contract honest about what's actually available per consumer.
+   - **RESOLVED:** see D-22 in `177-CONTEXT.md` (graceful per-field omission -- missing fields render nothing, no placeholder dashes).
 
 3. **Should the pre-existing `display_url` gap in `ReleaseGallery.revealAll()`'s cursor-paginated
    query be fixed as part of this phase, or only flagged?**
@@ -665,6 +667,7 @@ want to confirm them explicitly before locking task scope.
      scope creep into a pre-173 bug that belongs in a bugfix-style task of its own.
    - Recommendation: raise it explicitly during planning as a small, separately-labeled task (easy to
      accept or defer), rather than bundling it silently into the viewer-extension work or ignoring it.
+   - **RESOLVED:** see D-24 in `177-CONTEXT.md` (fix accepted as its own scoped task in this phase, with its own D-13-compliant logic test).
 
 4. **What should happen to `GroupAssetsExperience`'s current clamp-at-boundary keyboard navigation
    (no wrap-around) once it moves onto the shared wrap-around viewer?**
@@ -678,6 +681,7 @@ want to confirm them explicitly before locking task scope.
    - Recommendation: treat this as an intentional, expected consequence of consolidation (per D-01,
      the shared baseline *is* the Vorbild's wrap-around behavior) and call it out explicitly in the
      Live-UAT checkpoint notes so it isn't mistaken for a regression.
+   - **RESOLVED:** see D-21 in `177-CONTEXT.md` (consolidation onto the shared wrap-around baseline from D-01 is treated as intentional; called out explicitly during Live-UAT per D-14).
 
 ## Environment Availability
 
