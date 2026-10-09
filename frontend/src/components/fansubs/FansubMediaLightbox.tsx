@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui'
 import { ThumbnailStrip } from '@/components/ui/ThumbnailStrip'
 import { resolveApiUrl } from '@/lib/api'
 import { resetCaptionPanelOpen, resolveEscapeTarget } from '@/lib/mediaViewerCaptionPanel'
-import { resolveThumbnailUrl } from '@/lib/mediaViewerMetadata'
+import { resolveAccessibleTitle, resolveThumbnailUrl } from '@/lib/mediaViewerMetadata'
 import { wrapIndex } from '@/lib/mediaViewerNavigation'
 
 import { MediaViewerCaption } from './MediaViewerCaption'
@@ -92,7 +92,7 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
 
   const currentIndex = index
   const currentItem = media[currentIndex]
-  const title = currentItem.title?.trim() || currentItem.caption?.trim() || currentItem.media_type
+  const title = resolveAccessibleTitle(currentItem.title, currentItem.caption)
   const prevIndex = wrapIndex(currentIndex, total, -1)
   const nextIndex = wrapIndex(currentIndex, total, 1)
   const prevOriginalUrl = media[prevIndex]?.original_url

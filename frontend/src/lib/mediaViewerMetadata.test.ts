@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveCaption, resolveCategoryLabel, resolveThumbnailUrl } from './mediaViewerMetadata'
+import {
+  resolveAccessibleTitle,
+  resolveCaption,
+  resolveCategoryLabel,
+  resolveThumbnailUrl,
+} from './mediaViewerMetadata'
 
 const CATEGORY_LABELS: Record<string, string> = {
   screenshot: 'Fansub Screenshot',
@@ -61,5 +66,20 @@ describe('resolveThumbnailUrl', () => {
   it('liefert einen leeren String, wenn alle drei Werte fehlen oder leer sind', () => {
     expect(resolveThumbnailUrl(null, undefined, '')).toBe('')
     expect(resolveThumbnailUrl('  ', '  ', '  ')).toBe('')
+  })
+})
+
+describe('resolveAccessibleTitle', () => {
+  it('bevorzugt title, wenn vorhanden', () => {
+    expect(resolveAccessibleTitle('Mein Titel', 'Meine Bildunterschrift')).toBe('Mein Titel')
+  })
+
+  it('fällt auf caption zurück, wenn title fehlt', () => {
+    expect(resolveAccessibleTitle(null, 'Meine Bildunterschrift')).toBe('Meine Bildunterschrift')
+  })
+
+  it("liefert 'Bild', wenn beide Werte fehlen oder leer sind", () => {
+    expect(resolveAccessibleTitle(null, null)).toBe('Bild')
+    expect(resolveAccessibleTitle('  ', '  ')).toBe('Bild')
   })
 })

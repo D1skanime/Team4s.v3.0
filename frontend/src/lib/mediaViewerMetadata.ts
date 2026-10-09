@@ -90,3 +90,31 @@ export function resolveThumbnailUrl(
 
   return ''
 }
+
+/**
+ * Resolves the accessible title used for the Modal's hidden `aria-labelledby`
+ * text and the stage image's `alt` attribute (bug fix, live-browser-check
+ * 2026-10-09).
+ *
+ * Deliberately does NOT fall back to `media_type`/category -- that value is
+ * already shown separately as `MediaViewerHeader`'s visible category badge,
+ * so falling back to it here would duplicate the exact same text twice in
+ * the dialog's DOM content for images without a `title`/`caption`. A
+ * distinct, generic fallback word avoids that duplication.
+ */
+export function resolveAccessibleTitle(
+  title: string | null | undefined,
+  caption: string | null | undefined,
+): string {
+  const trimmedTitle = title?.trim()
+  if (trimmedTitle) {
+    return trimmedTitle
+  }
+
+  const trimmedCaption = caption?.trim()
+  if (trimmedCaption) {
+    return trimmedCaption
+  }
+
+  return 'Bild'
+}
