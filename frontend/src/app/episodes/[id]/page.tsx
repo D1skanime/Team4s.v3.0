@@ -202,7 +202,9 @@ export default async function EpisodeDetailPage({ params, searchParams }: Episod
         errorMessage={releaseAssetsError}
       />
 
-      {activeReleaseID !== null ? <ScreenshotGallery releaseId={activeReleaseID} /> : null}
+      {hasGroupReleaseContext && sourceAnimeID !== null && sourceGroupID !== null && activeReleaseID !== null ? (
+        <ScreenshotGallery animeId={sourceAnimeID} groupId={sourceGroupID} releaseVersionId={activeReleaseID} episodeLabel={episode.episode_number} />
+      ) : null}
     </main>
   )
 }
