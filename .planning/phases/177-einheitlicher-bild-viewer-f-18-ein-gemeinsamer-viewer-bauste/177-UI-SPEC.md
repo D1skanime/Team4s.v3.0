@@ -354,13 +354,34 @@ Wahl.
 3–4 Zeilen vollständig angezeigt. Ist sie länger: die letzte sichtbare Zeile läuft weich aus
 (Fade-Gradient), darunter ein `Button`-Primitive „Weiterlesen". Klick öffnet ein Textpanel, das
 von unten über den unteren Teil der Bühne fährt (das Bild bleibt oben sichtbar), mit
-vollständigem, scrollbarem Text. Schließen per X-Button, `Esc` (schließt zuerst nur das Panel,
-siehe Navigationstabelle oben) oder Klick auf „Weniger anzeigen". Das Panel schließt automatisch
-bei jedem Bildwechsel. Funktioniert auch auf Mobile (Panel nimmt dort mehr Höhe ein). Wischen/
-Mausrad **innerhalb** des offenen Panels scrollt den Text, löst **keine** Bild-Navigation aus.
+vollständigem, scrollbarem Text. `Esc` (schließt zuerst nur das Panel, siehe Navigationstabelle
+oben) ist ein zusätzlicher Schließweg. Das Panel schließt automatisch bei jedem Bildwechsel.
+Funktioniert auch auf Mobile (Panel nimmt dort mehr Höhe ein). Wischen/Mausrad **innerhalb** des
+offenen Panels scrollt den Text, löst **keine** Bild-Navigation aus.
+
+**Panel-Spaltenbreite und Typografie (D-40, verfeinert D-31):** Die feste 70ch-Spalte wirkte auf
+großen Bildschirmen verloren (kleine Schrift, viel Leerraum, kein Bezug zum Bild). Stattdessen:
+- Schriftgröße des Panel-Texts: **1,15–1,25× Body-Typografie** (globaler Token, kein roher Wert),
+  Zeilenabstand **~1,6** (großzügiger als die 1,5 der kollabierten Vorschau).
+- Spaltenbreite richtet sich an der **gemessenen Darstellungsbreite des aktuell gezeigten Bildes**
+  aus (nicht an einem festen ch-Wert) — gedeckelt bei **~90–100ch**, mit Mindestbreite **~70ch**
+  Desktop / **~60ch** auf sehr schmalen Bildern bzw. Mobile (Viewport-Breite minus Rand, falls
+  selbst 60ch nicht passt). Die Spalte ist horizontal zentriert unter dem Bild — Text- und
+  Bildkanten fluchten, solange die gemessene Breite innerhalb der Klammer liegt (an den
+  Klammer-Grenzen selbst ist Auseinanderlaufen akzeptiert, das ist der Zweck der Klammer).
+- Die Breiten-Klammerung (Bildbreite → Spaltenbreite mit Min/Max) ist eine reine, direkt
+  aufrufbare Funktion (D-13-Teststil).
+- Panel-Kopfzeile auf derselben Spaltenkante wie der Text: links Bildtitel (falls vorhanden,
+  sonst entfällt dieser Teil per Graceful Omission D-22), rechts **genau ein** Schließ-Element —
+  entschieden: der Text-Button „Weniger anzeigen" (kein zusätzliches X-Icon in der Panel-Ecke,
+  um Verwechslung mit dem Haupt-Viewer-Schließen-X oben rechts am Bildschirmrand zu vermeiden).
+  Der vorherige separate Eck-X-Button und der vorherige separate Fußzeilen-Button entfallen beide
+  zugunsten dieses einen Kopfzeilen-Buttons.
+- Kein Zwei-Spalten-Layout — der Text bleibt ein einzelner, zentrierter Block.
+- Gilt einheitlich für alle 5 Konsumentenflächen (D-39).
 
 Mobile: identische Kopf-/Caption-Aufteilung wie Desktop (keine Formfaktor-Verzweigung nötig außer
-der bereits genannten größeren Panel-Höhe für „Weiterlesen").
+der bereits genannten größeren Panel-Höhe und der schmaleren Mindestbreite für „Weiterlesen").
 
 ---
 

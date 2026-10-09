@@ -335,6 +335,34 @@ als weiteren Gap-Fix innerhalb von Phase 177 um (keine neue Phase).
   Optik/Zoom-Bedienung. Ausschließlich globale Primitives/Tokens (`@/components/ui`,
   `--surface-*`/`--space-*`/`--text-*`/`--accent-*`/`--ui-arrow`) — keine neuen lokalen
   Einzelfarben oder hart codierten Werte in Feature-Dateien.
+
+### Weiterlesen-Panel-Verfeinerung (Nutzer 2026-10-10, verbindlich) — D-40
+
+- **D-40:** Spaltenbreite und Typografie des Caption-"Weiterlesen"-Panels (verfeinert D-31) —
+  Befund: die feste 70ch-Textspalte wirkt auf großen Bildschirmen verloren (kleine Schrift, viel
+  leerer Raum links/rechts, kein Bezug zum Bild).
+  1. Panel-Text-Schriftgröße steigt auf das ca. 1,15–1,25-fache der Fließtextgröße (globale
+     Typografie-Tokens, kein neuer roher Wert), Zeilenabstand großzügiger (~1,6).
+  2. Die Spaltenbreite richtet sich an der aktuellen *Darstellungsbreite des Bildes* aus (nicht an
+     einem festen ch-Wert) — gemessen am tatsächlich gerenderten `<img>`-Element, gedeckelt bei ca.
+     90–100ch, mit einer Mindestbreite von ca. 70ch (mindestens wie bisher) auf Desktop bzw. ca.
+     60ch auf sehr schmalen Bildern/Mobile (Viewport-Breite minus Rand, falls selbst 60ch nicht
+     passt). Die Spalte ist horizontal zentriert unter dem Bild, sodass die Text-Kanten mit den
+     Bildkanten fluchten, solange die gemessene Bildbreite innerhalb der Min/Max-Klammer liegt (an
+     den Klammer-Grenzen selbst ist ein Auseinanderlaufen von Bild- und Text-Kante akzeptiert, da
+     explizit durch die Klammer vorgegeben).
+  3. Die Breiten-Klammerung (Bildbreite → Spaltenbreite mit Min/Max) ist als reine, direkt
+     aufrufbare Funktion zu implementieren und zu testen (D-13-Teststil).
+  4. Panel-Kopfzeile auf derselben Spaltenkante wie der Text: links der Bildtitel (falls
+     vorhanden, Graceful Omission D-22 sonst), rechts **genau ein** Schließ-Element — entschieden:
+     der Text-Button „Weniger anzeigen" (nicht zusätzlich ein X-Icon in der Panel-Ecke, um keine
+     Verwechslung mit dem Haupt-Viewer-Schließen-X oben rechts am Bildschirmrand zu erzeugen). Der
+     bisherige separate `.panelClose`-X-Button und der bisherige separate „Weniger anzeigen"-Button
+     am Panel-Ende entfallen beide zugunsten dieses einen Kopfzeilen-Buttons. `Esc` (D-37/D-31-
+     Sequenz) bleibt als zusätzlicher Schließweg unverändert bestehen.
+  5. Keine Zwei-Spalten-Lösung (Text bleibt ein einzelner, zentrierter Block, kein Side-by-Side
+     mit z. B. Metadaten).
+  6. Gilt einheitlich für alle 5 Konsumentenflächen (D-39-Grundsatz unverändert).
 </decisions>
 
 <open_questions>
