@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 177 UI-SPEC approved
-last_updated: "2026-10-09T12:20:45.715Z"
+stopped_at: Completed 177-02-PLAN.md
+last_updated: "2026-10-09T12:26:11.724Z"
 last_activity: 2026-10-09
 progress:
   total_phases: 42
   completed_phases: 36
   total_plans: 396
-  completed_plans: 386
+  completed_plans: 387
   percent: 86
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 177 (einheitlicher-bild-viewer-f-18-ein-gemeinsamer-viewer-bauste) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -969,6 +969,8 @@ Last activity: 2026-10-09
 - [Phase 176]: Measured a fresh baseline (not just the plan's pre-recorded numbers) for the D-13 before/after regression gate, surfacing one additional pre-existing frontend test failure beyond the documented 6 -- also confirmed fixed by HEAD. — D-13's own threat-model mitigation (T-176-15-01) requires fresh evidence, not reuse of self-reported plan results.
 - [Phase 176-15]: Skip-Delta 672->701 (+29) aufgeklaert: alle 30 neuen Skips (netto +29, 1 Test strukturell in 2 Subtests gesplittet) stammen aus 176-02/176-04/176-07/176-09/176-12/176-13s eigenen neuen, auf Phase-DSN-Fixtures (TEAM4S_PHASE107/117/145/167_TEST_DSN) gateten Integrationstests -- keine stille neue Luecke. Gegen frische Disposable-DBs liefen alle 30 real und gruen. — Nutzer-Hinweis zur Verifikation vor Phasenabschluss: Backend-Skips stiegen von 672 auf 701, Aufschluesselung mit echten Testlaeufen gegen verfuegbare Test-DB verlangt statt theoretischer Erklaerung.
 - [Phase 177]: Combined RED+GREEN into a single test(...) commit for 177-01 since the plan's frontmatter type is execute, not tdd
+- [Phase ?]: Stage variant deliberately ignores the footer prop (UI-SPEC: Stage-Variante ignoriert footer bewusst) — Keeps the chrome-suppressing dark viewer stage from rendering any footer chrome, per Sketch 010's 'only X closes' requirement
+- [Phase ?]: No :disabled override added for Button's floating variant — Viewer navigation is always wrap-around, never disabled, per UI-SPEC states table
 
 ### Pending Todos
 
@@ -1576,11 +1578,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 176 P14 | 20min | 2 tasks | 17 files |
 | Phase 176 P15 | 45min | 1 tasks | 1 files |
 | Phase 177 P01 | 12min | 1 tasks | 2 files |
+| Phase 177 P02 | 15min | 3 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-09T12:20:25.909Z
-Stopped at: Phase 177 UI-SPEC approved
+Last session: 2026-10-09T12:26:11.700Z
+Stopped at: Completed 177-02-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 

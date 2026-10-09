@@ -2500,7 +2500,7 @@ Plans:
 **Goal:** Ein gemeinsamer, erweiterter Viewer-Baustein (Basis `FansubMediaLightbox.tsx`) mit Zoom, Touch-Swipe, Display→Original-Progressive-Load, Metadaten-Overlay und Prefetch ersetzt sechs eigenständige Bild-Viewer-Implementierungen; Sichtbarkeit bleibt serverseitig durchgesetzt.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung -- Decision-Coverage via D-01 bis D-24 in `177-CONTEXT.md`.
 **Depends on:** Phase 176
-**Plans:** 1/8 plans executed
+**Plans:** 2/8 plans executed
 
   - Wave 1: 177-01 (pure viewer-logic module: wrapIndex/swipe/zoom/progressive-load, D-03/D-23), 177-02 (Modal "stage" + Button "floating" primitives + --surface-stage token + delete dead ReleaseVersionMediaDetailPanel.tsx, D-06/D-11/D-15), 177-03 (backend D-24 fix: ListReleaseVersionImagesCursor mf_display JOIN + visibility-predicate test, D-19/D-24)
   - Wave 2: 177-04 (shared viewer shell: FansubMediaLightbox extended + new MediaViewerStage + MediaViewerMetadataPanel, D-01/D-02/D-03/D-07/D-12/D-15/D-19/D-21/D-22/D-23)
@@ -2514,7 +2514,7 @@ Plans:
 **Wave 1**
 
 - [x] 177-01-PLAN.md — Pure viewer-logic module (wrapIndex, swipe threshold, zoom toggle, progressive-load URL selection) + D-13-compliant tests.
-- [ ] 177-02-PLAN.md — Modal "stage" variant + Button "floating" variant + --surface-stage token + delete dead ReleaseVersionMediaDetailPanel.tsx.
+- [x] 177-02-PLAN.md — Modal "stage" variant + Button "floating" variant + --surface-stage token + delete dead ReleaseVersionMediaDetailPanel.tsx.
 - [ ] 177-03-PLAN.md — Backend D-24 fix: ListReleaseVersionImagesCursor gains the missing mf_display JOIN + visibility-predicate regression test.
 
 **Wave 2** *(blocked on Wave 1 completion)*
