@@ -1,13 +1,15 @@
 'use client'
 
+import { ZoomIn, ZoomOut } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { Modal } from '@/components/ui'
+import { Button, Modal } from '@/components/ui'
 import { ThumbnailStrip } from '@/components/ui/ThumbnailStrip'
 import { resolveApiUrl } from '@/lib/api'
 import { resetCaptionPanelOpen, resolveEscapeTarget } from '@/lib/mediaViewerCaptionPanel'
 import { resolveAccessibleTitle, resolveThumbnailUrl } from '@/lib/mediaViewerMetadata'
 import { wrapIndex } from '@/lib/mediaViewerNavigation'
+import { cycleZoomLevel, isZoomed, resetZoomLevel } from '@/lib/mediaViewerZoom'
 
 import { MediaViewerCaption } from './MediaViewerCaption'
 import { MediaViewerHeader } from './MediaViewerHeader'
@@ -54,11 +56,13 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
   const isOpen = index !== null && index >= 0 && index < total
   const currentItemID = index !== null ? media[index]?.id : undefined
   const [captionPanelOpen, setCaptionPanelOpen] = useState(false)
+  const [zoomLevel, setZoomLevel] = useState(1)
 
   useEffect(() => {
     if (!isOpen || index === null) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCaptionPanelOpen(resetCaptionPanelOpen())
+    setZoomLevel(resetZoomLevel())
   }, [isOpen, index, currentItemID])
 
   useEffect(() => {
@@ -122,9 +126,16 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
       size="lg"
       variant="stage"
       onEscapeKeyDown={() => {
-        if (resolveEscapeTarget(captionPanelOpen) !== 'panel') return false
-        setCaptionPanelOpen(false)
-        return true
+        const target = resolveEscapeTarget(isZoomed(zoomLevel), captionPanelOpen)
+        if (target === 'zoom') {
+          setZoomLevel(resetZoomLevel())
+          return true
+        }
+        if (target === 'panel') {
+          setCaptionPanelOpen(false)
+          return true
+        }
+        return false
       }}
     >
       <div className={styles.lightboxBody}>
@@ -137,12 +148,24 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
           prevOriginalUrl={prevOriginalUrl}
           nextOriginalUrl={nextOriginalUrl}
           captionPanelOpen={captionPanelOpen}
+          zoomLevel={zoomLevel}
+          onZoomLevelChange={setZoomLevel}
           onGestureNavigate={handleGestureNavigate}
           onPrevious={goToPrevious}
           onNext={goToNext}
         />
         <MediaViewerCaption item={currentItem} panelOpen={captionPanelOpen} onPanelOpenChange={setCaptionPanelOpen} />
         <ThumbnailStrip items={thumbnailItems} activeIndex={currentIndex} onSelect={onNavigate} regionLabel="Bildvorschau" />
+        <Button
+          type="button"
+          variant="floating"
+          iconOnly
+          aria-label={isZoomed(zoomLevel) ? 'Zoom zurücksetzen' : 'Bild vergrößern'}
+          className={styles.zoomButton}
+          onClick={() => setZoomLevel(cycleZoomLevel(zoomLevel))}
+        >
+          {isZoomed(zoomLevel) ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
+        </Button>
       </div>
     </Modal>
   )
