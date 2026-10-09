@@ -178,33 +178,67 @@ rendern unverändert, da jeweils ein neuer optionaler Enum-Wert ergänzt wird (D
 | Close-Button-Position | inline in `dialogHeader` | **absolut positioniert**, oben rechts über dem gesamten Panel (`position: absolute; top: var(--space-5); right: var(--space-5)`), visuell identisch zum bestehenden `.closeButton`-Rezept (helle Kreisfläche, `var(--text-soft)`-Icon) — **kein neuer visueller Stil nötig**, nur Repositionierung |
 | `.overlayClose` (unsichtbarer Vollflächen-Button, Klick auf Backdrop schließt) | gerendert wie heute | **nicht gerendert** — Backdrop-Klick schließt in Stage-Variante nicht (Sketch-Vorgabe „nur X schließt", sonst würde ein Klick neben das Bild versehentlich schließen) |
 | `modalBody`-Padding/Gap | `padding: 18px 22px 20px; gap: 16px` | `padding: 0; gap: 0` — der Viewer kontrolliert sein eigenes Innenlayout (Stage + Metadaten-Panel) vollständig selbst |
-| `modalPanel`-Hintergrund | helle Gradient-Fläche (unverändert) | **unverändert** — die Panel-Hülle bleibt hell (`--surface-card`); nur der Bild-Bühnen-Bereich *innerhalb* von `modalBody` ist dunkel (siehe `--surface-stage` oben). Das ist kein Widerspruch zum Sketch: im Sketch-Markup (`.lb-box{background:var(--card)}`, `.stage{background:var(--stage)}`) ist ebenfalls nur die Bildfläche dunkel, nicht die gesamte Box. |
+| `modalPanel`-Hintergrund | helle Gradient-Fläche (unverändert) | **D-25 (Live-UAT Runde 1):** die gesamte `modalPanel`-Fläche nutzt `--surface-stage` und füllt den gesamten Viewport (Breite + Höhe) — kein heller Rahmen, kein Fenster-Look, kein großer Innenabstand. Ersetzt die ursprüngliche Zeile dieser Tabelle (die galt nur bis Live-UAT Runde 1); gilt weiterhin unverändert für `variant="default"`. |
 
 ### 2. `Button` — neuer Wert `variant?: ... | 'floating'`
 
-Für Prev/Next-Pfeile und Zoom-Toggle auf der dunklen Bühne (bestehendes `variant="ghost"` hat zu
-wenig Kontrast auf dunklem Grund, da es für helle Flächen entworfen ist).
+Für den Zoom-Toggle auf der dunklen Bühne (bestehendes `variant="ghost"` hat zu wenig Kontrast auf
+dunklem Grund, da es für helle Flächen entworfen ist). **Seit Live-UAT Runde 1 (D-26) gilt
+`floating` nur noch für den Zoom-Toggle — die Navigationspfeile verwenden stattdessen `NavArrow`
+(siehe Primitive 3 unten), nicht `Button variant="floating"`.**
 
 | Property | Value |
 |---|---|
 | Visuelles Rezept | identisch zum bestehenden `.closeButton`-Stil: helle Kreisfläche (`color-mix(in srgb, var(--surface-card) 96%, transparent)`), `var(--text-soft)`-Icon, `box-shadow: inset 0 1px 0 rgba(255,255,255,.7)` — **kein neuer Farbwert**, nur ein neuer Variant-Name für ein bereits existierendes Aussehen |
 | Größe | `iconOnly`, mindestens 44×44px (`--control-height-md`) |
 | States | `default` (wie oben), `:hover` (leicht dunklere Variante, analog `.closeButton:hover` falls vorhanden, sonst `background: var(--surface-card)` voll opak), `:focus-visible` (Standard-Fokusring, global), `:disabled` (nicht genutzt im Viewer — Navigation ist immer Wrap-around, nie disabled) |
-| Verwendung im Viewer | Prev-Pfeil (links, vertikal zentriert auf der Bühne), Next-Pfeil (rechts, vertikal zentriert), Zoom-Toggle (unten rechts auf der Bühne, Icon wechselt `ZoomIn`↔`ZoomOut` je nach Zustand) |
+| Verwendung im Viewer | **nur noch** Zoom-Toggle (unten rechts auf der Bühne, Icon wechselt `ZoomIn`↔`ZoomOut` je nach Zustand) |
+
+### 3. `NavArrow` — neues globales Primitive (D-26, Live-UAT Runde 1)
+
+Herausgelöst aus der bisher lokalen `CarouselArrow`-Funktion in `FocalCarouselInternals.tsx` nach
+`components/ui/NavArrow.tsx`, Export über `@/components/ui`. Ersetzt `Button variant="floating"`
+als Prev/Next-Steuerelement im Viewer (D-26) — die ursprüngliche Zuordnung in der `Button`-Tabelle
+oben ist für Pfeile nicht mehr gültig.
+
+| Property | Value |
+|---|---|
+| Icon | `lucide-react` `ChevronLeft`/`ChevronRight` (unverändert aus `CarouselArrow`) |
+| Farbe | `var(--ui-arrow)` `#7c3c4f` (bestehender Token, unverändert) |
+| `size="default"` | **pixelgleich** zum heutigen `CarouselArrow`-Aussehen — `FocalCarousel` wird auf dieses Primitive umgestellt, keine visuelle Änderung, `FocalCarousel.test.tsx` bleibt grün |
+| `size="large"` (neu) | größere Klickfläche + größeres Icon für den Vollbild-Viewer; runde helle Fläche (`color-mix(in srgb, var(--surface-card) 96%, transparent)`, analog `closeButton`/`floating`-Rezept) hinter dem weinroten Icon, damit der Pfeil auf der dunklen `--surface-stage`-Bühne gut sichtbar bleibt |
+| Hover (beide Größen) | **ausschließlich** Farb-/Opazitätsänderung — explizit **kein** `transform`, kein Layout-Shift (behebt den gemeldeten Hüpf-Effekt, der durch die globale `.button:hover { transform: translateY(-1px) }`-Regel entsteht; `NavArrow` überschreibt diese Regel lokal) |
+| `:disabled` | nicht genutzt im Viewer (Wrap-around, nie disabled); im Carousel-Kontext unverändert wie heute (Pfeil an den Rändern deaktiviert) |
+| Verwendung im Viewer | Prev-Pfeil (`size="large"`, linker Bildschirmrand, vertikal zentriert zur Bühne, außerhalb der Bildfläche — D-27), Next-Pfeil (`size="large"`, rechter Bildschirmrand, spiegelbildlich) |
+| Showcase-Pflicht | neue `size="large"`-Variante wird in `/dev/ui-system` gezeigt (neben der bestehenden Carousel-Verwendung) |
+
+### 4. Thumbnail-Leiste — neues globales Primitive (D-28, Live-UAT Runde 1)
+
+Neues Primitive unter `components/ui/` (D-11-konform) — kein feature-lokaler Bau im Viewer-Ordner.
+
+| Property | Value |
+|---|---|
+| Position | volle Breite, unterhalb der Bild-Bühne/Caption-Bereich, oberhalb des Positionszählers |
+| Inhalt | alle Bilder der aktuellen Navigationsliste als Thumbnail-Variante (kleine Vorschaubilder) |
+| Aktives Bild | hervorgehoben mit `--accent-primary`-Rahmen |
+| Klick | springt direkt zum angeklickten Bild (Index setzen) |
+| Auto-Scroll | aktives Thumbnail wird automatisch in den sichtbaren Bereich gescrollt — wiederverwendet `centeredScrollLeft`/`nearestOwnedItemIndex` aus `FocalCarouselInternals.tsx` (kein Neubau derselben Logik) |
+| Scroll-Verhalten der Leiste | horizontal scrollbar; Mausrad **über der Leiste** scrollt horizontal (nicht vertikal) |
+| Darunter | Positionszähler „n / N" (bestehendes Copy-Format, unverändert) |
+| Ein-Bild-Fall (D-32) | wird komplett nicht gerendert, wenn die Navigationsliste genau ein Bild enthält |
 
 ### Neuer globaler Token
 
 | Token | Value | Scope |
 |---|---|---|
-| `--surface-stage` | `#10141c` | **Ausschließlich** Hintergrund der Bild-Bühne (`.imageFrame`-Äquivalent) im Viewer — in `frontend/src/styles/globals.css` neben der bestehenden `--surface-*`-Gruppe zu ergänzen, nicht lokal im Viewer-CSS-Modul hart codiert |
+| `--surface-stage` | `#10141c` | **Ausschließlich** Hintergrund der Bild-Bühne (`.imageFrame`-Äquivalent) im Viewer — in `frontend/src/styles/globals.css` neben der bestehenden `--surface-*`-Gruppe zu ergänzen, nicht lokal im Viewer-CSS-Modul hart codiert. Seit D-25 gilt dieser Token für die **gesamte** `modalPanel`-Fläche im `stage`-Modus, nicht mehr nur für den inneren Bildbereich. |
 
-Kein weiteres neues Standalone-Primitive nötig: Kategorie-Chip nutzt bestehendes
-`Badge variant="info"`; Metadaten-Panel-Layout nutzt reine Typografie-Tokens + `AccentRule`/`Card`
-falls optisch gewünscht, aber kein neues `components/ui`-Primitive, da es sich um eine
-Darstellungskomponente (kein „Bedienelement" im Sinne von D-11), nicht um ein wiederverwendbares
-Steuerelement handelt — sie bleibt feature-lokal unter `frontend/src/components/fansubs/` (dort,
-wo auch der Vorbild-Viewer bereits lebt), unter Beachtung der 450-Zeilen-Grenze (D-15) in
-eigenständigen Geschwisterdateien.
+Kategorie-Chip nutzt weiterhin bestehendes `Badge variant="info"`. Der Kopfbereich (Titel/
+Kategorie/Folge/Release-Version, D-30) und der Caption-Bereich (D-31) bleiben
+Darstellungskomponenten (kein „Bedienelement" im Sinne von D-11) und leben feature-lokal unter
+`frontend/src/components/fansubs/` — nur `NavArrow` und die Thumbnail-Leiste sind wiederverwendbare
+Steuerelemente und müssen deshalb als globale Primitives unter `components/ui/` leben. 450-Zeilen-
+Grenze (D-15) gilt für alle neuen/geänderten Dateien, bei Bedarf in Geschwisterdateien aufteilen.
 
 ---
 
@@ -225,16 +259,19 @@ Klick-auf-Bild ist für Erstnutzer schlecht entdeckbar).
 Mobile: Tap auf das Bild (gleiche Logik, kein Unterschied zur Maus-Semantik). Derselbe
 `floating`-Button bleibt sichtbar (44×44px Touch-Target).
 
-### Navigation (Pfeile/Tastatur/Wischen — alle drei gleichwertig, Wrap-around)
+### Navigation (Pfeile/Tastatur/Wischen/Mausrad — Wrap-around)
 
 | Eingabe | Verhalten |
 |---|---|
 | `ArrowLeft`/`ArrowRight` (Tastatur, Desktop) | `onNavigate((index ∓ 1 + total) % total)` — Wrap-around, Vorbild-Logik unverändert portiert |
 | `Home`/`End` (Tastatur, Desktop) — **entschieden (D-23): in die gemeinsame Baseline aller 5 Flächen übernommen** | `onNavigate(0)` / `onNavigate(total - 1)` — Sprung zu erstem/letztem Bild, bisher nur in `ScreenshotGallery` vorhanden, jetzt auf alle Flächen vereinheitlicht |
-| Klick auf Prev/Next-`Button variant="floating"` | identische Index-Logik, auf beiden Formfaktoren sichtbar (nicht nur Hover) |
-| Touch-Swipe (Mobile) | `touchstart`/`touchmove`/`touchend`, horizontaler Delta ≥ 32px (`--space-6`) **und** `|deltaX| > |deltaY|` → `onNavigate` mit derselben Wrap-around-Logik; sonst wird das Touch-Event nicht abgefangen (normales vertikales Scrollen bleibt möglich, falls die Bühne je scrollbar ist, z. B. im gezoomten Zustand) |
-| `Escape` | schließt den Viewer (bestehende `Modal`-Logik, unverändert) |
+| Klick auf Prev/Next-`NavArrow size="large"` (**D-26, ersetzt `Button variant="floating"` für Pfeile seit Live-UAT Runde 1**) | identische Index-Logik; Pfeile liegen außerhalb der Bildfläche am Bildschirmrand (D-27), auf beiden Formfaktoren sichtbar (nicht nur Hover), kein Hover-Transform/Layout-Shift |
+| Touch-Swipe (Mobile) | `touchstart`/`touchmove`/`touchend`, horizontaler Delta ≥ 32px (`--space-6`) **und** `|deltaX| > |deltaY|` → `onNavigate` mit derselben Wrap-around-Logik; sonst wird das Touch-Event nicht abgefangen (normales vertikales Scrollen bleibt möglich, falls die Bühne je scrollbar ist, z. B. im gezoomten Zustand). Deaktiviert, solange das Caption-Panel (D-31) offen ist — Wischen scrollt dann den Text. |
+| Mausrad über der Bild-Bühne (**neu, D-29, Live-UAT Runde 1**) | wechselt zum vorherigen/nächsten Bild (Wrap-around, gleiche Index-Logik), gedrosselt (kein Durchrasen bei schnellem/kontinuierlichem Scrollen), **deaktiviert solange gezoomt** oder solange das Caption-Panel (D-31) offen ist (dort scrollt das Rad den Text) |
+| Mausrad über der Thumbnail-Leiste (D-28) | scrollt die Leiste horizontal, löst **keine** Bild-Navigation aus |
+| `Escape` | **falls Caption-Panel (D-31) offen:** schließt zuerst nur das Panel. **Sonst:** schließt den Viewer (bestehende `Modal`-Logik) |
 | Klick auf Backdrop | schließt **nicht** (Stage-Variante, siehe Primitive-Erweiterung oben) |
+| Ein-Bild-Fall (D-32) | Pfeile und Thumbnail-Leiste werden nicht gerendert; Tastatur/Swipe/Wheel-Navigation bleibt wirkungslos (keine Fehlermeldung, einfach kein zweites Bild zum Wechseln) |
 
 ### Progressive Load (Display → Original)
 
@@ -250,7 +287,51 @@ Mobile: Tap auf das Bild (gleiche Logik, kein Unterschied zur Maus-Semantik). De
    verbatim aus `ProjectMemberMediaViewer` portiert (D-02), parametrisiert auf `original_url` statt
    `preview_url`.
 
-### Metadaten-Panel (Layout — entschieden, D-21: unterhalb des Bildes, einheitlich für Desktop UND Mobile)
+### Metadaten-Anordnung (Live-UAT Runde 1, D-30/D-31 — ersetzt den ursprünglichen Abschnitt unten)
+
+**Überschreibt D-21 teilweise.** Das Metadaten-Panel ist kein einzelner gestapelter Block mehr
+unterhalb des Bildes, sondern zwei getrennte Bereiche auf der Vollbild-Bühne (D-25):
+
+**Kopfbereich (oben, D-30)** — am oberen Bühnenrand, links neben dem Schließen-X:
+
+1. Titel (`Heading`-Typografie) — nur gerendert, wenn vorhanden
+2. Kategorie (`Badge variant="info"`, Text aus bestehender `CATEGORY_LABELS`-Zuordnung) — kleine
+   Zusatzzeile unter dem Titel
+3. Folge (`Label`-Typografie, Wert aus `episode_label`) — Teil derselben Zusatzzeile
+4. Release-Version (`Label`-Typografie, Wert aus `release_version_label`) — Teil derselben
+   Zusatzzeile
+
+Graceful Omission (D-22) gilt weiterhin: jedes Feld nur gerendert, wenn der Wert vorhanden ist,
+keine Platzhalter. Ist weder Titel noch Kategorie/Folge/Release-Version vorhanden, entfällt der
+Kopfbereich komplett (z. B. `GroupAssetsExperience`, das laut Component Inventory nur Titel hat —
+dort bleibt der Kopfbereich ggf. auf den Titel allein reduziert).
+
+**Caption-Bereich (unten, D-30/D-31)** — zwischen Bild-Bühne und Thumbnail-Leiste (D-28):
+
+5. Bildunterschrift (`Body`-Typografie, Wert aus `caption`) — nur gerendert, wenn vorhanden
+   (Graceful Omission, D-22); ist kein `caption`-Wert vorhanden, entfällt der Caption-Bereich
+   komplett.
+6. „Release öffnen →"-CTA (nur `ProjectMemberMediaViewer`-Konsument, siehe Copywriting-Vertrag) —
+   bleibt im Caption-Bereich, unterhalb der Bildunterschrift.
+
+**Lange Bildunterschrift — Variante 1 (entschieden, D-31):** Die Bildunterschrift wird bis ca.
+3–4 Zeilen vollständig angezeigt. Ist sie länger: die letzte sichtbare Zeile läuft weich aus
+(Fade-Gradient), darunter ein `Button`-Primitive „Weiterlesen". Klick öffnet ein Textpanel, das
+von unten über den unteren Teil der Bühne fährt (das Bild bleibt oben sichtbar), mit
+vollständigem, scrollbarem Text. Schließen per X-Button, `Esc` (schließt zuerst nur das Panel,
+siehe Navigationstabelle oben) oder Klick auf „Weniger anzeigen". Das Panel schließt automatisch
+bei jedem Bildwechsel. Funktioniert auch auf Mobile (Panel nimmt dort mehr Höhe ein). Wischen/
+Mausrad **innerhalb** des offenen Panels scrollt den Text, löst **keine** Bild-Navigation aus.
+
+Mobile: identische Kopf-/Caption-Aufteilung wie Desktop (keine Formfaktor-Verzweigung nötig außer
+der bereits genannten größeren Panel-Höhe für „Weiterlesen").
+
+---
+
+#### Ursprünglicher Abschnitt (vor Live-UAT Runde 1, nur noch als Herkunftsreferenz)
+
+<details>
+<summary>Ursprüngliche D-21-Beschreibung — durch D-30/D-31 oben ersetzt</summary>
 
 **Entschieden (D-21), abweichend von der ursprünglichen Empfehlung „A (rechts)":** Das
 Metadaten-Panel liegt auf **allen 5 Konsumentenflächen** und auf **beiden Formfaktoren**
@@ -260,18 +341,7 @@ Layout, kein zweispaltiges Grid). Das heute in `ProjectMemberMediaViewer` besteh
 Side-by-Side-Layout wird **nicht** in die gemeinsame Baseline übernommen — alle Konsumenten
 (inkl. `ProjectMemberMediaViewer`-Konsument) wechseln auf das gestapelte Layout.
 
-Reihenfolge der Felder (D-19), jedes Feld **nur gerendert, wenn der Wert vorhanden ist** (Graceful
-Omission — **entschieden, D-22**: keine Platzhalter für fehlende Felder, siehe unten):
-
-1. Titel (`Heading`-Typografie)
-2. Kategorie (`Badge variant="info"`, Text aus bestehender `CATEGORY_LABELS`-Zuordnung)
-3. Folge (`Label`-Typografie, Wert aus `episode_label`)
-4. Release-Version (`Label`-Typografie, Wert aus `release_version_label`)
-5. Bildunterschrift (`Body`-Typografie, Wert aus `caption`)
-6. „Release öffnen →"-CTA (nur `ProjectMemberMediaViewer`-Konsument, siehe Copywriting-Vertrag)
-
-Mobile: identisches gestapeltes Layout wie Desktop (keine Formfaktor-Verzweigung mehr nötig, da
-D-21 bereits für beide „unten" festlegt).
+</details>
 
 ---
 
@@ -279,11 +349,16 @@ D-21 bereits für beide „unten" festlegt).
 
 | Konsument | Datenform | Verfügbare D-19-Felder | CTA „Release öffnen" | Layout-Hinweis |
 |---|---|---|---|---|
-| `ReleaseGallery` (öffentliche Release-Galerie) | `PublicReleaseImage` → `PublicImageLightboxItem` (erweitert) | Titel, Kategorie, Bildunterschrift — Folge/Release-Version implizit aus Seitenkontext, nicht separat im Datensatz (unverändert ggü. heute) | nein (bereits auf Release-Seite) | Panel unterhalb des Bildes (D-21, einheitlich) |
-| `FansubGroupMediaBlock` (Fansub-Gruppenprofil) | `PublicFansubMediaItem` | Titel, Kategorie, Bildunterschrift (wie oben) | nein | wie oben (D-21) |
-| `ScreenshotGallery` (Episodenseite, neu an `getGroupReleaseImages`) | `PublicReleaseImage`-Äquivalent | Titel, Kategorie, Bildunterschrift; Folge/Release-Version als **Seiten-Override** übergeben (aus bereits bekanntem `episodeId`/`activeReleaseID`-Kontext der Seite, nicht pro Bild) | nein | wie oben (D-21) |
-| `ProjectMemberMediaViewer`-Konsument (Mitgliederprofil) | `ProjectMemberMediaItem` | **alle fünf Felder vorhanden** (reichhaltigste Datenform, Vorbild für D-19) | **ja** (verbatim portiert) | wie oben (D-21) — bisheriges Side-by-Side-Layout dieser Fläche wird **nicht** übernommen, wechselt auf gestapeltes Layout |
-| `GroupAssetsExperience`-Bildanteil (Gruppen-Assets, Jellyfin) | `GroupAssetImage` | **nur Titel** — Kategorie/Folge/Release-Version/Bildunterschrift existieren in diesem Datenmodell nicht (Jellyfin-Scan, kein `media_assets`-Bezug) | nein | wie oben (D-21); D-19-Sichtbarkeitsfilter gilt **nicht** für diese Fläche (D-20) |
+| `ReleaseGallery` (öffentliche Release-Galerie) | `PublicReleaseImage` → `PublicImageLightboxItem` (erweitert) | Titel, Kategorie, Bildunterschrift — Folge/Release-Version implizit aus Seitenkontext, nicht separat im Datensatz (unverändert ggü. heute) | nein (bereits auf Release-Seite) | Kopfbereich oben (Titel+Kategorie) / Caption unten (D-30, ersetzt D-21) |
+| `FansubGroupMediaBlock` (Fansub-Gruppenprofil) | `PublicFansubMediaItem` | Titel, Kategorie, Bildunterschrift (wie oben) | nein | wie oben (D-30) |
+| `ScreenshotGallery` (Episodenseite, neu an `getGroupReleaseImages`) | `PublicReleaseImage`-Äquivalent | Titel, Kategorie, Bildunterschrift; Folge/Release-Version als **Seiten-Override** übergeben (aus bereits bekanntem `episodeId`/`activeReleaseID`-Kontext der Seite, nicht pro Bild) | nein | wie oben (D-30) |
+| `ProjectMemberMediaViewer`-Konsument (Mitgliederprofil) | `ProjectMemberMediaItem` | **alle fünf Felder vorhanden** (reichhaltigste Datenform, Vorbild für D-19) | **ja** (verbatim portiert, jetzt im Caption-Bereich unten) | wie oben (D-30) — bisheriges Side-by-Side-Layout dieser Fläche bleibt ausgeschlossen |
+| `GroupAssetsExperience`-Bildanteil (Gruppen-Assets, Jellyfin) | `GroupAssetImage` | **nur Titel** — Kategorie/Folge/Release-Version/Bildunterschrift existieren in diesem Datenmodell nicht (Jellyfin-Scan, kein `media_assets`-Bezug) | nein | nur Kopfbereich mit Titel, kein Caption-Bereich (D-30); D-19-Sichtbarkeitsfilter gilt **nicht** für diese Fläche (D-20) |
+
+Alle 5 Flächen erhalten außerdem die Thumbnail-Leiste (D-28) und die großen `NavArrow`-Pfeile
+(D-26/D-27) einheitlich über den gemeinsamen Viewer-Baustein — keine Fläche bekommt ein
+abweichendes Layout. Ausnahme: Ein-Bild-Fall (D-32) blendet Pfeile/Leiste pro Aufruf aus, nicht
+pro Fläche.
 
 ---
 
@@ -312,6 +387,14 @@ D-21 bereits für beide „unten" festlegt).
   nachgeladene Bilder fehlt der `display_url`-JOIN (`177-RESEARCH.md` Open Question 3) — als klar
   abgegrenzter Zusatz-Task in dieser Phase mitfixen (ein-Zeilen-SQL-Ergänzung), mit eigenem
   Logik-Test (D-13-konform), damit nachgeladene Bilder genauso progressiv laden wie die Erstseite.
+- **Live-UAT Runde 1 Gap-Fix (D-25 bis D-32):** reine Logik, die D-13-konform als direkt
+  aufrufbare Funktion zu testen ist — Wheel-Drosselung/-Richtung (D-29), Thumbnail-Sprung/
+  Index-Setzen (D-28), Auto-Scroll-Zielberechnung des aktiven Thumbnails (D-28, Wiederverwendung
+  von `centeredScrollLeft`/`nearestOwnedItemIndex` aus `FocalCarouselInternals.tsx`), „zu lang"-
+  Erkennung der Bildunterschrift (D-31), Esc-Reihenfolge Panel→Viewer (D-31), Panel-Reset beim
+  Bildwechsel (D-31), Wheel/Swipe-Weiche bei offenem Caption-Panel (D-31), Ausblenden von Pfeilen/
+  Leiste bei einem Bild (D-32). `FocalCarousel.test.tsx` muss nach der `NavArrow`-Extraktion (D-26)
+  unverändert grün bleiben (Regressionsschutz für die pixelgleiche `size="default"`-Variante).
 
 ---
 
@@ -357,3 +440,47 @@ eingearbeitet und als D-20 bis D-24 in `177-CONTEXT.md` festgehalten.
 5. **`Home`/`End`-Tastaturkürzel** —
    **Entscheidung: a)** Ja, in die gemeinsame Tastatur-Baseline aller 5 Flächen übernehmen. Siehe
    D-23 und die aktualisierte Navigationstabelle oben.
+
+---
+
+## Live-UAT Runde 1 — Gap-Fix-Fragen, alle beantwortet (2026-10-09)
+
+Die erste Live-UAT-Vorlage (Plan 177-08, Task 2) wurde vom Nutzer **nicht freigegeben**. Die
+Befunde und die daraus resultierenden, zwischenzeitlich vollständig beantworteten Fragen sind als
+D-25 bis D-32 in `177-CONTEXT.md` festgehalten und oben im Vertrag bereits eingearbeitet
+(Abschnitte „Primitive-Erweiterungen" Punkte 3–4, „Navigation", „Metadaten-Anordnung",
+„Component Inventory", „Implementierungshinweise").
+
+1. **Grundbefund:** Viewer wirkt nicht wie eine Vollbild-Bühne (kleines Fenster trotz verfügbarem
+   Viewport); Pfeile hüpfen bei Hover (Layout-Shift durch die globale Button-Hover-Transform);
+   Pfeile ragen ins Bild. → D-25 (Vollbild-Bühne), D-26 (kein Hover-Transform), D-27
+   (Pfeil-Position außerhalb der Bildfläche).
+
+2. **Pfeil-Primitive** — eigener neuer Pfeil-Stil oder bestehendes Primitive wiederverwenden?
+   **Entscheidung:** bestehenden weinroten `CarouselArrow` aus `FocalCarouselInternals.tsx`
+   wiederverwenden, dafür als `components/ui/NavArrow.tsx` mit Größen-Option (`default`/`large`)
+   herauslösen; **kein** neuer `Button`-Variant `floating` für Pfeile. Siehe D-26.
+
+3. **Metadaten-Position bei langer Bildunterschrift** — Sketch-Referenz zeigte Fullscreen-
+   Screenshot-Galerie-Stil ohne festgelegtes Verhalten für sehr langen Text.
+   **Entscheidung: Variante 1** — 3–4 Zeilen sichtbar, Fade + „Weiterlesen"-Button, Slide-up-
+   Textpanel über dem unteren Bühnenteil (Bild bleibt oben sichtbar), vollständiger scrollbarer
+   Text, Esc schließt zuerst das Panel. Siehe D-31.
+
+4. **Metadaten-Grundanordnung** — weiterhin ein Block unterhalb des Bildes (D-21) oder aufgeteilt?
+   **Entscheidung:** aufgeteilt — Titel/Kategorie/Folge/Release-Version oben am Bühnenrand,
+   Bildunterschrift unten zwischen Bild und Thumbnail-Leiste. Überschreibt D-21 teilweise. Siehe
+   D-30.
+
+5. **Thumbnail-Navigation** — zusätzlich zu Pfeilen/Tastatur/Wischen eine Vorschau-Leiste?
+   **Entscheidung:** ja, neues globales Primitive, volle Breite unterhalb der Bühne, aktives Bild
+   hervorgehoben + auto-scrollt in Sicht, Mausrad scrollt die Leiste horizontal. Siehe D-28.
+
+6. **Mausrad auf der Bild-Bühne selbst** — soll es etwas tun?
+   **Entscheidung:** ja, wechselt vor/zurück, gedrosselt, deaktiviert im gezoomten Zustand oder bei
+   offenem Caption-Panel. Siehe D-29.
+
+7. **Ein-Bild-Fall** — Pfeile/Leiste trotzdem anzeigen?
+   **Entscheidung:** nein, beide entfallen komplett, wenn nur ein Bild vorhanden ist. Siehe D-32.
+
+Nach Umsetzung dieses Gap-Fixes wird die Live-UAT (D-14) für alle 5 Flächen erneut vorgelegt.

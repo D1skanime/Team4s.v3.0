@@ -146,6 +146,9 @@ Gruppen-Assets, Mitgliederprofil) verhalten sollen.
   als eigener, volle-Breite-Block darunter (gestapeltes Layout, kein zweispaltiges Grid). Das
   bestehende Side-by-Side-Layout aus `ProjectMemberMediaViewer` wird **nicht** in die gemeinsame
   Baseline übernommen, abweichend von der ursprünglichen UI-SPEC-Empfehlung „A (rechts)".
+  **Teilweise überschrieben durch D-30** (Live-UAT Runde 1, 2026-10-09): „unterhalb des Bildes"
+  gilt nur noch für die Bildunterschrift; Titel/Kategorie/Folge/Release-Version wandern an den
+  oberen Bühnenrand. Kein zweispaltiges Grid bleibt weiterhin ausgeschlossen.
 - **D-22:** Overlay-Feld-Degradation (Nutzer 2026-10-09, Antwort 3a) — Graceful Omission: fehlende
   Felder (z. B. Kategorie/Folge/Release-Version/Bildunterschrift bei `GroupAssetsExperience` oder
   `episode_label` bei `ScreenshotGallery`) werden nicht gerendert, keine Platzhalter (kein
@@ -158,6 +161,80 @@ Gruppen-Assets, Mitgliederprofil) verhalten sollen.
   (`177-RESEARCH.md` Open Question 3) als klar abgegrenzten Zusatz-Task in dieser Phase, mit
   eigenem Logik-Test (D-13-konform), damit nachgeladene Bilder genauso progressiv laden wie die
   Erstseite.
+
+### Live-UAT Runde 1 (Nutzer 2026-10-09) — Gap-Fix-Entscheidungen D-25 bis D-32
+
+Die erste Live-UAT-Vorlage (Plan 177-08, Task 2) wurde **nicht** freigegeben. Befund: Viewer wirkt
+nicht wie eine Vollbild-Bühne, sondern wie ein kleines Fenster; Pfeile „hüpfen" bei Hover
+(Layout-Shift); Pfeile ragen ins Bild. Die folgenden Entscheidungen setzen die daraufhin vom
+Nutzer vorgegebene Überarbeitung als Gap-Fix innerhalb von Phase 177 um (keine neue Phase).
+
+- **D-25:** Vollbild-Bühne ohne Fensterrahmen (Nutzer Live-UAT-Feedback 2026-10-09) — `Modal`
+  `variant="stage"` wird erweitert: die gesamte `modalPanel`-Fläche (nicht nur der innere
+  Bildbereich) nutzt `--surface-stage` und füllt den gesamten Viewport (Breite und Höhe), ohne
+  sichtbaren hellen Rahmen/Fenster-Look und ohne großen Innenabstand. Dies überschreibt die in
+  `177-UI-SPEC.md` ursprünglich festgelegte Regel „`modalPanel`-Hintergrund bleibt hell" — diese
+  gilt nur noch für `variant="default"`, nicht mehr für `variant="stage"`.
+- **D-26:** Navigationspfeile — gemeinsames Primitive statt neuer Button-Variante
+  (Nutzer-Präzisierung 2026-10-09, verbindlich) — die Vor-/Zurück-Pfeile verwenden **nicht**
+  `Button variant="floating"` (abweichend von der ursprünglichen Zuordnung in `177-UI-SPEC.md`
+  Abschnitt „Button — Verwendung im Viewer"), sondern den bestehenden weinroten Chevron-Pfeil aus
+  `FocalCarouselInternals.tsx` (`CarouselArrow`, Token `--ui-arrow` `#7c3c4f`). Dieser wird als
+  eigenständiges globales Primitive `components/ui/NavArrow.tsx` herausgelöst (Export über
+  `@/components/ui`) mit einer Größen-Option: `size="default"` (heutiges Carousel-Aussehen,
+  pixelgleich, keine Änderung) und `size="large"` (neu, für den Vollbild-Viewer — größere
+  Klickfläche/Icon, runde helle Fläche analog zum bestehenden `closeButton`-Rezept, damit der
+  weinrote Pfeil auf der dunklen Bühne gut sichtbar bleibt). `FocalCarousel` wird auf dasselbe
+  Primitive umgestellt (`size="default"`); sein Aussehen bleibt unverändert (Regressionsschutz:
+  bestehende `FocalCarousel.test.tsx` muss weiterhin grün bleiben). Hover verändert bei **beiden**
+  Größen ausschließlich Farbe/Opazität, niemals `transform`/Layout — behebt den vom Nutzer
+  gemeldeten Hüpf-Effekt (Ursache: die globale `.button:hover { transform: translateY(-1px) }`
+  -Regel, die für `NavArrow` gezielt überschrieben wird). Die neue `size="large"`-Variante wird in
+  `/dev/ui-system` gezeigt. Die Zoom-Toggle-Schaltfläche bleibt unverändert bei
+  `Button variant="floating"` — nur die Navigationspfeile wechseln auf `NavArrow`.
+- **D-27:** Pfeil-Position außerhalb der Bildfläche (Nutzer Live-UAT-Feedback 2026-10-09) — die
+  `NavArrow size="large"`-Buttons liegen links/rechts am Bildschirmrand, vertikal zentriert zur
+  Bühne, außerhalb des durch `object-fit: contain` berechneten Bildbereichs (die Bühne reserviert
+  seitlichen Raum für die Pfeile, sie ragen nicht ins Bild). Auf schmalen Viewports, wo kein Platz
+  für seitlichen Freiraum bleibt, dürfen sie über dem Bildrand liegen, dann aber halbtransparent.
+- **D-28:** Thumbnail-Leiste (neues globales Primitive, Nutzer Live-UAT-Feedback 2026-10-09) —
+  unterhalb der Bild-Bühne/Textbereich, volle Breite, zeigt alle Bilder der aktuellen
+  Navigationsliste als Thumbnail-Variante (kleine Vorschaubilder), aktives Bild hervorgehoben mit
+  `--accent-primary`-Rahmen, Klick springt direkt zum Bild (Index setzen), aktives Thumbnail wird
+  automatisch in den sichtbaren Bereich gescrollt (horizontal, wiederverwendet die bestehende
+  `centeredScrollLeft`/`nearestOwnedItemIndex`-Logik aus `FocalCarouselInternals.tsx`, kein
+  Neubau), Leiste selbst horizontal scrollbar (Mausrad über der Leiste scrollt horizontal statt
+  vertikal zu blättern), darunter Positionszähler „n / N". Neues Primitive unter
+  `components/ui/` (D-11-konform), nicht lokal im Viewer-Feature-Ordner.
+- **D-29:** Mausrad-Navigation auf der Bild-Bühne (Nutzer Live-UAT-Feedback 2026-10-09) —
+  Wheel-Events über der Bild-Bühne (nicht über der Thumbnail-Leiste, dort scrollt das Rad
+  horizontal gemäß D-28) wechseln zum vorherigen/nächsten Bild, gedrosselt (kein Durchrasen bei
+  schnellem/kontinuierlichem Scrollen), deaktiviert solange gezoomt (D-03-Zoom bleibt unverändert).
+  Tastatur (Pfeiltasten, Pos1/Ende, Esc) und Touch-Swipe bleiben unverändert aktiv (D-23/D-03).
+- **D-30:** Metadaten-Anordnung — Kopfbereich oben, Bildunterschrift unten (Nutzer-Präzisierung
+  2026-10-09, verbindlich; **überschreibt D-21 teilweise**) — Titel (nur falls vorhanden) sowie
+  Kategorie/Folge/Release-Version als kleine Zusatzzeile liegen am **oberen** Bühnenrand, links
+  neben dem Schließen-X. Die Bildunterschrift (`caption`) liegt **unten**, zwischen Bild-Bühne und
+  Thumbnail-Leiste (D-28). Graceful Omission (D-22) bleibt für beide Bereiche unverändert —
+  fehlende Felder werden nicht gerendert, keine Platzhalter; ist in einem Bereich kein Feld
+  vorhanden, entfällt der jeweilige Bereich komplett (z. B. kein Kopfbereich, wenn kein Titel und
+  keine Kategorie/Folge/Release-Version vorhanden sind).
+- **D-31:** Bildunterschrift-Darstellung bei langem Text — Variante 1 (Nutzerentscheidung
+  2026-10-09, verbindlich, beantwortet die bei Erstformulierung offene Frage zu D-30): unten
+  zwischen Bild und Thumbnail-Leiste wird die Bildunterschrift bis ca. 3–4 Zeilen vollständig
+  angezeigt. Ist sie länger: die letzte sichtbare Zeile läuft weich aus (Fade-Gradient), darunter
+  ein `Button`-Primitive „Weiterlesen". Klick auf „Weiterlesen" öffnet ein Textpanel, das von unten
+  über den unteren Teil der Bühne fährt (das Bild bleibt oben sichtbar), mit vollständigem,
+  scrollbarem Text; schließen per X-Button, `Esc` oder Klick auf „Weniger anzeigen". `Esc`-Reihenfolge:
+  ein erstes `Esc` schließt nur das Textpanel, erst ein zweites `Esc` schließt den Viewer. Das Panel
+  schließt automatisch bei jedem Bildwechsel (Navigation setzt den Panel-Zustand zurück).
+  Funktioniert auch auf Mobile (Panel nimmt dort mehr Höhe ein). Wischen/Mausrad **innerhalb** des
+  offenen Panels scrollt den Text und löst **nicht** die Bild-Navigation (D-29/Touch-Swipe) aus.
+  Die „zu lang"-Erkennung (Zeilen-/Höhenschwelle), die Esc-Reihenfolge, der Panel-Reset beim
+  Bildwechsel und die Wheel/Swipe-Weiche bei offenem Panel sind als reine, direkt testbare
+  Funktionen zu implementieren (D-13-Teststil, keine Render-/Klicktests).
+- **D-32:** Ein-Bild-Fall (Nutzer Live-UAT-Feedback 2026-10-09) — bei genau einem Bild in der
+  Navigationsliste werden Pfeile (D-26/D-27) und Thumbnail-Leiste (D-28) nicht gerendert.
 </decisions>
 
 <open_questions>
