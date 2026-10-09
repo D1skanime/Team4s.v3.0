@@ -95,12 +95,15 @@ describe('ProjectMemberMediaGallery', () => {
     renderGallery()
     await waitFor(() => expect(cards()).toHaveLength(3))
     fireEvent.click(cards()[0])
-    const dialog = screen.getByRole('dialog', { name: 'Fansub Screenshot' })
+    // Kein eigener Bild-Titel und keine Bildunterschrift vorhanden -> der
+    // Dialog-Name fällt auf das generische 'Bild' zurück (resolveAccessibleTitle),
+    // nicht mehr auf den Kategorie-Chip-Text (Bugfix: Dopplung Titel/Kategorie).
+    const dialog = screen.getByRole('dialog', { name: 'Bild' })
     expect(dialog).not.toBeNull()
     expect(screen.getByText('1 / 3')).not.toBeNull()
     expect(screen.getByText('Release öffnen →')).not.toBeNull()
     fireEvent.keyDown(dialog, { key: 'Escape' })
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Fansub Screenshot' })).toBeNull())
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Bild' })).toBeNull())
   })
 
   it('renders no "Alle N angezeigt" pager text once every medium is loaded', async () => {
