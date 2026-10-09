@@ -4,9 +4,9 @@
  *
  * D-13 requires this phase's new logic to be covered by directly-callable
  * tests (no `render`/`fireEvent`). D-37 replaces the earlier binary
- * fit<->100% toggle (`mediaViewerNavigation.ts`'s `nextZoomState`, now
- * superseded) with a real fit -> 2x -> 4x cycle plus continuous pinch/wheel
- * zoom and drag/touch pan. Every level in this file is expressed relative to
+ * fit<->100% toggle (`mediaViewerNavigation.ts`'s now fully removed
+ * zoom-toggle helper) with a real fit -> 2x -> 4x cycle plus continuous
+ * pinch/wheel zoom and drag/touch pan. Every level in this file is expressed relative to
  * the already-fitted display size ("1" means "eingepasst"/fit), never the
  * image's native pixel resolution -- D-37 is explicit that a small,
  * already-upscaled image must double from its fitted size at "2x", not jump

@@ -1,29 +1,18 @@
 'use client'
 
-import { ZoomIn, ZoomOut } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import type { TouchEvent } from 'react'
+import { useEffect, useState } from 'react'
 
-import { Button, NavArrow } from '@/components/ui'
+import { NavArrow } from '@/components/ui'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { resolveApiUrl } from '@/lib/api'
-import { resolveWheelOrSwipeTarget } from '@/lib/mediaViewerCaptionPanel'
 import {
-  computeSwipeNavigation,
-  nextZoomState,
-  resolveWheelNavigation,
   selectDisplaySrc,
   shouldShowNavigationControls,
-  shouldThrottleWheelNavigation,
 } from '@/lib/mediaViewerNavigation'
 
 import type { PublicImageLightboxItem } from './FansubMediaLightbox'
+import { useMediaViewerZoomPan } from './useMediaViewerZoomPan'
 import styles from './MediaViewerStage.module.css'
-
-// Horizontaler Schwellenwert fuer Touch-Swipe-Navigation, identisch zu --space-6 (32px).
-const SWIPE_THRESHOLD = 32
-// Mindestabstand zwischen zwei Mausrad-Navigationsschritten (D-29), verhindert Durchrasen.
-const WHEEL_THROTTLE_MS = 500
 
 interface MediaViewerStageProps {
   item: PublicImageLightboxItem
@@ -33,6 +22,8 @@ interface MediaViewerStageProps {
   prevOriginalUrl?: string | null
   nextOriginalUrl?: string | null
   captionPanelOpen: boolean
+  zoomLevel: number
+  onZoomLevelChange: (level: number) => void
   onGestureNavigate: (direction: 'prev' | 'next') => void
   onPrevious: () => void
   onNext: () => void
@@ -69,26 +60,33 @@ export function MediaViewerStage({
   prevOriginalUrl,
   nextOriginalUrl,
   captionPanelOpen,
+  zoomLevel,
+  onZoomLevelChange,
   onGestureNavigate,
   onPrevious,
   onNext,
 }: MediaViewerStageProps) {
-  const [zoomed, setZoomed] = useState(false)
   const [originalLoaded, setOriginalLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
-  const stageRef = useRef<HTMLDivElement | null>(null)
-  const lastWheelAtRef = useRef<number | null>(null)
 
   const displayUrl = item.display_url ? resolveApiUrl(item.display_url) : null
   const originalUrl = item.original_url ? resolveApiUrl(item.original_url) : null
   const thumbnailUrl = item.thumbnail_url ? resolveApiUrl(item.thumbnail_url) : null
 
-  // Zoom-/Ladezustand/Fehlerzustand duerfen beim Wechsel auf ein anderes Bild
-  // nicht uebernommen werden.
+  const { containerRef, imageRef, pan, zoomed, onDoubleClick, onMouseDown, onTouchStart, onTouchEnd } =
+    useMediaViewerZoomPan({
+      zoomLevel,
+      onZoomLevelChange,
+      resetKey: item.id,
+      captionPanelOpen,
+      onGestureNavigate,
+    })
+
+  // Ladezustand/Fehlerzustand duerfen beim Wechsel auf ein anderes Bild nicht
+  // uebernommen werden (Zoom-/Pan-Reset laeuft ueber useMediaViewerZoomPan's
+  // eigenen resetKey-Effekt plus den lifted zoomLevel-Reset in FansubMediaLightbox.tsx).
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setZoomed(false)
     setOriginalLoaded(false)
     setHasError(false)
   }, [item.id])
@@ -114,68 +112,16 @@ export function MediaViewerStage({
     prefetch(nextOriginalUrl ? resolveApiUrl(nextOriginalUrl) : null)
   }, [prevOriginalUrl, nextOriginalUrl])
 
-  // Gedrosselte Mausrad-Navigation ueber der Bild-Buehne (D-29): deaktiviert
-  // solange gezoomt oder solange das Caption-"Weiterlesen"-Panel offen ist
-  // (D-31 -- dort scrollt das Rad den Text, nicht die Bilder).
-  useEffect(() => {
-    const stage = stageRef.current
-    if (!stage) return
-    if (zoomed || resolveWheelOrSwipeTarget(captionPanelOpen) !== 'stage') return
-
-    function handleWheel(event: WheelEvent) {
-      const direction = resolveWheelNavigation(event.deltaY)
-      if (!direction) return
-      if (shouldThrottleWheelNavigation(Date.now(), lastWheelAtRef.current, WHEEL_THROTTLE_MS)) return
-      lastWheelAtRef.current = Date.now()
-      event.preventDefault()
-      onGestureNavigate(direction)
-    }
-
-    stage.addEventListener('wheel', handleWheel, { passive: false })
-    return () => stage.removeEventListener('wheel', handleWheel)
-  }, [zoomed, captionPanelOpen, onGestureNavigate])
-
   const displaySrc = selectDisplaySrc({ displayUrl, originalUrl, thumbnailUrl, originalLoaded })
   const showLoadingPill = !hasError && shouldShowLoadingPill(displayUrl, originalUrl, originalLoaded)
   const showNavigationControls = shouldShowNavigationControls(total)
 
-  function toggleZoom() {
-    setZoomed((current) => nextZoomState(current))
-  }
-
-  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
-    const touch = event.touches[0]
-    if (!touch) return
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY }
-  }
-
-  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
-    if (resolveWheelOrSwipeTarget(captionPanelOpen) === 'panel') {
-      touchStartRef.current = null
-      return
-    }
-
-    const start = touchStartRef.current
-    touchStartRef.current = null
-    if (!start) return
-
-    const touch = event.changedTouches[0]
-    if (!touch) return
-
-    const deltaX = touch.clientX - start.x
-    const deltaY = touch.clientY - start.y
-    const direction = computeSwipeNavigation(deltaX, deltaY, SWIPE_THRESHOLD)
-    if (direction) {
-      onGestureNavigate(direction)
-    }
-  }
-
   return (
     <div
-      ref={stageRef}
+      ref={containerRef}
       className={[styles.stage, !showNavigationControls ? styles.stageSingle : null].filter(Boolean).join(' ')}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       {hasError ? (
         <ErrorState
@@ -188,10 +134,13 @@ export function MediaViewerStage({
         // fill-/explizites-width-height-Vertrag nicht saubar abbilden kann.
         // eslint-disable-next-line @next/next/no-img-element
         <img
+          ref={imageRef}
           src={displaySrc}
           alt={title}
-          className={zoomed ? styles.stageImageZoomed : styles.stageImage}
-          onClick={toggleZoom}
+          className={styles.stageImage}
+          style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoomLevel})`, cursor: zoomed ? 'grab' : 'zoom-in' }}
+          onDoubleClick={onDoubleClick}
+          onMouseDown={onMouseDown}
           onError={() => setHasError(true)}
         />
       ) : null}
@@ -214,17 +163,6 @@ export function MediaViewerStage({
           />
         </>
       ) : null}
-
-      <Button
-        type="button"
-        variant="floating"
-        iconOnly
-        aria-label={zoomed ? 'Bild verkleinern' : 'Bild vergrößern'}
-        className={styles.zoomButton}
-        onClick={toggleZoom}
-      >
-        {zoomed ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
-      </Button>
 
       {showLoadingPill ? <span className={styles.loadingPill}>Originalbild wird geladen …</span> : null}
     </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { MouseEvent as ReactMouseEvent, RefObject, TouchEvent as ReactTouchEvent } from 'react'
+import type { MouseEvent as ReactMouseEvent, MutableRefObject, TouchEvent as ReactTouchEvent } from 'react'
 
 import { resolveWheelOrSwipeTarget } from '@/lib/mediaViewerCaptionPanel'
 import {
@@ -41,8 +41,8 @@ interface UseMediaViewerZoomPanParams {
 }
 
 interface UseMediaViewerZoomPanResult {
-  containerRef: RefObject<HTMLDivElement | null>
-  imageRef: RefObject<HTMLImageElement | null>
+  containerRef: MutableRefObject<HTMLDivElement | null>
+  imageRef: MutableRefObject<HTMLImageElement | null>
   pan: PanOffset
   zoomed: boolean
   onDoubleClick: () => void
@@ -201,7 +201,7 @@ export function useMediaViewerZoomPan({
     const touch = event.touches[0]
     if (!touch) return
     touchStartRef.current = { x: touch.clientX, y: touch.clientY }
-    if (zoomed) {
+    if (resolveStageSwipeAction(zoomed) === 'pan') {
       dragRef.current = { startPointerX: touch.clientX, startPointerY: touch.clientY, startPan: pan }
       touchGestureRef.current = 'pan'
     } else {

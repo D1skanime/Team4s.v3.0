@@ -45,15 +45,6 @@ export function computeSwipeNavigation(
   return deltaX > 0 ? 'prev' : 'next'
 }
 
-/**
- * Binary zoom-toggle state transition (click/tap on the image, or the
- * floating zoom button). There is no continuous pinch/pan gesture in this
- * viewer — zoom is simply on or off.
- */
-export function nextZoomState(current: boolean): boolean {
-  return !current
-}
-
 export interface SelectDisplaySrcParams {
   displayUrl: string | null | undefined
   originalUrl: string | null | undefined

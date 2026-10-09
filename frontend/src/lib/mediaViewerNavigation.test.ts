@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   computeSwipeNavigation,
-  nextZoomState,
   resolveWheelNavigation,
   selectDisplaySrc,
   shouldShowNavigationControls,
@@ -47,16 +46,6 @@ describe('computeSwipeNavigation', () => {
 
   it('ignoriert eine vertikal dominante Wischbewegung, um normales Scrollen nicht zu blockieren', () => {
     expect(computeSwipeNavigation(40, 50, 32)).toBeNull()
-  })
-})
-
-describe('nextZoomState', () => {
-  it('schaltet von nicht gezoomt auf gezoomt', () => {
-    expect(nextZoomState(false)).toBe(true)
-  })
-
-  it('schaltet von gezoomt auf nicht gezoomt', () => {
-    expect(nextZoomState(true)).toBe(false)
   })
 })
 
