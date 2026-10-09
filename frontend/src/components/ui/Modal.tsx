@@ -29,6 +29,13 @@ export interface ModalProps {
    * .narrowHeightFix fuer das erste/einzige Beispiel (Plan 138-18, GAP-02).
    */
   panelClassName?: string
+  /**
+   * 'default' (Standard) oder 'stage' fuer eine chrome-unterdrueckende Variante ohne
+   * Header, ohne Footer und ohne Backdrop-Click-Close -- fuer den dunklen Bild-Viewer-Stage
+   * (Phase 177, Sketch 010). Additiv: jeder bestehende Aufrufer laesst dieses Feld weg und
+   * rendert dadurch byte-identisch zu vorher.
+   */
+  variant?: 'default' | 'stage'
 }
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
@@ -57,6 +64,7 @@ export function Modal({
   footer,
   size = 'md',
   panelClassName,
+  variant = 'default',
 }: ModalProps) {
   const titleID = useId()
   const panelRef = useRef<HTMLDivElement | null>(null)
@@ -109,7 +117,9 @@ export function Modal({
   const modal = (
     <div className={styles.modalWrap} role="dialog" aria-modal="true" aria-labelledby={titleID} onKeyDown={handleKeyDown}>
       <div className={styles.overlay} aria-hidden="true" />
-      <button type="button" className={styles.overlayClose} aria-label="Modal schließen" onClick={onClose} />
+      {variant !== 'stage' ? (
+        <button type="button" className={styles.overlayClose} aria-label="Modal schließen" onClick={onClose} />
+      ) : null}
       <div
         className={[styles.modalPanel, size === 'lg' ? styles.modalPanelLg : null, panelClassName]
           .filter(Boolean)
@@ -117,19 +127,30 @@ export function Modal({
         ref={panelRef}
         tabIndex={-1}
       >
-        <div className={styles.dialogHeader}>
-          <div>
-            <h3 className={styles.dialogTitle} id={titleID}>{title}</h3>
-            {description ? <p className={styles.dialogDescription}>{description}</p> : null}
+        {variant === 'stage' ? (
+          <>
+            <span id={titleID} className="visually-hidden">{title}</span>
+            <button type="button" ref={closeButtonRef} className={styles.closeButtonFloating} aria-label="Schließen" onClick={onClose}>
+              <X size={18} />
+            </button>
+          </>
+        ) : (
+          <div className={styles.dialogHeader}>
+            <div>
+              <h3 className={styles.dialogTitle} id={titleID}>{title}</h3>
+              {description ? <p className={styles.dialogDescription}>{description}</p> : null}
+            </div>
+            <button type="button" ref={closeButtonRef} className={styles.closeButton} aria-label="Schließen" onClick={onClose}>
+              <X size={18} />
+            </button>
           </div>
-          <button type="button" ref={closeButtonRef} className={styles.closeButton} aria-label="Schließen" onClick={onClose}>
-            <X size={18} />
-          </button>
-        </div>
-        <div className={styles.modalBody}>{children}</div>
-        <div className={styles.dialogFooter}>
-          {footer ?? <Button variant="secondary" onClick={onClose}>Schließen</Button>}
-        </div>
+        )}
+        <div className={[styles.modalBody, variant === 'stage' ? styles.modalBodyStage : null].filter(Boolean).join(' ')}>{children}</div>
+        {variant !== 'stage' ? (
+          <div className={styles.dialogFooter}>
+            {footer ?? <Button variant="secondary" onClick={onClose}>Schließen</Button>}
+          </div>
+        ) : null}
       </div>
     </div>
   )
