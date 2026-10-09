@@ -134,6 +134,30 @@ Gruppen-Assets, Mitgliederprofil) verhalten sollen.
   mit interner/nicht-öffentlicher Sichtbarkeit dürfen **niemals** im öffentlichen Viewer erscheinen;
   der Sichtbarkeitsfilter muss serverseitig/datenseitig greifen (nicht nur clientseitig/UI-seitig
   verborgen werden) und ist mit einem Logik-Test zu belegen (vgl. D-13 Teststil-Regel).
+- **D-20:** Sichtbarkeits-Scope für `GroupAssetsExperience` (Nutzer 2026-10-09, Antwort 2a) — der
+  harte Sichtbarkeitsfilter aus D-19 gilt nur für die vier datenbankgestützten Flächen
+  (`ReleaseGallery`/`FansubMediaLightbox`, `FansubGroupMediaBlock`, `ScreenshotGallery`,
+  `ProjectMemberMediaViewer`). `GroupAssetsExperience` (Jellyfin-Ordner-Scan, kein
+  `media_assets`-Bezug, kein `visibility`/`review_status`-Konzept im Datenmodell) bleibt
+  zugriffsseitig unverändert — keine neue Zugriffskontrolle wird in dieser Phase eingeführt.
+- **D-21:** Metadaten-Panel-Layout (Nutzer 2026-10-09, Antwort 1B) — das Panel liegt auf allen fünf
+  Konsumentenflächen und auf beiden Formfaktoren (Desktop UND Mobile) **unterhalb** des Bildes,
+  nicht rechts daneben. Die Bild-Bühne nutzt die volle verfügbare Breite; das Metadaten-Panel folgt
+  als eigener, volle-Breite-Block darunter (gestapeltes Layout, kein zweispaltiges Grid). Das
+  bestehende Side-by-Side-Layout aus `ProjectMemberMediaViewer` wird **nicht** in die gemeinsame
+  Baseline übernommen, abweichend von der ursprünglichen UI-SPEC-Empfehlung „A (rechts)".
+- **D-22:** Overlay-Feld-Degradation (Nutzer 2026-10-09, Antwort 3a) — Graceful Omission: fehlende
+  Felder (z. B. Kategorie/Folge/Release-Version/Bildunterschrift bei `GroupAssetsExperience` oder
+  `episode_label` bei `ScreenshotGallery`) werden nicht gerendert, keine Platzhalter (kein
+  „Kategorie: –" o. ä.).
+- **D-23:** Home/End-Tastaturkürzel (Nutzer 2026-10-09, Antwort 5a) — der Sprung zu erstem/letztem
+  Bild per `Home`/`End`-Taste (bisher nur in `ScreenshotGallery` vorhanden) wird in die gemeinsame
+  Tastatur-Baseline aller fünf Flächen übernommen, zusätzlich zu Pfeiltasten/Wrap-around.
+- **D-24:** `ReleaseGallery.revealAll()`-Lücke mitfixen (Nutzer 2026-10-09, Antwort 4a) — die
+  Cursor-Pagination-Query für nachgeladene Bilder bekommt den fehlenden `display_url`-JOIN
+  (`177-RESEARCH.md` Open Question 3) als klar abgegrenzten Zusatz-Task in dieser Phase, mit
+  eigenem Logik-Test (D-13-konform), damit nachgeladene Bilder genauso progressiv laden wie die
+  Erstseite.
 </decisions>
 
 <open_questions>

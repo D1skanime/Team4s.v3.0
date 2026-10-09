@@ -30,7 +30,12 @@ created: 2026-10-08
   deleted outright (D-06), not part of the visual contract.
 - **Hard rule (D-19):** media with non-public visibility/non-approved review status must never
   reach the viewer's props at all — this is a server-side/data-layer contract, not a UI
-  affordance; the UI-SPEC below assumes the data it receives is already filtered.
+  affordance; the UI-SPEC below assumes the data it receives is already filtered. **Entschieden
+  (D-20):** dieser harte Filter gilt nur für die 4 datenbankgestützten Flächen
+  (`ReleaseGallery`/`FansubMediaLightbox`, `FansubGroupMediaBlock`, `ScreenshotGallery`,
+  `ProjectMemberMediaViewer`). `GroupAssetsExperience` (Jellyfin-Ordner-Scan, kein
+  `media_assets`-Bezug) bleibt zugriffsseitig unverändert — keine neue Zugriffskontrolle in dieser
+  Phase.
 
 ---
 
@@ -105,6 +110,10 @@ Template-Skala — alle Werte Vielfache von 4:
 ---
 
 ## Color
+
+**Primärer Fokuspunkt:** Das Bild auf der dunklen Bühne ist der visuelle Hauptanker des Viewers;
+das Metadaten-Panel ist bewusst sekundär (hellere Fläche, kleinere Typografie-Rollen) und liegt
+unterhalb der Bühne (siehe „Metadaten-Panel" unten).
 
 Der Viewer führt **eine bewusste, lokal begrenzte Ausnahme** vom 60/30/10-Verhältnis ein: die
 Bild-Bühne (`stage`) ist dunkel, exakt wie in Sketch 010 gefordert ("dunkle Bühne, kein weißer
@@ -221,6 +230,7 @@ Mobile: Tap auf das Bild (gleiche Logik, kein Unterschied zur Maus-Semantik). De
 | Eingabe | Verhalten |
 |---|---|
 | `ArrowLeft`/`ArrowRight` (Tastatur, Desktop) | `onNavigate((index ∓ 1 + total) % total)` — Wrap-around, Vorbild-Logik unverändert portiert |
+| `Home`/`End` (Tastatur, Desktop) — **entschieden (D-23): in die gemeinsame Baseline aller 5 Flächen übernommen** | `onNavigate(0)` / `onNavigate(total - 1)` — Sprung zu erstem/letztem Bild, bisher nur in `ScreenshotGallery` vorhanden, jetzt auf alle Flächen vereinheitlicht |
 | Klick auf Prev/Next-`Button variant="floating"` | identische Index-Logik, auf beiden Formfaktoren sichtbar (nicht nur Hover) |
 | Touch-Swipe (Mobile) | `touchstart`/`touchmove`/`touchend`, horizontaler Delta ≥ 32px (`--space-6`) **und** `|deltaX| > |deltaY|` → `onNavigate` mit derselben Wrap-around-Logik; sonst wird das Touch-Event nicht abgefangen (normales vertikales Scrollen bleibt möglich, falls die Bühne je scrollbar ist, z. B. im gezoomten Zustand) |
 | `Escape` | schließt den Viewer (bestehende `Modal`-Logik, unverändert) |
@@ -240,10 +250,18 @@ Mobile: Tap auf das Bild (gleiche Logik, kein Unterschied zur Maus-Semantik). De
    verbatim aus `ProjectMemberMediaViewer` portiert (D-02), parametrisiert auf `original_url` statt
    `preview_url`.
 
-### Metadaten-Panel (Desktop: Layout siehe Offene Frage 1 — vorläufig Variante „rechts”)
+### Metadaten-Panel (Layout — entschieden, D-21: unterhalb des Bildes, einheitlich für Desktop UND Mobile)
+
+**Entschieden (D-21), abweichend von der ursprünglichen Empfehlung „A (rechts)":** Das
+Metadaten-Panel liegt auf **allen 5 Konsumentenflächen** und auf **beiden Formfaktoren**
+unterhalb des Bildes — kein Side-by-Side-Layout. Die Bild-Bühne nutzt die volle verfügbare Breite
+des `modalPanel`; das Metadaten-Panel folgt darunter als eigener, volle-Breite-Block (gestapeltes
+Layout, kein zweispaltiges Grid). Das heute in `ProjectMemberMediaViewer` bestehende
+Side-by-Side-Layout wird **nicht** in die gemeinsame Baseline übernommen — alle Konsumenten
+(inkl. `ProjectMemberMediaViewer`-Konsument) wechseln auf das gestapelte Layout.
 
 Reihenfolge der Felder (D-19), jedes Feld **nur gerendert, wenn der Wert vorhanden ist** (Graceful
-Omission — siehe Offene Frage 3 zur Bestätigung):
+Omission — **entschieden, D-22**: keine Platzhalter für fehlende Felder, siehe unten):
 
 1. Titel (`Heading`-Typografie)
 2. Kategorie (`Badge variant="info"`, Text aus bestehender `CATEGORY_LABELS`-Zuordnung)
@@ -252,9 +270,8 @@ Omission — siehe Offene Frage 3 zur Bestätigung):
 5. Bildunterschrift (`Body`-Typografie, Wert aus `caption`)
 6. „Release öffnen →"-CTA (nur `ProjectMemberMediaViewer`-Konsument, siehe Copywriting-Vertrag)
 
-Mobile: Metadaten-Panel klappt unter die Bühne (gestapeltes Layout, unabhängig vom
-Desktop-Variantenergebnis aus Offener Frage 1 — auf schmalen Viewports ist „unten" die einzig
-sinnvolle Anordnung).
+Mobile: identisches gestapeltes Layout wie Desktop (keine Formfaktor-Verzweigung mehr nötig, da
+D-21 bereits für beide „unten" festlegt).
 
 ---
 
@@ -262,11 +279,11 @@ sinnvolle Anordnung).
 
 | Konsument | Datenform | Verfügbare D-19-Felder | CTA „Release öffnen" | Layout-Hinweis |
 |---|---|---|---|---|
-| `ReleaseGallery` (öffentliche Release-Galerie) | `PublicReleaseImage` → `PublicImageLightboxItem` (erweitert) | Titel, Kategorie, Bildunterschrift — Folge/Release-Version implizit aus Seitenkontext, nicht separat im Datensatz (unverändert ggü. heute) | nein (bereits auf Release-Seite) | Desktop-Variante siehe Offene Frage 1 |
-| `FansubGroupMediaBlock` (Fansub-Gruppenprofil) | `PublicFansubMediaItem` | Titel, Kategorie, Bildunterschrift (wie oben) | nein | wie oben |
-| `ScreenshotGallery` (Episodenseite, neu an `getGroupReleaseImages`) | `PublicReleaseImage`-Äquivalent | Titel, Kategorie, Bildunterschrift; Folge/Release-Version als **Seiten-Override** übergeben (aus bereits bekanntem `episodeId`/`activeReleaseID`-Kontext der Seite, nicht pro Bild) | nein | wie oben |
-| `ProjectMemberMediaViewer`-Konsument (Mitgliederprofil) | `ProjectMemberMediaItem` | **alle fünf Felder vorhanden** (reichhaltigste Datenform, Vorbild für D-19) | **ja** (verbatim portiert) | wie oben |
-| `GroupAssetsExperience`-Bildanteil (Gruppen-Assets, Jellyfin) | `GroupAssetImage` | **nur Titel** — Kategorie/Folge/Release-Version/Bildunterschrift existieren in diesem Datenmodell nicht (Jellyfin-Scan, kein `media_assets`-Bezug) | nein | wie oben; D-19-Sichtbarkeitsfilter-Scope siehe Offene Frage 2 |
+| `ReleaseGallery` (öffentliche Release-Galerie) | `PublicReleaseImage` → `PublicImageLightboxItem` (erweitert) | Titel, Kategorie, Bildunterschrift — Folge/Release-Version implizit aus Seitenkontext, nicht separat im Datensatz (unverändert ggü. heute) | nein (bereits auf Release-Seite) | Panel unterhalb des Bildes (D-21, einheitlich) |
+| `FansubGroupMediaBlock` (Fansub-Gruppenprofil) | `PublicFansubMediaItem` | Titel, Kategorie, Bildunterschrift (wie oben) | nein | wie oben (D-21) |
+| `ScreenshotGallery` (Episodenseite, neu an `getGroupReleaseImages`) | `PublicReleaseImage`-Äquivalent | Titel, Kategorie, Bildunterschrift; Folge/Release-Version als **Seiten-Override** übergeben (aus bereits bekanntem `episodeId`/`activeReleaseID`-Kontext der Seite, nicht pro Bild) | nein | wie oben (D-21) |
+| `ProjectMemberMediaViewer`-Konsument (Mitgliederprofil) | `ProjectMemberMediaItem` | **alle fünf Felder vorhanden** (reichhaltigste Datenform, Vorbild für D-19) | **ja** (verbatim portiert) | wie oben (D-21) — bisheriges Side-by-Side-Layout dieser Fläche wird **nicht** übernommen, wechselt auf gestapeltes Layout |
+| `GroupAssetsExperience`-Bildanteil (Gruppen-Assets, Jellyfin) | `GroupAssetImage` | **nur Titel** — Kategorie/Folge/Release-Version/Bildunterschrift existieren in diesem Datenmodell nicht (Jellyfin-Scan, kein `media_assets`-Bezug) | nein | wie oben (D-21); D-19-Sichtbarkeitsfilter gilt **nicht** für diese Fläche (D-20) |
 
 ---
 
@@ -291,6 +308,10 @@ sinnvolle Anordnung).
 - **Live-UAT (D-14):** dieser Vertrag beschreibt das Soll-Verhalten für alle 5 Flächen; die
   tatsächliche Abnahme (Zoom-Gefühl, Swipe-Flüssigkeit, Wrap-around-Konsistenz) erfolgt per echtem
   Browser-Durchlauf über `http://127.0.0.1:3300`.
+- **`ReleaseGallery.revealAll()`-Lücke mitfixen (D-24):** die Cursor-Pagination-Query für
+  nachgeladene Bilder fehlt der `display_url`-JOIN (`177-RESEARCH.md` Open Question 3) — als klar
+  abgegrenzter Zusatz-Task in dieser Phase mitfixen (ein-Zeilen-SQL-Ergänzung), mit eigenem
+  Logik-Test (D-13-konform), damit nachgeladene Bilder genauso progressiv laden wie die Erstseite.
 
 ---
 
@@ -307,53 +328,32 @@ sinnvolle Anordnung).
 
 ---
 
-## Offene Gestaltungsfragen an den Nutzer
+## Offene Gestaltungsfragen an den Nutzer — beantwortet (2026-10-09)
 
-Die folgenden Punkte sind durch `177-CONTEXT.md` (D-01..D-19) und `177-RESEARCH.md` **nicht**
-abschließend entschieden. Sie werden hier gesammelt gestellt — bitte eine Option pro Frage wählen
-oder die Empfehlung bestätigen.
+Alle fünf Punkte wurden am 2026-10-09 vom Nutzer entschieden. Die Fragen/Optionen bleiben hier als
+Entscheidungsprotokoll stehen; die getroffenen Entscheidungen sind oben im Vertrag bereits
+eingearbeitet und als D-20 bis D-24 in `177-CONTEXT.md` festgehalten.
 
 1. **Desktop-Layout des Metadaten-Panels (Sketch 010, `winner: null`)** — Sketch 010 zeigt zwei
    Varianten ohne gewählten Gewinner: A) Info-Panel rechts neben dem Bild, B) Info-Panel unterhalb
-   des Bildes. Dies betrifft alle 5 Konsumentenflächen auf Desktop einheitlich (Mobile ist in
-   jedem Fall gestapelt/unten, unabhängig von dieser Wahl).
-   **Empfehlung: A (rechts)** — weil die bereits portierte, reichhaltigste Vorlage
-   (`ProjectMemberMediaViewer`, D-02) schon heute ein Side-by-Side-Layout nutzt und dieses Verhalten
-   ohne zusätzliche Umbau-Arbeit in die gemeinsame Baseline übernommen werden kann.
+   des Bildes.
+   **Entscheidung: B (unterhalb), abweichend von der Empfehlung A (rechts)** — gilt einheitlich für
+   alle 5 Konsumentenflächen, Desktop UND Mobile. Das bereits bestehende Side-by-Side-Layout aus
+   `ProjectMemberMediaViewer` wird **nicht** in die gemeinsame Baseline übernommen. Siehe D-21 und
+   den oben überarbeiteten Abschnitt „Metadaten-Panel".
 
-2. **Sichtbarkeits-Scope für `GroupAssetsExperience` (Jellyfin-Bilder ohne `media_assets`-Zeile)** —
-   D-19 fordert einen harten serverseitigen Sichtbarkeitsfilter, aber diese Fläche hat gar kein
-   `visibility`/`review_status`-Konzept in ihrem Datenmodell (reiner Jellyfin-Ordner-Scan).
-   Optionen: a) D-19 gilt nur für die 4 datenbankgestützten Flächen; `GroupAssetsExperience` bleibt
-   unverändert (heute ungated), kein neuer Zugriffsmechanismus in dieser Phase. b) Eine neue
-   Zugriffskontrolle wird eingeführt (z. B. Gating über Episoden-Sichtbarkeitsstatus), auch wenn das
-   zusätzlichen Backend-Scope über die ursprüngliche D-19-Formulierung hinaus bedeutet.
-   **Empfehlung: a)** — kein Datenmodell-Konzept dafür vorhanden, Einführung eines neuen
-   Zugriffsmechanismus wäre Scope-Erweiterung gegenüber dem bestätigten D-19-Wortlaut.
+2. **Sichtbarkeits-Scope für `GroupAssetsExperience`** (Jellyfin-Bilder ohne `media_assets`-Zeile) —
+   **Entscheidung: a)** D-19 gilt nur für die 4 datenbankgestützten Flächen; `GroupAssetsExperience`
+   bleibt zugriffsseitig unverändert, keine neue Zugriffskontrolle in dieser Phase. Siehe D-20.
 
-3. **Grad der Overlay-Feld-Degradation bei dünneren Datenformen** (`GroupAssetsExperience`: nur
-   Titel; `ScreenshotGallery`: kein explizites `episode_label` pro Bild). Optionen: a) Graceful
-   Omission — nur vorhandene Felder werden gerendert, fehlende Felder verschwinden komplett
-   (kein Label mit Leerwert). b) Platzhalter für fehlende Felder anzeigen (z. B. „Kategorie: –"),
-   um optische Konsistenz über alle Flächen zu erzwingen.
-   **Empfehlung: a)** — ehrlicher Prop-Vertrag statt optischer Pseudo-Konsistenz durch leere
-   Platzhalter; dieser Vertrag ist oben bereits mit a) als Arbeitsannahme ausformuliert.
+3. **Grad der Overlay-Feld-Degradation bei dünneren Datenformen** —
+   **Entscheidung: a)** Graceful Omission — nur vorhandene Felder werden gerendert, keine
+   Platzhalter. Siehe D-22 (bestätigt die bereits im Vertrag ausformulierte Arbeitsannahme).
 
-4. **Vorab bekannte Lücke in `ReleaseGallery.revealAll()`'s nachgeladenen Bildern** (fehlender
-   `display_url`-JOIN in der Cursor-Pagination-Query, unabhängig von dieser Phase entstanden,
-   `177-RESEARCH.md` Open Question 3) — soll das in dieser Phase mitgefixt werden (ein-Zeilen-SQL-
-   Ergänzung), damit nachgeladene Bilder genauso progressiv laden wie die Erstseite? Optionen:
-   a) Ja, als klar abgegrenzter Zusatz-Task in dieser Phase mitfixen. b) Nein, nur dokumentieren/
-   flaggen für einen separaten späteren Bugfix — nachgeladene Bilder zeigen dann weiterhin direkt
-   Original/Thumbnail ohne Progressive-Stufe.
-   **Empfehlung: a)** — sonst entsteht ein sichtbarer Verhaltensunterschied zwischen Seite 1 und
-   „mehr laden" innerhalb genau der Funktion, die diese Phase einführt; Nutzer würden das in
-   Live-UAT wahrscheinlich als Regression empfinden, nicht als Altlast erkennen.
+4. **Vorab bekannte Lücke in `ReleaseGallery.revealAll()`'s nachgeladenen Bildern** —
+   **Entscheidung: a)** Ja, als klar abgegrenzter Zusatz-Task in dieser Phase mitfixen (mit
+   Logik-Test). Siehe D-24 und den entsprechenden Punkt unter „Implementierungshinweise".
 
-5. **(Optional/geringe Priorität) `Home`/`End`-Tastaturkürzel** (Sprung zu erstem/letztem Bild,
-   heute nur in `ScreenshotGallery` vorhanden, in keiner D-02/D-03-Aufzählung genannt) — in die
-   gemeinsame Tastatur-Baseline für alle 5 Flächen übernehmen? Optionen: a) Ja, übernehmen
-   (zusätzlich zu Pfeiltasten/Wrap-around). b) Nein, nicht übernehmen — Feature-Reduktion für diese
-   eine Fläche zugunsten einer einfacheren gemeinsamen Baseline.
-   **Empfehlung: a)** — geringer Aufwand, kein Verlust ggü. heutigem Bestzustand, im Sinne des in
-   D-02 für andere Fälle bereits angewandten „kein Merkmalsverlust"-Grundsatzes.
+5. **`Home`/`End`-Tastaturkürzel** —
+   **Entscheidung: a)** Ja, in die gemeinsame Tastatur-Baseline aller 5 Flächen übernehmen. Siehe
+   D-23 und die aktualisierte Navigationstabelle oben.
