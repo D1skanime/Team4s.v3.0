@@ -445,6 +445,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			rvm.title, rvm.caption,
 			COALESCE(mf_thumb.path, '') AS thumbnail_path,
 			COALESCE(mf_orig.path, ma.file_path, '') AS original_path,
+			COALESCE(mf_display.path, mf_orig.path, ma.file_path, '') AS display_path,
 			rvm.sort_order,
 			uploader_author.name AS author_name
 			,rvm.is_preview_candidate
@@ -455,6 +456,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
+		LEFT JOIN media_files mf_display ON mf_display.media_id = ma.id AND mf_display.variant = 'display' AND mf_display.status = 'ready'
 		JOIN visibilities v ON v.id = ma.visibility_id
 		JOIN review_statuses rs ON rs.id = ma.review_status_id
 		%s
@@ -485,8 +487,9 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			row           imageCursorRow
 			thumbnailPath *string
 			originalPath  *string
+			displayPath   *string
 		)
-		if err := rows.Scan(&row.image.ID, &row.image.FansubGroupID, &row.image.Category, &row.image.Title, &row.image.Caption, &thumbnailPath, &originalPath, &row.sortOrder, &row.image.AuthorName, &row.image.IsPreviewCandidate, &row.image.IsHighlight, &row.image.HighlightOrder); err != nil {
+		if err := rows.Scan(&row.image.ID, &row.image.FansubGroupID, &row.image.Category, &row.image.Title, &row.image.Caption, &thumbnailPath, &originalPath, &displayPath, &row.sortOrder, &row.image.AuthorName, &row.image.IsPreviewCandidate, &row.image.IsHighlight, &row.image.HighlightOrder); err != nil {
 			return nil, fmt.Errorf("release detail: scan image cursor row: %w", err)
 		}
 		if thumbnailPath != nil {
@@ -494,6 +497,9 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 		}
 		if originalPath != nil {
 			row.image.OriginalURL = publicMediaURLForPath(*originalPath, r.mediaStorageDir)
+		}
+		if displayPath != nil {
+			row.image.DisplayURL = publicMediaURLForPath(*displayPath, r.mediaStorageDir)
 		}
 		rowsOut = append(rowsOut, row)
 	}
