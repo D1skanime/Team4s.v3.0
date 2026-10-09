@@ -19,11 +19,19 @@ describe('isCaptionOverflowing', () => {
 
 describe('resolveEscapeTarget', () => {
   it('schließt beim ersten Escape nur das Panel, wenn es offen ist', () => {
-    expect(resolveEscapeTarget(true)).toBe('panel')
+    expect(resolveEscapeTarget(false, true)).toBe('panel')
   })
 
   it('schließt beim zweiten Escape den Viewer, wenn das Panel bereits geschlossen ist', () => {
-    expect(resolveEscapeTarget(false)).toBe('viewer')
+    expect(resolveEscapeTarget(false, false)).toBe('viewer')
+  })
+
+  it('setzt im gezoomten Zustand beim ersten Escape nur den Zoom zurück, obwohl das Panel offen ist', () => {
+    expect(resolveEscapeTarget(true, true)).toBe('zoom')
+  })
+
+  it('setzt im gezoomten Zustand beim ersten Escape nur den Zoom zurück, wenn das Panel geschlossen ist', () => {
+    expect(resolveEscapeTarget(true, false)).toBe('zoom')
   })
 })
 

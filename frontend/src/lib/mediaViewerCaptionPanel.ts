@@ -22,11 +22,13 @@ export function isCaptionOverflowing(scrollHeight: number, clientHeight: number)
 }
 
 /**
- * Two-stage Escape target (D-31): the first `Escape` while the "Weiterlesen"
- * panel is open closes only the panel; a second `Escape` -- now called again
- * with `panelOpen=false` -- closes the viewer itself.
+ * Three-stage Escape target (D-31 + D-37, Live-UAT Runde 2 extends Runde 1): the
+ * highest-priority stage is the image zoom -- if zoomed, the first `Escape` resets only the
+ * zoom level, regardless of the caption panel's state. Only once not zoomed does the
+ * original two-stage sequence apply: the "Weiterlesen" panel first, then the viewer itself.
  */
-export function resolveEscapeTarget(panelOpen: boolean): 'panel' | 'viewer' {
+export function resolveEscapeTarget(zoomed: boolean, panelOpen: boolean): 'zoom' | 'panel' | 'viewer' {
+  if (zoomed) return 'zoom'
   return panelOpen ? 'panel' : 'viewer'
 }
 
