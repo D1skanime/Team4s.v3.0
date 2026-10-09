@@ -52,11 +52,35 @@ export function resolveWheelOrSwipeTarget(panelOpen: boolean): 'panel' | 'stage'
 }
 
 /**
+ * Object-fit:contain rendered width (D-40): `MediaViewerStage`'s `<img>` element's own
+ * box always fills its container (CSS `width: 100%; height: 100%`) -- `object-fit:
+ * contain` only changes how the raster PAINTS inside that box, it never shrinks the box
+ * itself to the image's actual letterboxed size. Measuring the `<img>` element's own
+ * bounding box therefore reports the stage's available space, not the picture's visible
+ * width -- this function derives the real contained width from the image's intrinsic
+ * (natural) size and the box it is being fit into, the same math the browser's own
+ * `object-fit: contain` algorithm performs. Falls back to `boxWidth` when any input is
+ * not yet known (e.g. the image hasn't finished loading), so callers never divide by zero.
+ */
+export function resolveContainedImageWidth(
+  naturalWidth: number,
+  naturalHeight: number,
+  boxWidth: number,
+  boxHeight: number,
+): number {
+  if (naturalWidth <= 0 || naturalHeight <= 0 || boxWidth <= 0 || boxHeight <= 0) {
+    return boxWidth
+  }
+  const scale = Math.min(boxWidth / naturalWidth, boxHeight / naturalHeight)
+  return naturalWidth * scale
+}
+
+/**
  * Caption-panel column width (D-40, Live-UAT Runde 2 refinement): the
  * "Weiterlesen" panel's text column tracks the currently displayed image's
  * rendered width, clamped between a floor (readable minimum, ~70ch at the
  * panel's own font size) and a ceiling (don't let very wide images stretch
- * the line length past comfortable reading width, ~90-100ch) -- rather than
+ * the line length past comfortable reading width, ~96ch) -- rather than
  * a single fixed character count. `max-width: 100%` on the consuming element
  * still shrinks this further on viewports too narrow for the floor itself
  * (the CSS, not this function, is what satisfies the mobile fallback).

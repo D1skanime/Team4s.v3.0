@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { NavArrow } from '@/components/ui'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { resolveApiUrl } from '@/lib/api'
+import { resolveContainedImageWidth } from '@/lib/mediaViewerCaptionPanel'
 import {
   selectDisplaySrc,
   shouldShowNavigationControls,
@@ -124,21 +125,39 @@ export function MediaViewerStage({
   const showLoadingPill = !hasError && shouldShowLoadingPill(displayUrl, originalUrl, originalLoaded)
   const showNavigationControls = shouldShowNavigationControls(total)
 
-  // Reports the image's rendered (eingepasst, pre-transform) width so the caption
-  // "Weiterlesen" panel can size its text column to match (D-40) -- ResizeObserver's
-  // contentRect is a layout measurement, unaffected by the zoom transform's CSS scale().
+  // Reports the image's rendered (eingepasst, pre-transform, letterboxed) width so the
+  // caption "Weiterlesen" panel can size its text column to match (D-40). The <img>
+  // element's own box always fills the stage (CSS width:100%/height:100%) -- object-fit:
+  // contain only changes how the raster paints inside that box, it never shrinks the box
+  // itself -- so the box's own size is NOT the picture's visible width. Re-derive the real
+  // contained width from naturalWidth/naturalHeight + the current box size via
+  // resolveContainedImageWidth, re-measuring on both box resize AND image load (natural
+  // size is 0 until loaded, so the initial/resize-triggered reads before 'load' fires need
+  // a follow-up once it's known).
   useEffect(() => {
-    if (!onImageWidthChange) return
+    const reportWidth = onImageWidthChange
+    if (!reportWidth || hasError) return
     const node = imageRef.current
     if (!node) return
-    if (typeof ResizeObserver === 'undefined') return
-    const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0]
-      if (entry) onImageWidthChange(entry.contentRect.width)
-    })
+
+    function measure() {
+      if (!node || !reportWidth) return
+      const box = node.getBoundingClientRect()
+      reportWidth(resolveContainedImageWidth(node.naturalWidth, node.naturalHeight, box.width, box.height))
+    }
+
+    measure()
+    node.addEventListener('load', measure)
+    if (typeof ResizeObserver === 'undefined') {
+      return () => node.removeEventListener('load', measure)
+    }
+    const resizeObserver = new ResizeObserver(measure)
     resizeObserver.observe(node)
-    return () => resizeObserver.disconnect()
-  }, [imageRef, onImageWidthChange, displaySrc])
+    return () => {
+      node.removeEventListener('load', measure)
+      resizeObserver.disconnect()
+    }
+  }, [imageRef, onImageWidthChange, displaySrc, hasError])
 
   return (
     <div

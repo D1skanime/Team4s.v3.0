@@ -4,6 +4,7 @@ import {
   isCaptionOverflowing,
   resetCaptionPanelOpen,
   resolveCaptionPanelWidth,
+  resolveContainedImageWidth,
   resolveEscapeTarget,
   resolveWheelOrSwipeTarget,
 } from './mediaViewerCaptionPanel'
@@ -49,6 +50,26 @@ describe('resolveWheelOrSwipeTarget', () => {
 
   it('leitet Wischen/Mausrad an die Bild-Bühne weiter, wenn das Panel geschlossen ist', () => {
     expect(resolveWheelOrSwipeTarget(false)).toBe('stage')
+  })
+})
+
+describe('resolveContainedImageWidth', () => {
+  it('beschneidet die Breite, wenn das Bild schmaler als hoch ist (Hochformat, Höhe ist der Flaschenhals)', () => {
+    // 1000x2000 natural, box 1000x800 -> scale = min(1000/1000, 800/2000) = 0.4 -> width 400
+    expect(resolveContainedImageWidth(1000, 2000, 1000, 800)).toBe(400)
+  })
+
+  it('nutzt die volle Box-Breite, wenn das Bild breiter als die Box ist (Breite ist der Flaschenhals)', () => {
+    // 2000x1000 natural, box 1000x1000 -> scale = min(1000/2000, 1000/1000) = 0.5 -> width 1000
+    expect(resolveContainedImageWidth(2000, 1000, 1000, 1000)).toBe(1000)
+  })
+
+  it('liefert die Box-Breite, solange die natürliche Bildgröße noch unbekannt ist (0x0)', () => {
+    expect(resolveContainedImageWidth(0, 0, 1000, 800)).toBe(1000)
+  })
+
+  it('gibt die exakte Breite zurück, wenn Bild- und Box-Seitenverhältnis identisch sind', () => {
+    expect(resolveContainedImageWidth(1600, 900, 800, 450)).toBe(800)
   })
 })
 

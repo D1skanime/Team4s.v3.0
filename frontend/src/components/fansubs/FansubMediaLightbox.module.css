@@ -11,5 +11,7 @@
   position: absolute;
   top: var(--space-5);
   right: calc(var(--space-5) + 40px + var(--space-2));
-  z-index: 1;
+  /* Above MediaViewerCaption.module.css's .panel (z-index: 2) -- stays operable even
+     when the "Weiterlesen" panel is open, same reasoning as NavArrow's z-index: 3. */
+  z-index: 3;
 }

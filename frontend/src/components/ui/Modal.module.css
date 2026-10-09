@@ -49,7 +49,10 @@
   position: absolute;
   top: var(--space-5);
   right: var(--space-5);
-  z-index: 1;
+  /* variant="stage" consumers (e.g. the Phase 177 image viewer) can render an opaque
+     overlay (MediaViewerCaption's .panel, z-index: 2) below this button -- stay above it
+     so the viewer's own close control is never covered. No effect on variant="default". */
+  z-index: 3;
 }
 
 .modalBodyStage {
