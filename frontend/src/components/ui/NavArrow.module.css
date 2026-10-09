@@ -1,0 +1,45 @@
+.navArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height-md);
+  min-width: var(--control-height-md);
+  height: var(--control-height-md);
+  min-height: var(--control-height-md);
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-arrow);
+  cursor: pointer;
+  transition: color 120ms ease, opacity 120ms ease, background-color 120ms ease;
+}
+
+.navArrow:hover {
+  opacity: 0.72;
+}
+
+.navArrow:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.navArrow:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.navArrowLarge {
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  min-height: 56px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-card) 96%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.navArrowLarge:hover {
+  background: var(--surface-card);
+  opacity: 1;
+}

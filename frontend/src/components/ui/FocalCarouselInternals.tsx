@@ -1,6 +1,5 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   memo,
   type CSSProperties,
@@ -16,6 +15,7 @@ import {
 
 import { Button } from './Button'
 import { classNames } from './classNames'
+import { NavArrow } from './NavArrow'
 import styles from './FocalCarousel.module.css'
 
 export type FocalCarouselItemState = {
@@ -281,11 +281,12 @@ export function CollapsedCarousel<T>({
     >
       <div className={classNames(styles.controls, quiet && styles.controlsQuiet)}>
         {!quiet ? (
-          <CarouselArrow
+          <NavArrow
             direction="previous"
             label={previousLabel}
             disabled={activeIndex === 0}
             onClick={onPrevious}
+            className={styles.arrow}
           />
         ) : null}
         <div
@@ -329,11 +330,12 @@ export function CollapsedCarousel<T>({
           </div>
         </div>
         {!quiet ? (
-          <CarouselArrow
+          <NavArrow
             direction="next"
             label={nextLabel}
             disabled={activeIndex === lastIndex}
             onClick={onNext}
+            className={styles.arrow}
           />
         ) : null}
       </div>
@@ -423,28 +425,4 @@ export function consumeSuppressedClick(
   event.preventDefault()
   event.stopPropagation()
   suppressed.current = false
-}
-
-type CarouselArrowProps = {
-  direction: 'previous' | 'next'
-  label: string
-  disabled: boolean
-  onClick: () => void
-}
-
-function CarouselArrow({ direction, label, disabled, onClick }: CarouselArrowProps) {
-  const Icon = direction === 'previous' ? ChevronLeft : ChevronRight
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      iconOnly
-      className={styles.arrow}
-      aria-label={label}
-      disabled={disabled}
-      onClick={onClick}
-    >
-      <Icon size={18} aria-hidden="true" />
-    </Button>
-  )
 }

@@ -17,6 +17,7 @@ import {
   Input,
   LoadingState,
   Modal,
+  NavArrow,
   PageHeader,
   Pagination,
   SectionHeader,
@@ -285,6 +286,19 @@ export default function UISystemPlaygroundPage() {
                   <span><AccentRule />2px</span>
                   <span><AccentRule thickness="medium" />3px</span>
                   <span><AccentRule thickness="strong" />4px</span>
+                </div>
+              </div>
+              <div className={styles.interactionPrimitivePanel}>
+                <strong>Pfeil-Primitive (NavArrow, D-26)</strong>
+                <div className={styles.accentRulePreviewStack}>
+                  <span>
+                    <NavArrow direction="previous" label="Vorheriges Bild" size="default" onClick={() => {}} />
+                    default
+                  </span>
+                  <span style={{ background: 'var(--surface-stage)', padding: 12, borderRadius: 12, display: 'inline-flex' }}>
+                    <NavArrow direction="next" label="Nächstes Bild" size="large" onClick={() => {}} />
+                  </span>
+                  <span>large</span>
                 </div>
               </div>
             </div>
