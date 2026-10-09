@@ -1,16 +1,8 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { FansubMediaLightbox, type PublicImageLightboxItem } from './FansubMediaLightbox'
-
-vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => {
-  const imageProps = { ...props }
-  delete imageProps.fill
-  delete imageProps.unoptimized
-  // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-  return <img {...imageProps} />
-} }))
 
 const media: PublicImageLightboxItem[] = [
   { id: 1, media_type: 'Bild', title: 'Erstes Bild', description: 'Vollständiger Text', original_url: '/original-1.jpg' },
@@ -18,13 +10,17 @@ const media: PublicImageLightboxItem[] = [
 ]
 
 describe('FansubMediaLightbox', () => {
-  it('renders original, full description, counter and keyboard navigation', () => {
-    const onNavigate = vi.fn()
-    render(<FansubMediaLightbox media={media} index={0} onClose={vi.fn()} onNavigate={onNavigate} />)
-    expect(screen.getByAltText('Erstes Bild').getAttribute('src')).toContain('/original-1.jpg')
-    expect(screen.getByText('Vollständiger Text')).toBeTruthy()
+  it('rendert die Bild-Bühne und das Metadaten-Panel mit dem aktuellen Item, wenn geöffnet', () => {
+    render(<FansubMediaLightbox media={media} index={0} onClose={vi.fn()} onNavigate={vi.fn()} />)
+
     expect(screen.getByText('1 / 2')).toBeTruthy()
-    fireEvent.keyDown(window, { key: 'ArrowRight' })
-    expect(onNavigate).toHaveBeenCalledWith(1)
+    expect(screen.getByRole('heading', { level: 3, name: 'Erstes Bild' })).toBeTruthy()
+    expect(screen.getByText('Vollständiger Text')).toBeTruthy()
+  })
+
+  it('rendert nichts, wenn index null ist', () => {
+    render(<FansubMediaLightbox media={media} index={null} onClose={vi.fn()} onNavigate={vi.fn()} />)
+
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

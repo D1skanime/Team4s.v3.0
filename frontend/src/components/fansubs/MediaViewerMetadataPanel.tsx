@@ -17,8 +17,14 @@ interface MediaViewerMetadataPanelProps {
  * (Graceful Omission, D-22) -- keine Platzhalter-Striche.
  */
 export function MediaViewerMetadataPanel({ item }: MediaViewerMetadataPanelProps) {
-  const title = item.title?.trim()
+  const rawTitle = item.title?.trim()
   const categoryLabel = resolveCategoryLabel(item.category, item.media_type, CATEGORY_LABELS as Record<string, string>)
+  // Titel-Zeile weglassen, wenn sie textlich identisch zum Kategorie-Chip wäre
+  // (z. B. ReleaseGallery-Konsument ohne eigenen Titel, dessen Titel-Fallback
+  // auf denselben media_type/Kategorie-Text zurückfällt) -- vermeidet doppelte
+  // Anzeige derselben Information, analog zum bestehenden Caption-vs-Kategorie-
+  // Dedup in ReleaseGallery.tsx's toLightboxItem.
+  const title = rawTitle && rawTitle !== categoryLabel ? rawTitle : undefined
   const caption = resolveCaption(item.caption, item.description)
   const hasReleaseHref = Boolean(item.release_href && item.release_href.trim())
 

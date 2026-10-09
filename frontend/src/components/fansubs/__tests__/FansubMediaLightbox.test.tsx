@@ -31,7 +31,11 @@ function mediaRow(overrides: Partial<PublicFansubMediaItem> = {}): PublicFansubM
   return {
     id: 1,
     media_type: 'group_gallery',
-    caption: 'visible_group_media',
+    // Phase 177: `caption` bleibt standardmäßig leer, damit per-Test gesetzte
+    // `description`-Werte über das neue Bildunterschrift-Fallback
+    // (resolveCaption: caption -> description) tatsächlich sichtbar werden --
+    // caption hat im neuen Metadaten-Panel Vorrang vor description (D-07).
+    caption: null,
     mime_type: 'image/jpeg',
     thumbnail_url: '/media/group-gallery-thumb.jpg',
     original_url: '/media/group-gallery.jpg',

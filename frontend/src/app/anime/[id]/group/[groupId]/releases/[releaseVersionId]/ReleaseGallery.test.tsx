@@ -169,7 +169,13 @@ describe('ReleaseGallery', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Typesetting-/Karaoke-Beispiel öffnen' }))
 
     const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getAllByText('Typesetting-/Karaoke-Beispiel')).toHaveLength(1)
+    // Phase 177: Modal variant="stage" trägt den Titel zusätzlich als
+    // screenreader-only Span für aria-labelledby (unsichtbar, aber im DOM
+    // vorhanden) -- die sichtbare Dopplung (Titel-Zeile + Kategorie-Chip mit
+    // identischem Text) bleibt weiterhin ausgeschlossen (MediaViewerMetadataPanel
+    // lässt die Titel-Zeile weg, wenn sie mit dem Kategorie-Chip übereinstimmt),
+    // daher genau 2 statt 1 Vorkommen: 1 unsichtbar (aria) + 1 sichtbar (Chip).
+    expect(within(dialog).getAllByText('Typesetting-/Karaoke-Beispiel')).toHaveLength(2)
   })
 
   it('loads every category cursor, deduplicates, and opens the original with full caption', async () => {
@@ -185,7 +191,11 @@ describe('ReleaseGallery', () => {
     expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Vollständige Beschreibung 8 öffnen' }))
     const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByRole('heading', { name: 'Typesetting-/Karaoke-Beispiel' })).toBeTruthy()
+    // Kein eigener Bild-Titel vorhanden -> Titel-Fallback entspricht dem
+    // Kategorie-Chip; MediaViewerMetadataPanel lässt die redundante Titel-Zeile
+    // weg (siehe Dedup-Kommentar oben), sichtbar bleibt nur der Kategorie-Chip
+    // plus der unsichtbare aria-Titel-Span von Modal variant="stage".
+    expect(within(dialog).getAllByText('Typesetting-/Karaoke-Beispiel')).toHaveLength(2)
     expect(within(dialog).getAllByText('Vollständige Beschreibung 8')).toHaveLength(1)
     expect(within(dialog).getByAltText('Typesetting-/Karaoke-Beispiel').getAttribute('src')).toContain('/original-8.jpg')
   })

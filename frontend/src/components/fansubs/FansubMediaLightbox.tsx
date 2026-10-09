@@ -1,11 +1,12 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import Image from 'next/image'
 import { useEffect } from 'react'
 
-import { Button, Modal } from '@/components/ui'
-import { resolveApiUrl } from '@/lib/api'
+import { Modal } from '@/components/ui'
+import { wrapIndex } from '@/lib/mediaViewerNavigation'
+
+import { MediaViewerMetadataPanel } from './MediaViewerMetadataPanel'
+import { MediaViewerStage } from './MediaViewerStage'
 import styles from './FansubMediaLightbox.module.css'
 
 export interface PublicImageLightboxItem {
@@ -30,14 +31,15 @@ interface FansubMediaLightboxProps {
   onNavigate: (index: number) => void
 }
 
-const LIGHTBOX_IMAGE_SIZES = '(max-width: 768px) 100vw, 1100px'
-
 /**
- * AO6-12: Lightbox fuer Gruppenmedien auf Basis des @/components/ui Modal.
- * Zeigt das Originalbild gross, den vollen Titel/Beschreibung und einen
- * Positions-Zaehler 'n / N'. Navigation per Button oder Tastatur (ArrowLeft/
- * ArrowRight) mit Wrap-around durch ALLE Medien der Gruppe. Escape,
- * role='dialog'/aria-modal, Fokus-Falle und Fokus-Rueckgabe uebernimmt Modal.
+ * AO6-12 / Phase 177 (F-18): gemeinsamer Bild-Viewer auf Basis des
+ * @/components/ui Modal (variant="stage"). Zeigt die Bild-Bühne
+ * (MediaViewerStage: Zoom, Progressive Load, Prefetch, Swipe) gefolgt vom
+ * gestapelten Metadaten-Panel (MediaViewerMetadataPanel, D-21). Navigation
+ * per Button, Tastatur (ArrowLeft/ArrowRight/Home/End) oder Touch-Swipe, mit
+ * Wrap-around durch ALLE Medien der Gruppe -- einheitlich über
+ * wrapIndex(). Escape, role='dialog'/aria-modal, Fokus-Falle und
+ * Fokus-Rückgabe übernimmt Modal.
  */
 export function FansubMediaLightbox({ media, index, onClose, onNavigate }: FansubMediaLightboxProps) {
   const total = media.length
@@ -51,10 +53,16 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
 
       if (event.key === 'ArrowRight') {
         event.preventDefault()
-        onNavigate((index + 1) % total)
+        onNavigate(wrapIndex(index, total, 1))
       } else if (event.key === 'ArrowLeft') {
         event.preventDefault()
-        onNavigate((index - 1 + total) % total)
+        onNavigate(wrapIndex(index, total, -1))
+      } else if (event.key === 'Home') {
+        event.preventDefault()
+        onNavigate(0)
+      } else if (event.key === 'End') {
+        event.preventDefault()
+        onNavigate(total - 1)
       }
     }
 
@@ -66,49 +74,41 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
     return null
   }
 
-  const currentItem = media[index]
+  const currentIndex = index
+  const currentItem = media[currentIndex]
   const title = currentItem.title?.trim() || currentItem.caption?.trim() || currentItem.media_type
-  const description = currentItem.description?.trim()
-  const resolvedOriginalUrl = currentItem.original_url ? resolveApiUrl(currentItem.original_url) : null
+  const prevIndex = wrapIndex(currentIndex, total, -1)
+  const nextIndex = wrapIndex(currentIndex, total, 1)
+  const prevOriginalUrl = media[prevIndex]?.original_url
+  const nextOriginalUrl = media[nextIndex]?.original_url
 
   function goToPrevious() {
-    if (index === null) return
-    onNavigate((index - 1 + total) % total)
+    onNavigate(wrapIndex(currentIndex, total, -1))
   }
 
   function goToNext() {
-    if (index === null) return
-    onNavigate((index + 1) % total)
+    onNavigate(wrapIndex(currentIndex, total, 1))
+  }
+
+  function handleSwipeNavigate(direction: 'prev' | 'next') {
+    onNavigate(wrapIndex(currentIndex, total, direction === 'next' ? 1 : -1))
   }
 
   return (
-    <Modal open={isOpen} onClose={onClose} title={title} size="lg">
+    <Modal open={isOpen} onClose={onClose} title={title} size="lg" variant="stage">
       <div className={styles.lightboxBody}>
-        {resolvedOriginalUrl ? (
-          <div className={styles.imageFrame}>
-            <Image
-              src={resolvedOriginalUrl}
-              alt={title}
-              fill
-              sizes={LIGHTBOX_IMAGE_SIZES}
-              loading="lazy"
-              className={styles.image}
-              unoptimized
-            />
-          </div>
-        ) : null}
-        {description ? <p className={styles.description}>{description}</p> : null}
-        <div className={styles.navigationRow}>
-          <Button type="button" variant="ghost" aria-label="Vorheriges Bild" onClick={goToPrevious}>
-            <ChevronLeft size={20} />
-          </Button>
-          <span className={styles.counter}>
-            {index + 1} / {total}
-          </span>
-          <Button type="button" variant="ghost" aria-label="Nächstes Bild" onClick={goToNext}>
-            <ChevronRight size={20} />
-          </Button>
-        </div>
+        <MediaViewerStage
+          item={currentItem}
+          title={title}
+          index={currentIndex}
+          total={total}
+          prevOriginalUrl={prevOriginalUrl}
+          nextOriginalUrl={nextOriginalUrl}
+          onSwipeNavigate={handleSwipeNavigate}
+          onPrevious={goToPrevious}
+          onNext={goToNext}
+        />
+        <MediaViewerMetadataPanel item={currentItem} />
       </div>
     </Modal>
   )

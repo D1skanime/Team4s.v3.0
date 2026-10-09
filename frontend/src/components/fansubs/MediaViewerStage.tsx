@@ -73,6 +73,7 @@ export function MediaViewerStage({
   // Zoom-/Ladezustand/Fehlerzustand duerfen beim Wechsel auf ein anderes Bild
   // nicht uebernommen werden.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setZoomed(false)
     setOriginalLoaded(false)
     setHasError(false)
