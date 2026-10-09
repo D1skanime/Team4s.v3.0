@@ -1,5 +1,6 @@
 .caption {
   position: relative;
+  flex: 0 0 auto;
   padding: var(--space-4) var(--space-5);
   background: transparent;
   display: grid;
