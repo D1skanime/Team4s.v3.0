@@ -57,6 +57,7 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
   const currentItemID = index !== null ? media[index]?.id : undefined
   const [captionPanelOpen, setCaptionPanelOpen] = useState(false)
   const [zoomLevel, setZoomLevel] = useState(1)
+  const [imageWidthPx, setImageWidthPx] = useState(0)
 
   useEffect(() => {
     if (!isOpen || index === null) return
@@ -157,8 +158,14 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
           onGestureNavigate={handleGestureNavigate}
           onPrevious={goToPrevious}
           onNext={goToNext}
+          onImageWidthChange={setImageWidthPx}
         />
-        <MediaViewerCaption item={currentItem} panelOpen={captionPanelOpen} onPanelOpenChange={setCaptionPanelOpen} />
+        <MediaViewerCaption
+          item={currentItem}
+          panelOpen={captionPanelOpen}
+          onPanelOpenChange={setCaptionPanelOpen}
+          imageWidthPx={imageWidthPx}
+        />
         <ThumbnailStrip items={thumbnailItems} activeIndex={currentIndex} onSelect={onNavigate} regionLabel="Bildvorschau" />
         <Button
           type="button"

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   isCaptionOverflowing,
   resetCaptionPanelOpen,
+  resolveCaptionPanelWidth,
   resolveEscapeTarget,
   resolveWheelOrSwipeTarget,
 } from './mediaViewerCaptionPanel'
@@ -48,5 +49,28 @@ describe('resolveWheelOrSwipeTarget', () => {
 
   it('leitet Wischen/Mausrad an die Bild-Bühne weiter, wenn das Panel geschlossen ist', () => {
     expect(resolveWheelOrSwipeTarget(false)).toBe('stage')
+  })
+})
+
+describe('resolveCaptionPanelWidth', () => {
+  it('nutzt die gemessene Bildbreite, wenn sie innerhalb der Klammer liegt', () => {
+    expect(resolveCaptionPanelWidth(850, 720, 1000)).toBe(850)
+  })
+
+  it('hebt auf die Mindestbreite an, wenn das Bild schmaler als die Klammer ist', () => {
+    expect(resolveCaptionPanelWidth(400, 720, 1000)).toBe(720)
+  })
+
+  it('deckelt auf die Maximalbreite, wenn das Bild breiter als die Klammer ist', () => {
+    expect(resolveCaptionPanelWidth(1600, 720, 1000)).toBe(1000)
+  })
+
+  it('liefert die Mindestbreite bei noch unvermessener Bildbreite (0)', () => {
+    expect(resolveCaptionPanelWidth(0, 720, 1000)).toBe(720)
+  })
+
+  it('behandelt Werte exakt an den Klammer-Grenzen als innerhalb der Klammer', () => {
+    expect(resolveCaptionPanelWidth(720, 720, 1000)).toBe(720)
+    expect(resolveCaptionPanelWidth(1000, 720, 1000)).toBe(1000)
   })
 })

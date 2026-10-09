@@ -27,6 +27,7 @@ interface MediaViewerStageProps {
   onGestureNavigate: (direction: 'prev' | 'next') => void
   onPrevious: () => void
   onNext: () => void
+  onImageWidthChange?: (widthPx: number) => void
 }
 
 function prefetch(url: string | undefined | null) {
@@ -65,6 +66,7 @@ export function MediaViewerStage({
   onGestureNavigate,
   onPrevious,
   onNext,
+  onImageWidthChange,
 }: MediaViewerStageProps) {
   const [originalLoaded, setOriginalLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
@@ -121,6 +123,22 @@ export function MediaViewerStage({
   const displaySrc = selectDisplaySrc({ displayUrl, originalUrl, thumbnailUrl, originalLoaded })
   const showLoadingPill = !hasError && shouldShowLoadingPill(displayUrl, originalUrl, originalLoaded)
   const showNavigationControls = shouldShowNavigationControls(total)
+
+  // Reports the image's rendered (eingepasst, pre-transform) width so the caption
+  // "Weiterlesen" panel can size its text column to match (D-40) -- ResizeObserver's
+  // contentRect is a layout measurement, unaffected by the zoom transform's CSS scale().
+  useEffect(() => {
+    if (!onImageWidthChange) return
+    const node = imageRef.current
+    if (!node) return
+    if (typeof ResizeObserver === 'undefined') return
+    const resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (entry) onImageWidthChange(entry.contentRect.width)
+    })
+    resizeObserver.observe(node)
+    return () => resizeObserver.disconnect()
+  }, [imageRef, onImageWidthChange, displaySrc])
 
   return (
     <div

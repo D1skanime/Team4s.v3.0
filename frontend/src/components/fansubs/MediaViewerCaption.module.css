@@ -51,34 +51,44 @@
   background: color-mix(in srgb, var(--text-strong) 96%, transparent);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   padding: var(--space-5);
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: var(--space-4);
+  display: flex;
+  justify-content: center;
   overflow: hidden;
 }
-.panelClose {
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--surface-card) 96%, transparent);
-  color: var(--text-soft);
+.panelColumn {
   display: grid;
-  place-items: center;
-  cursor: pointer;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
+}
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.panelTitle {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.panelCloseButton {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  color: #ffffff;
 }
 .panelText {
   margin: 0;
-  max-width: 70ch;
-  margin-inline: auto;
-  width: 100%;
   overflow-y: auto;
   color: rgba(255, 255, 255, 0.92);
-  font-size: 16px;
-  line-height: 1.5;
+  /* D-40: 1.15-1.25x the 16px Body token, looser line-height than the 1.5 preview clamp. */
+  font-size: 19px;
+  line-height: 1.6;
   white-space: pre-wrap;
 }
 @media (max-width: 767px) {

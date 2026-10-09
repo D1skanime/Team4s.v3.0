@@ -50,3 +50,21 @@ export function resetCaptionPanelOpen(): boolean {
 export function resolveWheelOrSwipeTarget(panelOpen: boolean): 'panel' | 'stage' {
   return panelOpen ? 'panel' : 'stage'
 }
+
+/**
+ * Caption-panel column width (D-40, Live-UAT Runde 2 refinement): the
+ * "Weiterlesen" panel's text column tracks the currently displayed image's
+ * rendered width, clamped between a floor (readable minimum, ~70ch at the
+ * panel's own font size) and a ceiling (don't let very wide images stretch
+ * the line length past comfortable reading width, ~90-100ch) -- rather than
+ * a single fixed character count. `max-width: 100%` on the consuming element
+ * still shrinks this further on viewports too narrow for the floor itself
+ * (the CSS, not this function, is what satisfies the mobile fallback).
+ */
+export function resolveCaptionPanelWidth(
+  imageWidthPx: number,
+  minWidthPx: number,
+  maxWidthPx: number,
+): number {
+  return Math.min(maxWidthPx, Math.max(minWidthPx, imageWidthPx))
+}
