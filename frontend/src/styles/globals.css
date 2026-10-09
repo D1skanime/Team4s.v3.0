@@ -129,6 +129,9 @@
   --surface-card: #ffffff;
   --surface-card-muted: #fbfaf8;
   --surface-overlay: rgba(255, 255, 255, 0.9);
+  /* Scoped exclusively to the new Bild-Viewer's dunkler Image-Stage (Phase 177, D-21/Sketch 010) --
+     not a sitewide dominant/secondary surface replacement. */
+  --surface-stage: #10141c;
 
   --text-strong: #171513;
   --text-body: #2d2926;

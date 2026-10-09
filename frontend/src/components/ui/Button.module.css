@@ -158,6 +158,18 @@
   border-radius: 4px;
 }
 
+.buttonFloating {
+  --button-bg: color-mix(in srgb, var(--surface-card) 96%, transparent);
+  --button-border: var(--border-subtle);
+  --button-text: var(--text-soft);
+  --button-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+}
+
+.buttonFloating:hover {
+  background: var(--surface-card);
+}
+
 .buttonIcon {
   width: var(--control-height-md);
   min-width: var(--control-height-md);

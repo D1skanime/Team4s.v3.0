@@ -5,7 +5,7 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, MouseEvent, ReactNode 
 import { classNames } from './classNames'
 import styles from './Button.module.css'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'text'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'text' | 'floating'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 type CommonButtonProps = {
@@ -57,6 +57,7 @@ export function Button(props: ButtonProps) {
     variant === 'danger' && styles.buttonDanger,
     variant === 'success' && styles.buttonSuccess,
     variant === 'text' && styles.buttonText,
+    variant === 'floating' && styles.buttonFloating,
     size === 'sm' && styles.buttonSmall,
     size === 'lg' && styles.buttonLarge,
     fullWidth && styles.buttonBlock,
