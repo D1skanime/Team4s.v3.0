@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 177-08-PLAN.md (Live-UAT approved, Phase 177 all 14 plans done)
-last_updated: "2026-10-09T21:41:57.651Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 177 was final phase)
+last_updated: 2026-10-09T23:58:40.011Z
 last_activity: 2026-10-09
 progress:
   total_phases: 42
   completed_phases: 37
   total_plans: 402
-  completed_plans: 399
+  completed_plans: 453
   percent: 88
 ---
 
@@ -280,15 +280,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 177 — einheitlicher-bild-viewer-f-18-ein-gemeinsamer-viewer-bauste
+**Current focus:** Milestone complete
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 177 (einheitlicher-bild-viewer-f-18-ein-gemeinsamer-viewer-bauste) — EXECUTING
-Plan: 14 of 14
-Status: Phase complete — ready for verification
+Phase: 177
+Plan: Not started
+Status: Milestone complete
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
