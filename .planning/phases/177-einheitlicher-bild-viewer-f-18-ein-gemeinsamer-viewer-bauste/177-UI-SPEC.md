@@ -126,7 +126,9 @@ Metadaten-Panel oder die Modal-Hülle.
 | Secondary (30%) | `var(--surface-card)` `#ffffff` | Modal-Panel-Hülle (Card-Schatten, abgerundete Ecken — unverändert ggü. heutigem `Modal`), Metadaten-Panel-Hintergrund |
 | Accent (10%) | `var(--accent-primary)` `#5f84dd` | **Ausschließlich**: Fokus-Ring auf allen interaktiven Viewer-Controls (bereits global via `:focus-visible`), Linkfarbe des „Release öffnen →"-CTA |
 | Destructive | `var(--color-error)` `#dc3545` | nicht verwendet — keine destruktiven Aktionen in diesem Phasen-Scope (rein lesende Darstellung, D-19/177-CONTEXT.md „Risiko: Mittel ... rein lesende Darstellung ohne Datenmutation") |
-| **Neu (scoped exception):** `--surface-stage` | `#10141c` (Wert aus Sketch 010 übernommen) | **Ausschließlich** Hintergrund der Bild-Bühne innerhalb des Viewers (`.imageFrame`/Stage-Container) — kein sitewide Dominant/Secondary-Ersatz, analog zu bereits bestehenden gescopten dunklen Flächen (`VideoPlayerModal`-Backdrop, `--scrim-strong`) |
+| **Neu (scoped exception):** `--surface-stage` | `#10141c` (Wert aus Sketch 010 übernommen) | Ursprünglicher Flächenfarbe-Token — seit D-33 (Live-UAT Runde 2) nicht mehr für die Viewer-Chrome-Hintergründe verwendet, siehe `--surface-stage-veil` unten |
+| **Neu (D-33, Live-UAT Runde 2):** `--surface-stage-veil` | halbtransparenter, warmer Dunkelton, aus `--text-strong` (`#171513`) abgeleitet (z. B. `color-mix(in srgb, var(--text-strong) 86%, transparent)`) | Ersetzt `--surface-stage` als Hintergrund der gesamten Viewer-Chrome (`Modal`s `modalPanelStage`, `MediaViewerStage`s `.stage`, `MediaViewerCaption`s `.caption`/`.panel`, `ThumbnailStrip`s `.strip`) — kombiniert mit `backdrop-filter: blur(var(--surface-stage-veil-blur))`, sodass die Team4s-Seite dahinter abgedunkelt/weichgezeichnet durchscheint. Das `<img>`-Element selbst bleibt unbeeinflusst (`backdrop-filter` wirkt nur auf das, was hinter dem Element liegt). Fallback ohne `backdrop-filter`-Unterstützung: nahezu deckende Opazität desselben Farbtons. |
+| **Neu (D-33):** `--surface-stage-veil-blur` | z. B. `20px` | Blur-Radius für den Veil-Hintergrund, siehe oben |
 
 Accent reserved for: Fokus-Ring (global, unverändert) + „Release öffnen →"-Link-Text/-Icon. Keine
 weitere Verwendung (keine Akzentfarbe auf Kategorie-Badges — die nutzen den bestehenden
@@ -192,7 +194,7 @@ dunklem Grund, da es für helle Flächen entworfen ist). **Seit Live-UAT Runde 1
 | Visuelles Rezept | identisch zum bestehenden `.closeButton`-Stil: helle Kreisfläche (`color-mix(in srgb, var(--surface-card) 96%, transparent)`), `var(--text-soft)`-Icon, `box-shadow: inset 0 1px 0 rgba(255,255,255,.7)` — **kein neuer Farbwert**, nur ein neuer Variant-Name für ein bereits existierendes Aussehen |
 | Größe | `iconOnly`, mindestens 44×44px (`--control-height-md`) |
 | States | `default` (wie oben), `:hover` (leicht dunklere Variante, analog `.closeButton:hover` falls vorhanden, sonst `background: var(--surface-card)` voll opak), `:focus-visible` (Standard-Fokusring, global), `:disabled` (nicht genutzt im Viewer — Navigation ist immer Wrap-around, nie disabled) |
-| Verwendung im Viewer | **nur noch** Zoom-Toggle (unten rechts auf der Bühne, Icon wechselt `ZoomIn`↔`ZoomOut` je nach Zustand) |
+| Verwendung im Viewer | **nur noch** Zoom-Auslöser — **seit D-38 (Live-UAT Runde 2) in der oberen Leiste neben dem Schließen-X**, nicht mehr auf der Bühne selbst; Icon/aria-label wechseln zwischen `ZoomIn`/„Bild vergrößern" (eingepasst) und `ZoomOut`/„Zoom zurücksetzen" (jede gezoomte Stufe, D-37) |
 
 ### 3. `NavArrow` — neues globales Primitive (D-26, Live-UAT Runde 1)
 
@@ -206,7 +208,7 @@ oben ist für Pfeile nicht mehr gültig.
 | Icon | `lucide-react` `ChevronLeft`/`ChevronRight` (unverändert aus `CarouselArrow`) |
 | Farbe | `var(--ui-arrow)` `#7c3c4f` (bestehender Token, unverändert) |
 | `size="default"` | **pixelgleich** zum heutigen `CarouselArrow`-Aussehen — `FocalCarousel` wird auf dieses Primitive umgestellt, keine visuelle Änderung, `FocalCarousel.test.tsx` bleibt grün |
-| `size="large"` (neu) | größere Klickfläche + größeres Icon für den Vollbild-Viewer; runde helle Fläche (`color-mix(in srgb, var(--surface-card) 96%, transparent)`, analog `closeButton`/`floating`-Rezept) hinter dem weinroten Icon, damit der Pfeil auf der dunklen `--surface-stage`-Bühne gut sichtbar bleibt |
+| `size="large"` (neu) | größere Klickfläche + größeres Icon für den Vollbild-Viewer. **Seit D-36 (Live-UAT Runde 2):** runder, **dunkler, halbtransparenter** Kreis (aus der `--surface-stage-veil`-Token-Familie abgeleitet, D-33 — passend zum neuen Veil-Hintergrund, kein neuer roher Farbwert) hinter dem Icon, nicht mehr die ursprünglich helle Kreisfläche. Icon bleibt `--ui-arrow` (weinrot), sofern Kontrast ≥ 3:1 gegen den dunklen Kreis erreicht wird — sonst heller Text-Token als Fallback-Icon-Farbe. Hover macht die Pfeile deutlicher (Opazität/Farbe intensiver), weiterhin ohne jedes `transform`. |
 | Hover (beide Größen) | **ausschließlich** Farb-/Opazitätsänderung — explizit **kein** `transform`, kein Layout-Shift (behebt den gemeldeten Hüpf-Effekt, der durch die globale `.button:hover { transform: translateY(-1px) }`-Regel entsteht; `NavArrow` überschreibt diese Regel lokal) |
 | `:disabled` | nicht genutzt im Viewer (Wrap-around, nie disabled); im Carousel-Kontext unverändert wie heute (Pfeil an den Rändern deaktiviert) |
 | Verwendung im Viewer | Prev-Pfeil (`size="large"`, linker Bildschirmrand, vertikal zentriert zur Bühne, außerhalb der Bildfläche — D-27), Next-Pfeil (`size="large"`, rechter Bildschirmrand, spiegelbildlich) |
@@ -224,7 +226,8 @@ Neues Primitive unter `components/ui/` (D-11-konform) — kein feature-lokaler B
 | Klick | springt direkt zum angeklickten Bild (Index setzen) |
 | Auto-Scroll | aktives Thumbnail wird automatisch in den sichtbaren Bereich gescrollt — wiederverwendet `centeredScrollLeft`/`nearestOwnedItemIndex` aus `FocalCarouselInternals.tsx` (kein Neubau derselben Logik) |
 | Scroll-Verhalten der Leiste | horizontal scrollbar; Mausrad **über der Leiste** scrollt horizontal (nicht vertikal) |
-| Darunter | Positionszähler „n / N" (bestehendes Copy-Format, unverändert) |
+| Ausrichtung (D-34, Live-UAT Runde 2) | zentriert auf die Bildachse, wenn der Inhalt nicht die volle verfügbare Breite ausfüllt; bei Überlauf bleibt das horizontale Scroll-Verhalten oben unverändert |
+| Darunter | Positionszähler „n / N" (bestehendes Copy-Format, unverändert), ebenfalls auf die Bildachse zentriert (D-34) |
 | Ein-Bild-Fall (D-32) | wird komplett nicht gerendert, wenn die Navigationsliste genau ein Bild enthält |
 
 ### Neuer globaler Token
@@ -244,20 +247,41 @@ Grenze (D-15) gilt für alle neuen/geänderten Dateien, bei Bedarf in Geschwiste
 
 ## Viewer-Interaktionsvertrag — Desktop und Mobile
 
-### Zoom (binäres Klick-Toggle, keine kontinuierliche Pinch/Pan-Geste — Sketch-Vorgabe „Klick aufs Bild = 100-%-Zoom")
+### Zoom (D-37, Live-UAT Runde 2 — ersetzt den ursprünglichen binären 100%-Toggle unten)
 
-| Zustand | Darstellung | Auslöser |
+**Mehrstufiger Zyklus, jede Stufe relativ zur aktuell angezeigten (eingepassten) Größe:**
+
+| Stufe | Darstellung | Auslöser (nächste Stufe) |
 |---|---|---|
-| nicht gezoomt (Default) | Bild passt in Bühne (`object-fit: contain`), zentriert | — |
-| gezoomt (100 %) | Bild in nativer Auflösung; falls größer als Viewport, wird die Bühne scrollbar (`overflow: auto`), kein Custom-Drag-Pan | Klick/Tap auf das Bild |
-| Zurück zu nicht gezoomt | wie Default | erneuter Klick/Tap auf das Bild (an beliebiger Stelle) |
+| eingepasst (Default) | Bild passt in Bühne (`object-fit: contain`), zentriert | — |
+| 2× | doppelte Größe der eingepassten Darstellung | Klick auf Lupe-Button (D-38) oder Doppelklick auf das Bild |
+| 4× | vierfache Größe der eingepassten Darstellung | erneuter Klick/Doppelklick |
+| zurück zu eingepasst | wie Default | erneuter Klick/Doppelklick (Zyklus schließt sich) |
 
-Desktop: Klick mit der Maus auf das Bild. Zusätzlich sichtbares `Button variant="floating"`
-Zoom-Toggle unten rechts auf der Bühne (Icon `ZoomIn`/`ZoomOut`) für Entdeckbarkeit — Klick auf
-Bild bleibt die primäre Interaktion, der Button ist die zugängliche Zweitoption (reines
-Klick-auf-Bild ist für Erstnutzer schlecht entdeckbar).
-Mobile: Tap auf das Bild (gleiche Logik, kein Unterschied zur Maus-Semantik). Derselbe
-`floating`-Button bleibt sichtbar (44×44px Touch-Target).
+- **Pan (2×/4×):** Ziehen mit gedrückter Maus (Desktop) oder Ein-Finger-Ziehen (Touch) verschiebt
+  den sichtbaren Ausschnitt; geclampt, sodass nie ein leerer Rand neben dem Bild sichtbar wird.
+- **Pinch-Zoom (Touch):** kontinuierliches Zoomen innerhalb der Zyklus-Grenzen (Minimum
+  eingepasst, Maximum 4×), unabhängig von den festen Klick-Stufen.
+- **Mausrad im gezoomten Zustand:** zoomt um den aktuellen Mauszeiger-Punkt herum (der Punkt unter
+  dem Cursor bleibt fixiert) — statt Bild-Navigation auszulösen (siehe Navigationstabelle unten).
+- **Touch-Swipe im gezoomten Zustand:** pannt den Ausschnitt statt zu navigieren.
+- **Bildwechsel** setzt Zoomstufe und Pan-Position bedingungslos zurück auf eingepasst/Null.
+- Lupe-Button (D-38): jetzt in der oberen Leiste neben dem Schließen-X (nicht mehr auf der Bühne),
+  `aria-label` „Bild vergrößern" (eingepasst) / „Zoom zurücksetzen" (jede gezoomte Stufe).
+- Jede Entscheidungslogik hier (Zyklus, Pan-Clamp, Zoom-um-Cursorpunkt, Wheel-/Swipe-Weiche,
+  Reset-Wert) ist als reine Funktion zu implementieren (D-13).
+
+#### Ursprünglicher Zoom-Abschnitt (vor Live-UAT Runde 2, nur noch als Herkunftsreferenz)
+
+<details>
+<summary>Ursprünglicher binärer 100%-Toggle — durch D-37 oben ersetzt</summary>
+
+Binäres Klick-Toggle, keine kontinuierliche Pinch/Pan-Geste (Sketch-Vorgabe „Klick aufs Bild =
+100-%-Zoom"): nicht gezoomt (Default, `object-fit: contain`) ↔ gezoomt (100%, native Auflösung,
+Bühne scrollbar bei Überlauf, kein Custom-Drag-Pan), ausgelöst durch Klick/Tap auf das Bild oder
+den `Button variant="floating"`-Zoom-Toggle unten rechts auf der Bühne.
+
+</details>
 
 ### Navigation (Pfeile/Tastatur/Wischen/Mausrad — Wrap-around)
 
@@ -266,10 +290,12 @@ Mobile: Tap auf das Bild (gleiche Logik, kein Unterschied zur Maus-Semantik). De
 | `ArrowLeft`/`ArrowRight` (Tastatur, Desktop) | `onNavigate((index ∓ 1 + total) % total)` — Wrap-around, Vorbild-Logik unverändert portiert |
 | `Home`/`End` (Tastatur, Desktop) — **entschieden (D-23): in die gemeinsame Baseline aller 5 Flächen übernommen** | `onNavigate(0)` / `onNavigate(total - 1)` — Sprung zu erstem/letztem Bild, bisher nur in `ScreenshotGallery` vorhanden, jetzt auf alle Flächen vereinheitlicht |
 | Klick auf Prev/Next-`NavArrow size="large"` (**D-26, ersetzt `Button variant="floating"` für Pfeile seit Live-UAT Runde 1**) | identische Index-Logik; Pfeile liegen außerhalb der Bildfläche am Bildschirmrand (D-27), auf beiden Formfaktoren sichtbar (nicht nur Hover), kein Hover-Transform/Layout-Shift |
-| Touch-Swipe (Mobile) | `touchstart`/`touchmove`/`touchend`, horizontaler Delta ≥ 32px (`--space-6`) **und** `|deltaX| > |deltaY|` → `onNavigate` mit derselben Wrap-around-Logik; sonst wird das Touch-Event nicht abgefangen (normales vertikales Scrollen bleibt möglich, falls die Bühne je scrollbar ist, z. B. im gezoomten Zustand). Deaktiviert, solange das Caption-Panel (D-31) offen ist — Wischen scrollt dann den Text. |
-| Mausrad über der Bild-Bühne (**neu, D-29, Live-UAT Runde 1**) | wechselt zum vorherigen/nächsten Bild (Wrap-around, gleiche Index-Logik), gedrosselt (kein Durchrasen bei schnellem/kontinuierlichem Scrollen), **deaktiviert solange gezoomt** oder solange das Caption-Panel (D-31) offen ist (dort scrollt das Rad den Text) |
+| Touch-Swipe (Mobile) | **Nur im eingepassten Zustand (D-37, Live-UAT Runde 2):** `touchstart`/`touchmove`/`touchend`, horizontaler Delta ≥ 32px (`--space-6`) **und** `|deltaX| > |deltaY|` → `onNavigate` mit derselben Wrap-around-Logik; sonst wird das Touch-Event nicht abgefangen. **Im gezoomten Zustand** bewegt der Finger stattdessen den sichtbaren Ausschnitt (Pan, D-37) — keine Navigation. Deaktiviert, solange das Caption-Panel (D-31) offen ist — Wischen scrollt dann den Text. |
+| Mausrad über der Bild-Bühne, eingepasster Zustand (D-29, Live-UAT Runde 1) | wechselt zum vorherigen/nächsten Bild (Wrap-around, gleiche Index-Logik), gedrosselt (kein Durchrasen bei schnellem/kontinuierlichem Scrollen) |
+| Mausrad über der Bild-Bühne, gezoomter Zustand (**neu, D-37, Live-UAT Runde 2 — ersetzt die bisherige „deaktiviert solange gezoomt"-Regel**) | zoomt um den aktuellen Mauszeiger-Punkt herum, löst **keine** Bild-Navigation aus |
+| Mausrad, Caption-Panel (D-31) offen | scrollt den Text im Panel, löst **keine** Bild-Navigation und **kein** Zoomen aus (unverändert) |
 | Mausrad über der Thumbnail-Leiste (D-28) | scrollt die Leiste horizontal, löst **keine** Bild-Navigation aus |
-| `Escape` | **falls Caption-Panel (D-31) offen:** schließt zuerst nur das Panel. **Sonst:** schließt den Viewer (bestehende `Modal`-Logik) |
+| `Escape` (**dreistufig seit D-37, Live-UAT Runde 2 — erweitert die bisherige zweistufige Sequenz aus D-31**) | **1. falls gezoomt:** setzt zuerst nur den Zoom auf eingepasst zurück. **2. sonst, falls Caption-Panel (D-31) offen:** schließt das Panel. **3. sonst:** schließt den Viewer (bestehende `Modal`-Logik) |
 | Klick auf Backdrop | schließt **nicht** (Stage-Variante, siehe Primitive-Erweiterung oben) |
 | Ein-Bild-Fall (D-32) | Pfeile und Thumbnail-Leiste werden nicht gerendert; Tastatur/Swipe/Wheel-Navigation bleibt wirkungslos (keine Fehlermeldung, einfach kein zweites Bild zum Wechseln) |
 
@@ -287,16 +313,20 @@ Mobile: Tap auf das Bild (gleiche Logik, kein Unterschied zur Maus-Semantik). De
    verbatim aus `ProjectMemberMediaViewer` portiert (D-02), parametrisiert auf `original_url` statt
    `preview_url`.
 
-### Metadaten-Anordnung (Live-UAT Runde 1, D-30/D-31 — ersetzt den ursprünglichen Abschnitt unten)
+### Metadaten-Anordnung (Live-UAT Runde 1+2, D-30/D-31/D-34/D-35 — ersetzt den ursprünglichen Abschnitt unten)
 
 **Überschreibt D-21 teilweise.** Das Metadaten-Panel ist kein einzelner gestapelter Block mehr
 unterhalb des Bildes, sondern zwei getrennte Bereiche auf der Vollbild-Bühne (D-25):
 
-**Kopfbereich (oben, D-30)** — am oberen Bühnenrand, links neben dem Schließen-X:
+**Kopfbereich (oben, D-30/D-34)** — über dem Bild, **auf die Bildachse zentriert** (D-34,
+Live-UAT Runde 2 — nicht mehr linksbündig am Viewport-Rand). Close-X (oben rechts) und
+Lupe-Button (D-38, direkt daneben) bleiben eigene, eckenverankerte Elemente, unabhängig vom
+zentrierten Titelblock:
 
-1. Titel (`Heading`-Typografie) — nur gerendert, wenn vorhanden
+1. Titel — **seit D-35 (Live-UAT Runde 2) in „Display"-Typografie (32px/700)**, vormals
+   „Heading" (20px/700) — nur gerendert, wenn vorhanden
 2. Kategorie (`Badge variant="info"`, Text aus bestehender `CATEGORY_LABELS`-Zuordnung) — kleine
-   Zusatzzeile unter dem Titel
+   Zusatzzeile unter dem Titel, ebenfalls zentriert
 3. Folge (`Label`-Typografie, Wert aus `episode_label`) — Teil derselben Zusatzzeile
 4. Release-Version (`Label`-Typografie, Wert aus `release_version_label`) — Teil derselben
    Zusatzzeile
@@ -306,7 +336,13 @@ keine Platzhalter. Ist weder Titel noch Kategorie/Folge/Release-Version vorhande
 Kopfbereich komplett (z. B. `GroupAssetsExperience`, das laut Component Inventory nur Titel hat —
 dort bleibt der Kopfbereich ggf. auf den Titel allein reduziert).
 
-**Caption-Bereich (unten, D-30/D-31)** — zwischen Bild-Bühne und Thumbnail-Leiste (D-28):
+**Caption-Bereich (unten, D-30/D-31/D-34)** — zwischen Bild-Bühne und Thumbnail-Leiste (D-28), als
+horizontal auf die Bildachse zentrierter Block mit max. **70ch** Zeilenlänge (D-34, Live-UAT Runde
+2). Der Fließtext **innerhalb** dieses zentrierten Blocks bleibt **linksbündig** — zentrierter
+mehrzeiliger Fließtext ist schlechter lesbar als linksbündiger Text in einem zentrierten Block
+(der Zeilenanfang bleibt an einer festen vertikalen Position, statt bei jeder Zeile zu wandern);
+das ist Standard-Typografie-Praxis für Lesbarkeit bei begrenzter Zeilenlänge, keine willkürliche
+Wahl.
 
 5. Bildunterschrift (`Body`-Typografie, Wert aus `caption`) — nur gerendert, wenn vorhanden
    (Graceful Omission, D-22); ist kein `caption`-Wert vorhanden, entfällt der Caption-Bereich
@@ -395,6 +431,15 @@ pro Fläche.
   Bildwechsel (D-31), Wheel/Swipe-Weiche bei offenem Caption-Panel (D-31), Ausblenden von Pfeilen/
   Leiste bei einem Bild (D-32). `FocalCarousel.test.tsx` muss nach der `NavArrow`-Extraktion (D-26)
   unverändert grün bleiben (Regressionsschutz für die pixelgleiche `size="default"`-Variante).
+- **Live-UAT Runde 2 Gap-Fix (D-33 bis D-39):** reine Logik, die D-13-konform als direkt
+  aufrufbare Funktion zu testen ist — Zoomstufen-Zyklus (eingepasst→2×→4×→eingepasst, D-37),
+  Pan-Clamp-Berechnung (kein leerer Rand sichtbar, D-37), Zoom-um-Cursorpunkt-Mathematik (D-37),
+  Wheel-Weiche blättern/zoomen (ersetzt/erweitert `resolveWheelNavigation` aus D-29), Swipe-Weiche
+  navigieren/pannen (erweitert `computeSwipeNavigation`/D-03), dreistufige Escape-Zielermittlung
+  Zoom→Panel→Viewer (erweitert `resolveEscapeTarget` aus D-31 um eine Stufe), Reset-Wert für
+  Zoomstufe/Pan beim Bildwechsel (D-37). Bestehende Call-Sites dieser erweiterten Funktionen
+  (`MediaViewerStage.tsx`, `FansubMediaLightbox.tsx`) müssen konsistent auf die neuen Signaturen
+  umgestellt werden, nicht parallel alte und neue Varianten behalten.
 
 ---
 
@@ -482,5 +527,53 @@ D-25 bis D-32 in `177-CONTEXT.md` festgehalten und oben im Vertrag bereits einge
 
 7. **Ein-Bild-Fall** — Pfeile/Leiste trotzdem anzeigen?
    **Entscheidung:** nein, beide entfallen komplett, wenn nur ein Bild vorhanden ist. Siehe D-32.
+
+---
+
+## Live-UAT Runde 2 — Gap-Fix-Fragen, alle beantwortet (2026-10-09)
+
+Die zweite Live-UAT-Vorlage (nach D-25 bis D-32 plus drei vom Nutzer selbst gefundenen
+Zwischenbugs) wurde vom Nutzer **nicht freigegeben**: Funktion passt, die Optik wird überarbeitet.
+Befunde und Entscheidungen sind als D-33 bis D-39 in `177-CONTEXT.md` festgehalten und oben im
+Vertrag bereits eingearbeitet.
+
+1. **Hintergrund** — die kühle, deckende `--surface-stage`-Fläche wirkt nicht wie gewünscht.
+   **Entscheidung:** dunkler Schleier mit `backdrop-filter: blur` + halbtransparentem, warmem
+   Dunkelton (aus der Team4s-Palette abgeleitet) statt einer deckenden Einzelfarbe — die Team4s-
+   Seite bleibt dahinter sichtbar, abgedunkelt/weichgezeichnet. Neue Token
+   `--surface-stage-veil`/`--surface-stage-veil-blur`. Siehe D-33.
+
+2. **Layout-Achse** — Kopfbereich, Caption, Thumbnail-Leiste und Zähler wirken unabhängig
+   voneinander positioniert statt wie ein zusammengehöriger Viewer.
+   **Entscheidung:** alle vier auf die Bildachse zentriert; Caption auf max. 70ch Zeilenlänge
+   begrenzt, als zentrierter Block mit linksbündigem Fließtext (Lesbarkeits-Begründung siehe
+   „Metadaten-Anordnung" oben). Siehe D-34.
+
+3. **Titel-Präsenz** — der Titel wirkt zu klein/unauffällig.
+   **Entscheidung:** Wechsel von der „Heading"- auf die bereits dokumentierte, bisher ungenutzte
+   „Display"-Typografie-Rolle (32px/700) — kein neuer Wert, nur Aktivierung einer bestehenden
+   Skalenstufe. Kategorie/Folge/Release-Version bleiben unverändert dezent. Siehe D-35.
+
+4. **Pfeil-Kontrast auf dem neuen Schleier-Hintergrund** — die bisherige helle Kreisfläche passt
+   nicht mehr zum dunklen Gesamtbild.
+   **Entscheidung:** dunkler, halbtransparenter Kreis (aus derselben Token-Familie wie der Veil-
+   Hintergrund) statt der hellen Fläche; Chevron bleibt weinrot, sofern Kontrast ≥ 3:1 erreicht
+   wird, sonst hell. Hover weiterhin nur Farbe/Opazität, kein Transform. Siehe D-36.
+
+5. **Zoom-Mechanismus** — der binäre 100%-Toggle ist auf einer Vollbild-Bühne nutzlos und
+   verkleinert kleine Bilder sogar.
+   **Entscheidung:** echter Mehrstufen-Zoom (eingepasst→2×→4×→eingepasst) mit Pan
+   (Maus-Ziehen/Touch-Ein-Finger-Ziehen, geclampt), Pinch-Zoom auf Touch, Cursor-zentriertes
+   Mausrad-Zoomen im gezoomten Zustand (Mausrad navigiert weiterhin im eingepassten Zustand),
+   Swipe navigiert nur eingepasst/pannt gezoomt, Reset bei Bildwechsel, dreistufige
+   Escape-Reihenfolge Zoom→Panel→Viewer. Lupe-Button wandert in die obere Leiste neben das
+   Schließen-X. Siehe D-37/D-38.
+
+6. **Primitives/Tokens** — gilt die Überarbeitung einheitlich für alle 5 Flächen, ausschließlich
+   mit globalen Primitives/Tokens?
+   **Entscheidung:** ja, keine Ausnahme, keine neuen lokalen Einzelfarben. Siehe D-39.
+
+Nach Umsetzung dieses zweiten Gap-Fixes wird die Live-UAT (D-14) für alle 5 Flächen erneut
+vorgelegt.
 
 Nach Umsetzung dieses Gap-Fixes wird die Live-UAT (D-14) für alle 5 Flächen erneut vorgelegt.

@@ -79,7 +79,9 @@ Gruppen-Assets, Mitgliederprofil) verhalten sollen.
   bevor die Komponente entfernt wird. Kein Merkmalsverlust gegenüber dem heutigen Bestzustand.
 - **D-03:** Neue Merkmale laut Sketch 010 — Zoom, Touch-Swipe und Display→Original-Progressive-Load
   werden ergänzt, obwohl keine der sechs bestehenden Implementierungen sie heute hat. Zusätzlich
-  Metadaten-Overlay und Prefetch (aus D-02).
+  Metadaten-Overlay und Prefetch (aus D-02). **Zoom-Mechanismus überschrieben durch D-37** (Live-UAT
+  Runde 2, 2026-10-09): der hier beschriebene binäre 100%-Toggle wird durch einen echten
+  Mehrstufen-Zoom mit Pan ersetzt. Touch-Swipe/Progressive-Load/Prefetch bleiben unverändert.
 - **D-04:** `ScreenshotGallery.tsx` wird vollständig auf den gemeinsamen Baustein umgestellt; dabei
   wird der bestehende CLAUDE.md-Konventionsverstoß (direkter `fetch()` statt `lib/api.ts`) mit
   beseitigt, da die Komponente ohnehin umgebaut wird.
@@ -235,6 +237,104 @@ Nutzer vorgegebene Überarbeitung als Gap-Fix innerhalb von Phase 177 um (keine 
   Funktionen zu implementieren (D-13-Teststil, keine Render-/Klicktests).
 - **D-32:** Ein-Bild-Fall (Nutzer Live-UAT-Feedback 2026-10-09) — bei genau einem Bild in der
   Navigationsliste werden Pfeile (D-26/D-27) und Thumbnail-Leiste (D-28) nicht gerendert.
+
+### Live-UAT Runde 2 (Nutzer 2026-10-09) — Gap-Fix-Entscheidungen D-33 bis D-39
+
+Die zweite Live-UAT-Vorlage (nach Umsetzung von D-25 bis D-32 plus drei vom Nutzer selbst
+gefundenen Zwischenbugs) wurde **nicht** freigegeben. Befund: Funktion passt, die Optik soll
+überarbeitet werden. Die folgenden Entscheidungen setzen die vom Nutzer vorgegebene Überarbeitung
+als weiteren Gap-Fix innerhalb von Phase 177 um (keine neue Phase).
+
+- **D-33:** Veil-Hintergrund statt deckender `--surface-stage`-Fläche (Nutzer Live-UAT-Feedback
+  2026-10-09, verbindlich) — die bisherige kühle, voll deckende `--surface-stage`-Flächenfarbe wird
+  durch einen dunklen Schleier mit `backdrop-filter: blur(...)` ersetzt: die Team4s-Seite bleibt
+  hinter dem Viewer erkennbar, aber stark abgedunkelt und weichgezeichnet. Zwei neue globale Token
+  in `frontend/src/styles/globals.css`: `--surface-stage-veil` (halbtransparenter, warmer
+  Dunkelton — aus der bestehenden Team4s-Palette abgeleitet, z. B. via `color-mix` auf Basis des
+  bereits vorhandenen warmen `--text-strong` `#171513`, nicht ein neu erfundener roher Hex-Wert)
+  und `--surface-stage-veil-blur` (Blur-Radius, z. B. `20px` als Ausgangswert). Fallback für
+  Browser ohne `backdrop-filter`-Unterstützung (`@supports not (backdrop-filter: blur(1px))`):
+  nahezu deckender warmer Dunkelton (hohe Opazität desselben Farbtons, kein Blur nötig, da ohnehin
+  kaum noch etwas durchscheint). Die Bildfläche selbst (das `<img>`-Element) wird vom Schleier
+  nicht beeinflusst — `backdrop-filter` wirkt nur auf das, was *hinter* dem Element liegt, nicht
+  auf eigene Kind-Inhalte; das Bild bleibt also automatisch kontrastreich und unverfälscht. Der
+  neue Token ersetzt `--surface-stage` einheitlich dort, wo heute die deckende Flächenfarbe für die
+  Viewer-Chrome verwendet wird (`Modal`s `modalPanelStage`, `MediaViewerStage`s `.stage`,
+  `MediaViewerCaption`s `.caption`/`.panel`, `ThumbnailStrip`s `.strip`) — `--surface-stage` selbst
+  bleibt als Token bestehen (ggf. noch für andere, nicht-transparente Zwecke), wird aber für die
+  Viewer-Chrome-Hintergründe durch `--surface-stage-veil` abgelöst.
+- **D-34:** Einheitliche Mittelachse (Nutzer Live-UAT-Feedback 2026-10-09, verbindlich) — Kopfbereich
+  (Titel+Meta, D-30), Bildunterschrift-Bereich (D-30/D-31), Thumbnail-Leiste und Positionszähler
+  (D-28) werden auf die Bildachse zentriert statt unabhängig linksbündig/volle-Breite positioniert.
+  Die Bildunterschrift bekommt eine begrenzte Zeilenlänge von ca. `70ch`, als horizontal zentrierter
+  Block; der Fließtext innerhalb dieses Blocks bleibt **linksbündig** (nicht zentriert) — zentrierter
+  mehrzeiliger Fließtext ist schwerer lesbar als linksbündiger Text in einem zentrierten Block
+  (Standard-Typografie-Praxis), diese Begründung wird in der UI-SPEC festgehalten. Die
+  Thumbnail-Leiste zentriert sich, wenn ihr Inhalt nicht die volle verfügbare Breite ausfüllt; bei
+  Überlauf bleibt sie horizontal scrollbar wie bisher (D-28 unverändert).
+- **D-35:** Titel-Typografie vergrößert (Nutzer Live-UAT-Feedback 2026-10-09, verbindlich) — der
+  Titel im Kopfbereich (D-30) wechselt von der bisherigen „Heading"-Typografie-Rolle (20px/700) auf
+  die bereits in der UI-SPEC-Typografie-Tabelle dokumentierte, bisher ungenutzte „Display"-Rolle
+  (32px/700, entspricht der sitewide `PageHeader`-Skala) — kein neuer Typografie-Wert, nur die
+  Aktivierung einer bereits bestehenden, bisher nur für Template-Vollständigkeit dokumentierten
+  Skalenstufe. Kategorie bleibt ein dezentes `Badge variant="info"` daneben (unverändert);
+  Folge/Release-Version bleiben eine ruhige Zusatzzeile (Label-Typografie, unverändert).
+- **D-36:** NavArrow-Bühnen-Darstellung abgedunkelt (Nutzer Live-UAT-Feedback 2026-10-09,
+  verbindlich) — die `size="large"`-Variante von `NavArrow` (D-26) bekommt für die
+  Bühnen-Verwendung einen dunklen, halbtransparenten Kreis statt der bisherigen hellen Kreisfläche
+  (passend zum neuen Veil-Hintergrund, D-33 — abgeleitet aus derselben Token-Familie, kein neuer
+  roher Farbwert). Das Chevron-Icon bleibt in `--ui-arrow` (weinrot), sofern der Kontrast gegen den
+  neuen dunklen Kreis-Hintergrund mindestens 3:1 erreicht (zu prüfen); andernfalls weicht die
+  Icon-Farbe auf einen hellen Text-Token aus. Hover macht die Pfeile deutlicher (Opazität/Farbe
+  intensiver als im Default-Zustand) — weiterhin explizit **kein** `transform`/Layout-Shift (D-26
+  bleibt uneingeschränkt in Kraft). Die Carousel-`size="default"`-Darstellung bleibt unverändert
+  (pixelgleich, D-26-Regressionsschutz/`FocalCarousel.test.tsx` gilt unverändert weiter).
+- **D-37:** Echter Mehrstufen-Zoom mit Pan ersetzt den binären 100%-Toggle (Nutzer
+  Live-UAT-Feedback 2026-10-09, verbindlich; **überschreibt den Zoom-Mechanismus aus D-03**) — der
+  bisherige binäre „eingepasst ↔ 100% nativ"-Toggle wird durch einen Zyklus aus mindestens drei
+  Stufen ersetzt: **eingepasst → 2× → 4× → zurück zu eingepasst**, jede Stufe relativ zur aktuell
+  *angezeigten* (eingepassten) Größe berechnet, nicht relativ zur nativen Bildauflösung (ein
+  kleines, bereits hochskaliertes Bild bei „eingepasst" wird bei „2×" doppelt so groß wie diese
+  bereits hochskalierte Darstellung, nicht etwa auf native Pixelgröße zurückgesetzt). Auslöser:
+  Klick auf den Lupe-Button (D-39, jetzt in der oberen Leiste) oder Doppelklick auf das Bild — jede
+  Aktivierung rückt genau eine Stufe im Zyklus weiter.
+  - **Pan (gezoomter Zustand):** Ziehen mit gedrückter Maus verschiebt den sichtbaren Ausschnitt;
+    die Verschiebung ist so begrenzt (geclampt), dass niemals ein leerer Rand neben dem Bild in den
+    sichtbaren Bereich gezogen werden kann — der Ausschnitt deckt bei jeder Zoomstufe immer die
+    gesamte Bühne ab.
+  - **Touch:** Ein-Finger-Ziehen pannt im gezoomten Zustand (wie die Maus); Pinch-Geste zoomt
+    kontinuierlich innerhalb der durch den Zyklus definierten Grenzen (Minimum = eingepasst,
+    Maximum = die oberste Zyklusstufe), unabhängig von den festen Klick-Stufen.
+  - **Mausrad:** im eingepassten Zustand weiterhin Bild-Navigation (D-29, unverändert); im
+    gezoomten Zustand zoomt das Rad stattdessen um den aktuellen Mauszeiger-Punkt herum (der Punkt
+    unter dem Cursor bleibt beim Zoomen an derselben Bildschirmposition fixiert).
+  - **Touch-Swipe:** navigiert ausschließlich im eingepassten Zustand (D-03 unverändert für diesen
+    Teil); im gezoomten Zustand bewegt der Finger stattdessen den sichtbaren Ausschnitt (Pan, siehe
+    oben) statt eine Navigation auszulösen.
+  - **Bildwechsel** (Navigation zu einem anderen Bild) setzt Zoomstufe und Pan-Position
+    bedingungslos auf „eingepasst"/Null zurück — wie bereits für das Caption-Panel etabliert
+    (D-31-Muster).
+  - **Escape-Reihenfolge erweitert auf drei Stufen:** ein erstes `Escape` setzt, falls gezoomt,
+    zuerst nur den Zoom auf „eingepasst" zurück; ist nicht gezoomt, aber das Caption-"Weiterlesen"-
+    Panel (D-31) offen, schließt das nächste `Escape` das Panel; ist beides nicht der Fall, schließt
+    `Escape` den Viewer. Dies erweitert die bestehende zweistufige Sequenz aus D-31 um eine
+    zusätzliche, vorrangige Zoom-Stufe (Zoom → Panel → Viewer).
+  - Jede hier beschriebene Entscheidungslogik (Zoomstufen-Zyklus, Pan-Clamp-Berechnung,
+    Zoom-um-Cursorpunkt-Mathematik, Wheel-Weiche blättern/zoomen, Swipe-Weiche navigieren/pannen,
+    dreistufige Escape-Zielermittlung, Reset-Wert beim Bildwechsel) muss als reine, direkt
+    aufrufbare Funktion implementiert werden (D-13-Teststil, keine Render-/Klicktests) — konsistent
+    mit dem bereits etablierten Muster in `mediaViewerNavigation.ts`/`mediaViewerCaptionPanel.ts`.
+- **D-38:** Lupe-Button-Position (Nutzer Live-UAT-Feedback 2026-10-09, verbindlich) — der
+  Zoom-Auslöser-Button steht nicht mehr in der Bildecke über der Bühne (bisherige
+  `Button variant="floating"`-Position unten rechts auf der Bühne), sondern in der oberen Leiste
+  neben dem Schließen-X (weiterhin `Button`-Primitive, nicht `NavArrow`). aria-label wechselt
+  zwischen `Bild vergrößern` (im eingepassten Zustand) und `Zoom zurücksetzen` (in jeder gezoomten
+  Stufe) — echte Umlaute, exakt diese beiden Strings.
+- **D-39:** Gilt einheitlich für alle 5 Konsumentenflächen (Nutzer Live-UAT-Feedback 2026-10-09) —
+  D-33 bis D-38 gelten für alle 5 Viewer-Flächen gleich, keine Fläche bekommt eine abweichende
+  Optik/Zoom-Bedienung. Ausschließlich globale Primitives/Tokens (`@/components/ui`,
+  `--surface-*`/`--space-*`/`--text-*`/`--accent-*`/`--ui-arrow`) — keine neuen lokalen
+  Einzelfarben oder hart codierten Werte in Feature-Dateien.
 </decisions>
 
 <open_questions>
