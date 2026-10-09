@@ -4,6 +4,8 @@
   background: transparent;
   display: grid;
   gap: var(--space-2);
+  max-width: 70ch;
+  margin-inline: auto;
 }
 .clamped {
   margin: 0;

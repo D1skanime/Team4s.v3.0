@@ -7,6 +7,7 @@
 
 .track {
   display: flex;
+  justify-content: center;
   overflow-x: auto;
   scrollbar-width: none;
   padding-block: var(--space-1);
