@@ -70,6 +70,7 @@ export function MediaViewerStage({
   onImageWidthChange,
 }: MediaViewerStageProps) {
   const [originalLoaded, setOriginalLoaded] = useState(false)
+  const [originalFailed, setOriginalFailed] = useState(false)
   const [hasError, setHasError] = useState(false)
 
   const displayUrl = item.display_url ? resolveApiUrl(item.display_url) : null
@@ -91,6 +92,7 @@ export function MediaViewerStage({
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOriginalLoaded(false)
+    setOriginalFailed(false)
     setHasError(false)
   }, [item.id])
 
@@ -104,10 +106,14 @@ export function MediaViewerStage({
       if (!cancelled) setOriginalLoaded(true)
     }
     preload.onerror = () => {
-      // Original 404s, CORS-blocked, or otherwise fails to load: give up rather
-      // than leaving the "wird geladen …" pill shown forever (the visible <img>
-      // keeps showing display_url/thumbnail_url via selectDisplaySrc regardless).
-      if (!cancelled) setOriginalLoaded(true)
+      // Original 404s, CORS-blocked, or otherwise fails to load: give up on waiting
+      // rather than leaving the "wird geladen …" pill shown forever -- but track this
+      // as a DISTINCT failure flag, not `originalLoaded`. selectDisplaySrc() swaps the
+      // visible <img> to originalUrl whenever originalLoaded is true, with no
+      // success/failure distinction -- conflating the two here would swap the <img> to
+      // the just-confirmed-broken URL, turning a correctly-displayed fallback image
+      // into a hard load error (worse than the eternal pill this was meant to fix).
+      if (!cancelled) setOriginalFailed(true)
     }
     preload.src = originalUrl
 
@@ -122,7 +128,7 @@ export function MediaViewerStage({
   }, [prevOriginalUrl, nextOriginalUrl])
 
   const displaySrc = selectDisplaySrc({ displayUrl, originalUrl, thumbnailUrl, originalLoaded })
-  const showLoadingPill = !hasError && shouldShowLoadingPill(displayUrl, originalUrl, originalLoaded)
+  const showLoadingPill = !hasError && shouldShowLoadingPill(displayUrl, originalUrl, originalLoaded || originalFailed)
   const showNavigationControls = shouldShowNavigationControls(total)
 
   // Reports the image's rendered (eingepasst, pre-transform, letterboxed) width so the
