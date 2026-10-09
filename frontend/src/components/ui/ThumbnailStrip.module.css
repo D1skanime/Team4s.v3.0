@@ -22,6 +22,7 @@
 }
 
 .thumb {
+  position: relative;
   flex: 0 0 auto;
   width: 96px;
   height: 64px;
@@ -33,11 +34,8 @@
   cursor: pointer;
 }
 
-.thumb img {
-  width: 100%;
-  height: 100%;
+.thumbImage {
   object-fit: cover;
-  display: block;
 }
 
 .thumbActive {

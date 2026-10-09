@@ -58,3 +58,35 @@ export function resolveCaption(
 
   return ''
 }
+
+/**
+ * Resolves the URL used for a single thumbnail-strip entry (D-28).
+ *
+ * Priority order: `thumbnailUrl` first (smallest/dedicated thumbnail asset),
+ * then `displayUrl` (medium-size progressive-load asset), finally
+ * `originalUrl` as the last resort for consumers (`ReleaseGallery.tsx`'s
+ * `toLightboxItem`, D-07) that only ever populate `original_url`. Returns an
+ * empty string when none of the three are present.
+ */
+export function resolveThumbnailUrl(
+  thumbnailUrl: string | null | undefined,
+  displayUrl: string | null | undefined,
+  originalUrl: string | null | undefined,
+): string {
+  const trimmedThumbnail = thumbnailUrl?.trim()
+  if (trimmedThumbnail) {
+    return trimmedThumbnail
+  }
+
+  const trimmedDisplay = displayUrl?.trim()
+  if (trimmedDisplay) {
+    return trimmedDisplay
+  }
+
+  const trimmedOriginal = originalUrl?.trim()
+  if (trimmedOriginal) {
+    return trimmedOriginal
+  }
+
+  return ''
+}

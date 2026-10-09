@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 
 import { centeredScrollLeft, directItemElements } from './FocalCarouselInternals'
 import { classNames } from './classNames'
+import { ResponsiveImage } from './ResponsiveImage'
 import styles from './ThumbnailStrip.module.css'
 
 export interface ThumbnailStripItem {
@@ -66,8 +67,7 @@ export function ThumbnailStrip({ items, activeIndex, onSelect, regionLabel }: Th
               aria-current={index === activeIndex ? 'true' : undefined}
               onClick={() => onSelect(index)}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.thumbnailUrl} alt="" />
+              <ResponsiveImage src={item.thumbnailUrl} alt="" fill sizes="96px" className={styles.thumbImage} />
             </button>
           ))}
         </div>

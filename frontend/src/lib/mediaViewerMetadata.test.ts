@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveCaption, resolveCategoryLabel } from './mediaViewerMetadata'
+import { resolveCaption, resolveCategoryLabel, resolveThumbnailUrl } from './mediaViewerMetadata'
 
 const CATEGORY_LABELS: Record<string, string> = {
   screenshot: 'Fansub Screenshot',
@@ -42,5 +42,24 @@ describe('resolveCaption', () => {
   it('liefert einen leeren String, wenn beide Werte fehlen oder leer sind', () => {
     expect(resolveCaption(null, null)).toBe('')
     expect(resolveCaption('', '')).toBe('')
+  })
+})
+
+describe('resolveThumbnailUrl', () => {
+  it('bevorzugt thumbnailUrl, wenn alle drei Werte vorhanden sind', () => {
+    expect(resolveThumbnailUrl('/thumb.jpg', '/display.jpg', '/original.jpg')).toBe('/thumb.jpg')
+  })
+
+  it('fällt auf displayUrl zurück, wenn thumbnailUrl fehlt', () => {
+    expect(resolveThumbnailUrl(null, '/display.jpg', '/original.jpg')).toBe('/display.jpg')
+  })
+
+  it('fällt auf originalUrl zurück, wenn nur originalUrl vorhanden ist (ReleaseGallery-D-07-Fall)', () => {
+    expect(resolveThumbnailUrl(null, null, '/original.jpg')).toBe('/original.jpg')
+  })
+
+  it('liefert einen leeren String, wenn alle drei Werte fehlen oder leer sind', () => {
+    expect(resolveThumbnailUrl(null, undefined, '')).toBe('')
+    expect(resolveThumbnailUrl('  ', '  ', '  ')).toBe('')
   })
 })

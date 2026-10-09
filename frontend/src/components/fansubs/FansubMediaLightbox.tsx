@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui'
 import { ThumbnailStrip } from '@/components/ui/ThumbnailStrip'
 import { resolveApiUrl } from '@/lib/api'
 import { resetCaptionPanelOpen, resolveEscapeTarget } from '@/lib/mediaViewerCaptionPanel'
+import { resolveThumbnailUrl } from '@/lib/mediaViewerMetadata'
 import { wrapIndex } from '@/lib/mediaViewerNavigation'
 
 import { MediaViewerCaption } from './MediaViewerCaption'
@@ -98,7 +99,7 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
   const nextOriginalUrl = media[nextIndex]?.original_url
   const thumbnailItems = media.map((m) => ({
     key: m.id,
-    thumbnailUrl: resolveApiUrl(m.thumbnail_url ?? m.display_url ?? m.original_url ?? ''),
+    thumbnailUrl: resolveApiUrl(resolveThumbnailUrl(m.thumbnail_url, m.display_url, m.original_url)),
   }))
 
   function goToPrevious() {
