@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 177-07-PLAN.md
-last_updated: "2026-10-09T13:22:23.770Z"
+status: verifying
+stopped_at: Completed 177-09-PLAN.md
+last_updated: "2026-10-09T15:58:29.768Z"
 last_activity: 2026-10-09
 progress:
   total_phases: 42
   completed_phases: 36
-  total_plans: 396
-  completed_plans: 392
+  total_plans: 399
+  completed_plans: 393
   percent: 86
 ---
 
@@ -288,7 +288,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 177 (einheitlicher-bild-viewer-f-18-ein-gemeinsamer-viewer-bauste) — EXECUTING
 Plan: 8 of 8
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -974,6 +974,7 @@ Last activity: 2026-10-09
 - [Phase 177]: MediaViewerMetadataPanel suppresses the title row when it equals the resolved category label — Avoids a 3x text duplication across Modal's hidden aria title, panel h3, and category badge for consumers whose title falls back to the category label
 - [Phase 177]: ProjectMemberMediaGallery migriert auf FansubMediaLightbox; ProjectMemberMediaViewer entfernt (D-02/D-10) — Bestaetigt, dass die reichste Datenform im Cluster (Projekt-Mitglied-Medien) sauber auf den gemeinsamen Viewer-Vertrag abbildet; validiert die Vereinheitlichung vor Plan 177-07
 - [Phase 177]: GroupAssetsExperience lightbox migrated to FansubMediaLightbox using array-index synthetic id and per-episode { images, index } open-state
+- [Phase 177]: D-25: Modal variant="stage" fills the viewport edge-to-edge with --surface-stage; D-26: carousel/viewer arrows use the new NavArrow global primitive instead of Button variant="floating", fixing the Live-UAT hover-jump
 
 ### Pending Todos
 
@@ -1587,11 +1588,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 177 P05 | 25min | 2 tasks | 6 files |
 | Phase 177 P06 | ~20min | 2 tasks | 7 files |
 | Phase 177 P07 | 15min | 1 tasks | 4 files |
+| Phase 177 P09 | 15min | 2 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-09T13:22:23.749Z
-Stopped at: Completed 177-07-PLAN.md
+Last session: 2026-10-09T15:58:29.747Z
+Stopped at: Completed 177-09-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 
