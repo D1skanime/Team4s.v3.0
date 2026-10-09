@@ -38,7 +38,14 @@ export function MediaViewerCaption({ item, panelOpen, onPanelOpenChange }: Media
       setOverflowing(false)
       return
     }
-    setOverflowing(isCaptionOverflowing(node.scrollHeight, node.clientHeight))
+    const measure = () => setOverflowing(isCaptionOverflowing(node.scrollHeight, node.clientHeight))
+    measure()
+    // Re-measure on viewport resize/rotation: the clamp is line-height-based, so the
+    // wrapped line count (and therefore overflow) can change without `caption` changing.
+    if (typeof ResizeObserver === 'undefined') return
+    const resizeObserver = new ResizeObserver(measure)
+    resizeObserver.observe(node)
+    return () => resizeObserver.disconnect()
   }, [caption])
 
   if (!caption && !hasReleaseHref) return null
