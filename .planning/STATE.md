@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 177-09-PLAN.md
-last_updated: "2026-10-09T15:58:29.768Z"
+stopped_at: Completed 177-10-PLAN.md
+last_updated: "2026-10-09T16:04:33.317Z"
 last_activity: 2026-10-09
 progress:
   total_phases: 42
   completed_phases: 36
   total_plans: 399
-  completed_plans: 393
+  completed_plans: 394
   percent: 86
 ---
 
@@ -287,8 +287,8 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 177 (einheitlicher-bild-viewer-f-18-ein-gemeinsamer-viewer-bauste) — EXECUTING
-Plan: 8 of 8
-Status: Phase complete — ready for verification
+Plan: 10 of 11
+Status: Gap-closure Plan 177-10 complete (D-28/D-29/D-31/D-32 pure logic + ThumbnailStrip primitive) — Plan 177-11 (viewer-shell wiring) and Plan 177-08's Live-UAT checkpoint remain
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -975,6 +975,8 @@ Last activity: 2026-10-09
 - [Phase 177]: ProjectMemberMediaGallery migriert auf FansubMediaLightbox; ProjectMemberMediaViewer entfernt (D-02/D-10) — Bestaetigt, dass die reichste Datenform im Cluster (Projekt-Mitglied-Medien) sauber auf den gemeinsamen Viewer-Vertrag abbildet; validiert die Vereinheitlichung vor Plan 177-07
 - [Phase 177]: GroupAssetsExperience lightbox migrated to FansubMediaLightbox using array-index synthetic id and per-episode { images, index } open-state
 - [Phase 177]: D-25: Modal variant="stage" fills the viewport edge-to-edge with --surface-stage; D-26: carousel/viewer arrows use the new NavArrow global primitive instead of Button variant="floating", fixing the Live-UAT hover-jump
+- [Phase 177]: ThumbnailStrip (D-28) omits nearestOwnedItemIndex reuse: activeIndex is always caller-controlled, no scroll-position-to-index inference needed
+- [Phase 177]: ThumbnailStrip not barrel-exported from components/ui/index.ts, following ResponsiveImage.tsx precedent, to avoid same-wave index.ts conflict with Plan 177-09
 
 ### Pending Todos
 
@@ -1589,11 +1591,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 177 P06 | ~20min | 2 tasks | 7 files |
 | Phase 177 P07 | 15min | 1 tasks | 4 files |
 | Phase 177 P09 | 15min | 2 tasks | 7 files |
+| Phase 177 P10 | 8min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-09T15:58:29.747Z
-Stopped at: Completed 177-09-PLAN.md
+Last session: 2026-10-09T16:04:33.295Z
+Stopped at: Completed 177-10-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 
