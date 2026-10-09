@@ -77,3 +77,42 @@ export function selectDisplaySrc(params: SelectDisplaySrcParams): string | null 
 
   return displayUrl ?? originalUrl ?? thumbnailUrl ?? null
 }
+
+/**
+ * Wheel-navigation direction decision for the image stage (D-29, Live-UAT Runde
+ * 1). A vertical mouse-wheel gesture over the stage (never over the thumbnail
+ * strip, which scrolls horizontally per D-28) steps to the previous/next image.
+ * `deltaY > 0` is a downward scroll (advance to the next image); `deltaY < 0`
+ * is an upward scroll (go back); `deltaY === 0` is not a navigation gesture.
+ */
+export function resolveWheelNavigation(deltaY: number): 'prev' | 'next' | null {
+  if (deltaY > 0) return 'next'
+  if (deltaY < 0) return 'prev'
+  return null
+}
+
+/**
+ * Wheel-navigation throttle decision (D-29): prevents rapid/continuous wheel
+ * scrolling from racing through many images at once. The very first
+ * navigation (`lastNavigationAt === null`) is never throttled. Every
+ * subsequent navigation is throttled while less than `throttleMs` has
+ * elapsed since the last one.
+ */
+export function shouldThrottleWheelNavigation(
+  now: number,
+  lastNavigationAt: number | null,
+  throttleMs: number,
+): boolean {
+  if (lastNavigationAt === null) return false
+  return now - lastNavigationAt < throttleMs
+}
+
+/**
+ * Single-image visibility predicate (D-32): navigation arrows and the
+ * thumbnail strip are both gated on this exact same condition, so it is a
+ * single named source of truth instead of a `> 1` comparison duplicated at
+ * each call site.
+ */
+export function shouldShowNavigationControls(total: number): boolean {
+  return total > 1
+}

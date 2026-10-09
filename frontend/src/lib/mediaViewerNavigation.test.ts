@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
   computeSwipeNavigation,
   nextZoomState,
+  resolveWheelNavigation,
   selectDisplaySrc,
+  shouldShowNavigationControls,
+  shouldThrottleWheelNavigation,
   wrapIndex,
 } from './mediaViewerNavigation'
 
@@ -100,5 +103,43 @@ describe('selectDisplaySrc', () => {
     })
 
     expect(result).toBe('display.jpg')
+  })
+})
+
+describe('resolveWheelNavigation', () => {
+  it('wechselt beim Scrollen nach unten zum nächsten Bild', () => {
+    expect(resolveWheelNavigation(80)).toBe('next')
+  })
+
+  it('wechselt beim Scrollen nach oben zum vorherigen Bild', () => {
+    expect(resolveWheelNavigation(-80)).toBe('prev')
+  })
+
+  it('löst bei einem Delta von null keine Navigation aus', () => {
+    expect(resolveWheelNavigation(0)).toBeNull()
+  })
+})
+
+describe('shouldThrottleWheelNavigation', () => {
+  it('drosselt eine zweite Navigation innerhalb des Zeitfensters', () => {
+    expect(shouldThrottleWheelNavigation(1200, 1000, 500)).toBe(true)
+  })
+
+  it('lässt eine Navigation nach Ablauf des Zeitfensters wieder zu', () => {
+    expect(shouldThrottleWheelNavigation(1600, 1000, 500)).toBe(false)
+  })
+
+  it('drosselt die allererste Navigation nie, wenn noch kein Zeitstempel vorliegt', () => {
+    expect(shouldThrottleWheelNavigation(1000, null, 500)).toBe(false)
+  })
+})
+
+describe('shouldShowNavigationControls', () => {
+  it('zeigt Navigationselemente bei mehr als einem Bild an', () => {
+    expect(shouldShowNavigationControls(2)).toBe(true)
+  })
+
+  it('verbirgt Navigationselemente bei genau einem Bild', () => {
+    expect(shouldShowNavigationControls(1)).toBe(false)
   })
 })
