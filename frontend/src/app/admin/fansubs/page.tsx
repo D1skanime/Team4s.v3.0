@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Info, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import {
   ApiError,
@@ -15,6 +15,7 @@ import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import {
   EmptyState,
   ErrorState,
+  Input,
   LoadingState,
   Table,
   TableBody,
@@ -79,6 +80,7 @@ function AdminFansubsContent() {
   const { hasAccessToken } = useAuthSession();
   const { confirm, confirmDialog } = useConfirmDialog();
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchLimitReached, setFetchLimitReached] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
   const [items, setItems] = useState<FansubGroup[]>([]);
   const [memberCounts, setMemberCounts] = useState<
@@ -107,6 +109,7 @@ function AdminFansubsContent() {
       const perPage = 500;
       let currentPage = 1;
       let totalPages = 1;
+      let firstPageTotal = 0;
       const allItems: FansubGroup[] = [];
 
       do {
@@ -114,11 +117,13 @@ function AdminFansubsContent() {
           page: currentPage,
           per_page: perPage,
         });
+        if (currentPage === 1) firstPageTotal = response.meta.total;
         allItems.push(...response.data);
         totalPages = response.meta.total_pages || 1;
         currentPage += 1;
       } while (currentPage <= totalPages);
 
+      setFetchLimitReached(allItems.length < firstPageTotal);
       setItems(allItems);
       setSelectedIDs(new Set<number>());
       setMemberCounts({});
@@ -370,7 +375,7 @@ function AdminFansubsContent() {
         <div className={styles.fansubFilterBar}>
           <div className={`${styles.field} ${styles.fansubFilterSearch}`}>
             <label htmlFor="fansub-query">Suche</label>
-            <input
+            <Input
               id="fansub-query"
               value={queryInput}
               onChange={(event) => setQueryInput(event.target.value)}
@@ -471,6 +476,15 @@ function AdminFansubsContent() {
           <div className={styles.successBox}>{successMessage}</div>
         ) : null}
         {isLoading ? <LoadingState title="Lade..." description="" /> : null}
+
+        {fetchLimitReached ? (
+          <EmptyState
+            variant="info"
+            icon={<Info size={20} strokeWidth={2} />}
+            title="Abrufgrenze erreicht"
+            description="Es werden die ersten 500 Einträge angezeigt – bitte die Suche eingrenzen."
+          />
+        ) : null}
 
         {!isLoading && filteredItems.length === 0 ? (
           <EmptyState
