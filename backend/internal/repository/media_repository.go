@@ -1043,7 +1043,7 @@ func (r *MediaRepository) SoftDeleteFansubGroupMedia(ctx context.Context, fansub
 	if deletedByUserID != nil {
 		deletedBy = *deletedByUserID
 	}
-	tag, err := r.db.Exec(ctx, `
+	const query = `
 		UPDATE fansub_group_media
 		SET deleted_at = NOW(),
 		    deleted_by_user_id = (SELECT id FROM users WHERE id = $3),
@@ -1051,14 +1051,9 @@ func (r *MediaRepository) SoftDeleteFansubGroupMedia(ctx context.Context, fansub
 		WHERE group_id = $1
 		  AND media_id = $2
 		  AND deleted_at IS NULL
-	`, fansubGroupID, mediaID, deletedBy)
-	if err != nil {
-		return fmt.Errorf("soft delete fansub_group_media (group_id=%d, media_id=%d): %w", fansubGroupID, mediaID, err)
-	}
-	if tag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-	return nil
+	`
+	errContext := fmt.Sprintf("soft delete fansub_group_media (group_id=%d, media_id=%d)", fansubGroupID, mediaID)
+	return r.execSoftDelete(ctx, query, errContext, fansubGroupID, mediaID, deletedBy)
 }
 
 // --- Release-Version-Medien-Review-Methoden (Phase 78) ---

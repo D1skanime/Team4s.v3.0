@@ -376,19 +376,14 @@ func (r *MediaRepository) SoftDeleteReleaseVersionMedia(
 	relationID int64,
 	deletedByUserID int64,
 ) error {
-	tag, err := r.db.Exec(ctx, `
+	const query = `
 		UPDATE release_version_media
 		SET deleted_at = NOW(), deleted_by_user_id = (SELECT id FROM users WHERE id = $2)
 		WHERE id = $1
 		  AND deleted_at IS NULL
-	`, relationID, deletedByUserID)
-	if err != nil {
-		return fmt.Errorf("soft delete release_version_media %d: %w", relationID, err)
-	}
-	if tag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-	return nil
+	`
+	errContext := fmt.Sprintf("soft delete release_version_media %d", relationID)
+	return r.execSoftDelete(ctx, query, errContext, relationID, deletedByUserID)
 }
 
 // ReorderReleaseVersionMedia updates sort_order for a list of relation IDs in a single transaction.
