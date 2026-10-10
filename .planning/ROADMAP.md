@@ -2570,7 +2570,7 @@ duplikativ — Grundlage für das gemeinsame Upload-Frontend in Phase 180.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung — Decision-Coverage via D-01 bis D-14 in
 `179-CONTEXT.md` (alle 5 ursprünglich offenen Fragen beantwortet).
 **Depends on:** Phase 178
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
   - Wave 1: 179-01 (capability-registry foundation: migration 0182 + ActionReleaseThemeAssetUpload
     + repair of 9 hardcoded capability-catalog test fixtures, D-12), 179-03 (D-10 remove the
@@ -2595,7 +2595,7 @@ Plans:
 **Wave 1**
 
 - [x] 179-01-PLAN.md -- Capability-registry foundation: migration 0182 + ActionReleaseThemeAssetUpload + repair 9 hardcoded capability-catalog test fixtures (D-12).
-- [ ] 179-03-PLAN.md -- Remove the upload-only custom-permission fallback + real-Postgres regression (D-10, D-11).
+- [x] 179-03-PLAN.md -- Remove the upload-only custom-permission fallback + real-Postgres regression (D-10, D-11).
 - [ ] 179-04-PLAN.md -- Shared soft-delete helper for fansub_group_media/release_version_media (D-14).
 - [ ] 179-05-PLAN.md -- Frontend isPlatformAdmin display flag for AnimeJellyfinAssetUploadControls (D-13).
 
