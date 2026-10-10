@@ -4,9 +4,11 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Info } from "lucide-react";
 import { getFansubList, mergeFansubs, mergeFansubsPreview } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { useAuthSession } from "@/lib/useAuthSession";
+import { EmptyState, Input } from "@/components/ui";
 import { FansubGroup, MergeFansubsPreviewResult } from "@/types/fansub";
 import { filterMergeCandidates, scoreMergeRelevance } from "./fansubMergeScoring";
 import sharedStyles from "../../admin.module.css";
@@ -40,6 +42,7 @@ function MergeFansubsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [fetchLimitReached, setFetchLimitReached] = useState(false);
 
   const [targetID, setTargetID] = useState<number | null>(null);
   const [sourceIDs, setSourceIDs] = useState<Set<number>>(new Set());
@@ -68,6 +71,7 @@ function MergeFansubsContent() {
       setLoading(true);
       setError(null);
       const response = await getFansubList({ per_page: 500 });
+      setFetchLimitReached(response.data.length < response.meta.total);
       setGroups(response.data);
     } catch (err) {
       setError(
@@ -370,12 +374,19 @@ function MergeFansubsContent() {
       </div>
 
       <div className={styles.panel}>
+        {fetchLimitReached ? (
+          <EmptyState
+            variant="info"
+            icon={<Info size={20} strokeWidth={2} />}
+            title="Abrufgrenze erreicht"
+            description="Es werden die ersten 500 Einträge angezeigt – bitte die Suche eingrenzen."
+          />
+        ) : null}
         <div className={styles.mergeFilterRow}>
           <div className={styles.field}>
             <label htmlFor="merge-search">Suche</label>
-            <input
+            <Input
               id="merge-search"
-              type="text"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Name oder Slug..."
