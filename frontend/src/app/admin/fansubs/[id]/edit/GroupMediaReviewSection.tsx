@@ -20,6 +20,7 @@ import {
 } from '@/lib/api'
 import type { FansubGroupCapabilities } from '@/types/fansub'
 import { classNames } from '@/components/ui/classNames'
+import { matchesSearch } from '@/lib/textFilter'
 
 import styles from './GroupMediaReviewSection.module.css'
 import { useGroupMediaReviewActions } from './useGroupMediaReviewActions'
@@ -194,21 +195,20 @@ function GroupMediaReviewSectionInner({
   }, [selectedFilePreviews])
 
   const filteredMediaItems = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase()
-
     return mediaItems
       .filter((item) => {
         const draft = itemToDraft(item)
         const matchesCategory = categoryFilter === 'all' || draft.category === categoryFilter
         const matchesStatus = statusFilter === 'all' || draft.review_status === statusFilter
         const matchesVisibility = visibilityFilter === 'all' || draft.visibility === visibilityFilter
-        const matchesSearch =
-          normalizedSearch.length === 0 ||
-          [getMediaDisplayTitle(item), item.description, item.alt_text, item.uploaded_by_display_name]
-            .filter(Boolean)
-            .some((value) => String(value).toLowerCase().includes(normalizedSearch))
+        const isSearchMatch = matchesSearch([
+          getMediaDisplayTitle(item),
+          item.description,
+          item.alt_text,
+          item.uploaded_by_display_name,
+        ], searchTerm)
 
-        return matchesCategory && matchesStatus && matchesVisibility && matchesSearch
+        return matchesCategory && matchesStatus && matchesVisibility && isSearchMatch
       })
       .sort((left, right) => {
         const leftDate = Date.parse(left.created_at ?? '') || 0
