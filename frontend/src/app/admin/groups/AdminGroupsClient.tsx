@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { Info } from 'lucide-react'
 
 import {
   Badge,
@@ -341,6 +342,7 @@ export function AdminGroupsClient() {
   const [groups, setGroups] = useState<FansubGroup[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [fetchLimitReached, setFetchLimitReached] = useState(false)
   const [searchValue, setSearchValue] = useState(searchParams.get('q') ?? '')
   const activeTab = parseTab(searchParams.get('tab'))
   const selectedGroupId = Number(searchParams.get('group'))
@@ -359,20 +361,29 @@ export function AdminGroupsClient() {
       const perPage = 500
       const statuses: Array<FansubGroup['status']> = ['active', 'inactive', 'dissolved']
       const byId = new Map<number, FansubGroup>()
+      let aggregatedTotal = 0
+      let aggregatedFetched = 0
 
       for (const status of statuses) {
         let page = 1
         let totalPages = 1
+        let statusTotal = 0
+        let statusFetched = 0
         do {
           const response = await getFansubList({ page, per_page: perPage, status })
           for (const group of response.data) {
             byId.set(group.id, group)
           }
+          statusFetched += response.data.length
+          if (page === 1) statusTotal = response.meta.total
           totalPages = response.meta.total_pages || 1
           page += 1
         } while (page <= totalPages)
+        aggregatedTotal += statusTotal
+        aggregatedFetched += statusFetched
       }
 
+      setFetchLimitReached(aggregatedFetched < aggregatedTotal)
       setGroups(Array.from(byId.values()).sort((left, right) => left.name.localeCompare(right.name, 'de', { sensitivity: 'base' })))
     } catch (err) {
       setError(readErrorMessage(err, 'Gruppen konnten nicht geladen werden.'))
@@ -431,6 +442,14 @@ export function AdminGroupsClient() {
                 }}
               />
             </div>
+            {fetchLimitReached ? (
+              <EmptyState
+                variant="info"
+                icon={<Info size={20} strokeWidth={2} />}
+                title="Abrufgrenze erreicht"
+                description="Es werden die ersten 500 Einträge angezeigt – bitte die Suche eingrenzen."
+              />
+            ) : null}
             {filteredGroups.length === 0 ? (
               <EmptyState title="Keine Gruppen gefunden" description="" />
             ) : (
