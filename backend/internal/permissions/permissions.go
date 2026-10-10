@@ -51,6 +51,7 @@ const (
 	ActionReleaseVersionMediaDeleteOwn       Action = "release_version_media.delete_own"
 	ActionReleaseVersionMediaReorder         Action = "release_version_media.reorder"
 	ActionReleaseVersionMediaHighlight       Action = "release_version_media.highlight"
+	ActionReleaseThemeAssetUpload            Action = "release_version_theme_asset.upload"
 	ActionReleaseVersionNotesWrite           Action = "release_version.notes.write"
 	ActionReleaseVersionNotesViewAll         Action = "release_version.notes.view_all"
 	ActionReleaseVersionSegmentsManage       Action = "release_version.segments.manage"
@@ -254,6 +255,7 @@ var allKnownActions = []Action{
 	ActionReleaseVersionMediaDelete,
 	ActionReleaseVersionMediaDeleteOwn,
 	ActionReleaseVersionMediaReorder,
+	ActionReleaseThemeAssetUpload,
 	ActionReleaseVersionMediaHighlight,
 	ActionReleaseVersionNotesWrite,
 	ActionReleaseVersionNotesViewAll,
