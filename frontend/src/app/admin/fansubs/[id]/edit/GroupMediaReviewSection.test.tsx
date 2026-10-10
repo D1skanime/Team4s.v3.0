@@ -503,6 +503,22 @@ describe('GroupMediaReviewSection', () => {
     expect(screen.queryByText('Galerie Bild')).toBeNull()
   })
 
+  it('findet Medien per Suchfeld auch ohne Umlaute (akzentunabhängiger Treffer)', async () => {
+    renderSection([
+      mediaItem({ id: 101, title: 'Übersicht Banner', category: 'gallery' }),
+      mediaItem({ id: 102, title: 'Anderes Bild', category: 'gallery' }),
+    ])
+
+    await screen.findByText('Übersicht Banner')
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
+    fireEvent.change(screen.getByPlaceholderText('Titel oder Beschreibung'), {
+      target: { value: 'ubersicht' },
+    })
+
+    expect(await screen.findByText('Übersicht Banner')).toBeTruthy()
+    expect(screen.queryByText('Anderes Bild')).toBeNull()
+  })
+
   it('setzt Dateiauswahl und Upload-Kategorie nach erfolgreichem Upload zurück', async () => {
     const { container } = renderSection([])
     uploadFansubGroupMedia.mockResolvedValue({ results: [{ client_file_name: 'test.png', status: 'ready' }] })
