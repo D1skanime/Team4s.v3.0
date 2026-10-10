@@ -1,5 +1,6 @@
 'use client'
 
+import { Input } from '@/components/ui'
 import type { GenreToken } from '@/types/admin'
 
 import styles from '../../../admin.module.css'
@@ -64,7 +65,7 @@ export function AnimeCreateGenreField({
       )}
 
       <div className={styles.inputRow}>
-        <input
+        <Input
           id="create-genre"
           value={draft}
           onChange={(event) => onDraftChange(event.target.value)}

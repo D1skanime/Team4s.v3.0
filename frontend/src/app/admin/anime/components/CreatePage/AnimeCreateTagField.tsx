@@ -4,6 +4,7 @@
 // Mirrors AnimeCreateGenreField in structure and CSS tokens so both token
 // surfaces feel visually equal while remaining independently editable.
 
+import { Input } from '@/components/ui'
 import type { TagToken } from '@/types/admin'
 
 import styles from '../../../admin.module.css'
@@ -70,7 +71,7 @@ export function AnimeCreateTagField({
       </div>
 
       <div className={styles.inputRow}>
-        <input
+        <Input
           id="create-tag"
           value={draft}
           onChange={(event) => onDraftChange(event.target.value)}
