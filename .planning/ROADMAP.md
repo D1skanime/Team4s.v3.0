@@ -2536,7 +2536,7 @@ Plans:
 **Goal:** Ein gemeinsamer, umlaut-toleranter Filter-Helfer (nach dem Vorbild der globalen Suchbibliothek `search_anime.go`) ersetzt die sechs unabhängigen `toLowerCase().includes()`-Filter aus Fachaufgabe 7; das eigene Scoring der Merge-Seite bleibt als nachgeschalteter Schritt erhalten; für die drei größten Listen (Fansub-Liste, Merge, Gruppen) wird eine Umstellung vom `per_page:500`-Pseudo-Vollabruf auf die Backend-Suche geprüft.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung -- Decision-Coverage via D-01 bis D-19 in `178-CONTEXT.md` (alle 5 ursprünglich offenen Fragen beantwortet).
 **Depends on:** Phase 177
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 
   - Wave 1: 178-01 (shared textFilter helper + D-16 info-hint primitive + wire into #4), 178-02 (backend FansubGroup.aliases contract extension)
   - Wave 2: 178-03 (#1 AdminGroupsClient.tsx Kürzel/Alias filter), 178-04 (#2 admin/fansubs/page.tsx Input swap + filter + remove lazy alias fetch), 178-05 (#3 merge/page.tsx scoring extension + live D-16 hint), 178-06 (D-19 shared Genre/Tag autocomplete hook)
@@ -2559,4 +2559,4 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 178-07-PLAN.md — Full automated gate + Live-UAT across all six filter sites.
+- [x] 178-07-PLAN.md — Full automated gate + Live-UAT across all six filter sites.
