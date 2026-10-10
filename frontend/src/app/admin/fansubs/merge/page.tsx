@@ -8,6 +8,7 @@ import { getFansubList, mergeFansubs, mergeFansubsPreview } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { FansubGroup, MergeFansubsPreviewResult } from "@/types/fansub";
+import { filterMergeCandidates, scoreMergeRelevance } from "./fansubMergeScoring";
 import sharedStyles from "../../admin.module.css";
 import mergeStyles from "./MergeWizard.module.css";
 
@@ -78,34 +79,11 @@ function MergeFansubsContent() {
   }
 
   const filteredGroups = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-
-    function relevanceScore(group: FansubGroup): number {
-      if (!query) return 0;
-      const name = group.name.toLowerCase();
-      const slug = group.slug.toLowerCase();
-      if (name === query || slug === query) return 120;
-      if (name.startsWith(query)) return 90;
-      if (slug.startsWith(query)) return 80;
-      if (name.includes(query)) return 55;
-      if (slug.includes(query)) return 45;
-      return 0;
-    }
-
-    return groups
-      .filter((group) => {
-        if (query) {
-          const inName = group.name.toLowerCase().includes(query);
-          const inSlug = group.slug.toLowerCase().includes(query);
-          if (!inName && !inSlug) return false;
-        }
-        if (statusFilter !== "all" && group.status !== statusFilter)
-          return false;
-        return true;
-      })
+    return filterMergeCandidates(groups, { query: searchQuery, statusFilter })
       .sort((a, b) => {
         if (sortMode === "related") {
-          const scoreDiff = relevanceScore(b) - relevanceScore(a);
+          const scoreDiff =
+            scoreMergeRelevance(b, searchQuery) - scoreMergeRelevance(a, searchQuery);
           if (scoreDiff !== 0) return scoreDiff;
         }
         return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
