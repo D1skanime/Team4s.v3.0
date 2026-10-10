@@ -10,7 +10,6 @@ const useAuthSessionMock = vi.hoisted(() =>
 );
 const apiMocks = vi.hoisted(() => ({
   deleteFansubGroup: vi.fn(),
-  getFansubAliases: vi.fn(),
   getFansubList: vi.fn(),
   getFansubMembers: vi.fn(),
   updateFansubGroup: vi.fn(),
@@ -88,7 +87,8 @@ describe("AdminFansubsPage", () => {
           anime_relations_count: 0,
           release_versions_count: 0,
           members_count: 0,
-          aliases_count: 0,
+          aliases_count: 1,
+          aliases: ["SAK"],
           created_at: "2026-01-01T00:00:00Z",
           updated_at: "2026-01-01T00:00:00Z",
         },
@@ -96,9 +96,6 @@ describe("AdminFansubsPage", () => {
       meta: { page: 1, per_page: 500, total: 1, total_pages: 1 },
     });
     apiMocks.getFansubMembers.mockResolvedValue({ data: [{ id: 1 }] });
-    apiMocks.getFansubAliases.mockResolvedValue({
-      data: [{ id: 1, fansub_group_id: 88, alias: "SAK", created_at: "", updated_at: "" }],
-    });
 
     render(<AdminFansubsPage />);
 
