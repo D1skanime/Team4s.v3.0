@@ -238,7 +238,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 
 	lockedByGlobalSegment, err := h.themeRepo.HasGlobalThemeSegmentCoverageForRelease(c.Request.Context(), *releaseID, themeID)
 	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprueft werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprüft werden.")
 		return
 	}
 	if lockedByGlobalSegment {
@@ -251,7 +251,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 
 	blockedBySegmentAnchor, err := h.themeRepo.HasReleaseAssetSegmentUploadBlockedForRelease(c.Request.Context(), *releaseID, themeID)
 	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprueft werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprüft werden.")
 		return
 	}
 	if blockedBySegmentAnchor {
@@ -370,7 +370,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 
 	lockedByGlobalSegment, err := h.themeRepo.HasGlobalThemeSegmentCoverageForRelease(c.Request.Context(), releaseID, themeID)
 	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprueft werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprüft werden.")
 		return
 	}
 	if lockedByGlobalSegment {
@@ -383,7 +383,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 
 	blockedBySegmentAnchor, err := h.themeRepo.HasReleaseAssetSegmentUploadBlockedForRelease(c.Request.Context(), releaseID, themeID)
 	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprueft werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprüft werden.")
 		return
 	}
 	if blockedBySegmentAnchor {

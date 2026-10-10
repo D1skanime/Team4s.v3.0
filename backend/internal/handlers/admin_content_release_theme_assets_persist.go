@@ -72,7 +72,7 @@ func (h *AdminContentHandler) persistReleaseThemeAsset(
 			return nil, false
 		}
 		log.Printf("%s: %v", logContext, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Video konnte nicht verknuepft werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Video konnte nicht verknüpft werden.")
 		return nil, false
 	}
 
