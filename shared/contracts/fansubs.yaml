@@ -611,6 +611,7 @@ types:
     id: int64
     slug: string
     name: string
+    kuerzel: string | null
     logo_id: int64 | null
     banner_id: int64 | null
     logo_url: string | null
@@ -627,6 +628,7 @@ types:
     release_versions_count: int32
     members_count: int32
     aliases_count: int32
+    aliases: string[]
     created_at: datetime
     updated_at: datetime
   FansubGroupSummary:

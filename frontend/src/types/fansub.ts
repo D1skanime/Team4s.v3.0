@@ -41,6 +41,7 @@ export interface FansubGroup {
   release_versions_count: number;
   members_count: number;
   aliases_count: number;
+  aliases?: string[];
   created_at: string;
   updated_at: string;
   links?: FansubGroupLink[];
