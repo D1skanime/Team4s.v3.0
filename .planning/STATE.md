@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 178-07-PLAN.md -- Phase 178 fully complete (7/7 plans)
-last_updated: "2026-10-10T21:00:40.980Z"
+stopped_at: Completed 179-01-PLAN.md -- ActionReleaseThemeAssetUpload registered end-to-end
+last_updated: "2026-10-10T21:40:38.585Z"
 last_activity: 2026-10-10
 progress:
   total_phases: 44
   completed_phases: 38
   total_plans: 415
-  completed_plans: 406
+  completed_plans: 407
   percent: 86
 ---
 
@@ -280,14 +280,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 179 — media-backend-rechte-vereinheitlichen-f-15-teil-1-eine-recht
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 178
-Plan: Not started
+Phase: 179 (media-backend-rechte-vereinheitlichen-f-15-teil-1-eine-recht) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -1014,6 +1014,7 @@ Last activity: 2026-10-10
 - [Phase 178]: fetchLimitReached compares first page's meta.total to final accumulated length inside loadList's single pagination loop — Matches the existing single-status loop shape of this site while staying consistent with the D-16 hint pattern established in 178-03
 - [Phase 178]: D-18 Kuerzel/Alias merge-scoring tiers placed strictly below equivalent-specificity name/slug tiers (178-05)
 - [Phase 178]: D-11 Live-UAT performed directly by the project owner over the tunnel address rather than simulated by the executor -- human reported itemized confirmation of all 6 how-to-verify checklist items (Kuerzel/Alias search, umlaut tolerance on Genre/Tag, Create/Edit autocomplete parity, media review, no layout regression, no highlighting), closing the phase
+- [Phase 179]: ActionReleaseThemeAssetUpload (D-12) registered with the exact 11-role list release_version_media.upload already had — No rights change for existing users; replaces a fremd reused action with its own data-driven capability
 
 ### Pending Todos
 
@@ -1641,11 +1642,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 178 P05 | 15min | 2 tasks | 3 files |
 | Phase 178 P06 | 12min | 3 tasks | 6 files |
 | Phase 178 P07 | 25min | 2 tasks | 1 files |
+| Phase 179 P01 | 45min | 3 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-10-10T18:54:19.101Z
-Stopped at: Completed 178-07-PLAN.md -- Phase 178 fully complete (7/7 plans)
+Last session: 2026-10-10T21:40:38.562Z
+Stopped at: Completed 179-01-PLAN.md -- ActionReleaseThemeAssetUpload registered end-to-end
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
