@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   addAdminAnimeBackgroundAsset,
@@ -13,6 +13,7 @@ import {
   deleteAdminAnimeBackgroundVideoAsset,
   deleteAdminAnimeBannerAsset,
   deleteAdminAnimeLogoAsset,
+  getCurrentUser,
   resolveApiUrl,
   uploadAdminAnimeMedia,
 } from '@/lib/api'
@@ -60,6 +61,34 @@ export function AnimeJellyfinAssetUploadControls({
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   // D-07: MediaOwnershipContext-Zustand (Surface 2, Branding-Slot)
   const [ownerCtx, setOwnerCtx] = useState<MediaOwnershipContextValue | null>(null)
+  // D-13: Eigenständige Anzeige-Berechtigungsprüfung, spiegelt das bestehende
+  // Backend-Enforcement (requirePlatformAdminIdentity) 1:1 auf UI-Seite, statt sich
+  // ausschließlich auf den umgebenden <PlatformAdminGate>-Wrapper der Aufrufseiten zu
+  // verlassen. Fail-closed: Standardwert false, bis getCurrentUser() bestätigt hat.
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function resolveIsPlatformAdmin() {
+      try {
+        const response = await getCurrentUser()
+        if (!cancelled) {
+          setIsPlatformAdmin(response.data.is_platform_admin === true)
+        }
+      } catch {
+        if (!cancelled) {
+          setIsPlatformAdmin(false)
+        }
+      }
+    }
+
+    void resolveIsPlatformAdmin()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const coverInputRef = useRef<HTMLInputElement | null>(null)
   const bannerInputRef = useRef<HTMLInputElement | null>(null)
@@ -344,14 +373,16 @@ export function AnimeJellyfinAssetUploadControls({
               ) : null}
               <div className={workspaceStyles.assetActionStack}>
                 <div className={workspaceStyles.assetActionRowCompact}>
-                  <button
-                    type="button"
-                    className={`${styles.button} ${styles.buttonPrimary}`}
-                    disabled={isBusy}
-                    onClick={triggerCoverUpload}
-                  >
-                    {isUploadingCover ? 'Upload läuft...' : 'Cover hochladen'}
-                  </button>
+                  {isPlatformAdmin ? (
+                    <button
+                      type="button"
+                      className={`${styles.button} ${styles.buttonPrimary}`}
+                      disabled={isBusy}
+                      onClick={triggerCoverUpload}
+                    >
+                      {isUploadingCover ? 'Upload läuft...' : 'Cover hochladen'}
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className={`${styles.button} ${styles.buttonDanger}`}
@@ -444,14 +475,16 @@ export function AnimeJellyfinAssetUploadControls({
             </div>
           </div>
           <div className={styles.actionsRow}>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.buttonSecondary}`}
-              disabled={isBusy}
-              onClick={() => triggerUpload('background')}
-            >
-              {uploadTarget === 'background' ? `Background lädt... ${uploadProgress}%` : EDIT_UPLOAD_TARGETS.background.buttonLabel}
-            </button>
+            {isPlatformAdmin ? (
+              <button
+                type="button"
+                className={`${styles.button} ${styles.buttonSecondary}`}
+                disabled={isBusy}
+                onClick={() => triggerUpload('background')}
+              >
+                {uploadTarget === 'background' ? `Background lädt... ${uploadProgress}%` : EDIT_UPLOAD_TARGETS.background.buttonLabel}
+              </button>
+            ) : null}
           </div>
           {uploadTarget === 'background' ? (
             <p className={workspaceStyles.statusNote} aria-live="polite">
@@ -508,20 +541,22 @@ export function AnimeJellyfinAssetUploadControls({
           </p>
         ) : null}
         <div className={styles.actionsRow}>
-          <button
-            type="button"
-            className={`${styles.button} ${styles.buttonSecondary}`}
-            disabled={isBusy}
-            onClick={() => triggerUpload(target)}
-          >
-            {uploadTarget === target
-              ? target === 'banner'
-                ? `Banner lädt... ${uploadProgress}%`
-                : target === 'logo'
-                  ? `Logo lädt... ${uploadProgress}%`
-                  : `Background-Video lädt... ${uploadProgress}%`
-              : EDIT_UPLOAD_TARGETS[target].buttonLabel}
-          </button>
+          {isPlatformAdmin ? (
+            <button
+              type="button"
+              className={`${styles.button} ${styles.buttonSecondary}`}
+              disabled={isBusy}
+              onClick={() => triggerUpload(target)}
+            >
+              {uploadTarget === target
+                ? target === 'banner'
+                  ? `Banner lädt... ${uploadProgress}%`
+                  : target === 'logo'
+                    ? `Logo lädt... ${uploadProgress}%`
+                    : `Background-Video lädt... ${uploadProgress}%`
+                : EDIT_UPLOAD_TARGETS[target].buttonLabel}
+            </button>
+          ) : null}
           <button
             type="button"
             className={`${styles.button} ${styles.buttonDanger}`}
@@ -563,66 +598,70 @@ export function AnimeJellyfinAssetUploadControls({
         disabled={isBusy}
         onContextChange={setOwnerCtx}
       />
-    <input
-        ref={coverInputRef}
-        type="file"
-        accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
-        hidden
-        onChange={(event) => {
-          const file = event.target.files?.[0]
-          if (file) {
-            void handleCoverUpload(file)
-          }
-        }}
-      />
-      <input
-        ref={bannerInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif"
-        hidden
-        onChange={(event) => {
-          const file = event.target.files?.[0]
-          if (file) {
-            void handleManualUpload('banner', file)
-          }
-        }}
-      />
-      <input
-        ref={logoInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif"
-        hidden
-        onChange={(event) => {
-          const file = event.target.files?.[0]
-          if (file) {
-            void handleManualUpload('logo', file)
-          }
-        }}
-      />
-      <input
-        ref={backgroundInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif"
-        hidden
-        onChange={(event) => {
-          const file = event.target.files?.[0]
-          if (file) {
-            void handleManualUpload('background', file)
-          }
-        }}
-      />
-      <input
-        ref={backgroundVideoInputRef}
-        type="file"
-        accept="video/mp4,video/webm,video/ogg"
-        hidden
-        onChange={(event) => {
-          const file = event.target.files?.[0]
-          if (file) {
-            void handleManualUpload('background_video', file)
-          }
-        }}
-      />
+      {isPlatformAdmin ? (
+        <>
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) {
+                void handleCoverUpload(file)
+              }
+            }}
+          />
+          <input
+            ref={bannerInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) {
+                void handleManualUpload('banner', file)
+              }
+            }}
+          />
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) {
+                void handleManualUpload('logo', file)
+              }
+            }}
+          />
+          <input
+            ref={backgroundInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) {
+                void handleManualUpload('background', file)
+              }
+            }}
+          />
+          <input
+            ref={backgroundVideoInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/ogg"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) {
+                void handleManualUpload('background_video', file)
+              }
+            }}
+          />
+        </>
+      ) : null}
 
       <div className={workspaceStyles.sectionGridTwo}>
         {assetCards.map((asset) => {
