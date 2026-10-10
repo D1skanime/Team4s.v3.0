@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 178 was final phase)
-last_updated: 2026-10-10T19:33:03.857Z
+status: executing
+stopped_at: Completed 178-07-PLAN.md -- Phase 178 fully complete (7/7 plans)
+last_updated: "2026-10-10T21:00:40.980Z"
 last_activity: 2026-10-10
 progress:
-  total_phases: 43
+  total_phases: 44
   completed_phases: 38
-  total_plans: 409
-  completed_plans: 460
-  percent: 88
+  total_plans: 415
+  completed_plans: 406
+  percent: 86
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -288,7 +288,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 178
 Plan: Not started
-Status: Milestone complete
+Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -400,6 +400,25 @@ Last activity: 2026-10-10
 ## Accumulated Context
 
 ### Roadmap Evolution
+
+- Phase 179 geplant (2026-10-10): 6 Pläne (179-01 bis 179-06) über 3 Wellen — 179-01 Capability-Registry-
+  Fundament (Migration 0182 + `ActionReleaseThemeAssetUpload` + Reparatur 9 hartkodierter
+  Capability-Katalog-Testfixtures), 179-03 (D-10 Fallback-Entfernung + Postgres-Regression), 179-04
+  (D-14 gemeinsamer Soft-Delete-Helfer), 179-05 (D-13 Frontend-Anzeige-Flag) in Wave 1; 179-02 (D-12
+  Aktions-Swap + Persistenz-Extraktion) in Wave 2, abhängig von 179-01; 179-06 (Vollgate) in Wave 3.
+  gsd-plan-checker zweifach geprüft: 1. Pass 0 Blocker/3 Warnungen (179-02 Task 1
+  Antwort-Schreib-Mehrdeutigkeit, 179-01 12-Dateien-Hinweis nur zur Kenntnis, 179-VALIDATION.md
+  veraltet) — erste zwei direkt per gezieltem Edit behoben (inkl. `fuer`→`für`-Tippfehler in einem
+  neuen `description_de`-Migrationswert); 2. Pass 0 Blocker/2 Warnungen (beide reine
+  Dokument-Hygiene: veralteter Testname in VALIDATION.md, fehlender RESOLVED-Marker in
+  RESEARCH.md) — beide behoben. **Override:** der automatisierte `check.decision-coverage-plan`-Gate
+  meldete D-01 als "uncovered" (total=6 statt 14) — derselbe Parser-Defekt wie in Phase 178 dokumentiert
+  (Grenz-Regex erkennt nur `**D-NN:**` ohne Klammer-Label, verschluckt D-02 bis D-09 in D-01s
+  extrahiertem Text, weil deren Format `**D-NN (Label):**` ist). Manuell per `grep` widerlegt: D-01 bis
+  D-09 sind allesamt in mindestens einem Plan zitiert (D-01/03/04/07/08/09 in 179-06s
+  `requirements:`-Frontmatter, D-02/05 zusätzlich in 179-03/179-05, D-06 zusätzlich in 179-02/179-04).
+  Mit "Proceed anyway" fortgefahren statt neu zu planen. Siehe Phase 178s Eintrag für den
+  wiederholten Beleg desselben Parser-Defekts.
 
 - Phase 179 added (2026-10-10): Media-Backend & Rechte vereinheitlichen (F-15 Teil 1) — eine Rechte-Prüfung je Upload-Aktion statt paralleler Ebenen (Permission-Matrix 1.2 Gruppenmedien-Upload, 1.4 fehlende Anzeige-Capability Anime-Assets, 1.6 eigene ActionReleaseThemeAssetUpload statt fremd genutzter Release-Medien-Aktion), gemeinsamer Soft-Delete-Helfer für Medien, extrahierte Theme-Asset-Persistenz. Grundlage für das gemeinsame Upload-Frontend in Phase 180. Reiner Backend-/Rechte-Anteil aus 175-ROADMAP-PROPOSAL.md Abschnitt "Phase 2: Einheitliches Medien-Upload-System (F-15)" — der Upload-Frontend-/Workflow-Anteil bleibt laut Nutzerentscheidung vom 2026-10-07 in Phase 180. Depends on Phase 178. Rechte daten-getrieben über action_definitions + role_capabilities, kein hartkodierter Rollencheck; Plattform-Admin-Bypass bleibt; Wege 3,4,5,7,8 bleiben laut 175-INVENTORY.md getrennt (nur Rechte-Fix 1.4 bei Weg 4). CONTEXT-Entwurf mit D-NN-Entscheidungen + offenen Fragen an den Nutzer angelegt. Nur add-phase — noch nicht geplant.
 - Phase 178 added (2026-10-10): Suchen & Filtern vereinheitlichen (F-16) — ein gemeinsamer, umlaut-toleranter Filter-Helfer (Vorbild: Normalisierung der globalen Suchbibliothek `search_anime.go`) ersetzt sechs unabhängige `toLowerCase().includes()`-Filter (AdminGroupsClient.tsx, admin/fansubs/page.tsx, admin/fansubs/merge/page.tsx, GroupMediaReviewFilterBar.tsx, Genre/Tag-Autocomplete in useAnimePatchImpl.ts und useAdminAnimeCreateControllerImpl.ts); Merge-Seiten-Scoring bleibt erhalten; Umstellung der größten Listen auf Backend-Suche statt per_page:500-Vollabruf wird geprüft. Risiko niedrig bis mittel, Aufwand mittel. Depends on Phase 177 (per bestätigtem Zuschnitt aus 175-ROADMAP-PROPOSAL.md, dritte von Phasen 176-183). Faktencheck im Code bestätigt: globale Suche ist akzent-tolerant via f_unaccent/pg_trgm (ä→a/ö→o/ü→u), aber ohne bewusste ae/oe/ue/ss-Digraph-Regel. CONTEXT-Entwurf mit 14 D-NN-Entscheidungen + 5 offenen Fragen an den Nutzer angelegt. Nur add-phase — noch nicht geplant.
