@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 179-05-PLAN.md
-last_updated: "2026-10-10T22:06:18.548Z"
+stopped_at: Completed 179-02-PLAN.md
+last_updated: "2026-10-10T22:17:58.444Z"
 last_activity: 2026-10-10
 progress:
   total_phases: 44
   completed_phases: 38
   total_plans: 415
-  completed_plans: 410
+  completed_plans: 411
   percent: 86
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 179 (media-backend-rechte-vereinheitlichen-f-15-teil-1-eine-recht) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -1018,6 +1018,8 @@ Last activity: 2026-10-10
 - [Phase 179]: 179-03: Collapse UploadFansubMedia to a single rights layer (CanForFansubGroup), removing the upload-side custom-permission fallback — D-10 requires removing the dual rights-check path for upload while keeping the structurally identical delete-side fallback untouched; a new real-Postgres regression test proves a seeded can_upload=true row no longer grants access
 - [Phase 179]: 179-05: Scoped isPlatformAdmin gating in AnimeJellyfinAssetUploadControls to only the upload-trigger inputs/buttons (not remove buttons or preview chrome) — D-13 is a narrow UI-visibility-only fix, not a rights expansion
 - [Phase 179]: 179-05: Self-fetch is_platform_admin via getCurrentUser() inside AnimeJellyfinAssetUploadControls instead of threading a new prop through both call sites — Lower blast radius per 179-RESEARCH.md Pitfall 4; matches FansubEditAccessGate.tsx precedent
+- [Phase 179]: D-12: UploadReleaseThemeAsset/UploadReleaseThemeAssetForRelease now check permissions.ActionReleaseThemeAssetUpload exclusively — Stops reusing the foreign release_version_media.upload action; same 11-role list, no rights change for existing users
+- [Phase 179]: D-06: shared theme-asset persistence tail extracted into a new 80-line file — Collapses two ~45-line duplicate blocks into one AdminContentHandler.persistReleaseThemeAsset method, shrinking the handler file 559 -> 492 lines
 
 ### Pending Todos
 
@@ -1649,11 +1651,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 179 P03 | 9min | 2 tasks | 2 files |
 | Phase 179 P04 | 25min | 2 tasks | 4 files |
 | Phase 179 P05 | 35min | 1 tasks | 2 files |
+| Phase 179 P02 | 50min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-10T22:06:18.526Z
-Stopped at: Completed 179-05-PLAN.md
+Last session: 2026-10-10T22:17:58.418Z
+Stopped at: Completed 179-02-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None

@@ -2570,7 +2570,7 @@ duplikativ — Grundlage für das gemeinsame Upload-Frontend in Phase 180.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung — Decision-Coverage via D-01 bis D-14 in
 `179-CONTEXT.md` (alle 5 ursprünglich offenen Fragen beantwortet).
 **Depends on:** Phase 178
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 
   - Wave 1: 179-01 (capability-registry foundation: migration 0182 + ActionReleaseThemeAssetUpload
     + repair of 9 hardcoded capability-catalog test fixtures, D-12), 179-03 (D-10 remove the
@@ -2601,7 +2601,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 179-02-PLAN.md -- Theme-asset handler action swap + persistence-tail extraction (D-12, D-06).
+- [x] 179-02-PLAN.md -- Theme-asset handler action swap + persistence-tail extraction (D-12, D-06).
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
