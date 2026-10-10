@@ -1,6 +1,6 @@
 # Phase 178: Suchen & Filtern vereinheitlichen (F-16) — Context
 
-**Stand:** 2026-10-10, Entwurf.
+**Stand:** 2026-10-10, alle 5 offenen Fragen beantwortet (D-15 bis D-19).
 **Quelle:** `.planning/phases/175-inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-/175-ROADMAP-PROPOSAL.md`
 (Abschnitt „Phase 178: Suchen & Filtern vereinheitlichen (F-16)" + Übersichtstabelle);
 `.planning/phases/175-inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-/175-INVENTORY.md`
@@ -142,17 +142,48 @@ Geprüft: `backend/internal/repository/search_anime.go` und
 - **D-14 (Projektregel):** Keine doppelten Oberflächen/Implementierungen — die durch den
   gemeinsamen Helfer abgelöste Filterlogik wird in allen 6 Dateien vollständig entfernt, kein
   Nebeneinander von alter und neuer Filterlogik über das Ende der Phase hinaus.
+- **D-15:** Umlaut-Toleranz des Helfers (Nutzer 2026-10-10, beantwortet Offene Frage 1, Option A)
+  — der gemeinsame Filter-Helfer repliziert exakt das Verhalten der globalen Suche: Diakritika
+  werden entfernt (`ä`→`a`, `ö`→`o`, `ü`→`u`, allgemein Akzente), **keine** Digraph-Regel
+  `ae`/`oe`/`ue`=`ä`/`ö`/`ü`; `ß` bleibt unverändert `ß`. Der Helfer muss dieselbe Normalisierung
+  liefern wie `f_unaccent()` (siehe Faktencheck oben) — belegt durch einen Logik-Test, der die
+  Helfer-Normalisierung gegen die dokumentierten `f_unaccent`-Abbildungen prüft (D-10-konform).
+  Legt D-03s offenen Normalisierungsumfang fest.
+- **D-16:** Große Admin-Listen bleiben clientseitig (Nutzer 2026-10-10, beantwortet Offene Frage 2,
+  Option B) — `AdminGroupsClient.tsx` (#1), `admin/fansubs/page.tsx` (#2) und
+  `admin/fansubs/merge/page.tsx` (#3) werden in dieser Phase **nicht** auf die
+  Backend-Suchbibliothek umgestellt; sie bleiben beim clientseitigen `getFansubList({per_page:500})`
+  -Vollabruf, nutzen aber den gemeinsamen Filter-Helfer. Zusätzlich: Erreicht der Abruf die
+  `per_page:500`-Grenze, zeigt die jeweilige Liste einen deutlichen Hinweis (echte Umlaute,
+  D-09-konform), dass möglicherweise nicht alle Einträge geladen sind — damit keine Datensätze
+  stillschweigend fehlen. Keine Umstellung auf serverseitige Suche als Teil dieser Phase.
+- **D-17:** Keine Treffer-Hervorhebung (Nutzer 2026-10-10, beantwortet Offene Frage 3, Option B) —
+  nur Filterung wie bisher, kein visuelles Highlighting des gefundenen Textausschnitts.
+- **D-18:** Kürzel-/Alias-Suche für alle drei Fansub-Gruppen-Filter (Nutzer 2026-10-10, beantwortet
+  Offene Frage 4, **Option A — abweichend von der Empfehlung im Entwurf**) — überall, wo
+  Fansub-Gruppen gefiltert werden (#1 `AdminGroupsClient.tsx`, #2 `admin/fansubs/page.tsx`, #3
+  `admin/fansubs/merge/page.tsx`), durchsucht der gemeinsame Filter-Helfer auch Kürzel und Aliase
+  der Gruppe, nicht nur Name/Slug. Fehlen die dafür nötigen Felder (Kürzel/Alias) im
+  Antwort-Payload einer der drei Listen, wird der bestehende Listen-Endpunkt entsprechend ergänzt
+  (Contract in `shared/contracts/` nachziehen). Das Scoring der Merge-Seite (#3, D-04) bleibt
+  erhalten und bezieht Kürzel-/Alias-Treffer sinnvoll in die Rangfolge ein (z. B. als eigene
+  Trefferkategorie neben Name/Slug-Treffern, Detailgewichtung im Planungsschritt festzulegen).
+- **D-19:** Kanonische Basis für den Autocomplete-Baustein (Nutzer 2026-10-10, beantwortet Offene
+  Frage 5, Option A) — `useAnimePatchImpl.ts` (Edit-Flow) ist die kanonische Basis für den
+  gemeinsamen Genre/Tag-Autocomplete-Baustein; die strukturell identische Kopie in
+  `useAdminAnimeCreateControllerImpl.ts` entfällt vollständig zugunsten dieses gemeinsamen
+  Bausteins, der von beiden Flows (Edit und Create) genutzt wird. Löst D-06s offene Frage auf.
 </decisions>
 
 <open_questions>
-## Offene Fragen an den Nutzer
+## Offene Fragen an den Nutzer — beantwortet
 
-Die folgenden Fragen werden **nicht** in diesem Kontext-Entwurf entschieden, sondern sammeln
-Optionen + Empfehlung für eine Nutzerentscheidung vor der Planung.
+Alle fünf ursprünglich offenen Fragen wurden am 2026-10-10 vom Nutzer entschieden; die
+Entscheidungen sind oben als D-15 bis D-19 festgehalten. Keine offenen Fragen mehr ausstehend.
 
-1. **Sollen „ae/oe/ue/ss" als Treffer für „ä/ö/ü/ß" zählen?** Laut Faktencheck oben tut die
-   globale Suche das heute **nicht** als bewusste Regel (nur Akzent-Strip auf Basisbuchstaben +
-   Trigram-Fuzzy als Nebeneffekt).
+1. ~~**Sollen „ae/oe/ue/ss" als Treffer für „ä/ö/ü/ß" zählen?**~~ → beantwortet mit Option A,
+   siehe D-15. (Hintergrund: laut Faktencheck oben tut die globale Suche das heute **nicht** als
+   bewusste Regel — nur Akzent-Strip auf Basisbuchstaben + Trigram-Fuzzy als Nebeneffekt.)
    - **Option A:** Nein — der neue Helfer repliziert exakt das Verhalten der globalen Suche
      (Akzent-Strip `ä`→`a`/`ö`→`o`/`ü`→`u`, `ß` bleibt `ß`, keine Digraph-Expansion). Vorteil:
      konsistentes Suchverhalten zwischen `/suche` und den Admin-Filtern, kein neuer
@@ -165,11 +196,12 @@ Optionen + Empfehlung für eine Nutzerentscheidung vor der Planung.
      Suchbibliothek"), außer der Nutzer legt für die Admin-Filter bewusst eine großzügigere
      Regel fest.
 
-2. **Sollen die größten Listen (Fansub-Liste #1, Merge #3, Gruppen — Anm.: Gruppen ist
+2. ~~**Sollen die größten Listen (Fansub-Liste #1, Merge #3, Gruppen — Anm.: Gruppen ist
    `AdminGroupsClient.tsx` = #1 selbst; `admin/fansubs/page.tsx` #2 und Merge #3 sind die beiden
    `per_page:500`-Pseudo-Vollabruf-Fälle) auf die Backend-Suchbibliothek umgestellt werden, oder
    bleiben sie clientseitig (nur der Filter-Helfer wird vereinheitlicht, der
-   `per_page:500`-Vollabruf bleibt bestehen)?**
+   `per_page:500`-Vollabruf bleibt bestehen)?**~~ → beantwortet mit Option B plus
+   Abrufgrenze-Hinweis, siehe D-16.
    - **Option A:** Migration auf serverseitige Suche für #1/#2/#3 — löst das
      Pseudo-Vollabruf-Muster auf, bringt echte Server-Paginierung.
    - **Option B:** Vorerst clientseitig bleiben, nur den Filter-Helfer vereinheitlichen; Migration
@@ -180,16 +212,18 @@ Optionen + Empfehlung für eine Nutzerentscheidung vor der Planung.
      Empfehlung sinnvoll ist. Die Roadmap-Vorlage selbst formuliert das als Prüfauftrag
      („sofern das Pseudo-Vollabruf-Muster dadurch entfällt"), nicht als feste Vorgabe.
 
-3. **Treffer-Hervorhebung (visuelles Highlighting des gefundenen Textausschnitts) — ja oder
-   nein?** Keine der 6 bestehenden Implementierungen hat das heute.
+3. ~~**Treffer-Hervorhebung (visuelles Highlighting des gefundenen Textausschnitts) — ja oder
+   nein?**~~ → beantwortet mit Option B (keine Hervorhebung), siehe D-17. Keine der 6 bestehenden
+   Implementierungen hat das heute.
    - **Option A:** Ja — Hervorhebung ergänzen (neues UI-Merkmal, zusätzlicher Aufwand).
    - **Option B:** Nein — nur Filterung wie bisher, kein visuelles Highlighting.
    - **Empfehlung:** Option B — kein Merkmalszuwachs ohne expliziten Auftrag, hält den
      Phasenumfang auf die Vereinheitlichung beschränkt (passt zur „mittel"-Aufwandsklasse der
      Roadmap-Vorlage).
 
-4. **Durchsucht der Fansub-Filter auch Aliase/Kürzel einheitlich über alle drei
-   fansub-bezogenen Filter (#1/#2/#3)?** Laut Inventur sucht heute nur #2
+4. ~~**Durchsucht der Fansub-Filter auch Aliase/Kürzel einheitlich über alle drei
+   fansub-bezogenen Filter (#1/#2/#3)?**~~ → beantwortet mit Option A (**abweichend von der
+   Empfehlung im Entwurf**), siehe D-18. Laut Inventur sucht heute nur #2
    (`admin/fansubs/page.tsx`) zusätzlich über Aliase; #1 (`AdminGroupsClient.tsx`) und #3
    (`admin/fansubs/merge/page.tsx`) filtern nur über Name/Slug.
    - **Option A:** Ja — Alias-Suche wird auf #1 und #3 erweitert, alle drei Filter verhalten sich
@@ -201,10 +235,10 @@ Optionen + Empfehlung für eine Nutzerentscheidung vor der Planung.
      „mittel"-Aufwandsklasse); Option A als mögliche Erweiterung, falls der Nutzer die
      Alias-Suche für wichtig genug hält, um sie explizit zu beauftragen.
 
-5. **Welche der beiden strukturell identischen Dateien (`useAnimePatchImpl.ts` vs.
+5. ~~**Welche der beiden strukturell identischen Dateien (`useAnimePatchImpl.ts` vs.
    `useAdminAnimeCreateControllerImpl.ts`) liefert die kanonische Basis für den gemeinsamen
-   Genre/Tag-Autocomplete-Baustein (#5/#6)?** Die Roadmap-Vorlage lässt das ausdrücklich offen
-   („je nach gewähltem Vorbild").
+   Genre/Tag-Autocomplete-Baustein (#5/#6)?**~~ → beantwortet mit Option A, siehe D-19. Die
+   Roadmap-Vorlage ließ das ursprünglich ausdrücklich offen („je nach gewähltem Vorbild").
    - **Option A:** `useAnimePatchImpl.ts` (Edit-Flow) wird Basis, `useAdminAnimeCreateControllerImpl.ts`
      (Create-Flow) entfällt zugunsten eines gemeinsamen Hooks/Bausteins.
    - **Option B:** `useAdminAnimeCreateControllerImpl.ts` (Create-Flow) wird Basis,
