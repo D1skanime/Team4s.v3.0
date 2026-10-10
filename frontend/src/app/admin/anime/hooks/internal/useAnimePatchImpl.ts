@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
-import { getAdminGenreTokens, getAdminTagTokens } from '@/lib/api'
-import { AdminAnimeAssetKind, AnimeType, GenreToken, TagToken } from '@/types/admin'
+import { AdminAnimeAssetKind, AnimeType } from '@/types/admin'
 import { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
 
 import { AnimePatchClearFlags, AnimePatchState, AnimePatchValues } from '../../types/admin-anime'
 import { splitGenreTokens, splitTagTokens } from '../../utils/anime-helpers'
 import { useAnimePatchMutations } from './anime-patch/useAnimePatchMutations'
+import { useGenreTagAutocomplete } from '../useGenreTagAutocomplete'
 
 interface AnimePatchActions {
   setField: (field: keyof AnimePatchValues, value: string | string[]) => void
@@ -72,126 +72,19 @@ export function useAnimePatch(
   const [clearFlags, setClearFlags] = useState<AnimePatchClearFlags>(EMPTY_CLEAR_FLAGS)
   const [initialValues, setInitialValues] = useState<AnimePatchValues>(EMPTY_VALUES)
   const [initialClearFlags, setInitialClearFlags] = useState<AnimePatchClearFlags>(EMPTY_CLEAR_FLAGS)
-  const [genreTokens, setGenreTokens] = useState<GenreToken[]>([])
-  const [tagTokens, setTagTokens] = useState<TagToken[]>([])
-  const [isLoadingGenreTokens, setIsLoadingGenreTokens] = useState(false)
-  const [isLoadingTagTokens, setIsLoadingTagTokens] = useState(false)
-  const [genreTokensError, setGenreTokensError] = useState<string | null>(null)
-  const [tagTokensError, setTagTokensError] = useState<string | null>(null)
   const [genreSuggestionLimit, setGenreSuggestionLimitState] = useState(40)
   const [tagSuggestionLimit, setTagSuggestionLimitState] = useState(40)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploadingCover, setIsUploadingCover] = useState(false)
 
-  useEffect(() => {
-    if (genreTokens.length > 0) return
-
-    let cancelled = false
-
-    const loadGenreTokens = async () => {
-      setIsLoadingGenreTokens(true)
-      setGenreTokensError(null)
-
-      try {
-        const response = await getAdminGenreTokens({ limit: 1000 })
-        if (!cancelled) {
-          setGenreTokens(response.data)
-        }
-      } catch (error) {
-        if (cancelled) return
-
-        if (error instanceof Error) setGenreTokensError(error.message)
-        else setGenreTokensError('Genre-Vorschläge konnten nicht geladen werden.')
-      } finally {
-        if (!cancelled) {
-          setIsLoadingGenreTokens(false)
-        }
-      }
-    }
-
-    void loadGenreTokens()
-
-    return () => {
-      cancelled = true
-    }
-  }, [genreTokens.length])
-
-  useEffect(() => {
-    if (tagTokens.length > 0) return
-
-    let cancelled = false
-
-    const loadTagTokens = async () => {
-      setIsLoadingTagTokens(true)
-      setTagTokensError(null)
-
-      try {
-        const response = await getAdminTagTokens({ limit: 1000 })
-        if (!cancelled) {
-          setTagTokens(response.data)
-        }
-      } catch (error) {
-        if (cancelled) return
-
-        if (error instanceof Error) setTagTokensError(error.message)
-        else setTagTokensError('Tag-Vorschläge konnten nicht geladen werden.')
-      } finally {
-        if (!cancelled) {
-          setIsLoadingTagTokens(false)
-        }
-      }
-    }
-
-    void loadTagTokens()
-
-    return () => {
-      cancelled = true
-    }
-  }, [tagTokens.length])
-
-  const genreSuggestions = useMemo(() => {
-    const q = values.genreDraft.trim().toLowerCase()
-    const selected = new Set(values.genreTokens.map((token) => token.toLowerCase()))
-    const filtered = genreTokens.filter((token) => {
-      if (selected.has(token.name.toLowerCase())) return false
-      if (!q) return true
-      return token.name.toLowerCase().includes(q)
-    })
-    const limit = q ? Math.max(80, genreSuggestionLimit) : genreSuggestionLimit
-    return filtered.slice(0, limit)
-  }, [genreSuggestionLimit, genreTokens, values.genreDraft, values.genreTokens])
-
-  const genreSuggestionsTotal = useMemo(() => {
-    const q = values.genreDraft.trim().toLowerCase()
-    const selected = new Set(values.genreTokens.map((token) => token.toLowerCase()))
-    return genreTokens.filter((token) => {
-      if (selected.has(token.name.toLowerCase())) return false
-      if (!q) return true
-      return token.name.toLowerCase().includes(q)
-    }).length
-  }, [genreTokens, values.genreDraft, values.genreTokens])
-
-  const tagSuggestions = useMemo(() => {
-    const q = values.tagDraft.trim().toLowerCase()
-    const selected = new Set(values.tagTokens.map((token) => token.toLowerCase()))
-    const filtered = tagTokens.filter((token) => {
-      if (selected.has(token.name.toLowerCase())) return false
-      if (!q) return true
-      return token.name.toLowerCase().includes(q)
-    })
-    const limit = q ? Math.max(80, tagSuggestionLimit) : tagSuggestionLimit
-    return filtered.slice(0, limit)
-  }, [tagSuggestionLimit, tagTokens, values.tagDraft, values.tagTokens])
-
-  const tagSuggestionsTotal = useMemo(() => {
-    const q = values.tagDraft.trim().toLowerCase()
-    const selected = new Set(values.tagTokens.map((token) => token.toLowerCase()))
-    return tagTokens.filter((token) => {
-      if (selected.has(token.name.toLowerCase())) return false
-      if (!q) return true
-      return token.name.toLowerCase().includes(q)
-    }).length
-  }, [tagTokens, values.tagDraft, values.tagTokens])
+  const autocomplete = useGenreTagAutocomplete({
+    genreDraft: values.genreDraft,
+    selectedGenreTokens: values.genreTokens,
+    tagDraft: values.tagDraft,
+    selectedTagTokens: values.tagTokens,
+    genreSuggestionLimit,
+    tagSuggestionLimit,
+  })
 
   const isDirty = useMemo(() => {
     const hasValueChanges =
@@ -332,16 +225,7 @@ export function useAnimePatch(
   return {
     values,
     clearFlags,
-    genreTokens,
-    tagTokens,
-    genreSuggestions,
-    tagSuggestions,
-    genreSuggestionsTotal,
-    tagSuggestionsTotal,
-    isLoadingGenreTokens,
-    isLoadingTagTokens,
-    genreTokensError,
-    tagTokensError,
+    ...autocomplete,
     genreSuggestionLimit,
     tagSuggestionLimit,
     isSubmitting,
