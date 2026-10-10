@@ -26,6 +26,7 @@ import { labelForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { AdminChangeEntry, AdminChangesListResponse, AdminClaimListRow, AdminClaimsListResponse } from '@/types/admin-users'
 import type { FansubAppMember, FansubAppMemberListResponse, FansubGroup } from '@/types/fansub'
+import { filterAdminGroups } from './adminGroupsFilter'
 
 type GroupTabId = 'users' | 'roles' | 'claims' | 'changes'
 
@@ -349,11 +350,7 @@ export function AdminGroupsClient() {
     [groups, selectedGroupId],
   )
 
-  const filteredGroups = useMemo(() => {
-    const query = searchValue.trim().toLowerCase()
-    if (!query) return groups
-    return groups.filter((group) => group.name.toLowerCase().includes(query) || group.slug.toLowerCase().includes(query))
-  }, [groups, searchValue])
+  const filteredGroups = useMemo(() => filterAdminGroups(groups, searchValue), [groups, searchValue])
 
   const loadGroups = useCallback(async () => {
     try {
