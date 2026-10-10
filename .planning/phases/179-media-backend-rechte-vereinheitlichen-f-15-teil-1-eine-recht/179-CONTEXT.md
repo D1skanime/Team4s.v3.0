@@ -1,6 +1,6 @@
 # Phase 179: Media-Backend & Rechte vereinheitlichen (F-15 Teil 1) — Context
 
-**Stand:** 2026-10-10, Entwurf — noch keine der offenen Fragen beantwortet.
+**Stand:** 2026-10-10, alle 5 offenen Fragen beantwortet (D-10 bis D-14, durchgängig Option A).
 **Quelle:** `.planning/phases/175-inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-/175-ROADMAP-PROPOSAL.md`
 (Abschnitt „Phase 179: Media-Backend/Rechte (F-15 Teil 1)" + Übersichtstabelle + Abschnitt
 „Zuordnung der Permission-Matrix-Abweichungen");
@@ -154,13 +154,46 @@ entweder 1:1 übernehmen oder bewusst enger fassen — siehe Offene Frage 3.
   Entscheidung, ob der Delete-Fallback (`can_delete_own`/`can_delete_all`) erhalten, in die
   Capability-Registry überführt oder entfernt wird, obwohl er nicht Teil der offiziellen
   Matrix-Zeile 1.2 ist, wird nicht automatisch mitentschieden — siehe Offene Frage 1.
+- **D-10:** Delete-Fallback bleibt bestehen (Nutzer 2026-10-10, beantwortet Offene Frage 1,
+  Option A) — nur der Upload-Custom-Permission-Fallback wird entfernt (0 Datensätze, redundant
+  zur Baseline-Capability `fansub_group_media.upload`). Der Delete-Fallback
+  (`can_delete_own`/`can_delete_all`) bleibt unverändert bestehen; eigene Delete-Capabilities
+  (`.delete_own`/`.delete_all`) sind **nicht** Teil dieser Phase. Löst D-09s offene Frage auf.
+- **D-11:** Rollenkreis Gruppenmedien-Upload unverändert (Nutzer 2026-10-10, beantwortet Offene
+  Frage 2, Option A) — jedes aktive Gruppenmitglied behält das Upload-Recht über die
+  Baseline-Capability `fansub_group_media.upload`; Uploads landen weiterhin in der Prüfung
+  (`review_status=in_pruefung`). Keine Verengung oder Erweiterung des Rollenkreises im Zuge der
+  Rechte-Vereinheitlichung.
+- **D-12:** Theme-Asset-Rollenliste identisch übernehmen (Nutzer 2026-10-10, beantwortet Offene
+  Frage 3, Option A) — die neue `ActionReleaseThemeAssetUpload` erhält dieselbe Rollenliste wie
+  `ActionReleaseVersionMediaUpload` (`designer, editor, encoder, fansub_lead, karaoke_fx,
+  project_lead, quality_checker, raw_provider, timer, translator, typesetter`), daten-getrieben in
+  `action_definitions` + `role_capabilities` per Migration eingetragen. Ersetzt die fremd genutzte
+  Aktion; faktisch keine Rechteänderung für bestehende Nutzer.
+- **D-13:** Anzeige-Capability für Anime-Assets exakt an Plattform-Admin gebunden (Nutzer
+  2026-10-10, beantwortet Offene Frage 4, Option A) — die neue Anzeige-Capability für den
+  Anime-Asset-Upload (Cover/Banner/Logo/Hintergrund auf der Anime-Bearbeitungsseite) spiegelt 1:1
+  die bestehende Durchsetzung: Plattform-Admin; der Sonderfall `segment_preview` behält sein
+  eigenes Segment-Recht. Reine UI-Sichtbarkeitskorrektur — die Upload-Controls verschwinden für
+  Nicht-Admins, keine Rechteerweiterung. Verhaltenstest-Pflicht (D-05-konform): Nicht-Admin → Flag
+  `false`, Admin → Flag `true`.
+- **D-14:** Löschverhalten bleibt getrennt, nur SQL vereinheitlicht (Nutzer 2026-10-10, beantwortet
+  Offene Frage 5, Option A) — Gruppenmedien behalten ihr Review-Verhalten, Release-Medien bleiben
+  ohne; nur das duplizierte Soft-Delete-SQL-Skelett (`SoftDeleteFansubGroupMedia` vs.
+  `SoftDeleteReleaseVersionMedia`) wird in einen gemeinsamen Helfer zusammengeführt. Verhalten
+  bleibt für beide Domänen unverändert — belegt durch Verhaltenstests beider Pfade (D-05-konform).
 </decisions>
 
 <open_questions>
-## Offene Fragen an den Nutzer
+## Offene Fragen an den Nutzer — beantwortet
 
-1. **Soll der Custom-Permission-Fallback (`fansub_group_member_media_permissions`) nur beim
-   Upload entfernt werden, oder auch beim Delete?** Laut Faktencheck ist der Upload-Fallback
+Alle fünf ursprünglich offenen Fragen wurden am 2026-10-10 vom Nutzer entschieden — durchgängig
+Option A; die Entscheidungen sind oben als D-10 bis D-14 festgehalten. Keine offenen Fragen mehr
+ausstehend.
+
+1. ~~**Soll der Custom-Permission-Fallback (`fansub_group_member_media_permissions`) nur beim
+   Upload entfernt werden, oder auch beim Delete?**~~ → beantwortet mit Option A, siehe D-10.
+   Laut Faktencheck ist der Upload-Fallback
    schon heute strukturell redundant (jede aktive Rolle hat die Upload-Capability über die
    Baseline). Der Delete-Fallback (`can_delete_own`/`can_delete_all`) ist dagegen der einzige
    bestehende Mechanismus, um Nicht-Lead-Rollen granulares Löschrecht zu geben — aktuell nutzt ihn
@@ -179,8 +212,9 @@ entweder 1:1 übernehmen oder bewusst enger fassen — siehe Offene Frage 3.
      hinausgehender Zusatzschritt, der im Planungsschritt (`/gsd:plan-phase`) separat beauftragt
      werden sollte, falls gewünscht.
 
-2. **Wer soll künftig Gruppenmedien hochladen dürfen, und landet das weiterhin in Prüfung?**
-   Heute hat jede aktive Gruppenrolle (inkl. `group_member`) die Upload-Capability, und ein Upload
+2. ~~**Wer soll künftig Gruppenmedien hochladen dürfen, und landet das weiterhin in Prüfung?**~~ →
+   beantwortet mit Option A, siehe D-11. Heute hat jede aktive Gruppenrolle (inkl. `group_member`)
+   die Upload-Capability, und ein Upload
    löst `review_status=in_pruefung` aus (`175-INVENTORY.md` Weg 2, Spalte „Verhalten"). Die
    Vereinheitlichung auf eine Capability-Ebene ändert an sich nichts an diesem Rollenkreis — die
    Frage ist, ob der Nutzer diese Gelegenheit nutzen möchte, den Rollenkreis zu überprüfen.
@@ -192,8 +226,9 @@ entweder 1:1 übernehmen oder bewusst enger fassen — siehe Offene Frage 3.
      Rechte-**Neuausrichtung** beauftragt; eine Änderung des Rollenkreises ist eine separate
      fachliche Entscheidung, keine technische Notwendigkeit der Konsolidierung.
 
-3. **Wer darf Theme-Assets hochladen — wie Release-Medien (`release_version_media.upload`-
-   Rollenliste) oder enger?** Die neue `ActionReleaseThemeAssetUpload` braucht eine eigene
+3. ~~**Wer darf Theme-Assets hochladen — wie Release-Medien (`release_version_media.upload`-
+   Rollenliste) oder enger?**~~ → beantwortet mit Option A, siehe D-12. Die neue
+   `ActionReleaseThemeAssetUpload` braucht eine eigene
    Rollenliste in `role_capabilities`. Aktuell übernimmt der Code implizit die
    `release_version_media.upload`-Rollen (`designer, editor, encoder, fansub_lead, karaoke_fx,
    project_lead, quality_checker, raw_provider, timer, translator, typesetter`), weil die fremde
@@ -207,8 +242,9 @@ entweder 1:1 übernehmen oder bewusst enger fassen — siehe Offene Frage 3.
      Standardfall; eine Verengung ist eine bewusste fachliche Entscheidung, die der Nutzer separat
      treffen sollte, falls gewünscht.
 
-4. **Soll die neue Anzeige-Capability für Anime-Assets (Weg 4, Matrix-Zeile 1.4) an dieselben
-   Rollen gehen wie die Durchsetzung, oder breiter/enger?** Die Durchsetzung ist heute ein
+4. ~~**Soll die neue Anzeige-Capability für Anime-Assets (Weg 4, Matrix-Zeile 1.4) an dieselben
+   Rollen gehen wie die Durchsetzung, oder breiter/enger?**~~ → beantwortet mit Option A, siehe
+   D-13. Die Durchsetzung ist heute ein
    Plattform-Admin-Guard (außer `segment_preview`, das eine eigene Segment-Berechtigung hat). Es
    gibt aktuell keine granulare Rollenliste dafür — nur „ist Plattform-Admin" oder „darf dieses
    Segment bearbeiten".
@@ -221,8 +257,9 @@ entweder 1:1 übernehmen oder bewusst enger fassen — siehe Offene Frage 3.
      ist zu eng"; die einfachste korrekte Lösung spiegelt die bestehende Durchsetzung, ohne den
      tatsächlichen Berechtigungskreis zu erweitern.
 
-5. **Soll gruppen- und release-medienbezogenes Löschen im Review-Verhalten weiterhin getrennt
-   bleiben, auch nachdem der Soft-Delete-SQL-Helfer zusammengeführt wurde?** Der gemeinsame
+5. ~~**Soll gruppen- und release-medienbezogenes Löschen im Review-Verhalten weiterhin getrennt
+   bleiben, auch nachdem der Soft-Delete-SQL-Helfer zusammengeführt wurde?**~~ → beantwortet mit
+   Option A, siehe D-14. Der gemeinsame
    Helfer betrifft nur das SQL-Skelett (Spalten/Tabelle parametrisiert); die beiden Domänen haben
    unterschiedliche Lösch-Rechte-Modelle (Gruppenmedien: `fansub_lead`-only plus Custom-Fallback,
    siehe Frage 1; Release-Medien: `fansub_lead`/`project_lead` plus breite `delete_own`-Rollenliste).
