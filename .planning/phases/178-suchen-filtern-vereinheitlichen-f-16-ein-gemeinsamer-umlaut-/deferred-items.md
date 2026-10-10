@@ -16,3 +16,21 @@ This is a Next.js dev-server-generated route type artifact under `frontend/.next
 change: reverting the new `aliases?: string[]` field and re-running `tsc --noEmit`
 reproduces the identical error. Out of scope for 178-02 per the executor scope
 boundary (pre-existing failure in an unrelated, generated file). Not fixed.
+
+## 178-03: Pre-existing unrelated `vitest run` (full-suite) failures
+
+Running the full frontend suite (`cd frontend && npx vitest run`) after 178-03's changes shows
+3 failed test files / 2 failed tests, none touching `frontend/src/app/admin/groups/` or
+`frontend/src/lib/textFilter.ts`:
+
+- `src/components/profile/badgeArtwork.test.ts` ("canonical live catalog and shipped files")
+- `src/components/ui/ResponsiveImage.config.test.ts` ("allows only the configured Team4s API
+  media namespace for responsive group logos")
+- `src/app/admin/roles/RoleCapabilityDetail.membershipBaselineDrift.test.ts` (reads a hardcoded
+  absolute path `/backend/internal/permissions/permissions.go`, which does not exist outside the
+  project's Docker container filesystem layout)
+
+All three are sandbox/environment-path-dependent and unrelated to this plan's files. Confirmed
+out of scope per the executor scope boundary (pre-existing failures in unrelated files). Not
+fixed. The scoped test run (`npx vitest run src/app/admin/groups/`) and `npm run build` both pass
+cleanly.
