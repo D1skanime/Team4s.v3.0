@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 177 was final phase)
-last_updated: 2026-10-09T23:58:40.011Z
-last_activity: 2026-10-09
+status: executing
+stopped_at: Completed 177-08-PLAN.md (Live-UAT approved, Phase 177 all 14 plans done)
+last_updated: "2026-10-10T08:24:47.205Z"
+last_activity: 2026-10-10
 progress:
-  total_phases: 42
+  total_phases: 43
   completed_phases: 37
-  total_plans: 402
-  completed_plans: 453
-  percent: 88
+  total_plans: 409
+  completed_plans: 399
+  percent: 86
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -288,7 +288,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 177
 Plan: Not started
-Status: Milestone complete
+Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -395,13 +395,14 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-09
+Last activity: 2026-10-10
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
 - Phase 178 added (2026-10-10): Suchen & Filtern vereinheitlichen (F-16) — ein gemeinsamer, umlaut-toleranter Filter-Helfer (Vorbild: Normalisierung der globalen Suchbibliothek `search_anime.go`) ersetzt sechs unabhängige `toLowerCase().includes()`-Filter (AdminGroupsClient.tsx, admin/fansubs/page.tsx, admin/fansubs/merge/page.tsx, GroupMediaReviewFilterBar.tsx, Genre/Tag-Autocomplete in useAnimePatchImpl.ts und useAdminAnimeCreateControllerImpl.ts); Merge-Seiten-Scoring bleibt erhalten; Umstellung der größten Listen auf Backend-Suche statt per_page:500-Vollabruf wird geprüft. Risiko niedrig bis mittel, Aufwand mittel. Depends on Phase 177 (per bestätigtem Zuschnitt aus 175-ROADMAP-PROPOSAL.md, dritte von Phasen 176-183). Faktencheck im Code bestätigt: globale Suche ist akzent-tolerant via f_unaccent/pg_trgm (ä→a/ö→o/ü→u), aber ohne bewusste ae/oe/ue/ss-Digraph-Regel. CONTEXT-Entwurf mit 14 D-NN-Entscheidungen + 5 offenen Fragen an den Nutzer angelegt. Nur add-phase — noch nicht geplant.
+- Phase 178 geplant (2026-10-10, --skip-ui --skip-research auf Zweitlauf, Erstlauf hatte bereits recherchiert): 7 Pläne (178-01 bis 178-07) über 3 Wellen, alle D-01 bis D-19 abgedeckt (gsd-plan-checker Doppelprüfung PASSED nach einer Revisionsrunde — 1 Blocker/2 Warnungen behoben, Commit `74167977`). **Override:** der automatisierte `check.decision-coverage-plan`-Gate meldete 8/11 D-NN als "uncovered" (D-01/02/03/05/06/15/17/19) — manuell per `grep` und durch den gsd-plan-checker widerlegt: alle 8 sind mehrfach in Plan-Bodies, Task-Namen und/oder `requirements:`-Frontmatter zitiert (D-15 z. B. in 6 von 7 Plänen). Der Gate-Report selbst enthält einen sichtbaren Parser-Defekt (D-06s extrahierter "text" ist eine Verkettung von Fragmenten aus D-07–D-14 statt D-06s eigenem Text) — Beleg, dass der Decision-Boundary-Parser dieses CONTEXT.md falsch zerlegt. Mit "Proceed anyway" fortgefahren statt neu zu planen oder echte, umgesetzte Entscheidungen fälschlich als `[informational]` zu markieren. Falls `/gsd:verify-work` denselben Gate erneut aufruft, diesen Eintrag als Begründung für einen erneuten Override heranziehen, nicht blind neu entscheiden.
 - Phase 177 added (2026-10-08): Einheitlicher Bild-Viewer (F-18) — ein gemeinsamer Viewer-Baustein auf Basis von FansubMediaLightbox statt sechs eigenständiger Implementierungen, erweitert um Zoom, Touch-Swipe, Display→Original-Progressive-Load, Metadaten-Overlay und Prefetch; ScreenshotGallery-Lightbox, ProjectMemberMediaViewer, GroupAssetsExperience-Bildanteil und toter ReleaseVersionMediaDetailPanel werden abgelöst. Risiko mittel, Aufwand groß. Depends on Phase 176 (per bestätigtem Zuschnitt aus 175-ROADMAP-PROPOSAL.md, zweite von Phasen 176-183). CONTEXT-Entwurf mit 16 D-NN-Entscheidungen + 3 offenen Fragen an den Nutzer angelegt. Nur add-phase — noch nicht geplant.
 - Phase 176 added (2026-10-07): Bug- und Altlasten-Sammelphase — offene 174-Followups (F-02 OUT-Kürzel aus DB, F-03 Umlaute, F-04 native Felder, F-05 doppelte anime_contributions, F-06 rote Tests/openapi-Duplikat, F-12, F-14, F-19, F-21–F-24) plus Rechte-/Sicherheitsbefunde aus Phase 175 (Claim-Invite-Accept ohne disabled-Prüfung, Notizen-Tab-Gate, Legacy-Member-Delete-Endpunkt) und Entfernung der Member-Group-Story-Altlast. Risiko mittel, intern in geblockte Pakete getrennt. Depends on Phase 175 (per bestätigtem Zuschnitt aus 175-ROADMAP-PROPOSAL.md, erste von Phasen 176-183). Nur add-phase — noch nicht geplant.
 - Phase 175 added (2026-10-06): Inventur Doppelungen nach Fachaufgaben — pro Fachaufgabe alle UI-Flächen, Endpunkte, Rechteprüfungen und Datenwege erfassen, Parallelsysteme und Rechte-Inkonsistenzen belegen, Zusammenführungs-Phasen (Bildanzeige, Suche, Uploader, Release-Bearbeitung u. a.) zuschneiden. Reine Analyse, keine Code-Änderungen. Depends on Phase 174. Nur add-phase — noch nicht geplant.
