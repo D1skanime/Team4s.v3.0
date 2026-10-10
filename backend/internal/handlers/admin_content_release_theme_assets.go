@@ -2,13 +2,12 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
@@ -281,48 +280,15 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 	saveResult.CreateInput.VisibilityCode = &themeVisibilityCode
 	saveResult.CreateInput.ReviewStatusCode = &themeReviewStatusCode
 
-	mediaAsset, err := h.mediaRepo.CreateMediaAsset(c.Request.Context(), saveResult.CreateInput)
-	if err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		if errors.Is(err, repository.ErrConflict) {
-			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "media asset bereits vorhanden"}})
-			return
-		}
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Asset konnte nicht gespeichert werden.")
-		return
-	}
-
-	if err := h.mediaRepo.InsertMediaFile(
-		c.Request.Context(),
-		mediaAsset.ID,
-		"original",
-		mediaAsset.StoragePath,
+	created, ok := h.persistReleaseThemeAsset(
+		c,
+		*releaseID,
+		themeID,
+		saveResult.CreateInput,
 		int64(len(data)),
-	); err != nil {
-		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), mediaAsset.ID)
-		_ = removeFileQuietly(mediaAsset.StoragePath)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Dateigröße konnte nicht gespeichert werden.")
-		return
-	}
-
-	created, err := h.themeRepo.CreateReleaseThemeAsset(c.Request.Context(), models.AdminReleaseThemeAssetCreateInput{
-		ReleaseID: *releaseID,
-		ThemeID:   themeID,
-		MediaID:   mediaAsset.ID,
-	})
-	if err != nil {
-		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), mediaAsset.ID)
-		_ = removeFileQuietly(mediaAsset.StoragePath)
-		if errors.Is(err, repository.ErrConflict) {
-			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "theme bereits zugewiesen", "code": "already_assigned"}})
-			return
-		}
-		if errors.Is(err, repository.ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "release oder theme nicht gefunden"}})
-			return
-		}
-		log.Printf("admin release theme asset upload: fansub=%d anime=%d theme=%d: %v", fansubID, animeID, themeID, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Video konnte nicht verknuepft werden.")
+		fmt.Sprintf("admin release theme asset upload: fansub=%d anime=%d theme=%d", fansubID, animeID, themeID),
+	)
+	if !ok {
 		return
 	}
 
@@ -446,48 +412,15 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 	saveResult.CreateInput.VisibilityCode = &themeRelVisibilityCode
 	saveResult.CreateInput.ReviewStatusCode = &themeRelReviewStatusCode
 
-	mediaAsset, err := h.mediaRepo.CreateMediaAsset(c.Request.Context(), saveResult.CreateInput)
-	if err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		if errors.Is(err, repository.ErrConflict) {
-			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "media asset bereits vorhanden"}})
-			return
-		}
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Asset konnte nicht gespeichert werden.")
-		return
-	}
-
-	if err := h.mediaRepo.InsertMediaFile(
-		c.Request.Context(),
-		mediaAsset.ID,
-		"original",
-		mediaAsset.StoragePath,
+	created, ok := h.persistReleaseThemeAsset(
+		c,
+		releaseID,
+		themeID,
+		saveResult.CreateInput,
 		int64(len(data)),
-	); err != nil {
-		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), mediaAsset.ID)
-		_ = removeFileQuietly(mediaAsset.StoragePath)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Dateigröße konnte nicht gespeichert werden.")
-		return
-	}
-
-	created, err := h.themeRepo.CreateReleaseThemeAsset(c.Request.Context(), models.AdminReleaseThemeAssetCreateInput{
-		ReleaseID: releaseID,
-		ThemeID:   themeID,
-		MediaID:   mediaAsset.ID,
-	})
-	if err != nil {
-		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), mediaAsset.ID)
-		_ = removeFileQuietly(mediaAsset.StoragePath)
-		if errors.Is(err, repository.ErrConflict) {
-			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "theme bereits zugewiesen", "code": "already_assigned"}})
-			return
-		}
-		if errors.Is(err, repository.ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "release oder theme nicht gefunden"}})
-			return
-		}
-		log.Printf("admin release theme asset direct upload: release=%d theme=%d: %v", releaseID, themeID, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Video konnte nicht verknuepft werden.")
+		fmt.Sprintf("admin release theme asset direct upload: release=%d theme=%d", releaseID, themeID),
+	)
+	if !ok {
 		return
 	}
 
