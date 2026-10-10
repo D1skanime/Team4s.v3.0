@@ -2563,12 +2563,12 @@ Plans:
 
 ### Phase 179: Media-Backend & Rechte vereinheitlichen (F-15 Teil 1): eine Rechte-Prüfung je Upload-Aktion statt paralleler Ebenen (Permission-Matrix 1.2 Gruppenmedien-Upload, 1.4 fehlende Anzeige-Capability Anime-Assets, 1.6 eigene ActionReleaseThemeAssetUpload statt fremd genutzter Release-Medien-Aktion), gemeinsamer Soft-Delete-Helfer für Medien, extrahierte Theme-Asset-Persistenz — Grundlage für das gemeinsame Upload-Frontend in Phase 180
 
-**Goal:** Jede Medien-Upload-Aktion dieser Phase hat genau eine Rechte-Pruefung aus der
+**Goal:** Jede Medien-Upload-Aktion dieser Phase hat genau eine Rechte-Prüfung aus der
 Capability-Registry statt paralleler Ebenen (Permission-Matrix 1.2, 1.4, 1.6), Soft-Delete-SQL
-fuer Medien ist einmal statt zweimal implementiert, und die Theme-Asset-Persistenz ist nicht mehr
-duplikativ -- Grundlage fuer das gemeinsame Upload-Frontend in Phase 180.
-**Requirements**: Keine REQUIREMENTS.md-Zuordnung -- Decision-Coverage via D-01 bis D-14 in
-`179-CONTEXT.md` (alle 5 urspruenglich offenen Fragen beantwortet).
+für Medien ist einmal statt zweimal implementiert, und die Theme-Asset-Persistenz ist nicht mehr
+duplikativ — Grundlage für das gemeinsame Upload-Frontend in Phase 180.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung — Decision-Coverage via D-01 bis D-14 in
+`179-CONTEXT.md` (alle 5 ursprünglich offenen Fragen beantwortet).
 **Depends on:** Phase 178
 **Plans:** 6 plans across 3 waves
 
