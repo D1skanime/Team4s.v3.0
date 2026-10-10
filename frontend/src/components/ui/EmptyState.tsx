@@ -9,7 +9,7 @@ const styles = new Proxy({} as Record<string, string>, {
   get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
 })
 
-type EmptyStateVariant = 'default' | 'withAction' | 'compact' | 'inline'
+type EmptyStateVariant = 'default' | 'withAction' | 'compact' | 'inline' | 'info'
 
 export interface EmptyStateProps {
   title: string
@@ -41,7 +41,7 @@ export function EmptyState({
     <div
       className={classNames(
         styles.stateCard,
-        styles.stateNeutral,
+        variant === 'info' ? styles.stateInfo : styles.stateNeutral,
         variant === 'compact' && styles.stateCompact,
         className,
       )}

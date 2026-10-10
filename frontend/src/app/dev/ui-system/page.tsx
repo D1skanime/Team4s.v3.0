@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Filter, MoreHorizontal, PanelRight, Pencil } from 'lucide-react'
+import { ArrowRight, Filter, Info, MoreHorizontal, PanelRight, Pencil } from 'lucide-react'
 
 import {
   AccentRule,
@@ -408,6 +408,7 @@ export default function UISystemPlaygroundPage() {
             <EmptyState title="Noch keine Gruppen" description="Leere Listen sollen den nächsten sinnvollen Schritt zeigen statt nur leer zu wirken." action={<Button variant="secondary" size="sm">Neue Gruppe</Button>} />
             <LoadingState title="Release-Daten werden geladen" description="Die Übersicht baut sich auf, bevor weitere Aktionen möglich sind." />
             <ErrorState title="Release-Liste konnte nicht geladen werden" description="Der Fehler bleibt lokal am betroffenen Bereich und kann direkt erneut versucht werden." action={<Button variant="danger" size="sm">Erneut versuchen</Button>} />
+            <EmptyState variant="info" icon={<Info size={20} strokeWidth={2} />} title="Abrufgrenze erreicht" description="Es werden die ersten 500 Einträge angezeigt – bitte die Suche eingrenzen." />
           </div>
         </Card>
 
