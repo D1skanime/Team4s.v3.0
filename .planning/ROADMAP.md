@@ -2560,3 +2560,13 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 178-07-PLAN.md — Full automated gate + Live-UAT across all six filter sites.
+
+### Phase 179: Media-Backend & Rechte vereinheitlichen (F-15 Teil 1): eine Rechte-Prüfung je Upload-Aktion statt paralleler Ebenen (Permission-Matrix 1.2 Gruppenmedien-Upload, 1.4 fehlende Anzeige-Capability Anime-Assets, 1.6 eigene ActionReleaseThemeAssetUpload statt fremd genutzter Release-Medien-Aktion), gemeinsamer Soft-Delete-Helfer für Medien, extrahierte Theme-Asset-Persistenz — Grundlage für das gemeinsame Upload-Frontend in Phase 180
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 178
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 179 to break down)
