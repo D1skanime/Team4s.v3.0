@@ -61,6 +61,65 @@ Scope Boundary rule instead of being fixed inline.
   this plan.
 - **Action:** Pre-existing, not fixed in this plan.
 
+## 6. `release_version_media_repository_test.go` fixture drift from Phase 169's `display_name` join (blocks Plan 179-04's own cited regression test)
+
+- **Files:** `backend/internal/repository/release_version_media_repository_test.go`,
+  `backend/internal/repository/release_version_media_replace_repository_test.go`
+- **Symptom:** Every test that calls `ListReleaseVersionMedia` against the
+  `openReleaseVersionMediaReplaceFixture` schema fails with `ERROR: column au.display_name
+  does not exist (SQLSTATE 42703)` — including `TestReleaseVersionMedia_SoftDeleteQueryExcludesDeletedRows`,
+  the exact pre-existing regression test Plan 179-04's Task 1 `<verify>` step cites as "unaffected."
+- **Root cause:** Commit `41fb9e49` (Phase 169, `fix(169): unify release media curation view`)
+  added a `LEFT JOIN LATERAL` against `app_users.display_name`/`preferred_username` and
+  `users.username` to `ListReleaseVersionMedia`'s SELECT, but
+  `openReleaseVersionMediaReplaceFixture` still creates only a minimal `app_users (id BIGINT
+  PRIMARY KEY)` / `users (id BIGINT PRIMARY KEY)` shape (from `createPhase106Prerequisites` plus
+  its own `legacy_user_id` column) with no `display_name`/`preferred_username`/`username`
+  columns at all.
+- **Verified pre-existing and unrelated to Plan 179-04's changes:** Plan 179-04 only edits
+  `SoftDeleteFansubGroupMedia`/`SoftDeleteReleaseVersionMedia` and adds a new
+  `execSoftDelete` helper — it never touches `ListReleaseVersionMedia` or any of the three
+  affected tables' schemas. Confirmed by running `go test ./internal/repository/... -run
+  TestReleaseVersionMedia` (no `-run` filter restricted to this plan's own tests): 4 pre-existing
+  failures (`TestReleaseVersionMedia_ListIncludesOwnReviewLifecycle`,
+  `TestReleaseVersionMedia_ListAllowsOrdinaryRowsWithoutHighlight`,
+  `TestReleaseVersionMedia_SoftDeleteQueryExcludesDeletedRows`,
+  `TestReleaseVersionMediaHighlightsAreIndependentFromPreview`), all with the identical
+  `au.display_name does not exist` error, all calling `ListReleaseVersionMedia` — none of which
+  this plan's diff can cause.
+- **Action:** Not fixed in this plan (out of scope per Scope Boundary — pre-existing fixture
+  drift in a file this plan does not modify). Task 2's own new tests call
+  `SoftDeleteReleaseVersionMedia`/`SoftDeleteFansubGroupMedia` directly and assert via raw
+  `pool.QueryRow`, never through `ListReleaseVersionMedia`, so they are unaffected by this gap.
+  A future plan should add `display_name`/`preferred_username` to `app_users` and `username` to
+  `users` in `openReleaseVersionMediaReplaceFixture`.
+
+## 7. `TestRVMHandler_ProzessmedienDefaults` panics the whole `internal/repository` test binary (nil `auditLogRepo`)
+
+- **Files:** `backend/internal/repository/release_version_media_cross_package_test.go` (test),
+  `backend/internal/handlers/admin_content_release_version_media_upload.go` (production code,
+  line 251: `h.auditLogRepo.Write(...)`)
+- **Symptom:** `go test ./internal/repository/...` panics with `invalid memory address or nil
+  pointer dereference` inside `AdminContentHandler.UploadReleaseVersionMedia`, which aborts the
+  entire test binary (not just this one test) — every test that would otherwise run after it in
+  the same binary never executes.
+- **Root cause:** The test's `AdminContentHandler` is constructed via `.WithMediaDeps(...)
+  .WithPermissionDeps(...)` only, leaving `auditLogRepo` nil; the handler's upload success path
+  unconditionally calls `h.auditLogRepo.Write(...)` with no nil guard. Unrelated to this plan —
+  `admin_content_release_version_media_upload.go` and this cross-package test file are not
+  touched by Plan 179-04 (which only edits `media_repository.go`,
+  `release_version_media_repository.go`, and adds `media_soft_delete.go`/`media_soft_delete_test.go`).
+- **Verified pre-existing:** Ran `go test ./internal/repository/... -run
+  TestRVMHandler_ProzessmedienDefaults -v` in isolation — identical panic, confirming it is not
+  an interaction with the new soft-delete code (the panic site is deep inside an unrelated
+  upload handler's audit-logging call).
+- **Action:** Not fixed in this plan. Because the panic aborts the whole test binary, a full
+  `go test ./internal/repository/...` run cannot produce a complete pass/fail list in one
+  invocation until this is fixed — Plan 179-04's own two new tests and the one pre-existing
+  test it cites were each verified by running with a `-run` filter that isolates them from this
+  panic. A future plan should either give `AdminContentHandler` a nil-safe audit-log call or make
+  the cross-package test wire a no-op `auditLogRepo`.
+
 ## 5. Stale source-grep test referencing a renamed method
 
 - **File:** `backend/internal/repository/member_claims_repository_test.go`
