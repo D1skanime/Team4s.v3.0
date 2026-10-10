@@ -2530,3 +2530,13 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 177-08-PLAN.md — Full automated gate + Live-UAT checkpoint across all five surfaces.
+
+### Phase 178: Suchen & Filtern vereinheitlichen (F-16): ein gemeinsamer, umlaut-toleranter Filter-Helfer (wiederverwendet die Normalisierung der globalen Suchbibliothek) statt sechs unabhängiger toLowerCase().includes()-Filter; größte Admin-Listen (Fansub-Liste, Merge, Gruppen) prüfen auf Umstellung auf die Backend-Suche statt per_page:500-Vollabruf; Scoring der Merge-Seite bleibt erhalten
+
+**Goal:** Ein gemeinsamer, umlaut-toleranter Filter-Helfer (nach dem Vorbild der globalen Suchbibliothek `search_anime.go`) ersetzt die sechs unabhängigen `toLowerCase().includes()`-Filter aus Fachaufgabe 7; das eigene Scoring der Merge-Seite bleibt als nachgeschalteter Schritt erhalten; für die drei größten Listen (Fansub-Liste, Merge, Gruppen) wird eine Umstellung vom `per_page:500`-Pseudo-Vollabruf auf die Backend-Suche geprüft.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung -- Decision-Coverage via D-01 bis D-14 + 5 offene Fragen in `178-CONTEXT.md`.
+**Depends on:** Phase 177
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 178 to break down)
