@@ -6,11 +6,6 @@
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  ApiError,
-  getAdminGenreTokens,
-  getAdminTagTokens,
-} from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { AnimeStatus, ContentType } from "@/types/anime";
 import type {
@@ -20,8 +15,6 @@ import type {
   AdminAnimeJellyfinIntakePreviewResult,
   AdminJellyfinIntakeAssetSlots,
   AnimeType,
-  GenreToken,
-  TagToken,
 } from "@/types/admin";
 
 import {
@@ -44,6 +37,7 @@ import {
   revokeStagedAssetPreviews,
 } from "../createStagedAssets";
 import { useAnimeEditor } from "../../hooks/useAnimeEditor";
+import { useGenreTagAutocomplete } from "../../hooks/useGenreTagAutocomplete";
 import {
   buildManualCreateDraftSnapshot,
   hydrateManualDraftFromJellyfinPreview,
@@ -155,14 +149,7 @@ export function useAdminAnimeCreateController(
   const [lastResponse, setLastResponse] = useState<string | null>(null);
   const [showValidationSummary, setShowValidationSummary] = useState(false);
 
-  const [genreTokens, setGenreTokens] = useState<GenreToken[]>([]);
-  const [isLoadingGenreTokens, setIsLoadingGenreTokens] = useState(false);
-  const [genreTokensError, setGenreTokensError] = useState<string | null>(null);
   const [genreSuggestionLimit, setGenreSuggestionLimit] = useState(DEFAULT_GENRE_LIMIT);
-
-  const [tagTokens, setTagTokens] = useState<TagToken[]>([]);
-  const [isLoadingTagTokens, setIsLoadingTagTokens] = useState(false);
-  const [tagTokensError, setTagTokensError] = useState<string | null>(null);
   const [tagSuggestionLimit, setTagSuggestionLimit] = useState(DEFAULT_TAG_LIMIT);
 
   const [createTitle, setCreateTitle] = useState("");
@@ -248,48 +235,15 @@ export function useAdminAnimeCreateController(
     [stagedAssets, stagedCover],
   );
 
-  useEffect(() => {
-    if (!hasAuthToken) return;
-
-    // 174-11: unverändertes Lade-Verhalten (Setzen des Ladeflags vor dem
-    // Fetch) — vom react-hooks/set-state-in-effect-Linter erst nach der
-    // 174-10/174-11-Verschlankung dieses Hooks neu erkannt, kein
-    // Verhaltens-Fix. Etablierte Unterdrueckung wie in
-    // useUserListFilters.ts/useFansubEditGroupLoad.ts.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsLoadingGenreTokens(true);
-    setGenreTokensError(null);
-    getAdminGenreTokens({ limit: 1000 })
-      .then((response) => setGenreTokens(response.data))
-      .catch((error) => {
-        setGenreTokensError(
-          error instanceof ApiError
-            ? `(${error.status}) ${error.message}`
-            : "Genre-Vorschläge konnten nicht geladen werden.",
-        );
-      })
-      .finally(() => setIsLoadingGenreTokens(false));
-  }, [hasAuthToken]);
-
-  useEffect(() => {
-    if (!hasAuthToken) return;
-
-    // 174-11: siehe Kommentar oben bei getAdminGenreTokens — gleiches,
-    // unveraendertes Muster.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsLoadingTagTokens(true);
-    setTagTokensError(null);
-    getAdminTagTokens({ limit: 1000 })
-      .then((response) => setTagTokens(response.data))
-      .catch((error) => {
-        setTagTokensError(
-          error instanceof ApiError
-            ? `(${error.status}) ${error.message}`
-            : "Tag-Vorschläge konnten nicht geladen werden.",
-        );
-      })
-      .finally(() => setIsLoadingTagTokens(false));
-  }, [hasAuthToken]);
+  const autocomplete = useGenreTagAutocomplete({
+    genreDraft: createGenreDraft,
+    selectedGenreTokens: createGenreTokens,
+    tagDraft: createTagDraft,
+    selectedTagTokens: createTagTokens,
+    genreSuggestionLimit,
+    tagSuggestionLimit,
+    enabled: hasAuthToken,
+  });
 
   const jellyfinIntake = useJellyfinIntake();
 
@@ -396,50 +350,6 @@ export function useAdminAnimeCreateController(
     () => createGenreTokens.join(", "),
     [createGenreTokens],
   );
-
-  const genreSuggestions = useMemo(() => {
-    const q = createGenreDraft.trim().toLowerCase();
-    const selected = new Set(createGenreTokens.map((t) => t.toLowerCase()));
-    const filtered = genreTokens.filter((t) => {
-      if (selected.has(t.name.toLowerCase())) return false;
-      if (!q) return true;
-      return t.name.toLowerCase().includes(q);
-    });
-    const limit = q ? Math.max(80, genreSuggestionLimit) : genreSuggestionLimit;
-    return filtered.slice(0, limit);
-  }, [createGenreDraft, createGenreTokens, genreSuggestionLimit, genreTokens]);
-
-  const genreSuggestionsTotal = useMemo(() => {
-    const q = createGenreDraft.trim().toLowerCase();
-    const selected = new Set(createGenreTokens.map((t) => t.toLowerCase()));
-    return genreTokens.filter((t) => {
-      if (selected.has(t.name.toLowerCase())) return false;
-      if (!q) return true;
-      return t.name.toLowerCase().includes(q);
-    }).length;
-  }, [createGenreDraft, createGenreTokens, genreTokens]);
-
-  const tagSuggestions = useMemo(() => {
-    const q = createTagDraft.trim().toLowerCase();
-    const selected = new Set(createTagTokens.map((t) => t.toLowerCase()));
-    const filtered = tagTokens.filter((t) => {
-      if (selected.has(t.name.toLowerCase())) return false;
-      if (!q) return true;
-      return t.name.toLowerCase().includes(q);
-    });
-    const limit = q ? Math.max(80, tagSuggestionLimit) : tagSuggestionLimit;
-    return filtered.slice(0, limit);
-  }, [createTagDraft, createTagTokens, tagSuggestionLimit, tagTokens]);
-
-  const tagSuggestionsTotal = useMemo(() => {
-    const q = createTagDraft.trim().toLowerCase();
-    const selected = new Set(createTagTokens.map((t) => t.toLowerCase()));
-    return tagTokens.filter((t) => {
-      if (selected.has(t.name.toLowerCase())) return false;
-      if (!q) return true;
-      return t.name.toLowerCase().includes(q);
-    }).length;
-  }, [createTagDraft, createTagTokens, tagTokens]);
 
   const hasSelectedJellyfinPreview = Boolean(jellyfinPreview);
   const readinessLabel =
@@ -922,20 +832,20 @@ export function useAdminAnimeCreateController(
         genre: {
           canLoadMore: genreSuggestionLimit < 1000,
           canResetLimit: genreSuggestionLimit > DEFAULT_GENRE_LIMIT,
-          error: genreTokensError,
-          isLoading: isLoadingGenreTokens,
-          loadedCount: genreTokens.length,
-          options: genreSuggestions,
-          total: genreSuggestionsTotal,
+          error: autocomplete.genreTokensError,
+          isLoading: autocomplete.isLoadingGenreTokens,
+          loadedCount: autocomplete.genreTokens.length,
+          options: autocomplete.genreSuggestions,
+          total: autocomplete.genreSuggestionsTotal,
         },
         tag: {
           canLoadMore: tagSuggestionLimit < 1000,
           canResetLimit: tagSuggestionLimit > DEFAULT_TAG_LIMIT,
-          error: tagTokensError,
-          isLoading: isLoadingTagTokens,
-          loadedCount: tagTokens.length,
-          options: tagSuggestions,
-          total: tagSuggestionsTotal,
+          error: autocomplete.tagTokensError,
+          isLoading: autocomplete.isLoadingTagTokens,
+          loadedCount: autocomplete.tagTokens.length,
+          options: autocomplete.tagSuggestions,
+          total: autocomplete.tagSuggestionsTotal,
         },
       },
       values: {
