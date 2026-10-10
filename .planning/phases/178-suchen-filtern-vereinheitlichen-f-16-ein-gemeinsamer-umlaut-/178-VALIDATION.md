@@ -2,8 +2,8 @@
 phase: 178
 slug: suchen-filtern-vereinheitlichen-f-16-ein-gemeinsamer-umlaut-
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-10-10
 ---
 
@@ -19,7 +19,7 @@ created: 2026-10-10
 |----------|-------|
 | **Framework** | Vitest 3 (frontend); Go `testing` + `testify` (backend, only for the D-18 contract change) |
 | **Config file** | `frontend/vitest.config.ts` (`include: ['src/**/*.test.ts', 'src/**/*.test.tsx']`, `globals: true`) |
-| **Quick run command** | `cd frontend && npx vitest run src/lib/textFilter.test.ts` (adjust path to actual new file name) |
+| **Quick run command** | `cd frontend && npx vitest run src/lib/textFilter.test.ts` |
 | **Full suite command** | `cd frontend && npm test` (= `vitest run`); backend: `cd backend && go test ./internal/repository/... ./internal/handlers/...` |
 | **Estimated runtime** | ~30s (frontend full suite), ~15s (backend package tests) |
 
@@ -38,24 +38,27 @@ created: 2026-10-10
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 178-WW-TT | TBD | 0 | D-15 | — | `normalizeSearchText`/`matchesSearch` replicate `f_unaccent` behavior (ä→a, ö→o, ü→u, ß unchanged, no digraph expansion) | unit | `vitest run src/lib/textFilter.test.ts` | ❌ W0 — new file | ⬜ pending |
-| 178-WW-TT | TBD | 1+ | D-04 | — | Merge-page scoring unaffected by filter-helper swap for name/slug matches; scoring function extracted to a named, testable export | unit | `vitest run src/app/admin/fansubs/merge/*.test.ts` | ❌ W0 — scoring currently inline, untested | ⬜ pending |
-| 178-WW-TT | TBD | 1+ | D-18 | — | Kürzel/Alias matches surface in #1 (`AdminGroupsClient.tsx`)/#2 (`admin/fansubs/page.tsx`)/#3 (`merge/page.tsx`) filtered results | unit | `vitest run` on the file hosting each site's extracted filter-predicate function | ❌ W0 — filter logic currently inline per site | ⬜ pending |
-| 178-WW-TT | TBD | 1+ | D-18 | V4 Access Control | `FansubGroup` contract gains `aliases: string[]` without exposing a new data class (same strings already fetchable per-group today) | unit (backend) | `go test ./internal/repository/... -run TestListGroups` (or equivalent) | ❌ W0 — new field, no round-trip test yet | ⬜ pending |
-| 178-WW-TT | TBD | 1+ | D-19 | — | Shared Genre/Tag autocomplete hook produces identical suggestions/totals for both Edit and Create flows | unit | `vitest run` on the new shared hook's test file | ❌ W0 — new file | ⬜ pending |
-| 178-WW-TT | TBD | 1+ | D-07/D-02 | — | Native `<input>` sites (#2, #3, #5/#6 genre+tag inputs) replaced with `Input` primitive | manual/UAT (D-11) | N/A — visual/DOM primitive swap, not independently unit-testable beyond "renders" | N/A | ⬜ pending |
+| 178-01-01 | 178-01 | 1 | D-15 | T-178-02 | `normalizeSearchText`/`matchesSearch` replicate `f_unaccent` behavior (ä→a, ö→o, ü→u, ß unchanged, no digraph expansion) | unit | `cd frontend && npx vitest run src/lib/textFilter.test.ts` | plan defined (file created at execution) | ⬜ pending |
+| 178-02-01 | 178-02 | 1 | D-18 | T-178-04 (V4 Access Control) | `FansubGroup` contract gains `aliases: string[]` via bulk `attachGroupAliases`, without exposing a new data class (same strings already fetchable per-group today) | unit (backend, live Postgres) | `cd backend && go test ./internal/repository/... -run TestPhase178FansubGroupAliases -v` | plan defined (file created at execution) | ⬜ pending |
+| 178-03-01 | 178-03 | 2 | D-18 | T-178-06 | Kürzel/Alias matches surface in #1 (`AdminGroupsClient.tsx`) via `filterAdminGroups` | unit | `cd frontend && npx vitest run src/app/admin/groups/adminGroupsFilter.test.ts` | plan defined (file created at execution) | ⬜ pending |
+| 178-04-01 | 178-04 | 2 | D-18 | T-178-08 | Kürzel/Alias matches surface in #2 (`admin/fansubs/page.tsx`) via `filterFansubPageItems`, lazy per-page alias fetch removed | unit | `cd frontend && npx vitest run src/app/admin/fansubs/fansubPageFilter.test.ts` | plan defined (file created at execution) | ⬜ pending |
+| 178-05-01 | 178-05 | 2 | D-18 / D-04 | T-178-10 | Kürzel/Alias matches surface in #3 (`merge/page.tsx`) via `filterMergeCandidates`; existing exact/prefix/substring name-slug relevance tiers numerically unchanged in `scoreMergeRelevance` | unit | `cd frontend && npx vitest run src/app/admin/fansubs/merge/fansubMergeScoring.test.ts` | plan defined (file created at execution) | ⬜ pending |
+| 178-06-01 | 178-06 | 2 | D-19 | T-178-12 | Shared Genre/Tag autocomplete hook (`useGenreTagAutocomplete`) produces identical suggestions/totals for both Edit and Create flows | unit | `cd frontend && npx vitest run src/app/admin/anime/hooks/useGenreTagAutocomplete.test.ts` | plan defined (file created at execution) | ⬜ pending |
+| 178-04-02 / 178-05-02 / 178-06-03 | 178-04 / 178-05 / 178-06 | 2 | D-07/D-02 | — | Native `<input>` sites (#2, #3, #5/#6 genre+tag inputs) replaced with `Input` primitive | manual/UAT (D-11), proxied by typecheck | `cd frontend && npx tsc --noEmit -p tsconfig.json` (automated proxy); live-UAT confirmation in 178-07 Task 2 | plan defined (component edits at execution) | ⬜ pending |
 
-*Task IDs are placeholders — the planner assigns real `{phase}-{plan}-{task}` IDs; update this table (or let `/gsd:plan-phase`'s downstream tooling reconcile it) once PLAN.md files exist.*
+*Task IDs reflect the real `{phase}-{plan}-{task}` identifiers from the 7 PLAN.md files now that
+planning is complete. "Status" tracks execution, not planning — all rows remain pending until
+`/gsd:execute-phase 178` runs the corresponding tasks.*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `frontend/src/lib/textFilter.ts` + `textFilter.test.ts` — new shared normalization/match helper (D-15) and its direct-function tests (D-10)
-- [ ] Extract `merge/page.tsx`'s inline `relevanceScore` closure (currently inside a `useMemo`) to a named, exported, independently-testable function (D-04/D-10 — required before it can be unit-tested)
-- [ ] Extract each of #1/#2/#3's inline `.filter()` closures to named, exported, independently-testable predicate functions (same D-10 reasoning: "Tests prüfen die Logik hinter dem Button" requires a callable function, not an inline closure)
-- [ ] Shared Genre/Tag autocomplete hook + its test file (D-19)
-- [ ] Backend test(s) for the `FansubGroup.aliases` contract addition (D-18) — extend existing `ListGroups`/`GetGroupByID` repository tests to assert the new field round-trips, using the project's mandated behavior-test style (real repo call against a test DB/fake repository, not a source-grep)
+- [x] `frontend/src/lib/textFilter.ts` + `textFilter.test.ts` — new shared normalization/match helper (D-15) and its direct-function tests (D-10) — satisfied by 178-01 Task 1
+- [x] Extract `merge/page.tsx`'s inline `relevanceScore` closure (currently inside a `useMemo`) to a named, exported, independently-testable function (D-04/D-10) — satisfied by 178-05 Task 1 (`scoreMergeRelevance`)
+- [x] Extract each of #1/#2/#3's inline `.filter()` closures to named, exported, independently-testable predicate functions (same D-10 reasoning) — satisfied by 178-03 Task 1 (`filterAdminGroups`), 178-04 Task 1 (`filterFansubPageItems`), 178-05 Task 1 (`filterMergeCandidates`)
+- [x] Shared Genre/Tag autocomplete hook + its test file (D-19) — satisfied by 178-06 Task 1 (`useGenreTagAutocomplete`)
+- [x] Backend test(s) for the `FansubGroup.aliases` contract addition (D-18) — satisfied by 178-02 Task 1 (live-Postgres `TestPhase178FansubGroupAliases_*` tests against the real repository, not a source-grep)
 
 ---
 
@@ -70,11 +73,11 @@ created: 2026-10-10
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** 2026-10-10

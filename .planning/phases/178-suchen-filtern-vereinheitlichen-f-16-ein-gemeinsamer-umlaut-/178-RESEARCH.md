@@ -565,7 +565,7 @@ consolidation phase.
 | A2 | Eagerly fetching all 14 groups' aliases (vs. porting #2's lazy pattern) is recommended based on the *current* dataset size (14 groups). If the fansub-group count grows substantially in the future, this N+1 pattern would need revisiting (e.g., a bulk aliases-by-group-ids endpoint). This is a judgment call based on today's measured data, not a verified future-proof guarantee. | "Common Pitfalls", Pitfall 2 | Medium if the fansub-group catalog grows past roughly 50-100 groups without a bulk endpoint being added later; low for the foreseeable scope of this project |
 | A3 | Whether tags have a sibling `AnimeEditTagSection.tsx`-equivalent component with the same native-`<input>` violation as `AnimeEditGenreSection.tsx` was not exhaustively confirmed by name (no exact file match found) — the planner should grep for the tag-input-rendering component before finalizing the UI-primitive-swap task list for #5/#6. | "#5" section | Low — if the tag input component turns out to already use the `Input` primitive, there is simply one fewer file to touch; if it doesn't, the task list is one file short |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 None outstanding from this research. All 5 originally open questions in `178-CONTEXT.md` are
 already answered by the user (D-15 to D-19) and were independently cross-checked against the code
