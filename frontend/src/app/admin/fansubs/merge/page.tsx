@@ -30,8 +30,8 @@ interface CountSummary {
 const WIZARD_STEPS: Array<{ id: WizardStep; title: string }> = [
   { id: 1, title: "Zielgruppe wählen" },
   { id: 2, title: "Quellgruppen wählen" },
-  { id: 3, title: "Vorschau pruefen" },
-  { id: 4, title: "Bestätigen & zusammenfuehren" },
+  { id: 3, title: "Vorschau prüfen" },
+  { id: 4, title: "Bestätigen & zusammenführen" },
 ];
 
 function MergeFansubsContent() {
@@ -232,7 +232,7 @@ function MergeFansubsContent() {
       router.push(`/admin/fansubs/${nextTargetID}/edit`);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Fehler beim Zusammenfuehren",
+        err instanceof Error ? err.message : "Fehler beim Zusammenführen",
       );
     } finally {
       setMerging(false);
@@ -334,7 +334,7 @@ function MergeFansubsContent() {
 
       <h1>Fansub Merge Wizard</h1>
       <p>
-        Gefuehrtes Zusammenfuehren mit Vorschau, Konflikt-Transparenz und
+        Geführtes Zusammenführen mit Vorschau, Konflikt-Transparenz und
         Safety-Checks.
       </p>
 
@@ -389,7 +389,7 @@ function MergeFansubsContent() {
               id="merge-search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Name oder Slug..."
+              placeholder="Name, Slug oder Tag..."
               disabled={merging}
             />
           </div>
@@ -406,7 +406,7 @@ function MergeFansubsContent() {
               <option value="all">Alle Status</option>
               <option value="active">Aktiv</option>
               <option value="inactive">Inaktiv</option>
-              <option value="dissolved">Aufgeloest</option>
+              <option value="dissolved">Aufgelöst</option>
             </select>
           </div>
           <div className={styles.field}>
@@ -577,8 +577,8 @@ function MergeFansubsContent() {
 
       {currentStep === 3 && (
         <div className={styles.panel}>
-          <h2>3. Vorschau pruefen</h2>
-          <p>Impact und potenzielle Konflikte vor dem finalen Merge pruefen.</p>
+          <h2>3. Vorschau prüfen</h2>
+          <p>Impact und potenzielle Konflikte vor dem finalen Merge prüfen.</p>
           <div className={styles.actions}>
             <button
               className={styles.button}
@@ -647,13 +647,13 @@ function MergeFansubsContent() {
                   <h3>Alias-Vorschau</h3>
                   <p>
                     <strong>{preview.aliases_added.length}</strong> werden
-                    hinzugefuegt,{" "}
+                    hinzugefügt,{" "}
                     <strong>{preview.aliases_skipped.length}</strong> werden
                     übersprungen.
                   </p>
                   {preview.aliases_added.length > 0 && (
                     <>
-                      <p className={styles.hint}>Hinzugefuegt</p>
+                      <p className={styles.hint}>Hinzugefügt</p>
                       <ul className={styles.mergeCompactList}>
                         {preview.aliases_added.slice(0, 10).map((alias) => (
                           <li key={`add-${alias}`}>{alias}</li>
@@ -735,7 +735,7 @@ function MergeFansubsContent() {
 
       {currentStep === 4 && (
         <div className={styles.panel}>
-          <h2>4. Bestätigen & zusammenfuehren</h2>
+          <h2>4. Bestätigen & zusammenführen</h2>
           <p>
             Danger Zone: Quellgruppen werden nach dem Merge dauerhaft gelöscht.
           </p>
@@ -762,7 +762,7 @@ function MergeFansubsContent() {
           {preview && !preview.can_merge && (
             <p className={styles.hintWarning}>
               Der Merge ist aktuell blockiert. Bitte Konflikte in der Vorschau
-              pruefen (insbesondere Episode-Version Konflikte).
+              prüfen (insbesondere Episode-Version Konflikte).
             </p>
           )}
 
@@ -773,7 +773,7 @@ function MergeFansubsContent() {
               onChange={(event) => setConfirmDelete(event.target.checked)}
               disabled={merging}
             />
-            Ich bestaetige, dass die Quellgruppen gelöscht werden.
+            Ich bestätige, dass die Quellgruppen gelöscht werden.
           </label>
 
           <div className={styles.field}>
@@ -832,7 +832,7 @@ function MergeFansubsContent() {
               onClick={() => void handleMerge()}
               disabled={mergeButtonDisabled}
             >
-              {merging ? "Fuehre zusammen..." : "Zusammenfuehren"}
+              {merging ? "Führe zusammen..." : "Zusammenführen"}
             </button>
           )}
         </div>
@@ -862,7 +862,7 @@ function GroupRowCard({
       ? "aktiv"
       : group.status === "inactive"
         ? "inaktiv"
-        : "aufgeloest";
+        : "aufgelöst";
 
   return (
     <div className={styles.mergeGroupCardContent}>
