@@ -2570,7 +2570,7 @@ duplikativ — Grundlage für das gemeinsame Upload-Frontend in Phase 180.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung — Decision-Coverage via D-01 bis D-14 in
 `179-CONTEXT.md` (alle 5 ursprünglich offenen Fragen beantwortet).
 **Depends on:** Phase 178
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
   - Wave 1: 179-01 (capability-registry foundation: migration 0182 + ActionReleaseThemeAssetUpload
     + repair of 9 hardcoded capability-catalog test fixtures, D-12), 179-03 (D-10 remove the
@@ -2605,4 +2605,4 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 179-06-PLAN.md -- Full automated gate + migration fresh/down proof across the whole phase.
+- [x] 179-06-PLAN.md -- Full automated gate + migration fresh/down proof across the whole phase.
