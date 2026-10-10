@@ -310,6 +310,7 @@ func TestAdminFansubReleases_DirectReleaseThemeUploadHandlerExists(t *testing.T)
 
 func TestAdminFansubReleases_ListFansubAnimeAllowsFansubLead(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 
 	stub := &fansubReleaseThemeRepoStub{
 		listFansubAnime: func(_ context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error) {
@@ -441,6 +442,7 @@ func TestCreateAnimeThemeRejectsSegmentManagerWhenReleaseVariantBelongsToOtherAn
 // repo returns release summaries.
 func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 
 	releaseID := int64(42)
 	durationSeconds := int32(1383)
@@ -518,6 +520,7 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 // when no canonical release anchor exists for the fansub+anime pair.
 func TestAdminFansubReleases_GetCanonicalReturnsNilReleaseWhenNoneExists(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 
 	stub := &fansubReleaseThemeRepoStub{
 		getCanonicalFansubAnimeReleaseSummary: func(_ context.Context, fansubGroupID, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error) {
@@ -561,6 +564,7 @@ func TestAdminFansubReleases_GetCanonicalReturnsNilReleaseWhenNoneExists(t *test
 // that GetAdminRelease returns 404 when the release does not exist.
 func TestAdminFansubReleases_GetAdminReleaseByIDReturns404WhenMissing(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 
 	stub := &fansubReleaseThemeRepoStub{
 		getAdminReleaseByID: func(_ context.Context, releaseID int64) (*models.AdminFansubReleaseSummary, error) {
