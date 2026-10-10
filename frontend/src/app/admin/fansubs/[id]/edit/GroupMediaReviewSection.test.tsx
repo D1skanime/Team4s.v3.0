@@ -580,7 +580,6 @@ describe('GroupMediaReviewSection', () => {
       expect(deleteFansubGroupMedia).toHaveBeenCalledWith(88, 101)
     })
   })
-})
 
   it('erlaubt Mitgliedern nur Textangaben des eigenen Uploads', async () => {
     const ownMediaCapabilities: FansubGroupCapabilities = {
@@ -619,3 +618,4 @@ describe('GroupMediaReviewSection', () => {
       }, undefined)
     })
   })
+})
