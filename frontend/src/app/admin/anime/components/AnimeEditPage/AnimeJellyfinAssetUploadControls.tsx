@@ -383,14 +383,16 @@ export function AnimeJellyfinAssetUploadControls({
                       {isUploadingCover ? 'Upload läuft...' : 'Cover hochladen'}
                     </button>
                   ) : null}
-                  <button
-                    type="button"
-                    className={`${styles.button} ${styles.buttonDanger}`}
-                    disabled={!hasActiveCover || isBusy}
-                    onClick={() => void handleRemoveCover()}
-                  >
-                    Cover entfernen
-                  </button>
+                  {isPlatformAdmin ? (
+                    <button
+                      type="button"
+                      className={`${styles.button} ${styles.buttonDanger}`}
+                      disabled={!hasActiveCover || isBusy}
+                      onClick={() => void handleRemoveCover()}
+                    >
+                      Cover entfernen
+                    </button>
+                  ) : null}
                 </div>
                 {hasActiveCover ? (
                   <div className={workspaceStyles.assetLinkRow}>
@@ -455,14 +457,16 @@ export function AnimeJellyfinAssetUploadControls({
                         <a className={`${styles.button} ${styles.buttonGhost}`} href={resolveApiUrl(item.url)} target="_blank" rel="noreferrer">
                           Öffnen
                         </a>
-                        <button
-                          type="button"
-                          className={`${styles.button} ${styles.buttonDanger}`}
-                          disabled={isBusy}
-                          onClick={() => void handleRemoveBackground(item.id)}
-                        >
-                          Entfernen
-                        </button>
+                        {isPlatformAdmin ? (
+                          <button
+                            type="button"
+                            className={`${styles.button} ${styles.buttonDanger}`}
+                            disabled={isBusy}
+                            onClick={() => void handleRemoveBackground(item.id)}
+                          >
+                            Entfernen
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   ))}
@@ -557,14 +561,16 @@ export function AnimeJellyfinAssetUploadControls({
                 : EDIT_UPLOAD_TARGETS[target].buttonLabel}
             </button>
           ) : null}
-          <button
-            type="button"
-            className={`${styles.button} ${styles.buttonDanger}`}
-            disabled={!asset || isBusy}
-            onClick={() => void handleRemoveSingularAsset(target)}
-          >
-            {EDIT_UPLOAD_TARGETS[target].removeLabel}
-          </button>
+          {isPlatformAdmin ? (
+            <button
+              type="button"
+              className={`${styles.button} ${styles.buttonDanger}`}
+              disabled={!asset || isBusy}
+              onClick={() => void handleRemoveSingularAsset(target)}
+            >
+              {EDIT_UPLOAD_TARGETS[target].removeLabel}
+            </button>
+          ) : null}
           {assetCards.find((item) => item.kind === kind)?.previewURL ? (
             <a
               className={`${styles.button} ${styles.buttonGhost}`}

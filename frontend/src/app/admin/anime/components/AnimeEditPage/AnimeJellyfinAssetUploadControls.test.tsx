@@ -84,6 +84,8 @@ describe('AnimeJellyfinAssetUploadControls - D-13 Anzeige-Berechtigung', () => {
 
     expect(await screen.findByRole('button', { name: 'Cover hochladen' })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Banner hochladen' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Cover entfernen' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Banner entfernen' })).not.toBeNull()
   })
 
   it('verbirgt die Upload-Steuerelemente vollständig, wenn getCurrentUser() is_platform_admin=false liefert', async () => {
@@ -102,6 +104,12 @@ describe('AnimeJellyfinAssetUploadControls - D-13 Anzeige-Berechtigung', () => {
 
     expect(screen.queryByRole('button', { name: 'Cover hochladen' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Banner hochladen' })).toBeNull()
+
+    // D-13 muss auch die "entfernen"-Steuerelemente der gleichen,
+    // platform-admin-only-Ressourcen verbergen, nicht nur die Upload-Seite —
+    // das Backend gated Assign UND Delete identisch über requirePlatformAdminIdentity.
+    expect(screen.queryByRole('button', { name: 'Cover entfernen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Banner entfernen' })).toBeNull()
 
     // Die Komponente darf nicht abstürzen und muss weiterhin einen sichtbaren,
     // nicht-leeren Zustand rendern (z.B. die Asset-Karten-Überschriften).
@@ -131,5 +139,45 @@ describe('AnimeJellyfinAssetUploadControls - D-13 Anzeige-Berechtigung', () => {
       releaseGetCurrentUser?.()
       await Promise.resolve()
     })
+  })
+
+  it('zeigt den "Entfernen"-Knopf einer persistierten Background-Galerie nur für Platform-Admins', async () => {
+    const backgroundAssetCards: AssetCardDescriptor[] = [
+      { key: 'backgrounds', title: 'Backgrounds', kind: 'backgrounds', hasIncoming: false },
+    ]
+    const backgroundPersistedAssets: AdminAnimeJellyfinContext['persisted_assets'] = {
+      backgrounds: [{ id: 1, url: '/media/background-1.jpg', ownership: 'manual', sort_order: 0 }],
+    }
+
+    function renderBackgroundControls() {
+      return render(
+        <AnimeJellyfinAssetUploadControls
+          animeID={42}
+          animeTitle="Testanime"
+          assetCards={backgroundAssetCards}
+          coverCurrentSource="none"
+          persistedAssets={backgroundPersistedAssets}
+          onSuccess={() => {}}
+          onError={() => {}}
+          onAfterMutation={async () => {}}
+        />,
+      )
+    }
+
+    apiMocks.getCurrentUser.mockResolvedValue({
+      data: { is_platform_admin: true },
+    })
+    renderBackgroundControls()
+    expect(await screen.findByRole('button', { name: 'Entfernen' })).not.toBeNull()
+    cleanup()
+
+    apiMocks.getCurrentUser.mockResolvedValue({
+      data: { is_platform_admin: false },
+    })
+    renderBackgroundControls()
+    await waitFor(() => {
+      expect(apiMocks.getCurrentUser).toHaveBeenCalledTimes(2)
+    })
+    expect(screen.queryByRole('button', { name: 'Entfernen' })).toBeNull()
   })
 })
