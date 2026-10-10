@@ -674,9 +674,12 @@ Table A1-A3 above lists genuine open implementation-detail choices (not verified
 surfaced for the planner's awareness, distinct from the package-provenance concern the `[ASSUMED]` tag
 is designed for.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact new action code string (`release_version_theme_asset.upload` vs. an alternative)**
+Both questions were resolved by the planner during `/gsd:plan-phase 179` — recorded here for
+traceability, no further input needed.
+
+1. **Exact new action code string (`release_version_theme_asset.upload` vs. an alternative)** — RESOLVED.
    - What we know: D-12 only specifies the *role list* must match `release_version_media.upload`
      exactly; it does not specify the exact string for the new action code.
    - What's unclear: Whether `release_version_theme_asset.upload` or some other name (e.g.
@@ -686,13 +689,17 @@ is designed for.
    - Recommendation: Use `release_version_theme_asset.upload` (mirrors `release_version_media.upload`
      most closely, since theme assets are a sibling concept to release-version media) unless the
      planner/user prefers otherwise - this is a pure naming choice with zero behavioral impact.
+   - **Chosen answer:** `release_version_theme_asset.upload` — the recommendation, adopted verbatim
+     in `179-01-PLAN.md` Task 1 (migration 0182).
 
-2. **D-13's exact frontend wiring mechanism (component self-fetch vs. gate-exposed context)**
+2. **D-13's exact frontend wiring mechanism (component self-fetch vs. gate-exposed context)** — RESOLVED.
    - What we know: Both are functionally correct and satisfy D-13's stated behavior-test requirement.
    - What's unclear: Which the user/planner prefers from a code-structure standpoint (see Pitfall 4).
    - Recommendation: Default to the component-self-fetch approach (lower blast radius, no change to
      the widely-used `PlatformAdminGate` component) unless the plan-checker or user flags a preference
      for the shared-context approach.
+   - **Chosen answer:** Component self-fetch — the recommendation, adopted verbatim in
+     `179-05-PLAN.md` Task 1.
 
 ## Environment Availability
 
