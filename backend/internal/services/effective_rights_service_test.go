@@ -85,6 +85,7 @@ func (effectiveRightsCacheLoaderStub) LoadRoleCapabilities(context.Context) (map
 			permissions.ActionReleaseVersionMediaUpdate,
 			permissions.ActionReleaseVersionMediaDelete,
 			permissions.ActionReleaseVersionMediaDeleteOwn,
+			permissions.ActionReleaseThemeAssetUpload,
 			permissions.ActionReleaseVersionNotesWrite,
 			permissions.ActionReleaseVersionNotesViewAll,
 			permissions.ActionReleaseVersionSegmentsManage,

@@ -669,6 +669,7 @@ func (releaseReviewDelegationCacheLoader) LoadRoleCapabilities(
 			permissions.ActionReleaseVersionMediaUpdate,
 			permissions.ActionReleaseVersionMediaDelete,
 			permissions.ActionReleaseVersionMediaDeleteOwn,
+			permissions.ActionReleaseThemeAssetUpload,
 			permissions.ActionReleaseVersionNotesWrite,
 			permissions.ActionReleaseVersionSegmentsManage,
 			permissions.ActionReviewTextDecide,

@@ -65,6 +65,7 @@ func fullValidCacheData() map[string][]Action {
 			ActionReleaseVersionMediaDelete,
 			ActionReleaseVersionMediaReorder,
 			ActionReleaseVersionMediaHighlight,
+			ActionReleaseThemeAssetUpload,
 			ActionReleaseVersionNotesWrite,
 			ActionReleaseVersionNotesViewAll,
 			ActionReleaseVersionSegmentsManage,

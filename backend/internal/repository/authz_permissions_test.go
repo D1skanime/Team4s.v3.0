@@ -233,6 +233,7 @@ func (authzRepositoryReviewCapabilityCacheLoaderStub) LoadRoleCapabilities(
 			permissions.ActionReleaseVersionMediaDeleteOwn,
 			permissions.ActionReleaseVersionMediaReorder,
 			permissions.ActionReleaseVersionMediaHighlight,
+			permissions.ActionReleaseThemeAssetUpload,
 			permissions.ActionReleaseVersionNotesWrite,
 			permissions.ActionReleaseVersionNotesViewAll,
 			permissions.ActionReleaseVersionSegmentsManage,

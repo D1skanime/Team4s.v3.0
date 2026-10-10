@@ -113,6 +113,7 @@ func (l membershipBaselineFillGapCacheLoader) LoadRoleCapabilities(ctx context.C
 		permissions.ActionAnimeFansubProjectTimelineUpdate,
 		permissions.ActionReleaseVersionSegmentsManage,
 		permissions.ActionReleaseVersionMetadataUpdate,
+		permissions.ActionReleaseThemeAssetUpload,
 		permissions.ActionReviewTextDecide,
 		permissions.ActionReviewImageDecide,
 		permissions.ActionReviewContributionDecide,
