@@ -2563,10 +2563,46 @@ Plans:
 
 ### Phase 179: Media-Backend & Rechte vereinheitlichen (F-15 Teil 1): eine Rechte-Prüfung je Upload-Aktion statt paralleler Ebenen (Permission-Matrix 1.2 Gruppenmedien-Upload, 1.4 fehlende Anzeige-Capability Anime-Assets, 1.6 eigene ActionReleaseThemeAssetUpload statt fremd genutzter Release-Medien-Aktion), gemeinsamer Soft-Delete-Helfer für Medien, extrahierte Theme-Asset-Persistenz — Grundlage für das gemeinsame Upload-Frontend in Phase 180
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Jede Medien-Upload-Aktion dieser Phase hat genau eine Rechte-Pruefung aus der
+Capability-Registry statt paralleler Ebenen (Permission-Matrix 1.2, 1.4, 1.6), Soft-Delete-SQL
+fuer Medien ist einmal statt zweimal implementiert, und die Theme-Asset-Persistenz ist nicht mehr
+duplikativ -- Grundlage fuer das gemeinsame Upload-Frontend in Phase 180.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung -- Decision-Coverage via D-01 bis D-14 in
+`179-CONTEXT.md` (alle 5 urspruenglich offenen Fragen beantwortet).
 **Depends on:** Phase 178
-**Plans:** 0 plans
+**Plans:** 6 plans across 3 waves
+
+  - Wave 1: 179-01 (capability-registry foundation: migration 0182 + ActionReleaseThemeAssetUpload
+    + repair of 9 hardcoded capability-catalog test fixtures, D-12), 179-03 (D-10 remove the
+    upload-only custom-permission fallback + real-Postgres regression), 179-04 (D-14 shared
+    soft-delete helper for fansub_group_media/release_version_media), 179-05 (D-13 frontend
+    isPlatformAdmin display flag for AnimeJellyfinAssetUploadControls)
+  - Wave 2: 179-02 (D-12 theme-asset handler action swap + persistence-tail extraction, depends on
+    179-01)
+  - Wave 3: 179-06 (full automated gate + migration fresh/down proof across the whole phase)
+
+**Plan-time read first**: `backend/internal/handlers/fansub_media_upload.go`,
+`backend/internal/handlers/fansub_media_delete.go`,
+`backend/internal/handlers/admin_content_release_theme_assets.go`,
+`backend/internal/repository/media_repository.go`,
+`backend/internal/repository/release_version_media_repository.go`,
+`backend/internal/permissions/permissions.go`,
+`frontend/src/app/admin/anime/components/AnimeEditPage/AnimeJellyfinAssetUploadControls.tsx`, and
+`.planning/phases/179-.../179-RESEARCH.md`/`179-PATTERNS.md`/`179-VALIDATION.md` as read-only
+analogs.
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 179 to break down)
+**Wave 1**
+
+- [ ] 179-01-PLAN.md -- Capability-registry foundation: migration 0182 + ActionReleaseThemeAssetUpload + repair 9 hardcoded capability-catalog test fixtures (D-12).
+- [ ] 179-03-PLAN.md -- Remove the upload-only custom-permission fallback + real-Postgres regression (D-10, D-11).
+- [ ] 179-04-PLAN.md -- Shared soft-delete helper for fansub_group_media/release_version_media (D-14).
+- [ ] 179-05-PLAN.md -- Frontend isPlatformAdmin display flag for AnimeJellyfinAssetUploadControls (D-13).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 179-02-PLAN.md -- Theme-asset handler action swap + persistence-tail extraction (D-12, D-06).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 179-06-PLAN.md -- Full automated gate + migration fresh/down proof across the whole phase.
