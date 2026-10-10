@@ -62,6 +62,9 @@ func (r *FansubRepository) ListGroups(
 	if err := r.attachGroupLinks(ctx, items); err != nil {
 		return nil, 0, err
 	}
+	if err := r.attachGroupAliases(ctx, items); err != nil {
+		return nil, 0, err
+	}
 
 	return items, total, nil
 }
@@ -641,6 +644,52 @@ func (r *FansubRepository) attachGroupLinks(ctx context.Context, items []models.
 	return nil
 }
 
+// attachGroupAliases loads every alias string stored for the given groups
+// in a single bulk-by-ID query (mirrors attachGroupLinks's shape exactly)
+// and appends each alias onto the matching items[i].Aliases slice, ordered
+// alphabetically. Groups with zero aliases keep Aliases as nil, not an
+// error.
+func (r *FansubRepository) attachGroupAliases(ctx context.Context, items []models.FansubGroup) error {
+	if len(items) == 0 {
+		return nil
+	}
+
+	ids := make([]int64, 0, len(items))
+	indexByID := make(map[int64]int, len(items))
+	for i := range items {
+		ids = append(ids, items[i].ID)
+		indexByID[items[i].ID] = i
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT fansub_group_id, alias
+		FROM fansub_group_aliases
+		WHERE fansub_group_id = ANY($1)
+		ORDER BY alias ASC
+	`, ids)
+	if err != nil {
+		return fmt.Errorf("query fansub group aliases: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var groupID int64
+		var alias string
+		if err := rows.Scan(&groupID, &alias); err != nil {
+			return fmt.Errorf("scan fansub group alias row: %w", err)
+		}
+		index, ok := indexByID[groupID]
+		if ok {
+			items[index].Aliases = append(items[index].Aliases, alias)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate fansub group alias rows: %w", err)
+	}
+
+	return nil
+}
+
 func (r *FansubRepository) hydrateFansubGroup(ctx context.Context, item *models.FansubGroup) error {
 	if item == nil {
 		return nil
@@ -651,6 +700,9 @@ func (r *FansubRepository) hydrateFansubGroup(ctx context.Context, item *models.
 		return err
 	}
 	if err := r.attachGroupLinks(ctx, groups); err != nil {
+		return err
+	}
+	if err := r.attachGroupAliases(ctx, groups); err != nil {
 		return err
 	}
 	*item = groups[0]

@@ -60,6 +60,7 @@ type FansubGroup struct {
 	ReleaseVersionsCount    int               `json:"release_versions_count"`
 	MembersCount            int               `json:"members_count"`
 	AliasesCount            int               `json:"aliases_count"`
+	Aliases                 []string          `json:"aliases,omitempty"`
 	CreatedAt               time.Time         `json:"created_at"`
 	UpdatedAt               time.Time         `json:"updated_at"`
 	Links                   []FansubGroupLink `json:"links,omitempty"`
