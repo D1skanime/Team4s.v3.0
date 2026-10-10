@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 178-01-PLAN.md (shared textFilter helper + EmptyState info variant)
-last_updated: "2026-10-10T08:43:08.925Z"
+stopped_at: Completed 178-02-PLAN.md (FansubGroup.Aliases bulk-load contract)
+last_updated: "2026-10-10T08:49:50.987Z"
 last_activity: 2026-10-10
 progress:
   total_phases: 43
   completed_phases: 37
   total_plans: 409
-  completed_plans: 400
+  completed_plans: 401
   percent: 86
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 178 (suchen-filtern-vereinheitlichen-f-16-ein-gemeinsamer-umlaut-) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -1611,11 +1611,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 177 P14 | 38min | 3 tasks | 7 files |
 | Phase 177 P08 | multi-session (3 Live-UAT rounds) | 2 tasks | 1 files |
 | Phase 178 P01 | 12min | 3 tasks | 6 files |
+| Phase 178 P02 | 15min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-10-10T08:43:08.900Z
-Stopped at: Completed 178-01-PLAN.md (shared textFilter helper + EmptyState info variant)
+Last session: 2026-10-10T08:49:50.958Z
+Stopped at: Completed 178-02-PLAN.md (FansubGroup.Aliases bulk-load contract)
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 
