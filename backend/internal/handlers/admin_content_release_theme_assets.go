@@ -192,7 +192,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 		themeReviewStatusCode = "approved"
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseThemeAssetUpload, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Release-Media-Berechtigung konnte nicht geprüft werden.")
 		return
@@ -339,7 +339,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 		themeRelReviewStatusCode = "approved"
 	}
 
-	result, err := h.permissionSvc.CanForRelease(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpload, releaseID)
+	result, err := h.permissionSvc.CanForRelease(c.Request.Context(), actor, permissions.ActionReleaseThemeAssetUpload, releaseID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Release-Media-Berechtigung konnte nicht geprüft werden.")
 		return

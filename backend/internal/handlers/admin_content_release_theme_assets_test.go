@@ -46,6 +46,35 @@ func (releaseThemeAssetDeniedResolverStub) ListActorContributionRolesForVersion(
 	return nil, nil
 }
 
+// releaseThemeAssetProjectLeadResolverStub mirrors releasePermissionResolverStub's shape
+// (a real, valid fansub-group/release scope so canForContext evaluates a genuine role-based
+// decision) but resolves the actor's group role as permissions.RoleProjectLead instead of
+// RoleFansubLead. Per app_auth_test.go's appAuthCapabilityCacheLoader fixture,
+// RoleProjectLead's role_capabilities bucket grants permissions.ActionReleaseVersionMediaUpload
+// (the action both handlers reused before this plan) but deliberately NOT
+// permissions.ActionReleaseThemeAssetUpload (the new, correctly-named action) -- proving the
+// handler swap has real effect, not just an additive grant.
+type releaseThemeAssetProjectLeadResolverStub struct{}
+
+func (releaseThemeAssetProjectLeadResolverStub) ResolveFansubGroup(_ context.Context, fansubGroupID int64) (*permissions.Context, error) {
+	return &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{fansubGroupID}}, nil
+}
+func (releaseThemeAssetProjectLeadResolverStub) ResolveRelease(_ context.Context, _ int64) (*permissions.Context, error) {
+	return &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{5}}, nil
+}
+func (releaseThemeAssetProjectLeadResolverStub) ResolveReleaseVersion(_ context.Context, _ int64) (*permissions.Context, error) {
+	return &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{5}}, nil
+}
+func (releaseThemeAssetProjectLeadResolverStub) ResolveReleaseVersionMedia(_ context.Context, _ int64) (*permissions.Context, error) {
+	return &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{5}}, nil
+}
+func (releaseThemeAssetProjectLeadResolverStub) ListActorGroupRoles(_ context.Context, _ int64, _ int64) ([]string, error) {
+	return []string{permissions.RoleProjectLead}, nil
+}
+func (releaseThemeAssetProjectLeadResolverStub) ListActorContributionRolesForVersion(_ context.Context, _ int64, _ int64) ([]string, error) {
+	return nil, nil
+}
+
 // releaseThemeAssetRepoStub implements the full adminThemeRepository interface (a package-
 // local interface already used elsewhere for exactly this kind of fake, e.g.
 // fansubReleaseThemeRepoStub in admin_content_fansub_releases_test.go). Only the methods this
@@ -479,6 +508,17 @@ func TestReleaseThemeAsset_UsesFansubPermissionsForUploadAndDelete(t *testing.T)
 		require.Equal(t, http.StatusBadRequest, rec.Code, "expected the file-missing 400 past the permission gate, got: "+rec.Body.String())
 	})
 
+	t.Run("UploadReleaseThemeAsset denies an actor whose only action is the old release_version_media.upload", func(t *testing.T) {
+		h := newHandler(func(h *AdminContentHandler) {
+			h.permissionSvc = permissions.NewService(releaseThemeAssetProjectLeadResolverStub{})
+			h.mediaService = services.NewMediaService(t.TempDir(), "")
+		})
+		req := releaseThemeAssetUploadRequest(t, "/api/v1/admin/fansubs/41/anime/61/theme-assets", "11", nil, false)
+		c, rec := releaseThemeAssetContext(req, gin.Params{{Key: "fansubId", Value: "41"}, {Key: "animeId", Value: "61"}}, allowedNonAdminIdentity)
+		h.UploadReleaseThemeAsset(c)
+		require.Equal(t, http.StatusForbidden, rec.Code, "RoleProjectLead holds release_version_media.upload but not release_version_theme_asset.upload, so the swapped handler must deny: "+rec.Body.String())
+	})
+
 	t.Run("UploadReleaseThemeAssetForRelease denies without release permission", func(t *testing.T) {
 		h := newHandler(func(h *AdminContentHandler) {
 			h.permissionSvc = permissions.NewService(releaseThemeAssetDeniedResolverStub{})
@@ -500,6 +540,17 @@ func TestReleaseThemeAsset_UsesFansubPermissionsForUploadAndDelete(t *testing.T)
 		h.UploadReleaseThemeAssetForRelease(c)
 		require.NotEqual(t, http.StatusForbidden, rec.Code, rec.Body.String())
 		require.Equal(t, http.StatusBadRequest, rec.Code, "expected the file-missing 400 past the permission gate, got: "+rec.Body.String())
+	})
+
+	t.Run("UploadReleaseThemeAssetForRelease denies an actor whose only action is the old release_version_media.upload", func(t *testing.T) {
+		h := newHandler(func(h *AdminContentHandler) {
+			h.permissionSvc = permissions.NewService(releaseThemeAssetProjectLeadResolverStub{})
+			h.mediaService = services.NewMediaService(t.TempDir(), "")
+		})
+		req := releaseThemeAssetUploadRequest(t, "/api/v1/admin/releases/701/theme-assets", "12", nil, false)
+		c, rec := releaseThemeAssetContext(req, gin.Params{{Key: "releaseId", Value: "701"}}, allowedNonAdminIdentity)
+		h.UploadReleaseThemeAssetForRelease(c)
+		require.Equal(t, http.StatusForbidden, rec.Code, "RoleProjectLead holds release_version_media.upload but not release_version_theme_asset.upload, so the swapped handler must deny: "+rec.Body.String())
 	})
 
 	t.Run("DeleteReleaseThemeAsset denies without release permission", func(t *testing.T) {

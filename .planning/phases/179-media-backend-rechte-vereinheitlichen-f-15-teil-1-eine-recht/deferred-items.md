@@ -94,6 +94,36 @@ Scope Boundary rule instead of being fixed inline.
   A future plan should add `display_name`/`preferred_username` to `app_users` and `username` to
   `users` in `openReleaseVersionMediaReplaceFixture`.
 
+## 8. `TestSearchBypass*`/`TestSearchNeverReturnsNullItemsForUnsearchedEntity` fail once `TEAM4S_PHASE106_TEST_DSN` is actually set (Plan 179-02)
+
+- **Files:** `backend/internal/handlers/search_bypass_integration_test.go`
+  (`TestSearchBypassTagOnlyFindsGermanTagTranslation`,
+  `TestSearchBypassTagOnlyTypeAlleFansubStaysEmpty`,
+  `TestSearchBypassRejectsMissingQueryWithNonTagGenreFilterEndToEnd`,
+  `TestSearchNeverReturnsNullItemsForUnsearchedEntity`)
+- **Symptom:** `status = 500 ... "code":"db_schema_mismatch","details":"Datenbank-Schema ist
+  unvollstaendig oder Tabelle fehlt. Suche konnte nicht geladen werden."`
+- **Root cause:** These tests are also gated by `testsupport.OpenPhase106Postgres`'s
+  `TEAM4S_PHASE106_TEST_DSN` opt-in and therefore normally run as `SKIP` (not `FAIL`) in prior
+  phases' `go test ./...` baselines, exactly like this plan's own two persistence tests before
+  Plan 179-02 set the DSN to prove them for real. Plan 179-02 is the first plan in Phase 179 to
+  export `TEAM4S_PHASE106_TEST_DSN` for a *full* `go test ./...` run (rather than only a
+  `-run`-scoped one), which surfaces this pre-existing, unrelated fixture/schema issue that was
+  previously hidden behind the SKIP gate.
+- **Verified pre-existing and unrelated to Plan 179-02's changes:** `git log --oneline` on
+  `search_bypass_integration_test.go` shows its last change was commit `cea49488` (`fix(160):
+  search crash, tag divider and display-name sort`), long before Phase 179 started; Plan 179-02
+  touches only `admin_content_release_theme_assets*.go` and
+  `admin_content_fansub_releases_test.go` (theme-asset upload permission/persistence code),
+  which the search subsystem never calls. Confirmed by running `go test ./... ` both with and
+  without `TEAM4S_PHASE106_TEST_DSN` set: without it, these 4 tests simply do not appear in the
+  failure list (they `SKIP`, matching the pre-179-02 baseline exactly); with it, the only new
+  failures introduced are these 4 pre-existing search tests — no `ReleaseThemeAsset`-related
+  test regresses in either run.
+- **Action:** Not fixed in this plan (out of scope per Scope Boundary — pre-existing, unrelated
+  subsystem). A future plan should repair `openSearchBypassFixture`'s isolated schema to match
+  whatever the search repository's current SELECT actually requires.
+
 ## 7. `TestRVMHandler_ProzessmedienDefaults` panics the whole `internal/repository` test binary (nil `auditLogRepo`)
 
 - **Files:** `backend/internal/repository/release_version_media_cross_package_test.go` (test),
