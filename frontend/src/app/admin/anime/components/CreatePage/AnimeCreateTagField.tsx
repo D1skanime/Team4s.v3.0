@@ -99,7 +99,7 @@ export function AnimeCreateTagField({
       ) : null}
       {error ? (
         <p className={styles.hint}>
-          Hinweis: Tag-Vorschläge konnten nicht vollstaendig geladen werden.
+          Hinweis: Tag-Vorschläge konnten nicht vollständig geladen werden.
         </p>
       ) : null}
       <div aria-label="Tag Vorschläge">
