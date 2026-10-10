@@ -7,7 +7,6 @@ import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import {
   ApiError,
   deleteFansubGroup,
-  getFansubAliases,
   getFansubList,
   getFansubMembers,
   updateFansubGroup,
@@ -32,6 +31,7 @@ import {
   type FansubSortDirection,
   type FansubSortKey,
 } from "./fansubListSort";
+import { filterFansubPageItems } from "./fansubPageFilter";
 import { FansubSortHeaderCell } from "./FansubSortHeaderCell";
 
 import sharedStyles from "../admin.module.css";
@@ -84,9 +84,6 @@ function AdminFansubsContent() {
   const [memberCounts, setMemberCounts] = useState<
     Record<number, number | null>
   >({});
-  const [aliasesByGroup, setAliasesByGroup] = useState<
-    Record<number, string[] | null>
-  >({});
   const [queryInput, setQueryInput] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -125,7 +122,6 @@ function AdminFansubsContent() {
       setItems(allItems);
       setSelectedIDs(new Set<number>());
       setMemberCounts({});
-      setAliasesByGroup({});
     } catch (error) {
       setErrorMessage(formatError(error));
     } finally {
@@ -144,27 +140,10 @@ function AdminFansubsContent() {
     return () => window.clearTimeout(timeoutID);
   }, [queryInput]);
 
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      const statusMatches =
-        statusFilter === "all"
-          ? true
-          : statusFilter === "archived"
-            ? item.status === "dissolved"
-            : item.status === statusFilter;
-
-      if (!statusMatches) return false;
-      if (!query) return true;
-
-      const name = item.name.toLowerCase();
-      const slug = item.slug.toLowerCase();
-      const aliases = aliasesByGroup[item.id] ?? [];
-      const aliasMatches = aliases.some((alias) =>
-        alias.toLowerCase().includes(query),
-      );
-      return name.includes(query) || slug.includes(query) || aliasMatches;
-    });
-  }, [aliasesByGroup, items, query, statusFilter]);
+  const filteredItems = useMemo(
+    () => filterFansubPageItems(items, { statusFilter, query }),
+    [items, statusFilter, query],
+  );
 
   const sortedItems = useMemo(() => {
     const next = [...filteredItems];
@@ -233,43 +212,6 @@ function AdminFansubsContent() {
       cancelled = true;
     };
   }, [memberCounts, pagedItems]);
-
-  useEffect(() => {
-    const unresolved = pagedItems.filter(
-      (item) => aliasesByGroup[item.id] === undefined,
-    );
-    if (unresolved.length === 0) return;
-
-    let cancelled = false;
-    void Promise.all(
-      unresolved.map(async (item) => {
-        try {
-          const response = await getFansubAliases(item.id);
-          return {
-            id: item.id,
-            aliases: response.data.map((entry) => entry.alias) as
-              | string[]
-              | null,
-          };
-        } catch {
-          return { id: item.id, aliases: null as string[] | null };
-        }
-      }),
-    ).then((entries) => {
-      if (cancelled) return;
-      setAliasesByGroup((prev) => {
-        const next = { ...prev };
-        entries.forEach((entry) => {
-          if (next[entry.id] === undefined) next[entry.id] = entry.aliases;
-        });
-        return next;
-      });
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [aliasesByGroup, pagedItems]);
 
   function toggleSort(nextSortKey: SortKey) {
     if (sortKey === nextSortKey) {
@@ -598,7 +540,7 @@ function AdminFansubsContent() {
               <TableBody>
                 {pagedItems.map((item) => {
                   const count = memberCounts[item.id];
-                  const aliases = aliasesByGroup[item.id] ?? [];
+                  const aliases = item.aliases ?? [];
                   const primaryAlias = aliases.length > 0 ? aliases[0] : null;
                   const badgeClass =
                     item.status === "active"
@@ -684,7 +626,7 @@ function AdminFansubsContent() {
             <div className={styles.fansubMobileList}>
               {pagedItems.map((item) => {
                 const count = memberCounts[item.id];
-                const aliases = aliasesByGroup[item.id] ?? [];
+                const aliases = item.aliases ?? [];
                 const primaryAlias = aliases.length > 0 ? aliases[0] : null;
                 const badgeClass =
                   item.status === "active"
