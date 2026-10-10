@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 178-04-PLAN.md
-last_updated: "2026-10-10T09:07:08.980Z"
+stopped_at: Completed 178-05-PLAN.md
+last_updated: "2026-10-10T09:12:47.084Z"
 last_activity: 2026-10-10
 progress:
   total_phases: 43
   completed_phases: 37
   total_plans: 409
-  completed_plans: 403
+  completed_plans: 404
   percent: 86
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 178 (suchen-filtern-vereinheitlichen-f-16-ein-gemeinsamer-umlaut-) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -992,6 +992,7 @@ Last activity: 2026-10-10
 - [Phase 178]: EmptyState 'info' variant reuses the existing .stateInfo CSS tone already proven by LoadingState.tsx — no new CSS
 - [Phase 178]: fansubPageFilter spreads item.aliases directly into matchesSearch haystack (per-alias matching, consistent with 178-03's filterAdminGroups) — Keeps alias search semantics identical across both filter sites without pre-joining to a string
 - [Phase 178]: fetchLimitReached compares first page's meta.total to final accumulated length inside loadList's single pagination loop — Matches the existing single-status loop shape of this site while staying consistent with the D-16 hint pattern established in 178-03
+- [Phase 178]: D-18 Kuerzel/Alias merge-scoring tiers placed strictly below equivalent-specificity name/slug tiers (178-05)
 
 ### Pending Todos
 
@@ -1616,10 +1617,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 178 P02 | 15min | 2 tasks | 5 files |
 | Phase 178 P03 | 15min | 2 tasks | 3 files |
 | Phase 178 P04 | 6min | 2 tasks | 4 files |
+| Phase 178 P05 | 15min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-10T09:07:08.958Z
-Stopped at: Completed 178-04-PLAN.md
+Last session: 2026-10-10T09:12:47.059Z
+Stopped at: Completed 178-05-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
+None
