@@ -34,3 +34,19 @@ All three are sandbox/environment-path-dependent and unrelated to this plan's fi
 out of scope per the executor scope boundary (pre-existing failures in unrelated files). Not
 fixed. The scoped test run (`npx vitest run src/app/admin/groups/`) and `npm run build` both pass
 cleanly.
+
+## 178-06: Same pre-existing unrelated `vitest run` (full-suite) failures recur
+
+Two consecutive full-suite runs (`cd frontend && npx vitest run`) after 178-06's changes again
+show 3 failed test files, none touching `frontend/src/app/admin/anime/hooks/`,
+`frontend/src/app/admin/anime/create/`, or `frontend/src/app/admin/anime/components/CreatePage/`:
+
+- Run 1: `src/app/dev/ui-system/showcase/AchievementBadgeShowcase.test.tsx` (test timeout)
+- Run 2: `src/components/profile/badgeArtwork.test.ts`, `src/components/ui/ResponsiveImage.config.test.ts`,
+  `src/app/admin/roles/RoleCapabilityDetail.membershipBaselineDrift.test.ts` — the exact same three
+  files already logged under 178-03 above
+
+The differing failure set between the two runs (timeout-sensitive vs. environment-path-dependent)
+confirms these are flaky/sandbox-resource-contention failures in unrelated files, not a regression
+introduced by this plan. The scoped test run (`npx vitest run src/app/admin/anime`, 491/491 passing)
+and `npm run build` both pass cleanly. Out of scope per the executor scope boundary. Not fixed.
