@@ -412,6 +412,73 @@ func TestReleaseThemeAsset_InsertMediaFileCalled(t *testing.T) {
 	})
 }
 
+// TestReleaseThemeAsset_PersistsResolvedReleaseIDPerCallSite proves, via a real httptest call
+// through each handler and a captured CreateReleaseThemeAsset input, that the shared
+// persistReleaseThemeAsset method (admin_content_release_theme_assets_persist.go, extracted by
+// D-06) receives the correct releaseID from each call site: UploadReleaseThemeAsset resolves it
+// via GetCanonicalFansubAnimeRelease (the fansub-group entry point), while
+// UploadReleaseThemeAssetForRelease passes its own path parameter directly (the release entry
+// point) -- a real-execution replacement for the source-grep assertions this test used to make.
+func TestReleaseThemeAsset_PersistsResolvedReleaseIDPerCallSite(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	identity := releaseThemeAssetPlatformAdminIdentity()
+
+	t.Run("UploadReleaseThemeAsset", func(t *testing.T) {
+		pool := openReleaseThemeAssetMediaFixture(t)
+		releaseID := int64(701)
+		var captured models.AdminReleaseThemeAssetCreateInput
+		themeRepo := &releaseThemeAssetRepoStub{
+			getCanonicalFansubAnimeRelease: func(context.Context, int64, int64) (*int64, error) { return &releaseID, nil },
+			createReleaseThemeAsset: func(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error) {
+				captured = input
+				return &models.AdminReleaseThemeAsset{ReleaseID: input.ReleaseID, ThemeID: input.ThemeID, MediaID: input.MediaID}, nil
+			},
+		}
+		handler := &AdminContentHandler{
+			permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
+			themeRepo:     themeRepo,
+			mediaRepo:     repository.NewMediaRepository(pool, ""),
+			mediaService:  services.NewMediaService(t.TempDir(), ""),
+		}
+
+		req := releaseThemeAssetUploadRequest(t, "/api/v1/admin/fansubs/41/anime/61/theme-assets", "11", validMP4Bytes, true)
+		c, rec := releaseThemeAssetContext(req,
+			gin.Params{{Key: "fansubId", Value: "41"}, {Key: "animeId", Value: "61"}}, identity)
+
+		handler.UploadReleaseThemeAsset(c)
+
+		require.Equal(t, http.StatusCreated, rec.Code, rec.Body.String())
+		require.Equal(t, releaseID, captured.ReleaseID)
+		require.Equal(t, int64(11), captured.ThemeID)
+	})
+
+	t.Run("UploadReleaseThemeAssetForRelease", func(t *testing.T) {
+		pool := openReleaseThemeAssetMediaFixture(t)
+		var captured models.AdminReleaseThemeAssetCreateInput
+		themeRepo := &releaseThemeAssetRepoStub{
+			createReleaseThemeAsset: func(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error) {
+				captured = input
+				return &models.AdminReleaseThemeAsset{ReleaseID: input.ReleaseID, ThemeID: input.ThemeID, MediaID: input.MediaID}, nil
+			},
+		}
+		handler := &AdminContentHandler{
+			permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
+			themeRepo:     themeRepo,
+			mediaRepo:     repository.NewMediaRepository(pool, ""),
+			mediaService:  services.NewMediaService(t.TempDir(), ""),
+		}
+
+		req := releaseThemeAssetUploadRequest(t, "/api/v1/admin/releases/701/theme-assets", "12", validMP4Bytes, true)
+		c, rec := releaseThemeAssetContext(req, gin.Params{{Key: "releaseId", Value: "701"}}, identity)
+
+		handler.UploadReleaseThemeAssetForRelease(c)
+
+		require.Equal(t, http.StatusCreated, rec.Code, rec.Body.String())
+		require.Equal(t, int64(701), captured.ReleaseID)
+		require.Equal(t, int64(12), captured.ThemeID)
+	})
+}
+
 // TestReleaseThemeAsset_InsertMediaFileRollback proves, via a real InsertMediaFile UNIQUE-
 // constraint violation (a genuinely failing SQL statement, not a simulated error), that
 // UploadReleaseThemeAssetForRelease rolls back the just-created media_assets row by calling

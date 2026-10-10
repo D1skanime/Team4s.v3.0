@@ -279,34 +279,13 @@ func TestAdminFansubReleases_RoutesRegistered(t *testing.T) {
 	}
 }
 
-func TestAdminFansubReleases_DirectReleaseThemeUploadHandlerExists(t *testing.T) {
-	// Plan 179-02 (D-06) extracted the CreateReleaseThemeAsset call-site (previously
-	// duplicated inline in this handler) into a new shared persistReleaseThemeAsset method
-	// living in admin_content_release_theme_assets_persist.go. The handler file itself still
-	// carries the method name and its own direct (non-dereferenced) releaseID call argument;
-	// the shared AdminReleaseThemeAssetCreateInput construction now lives in the persist file.
-	handlerContent := strings.ToLower(readFansubReleaseHandlerSource(t, "admin_content_release_theme_assets.go"))
-	handlerRequired := []string{
-		"uploadreleasethemeassetforrelease",
-		"releaseid,",
-	}
-	for _, needle := range handlerRequired {
-		if !strings.Contains(handlerContent, needle) {
-			t.Fatalf("expected %q in direct release theme upload handler", needle)
-		}
-	}
-
-	persistContent := strings.ToLower(readFansubReleaseHandlerSource(t, "admin_content_release_theme_assets_persist.go"))
-	persistRequired := []string{
-		"adminreleasethemeassetcreateinput{",
-		"releaseid: releaseid",
-	}
-	for _, needle := range persistRequired {
-		if !strings.Contains(persistContent, needle) {
-			t.Fatalf("expected %q in shared release theme asset persistence method", needle)
-		}
-	}
-}
+// Note: the source-grep check that used to live here
+// (TestAdminFansubReleases_DirectReleaseThemeUploadHandlerExists) was replaced by
+// TestReleaseThemeAsset_PersistsResolvedReleaseIDPerCallSite in
+// admin_content_release_theme_assets_test.go, which exercises both handlers through a real
+// httptest call and asserts on the resolved releaseID each one passes into the shared
+// persistReleaseThemeAsset method, instead of grepping source text for struct-literal
+// substrings (CLAUDE.md Teststil).
 
 func TestAdminFansubReleases_ListFansubAnimeAllowsFansubLead(t *testing.T) {
 	gin.SetMode(gin.TestMode)
