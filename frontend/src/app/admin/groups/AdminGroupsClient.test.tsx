@@ -219,6 +219,31 @@ describe('AdminGroupsClient', () => {
     expect(calls).toContain('/admin/groups?group=7&tab=users')
     expect(calls).not.toContain('/admin/fansubs')
   })
+
+  it('zeigt den Abrufgrenze-Hinweis, wenn eine Status-Seite mehr Treffer meldet als geladen wurden', async () => {
+    const baseCounts = {
+      anime_relations_count: 0,
+      projects_count: 0,
+      release_versions_count: 0,
+      members_count: 0,
+      aliases_count: 0,
+      created_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+    } as const
+    const emptyMeta = { page: 1, per_page: 500, total: 0, total_pages: 1 } as const
+
+    vi.mocked(getFansubList)
+      .mockResolvedValueOnce({
+        data: [{ id: 5, name: 'New-Subs', slug: 'new-subs', status: 'active', ...baseCounts }],
+        meta: { page: 1, per_page: 500, total: 2, total_pages: 1 },
+      })
+      .mockResolvedValueOnce({ data: [], meta: emptyMeta })
+      .mockResolvedValueOnce({ data: [], meta: emptyMeta })
+
+    render(<AdminGroupsClient />)
+
+    expect(await screen.findByText('Abrufgrenze erreicht')).not.toBeNull()
+  })
 })
 
   it('rendert deutsche Gruppentexte ohne Ersatzzeichen', async () => {

@@ -107,21 +107,9 @@ function AdminFansubsContent() {
 
     try {
       const perPage = 500;
-      let currentPage = 1;
-      let totalPages = 1;
-      let firstPageTotal = 0;
-      const allItems: FansubGroup[] = [];
-
-      do {
-        const response = await getFansubList({
-          page: currentPage,
-          per_page: perPage,
-        });
-        if (currentPage === 1) firstPageTotal = response.meta.total;
-        allItems.push(...response.data);
-        totalPages = response.meta.total_pages || 1;
-        currentPage += 1;
-      } while (currentPage <= totalPages);
+      const response = await getFansubList({ page: 1, per_page: perPage });
+      const firstPageTotal = response.meta.total;
+      const allItems: FansubGroup[] = response.data;
 
       setFetchLimitReached(allItems.length < firstPageTotal);
       setItems(allItems);

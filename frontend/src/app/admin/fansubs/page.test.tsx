@@ -115,4 +115,34 @@ describe("AdminFansubsPage", () => {
       within(table).getByLabelText("Edit Sakura Subs").getAttribute("href"),
     ).toBe("/admin/fansubs/88/edit");
   });
+
+  it("renders the fetch-limit warning when the first page total exceeds the loaded items", async () => {
+    mockPlatformAdmin();
+    apiMocks.getFansubList.mockResolvedValue({
+      data: [
+        {
+          id: 88,
+          slug: "sakura-subs",
+          name: "Sakura Subs",
+          kuerzel: "BDnP",
+          status: "active",
+          founded_year: 2004,
+          dissolved_year: null,
+          anime_relations_count: 0,
+          release_versions_count: 0,
+          members_count: 0,
+          aliases_count: 1,
+          aliases: ["SAK"],
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      meta: { page: 1, per_page: 500, total: 501, total_pages: 2 },
+    });
+    apiMocks.getFansubMembers.mockResolvedValue({ data: [{ id: 1 }] });
+
+    render(<AdminFansubsPage />);
+
+    expect(await screen.findByText("Abrufgrenze erreicht")).toBeTruthy();
+  });
 });

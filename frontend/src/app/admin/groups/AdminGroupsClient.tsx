@@ -365,22 +365,12 @@ export function AdminGroupsClient() {
       let aggregatedFetched = 0
 
       for (const status of statuses) {
-        let page = 1
-        let totalPages = 1
-        let statusTotal = 0
-        let statusFetched = 0
-        do {
-          const response = await getFansubList({ page, per_page: perPage, status })
-          for (const group of response.data) {
-            byId.set(group.id, group)
-          }
-          statusFetched += response.data.length
-          if (page === 1) statusTotal = response.meta.total
-          totalPages = response.meta.total_pages || 1
-          page += 1
-        } while (page <= totalPages)
-        aggregatedTotal += statusTotal
-        aggregatedFetched += statusFetched
+        const response = await getFansubList({ page: 1, per_page: perPage, status })
+        for (const group of response.data) {
+          byId.set(group.id, group)
+        }
+        aggregatedFetched += response.data.length
+        aggregatedTotal += response.meta.total
       }
 
       setFetchLimitReached(aggregatedFetched < aggregatedTotal)
