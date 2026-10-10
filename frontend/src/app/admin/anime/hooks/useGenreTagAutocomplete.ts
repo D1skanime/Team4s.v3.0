@@ -47,8 +47,15 @@ export function filterAutocompleteSuggestions<T extends NamedToken>(
   })
 }
 
+// Once the admin starts typing, show more matches than the idle/empty-draft
+// limit allows so a narrowed-down search isn't truncated too aggressively.
+// Deliberately decoupled from `genreSuggestionLimit`/`tagSuggestionLimit`
+// (currently 40 in both calling hooks) — raising those defaults does not
+// require raising this floor, and vice versa.
+const SEARCH_RESULT_EXPANSION_FLOOR = 80
+
 export function limitAutocompleteSuggestions<T>(filtered: T[], draft: string, limit: number): T[] {
-  const effectiveLimit = draft.trim().length > 0 ? Math.max(80, limit) : limit
+  const effectiveLimit = draft.trim().length > 0 ? Math.max(SEARCH_RESULT_EXPANSION_FLOOR, limit) : limit
   return filtered.slice(0, effectiveLimit)
 }
 
