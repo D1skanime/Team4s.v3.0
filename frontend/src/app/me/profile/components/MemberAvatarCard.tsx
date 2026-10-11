@@ -4,7 +4,7 @@ import type { RefObject } from 'react'
 import { Crop, ImageUp } from 'lucide-react'
 
 import { AvatarCropDialog } from '@/components/media/crop/AvatarCropDialog'
-import { Button } from '@/components/ui'
+import { Button, UploadDropzone } from '@/components/ui'
 import type { MemberProfileData } from '@/types/profile'
 
 import styles from '../page.module.css'
@@ -167,6 +167,19 @@ export function MemberAvatarCard({
             </Button>
           ) : null}
         </div>
+        <UploadDropzone
+          onFilesSelected={(files) => {
+            const file = files[0]
+            if (!file) return
+            void handleSelectedFile(file)
+          }}
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple={false}
+          allowDrop={true}
+          disabled={isUploading || isPreparingExistingAvatar || !canUpload}
+          density="compact"
+          promptLabel={isUploading ? 'Bild lädt...' : isCompact ? 'Ändern' : avatarURL ? 'Bild ändern' : 'Bild hochladen'}
+        />
         <p id={uploadHintID} className={styles.mutedText}>
           Wähle ein Avatar-Bild als JPG, PNG, WEBP, animiertes WebP oder animiertes GIF.
         </p>

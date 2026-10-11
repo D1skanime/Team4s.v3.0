@@ -6,7 +6,7 @@ import type { RefObject } from 'react'
 import { Crop, ImageUp } from 'lucide-react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
-import { Button } from '@/components/ui'
+import { Button, UploadDropzone } from '@/components/ui'
 import { apiClientFetch } from '@/lib/api'
 import type { MemberProfileData } from '@/types/profile'
 
@@ -59,6 +59,12 @@ export function ProfileBackgroundCard({
   const uploadHintID = 'profile-background-upload-hint'
   const canEditExistingBackground = Boolean(canUpload && sourceBackgroundURL)
   const isCompact = variant === 'compact'
+
+  function handleSelectedFile(file: File) {
+    if (!canUpload || isUploading || isPreparingExistingBackground) return
+    setLocalError(null)
+    setSelectedFile(file)
+  }
 
   async function handleEditExistingBackground() {
     if (!canEditExistingBackground || isUploading || isPreparingExistingBackground) return
@@ -117,6 +123,19 @@ export function ProfileBackgroundCard({
             </Button>
           ) : null}
         </div>
+        <UploadDropzone
+          onFilesSelected={(files) => {
+            const file = files[0]
+            if (!file) return
+            handleSelectedFile(file)
+          }}
+          accept="image/jpeg,image/png,image/webp"
+          multiple={false}
+          allowDrop={true}
+          disabled={isUploading || isPreparingExistingBackground || !canUpload}
+          density="compact"
+          promptLabel={isUploading ? 'Bild lädt...' : isCompact ? 'Ändern' : backgroundURL ? 'Hintergrundbild ändern' : 'Hintergrundbild hochladen'}
+        />
         <p id={uploadHintID} className={styles.mutedText}>
           Wähle ein breites JPG, PNG oder WEBP. Der Ausschnitt wird als Profil-Banner gespeichert.
         </p>
@@ -130,9 +149,8 @@ export function ProfileBackgroundCard({
         onChange={(event) => {
           const file = event.target.files?.[0] ?? null
           event.currentTarget.value = ''
-          if (!file || !canUpload || isUploading || isPreparingExistingBackground) return
-          setLocalError(null)
-          setSelectedFile(file)
+          if (!file) return
+          handleSelectedFile(file)
         }}
         disabled={isUploading || isPreparingExistingBackground || !canUpload}
         className={styles.visuallyHiddenInput}
