@@ -220,6 +220,10 @@ migration task, not guess from this table.
 
 ## Interaction & State Contract
 
+- **Primary visual anchor (Checker Dimension 2 follow-up):** Before any file is queued, the idle
+  `UploadDropzone` prompt is the primary visual anchor on the upload screen. Once at least one
+  file is queued, the anchor shifts to the „Upload starten"-Button (primary accent CTA) — the
+  dropzone recedes to a secondary "add more files" affordance beneath the queue.
 - **D-09 (Drag&Drop):** One `UploadDropzone` implementation replaces the two near-identical
   `onDrop`/`onDragOver` handlers in `ReleaseVersionMediaSection.tsx:283-306` and
   `GroupMediaReviewUploadPanel.tsx:87-95`. Click-to-pick always works regardless of `allowDrop`.
