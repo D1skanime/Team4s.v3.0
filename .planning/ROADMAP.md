@@ -2613,9 +2613,12 @@ Plans:
 geteilter Orchestrierungs-Hook (`useUploadQueue`) ersetzen sechs unabhängige Upload-Implementierungen;
 Weg 1 (Release-Medien) und Weg 2 (Gruppenmedien) laufen funktional über denselben Baustein
 (Mehrfachauswahl-Merge statt Ersetzen, optionale Pro-Datei-Felder, Einzel-Retry), alle acht Upload-Wege
-teilen sich die Präsentations-Primitives, und Weg 4 (Anime-Assets) gewinnt echtes Drag&Drop.
-**Requirements**: Keine REQUIREMENTS.md-Zuordnung — Decision-Coverage via D-01 bis D-16 in
-`180-CONTEXT.md` (alle 5 ursprünglich offenen Fragen plus 3 Recherche-Weichen beantwortet).
+teilen sich die Präsentations-Primitives, und echtes Drag&Drop ist auf allen acht Wegen aktiv
+(ursprünglich nur für Weg 4 geplant, D-16; von D-17 auf alle Wege verallgemeinert, Nutzerkorrektur
+2026-10-11).
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung — Decision-Coverage via D-01 bis D-17 in
+`180-CONTEXT.md` (alle 5 ursprünglich offenen Fragen plus 3 Recherche-Weichen plus 1
+Nutzerkorrektur nach Planungsbeginn beantwortet).
 **Depends on:** Phase 179
 **Plans:** 12 plans across 3 waves
 
@@ -2625,10 +2628,12 @@ teilen sich die Präsentations-Primitives, und Weg 4 (Anime-Assets) gewinnt echt
     + Grid/EditDrawer-Extraktion), 180-06 (Weg-2-Strukturaufteilung: useGroupMediaReviewFilters-Hook)
   - Wave 2: 180-05 (Weg-1-Upload-Verdrahtung auf die geteilten Primitives/Hook, depends on 180-01/02/04),
     180-07 (Weg-2-Upload-Migration inkl. D-03-Altlast-Entfernung, depends on 180-01/02/03/06),
-    180-08 (Weg 3 + Weg 7 präsentational, depends on 180-01), 180-09 (Weg 5 + Weg 8 präsentational,
-    depends on 180-01), 180-10 (Weg 6 präsentational, depends on 180-01), 180-11 (Weg 4 D-16
+    180-08 (Weg 3 + Weg 7 präsentational + D-17 Drag&Drop für Weg 7, depends on 180-01), 180-09
+    (Weg 5 + Weg 8 präsentational + D-17 Drag&Drop für beide, depends on 180-01), 180-10 (Weg 6
+    präsentational + D-17 Drag&Drop für beide Einstiege, depends on 180-01), 180-11 (Weg 4 D-16
     Drag&Drop-Verhaltenszugewinn, depends on 180-01)
-  - Wave 3: 180-12 (voller automatisierter Gate-Lauf + Live-UAT-Checkpoint für D-13/D-16)
+  - Wave 3: 180-12 (voller automatisierter Gate-Lauf + Live-UAT-Checkpoint für D-13 und D-16/D-17
+    Drag&Drop auf allen acht Wegen)
 
 **Plan-time read first**: `frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx`,
 `ReleaseVersionMediaUploadQueue.tsx`, `useReleaseVersionMedia.ts`,
@@ -2652,11 +2657,11 @@ Plans:
 
 - [ ] 180-05-PLAN.md — Weg-1 upload wiring onto the shared primitives/hook (D-01, D-02, D-06, D-08, D-09, D-10, D-11, D-12, D-13).
 - [ ] 180-07-PLAN.md — Weg-2 upload migration + removal of superseded replace/batch-error code (D-01, D-03, D-04, D-09, D-11, D-12, D-13, D-14).
-- [ ] 180-08-PLAN.md — Weg 3 (Fansub-Logo/Banner) + Weg 7 (Profil-Avatar/-Hintergrund) presentational adoption (D-01, D-04, D-13).
-- [ ] 180-09-PLAN.md — Weg 5 (Segment-Assets) + Weg 8 (Medien-Vorschläge) presentational adoption (D-01, D-04, D-13).
-- [ ] 180-10-PLAN.md — Weg 6 (Release-Theme-Assets, 2 Einstiege) presentational adoption (D-01, D-04, D-13).
-- [ ] 180-11-PLAN.md — Weg 4 (Anime-Assets) D-16 drag&drop behavioral gain + multi-file-single-slot guard (D-01, D-04, D-13, D-16).
+- [ ] 180-08-PLAN.md — Weg 3 (Fansub-Logo/Banner) + Weg 7 (Profil-Avatar/-Hintergrund) presentational adoption, Weg 7 gains real drag&drop (D-01, D-04, D-13, D-17).
+- [ ] 180-09-PLAN.md — Weg 5 (Segment-Assets) + Weg 8 (Medien-Vorschläge) presentational adoption, both gain real drag&drop (D-01, D-04, D-13, D-17).
+- [ ] 180-10-PLAN.md — Weg 6 (Release-Theme-Assets, 2 Einstiege) presentational adoption, both entry points gain real drag&drop (D-01, D-04, D-13, D-17).
+- [ ] 180-11-PLAN.md — Weg 4 (Anime-Assets) D-16 drag&drop behavioral gain + multi-file-single-slot guard (D-01, D-04, D-13, D-16, D-17).
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 180-12-PLAN.md — Full automated gate + Live-UAT checkpoint for D-13 (visual parity) and D-16 (Weg-4 drag&drop) (D-04, D-06, D-07, D-13, D-16).
+- [ ] 180-12-PLAN.md — Full automated gate + Live-UAT checkpoint for D-13 (visual parity) and D-16/D-17 (drag&drop on all eight ways, not just Weg 4) (D-04, D-06, D-07, D-13, D-16, D-17).

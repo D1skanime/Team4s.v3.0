@@ -21,6 +21,11 @@ created: 2026-10-11
 > reuse exactly this library, not a new system. Asking to initialize shadcn here would contradict
 > an explicit, binding project rule — so this contract documents the existing internal system
 > instead of running the shadcn gate.
+>
+> **Korrektur (D-17, 2026-10-11):** Die Per-Way Adaptation Matrix hatte `allowDrop=false` für
+> Weg 3/5/6/7/8 gesetzt, obwohl dort dieselbe ablege-einladende `UploadDropzone` erscheint — das
+> hätte das Missverständnis erzeugt, das D-16 vermeiden soll. Korrigiert: `allowDrop=true` auf
+> allen acht Wegen, Abläufe/Rechte bleiben unverändert getrennt. Siehe D-17 in `180-CONTEXT.md`.
 
 ---
 
@@ -150,7 +155,7 @@ rule, see `frontend/src/app/dev/ui-system/page.tsx:140`) plus one orchestration 
 | `onFilesSelected` | `(files: File[]) => void` | required | Fires on click-picked or dropped files |
 | `accept` | `string` | `'image/*'` | Native `<input accept>`, browser-level hint only — never the sole validation |
 | `multiple` | `boolean` | `true` | `false` for every single-slot way (3/4/5/7) |
-| `allowDrop` | `boolean` | `true` | `false` disables the drag&drop surface and falls back to click-only; **only Weg 3/5/6/7/8 set this to `false`** — Weg 4 keeps the default `true` per D-16 |
+| `allowDrop` | `boolean` | `true` | `false` disables the drag&drop surface and falls back to click-only. **Correction (D-17, 2026-10-11): no way sets this to `false` anymore** — all eight ways use the default `true`, so every rendered dropzone that invites dropping actually accepts a drop. The prop remains part of the primitive's API for future use; if plan 180-01 finds the `false` branch has zero remaining callers after this correction, remove the dead branch rather than keep it unexercised (see 180-CONTEXT.md D-17) |
 | `disabled` | `boolean` | `false` | Mirrors each way's existing capability/busy gate |
 | `density` | `'roomy' \| 'compact'` | `'roomy'` | Controls padding/icon/typography only — never a fixed pixel width/height. The parent page's existing layout (e.g. Weg 4's `assetPreviewFrame`/`assetStateEmpty` slot, `aspect-ratio: 2/3` or `16/9`) still owns the outer box size; the dropzone fills `100%`/`100%` of whatever container it is given. This is what lets Weg 3–8 reuse the same component without a layout rewrite. |
 | `promptLabel` | `string` | „Dateien hier hineinziehen oder zum Auswählen klicken." | Override for single-slot/video contexts if the default sentence doesn't fit |
@@ -196,20 +201,27 @@ wires `useUploadQueue`'s state into `UploadDropzone`/`UploadFileRow` props.
 
 ## Per-Way Adaptation Matrix
 
-Translates D-13 (all 8 ways get the shared look) + D-01/D-16 (only Weg 1/2 change functionally,
-only Weg 4 gains real drag&drop) into concrete prop values. "Unchanged" means: this phase does not
-touch that way's data flow, only swaps its markup for the two primitives above.
+Translates D-13 (all 8 ways get the shared look) + D-01 (only Weg 1/2 change functionally) +
+D-16/D-17 (all eight ways gain real drag&drop; single-slot ways share D-16's multi-file guard,
+generically built into `UploadDropzone` itself, not reimplemented per way) into concrete prop
+values. "Unchanged" means: this phase does not touch that way's data flow, only swaps its markup
+for the two primitives above.
+
+**Correction (D-17, 2026-10-11):** The `allowDrop` column below previously had `false` for Weg
+3/5/6/7/8, which would have rendered the identical drop-inviting `UploadDropzone` prompt on those
+ways while silently not accepting a drop — exactly the confusing inconsistency D-16 exists to
+avoid. All eight ways now use `allowDrop=true`.
 
 | # | Weg | `UploadDropzone.multiple` | `allowDrop` | `density` | `UploadFileRow.showMetadataFields` | Functional change this phase? |
 |---|---|---|---|---|---|---|
 | 1 | Release-Medien | `true` | `true` | `roomy` | `true` | Markup only — behavior already matches target (merge, retry, optional fields) |
 | 2 | Gruppenmedien | `true` | `true` | `roomy` | `true` | **Yes (D-01/D-03/D-12/D-14)** — replace-semantics, batch-only error, and missing relation-ID all fixed |
-| 3 | Fansub-Logo/Banner | `false` | `false` | `compact` | `false` | No — visual only |
-| 4 | Anime-Assets (Cover/Banner/Logo/Hintergrund, + Segment-Vorschau if structurally identical — verify at plan time, see note below) | `false` | `true` **(D-16 exception)** | `compact` | `false` | Behavioral: drag&drop gained, slot-replace logic unchanged |
-| 5 | Segment-Assets (Kara-Video) | `false` | `false` | `compact` | `false` | No — visual only; D-16's "Segment-Vorschau analog" wording is about an anime-level preview *image* slot, not this video upload — planner must confirm which concrete file D-16 actually targets before assuming Weg 5 inherits drag&drop too |
-| 6 | Release-Theme-Assets (2 Einstiege) | per existing (`true`, has gallery character) | `false` | `roomy` | per existing behavior, verify at plan time | No — visual only (D-01 excludes Weg 6 functionally despite `ActionReleaseThemeAssetUpload` existing) |
-| 7 | Profil-Avatar/-Hintergrund/-Story | `false` | `false` | `compact` | `false` | No — visual only |
-| 8 | Medien-Vorschläge (Member-Report) | per existing, verify at plan time | `false` | `roomy` or `compact` depending on current layout | per existing behavior | No — visual only |
+| 3 | Fansub-Logo/Banner | `false` | `true` **(D-17)** | `compact` | `false` | Behavioral: drag&drop gained (D-17); single-slot-replace logic unchanged |
+| 4 | Anime-Assets (Cover/Banner/Logo/Hintergrund, + Segment-Vorschau if structurally identical — verify at plan time, see note below) | `false` | `true` **(D-16, generalized by D-17)** | `compact` | `false` | Behavioral: drag&drop gained, slot-replace logic unchanged |
+| 5 | Segment-Assets (Kara-Video) | `false` | `true` **(D-17)** | `compact` | `false` | Behavioral: drag&drop gained (D-17); file-type check (video only) stays this way's own, unchanged. D-16's original "Segment-Vorschau analog" wording was about an anime-level preview *image* slot, not this video upload — moot after D-17 since Weg 5 now gets drag&drop regardless; planner should still confirm which concrete file that wording targets if it matters for Weg 4's slot count |
+| 6 | Release-Theme-Assets (2 Einstiege) | per existing (`true`, has gallery character) | `true` **(D-17)** | `roomy` | per existing behavior, verify at plan time | Behavioral: drag&drop gained (D-17); existing multi-select/gallery flow and `ActionReleaseThemeAssetUpload` rights unchanged (D-01 still excludes Weg 6 from functional migration) |
+| 7 | Profil-Avatar/-Hintergrund/-Story | `false` | `true` **(D-17)** | `compact` | `false` | Behavioral: drag&drop gained (D-17); single-slot-replace logic unchanged |
+| 8 | Medien-Vorschläge (Member-Report) | per existing, verify at plan time | `true` **(D-17)** | `roomy` or `compact` depending on current layout | per existing behavior | Behavioral: drag&drop gained (D-17); existing suggestion/report workflow unchanged |
 
 Rows 6 and 8 are marked "verify at plan time" because `180-RESEARCH.md` explicitly did not inspect
 their current implementation in file/line detail (outside this phase's functional scope) — the
@@ -235,11 +247,20 @@ migration task, not guess from this table.
   re-upload. The hook branches exactly like the existing
   `useReleaseVersionMedia.ts:250-269` `resultId === null` check — re-upload the file if no result ID
   exists yet, otherwise only re-patch metadata.
-- **D-16 (Weg 4 multi-drop-on-single-slot):** If more than one file lands on a `multiple={false}`
-  dropzone, only `files[0]` is forwarded to `onFilesSelected`; the dropzone immediately renders
-  `multiFileOnSingleSlotWarning`'s locked text inline (reuse each way's existing inline
+- **D-16/D-17 (multi-drop-on-single-slot, generalized to every single-slot way):** If more than
+  one file lands on a `multiple={false}` dropzone, only `files[0]` is forwarded to
+  `onFilesSelected`; the dropzone immediately renders `multiFileOnSingleSlotWarning`'s locked text
+  inline. This guard is built generically into `UploadDropzone` itself (keyed off `multiple`, not
+  off which way is calling it) — originally scoped to Weg 4 under D-16, it now applies equally to
+  Weg 3/5/7 once D-17 sets `allowDrop=true` there too. Reuse each way's existing inline
   error/status text slot — e.g. Weg 4's existing `onError` callback path — do not introduce a new
-  toast/snackbar mechanism for this).
+  toast/snackbar mechanism for this.
+- **D-17 (Drag&Drop on all eight ways):** `allowDrop` is `true` for every way (see Per-Way
+  Adaptation Matrix) — no way renders a drop-inviting prompt that then silently ignores a drop.
+  File-type validation stays each way's own existing check (e.g. Weg 5 still only accepts video
+  files; a wrong-type drop surfaces that way's existing error message, unchanged by this phase).
+  Rights/visibility are untouched (Phase 179 remains authoritative, e.g. Weg 4's
+  `isPlatformAdmin` gate).
 - **Review-status neutrality (Pitfall 5):** Neither primitive nor `useUploadQueue` knows about
   `review_status`. That remains a per-way adapter concern (Weg 2 passes `reviewStatusCode:
   'in_review'`, Weg 1 passes nothing) — this is a hook/adapter contract note, not a visual one, but

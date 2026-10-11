@@ -39,10 +39,10 @@ an extraction/consolidation of existing, fully-read code, not greenfield work)
 | `backend/internal/handlers/fansub_media_upload_*_test.go` (new/modified test, D-14) | test | — | `fansub_media_review_handler_test.go` (`fansubMediaRepoStub` + `httptest.NewRecorder()` pattern) | exact |
 | `frontend/src/lib/api/admin/fansub-media.ts` (modified, D-14 type) | utility (API client types) | transform | `frontend/src/lib/api/releases.ts:197-221` (`release_version_media_id` field on the Weg-1 result type) | exact |
 | Weg 3 `MediaUpload.tsx`/`MediaUploadCore.tsx` (presentation-only touch) | component | event-driven (single-slot replace) | `UploadDropzone`/`UploadFileRow` (new primitives, `multiple=false`, `showMetadataFields=false`) | role-match (D-13 visual-only) |
-| Weg 4 `AnimeJellyfinAssetUploadControls.tsx` (behavioral touch, D-16) | component | event-driven (two-step upload+PATCH) | `UploadDropzone` with `allowDrop=true` (exception) + `MediaUploadCore.tsx`'s native-`<button>` debt as the thing being fixed | role-match (D-13 + D-16 exception) |
-| Weg 5 `SegmenteTab.tsx`/`useSegmentAssetHandlers.ts`/`SegmentEditPanel.tsx` (presentation-only touch) | component | event-driven (video replace) | `UploadDropzone` with `allowDrop=false`, `multiple=false` | role-match (D-13 visual-only) |
-| Weg 6 `ReleaseThemeAssetsSection.tsx`/`useReleaseMediaDrawer.ts` (presentation-only touch) | component | event-driven | `UploadDropzone`/`UploadFileRow` (verify current `multiple`/metadata behavior at plan time per UI-SPEC row 6) | role-match (D-13 visual-only, functionally untouched per D-01) |
-| Weg 7 `me/profile/page.tsx` (presentation-only touch) | component | event-driven (self-service, 3 slots) | `UploadDropzone` with `allowDrop=false`, `multiple=false`, `showMetadataFields=false` | role-match (D-13 visual-only) |
+| Weg 4 `AnimeJellyfinAssetUploadControls.tsx` (behavioral touch, D-16) | component | event-driven (two-step upload+PATCH) | `UploadDropzone` with `allowDrop=true` (originally D-16's lone exception, generalized to all 8 ways by D-17) + `MediaUploadCore.tsx`'s native-`<button>` debt as the thing being fixed | role-match (D-13 + D-16/D-17) |
+| Weg 5 `SegmenteTab.tsx`/`useSegmentAssetHandlers.ts`/`SegmentEditPanel.tsx` (presentation-only touch) | component | event-driven (video replace) | `UploadDropzone` with `allowDrop=true` (D-17 correction — was `false`), `multiple=false` | role-match (D-13 visual-only + D-17 drag&drop gain) |
+| Weg 6 `ReleaseThemeAssetsSection.tsx`/`useReleaseMediaDrawer.ts` (presentation-only touch) | component | event-driven | `UploadDropzone`/`UploadFileRow` with `allowDrop=true` (D-17 correction — was `false`); verify current `multiple`/metadata behavior at plan time per UI-SPEC row 6 | role-match (D-13 visual-only + D-17 drag&drop gain, functionally untouched per D-01) |
+| Weg 7 `me/profile/page.tsx` (presentation-only touch) | component | event-driven (self-service, 3 slots) | `UploadDropzone` with `allowDrop=true` (D-17 correction — was `false`), `multiple=false`, `showMetadataFields=false` | role-match (D-13 visual-only + D-17 drag&drop gain) |
 | Weg 8 `ReportFormMedia.tsx` (presentation-only touch) | component | event-driven (suggestion workflow) | `UploadDropzone`/`UploadFileRow` (verify current `multiple`/accept behavior at plan time per UI-SPEC row 8) | role-match (D-13 visual-only) |
 
 ---
@@ -570,8 +570,8 @@ migration task):
 ```tsx
 <input type="file" accept="video/*" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
 ```
-This is a bare native `<input>` with zero dropzone/drag affordance — a stronger candidate for
-`UploadDropzone allowDrop={false}` adoption than most other legacy call sites, but confirm which
+This is a bare native `<input>` with zero dropzone/drag affordance today — per D-17 it still adopts
+`UploadDropzone allowDrop={true}` (drag&drop gained, not suppressed), but confirm which
 concrete file owns the Segment-Video upload input (Weg 5) vs. the Theme-Asset upload input (Weg 6)
 before planning, since both single-file video inputs exist in the codebase and must not be
 conflated.

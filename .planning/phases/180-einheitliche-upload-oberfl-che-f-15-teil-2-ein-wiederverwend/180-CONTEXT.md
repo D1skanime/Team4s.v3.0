@@ -1,14 +1,19 @@
 # Phase 180: Einheitliche Upload-Oberfläche (F-15 Teil 2) — Context
 
 **Stand:** 2026-10-11, alle 5 offenen Fragen beantwortet (D-09 bis D-13) plus 3 Recherche-Weichen
-aus `180-RESEARCH.md` beantwortet (D-14 bis D-16). Antwort 5 ist eine bewusste Scope-Erweiterung
-gegenüber der ursprünglichen Empfehlung: zusätzlich zur funktionalen Umstellung von Weg 1/2
-(D-01–D-03) bekommen alle acht Upload-Wege eine gemeinsame Präsentations-Primitives-Schicht für
-ihr Erscheinungsbild (D-13), ohne ihre getrennten Abläufe zusammenzuführen. D-14 ist eine kleine,
-additive Backend-Erweiterung (kein neuer Endpunkt, keine Rechteänderung) — die einzige
-Abweichung von der ursprünglichen „kein Backend-Touch"-Phasengrenze. D-16 weicht bewusst von der
-Recherche-Empfehlung ab: Weg 4 (Anime-Assets) bekommt Drag&Drop als echten Verhaltenszugewinn,
-nicht nur Optik.
+aus `180-RESEARCH.md` beantwortet (D-14 bis D-16), plus eine Nutzerkorrektur nach Planungsbeginn
+(D-17). Antwort 5 ist eine bewusste Scope-Erweiterung gegenüber der ursprünglichen Empfehlung:
+zusätzlich zur funktionalen Umstellung von Weg 1/2 (D-01–D-03) bekommen alle acht Upload-Wege eine
+gemeinsame Präsentations-Primitives-Schicht für ihr Erscheinungsbild (D-13), ohne ihre getrennten
+Abläufe zusammenzuführen. D-14 ist eine kleine, additive Backend-Erweiterung (kein neuer Endpunkt,
+keine Rechteänderung) — die einzige Abweichung von der ursprünglichen „kein Backend-Touch"-
+Phasengrenze. D-16 weicht bewusst von der Recherche-Empfehlung ab: Weg 4 (Anime-Assets) bekommt
+Drag&Drop als echten Verhaltenszugewinn, nicht nur Optik. **D-17 korrigiert einen in der
+180-UI-SPEC.md gefundenen Fehler und verallgemeinert D-16 auf alle acht Wege:** Drag&Drop ist auf
+jedem Upload-Weg aktiv (`allowDrop=true` überall), da eine Ablagefläche, die zum Ablegen einlädt,
+aber nur bei einem Weg reagiert, genau das Missverständnis erzeugt hätte, das D-16 vermeiden
+sollte. Die fachlichen Abläufe (Single-Slot vs. Galerie, Dateityp-Prüfung, Rechte/Sichtbarkeit aus
+Phase 179) bleiben dabei unverändert getrennt.
 
 **Quelle:** `.planning/phases/175-inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-/175-ROADMAP-PROPOSAL.md`
 (Abschnitt „Phase 180: Upload-Frontend/-Workflow (F-15 Teil 2)" + Übersichtstabelle);
@@ -229,17 +234,42 @@ ohne die bestehenden Dateien weiter aufzublähen.
   Story-Item-/Kara-Segment-Datenmodell, entscheidet dann zwischen Reaktivierung (falls kompatibel)
   oder Löschung (falls veraltet/inkompatibel), und begründet die Entscheidung im Plan bzw. in der
   Umsetzung. Keine tote Datei bleibt nach dieser Phase ungeklärt stehen.
-- **D-16 (Recherche-Weiche 3, abweichend von der Recherche-Empfehlung):** Weg 4 (Anime-Assets:
-  Cover/Banner/Logo/Hintergrund; Segment-Vorschau analog) bekommt Drag&Drop über dieselbe
-  gemeinsame Ablagefläche wie alle anderen Wege (Nutzer 2026-10-11, beantwortet
+- **D-16 (Recherche-Weiche 3, abweichend von der Recherche-Empfehlung; erweitert durch D-17):**
+  Weg 4 (Anime-Assets: Cover/Banner/Logo/Hintergrund; Segment-Vorschau analog) bekommt Drag&Drop
+  über dieselbe gemeinsame Ablagefläche wie alle anderen Wege (Nutzer 2026-10-11, beantwortet
   Recherche-Offene-Frage 3, Option B — abweichend von der Recherche-Empfehlung „Klick-only,
   `allowDrop: false`") — Begründung des Nutzers: Jede Ablagefläche soll sich überall gleich
   verhalten. Der fachliche Ablauf bleibt unverändert Single-Slot-Replace, die Sichtbarkeit bleibt
   exakt an Plattform-Admin gebunden (Phase 179 D-13, `isPlatformAdmin`-Flag unverändert). Werden
   beim Ablegen mehrere Dateien auf einen Single-Slot fallen gelassen, wird nur die erste
   übernommen, mit einem erkennbaren Hinweis an den Nutzer (echte Umlaute, z. B. „Nur die erste
-  Datei wurde übernommen — dieser Platz erlaubt nur ein Bild."). Dies ist die einzige bewusste
-  Durchbrechung von D-13s „nur Darstellung, keine Abläufe"-Grundsatz.
+  Datei wurde übernommen — dieser Platz erlaubt nur ein Bild."). Ursprünglich als einzige bewusste
+  Durchbrechung von D-13s „nur Darstellung, keine Abläufe"-Grundsatz gedacht — **D-17 verallgemeinert
+  dieses Verhalten auf alle acht Wege**, siehe unten.
+- **D-17 (Nutzerkorrektur 2026-10-11, Fundbasis: 180-UI-SPEC.md Per-Way Adaptation Matrix):**
+  Drag&Drop ist auf ALLEN acht Upload-Wegen aktiv (`allowDrop=true` überall, keine Ausnahme mehr) —
+  nicht nur bei Weg 4 wie in D-16 ursprünglich festgelegt. Befund: Die UI-SPEC hatte für Weg 3
+  (Fansub-Logo/Banner), 5 (Segment-Video), 6 (Theme-Assets), 7 (Profil) und 8 (Vorschläge)
+  `allowDrop=false` gesetzt, obwohl dort dieselbe `UploadDropzone` mit demselben Ablege-Prompt-Text
+  erscheint — das hätte genau das Missverständnis erzeugt, das D-16 vermeiden soll (eine
+  Ablagefläche, die visuell zum Ablegen einlädt, aber nur bei einem Weg tatsächlich reagiert).
+  Die fachlichen Abläufe bleiben dabei unverändert getrennt:
+  - Single-Slot-Wege (3 Logo/Banner, 4 Anime-Assets, 5 Segment-Video, 7 Profil-Avatar/-Hintergrund):
+    `multiple=false`; bei mehreren abgelegten Dateien wird nur die erste übernommen, mit D-16s
+    Hinweistext (generisch bereits im `UploadDropzone`-Primitive verankert, nicht weg-spezifisch
+    nachzubauen).
+  - Dateityp-Prüfung je Weg bleibt wie heute (z. B. Weg 5 nimmt nur Video; falscher Typ löst die
+    bestehende, weg-eigene Fehlermeldung aus, echte Umlaute) — `UploadDropzone`s `accept`-Prop ist
+    weiterhin nur ein Browser-Hinweis, keine alleinige Validierung (unverändert gegenüber D-02).
+  - Galerie-artige Wege (1 Release-Medien, 2 Gruppenmedien, 6 Theme-Assets, 8 Vorschläge) behalten
+    ihr bestehendes `multiple`-Verhalten unverändert.
+  - Rechte/Sichtbarkeit bleiben exakt wie in Phase 179 festgelegt (u. a. Anime-Assets nur
+    Plattform-Admin, `isPlatformAdmin`-Flag unverändert) — D-17 ist eine rein präsentationale
+    Erweiterung von D-13, keine neue Rechte- oder Workflow-Änderung.
+  Der `allowDrop`-Prop selbst bleibt als Primitive-API bestehen (Default `true`), wird aber von
+  keinem der acht Wege mehr explizit auf `false` gesetzt — findet sich beim Bau von Plan 180-01
+  heraus, dass der `false`-Zweig dadurch unbenutzt/totcode wird, wird der Zweig entfernt statt als
+  toter Pfad belassen zu werden (vermerkt in Plan 180-01).
 </decisions>
 
 <open_questions>
@@ -298,4 +328,7 @@ als D-09 bis D-13 festgehalten. Keine offenen Fragen mehr ausstehend.
 - `.planning/phases/180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend/180-RESEARCH.md`
   — Architektur-Patterns (Hook/Primitive-Trennung), Pitfalls 1–5, Code-Beispiele, Offene Fragen
   1–3 (beantwortet als D-14 bis D-16).
+- `.planning/phases/180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend/180-UI-SPEC.md`
+  — Per-Way Adaptation Matrix (Fundort des D-17-Korrekturbedarfs: `allowDrop=false` für Weg
+  3/5/6/7/8 trotz identischer `UploadDropzone`-Ablegefläche).
 </references>
