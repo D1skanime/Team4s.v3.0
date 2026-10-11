@@ -168,6 +168,7 @@ export interface FansubGroupMediaUploadResult {
   client_file_name: string;
   status: "ready" | "failed";
   media_asset_id?: number;
+  fansub_group_media_id?: number;
   preview_url?: string;
   thumbnail_url?: string;
   original_url?: string;
