@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import type { AssetCardDescriptor } from './AnimeJellyfinMetadataSection.helpers'
 import type { AdminAnimeJellyfinContext } from '@/types/admin'
@@ -179,5 +179,97 @@ describe('AnimeJellyfinAssetUploadControls - D-13 Anzeige-Berechtigung', () => {
       expect(apiMocks.getCurrentUser).toHaveBeenCalledTimes(2)
     })
     expect(screen.queryByRole('button', { name: 'Entfernen' })).toBeNull()
+  })
+})
+
+// D-16/D-17: Beweist, dass die fünf Anime-Asset-Slots jetzt echtes Drag&Drop über
+// UploadDropzone unterstützen, inklusive des D-16-Mehrdatei-Guards (nur die erste
+// Datei pro Einzel-Slot) und der unveränderten isPlatformAdmin-Sichtbarkeits-Sperre.
+function makeFile(name = 'bild.png'): File {
+  return new File(['x'], name, { type: 'image/png' })
+}
+
+describe('AnimeJellyfinAssetUploadControls - D-16/D-17 Drag&Drop', () => {
+  it('ruft bei Drop einer einzelnen Datei auf dem Cover-Slot den Upload-Mock genau einmal mit dieser Datei auf', async () => {
+    apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: true } })
+    apiMocks.uploadAdminAnimeMedia.mockResolvedValue({ id: 123 })
+    apiMocks.assignAdminAnimeCoverAsset.mockResolvedValue(undefined)
+
+    renderControls()
+
+    const coverDropzone = await screen.findByRole('button', { name: 'Cover hochladen' })
+    const file = makeFile('cover.png')
+
+    await act(async () => {
+      fireEvent.drop(coverDropzone, { dataTransfer: { files: [file] } })
+      await Promise.resolve()
+    })
+
+    await waitFor(() => {
+      expect(apiMocks.uploadAdminAnimeMedia).toHaveBeenCalledTimes(1)
+    })
+    expect(apiMocks.uploadAdminAnimeMedia.mock.calls[0][0]).toMatchObject({ file, assetType: 'poster' })
+  })
+
+  it('übernimmt bei Drop von zwei Dateien auf dem Cover-Slot nur die erste und zeigt die D-16-Warnung', async () => {
+    apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: true } })
+    apiMocks.uploadAdminAnimeMedia.mockResolvedValue({ id: 123 })
+    apiMocks.assignAdminAnimeCoverAsset.mockResolvedValue(undefined)
+
+    renderControls()
+
+    const coverDropzone = await screen.findByRole('button', { name: 'Cover hochladen' })
+    const fileA = makeFile('a.png')
+    const fileB = makeFile('b.png')
+
+    await act(async () => {
+      fireEvent.drop(coverDropzone, { dataTransfer: { files: [fileA, fileB] } })
+      await Promise.resolve()
+    })
+
+    await waitFor(() => {
+      expect(apiMocks.uploadAdminAnimeMedia).toHaveBeenCalledTimes(1)
+    })
+    expect(apiMocks.uploadAdminAnimeMedia.mock.calls[0][0]).toMatchObject({ file: fileA, assetType: 'poster' })
+    expect(screen.getByText(/Nur die erste Datei wurde übernommen/)).not.toBeNull()
+  })
+
+  it('zeigt für einen Nicht-Platform-Admin keine der fünf Dropzones', async () => {
+    apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
+
+    const allAssetCards: AssetCardDescriptor[] = [
+      { key: 'cover', title: 'Cover', kind: 'cover', hasIncoming: false },
+      { key: 'banner', title: 'Banner', kind: 'banner', hasIncoming: false },
+      { key: 'logo', title: 'Logo', kind: 'logo', hasIncoming: false },
+      { key: 'backgrounds', title: 'Backgrounds', kind: 'backgrounds', hasIncoming: false },
+      { key: 'background_video', title: 'Background-Video', kind: 'background_video', hasIncoming: false },
+    ]
+    const allPersistedAssets: AdminAnimeJellyfinContext['persisted_assets'] = {
+      backgrounds: [],
+    }
+
+    render(
+      <AnimeJellyfinAssetUploadControls
+        animeID={42}
+        animeTitle="Testanime"
+        assetCards={allAssetCards}
+        coverCurrentSource="none"
+        persistedAssets={allPersistedAssets}
+        onSuccess={() => {}}
+        onError={() => {}}
+        onAfterMutation={async () => {}}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(apiMocks.getCurrentUser).toHaveBeenCalledTimes(1)
+    })
+    await screen.findByText('Testanime', { exact: false }).catch(() => undefined)
+
+    expect(screen.queryByRole('button', { name: 'Cover hochladen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Banner hochladen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Logo hochladen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Background hochladen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Background-Video hochladen' })).toBeNull()
   })
 })
