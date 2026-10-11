@@ -1,8 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 
-import { FormField, Select } from '@/components/ui'
+import { FormField, Select, UploadDropzone } from '@/components/ui'
 import { ApiError, uploadMediaSuggestion } from '@/lib/api'
 
 import styles from './contributions.module.css'
@@ -52,21 +52,17 @@ export function ReportFormMedia({ onSuccess, targetOptions = [] }: ReportFormMed
     error: null,
   })
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
   function update(partial: Partial<ReportFormMediaState>) {
     setState((prev) => ({ ...prev, ...partial }))
   }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const selected = event.target.files?.[0] ?? null
+  function handleFileChange(selected: File | null) {
     if (!selected) {
       update({ file: null, error: null })
       return
     }
     if (selected.size > MAX_FILE_SIZE_BYTES) {
       update({ file: null, error: 'Die Datei ist zu groß. Maximal erlaubt sind 20 MB.' })
-      if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
     update({ file: selected, error: null })
@@ -163,17 +159,17 @@ export function ReportFormMedia({ onSuccess, targetOptions = [] }: ReportFormMed
         </Select>
       </FormField>
 
-      <FormField label="Datei auswählen" htmlFor="media-file" required hint="Unterstützt werden gängige Bild- und Videoformate. Maximale Dateigröße: 20 MB.">
-        {/* eslint-disable-next-line no-restricted-syntax -- file input: kein FileInput-Primitiv in @/components/ui verfügbar */}
-        <input
-          ref={fileInputRef}
-          id="media-file"
-          type="file"
+      <FormField label="Datei auswählen" required hint="Unterstützt werden gängige Bild- und Videoformate. Maximale Dateigröße: 20 MB.">
+        <UploadDropzone
           accept="image/*,video/mp4,video/webm"
-          onChange={handleFileChange}
+          multiple={false}
+          allowDrop={true}
+          density="compact"
           disabled={state.isUploading}
-          required
-          style={{ fontSize: '0.875rem' }}
+          onFilesSelected={(files) => {
+            const file = files[0]
+            if (file) handleFileChange(file)
+          }}
         />
       </FormField>
 
