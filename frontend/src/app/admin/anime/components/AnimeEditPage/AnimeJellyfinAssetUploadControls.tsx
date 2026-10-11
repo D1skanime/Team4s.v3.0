@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import {
   addAdminAnimeBackgroundAsset,
@@ -19,6 +19,7 @@ import {
 } from '@/lib/api'
 import type { AdminAnimeJellyfinContext } from '@/types/admin'
 import { MediaOwnershipContext, MediaOwnershipContextValue } from '@/components/admin/media/MediaOwnershipContext'
+import { UploadDropzone } from '@/components/ui'
 
 import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
@@ -90,12 +91,6 @@ export function AnimeJellyfinAssetUploadControls({
     }
   }, [])
 
-  const coverInputRef = useRef<HTMLInputElement | null>(null)
-  const bannerInputRef = useRef<HTMLInputElement | null>(null)
-  const logoInputRef = useRef<HTMLInputElement | null>(null)
-  const backgroundInputRef = useRef<HTMLInputElement | null>(null)
-  const backgroundVideoInputRef = useRef<HTMLInputElement | null>(null)
-
   const isBusy = disabled || isMutatingAssets || isUploadingCover
   const mutationStatusLabel = getEditUploadStatusLabel(uploadTarget, false)
 
@@ -127,7 +122,6 @@ export function AnimeJellyfinAssetUploadControls({
       }
     } finally {
       setIsUploadingCover(false)
-      if (coverInputRef.current) coverInputRef.current.value = ''
     }
   }
 
@@ -190,10 +184,6 @@ export function AnimeJellyfinAssetUploadControls({
       setIsMutatingAssets(false)
       setUploadTarget(null)
       setUploadProgress(0)
-      if (bannerInputRef.current) bannerInputRef.current.value = ''
-      if (logoInputRef.current) logoInputRef.current.value = ''
-      if (backgroundInputRef.current) backgroundInputRef.current.value = ''
-      if (backgroundVideoInputRef.current) backgroundVideoInputRef.current.value = ''
     }
   }
 
@@ -236,26 +226,6 @@ export function AnimeJellyfinAssetUploadControls({
     } finally {
       setIsMutatingAssets(false)
     }
-  }
-
-  function triggerUpload(target: EditUploadTarget) {
-    if (target === 'banner') {
-      bannerInputRef.current?.click()
-      return
-    }
-    if (target === 'logo') {
-      logoInputRef.current?.click()
-      return
-    }
-    if (target === 'background_video') {
-      backgroundVideoInputRef.current?.click()
-      return
-    }
-    backgroundInputRef.current?.click()
-  }
-
-  function triggerCoverUpload() {
-    coverInputRef.current?.click()
   }
 
   function renderPersistedStatus(kind: AssetCardDescriptor['kind']) {
@@ -372,17 +342,21 @@ export function AnimeJellyfinAssetUploadControls({
                 </p>
               ) : null}
               <div className={workspaceStyles.assetActionStack}>
+                {isPlatformAdmin ? (
+                  <UploadDropzone
+                    accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
+                    multiple={false}
+                    allowDrop={true}
+                    density="compact"
+                    disabled={isBusy}
+                    onFilesSelected={(files) => {
+                      const file = files[0]
+                      if (file) void handleCoverUpload(file)
+                    }}
+                    promptLabel={isUploadingCover ? 'Upload läuft...' : 'Cover hochladen'}
+                  />
+                ) : null}
                 <div className={workspaceStyles.assetActionRowCompact}>
-                  {isPlatformAdmin ? (
-                    <button
-                      type="button"
-                      className={`${styles.button} ${styles.buttonPrimary}`}
-                      disabled={isBusy}
-                      onClick={triggerCoverUpload}
-                    >
-                      {isUploadingCover ? 'Upload läuft...' : 'Cover hochladen'}
-                    </button>
-                  ) : null}
                   {isPlatformAdmin ? (
                     <button
                       type="button"
@@ -480,14 +454,22 @@ export function AnimeJellyfinAssetUploadControls({
           </div>
           <div className={styles.actionsRow}>
             {isPlatformAdmin ? (
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonSecondary}`}
+              <UploadDropzone
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                multiple={false}
+                allowDrop={true}
+                density="compact"
                 disabled={isBusy}
-                onClick={() => triggerUpload('background')}
-              >
-                {uploadTarget === 'background' ? `Background lädt... ${uploadProgress}%` : EDIT_UPLOAD_TARGETS.background.buttonLabel}
-              </button>
+                onFilesSelected={(files) => {
+                  const file = files[0]
+                  if (file) void handleManualUpload('background', file)
+                }}
+                promptLabel={
+                  uploadTarget === 'background'
+                    ? `Background lädt... ${uploadProgress}%`
+                    : EDIT_UPLOAD_TARGETS.background.buttonLabel
+                }
+              />
             ) : null}
           </div>
           {uploadTarget === 'background' ? (
@@ -546,20 +528,26 @@ export function AnimeJellyfinAssetUploadControls({
         ) : null}
         <div className={styles.actionsRow}>
           {isPlatformAdmin ? (
-            <button
-              type="button"
-              className={`${styles.button} ${styles.buttonSecondary}`}
+            <UploadDropzone
+              accept={target === 'background_video' ? 'video/mp4,video/webm,video/ogg' : 'image/png,image/jpeg,image/webp,image/gif'}
+              multiple={false}
+              allowDrop={true}
+              density="compact"
               disabled={isBusy}
-              onClick={() => triggerUpload(target)}
-            >
-              {uploadTarget === target
-                ? target === 'banner'
-                  ? `Banner lädt... ${uploadProgress}%`
-                  : target === 'logo'
-                    ? `Logo lädt... ${uploadProgress}%`
-                    : `Background-Video lädt... ${uploadProgress}%`
-                : EDIT_UPLOAD_TARGETS[target].buttonLabel}
-            </button>
+              onFilesSelected={(files) => {
+                const file = files[0]
+                if (file) void handleManualUpload(target, file)
+              }}
+              promptLabel={
+                uploadTarget === target
+                  ? target === 'banner'
+                    ? `Banner lädt... ${uploadProgress}%`
+                    : target === 'logo'
+                      ? `Logo lädt... ${uploadProgress}%`
+                      : `Background-Video lädt... ${uploadProgress}%`
+                  : EDIT_UPLOAD_TARGETS[target].buttonLabel
+              }
+            />
           ) : null}
           {isPlatformAdmin ? (
             <button
@@ -604,71 +592,6 @@ export function AnimeJellyfinAssetUploadControls({
         disabled={isBusy}
         onContextChange={setOwnerCtx}
       />
-      {isPlatformAdmin ? (
-        <>
-          <input
-            ref={coverInputRef}
-            type="file"
-            accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
-            hidden
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) {
-                void handleCoverUpload(file)
-              }
-            }}
-          />
-          <input
-            ref={bannerInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            hidden
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) {
-                void handleManualUpload('banner', file)
-              }
-            }}
-          />
-          <input
-            ref={logoInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            hidden
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) {
-                void handleManualUpload('logo', file)
-              }
-            }}
-          />
-          <input
-            ref={backgroundInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            hidden
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) {
-                void handleManualUpload('background', file)
-              }
-            }}
-          />
-          <input
-            ref={backgroundVideoInputRef}
-            type="file"
-            accept="video/mp4,video/webm,video/ogg"
-            hidden
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) {
-                void handleManualUpload('background_video', file)
-              }
-            }}
-          />
-        </>
-      ) : null}
-
       <div className={workspaceStyles.sectionGridTwo}>
         {assetCards.map((asset) => {
           const decision = summarizeAssetSlotDecision(asset.kind, {
