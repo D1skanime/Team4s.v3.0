@@ -163,3 +163,19 @@ Scope Boundary rule instead of being fixed inline.
   forbidden legacy debt (Altlast) — pre-existing, unrelated to the `MediaRepository`/permissions
   code this plan touches.
 - **Action:** Pre-existing, not fixed in this plan.
+
+## 9. `media_files.size` for the `original` variant diverges from the on-disk file size (found during live UAT, 2026-10-11)
+
+- **Found during:** Human live-UAT of Phase 179 (release-media upload as a non-admin, Release-
+  Version 28), not an automated test.
+- **Symptom:** For `media_asset` 198's `original` variant, `media_files.size = 420918`, but the
+  actual file on disk is `411456` bytes — a 9462-byte mismatch.
+- **Suspected root cause:** The recorded size is likely captured before a downstream metadata-
+  strip step runs on the uploaded file, so the persisted `size` reflects the pre-strip byte count
+  while the file on disk is the post-strip (smaller) version.
+- **Scope:** Not caused by, and not fixed in, Phase 179 (none of this phase's six plans touch
+  the media upload/size-recording path — they touch permission checks, soft-delete SQL, and the
+  anime-asset UI gate). Confirmed by the user as a non-blocker for this phase.
+- **Action:** Not fixed here. A future phase should either record `size` after any metadata-strip
+  step, or re-stat the file on disk after all post-processing completes, so `media_files.size`
+  always matches the persisted file's actual byte count.
