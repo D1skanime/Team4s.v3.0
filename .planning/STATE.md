@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: milestone_complete
-stopped_at: Milestone complete (Phase 179 was final phase); Phase 180 added additively, UI-SPEC approved
-last_updated: 2026-10-11T15:53:52.270Z
+stopped_at: Milestone complete (Phase 179 was final phase); Phase 180 added additively, planned (12 plans, 3 waves), ready to execute
+last_updated: 2026-10-11T16:46:25.170Z
 last_activity: 2026-10-11
 progress:
-  total_phases: 44
+  total_phases: 45
   completed_phases: 39
-  total_plans: 415
+  total_plans: 427
   completed_plans: 466
-  percent: 89
+  percent: 87
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -401,6 +401,19 @@ Last activity: 2026-10-11
 
 ### Roadmap Evolution
 
+- Phase 180 geplant (2026-10-11): 12 Pläne (180-01 bis 180-12) über 3 Wellen. UI-SPEC.md
+  durchlief Research → Checker (APPROVED, 1 non-blocking FLAG auf Dimension 2 "Visuals",
+  per Ergänzung behoben) vor der Planung. Plan-Checker-Runde 1: 3 Blocker (180-07/180-05
+  behaupteten Komponenten-Tests, die nirgendwo erzeugt/verdrahtet waren; 180-04 Task 1/Task 2
+  widersprachen sich beim D-15-Reaktivierungs-Pfad) + 2 Warnungen — Planner-Revision behoben,
+  Runde 2: 0 Blocker, 2 kosmetische Warnungen (Tippfehler, fehlender RESOLVED-Marker in
+  180-RESEARCH.md) direkt inline gefixt statt einer dritten Planner-Runde. **Override:** der
+  automatisierte `check.decision-coverage-plan`-Gate meldete D-09 als "uncovered" (total=5 statt
+  16) — derselbe Parser-Defekt wie in Phase 178/179 dokumentiert (Grenz-Regex erkennt nur
+  `**D-NN:**` ohne Klammer-Label, D-09 hat keines, aber der Parser zählt trotzdem nur 5 von 16
+  Entscheidungen insgesamt). Manuell per `grep` widerlegt: alle 16 Entscheidungen D-01 bis D-16
+  sind in mindestens einem Plan zitiert (D-09 in vier: 180-01/02/05/07). Mit "Proceed anyway"
+  fortgefahren statt neu zu planen.
 - Phase 180 added (2026-10-11): Einheitliche Upload-Oberfläche (F-15 Teil 2) — ein wiederverwendbarer Upload-Baustein (Mehrfachauswahl wird ergänzt statt ersetzt, Titel/Bildunterschrift pro Datei, Retry bei Fehlern) nach Vorbild des Release-Medien-Uploads (ReleaseVersionMediaSection.tsx + uploadReleaseVersionMedia); Gruppenmedien-Upload (GroupMediaReviewUploadPanel.tsx) und Release-Medien-Upload laufen über denselben Baustein. Enger gefasst als 175-ROADMAP-PROPOSAL.md: Weg 6 (Release-Theme-Assets), obwohl dort ursprünglich für diese Phase vorgesehen und obwohl Phase 179 dafür bereits ActionReleaseThemeAssetUpload geschaffen hat, bleibt laut Zusatzauftrag wie Wege 3/4/5/7/8 außerhalb des Umbau-Umfangs — nur Konvertierbarkeits-Prüfung, keine Code-Änderung (D-01 in 180-CONTEXT.md). Depends on Phase 179. CONTEXT-Entwurf mit 8 D-NN-Entscheidungen + 5 offenen Fragen an den Nutzer angelegt, gespeist aus 175-INVENTORY.md Fachaufgabe 1 (Wege 1-8) und 179-VERIFICATION.md. Milestone-Status bewusst nicht angefasst (additive Phase, bekannte Milestone-Drift). Nur add-phase — noch nicht geplant.
 - Phase 179 geplant (2026-10-10): 6 Pläne (179-01 bis 179-06) über 3 Wellen — 179-01 Capability-Registry-
   Fundament (Migration 0182 + `ActionReleaseThemeAssetUpload` + Reparatur 9 hartkodierter
@@ -1659,8 +1672,8 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-10-11T15:53:52.247Z
-Stopped at: Phase 180 UI-SPEC approved
+Last session: 2026-10-11T16:46:25.170Z
+Stopped at: Phase 180 planned (12 plans, 3 waves) — decision coverage override (D-09 false-positive, known parser defect), ready to execute
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
-.planning/phases/180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend/180-UI-SPEC.md
+.planning/phases/180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend/180-12-PLAN.md
