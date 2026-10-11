@@ -2620,7 +2620,7 @@ teilen sich die Präsentations-Primitives, und echtes Drag&Drop ist auf allen ac
 `180-CONTEXT.md` (alle 5 ursprünglich offenen Fragen plus 3 Recherche-Weichen plus 1
 Nutzerkorrektur nach Planungsbeginn beantwortet).
 **Depends on:** Phase 179
-**Plans:** 4/12 plans executed
+**Plans:** 5/12 plans executed
 
   - Wave 1: 180-01 (Präsentations-Primitives UploadDropzone/UploadFileRow + /dev/ui-system-Showcase),
     180-02 (Orchestrierungs-Hook useUploadQueue + reine Helfer), 180-03 (Backend D-14:
@@ -2651,7 +2651,7 @@ Plans:
 - [x] 180-02-PLAN.md — useUploadQueue orchestration hook + pure helpers (D-02, D-05, D-08, D-09, D-10, D-12).
 - [x] 180-03-PLAN.md — Backend D-14 additive fansub_group_media_id field + frontend type (D-01, D-14).
 - [x] 180-04-PLAN.md — Weg-1 structural split: D-15 dead-code decision + Grid/EditDrawer extraction (D-06, D-15).
-- [ ] 180-06-PLAN.md — Weg-2 structural split: useGroupMediaReviewFilters extraction (D-06).
+- [x] 180-06-PLAN.md — Weg-2 structural split: useGroupMediaReviewFilters extraction (D-06).
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

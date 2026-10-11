@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 180-04-PLAN.md
-last_updated: "2026-10-11T19:28:02.926Z"
+stopped_at: Completed 180-06-PLAN.md
+last_updated: "2026-10-11T19:36:35.878Z"
 last_activity: 2026-10-11
 progress:
   total_phases: 45
   completed_phases: 39
   total_plans: 427
-  completed_plans: 416
+  completed_plans: 417
   percent: 87
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 180 (einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend) — EXECUTING
-Plan: 5 of 12
+Plan: 6 of 12
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -1043,6 +1043,7 @@ Last activity: 2026-10-11
 - [Phase 180]: useUploadQueue uses an itemsRef synced via useEffect instead of a setState-updater read-trick for synchronous queue reads inside startUpload/retryUpload — React 18 batches the updater call past the point where the surrounding async function already reads the captured variable, mirrored from useReleaseVersionMedia.ts's own itemsRef precedent
 - [Phase 180]: 180-03: fansub_group_media_id now returned end-to-end from upload (D-14), closing the one allowed backend gap for 180-02/180-07's relation-ID-addressable retry/patch pipeline
 - [Phase 180]: Delete ReleaseVersionMediaGallery.tsx outright (D-15) instead of adapting it — no kara-segment branch, incompatible reorder payload shape — Fresh build from live JSX is structurally safer than retrofitting a component already proven incompatible with the current ReleaseVersionAdminStoryItem data model
+- [Phase 180-06]: isFilterOpen stays parent-owned UI state; resetFilters wraps the hook's value-reset with the panel-close side effect — Keeps the extracted filter hook free of UI-only panel-open state while preserving identical click behavior
 
 ### Pending Todos
 
@@ -1680,11 +1681,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 180 P02 | 25min | 2 tasks | 4 files |
 | Phase 180 P03 | 55min | 3 tasks | 5 files |
 | Phase 180 P04 | 14min | 3 tasks | 7 files |
+| Phase 180 P06 | 15min | 1 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-11T19:28:02.903Z
-Stopped at: Completed 180-04-PLAN.md
+Last session: 2026-10-11T19:36:35.854Z
+Stopped at: Completed 180-06-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
