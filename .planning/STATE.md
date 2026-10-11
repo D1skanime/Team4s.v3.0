@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 180-02-PLAN.md
-last_updated: "2026-10-11T19:05:40.101Z"
+stopped_at: Completed 180-03-PLAN.md
+last_updated: "2026-10-11T19:16:08.187Z"
 last_activity: 2026-10-11
 progress:
   total_phases: 45
   completed_phases: 39
   total_plans: 427
-  completed_plans: 414
+  completed_plans: 415
   percent: 87
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 180 (einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -1041,6 +1041,7 @@ Last activity: 2026-10-11
 - [Phase 180]: UploadFileRow's onRemove renders unconditionally whenever provided (not gated by status), per 180-01's explicit action/acceptance-criteria text rather than 180-UI-SPEC's general note
 - [Phase 180]: startUpload(adapter, config?) reads the queue to upload from the hook's own items state rather than a drafts argument, matching the plan's literal exported signature — Confirmed by acceptance-criteria test shapes: selectFiles is always called before startUpload, no drafts parameter in the public signature
 - [Phase 180]: useUploadQueue uses an itemsRef synced via useEffect instead of a setState-updater read-trick for synchronous queue reads inside startUpload/retryUpload — React 18 batches the updater call past the point where the surrounding async function already reads the captured variable, mirrored from useReleaseVersionMedia.ts's own itemsRef precedent
+- [Phase 180]: 180-03: fansub_group_media_id now returned end-to-end from upload (D-14), closing the one allowed backend gap for 180-02/180-07's relation-ID-addressable retry/patch pipeline
 
 ### Pending Todos
 
@@ -1676,11 +1677,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 179 P06 | 60min | 1 tasks | 0 files |
 | Phase 180 P01 | 15min | 3 tasks | 9 files |
 | Phase 180 P02 | 25min | 2 tasks | 4 files |
+| Phase 180 P03 | 55min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-10-11T19:05:40.075Z
-Stopped at: Completed 180-02-PLAN.md
+Last session: 2026-10-11T19:16:08.162Z
+Stopped at: Completed 180-03-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
