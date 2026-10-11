@@ -65,7 +65,7 @@ describe('UploadDropzone', () => {
     clickSpy.mockRestore()
   })
 
-  it('calls onFilesSelected with the dropped files when allowDrop is not false', () => {
+  it('calls onFilesSelected with the dropped files (drag&drop is always active per D-17)', () => {
     const onFilesSelected = vi.fn()
     render(<UploadDropzone onFilesSelected={onFilesSelected} />)
     const file = makeFile('drop.png')
@@ -75,29 +75,6 @@ describe('UploadDropzone', () => {
     })
 
     expect(onFilesSelected).toHaveBeenCalledWith([file])
-  })
-
-  it('does not call onFilesSelected on drop when allowDrop is false', () => {
-    const onFilesSelected = vi.fn()
-    render(<UploadDropzone onFilesSelected={onFilesSelected} allowDrop={false} />)
-    const file = makeFile('drop.png')
-
-    fireEvent.drop(screen.getByRole('button', { name: PROMPT }), {
-      dataTransfer: { files: [file] },
-    })
-
-    expect(onFilesSelected).not.toHaveBeenCalled()
-  })
-
-  it('never applies the drag-active styling when allowDrop is false', () => {
-    const onFilesSelected = vi.fn()
-    render(<UploadDropzone onFilesSelected={onFilesSelected} allowDrop={false} />)
-    const dropzone = screen.getByRole('button', { name: PROMPT })
-
-    fireEvent.dragEnter(dropzone)
-    fireEvent.dragOver(dropzone)
-
-    expect(dropzone.className).not.toMatch(/dropzoneDragging/)
   })
 
   it('forwards only the first file and renders the locked warning when multiple is false and two files are dropped', () => {

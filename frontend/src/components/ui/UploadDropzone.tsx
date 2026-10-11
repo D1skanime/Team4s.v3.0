@@ -50,6 +50,9 @@ export function UploadDropzone({
   onFilesSelected,
   accept = 'image/*',
   multiple = true,
+  // D-17: drag&drop is now always active (see 180-12 Task 1's dead-branch removal); kept in the
+  // public API as a legitimate future extension point, only the `false`-handling code path was removed.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   allowDrop = true,
   disabled = false,
   density = 'roomy',
@@ -94,12 +97,12 @@ export function UploadDropzone({
 
   function onDragEnter(event: DragEvent<HTMLDivElement>) {
     event.preventDefault()
-    if (!disabled && allowDrop !== false) setIsDragActive(true)
+    if (!disabled) setIsDragActive(true)
   }
 
   function onDragOver(event: DragEvent<HTMLDivElement>) {
     event.preventDefault()
-    if (!disabled && allowDrop !== false) setIsDragActive(true)
+    if (!disabled) setIsDragActive(true)
   }
 
   function onDragLeave(event: DragEvent<HTMLDivElement>) {
@@ -111,7 +114,6 @@ export function UploadDropzone({
     event.preventDefault()
     setIsDragActive(false)
     if (disabled) return
-    if (allowDrop === false) return
     const files = Array.from(event.dataTransfer?.files ?? [])
     if (files.length === 0) return
     applySelection(files)
