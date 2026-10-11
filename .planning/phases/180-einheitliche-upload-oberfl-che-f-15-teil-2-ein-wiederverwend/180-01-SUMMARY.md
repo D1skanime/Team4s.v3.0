@@ -105,6 +105,10 @@ None - plan executed as written. Two implementation details not explicitly dicta
 - Both primitives are ready for 180-02's `useUploadQueue` orchestration hook to wire real upload state into, and for every per-way adoption plan (180-03 through 180-11) to import directly from `@/components/ui`.
 - No blockers. `npm --prefix frontend run typecheck` is clean; both new test files are green (21/21 tests); ESLint reports no issues on any touched file.
 
+## Self-Check: PASSED
+
+All 10 claimed files exist on disk; all 4 claimed commit hashes (8d12de87, f0e4d57e, 40d37335, 90f869c2) exist in git history.
+
 ---
 *Phase: 180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend*
 *Completed: 2026-10-11*
