@@ -108,6 +108,25 @@ _No TDD RED/GREEN split was used — both tasks modified existing, already-cover
 **Total deviations:** 2 auto-fixed (1 bug-avoidance/Rule 1, 1 blocking/Rule 3)
 **Impact on plan:** Both deviations were necessary to avoid real regressions (a silently-broken external upload trigger, a crashing test suite). No scope creep — no new files, no new capability gates, no behavioral changes beyond what the plan's own truths/success-criteria specify.
 
+### Orchestrator correction (post-execution spot-check)
+
+The composition chosen for deviation #1 ("keep Button + hidden input, add `UploadDropzone` alongside")
+rendered two visibly duplicate, identically-labeled upload triggers in both `MemberAvatarCard.tsx`
+and `ProfileBackgroundCard.tsx` ("Bild hochladen"/"Bild ändern" Button directly above the
+UploadDropzone's own "Bild hochladen"/"Bild ändern" prompt) — the exact inconsistency D-02/D-03
+("no duplicate upload surfaces") exist to avoid, and a worse Live-UAT finding than leaving the two
+surfaces as planned. Fix: removed only the standalone `Button` (and its now-unused `ImageUp` icon
+import) from both files — its sole job (`resolvedInputRef.current?.click()`) is already covered by
+`UploadDropzone`'s own built-in trigger. The hidden `<input ref={resolvedInputRef}>` stays
+unchanged (still required for `EditableProfileHeader`'s external pencil-icon trigger in
+`page.tsx`), and `UploadDropzone`'s `promptLabel` still carries the exact same dynamic text
+("Bild ändern"/"Bild hochladen"/"Hintergrundbild ändern"/"Hintergrundbild hochladen") the removed
+Button used to show. Re-verified: `npx tsc --noEmit` clean, `eslint` unchanged (0 errors, same 2
+pre-existing native-`<input>` warnings on the kept hidden inputs), `ProfileBackgroundCard.test.tsx`
++ `page.test.tsx` (48/48) and `MediaUpload.test.tsx` (9/9) all green — no test referenced the
+removed Button's label text. Not committed by the executor; applied and committed separately by
+the orchestrator before Wave 2 continued.
+
 ## Issues Encountered
 None beyond the two deviations above.
 

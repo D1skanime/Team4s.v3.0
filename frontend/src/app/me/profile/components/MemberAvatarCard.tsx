@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { useRef, useState } from 'react'
 import type { RefObject } from 'react'
-import { Crop, ImageUp } from 'lucide-react'
+import { Crop } from 'lucide-react'
 
 import { AvatarCropDialog } from '@/components/media/crop/AvatarCropDialog'
 import { Button, UploadDropzone } from '@/components/ui'
@@ -141,18 +141,6 @@ export function MemberAvatarCard({
       </div>
       <div className={isCompact ? styles.mediaControlBody : styles.avatarStack}>
         <div className={styles.mediaControlActions}>
-          <Button
-            type="button"
-            variant="secondary"
-            size={isCompact ? 'sm' : 'md'}
-            leftIcon={<ImageUp size={16} aria-hidden="true" />}
-            loading={isUploading}
-            disabled={isUploading || isPreparingExistingAvatar || !canUpload}
-            aria-describedby={uploadHintID}
-            onClick={() => resolvedInputRef.current?.click()}
-          >
-            {isUploading ? 'Bild lädt...' : isCompact ? 'Ändern' : avatarURL ? 'Bild ändern' : 'Bild hochladen'}
-          </Button>
           {canEditExistingAvatar ? (
             <Button
               type="button"
