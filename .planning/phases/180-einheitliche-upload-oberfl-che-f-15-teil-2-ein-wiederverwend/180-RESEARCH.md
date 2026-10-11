@@ -496,10 +496,11 @@ import { fireEvent, render, screen } from '@testing-library/react'
 | A2 | Eine additive Backend-Antwort-Erweiterung (`fansub_group_media_id`) ist der bessere Weg für D-11/D-12 bei Weg 2 als das Nachlade-Workaround | Pitfall 2, Open Questions | Falls der Nutzer eine reine Frontend-Lösung ohne jede Backend-Berührung verlangt, muss das fragilere Sortierungs-Zuordnungs-Workaround gewählt werden — höheres Fehlerrisiko bei gleichzeitigen Uploads mehrerer Admins derselben Gruppe |
 | A3 | `ReleaseVersionMediaGallery.tsx` ist tatsächlich tote, nicht wiederverwendbare Altlast und keine versehentlich falsch verlinkte Produktivkomponente | Pitfall 3 | Falls doch irgendwo dynamisch importiert (nicht per statischem Import, daher von `grep` nicht erfasst), würde ihre Löschung/Änderung eine unbeabsichtigte Regression auslösen — sollte vor Umsetzung noch einmal per Laufzeit-Check (nicht nur grep) bestätigt werden |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Soll Weg 2s Backend-Upload-Antwort additiv um die Beziehungs-ID (`fansub_group_media_id`)
-   erweitert werden, um den Weg-1-Patch-Nachlauf-Mechanismus 1:1 zu übertragen?**
+1. **(RESOLVED, siehe D-14 in `180-CONTEXT.md`) Soll Weg 2s Backend-Upload-Antwort additiv um die
+   Beziehungs-ID (`fansub_group_media_id`) erweitert werden, um den Weg-1-Patch-Nachlauf-Mechanismus
+   1:1 zu übertragen?**
    - Was wir wissen: Weg 1s Response liefert `release_version_media_id` direkt
      (`admin_content_release_version_media_upload.go:33`); Weg 2s Response liefert nur
      `media_asset_id` (`fansub_media_upload.go:297-307`), die `fansub_group_media`-Zeilen-ID wird
@@ -512,8 +513,10 @@ import { fireEvent, render, screen } from '@testing-library/react'
      ist aber ein Backend-Touch). Falls nein: Sortierungs-basiertes Zuordnungs-Workaround
      (Pitfall 2) als Fallback einplanen und als bekanntes Risiko dokumentieren.
 
-2. **Soll `ReleaseVersionMediaGallery.tsx` (toter Code, Pitfall 3) im Zuge dieser Phase gelöscht
-   oder für die neue `ReleaseVersionMediaGrid.tsx`-Extraktion wiederverwendet werden?**
+2. **(RESOLVED, siehe D-15 in `180-CONTEXT.md` — Plan 180-04 löscht die Datei, keine
+   Reaktivierung) Soll `ReleaseVersionMediaGallery.tsx` (toter Code, Pitfall 3) im Zuge dieser
+   Phase gelöscht oder für die neue `ReleaseVersionMediaGrid.tsx`-Extraktion wiederverwendet
+   werden?**
    - Was wir wissen: Datei existiert, wird nirgendwo statisch importiert, 383 Zeilen, hat eigene
      `.module.css` und `.test.tsx`.
    - Was unklar ist: Ob ihr internes Datenmodell (Props-Shape) mit dem aktuellen
@@ -522,11 +525,12 @@ import { fireEvent, render, screen } from '@testing-library/react'
    - Recommendation: Erster Plan-Task im Split-Arbeitspaket sollte diese Datei kurz gegenlesen und
      explizit entscheiden (reaktivieren vs. löschen), statt sie zu ignorieren.
 
-3. **Wie weit sollen die Präsentations-Primitives bei Weg 4 (Anime-Assets, 5 unabhängige Slots:
-   Cover/Banner/Logo/Hintergrund/Segment-Video) eingesetzt werden — pro Slot eine eigene
-   `UploadDropzone`-Instanz, oder bleibt der bestehende Klick-zu-Datei-Dialog (kein Drag&Drop
-   heute, siehe Research-Beleg unten) unangetastet und nur `UploadFileRow`-Fortschrittsoptik
-   übernommen?**
+3. **(RESOLVED, siehe D-16 in `180-CONTEXT.md` — abweichend von der Empfehlung: Weg 4 bekommt
+   echtes Drag&Drop) Wie weit sollen die Präsentations-Primitives bei Weg 4 (Anime-Assets, 5
+   unabhängige Slots: Cover/Banner/Logo/Hintergrund/Segment-Video) eingesetzt werden — pro Slot
+   eine eigene `UploadDropzone`-Instanz, oder bleibt der bestehende Klick-zu-Datei-Dialog (kein
+   Drag&Drop heute, siehe Research-Beleg unten) unangetastet und nur `UploadFileRow`-
+   Fortschrittsoptik übernommen?**
    - Was wir wissen: Weg 4 hat heute (verifiziert per grep) KEIN Drag&Drop, nur
      `<input type="file">` mit verstecktem Ref-Trigger je Slot.
    - Was unklar ist: Ob D-13 implizit auch Drag&Drop für Weg 4 einführen will (Feature-Zugewinn,
