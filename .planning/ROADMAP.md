@@ -2620,7 +2620,7 @@ teilen sich die Präsentations-Primitives, und echtes Drag&Drop ist auf allen ac
 `180-CONTEXT.md` (alle 5 ursprünglich offenen Fragen plus 3 Recherche-Weichen plus 1
 Nutzerkorrektur nach Planungsbeginn beantwortet).
 **Depends on:** Phase 179
-**Plans:** 5/12 plans executed
+**Plans:** 6/12 plans executed
 
   - Wave 1: 180-01 (Präsentations-Primitives UploadDropzone/UploadFileRow + /dev/ui-system-Showcase),
     180-02 (Orchestrierungs-Hook useUploadQueue + reine Helfer), 180-03 (Backend D-14:
@@ -2655,7 +2655,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 180-05-PLAN.md — Weg-1 upload wiring onto the shared primitives/hook (D-01, D-02, D-06, D-08, D-09, D-10, D-11, D-12, D-13).
+- [x] 180-05-PLAN.md — Weg-1 upload wiring onto the shared primitives/hook (D-01, D-02, D-06, D-08, D-09, D-10, D-11, D-12, D-13).
 - [ ] 180-07-PLAN.md — Weg-2 upload migration + removal of superseded replace/batch-error code (D-01, D-03, D-04, D-09, D-11, D-12, D-13, D-14).
 - [ ] 180-08-PLAN.md — Weg 3 (Fansub-Logo/Banner) + Weg 7 (Profil-Avatar/-Hintergrund) presentational adoption, Weg 7 gains real drag&drop (D-01, D-04, D-13, D-17).
 - [ ] 180-09-PLAN.md — Weg 5 (Segment-Assets) + Weg 8 (Medien-Vorschläge) presentational adoption, both gain real drag&drop (D-01, D-04, D-13, D-17).
