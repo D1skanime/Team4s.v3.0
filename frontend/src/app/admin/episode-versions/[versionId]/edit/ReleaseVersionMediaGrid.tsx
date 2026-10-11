@@ -60,7 +60,6 @@ export interface ReleaseVersionMediaGridProps {
   canReorderMedia: boolean
   canManageHighlights: boolean
   canUpdateMedia: boolean
-  draggedStoryKey: string | null
   dragOverStoryKey: string | null
   previewSavingId: number | null
   onDragStart: (event: DragEvent<HTMLDivElement>, itemKey: string) => void
@@ -79,7 +78,6 @@ export function ReleaseVersionMediaGrid({
   canReorderMedia,
   canManageHighlights,
   canUpdateMedia,
-  draggedStoryKey,
   dragOverStoryKey,
   previewSavingId,
   onDragStart,

@@ -79,6 +79,13 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   'src/app/admin/episode-versions/\\[versionId\\]/edit/EpisodeVersionEditorPage.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaDetailPanel.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaSection.tsx',
+  // 180-04: reine Code-Verschiebung aus dem bereits gelisteten
+  // ReleaseVersionMediaSection.tsx (Edit/View-Drawer-Extraktion zur
+  // Einhaltung der 450-Zeilen-Grenze) -- keine neuen nativen Elemente, nur
+  // relokierte Altlast (Checkbox- und Ersatzdatei-Input). Bewusste,
+  // dokumentierte Ergaenzung (180-04-SUMMARY.md), gleiches Muster wie die
+  // 156-14-/174-14-Ergaenzungen oben.
+  'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaEditDrawer.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionNotesTab.test.tsx',
   // 156-14: reine Code-Verschiebung aus dem bereits gelisteten SegmentEditPanel.tsx (Extraktion
   // zur Einhaltung der 450-Zeilen-Grenze aus 156-UAT.md) -- keine neuen nativen Elemente, nur

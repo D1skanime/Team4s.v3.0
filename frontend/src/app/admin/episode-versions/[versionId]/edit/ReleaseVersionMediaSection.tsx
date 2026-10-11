@@ -1,17 +1,15 @@
 'use client'
 
 import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { ImageIcon, Trash2 } from 'lucide-react'
 
-import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionAdminStoryItem, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
+import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
-import { Button, Drawer, FormField, Input, Textarea, useConfirmDialog } from '@/components/ui'
+import { Button, Drawer, useConfirmDialog } from '@/components/ui'
 import { UploadFileDraft, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
 import { ReleaseVersionMediaUploadQueue } from './ReleaseVersionMediaUploadQueue'
-import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
 import { ReleaseVersionMediaGrid } from './ReleaseVersionMediaGrid'
-import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
-import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, buildStoryReorderRequest, fileKey, isTerminalStatus, moveStoryItem, resolveEditDrawerPrimaryLabel, sortStoryItems, storyItemKey } from './ReleaseVersionMediaSection.helpers'
+import { ReleaseVersionMediaEditDrawer } from './ReleaseVersionMediaEditDrawer'
+import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, buildStoryReorderRequest, fileKey, isTerminalStatus, moveStoryItem, sortStoryItems, storyItemKey } from './ReleaseVersionMediaSection.helpers'
 import styles from './ReleaseVersionMediaSection.module.css'
 
 interface ReleaseVersionMediaSectionProps {
@@ -432,7 +430,6 @@ export function ReleaseVersionMediaSection({
             canReorderMedia={canReorderMedia}
             canManageHighlights={canManageHighlights}
             canUpdateMedia={canUpdateMedia}
-            draggedStoryKey={draggedStoryKey}
             dragOverStoryKey={dragOverStoryKey}
             previewSavingId={previewSavingId}
             onDragStart={handleMediaDragStart}
@@ -544,112 +541,37 @@ export function ReleaseVersionMediaSection({
         </div>
       </Drawer>
 
-      <Drawer
-        open={Boolean(selectedItem)}
+      <ReleaseVersionMediaEditDrawer
+        selectedItem={selectedItem}
+        categoryLabel={categoryLabel}
+        editTitle={editTitle}
+        editCaption={editCaption}
+        editCategory={editCategory}
+        editPreviewCandidate={editPreviewCandidate}
+        stagedReplaceFile={stagedReplaceFile}
+        stagedReplacePreviewURL={stagedReplacePreviewURL}
+        isReplaceDragActive={isReplaceDragActive}
+        editError={editError}
+        canEditSelectedItem={canEditSelectedItem}
+        canDeleteSelectedItem={canDeleteSelectedItem}
+        canEditPreviewCandidate={canEditPreviewCandidate}
+        canManageHighlights={canManageHighlights}
+        isRejectedEditable={isRejectedEditable}
+        hasStagedChanges={hasStagedChanges}
+        setEditTitle={setEditTitle}
+        setEditCaption={setEditCaption}
+        setEditCategory={setEditCategory}
         onClose={() => setSelectedItemId(null)}
-        title={canEditSelectedItem ? 'Medium bearbeiten' : 'Medium ansehen'}
-        description={selectedItem ? categoryLabel(selectedItem.category) : undefined}
-        variant="responsiveSheet"
-        footer={
-          <>
-            <Button
-              variant="ghost"
-              className={styles.dangerGhost}
-              leftIcon={<Trash2 size={16} aria-hidden="true" />}
-              onClick={() => void handleDeleteSelectedItem()}
-              disabled={!canDeleteSelectedItem}
-            >
-              Löschen
-            </Button>
-            <Button
-              variant="ghost"
-              className={styles.accentButton}
-              onClick={() => void handleSaveSelectedItem()}
-              disabled={!canEditSelectedItem || (selectedItem?.review_state === 'rejected' && !hasStagedChanges)}
-            >
-              {resolveEditDrawerPrimaryLabel(selectedItem, hasStagedChanges)}
-            </Button>
-          </>
-        }
-      >
-        {selectedItem ? (
-          <div className={styles.sheetStack}>
-            <div className={styles.editPreview}>
-              {stagedReplacePreviewURL ? (
-                <img draggable={false} src={stagedReplacePreviewURL} alt="" />
-              ) : selectedItem.original_url || selectedItem.thumbnail_url ? (
-                <img draggable={false} src={selectedItem.original_url ?? selectedItem.thumbnail_url ?? ''} alt="" />
-              ) : (
-                <ImageIcon size={28} aria-hidden="true" />
-              )}
-            </div>
-            {editError ? <div className={styles.errorBox}>{editError}</div> : null}
-            {selectedItem.review_state === 'rejected' ? (
-              <div className={styles.statusHint} role="status">
-                <strong>
-                  {RELEASE_REVIEW_REJECTION_CATEGORY_LABELS[selectedItem.rejection_category ?? 'other'] ?? 'Sonstiger Grund'}
-                </strong>
-                {selectedItem.rejection_reason ? <p>{selectedItem.rejection_reason}</p> : null}
-              </div>
-            ) : null}
-            {isRejectedEditable ? <ReleaseVersionMediaReplaceControls editCategory={editCategory} onCategoryChange={setEditCategory} /> : null}
-            {isRejectedEditable ? (
-              <FormField label="Datei ersetzen" hint="Ersetzt die aktuell abgelehnte Datei durch eine neue Fassung. Beschreibung und Kategorie kannst du im selben Formular anpassen.">
-                <div
-                  className={[styles.dropZone, isReplaceDragActive ? styles.dropZoneActive : ''].filter(Boolean).join(' ')}
-                  role="button"
-                  tabIndex={0}
-                  onClick={openReplaceFilePicker}
-                  onKeyDown={onReplaceDropZoneKeyDown}
-                  onDragEnter={(event) => onReplaceDragToggle(event, true)}
-                  onDragOver={(event) => onReplaceDragToggle(event, true)}
-                  onDragLeave={(event) => onReplaceDragToggle(event, false)}
-                  onDrop={onReplaceDrop}
-                >
-                  <div className={styles.dropZoneHeader}>
-                    <p className={styles.dropZoneCallout}>Neue Datei hier hineinziehen oder antippen.</p>
-                    {stagedReplaceFile ? <p className={styles.helper}>Ausgewählt: {stagedReplaceFile.name}</p> : null}
-                  </div>
-                  <input
-                    ref={replaceFileInputRef}
-                    className={styles.fileInput}
-                    type="file"
-                    aria-label="Ersatzdatei"
-                    accept="image/*"
-                    onChange={onReplaceFileChange}
-                    onClick={(event) => event.stopPropagation()}
-                  />
-                </div>
-              </FormField>
-            ) : null}
-            <FormField label="Titel" htmlFor="release-media-edit-title">
-              <Input id="release-media-edit-title" value={editTitle} maxLength={200}
-                onChange={(event) => setEditTitle(event.target.value)} disabled={!canEditSelectedItem} />
-            </FormField>
-            <FormField label="Beschreibung" htmlFor="release-media-edit-caption">
-              <Textarea
-                id="release-media-edit-caption"
-                value={editCaption}
-                onChange={(event) => setEditCaption(event.target.value)}
-                placeholder="Kurze Beschreibung ergänzen"
-                rows={4}
-                disabled={!canEditSelectedItem}
-              />
-            </FormField>
-            {canEditPreviewCandidate ? (
-              <label className={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={editPreviewCandidate}
-                  onChange={(event) => void handlePreviewChange(selectedItem, event.target.checked)}
-                  disabled={!canEditSelectedItem && !canManageHighlights}
-                />
-                <span>Als Vorschau markieren</span>
-              </label>
-            ) : null}
-          </div>
-        ) : null}
-      </Drawer>
+        onSave={() => void handleSaveSelectedItem()}
+        onDelete={() => void handleDeleteSelectedItem()}
+        onPreviewChange={(item, nextValue) => void handlePreviewChange(item, nextValue)}
+        onReplaceFileChange={onReplaceFileChange}
+        openReplaceFilePicker={openReplaceFilePicker}
+        onReplaceDropZoneKeyDown={onReplaceDropZoneKeyDown}
+        onReplaceDragToggle={onReplaceDragToggle}
+        onReplaceDrop={onReplaceDrop}
+        replaceFileInputRef={replaceFileInputRef}
+      />
       {confirmDialog}
     </section>
   )
