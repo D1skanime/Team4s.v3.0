@@ -1,10 +1,14 @@
 # Phase 180: Einheitliche Upload-Oberfläche (F-15 Teil 2) — Context
 
-**Stand:** 2026-10-11, alle 5 offenen Fragen beantwortet (D-09 bis D-13). Antwort 5 ist eine
-bewusste Scope-Erweiterung gegenüber der ursprünglichen Empfehlung: zusätzlich zur funktionalen
-Umstellung von Weg 1/2 (D-01–D-03) bekommen alle acht Upload-Wege eine gemeinsame
-Präsentations-Primitives-Schicht für ihr Erscheinungsbild (D-13), ohne ihre getrennten Abläufe
-zusammenzuführen.
+**Stand:** 2026-10-11, alle 5 offenen Fragen beantwortet (D-09 bis D-13) plus 3 Recherche-Weichen
+aus `180-RESEARCH.md` beantwortet (D-14 bis D-16). Antwort 5 ist eine bewusste Scope-Erweiterung
+gegenüber der ursprünglichen Empfehlung: zusätzlich zur funktionalen Umstellung von Weg 1/2
+(D-01–D-03) bekommen alle acht Upload-Wege eine gemeinsame Präsentations-Primitives-Schicht für
+ihr Erscheinungsbild (D-13), ohne ihre getrennten Abläufe zusammenzuführen. D-14 ist eine kleine,
+additive Backend-Erweiterung (kein neuer Endpunkt, keine Rechteänderung) — die einzige
+Abweichung von der ursprünglichen „kein Backend-Touch"-Phasengrenze. D-16 weicht bewusst von der
+Recherche-Empfehlung ab: Weg 4 (Anime-Assets) bekommt Drag&Drop als echten Verhaltenszugewinn,
+nicht nur Optik.
 
 **Quelle:** `.planning/phases/175-inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-/175-ROADMAP-PROPOSAL.md`
 (Abschnitt „Phase 180: Upload-Frontend/-Workflow (F-15 Teil 2)" + Übersichtstabelle);
@@ -14,7 +18,8 @@ D-13, neue Aktion `ActionReleaseThemeAssetUpload`); Live-Code-Faktencheck in
 `frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx`,
 `ReleaseVersionMediaUploadQueue.tsx`, `useReleaseVersionMedia.ts`, `frontend/src/app/admin/fansubs/
 [id]/edit/GroupMediaReviewSection.tsx`, `GroupMediaReviewUploadPanel.tsx`,
-`useGroupMediaReviewActions.ts`.
+`useGroupMediaReviewActions.ts`; `180-RESEARCH.md` (Architektur-Patterns, Pitfalls 1–5, Offene
+Fragen 1–3, von D-14 bis D-16 beantwortet).
 
 <domain>
 ## Phase Boundary
@@ -24,6 +29,8 @@ Diese Phase ist der **Frontend-/Workflow-Anteil** der ursprünglich einheitliche
 Capability-Prüfung je Upload-Aktion, gemeinsamer Soft-Delete-Helfer, neue
 `ActionReleaseThemeAssetUpload`-Aktion, `isPlatformAdmin`-Anzeigeflag für Anime-Assets). Diese
 Phase baut **keinen neuen Rechte-Mechanismus** — sie übernimmt die Phase-179-Basis unverändert.
+Eine einzige, enge Ausnahme: D-14 erweitert einen bestehenden Phase-179-Endpunkt additiv um ein
+Response-Feld (keine Rechteänderung, kein neuer Endpunkt) — siehe Decisions.
 
 **Umfang laut Zusatzauftrag (2026-10-11, verbindlich für diese Phase — abweichend von
 175-ROADMAP-PROPOSAL.md, siehe D-01):**
@@ -199,7 +206,40 @@ ohne die bestehenden Dateien weiter aufzublähen.
   widersprechen der Pflicht-Regel „globales UI-System" (CLAUDE.md). D-01 bleibt für die
   **funktionale** Abgrenzung (nur Weg 1/2) unverändert gültig — D-13 gilt zusätzlich und nur für
   die **präsentationale** Schicht (alle acht Wege). Dateien über 450 Zeilen, die beim
-  Primitives-Einsatz angefasst werden, werden aufgeteilt (D-06 gilt unverändert).
+  Primitives-Einsatz angefasst werden, werden aufgeteilt (D-06 gilt unverändert). **Ausnahme:**
+  D-16 erlaubt für Weg 4 explizit einen echten Verhaltenszugewinn (Drag&Drop), siehe unten — dort
+  ist „nur Darstellung" bewusst durchbrochen.
+- **D-14 (Recherche-Weiche 1, additive Backend-Erweiterung):** Der bestehende
+  Gruppenmedien-Upload-Endpunkt (`fansub_media_upload.go`, Phase 179) gibt je hochgeladener Datei
+  zusätzlich die Beziehungs-ID `fansub_group_media_id` zurück (Nutzer 2026-10-11, beantwortet
+  Recherche-Offene-Frage 1 aus `180-RESEARCH.md`, Option A) — analog zur bestehenden
+  `release_version_media_id`-Konvention bei Weg 1 (`admin_content_release_version_media_upload.go:33`).
+  Kein neuer Endpunkt, keine Rechteänderung — nur ein zusätzliches Response-Feld am bereits in
+  Phase 179 behandelten Endpunkt. Ermöglicht den Weg-1-Patch-Nachlauf-Mechanismus
+  (Pro-Datei-Titel/Caption nachreichen, Einzel-Retry per Item laut D-12) 1:1 auf Weg 2 zu
+  übertragen, statt eines fragilen `sort_order`-basierten Zuordnungs-Workarounds (explizit
+  abgelehnt). Frontend-Contract/-Typen (`fansubGroupMediaFileResult`-Äquivalent in
+  `frontend/src/lib/api`) werden entsprechend nachgezogen; ein Verhaltenstest
+  (`httptest` gegen Fake-Repository, Teststil-Regel D-05) bestätigt das neue Feld im
+  Response-Body.
+- **D-15 (Recherche-Weiche 2, tote Datei):** `ReleaseVersionMediaGallery.tsx` (383 Zeilen,
+  nirgendwo importiert, siehe `180-RESEARCH.md` Pitfall 3) wird im Zuge des 450-Zeilen-Splits
+  geprüft und explizit entschieden (Nutzer 2026-10-11, beantwortet Recherche-Offene-Frage 2,
+  Option A) — der Planer/Executor liest die Datei inhaltlich gegen das aktuelle
+  Story-Item-/Kara-Segment-Datenmodell, entscheidet dann zwischen Reaktivierung (falls kompatibel)
+  oder Löschung (falls veraltet/inkompatibel), und begründet die Entscheidung im Plan bzw. in der
+  Umsetzung. Keine tote Datei bleibt nach dieser Phase ungeklärt stehen.
+- **D-16 (Recherche-Weiche 3, abweichend von der Recherche-Empfehlung):** Weg 4 (Anime-Assets:
+  Cover/Banner/Logo/Hintergrund; Segment-Vorschau analog) bekommt Drag&Drop über dieselbe
+  gemeinsame Ablagefläche wie alle anderen Wege (Nutzer 2026-10-11, beantwortet
+  Recherche-Offene-Frage 3, Option B — abweichend von der Recherche-Empfehlung „Klick-only,
+  `allowDrop: false`") — Begründung des Nutzers: Jede Ablagefläche soll sich überall gleich
+  verhalten. Der fachliche Ablauf bleibt unverändert Single-Slot-Replace, die Sichtbarkeit bleibt
+  exakt an Plattform-Admin gebunden (Phase 179 D-13, `isPlatformAdmin`-Flag unverändert). Werden
+  beim Ablegen mehrere Dateien auf einen Single-Slot fallen gelassen, wird nur die erste
+  übernommen, mit einem erkennbaren Hinweis an den Nutzer (echte Umlaute, z. B. „Nur die erste
+  Datei wurde übernommen — dieser Platz erlaubt nur ein Bild."). Dies ist die einzige bewusste
+  Durchbrechung von D-13s „nur Darstellung, keine Abläufe"-Grundsatz.
 </decisions>
 
 <open_questions>
@@ -255,4 +295,7 @@ als D-09 bis D-13 festgehalten. Keine offenen Fragen mehr ausstehend.
   `ReleaseVersionMediaUploadQueue.tsx`, `useReleaseVersionMedia.ts`;
   `frontend/src/app/admin/fansubs/[id]/edit/GroupMediaReviewSection.tsx`,
   `GroupMediaReviewUploadPanel.tsx`, `useGroupMediaReviewActions.ts`.
+- `.planning/phases/180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend/180-RESEARCH.md`
+  — Architektur-Patterns (Hook/Primitive-Trennung), Pitfalls 1–5, Code-Beispiele, Offene Fragen
+  1–3 (beantwortet als D-14 bis D-16).
 </references>
