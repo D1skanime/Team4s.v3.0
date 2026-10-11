@@ -521,7 +521,9 @@ describe('GroupMediaReviewSection', () => {
 
   it('setzt Dateiauswahl und Upload-Kategorie nach erfolgreichem Upload zurück', async () => {
     const { container } = renderSection([])
-    uploadFansubGroupMedia.mockResolvedValue({ results: [{ client_file_name: 'test.png', status: 'ready' }] })
+    uploadFansubGroupMedia.mockResolvedValue({
+      results: [{ client_file_name: 'test.png', status: 'ready', fansub_group_media_id: 555 }],
+    })
 
     fireEvent.click(await screen.findByRole('button', { name: 'Medien hochladen' }))
     const uploadCategorySelect = screen.getAllByRole('combobox')[0] as HTMLSelectElement
@@ -538,24 +540,22 @@ describe('GroupMediaReviewSection', () => {
     await waitFor(() => {
       expect(uploadFansubGroupMedia).toHaveBeenCalledWith(expect.objectContaining({ category: 'forum' }))
     })
-    expect(screen.queryByText('test.png')).toBeNull()
+    await waitFor(() => expect(screen.queryByText('test.png')).toBeNull())
     await waitFor(() => expect(screen.queryByText('Bilder auswählen oder hier ablegen')).toBeNull())
   })
 
   it('zeigt beim Ziehen von Bildern einen aktiven Dropbereich und übernimmt die Dateien', async () => {
-    const { container } = renderSection([])
+    renderSection([])
     fireEvent.click(await screen.findByRole('button', { name: 'Medien hochladen' }))
     const dropZone = screen.getByRole('button', { name: 'Bilder auswählen oder hier ablegen' })
     const file = new File(['x'], 'drop.png', { type: 'image/png' })
 
     fireEvent.dragEnter(dropZone, { dataTransfer: { files: [file] } })
-    expect(dropZone.className).toContain('dropZoneActive')
+    expect(dropZone.className).toContain('dropzoneDragging')
     fireEvent.drop(dropZone, { dataTransfer: { files: [file] } })
 
-    expect(await screen.findByText('1 Bild ausgewählt')).toBeTruthy()
-    expect(screen.getByText('drop.png')).toBeTruthy()
-    expect(screen.getByRole('img', { name: 'Vorschau: drop.png' })).toBeTruthy()
-    expect(container.querySelector('input[type="file"]')?.getAttribute('id')).toBe('group-media-file-input')
+    expect(await screen.findByText('drop.png')).toBeTruthy()
+    expect(screen.getByRole('img', { name: 'Vorschau drop.png' })).toBeTruthy()
   })
 
   it('entfernt Gruppenmedien erst nach Detail-Danger-Zone und Modal-Bestätigung', async () => {

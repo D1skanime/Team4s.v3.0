@@ -53,7 +53,7 @@ export function GroupMediaReviewUploadPanel({
   const isBusy = items.some((item) => item.status === 'uploading' || item.status === 'processing')
   const canUpload = items.length > 0 && !isBusy
 
-  // Weg-2-Adapter: review_status bleibt unveraendert fest auf 'in_review' verdrahtet
+  // Weg-2-Adapter: review_status bleibt unverändert fest auf 'in_review' verdrahtet
   // (Pitfall 5, T-180-12) — der geteilte Hook/die Primitives sehen diesen Wert nie.
   const adapter: UploadAdapter<FansubGroupMediaUploadResult> = {
     uploadFiles: (files, onProgress) =>
@@ -68,7 +68,7 @@ export function GroupMediaReviewUploadPanel({
     readyResultId: (result) => result.fansub_group_media_id ?? null,
     isReady: (result) => result.status === 'ready' && typeof result.fansub_group_media_id === 'number',
     readErrorFromResult: (result) => result.message || result.error_code || 'Upload fehlgeschlagen.',
-    // FansubMediaReviewPatch hat kein `caption`-Feld — die Uebersetzung auf `description`
+    // FansubMediaReviewPatch hat kein `caption`-Feld — die Übersetzung auf `description`
     // ist bewusst Aufgabe dieses Adapters, nicht des geteilten Hooks (T-180-13).
     patchMetadata: (resultId, patch) =>
       patchFansubMediaReview(fansubId, resultId, {

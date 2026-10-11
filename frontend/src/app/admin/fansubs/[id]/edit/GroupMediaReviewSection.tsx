@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { UploadCloud, X } from 'lucide-react'
 
 import {
@@ -24,6 +24,7 @@ import { classNames } from '@/components/ui/classNames'
 import styles from './GroupMediaReviewSection.module.css'
 import { useGroupMediaReviewActions } from './useGroupMediaReviewActions'
 import { LOAD_MORE_MEDIA_COUNT, useGroupMediaReviewFilters } from './useGroupMediaReviewFilters'
+import { useGroupMediaReviewReorder } from './useGroupMediaReviewReorder'
 import { GroupMediaReviewUploadPanel } from './GroupMediaReviewUploadPanel'
 import { GroupMediaReviewFilterBar } from './GroupMediaReviewFilterBar'
 import { GroupMediaReviewGrid } from './GroupMediaReviewGrid'
@@ -45,15 +46,6 @@ interface MediaDraft {
   category: FansubGroupMediaCategory
   sort_order: number
 }
-
-type PointerReorderState = {
-  mediaId: number
-  pointerId: number
-  startX: number
-  startY: number
-}
-
-const POINTER_REORDER_THRESHOLD_PX = 6
 
 function itemToDraft(item: FansubGroupMediaItem): MediaDraft {
   return {
@@ -93,19 +85,13 @@ function GroupMediaReviewSectionInner({
   capabilities: FansubGroupCapabilities | null
   isPlatformAdmin: boolean
 }) {
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const pointerReorderRef = useRef<PointerReorderState | null>(null)
   const [mediaItems, setMediaItems] = useState<FansubGroupMediaItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<ReturnType<typeof getErrorStateCopy> | null>(null)
   const [drafts, setDrafts] = useState<Record<number, MediaDraft>>({})
   const [saveErrors, setSaveErrors] = useState<Record<number, string>>({})
   const [saving, setSaving] = useState<Record<number, boolean>>({})
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  const [isUploadDragging, setIsUploadDragging] = useState(false)
   const [uploadCategory, setUploadCategory] = useState<FansubGroupMediaCategory>('gallery')
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
-  const [uploadError, setUploadError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [editingMediaId, setEditingMediaId] = useState<number | null>(null)
   const [failedPreviewIds, setFailedPreviewIds] = useState<Record<number, boolean>>({})
@@ -113,10 +99,6 @@ function GroupMediaReviewSectionInner({
   const [pendingDeleteItem, setPendingDeleteItem] = useState<FansubGroupMediaItem | null>(null)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [draggedMediaId, setDraggedMediaId] = useState<number | null>(null)
-  const [dragOverMediaId, setDragOverMediaId] = useState<number | null>(null)
-  const [reorderSaving, setReorderSaving] = useState(false)
-  const [reorderError, setReorderError] = useState<string | null>(null)
 
   const canUpdate =
     isPlatformAdmin || Boolean(capabilities?.can_update_group_media || capabilities?.can_edit_group)
@@ -128,22 +110,6 @@ function GroupMediaReviewSectionInner({
     isPlatformAdmin || Boolean(capabilities?.can_delete_group_media || capabilities?.can_edit_group)
   const canDeleteOwn = Boolean(capabilities?.can_delete_own_group_media || canDeleteAll)
   const canReorder = Boolean(capabilities?.can_reorder_group_media || canUpdate)
-
-  const selectedFilePreviews = useMemo(
-    () => selectedFiles.map((file) => ({
-      file,
-      url: typeof URL.createObjectURL === 'function' ? URL.createObjectURL(file) : '',
-    })),
-    [selectedFiles],
-  )
-
-  useEffect(() => {
-    return () => {
-      selectedFilePreviews.forEach(({ url }) => {
-        if (url) URL.revokeObjectURL(url)
-      })
-    }
-  }, [selectedFilePreviews])
 
   const {
     categoryFilter,
@@ -180,15 +146,30 @@ function GroupMediaReviewSectionInner({
     () => mediaItems.find((item) => item.id === editingMediaId) ?? null,
     [editingMediaId, mediaItems],
   )
-  const shouldShowUploadPanel = canUpload && (isUploadOpen || selectedFiles.length > 0 || uploadProgress !== null || uploadError !== null)
+  const shouldShowUploadPanel = canUpload && isUploadOpen
   const selectedCount = selectedMediaIds.size
   const shouldShowBulkActionBar = selectedCount >= 2
   const isBulkSaving = bulkSavingStatus !== null
-  const canReorderMedia = canReorder && isCanonicalReorderView && !isBulkSaving && !reorderSaving
+
+  const {
+    pointerReorderRef,
+    draggedMediaId,
+    dragOverMediaId,
+    setDragOverMediaId,
+    reorderError,
+    setReorderError,
+    setReorderSaving,
+    canReorderMedia,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    getPointerTargetMediaId,
+    handlePointerDragStart,
+    handlePointerDragMove,
+  } = useGroupMediaReviewReorder({ canReorder, isCanonicalReorderView, isBulkSaving })
 
   const {
     loadMedia,
-    handleUpload,
     handleSave,
     handleQuickReview,
     handleBulkReview,
@@ -205,14 +186,8 @@ function GroupMediaReviewSectionInner({
     setDrafts,
     setSaveErrors,
     setSaving,
-    selectedFiles,
-    uploadCategory,
-    setUploadProgress,
-    setUploadError,
     setToast,
     setEditingMediaId,
-    resetUploadForm,
-    setIsUploadOpen,
     canUpdate,
     canUpdateOwn,
     canReview,
@@ -253,22 +228,12 @@ function GroupMediaReviewSectionInner({
     return canDeleteAll || (canDeleteOwn && item.uploaded_by_current_user === true)
   }
 
-  function handleSelectedFiles(files: File[]) {
-    setUploadError(null)
-    setSelectedFiles(files.filter((file) => file.type.startsWith('image/')))
-  }
-
-  function handleUploadDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault()
-    setIsUploadDragging(false)
-    handleSelectedFiles(Array.from(event.dataTransfer.files))
-  }
-
-  function resetUploadForm() {
-    setSelectedFiles([])
-    setIsUploadDragging(false)
+  async function handleUploadComplete() {
     setUploadCategory('gallery')
-    if (fileInputRef.current) fileInputRef.current.value = ''
+    setIsUploadOpen(false)
+    setToast('Medien hochgeladen. Auswahl wurde zurückgesetzt.')
+    await loadMedia()
+    setTimeout(() => setToast(null), 3500)
   }
 
   function resetFilters() {
@@ -302,65 +267,6 @@ function GroupMediaReviewSectionInner({
     setDrafts((prev) => ({ ...prev, [item.id]: itemToDraft(item) }))
     setSaveErrors((prev) => ({ ...prev, [item.id]: '' }))
     setEditingMediaId(null)
-  }
-
-  function handleDragStart(event: DragEvent<HTMLButtonElement>, item: FansubGroupMediaItem) {
-    if (!canReorderMedia) return
-    event.stopPropagation()
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', String(item.id))
-    setReorderError(null)
-    setDraggedMediaId(item.id)
-  }
-
-  function handleDragOver(event: DragEvent<HTMLElement>, item: FansubGroupMediaItem) {
-    if (!canReorderMedia || draggedMediaId === null || draggedMediaId === item.id) return
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-    setDragOverMediaId(item.id)
-  }
-
-  function handleDragEnd() {
-    pointerReorderRef.current = null
-    setDraggedMediaId(null)
-    setDragOverMediaId(null)
-  }
-
-  function getPointerTargetMediaId(event: PointerEvent<HTMLButtonElement>): number | null {
-    const targetElement = document.elementFromPoint(event.clientX, event.clientY)
-    const mediaCard = targetElement?.closest<HTMLElement>('[data-media-card-id]')
-    const targetMediaId = Number(mediaCard?.dataset.mediaCardId)
-    return Number.isInteger(targetMediaId) ? targetMediaId : null
-  }
-
-  function handlePointerDragStart(event: PointerEvent<HTMLButtonElement>, item: FansubGroupMediaItem) {
-    if (!canReorderMedia || event.pointerType === 'mouse') return
-    event.preventDefault()
-    event.stopPropagation()
-    event.currentTarget.setPointerCapture(event.pointerId)
-    pointerReorderRef.current = {
-      mediaId: item.id,
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-    }
-    setReorderError(null)
-    setDraggedMediaId(item.id)
-    setDragOverMediaId(null)
-  }
-
-  function handlePointerDragMove(event: PointerEvent<HTMLButtonElement>) {
-    const pointerState = pointerReorderRef.current
-    if (!canReorderMedia || !pointerState || pointerState.pointerId !== event.pointerId) return
-    event.preventDefault()
-    event.stopPropagation()
-
-    const movementX = Math.abs(event.clientX - pointerState.startX)
-    const movementY = Math.abs(event.clientY - pointerState.startY)
-    if (movementX < POINTER_REORDER_THRESHOLD_PX && movementY < POINTER_REORDER_THRESHOLD_PX) return
-
-    const targetMediaId = getPointerTargetMediaId(event)
-    setDragOverMediaId(targetMediaId !== null && targetMediaId !== pointerState.mediaId ? targetMediaId : null)
   }
 
   if (isLoading) {
@@ -400,18 +306,10 @@ function GroupMediaReviewSectionInner({
 
       {shouldShowUploadPanel ? (
         <GroupMediaReviewUploadPanel
-          fileInputRef={fileInputRef}
+          fansubId={fansubId}
           uploadCategory={uploadCategory}
           setUploadCategory={setUploadCategory}
-          isUploadDragging={isUploadDragging}
-          setIsUploadDragging={setIsUploadDragging}
-          selectedFiles={selectedFiles}
-          selectedFilePreviews={selectedFilePreviews}
-          uploadProgress={uploadProgress}
-          uploadError={uploadError}
-          handleSelectedFiles={handleSelectedFiles}
-          handleUploadDrop={handleUploadDrop}
-          handleUpload={handleUpload}
+          onUploadComplete={handleUploadComplete}
         />
       ) : null}
 

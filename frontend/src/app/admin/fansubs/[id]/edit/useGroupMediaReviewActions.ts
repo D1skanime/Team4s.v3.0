@@ -18,7 +18,6 @@ import {
   listFansubGroupMedia,
   patchFansubMediaReview,
   reorderFansubGroupMedia,
-  uploadFansubGroupMedia,
 } from '@/lib/api'
 
 const SORT_ORDER_STEP = 1000
@@ -68,14 +67,8 @@ interface UseGroupMediaReviewActionsParams {
   setDrafts: Dispatch<SetStateAction<Record<number, MediaDraft>>>
   setSaveErrors: Dispatch<SetStateAction<Record<number, string>>>
   setSaving: Dispatch<SetStateAction<Record<number, boolean>>>
-  selectedFiles: File[]
-  uploadCategory: FansubGroupMediaCategory
-  setUploadProgress: Dispatch<SetStateAction<number | null>>
-  setUploadError: Dispatch<SetStateAction<string | null>>
   setToast: Dispatch<SetStateAction<string | null>>
   setEditingMediaId: Dispatch<SetStateAction<number | null>>
-  resetUploadForm: () => void
-  setIsUploadOpen: Dispatch<SetStateAction<boolean>>
   canUpdate: boolean
   canUpdateOwn: boolean
   canReview: boolean
@@ -108,14 +101,8 @@ export function useGroupMediaReviewActions({
   setDrafts,
   setSaveErrors,
   setSaving,
-  selectedFiles,
-  uploadCategory,
-  setUploadProgress,
-  setUploadError,
   setToast,
   setEditingMediaId,
-  resetUploadForm,
-  setIsUploadOpen,
   canUpdate,
   canUpdateOwn,
   canReview,
@@ -154,36 +141,6 @@ export function useGroupMediaReviewActions({
       setIsLoading(false)
     }
   }, [fansubId, setDrafts, setIsLoading, setLoadError, setMediaItems])
-
-  const handleUpload = useCallback(async () => {
-    if (selectedFiles.length === 0) return
-    setUploadError(null)
-    setUploadProgress(0)
-    try {
-      const response = await uploadFansubGroupMedia({
-        fansubID: fansubId,
-        files: selectedFiles,
-        category: uploadCategory,
-        visibilityCode: 'private',
-        reviewStatusCode: 'in_review',
-        onProgress: setUploadProgress,
-      })
-      const failed = response.results.filter((result) => result.status === 'failed')
-      if (failed.length > 0) {
-        setUploadError(failed.map((result) => `${result.client_file_name}: ${result.message ?? 'Upload fehlgeschlagen'}`).join('\n'))
-      } else {
-        resetUploadForm()
-        setToast('Medien hochgeladen. Auswahl wurde zurückgesetzt.')
-        setIsUploadOpen(false)
-      }
-      await loadMedia()
-    } catch (err) {
-      setUploadError(readErrorMessage(err, 'Upload fehlgeschlagen.'))
-    } finally {
-      setUploadProgress(null)
-      setTimeout(() => setToast(null), 3500)
-    }
-  }, [fansubId, loadMedia, resetUploadForm, selectedFiles, setIsUploadOpen, setToast, setUploadError, setUploadProgress, uploadCategory])
 
   const handleSave = useCallback(async (item: FansubGroupMediaItem) => {
     const draft = drafts[item.id]
@@ -375,7 +332,6 @@ export function useGroupMediaReviewActions({
 
   return {
     loadMedia,
-    handleUpload,
     handleSave,
     handleQuickReview,
     handleBulkReview,
