@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 180-07-PLAN.md
-last_updated: "2026-10-11T20:24:24.553Z"
+stopped_at: Completed 180-08-PLAN.md
+last_updated: "2026-10-11T20:37:21.932Z"
 last_activity: 2026-10-11
 progress:
   total_phases: 45
   completed_phases: 39
   total_plans: 427
-  completed_plans: 419
+  completed_plans: 420
   percent: 87
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 180 (einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend) — EXECUTING
-Plan: 8 of 12
+Plan: 9 of 12
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -1047,6 +1047,7 @@ Last activity: 2026-10-11
 - [Phase 180]: Weg-1-only preview-candidate selection is applied via a dedicated follow-up patchReleaseVersionMediaItem call issued by the drawer itself after startUpload/retryUpload resolves, not folded into the adapter's patchMetadata — useUploadQueue skips patchMetadata entirely when title+caption are both empty, so a file with no metadata would never get its preview flag set otherwise
 - [Phase 180]: Dropped the pre-180-05 behavior of disabling sibling category buttons while the open category's upload is busy — upload state now lives entirely inside the per-open drawer instance, not surfaced to the parent
 - [Phase 180]: 180-07: useGroupMediaReviewReorder.ts extraction axis added beyond plan text to reach the 450-line budget for GroupMediaReviewSection.tsx
+- [Phase 180-08]: Weg 7's inputRef is also triggered externally by EditableProfileHeader (avatarInputRef/backgroundInputRef .click()); kept the existing Button+input intact and added UploadDropzone alongside it instead of replacing the pair — UploadDropzone has no forwarded ref/open API, so replacing the input would have silently broken the profile-hero edit trigger
 
 ### Pending Todos
 
@@ -1687,11 +1688,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 180 P06 | 15min | 1 tasks | 3 files |
 | Phase 180 P05 | 45min | 2 tasks | 9 files |
 | Phase 180 P07 | 47min | 2 tasks | 7 files |
+| Phase 180 P08 | 25min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-11T20:24:24.526Z
-Stopped at: Completed 180-07-PLAN.md
+Last session: 2026-10-11T20:37:21.915Z
+Stopped at: Completed 180-08-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
