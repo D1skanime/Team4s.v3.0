@@ -991,20 +991,22 @@ type FansubGroupMediaCreateInput struct {
 	UploadedByUserID *int64
 }
 
-func (r *MediaRepository) CreateFansubGroupMediaAsset(ctx context.Context, tx pgx.Tx, input FansubGroupMediaCreateInput) error {
+func (r *MediaRepository) CreateFansubGroupMediaAsset(ctx context.Context, tx pgx.Tx, input FansubGroupMediaCreateInput) (int64, error) {
 	var uploadedByUserID interface{}
 	if input.UploadedByUserID != nil {
 		uploadedByUserID = *input.UploadedByUserID
 	}
-	_, err := tx.Exec(ctx, `
+	var id int64
+	err := tx.QueryRow(ctx, `
 		INSERT INTO fansub_group_media
 			(group_id, media_id, category, sort_order, uploaded_by_user_id, created_at)
 		VALUES ($1, $2, $3, $4, (SELECT id FROM users WHERE id = $5), NOW())
-	`, input.FansubGroupID, input.MediaAssetID, input.Category, input.SortOrder, uploadedByUserID)
+		RETURNING id
+	`, input.FansubGroupID, input.MediaAssetID, input.Category, input.SortOrder, uploadedByUserID).Scan(&id)
 	if err != nil {
-		return fmt.Errorf("create fansub_group_media (group_id=%d, media_id=%d): %w", input.FansubGroupID, input.MediaAssetID, err)
+		return 0, fmt.Errorf("create fansub_group_media (group_id=%d, media_id=%d): %w", input.FansubGroupID, input.MediaAssetID, err)
 	}
-	return nil
+	return id, nil
 }
 
 func (r *MediaRepository) UpdateFansubGroupMediaMetadata(ctx context.Context, fansubGroupID, mediaID int64, patch FansubGroupMediaMetadataPatch) error {
