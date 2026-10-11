@@ -20,10 +20,10 @@ import {
 } from '@/lib/api'
 import type { FansubGroupCapabilities } from '@/types/fansub'
 import { classNames } from '@/components/ui/classNames'
-import { matchesSearch } from '@/lib/textFilter'
 
 import styles from './GroupMediaReviewSection.module.css'
 import { useGroupMediaReviewActions } from './useGroupMediaReviewActions'
+import { LOAD_MORE_MEDIA_COUNT, useGroupMediaReviewFilters } from './useGroupMediaReviewFilters'
 import { GroupMediaReviewUploadPanel } from './GroupMediaReviewUploadPanel'
 import { GroupMediaReviewFilterBar } from './GroupMediaReviewFilterBar'
 import { GroupMediaReviewGrid } from './GroupMediaReviewGrid'
@@ -46,10 +46,6 @@ interface MediaDraft {
   sort_order: number
 }
 
-type CategoryFilter = 'all' | FansubGroupMediaCategory
-type ReviewStatusFilter = 'all' | FansubMediaReviewStatus
-type VisibilityFilter = 'all' | FansubMediaVisibility
-type SortMode = 'sort_order' | 'created_desc' | 'created_asc'
 type PointerReorderState = {
   mediaId: number
   pointerId: number
@@ -57,8 +53,6 @@ type PointerReorderState = {
   startY: number
 }
 
-const INITIAL_VISIBLE_MEDIA_COUNT = 40
-const LOAD_MORE_MEDIA_COUNT = 40
 const POINTER_REORDER_THRESHOLD_PX = 6
 
 function itemToDraft(item: FansubGroupMediaItem): MediaDraft {
@@ -70,40 +64,6 @@ function itemToDraft(item: FansubGroupMediaItem): MediaDraft {
     alt_text: item.alt_text ?? '',
     category: item.category ?? 'other',
     sort_order: item.sort_order ?? 0,
-  }
-}
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date)
-}
-
-function getMediaDisplayTitle(item: FansubGroupMediaItem): string {
-  const title = item.title?.trim()
-  if (title) return title
-
-  const date = formatDate(item.created_at)
-  const suffix = date ? ` vom ${date}` : ''
-
-  switch (item.category) {
-    case 'artwork_fanart':
-      return `Artwork${suffix}`
-    case 'event_meeting':
-      return `Treffen${suffix}`
-    case 'forum':
-      return `Forenbild${suffix}`
-    case 'history_screenshot':
-      return `Historischer Screenshot${suffix}`
-    case 'irc_chat':
-      return `Chatbild${suffix}`
-    case 'old_website':
-      return `Webseitenbild${suffix}`
-    case 'gallery':
-      return `Galeriebild${suffix}`
-    default:
-      return `Gruppenbild${suffix}`
   }
 }
 
@@ -148,20 +108,11 @@ function GroupMediaReviewSectionInner({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [editingMediaId, setEditingMediaId] = useState<number | null>(null)
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
-  const [statusFilter, setStatusFilter] = useState<ReviewStatusFilter>('all')
-  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>('all')
-  const [sortMode, setSortMode] = useState<SortMode>('sort_order')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [visibleLimit, setVisibleLimit] = useState(INITIAL_VISIBLE_MEDIA_COUNT)
   const [failedPreviewIds, setFailedPreviewIds] = useState<Record<number, boolean>>({})
   const [failedDetailIds, setFailedDetailIds] = useState<Record<number, boolean>>({})
   const [pendingDeleteItem, setPendingDeleteItem] = useState<FansubGroupMediaItem | null>(null)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [selectedMediaIds, setSelectedMediaIds] = useState<Set<number>>(() => new Set())
-  const [bulkSavingStatus, setBulkSavingStatus] = useState<FansubMediaReviewStatus | null>(null)
-  const [bulkError, setBulkError] = useState<string | null>(null)
   const [draggedMediaId, setDraggedMediaId] = useState<number | null>(null)
   const [dragOverMediaId, setDragOverMediaId] = useState<number | null>(null)
   const [reorderSaving, setReorderSaving] = useState(false)
@@ -194,81 +145,46 @@ function GroupMediaReviewSectionInner({
     }
   }, [selectedFilePreviews])
 
-  const filteredMediaItems = useMemo(() => {
-    return mediaItems
-      .filter((item) => {
-        const draft = itemToDraft(item)
-        const matchesCategory = categoryFilter === 'all' || draft.category === categoryFilter
-        const matchesStatus = statusFilter === 'all' || draft.review_status === statusFilter
-        const matchesVisibility = visibilityFilter === 'all' || draft.visibility === visibilityFilter
-        const isSearchMatch = matchesSearch([
-          getMediaDisplayTitle(item),
-          item.description,
-          item.alt_text,
-          item.uploaded_by_display_name,
-        ], searchTerm)
+  const {
+    categoryFilter,
+    setCategoryFilter,
+    statusFilter,
+    setStatusFilter,
+    visibilityFilter,
+    setVisibilityFilter,
+    sortMode,
+    setSortMode,
+    searchTerm,
+    setSearchTerm,
+    setVisibleLimit,
+    filteredMediaItems,
+    visibleMediaItems,
+    filteredMediaIdSet,
+    remainingMediaCount,
+    activeFilterCount,
+    isCanonicalReorderView,
+    selectedMediaIds,
+    setSelectedMediaIds,
+    bulkSavingStatus,
+    setBulkSavingStatus,
+    bulkError,
+    setBulkError,
+    allFilteredSelected,
+    resetFilters: resetFilterValues,
+    toggleMediaSelection,
+    clearSelection,
+    toggleAllFilteredSelection,
+  } = useGroupMediaReviewFilters(mediaItems)
 
-        return matchesCategory && matchesStatus && matchesVisibility && isSearchMatch
-      })
-      .sort((left, right) => {
-        const leftDate = Date.parse(left.created_at ?? '') || 0
-        const rightDate = Date.parse(right.created_at ?? '') || 0
-        if (sortMode === 'sort_order') {
-          return (left.sort_order ?? 0) - (right.sort_order ?? 0) || leftDate - rightDate || left.id - right.id
-        }
-        return sortMode === 'created_asc' ? leftDate - rightDate : rightDate - leftDate
-      })
-  }, [categoryFilter, mediaItems, searchTerm, sortMode, statusFilter, visibilityFilter])
-
-  useEffect(() => {
-    // Setzt das Ladelimit bei Filteraenderung zurueck auf den Anfangswert.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setVisibleLimit(INITIAL_VISIBLE_MEDIA_COUNT)
-  }, [categoryFilter, searchTerm, sortMode, statusFilter, visibilityFilter])
-
-  const visibleMediaItems = useMemo(
-    () => filteredMediaItems.slice(0, visibleLimit),
-    [filteredMediaItems, visibleLimit],
-  )
-  const filteredMediaIdSet = useMemo(
-    () => new Set(filteredMediaItems.map((item) => item.id)),
-    [filteredMediaItems],
-  )
-
-  const remainingMediaCount = Math.max(filteredMediaItems.length - visibleMediaItems.length, 0)
   const editingItem = useMemo(
     () => mediaItems.find((item) => item.id === editingMediaId) ?? null,
     [editingMediaId, mediaItems],
   )
-  const activeFilterCount = [
-    categoryFilter !== 'all',
-    statusFilter !== 'all',
-    visibilityFilter !== 'all',
-    searchTerm.trim().length > 0,
-    sortMode !== 'sort_order',
-  ].filter(Boolean).length
-  const isCanonicalReorderView =
-    categoryFilter === 'all' &&
-    statusFilter === 'all' &&
-    visibilityFilter === 'all' &&
-    searchTerm.trim().length === 0 &&
-    sortMode === 'sort_order'
   const shouldShowUploadPanel = canUpload && (isUploadOpen || selectedFiles.length > 0 || uploadProgress !== null || uploadError !== null)
   const selectedCount = selectedMediaIds.size
   const shouldShowBulkActionBar = selectedCount >= 2
   const isBulkSaving = bulkSavingStatus !== null
   const canReorderMedia = canReorder && isCanonicalReorderView && !isBulkSaving && !reorderSaving
-  const allFilteredSelected =
-    filteredMediaItems.length > 0 && filteredMediaItems.every((item) => selectedMediaIds.has(item.id))
-
-  useEffect(() => {
-    // Entfernt Auswahl-IDs, die nach einer Filteraenderung nicht mehr sichtbar sind.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedMediaIds((current) => {
-      const next = new Set(Array.from(current).filter((id) => filteredMediaIdSet.has(id)))
-      return next.size === current.size ? current : next
-    })
-  }, [filteredMediaIdSet])
 
   const {
     loadMedia,
@@ -356,11 +272,7 @@ function GroupMediaReviewSectionInner({
   }
 
   function resetFilters() {
-    setCategoryFilter('all')
-    setStatusFilter('all')
-    setVisibilityFilter('all')
-    setSortMode('sort_order')
-    setSearchTerm('')
+    resetFilterValues()
     setIsFilterOpen(false)
   }
 
@@ -378,33 +290,6 @@ function GroupMediaReviewSectionInner({
       }
       return next
     })
-  }
-
-  function toggleMediaSelection(mediaId: number) {
-    setBulkError(null)
-    setSelectedMediaIds((current) => {
-      const next = new Set(current)
-      if (next.has(mediaId)) {
-        next.delete(mediaId)
-      } else {
-        next.add(mediaId)
-      }
-      return next
-    })
-  }
-
-  function clearSelection() {
-    setBulkError(null)
-    setSelectedMediaIds(new Set())
-  }
-
-  function toggleAllFilteredSelection() {
-    setBulkError(null)
-    if (allFilteredSelected) {
-      setSelectedMediaIds(new Set())
-      return
-    }
-    setSelectedMediaIds(new Set(filteredMediaItems.map((item) => item.id)))
   }
 
   function startEditing(item: FansubGroupMediaItem) {
