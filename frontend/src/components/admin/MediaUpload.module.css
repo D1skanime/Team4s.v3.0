@@ -55,7 +55,6 @@
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 96%, #fbf5ee 4%), color-mix(in srgb, var(--bg-secondary) 94%, transparent)),
     color-mix(in srgb, var(--bg-card) 94%, transparent);
-  cursor: pointer;
   transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
   overflow: hidden;
 }
@@ -77,22 +76,6 @@
   align-items: stretch;
 }
 
-.dropzone:hover,
-.dropzone:focus-visible {
-  border-color: color-mix(in srgb, var(--accent-primary) 48%, transparent);
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--accent-primary) 10%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 48%, transparent);
-  outline: none;
-}
-
-.dropzoneDrag {
-  border-color: color-mix(in srgb, var(--accent-primary) 54%, transparent);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card)), color-mix(in srgb, var(--bg-secondary) 92%, transparent)),
-    color-mix(in srgb, var(--bg-card) 94%, transparent);
-}
-
 .dropzoneError {
   border-color: color-mix(in srgb, var(--color-error) 44%, transparent);
   background:
@@ -103,19 +86,6 @@
 .dropzoneDisabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.emptyState {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  color: color-mix(in srgb, var(--accent-primary) 52%, var(--text-primary));
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-align: center;
-  padding: 0.5rem;
 }
 
 .previewRound,

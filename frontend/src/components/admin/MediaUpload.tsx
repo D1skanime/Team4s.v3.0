@@ -1,6 +1,6 @@
 'use client'
 
-import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react'
+import type { ChangeEvent } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
@@ -194,7 +194,6 @@ function validateFile(type: FansubMediaKind, file: File): string | null {
 
 export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusyChange, onChange }: MediaUploadProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const [dragging, setDragging] = useState(false)
   const [busyAction, setBusyAction] = useState<'upload' | 'delete' | null>(null)
   const [preparingEdit, setPreparingEdit] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -212,9 +211,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   const previewURL = buildMediaPreviewURL(value)
   const editSourceURL = resolveApiUrl(value?.sourceOriginalURL?.trim() || '') || previewURL || resolveApiUrl(value?.publicURL?.trim() || '')
   const acceptedMime = isLogo ? 'image/svg+xml,image/png,image/jpeg,image/webp' : 'image/png,image/jpeg,image/webp,image/gif'
-  const dropzoneAriaLabel = isLogo
-    ? Boolean(value?.publicURL?.trim()) ? 'Logo ersetzen oder neu hochladen' : 'Logo hochladen'
-    : Boolean(value?.publicURL?.trim()) ? 'Banner ersetzen oder neu hochladen' : 'Banner hochladen'
 
   useEffect(() => {
     onBusyChange?.(busy)
@@ -353,24 +349,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     await processFile(file)
   }
 
-  const onDrop = async (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setDragging(false)
-    if (busy || disabled) return
-    const file = event.dataTransfer.files?.[0]
-    if (!file) return
-    await processFile(file)
-  }
-
-  const onDropzoneKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (disabled || busy) return
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      inputRef.current?.click()
-    }
-  }
-
   const onRemove = async () => {
     if (busy || disabled || !Boolean(value?.publicURL?.trim())) return
     setError(null)
@@ -400,29 +378,10 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         progress={progress}
         error={error}
         warning={warning}
-        dragging={dragging}
         disabled={disabled || !ownerResolved}
         inputRef={inputRef}
         acceptedMime={acceptedMime}
-        dropzoneAriaLabel={dropzoneAriaLabel}
         onFileInputChange={(event) => void onInputChange(event)}
-        onDragOver={(event) => {
-          event.preventDefault()
-          event.stopPropagation()
-          if (!disabled && !busy) setDragging(true)
-        }}
-        onDragEnter={(event) => {
-          event.preventDefault()
-          event.stopPropagation()
-          if (!disabled && !busy) setDragging(true)
-        }}
-        onDragLeave={(event) => {
-          event.preventDefault()
-          event.stopPropagation()
-          setDragging(false)
-        }}
-        onDrop={(event) => void onDrop(event)}
-        onDropzoneKeyDown={onDropzoneKeyDown}
         onEditClick={() => void onEditCurrentMedia()}
         onRemoveClick={() => void onRemove()}
       />

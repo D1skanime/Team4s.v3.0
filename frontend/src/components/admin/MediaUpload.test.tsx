@@ -21,6 +21,7 @@ vi.mock('lucide-react', () => ({
   Pencil: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
   RefreshCw: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
   Trash2: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
+  UploadCloud: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
 }))
 
 vi.mock('@/components/media/crop/Team4sCropper', () => ({

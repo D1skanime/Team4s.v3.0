@@ -1,10 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import type { DragEvent, KeyboardEvent, MutableRefObject } from 'react'
+import type { MutableRefObject } from 'react'
 import { ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 
-import { Button } from '@/components/ui'
+import { Button, UploadDropzone } from '@/components/ui'
 
 import type { EditableMediaValue } from './MediaUpload'
 import styles from './MediaUpload.module.css'
@@ -32,28 +32,14 @@ export interface MediaUploadCoreProps {
   error: string | null
   /** Warnmeldung */
   warning: string | null
-  /** Dropzone im Drag-Zustand */
-  dragging: boolean
   /** Ist disabled? */
   disabled?: boolean
-  /** Ref auf das versteckte File-Input-Element */
+  /** Ref auf das versteckte File-Input-Element (von den Aktions-Buttons verwendet) */
   inputRef: MutableRefObject<HTMLInputElement | null>
   /** Accept-Mime-Types für das File-Input */
   acceptedMime: string
-  /** Aria-Label für die Dropzone */
-  dropzoneAriaLabel: string
-  /** Wird aufgerufen, wenn der User eine Datei auswählt */
+  /** Wird aufgerufen, wenn der User eine Datei auswählt oder per Drag&Drop ablegt */
   onFileInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  /** Wird aufgerufen, wenn ein Drag über der Dropzone beginnt */
-  onDragOver: (event: DragEvent<HTMLDivElement>) => void
-  /** Wird aufgerufen, wenn ein Drag-Enter über der Dropzone stattfindet */
-  onDragEnter: (event: DragEvent<HTMLDivElement>) => void
-  /** Wird aufgerufen, wenn ein Drag die Dropzone verlässt */
-  onDragLeave: (event: DragEvent<HTMLDivElement>) => void
-  /** Wird aufgerufen, wenn eine Datei in die Dropzone fallen gelassen wird */
-  onDrop: (event: DragEvent<HTMLDivElement>) => void
-  /** Wird aufgerufen, wenn die Dropzone per Tastatur aktiviert wird */
-  onDropzoneKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
   /** Wird aufgerufen, wenn der User auf „Edit" klickt */
   onEditClick: () => void
   /** Wird aufgerufen, wenn der User löschen möchte */
@@ -76,17 +62,10 @@ export function MediaUploadCore({
   progress,
   error,
   warning,
-  dragging,
   disabled,
   inputRef,
   acceptedMime,
-  dropzoneAriaLabel,
   onFileInputChange,
-  onDragOver,
-  onDragEnter,
-  onDragLeave,
-  onDrop,
-  onDropzoneKeyDown,
   onEditClick,
   onRemoveClick,
 }: MediaUploadCoreProps) {
@@ -94,11 +73,10 @@ export function MediaUploadCore({
   const hasValue = Boolean(value?.publicURL?.trim())
   const title = isLogo ? 'Logo' : 'Banner'
   const uploadActionLabel = hasValue ? 'Ersetzen' : 'Hochladen'
-  const dropzoneClassName = [
+  const previewBoxClassName = [
     styles.dropzone,
     isLogo ? styles.dropzoneLogo : styles.dropzoneBanner,
     hasValue ? styles.dropzoneWithPreview : '',
-    dragging ? styles.dropzoneDrag : '',
     error ? styles.dropzoneError : '',
     disabled ? styles.dropzoneDisabled : '',
   ].filter(Boolean).join(' ')
@@ -115,20 +93,7 @@ export function MediaUploadCore({
         ) : null}
       </div>
 
-      <div
-        className={dropzoneClassName}
-        role="button"
-        tabIndex={disabled ? -1 : 0}
-        aria-label={dropzoneAriaLabel}
-        aria-busy={busy}
-        onClick={() => (!disabled && !busy ? inputRef.current?.click() : undefined)}
-        onKeyDown={onDropzoneKeyDown}
-        onDragOver={onDragOver}
-        onDragEnter={onDragEnter}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-        aria-disabled={disabled || busy}
-      >
+      <div className={previewBoxClassName} aria-busy={busy}>
         {hasValue ? (
           <>
             {isLogo ? (
@@ -162,14 +127,21 @@ export function MediaUploadCore({
         ) : (
           <div className={styles.previewWideEmpty}>Kein Banner vorhanden</div>
         )}
-
-        {!hasValue ? (
-          <div className={styles.emptyState}>
-            <ImagePlus size={20} />
-            <span>Bild hierher ziehen oder klicken zum Hochladen</span>
-          </div>
-        ) : null}
       </div>
+
+      <UploadDropzone
+        onFilesSelected={(files) => {
+          const file = files[0]
+          if (!file) return
+          onFileInputChange({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>)
+        }}
+        accept={acceptedMime}
+        multiple={false}
+        allowDrop={true}
+        disabled={disabled || busy}
+        density="compact"
+        promptLabel="Bild hierher ziehen oder klicken zum Hochladen"
+      />
 
       {busyAction === 'upload' ? (
         <div className={styles.progressWrap}>
