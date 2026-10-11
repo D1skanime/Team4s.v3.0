@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 179 was final phase); Phase 180 added additively, planned (12 plans, 3 waves), ready to execute
-last_updated: 2026-10-11T16:46:25.170Z
+status: executing
+stopped_at: Completed 180-01-PLAN.md
+last_updated: "2026-10-11T18:55:46.763Z"
 last_activity: 2026-10-11
 progress:
   total_phases: 45
   completed_phases: 39
   total_plans: 427
-  completed_plans: 466
+  completed_plans: 413
   percent: 87
 ---
 
@@ -280,15 +280,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 180 — einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 179
-Plan: Not started
-Status: Milestone complete
+Phase: 180 (einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend) — EXECUTING
+Plan: 2 of 12
+Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -414,6 +414,7 @@ Last activity: 2026-10-11
   Entscheidungen insgesamt). Manuell per `grep` widerlegt: alle 16 Entscheidungen D-01 bis D-16
   sind in mindestens einem Plan zitiert (D-09 in vier: 180-01/02/05/07). Mit "Proceed anyway"
   fortgefahren statt neu zu planen.
+
 - Phase 180 added (2026-10-11): Einheitliche Upload-Oberfläche (F-15 Teil 2) — ein wiederverwendbarer Upload-Baustein (Mehrfachauswahl wird ergänzt statt ersetzt, Titel/Bildunterschrift pro Datei, Retry bei Fehlern) nach Vorbild des Release-Medien-Uploads (ReleaseVersionMediaSection.tsx + uploadReleaseVersionMedia); Gruppenmedien-Upload (GroupMediaReviewUploadPanel.tsx) und Release-Medien-Upload laufen über denselben Baustein. Enger gefasst als 175-ROADMAP-PROPOSAL.md: Weg 6 (Release-Theme-Assets), obwohl dort ursprünglich für diese Phase vorgesehen und obwohl Phase 179 dafür bereits ActionReleaseThemeAssetUpload geschaffen hat, bleibt laut Zusatzauftrag wie Wege 3/4/5/7/8 außerhalb des Umbau-Umfangs — nur Konvertierbarkeits-Prüfung, keine Code-Änderung (D-01 in 180-CONTEXT.md). Depends on Phase 179. CONTEXT-Entwurf mit 8 D-NN-Entscheidungen + 5 offenen Fragen an den Nutzer angelegt, gespeist aus 175-INVENTORY.md Fachaufgabe 1 (Wege 1-8) und 179-VERIFICATION.md. Milestone-Status bewusst nicht angefasst (additive Phase, bekannte Milestone-Drift). Nur add-phase — noch nicht geplant.
 - Phase 179 geplant (2026-10-10): 6 Pläne (179-01 bis 179-06) über 3 Wellen — 179-01 Capability-Registry-
   Fundament (Migration 0182 + `ActionReleaseThemeAssetUpload` + Reparatur 9 hartkodierter
@@ -1036,6 +1037,8 @@ Last activity: 2026-10-11
 - [Phase 179]: D-06: shared theme-asset persistence tail extracted into a new 80-line file — Collapses two ~45-line duplicate blocks into one AdminContentHandler.persistReleaseThemeAsset method, shrinking the handler file 559 -> 492 lines
 - [Phase 179]: 179-06: Applied pending migration 0182 to live team4s_v2 DB via cmd/migrate to fix a dev-backend crash loop caused by the combined 179-01..05 diff
 - [Phase 179]: 179-06: Classified every observed go test ./... and npm run lint failure against deferred-items.md's already-triaged categories; zero new regressions found across the combined phase diff
+- [Phase 180]: allowDrop keeps its false branch and test coverage in 180-01 per D-17's note — no caller sets it false yet; 180-12 decides removal once every way's final props are visible
+- [Phase 180]: UploadFileRow's onRemove renders unconditionally whenever provided (not gated by status), per 180-01's explicit action/acceptance-criteria text rather than 180-UI-SPEC's general note
 
 ### Pending Todos
 
@@ -1669,11 +1672,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 179 P05 | 35min | 1 tasks | 2 files |
 | Phase 179 P02 | 50min | 2 tasks | 4 files |
 | Phase 179 P06 | 60min | 1 tasks | 0 files |
+| Phase 180 P01 | 15min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-10-11T16:46:25.170Z
-Stopped at: Phase 180 planned (12 plans, 3 waves) — decision coverage override (D-09 false-positive, known parser defect), ready to execute
+Last session: 2026-10-11T18:55:46.740Z
+Stopped at: Completed 180-01-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
-.planning/phases/180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend/180-12-PLAN.md
+None
