@@ -104,6 +104,11 @@
   font-weight: 600;
 }
 
+.uploadQueue {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .fileSelectionHeader {
   display: flex;
   gap: var(--space-2);
