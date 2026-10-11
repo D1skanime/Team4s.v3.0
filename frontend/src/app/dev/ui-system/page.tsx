@@ -38,6 +38,7 @@ import { DrawerShowcase } from './showcase/DrawerShowcase'
 import { PublicFansubSurfacesShowcase } from './showcase/PublicFansubSurfacesShowcase'
 import { PublicReleaseSurfacesShowcase } from './showcase/PublicReleaseSurfacesShowcase'
 import { SwitchShowcase } from './showcase/SwitchShowcase'
+import { UploadPrimitivesShowcase } from './showcase/UploadPrimitivesShowcase'
 import { AppShellDrawerDemoSection } from './AppShellDrawerDemoSection'
 import styles from './page.module.css'
 
@@ -473,6 +474,8 @@ export default function UISystemPlaygroundPage() {
             <AccordionShowcase />
           </div>
         </Card>
+
+        <UploadPrimitivesShowcase />
 
         <PublicFansubSurfacesShowcase />
         <PublicReleaseSurfacesShowcase />
