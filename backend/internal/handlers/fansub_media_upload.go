@@ -295,15 +295,16 @@ func (h *FansubHandler) persistFansubMediaAsset(
 }
 
 type fansubGroupMediaFileResult struct {
-	ClientFileName string `json:"client_file_name"`
-	Status         string `json:"status"`
-	MediaAssetID   *int64 `json:"media_asset_id,omitempty"`
-	PreviewURL     string `json:"preview_url,omitempty"`
-	ThumbnailURL   string `json:"thumbnail_url,omitempty"`
-	OriginalURL    string `json:"original_url,omitempty"`
-	DisplayURL     string `json:"display_url,omitempty"`
-	ErrorCode      string `json:"error_code,omitempty"`
-	Message        string `json:"message,omitempty"`
+	ClientFileName     string `json:"client_file_name"`
+	Status             string `json:"status"`
+	MediaAssetID       *int64 `json:"media_asset_id,omitempty"`
+	FansubGroupMediaID *int64 `json:"fansub_group_media_id,omitempty"`
+	PreviewURL         string `json:"preview_url,omitempty"`
+	ThumbnailURL       string `json:"thumbnail_url,omitempty"`
+	OriginalURL        string `json:"original_url,omitempty"`
+	DisplayURL         string `json:"display_url,omitempty"`
+	ErrorCode          string `json:"error_code,omitempty"`
+	Message            string `json:"message,omitempty"`
 }
 
 func groupMediaThumbPath(originalPath string) string {
@@ -508,13 +509,14 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 		}
 	}
 	uploadedBy := uploadedByUserID
-	if err := h.mediaRepo.CreateFansubGroupMediaAsset(ctx, tx, repository.FansubGroupMediaCreateInput{
+	fansubGroupMediaID, err := h.mediaRepo.CreateFansubGroupMediaAsset(ctx, tx, repository.FansubGroupMediaCreateInput{
 		FansubGroupID:    fansubID,
 		MediaAssetID:     mediaAsset.ID,
 		Category:         category,
 		SortOrder:        sortOrder,
 		UploadedByUserID: &uploadedBy,
-	}); err != nil {
+	})
+	if err != nil {
 		cleanupGroupMediaFiles()
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "gruppenmedium konnte nicht erstellt werden"}
 	}
@@ -537,12 +539,13 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 		displayURL = groupMediaFileProxyURL(displayVariant.StoragePath)
 	}
 	return fansubGroupMediaFileResult{
-		ClientFileName: clientName,
-		Status:         "ready",
-		MediaAssetID:   &mediaAsset.ID,
-		PreviewURL:     thumbURL,
-		DisplayURL:     displayURL,
-		ThumbnailURL:   thumbURL,
-		OriginalURL:    saveResult.CreateInput.PublicURL,
+		ClientFileName:     clientName,
+		Status:             "ready",
+		MediaAssetID:       &mediaAsset.ID,
+		FansubGroupMediaID: &fansubGroupMediaID,
+		PreviewURL:         thumbURL,
+		DisplayURL:         displayURL,
+		ThumbnailURL:       thumbURL,
+		OriginalURL:        saveResult.CreateInput.PublicURL,
 	}
 }
