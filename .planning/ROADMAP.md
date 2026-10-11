@@ -2606,3 +2606,13 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 179-06-PLAN.md -- Full automated gate + migration fresh/down proof across the whole phase.
+
+### Phase 180: Einheitliche Upload-Oberfläche (F-15 Teil 2): ein wiederverwendbarer Upload-Baustein (Mehrfachauswahl wird ergänzt statt ersetzt, Titel/Bildunterschrift pro Datei, Retry bei Fehlern) nach Vorbild des Release-Medien-Uploads statt getrennt gebauter Upload-Flächen; Gruppenmedien-Upload (GroupMediaReviewUploadPanel) und Release-Medien-Upload laufen über denselben Baustein, die übrigen Upload-Wege werden nur auf Konvertierbarkeit geprüft
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 179
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 180 to break down)

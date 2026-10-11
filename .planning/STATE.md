@@ -401,6 +401,7 @@ Last activity: 2026-10-11
 
 ### Roadmap Evolution
 
+- Phase 180 added (2026-10-11): Einheitliche Upload-Oberfläche (F-15 Teil 2) — ein wiederverwendbarer Upload-Baustein (Mehrfachauswahl wird ergänzt statt ersetzt, Titel/Bildunterschrift pro Datei, Retry bei Fehlern) nach Vorbild des Release-Medien-Uploads (ReleaseVersionMediaSection.tsx + uploadReleaseVersionMedia); Gruppenmedien-Upload (GroupMediaReviewUploadPanel.tsx) und Release-Medien-Upload laufen über denselben Baustein. Enger gefasst als 175-ROADMAP-PROPOSAL.md: Weg 6 (Release-Theme-Assets), obwohl dort ursprünglich für diese Phase vorgesehen und obwohl Phase 179 dafür bereits ActionReleaseThemeAssetUpload geschaffen hat, bleibt laut Zusatzauftrag wie Wege 3/4/5/7/8 außerhalb des Umbau-Umfangs — nur Konvertierbarkeits-Prüfung, keine Code-Änderung (D-01 in 180-CONTEXT.md). Depends on Phase 179. CONTEXT-Entwurf mit 8 D-NN-Entscheidungen + 5 offenen Fragen an den Nutzer angelegt, gespeist aus 175-INVENTORY.md Fachaufgabe 1 (Wege 1-8) und 179-VERIFICATION.md. Milestone-Status bewusst nicht angefasst (additive Phase, bekannte Milestone-Drift). Nur add-phase — noch nicht geplant.
 - Phase 179 geplant (2026-10-10): 6 Pläne (179-01 bis 179-06) über 3 Wellen — 179-01 Capability-Registry-
   Fundament (Migration 0182 + `ActionReleaseThemeAssetUpload` + Reparatur 9 hartkodierter
   Capability-Katalog-Testfixtures), 179-03 (D-10 Fallback-Entfernung + Postgres-Regression), 179-04
