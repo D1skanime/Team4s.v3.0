@@ -1,9 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
-import { Upload, FileVideo, XCircle } from 'lucide-react'
+import { FileVideo, XCircle } from 'lucide-react'
 
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Select, UploadDropzone } from '@/components/ui'
 import type { AdminThemeSegment, AdminSegmentSourceType, AdminSegmentLibraryCandidate } from '@/types/admin'
 import type { FormState } from './SegmentEditPanel'
 import {
@@ -36,8 +35,8 @@ interface SegmentAssetSectionProps {
  * Provenance/Fallback-Wahl (Source-Type-Selector) plus die gesamte Release-Asset-Sektion
  * (Upload/Reuse), aus SegmentEditPanel.tsx extrahiert (Phase 156, Plan 156-14,
  * Dateigroessen-Vorgabe aus 156-UAT.md). Beide Bloecke sind gekoppelt ueber
- * `formState.sourceType` und bleiben deshalb in derselben Komponente. `fileInputRef` lebt
- * hier, da nur diese Sektion Datei-Inputs rendert.
+ * `formState.sourceType` und bleiben deshalb in derselben Komponente. Die Datei-Uploads
+ * laufen ueber die geteilte `UploadDropzone`-Primitive (Phase 180, Plan 180-01).
  */
 export function SegmentAssetSection({
   formState,
@@ -57,7 +56,6 @@ export function SegmentAssetSection({
   onAssetDelete,
   onAttachReuseCandidate,
 }: SegmentAssetSectionProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const provenance = editingSegment ? resolveSegmentProvenance(editingSegment) : null
   const provenanceDetails = editingSegment ? resolveSegmentProvenanceDetails(editingSegment) : null
 
@@ -167,62 +165,36 @@ export function SegmentAssetSection({
 
               <div className={styles.assetUploadArea}>
                 <p className={styles.assetUploadFormats}>Erlaubte Formate: MP4, WebM, MKV, MP3, AAC, FLAC, OGG, OPUS, M4A &middot; Max. 150 MB</p>
-                <Input
-                  ref={fileInputRef}
-                  type="file"
+                <UploadDropzone
                   accept=".mp4,.webm,.mkv,.mp3,.aac,.flac,.ogg,.opus,.m4a,video/mp4,video/webm,video/x-matroska,audio/mpeg,audio/aac,audio/flac,audio/ogg,audio/mp4"
-                  hidden
-                  aria-label="Neue Segment-Datei auswählen"
+                  multiple={false}
+                  allowDrop={true}
+                  density="compact"
                   disabled={isUploading}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      onAssetUpload(file)
-                    }
-                    e.target.value = ''
+                  promptLabel={isUploading ? 'Wird hochgeladen...' : 'Neue Datei auswählen und hochladen'}
+                  onFilesSelected={(files) => {
+                    const file = files[0]
+                    if (file) onAssetUpload(file)
                   }}
                 />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={<Upload size={13} />}
-                  disabled={isUploading}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {isUploading ? 'Wird hochgeladen...' : 'Neue Datei auswählen und hochladen'}
-                </Button>
               </div>
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 12 }}>
               <div className={styles.assetUploadArea}>
                 <p className={styles.assetUploadFormats}>Erlaubte Formate: MP4, WebM, MKV, MP3, AAC, FLAC, OGG, OPUS, M4A &middot; Max. 150 MB</p>
-                <Input
-                  ref={fileInputRef}
-                  type="file"
+                <UploadDropzone
                   accept=".mp4,.webm,.mkv,.mp3,.aac,.flac,.ogg,.opus,.m4a,video/mp4,video/webm,video/x-matroska,audio/mpeg,audio/aac,audio/flac,audio/ogg,audio/mp4"
-                  hidden
-                  aria-label="Datei für neues Segment auswählen"
+                  multiple={false}
+                  allowDrop={true}
+                  density="compact"
                   disabled={isSaving}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      onPendingUploadFileChange(file)
-                    }
-                    e.target.value = ''
+                  promptLabel="Datei für neues Segment auswählen"
+                  onFilesSelected={(files) => {
+                    const file = files[0]
+                    if (file) onPendingUploadFileChange(file)
                   }}
                 />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={<Upload size={13} />}
-                  disabled={isSaving}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Datei für neues Segment auswählen
-                </Button>
                 {pendingUploadFile ? (
                   <div className={styles.assetExisting} style={{ marginTop: 10 }}>
                     <div className={styles.assetExistingLabel}>
