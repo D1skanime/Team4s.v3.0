@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: milestone_complete
-stopped_at: Milestone complete (Phase 179 was final phase)
-last_updated: 2026-10-11T00:36:15.195Z
-last_activity: 2026-10-10
+stopped_at: Milestone complete (Phase 179 was final phase); Phase 180 added additively, UI-SPEC approved
+last_updated: 2026-10-11T15:53:52.270Z
+last_activity: 2026-10-11
 progress:
   total_phases: 44
   completed_phases: 39
@@ -1659,8 +1659,8 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-10-10T22:47:49.221Z
-Stopped at: Completed 179-02-PLAN.md
+Last session: 2026-10-11T15:53:52.247Z
+Stopped at: Phase 180 UI-SPEC approved
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
-None
+.planning/phases/180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend/180-UI-SPEC.md
