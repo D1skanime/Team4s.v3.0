@@ -2609,10 +2609,54 @@ Plans:
 
 ### Phase 180: Einheitliche Upload-Oberfläche (F-15 Teil 2): ein wiederverwendbarer Upload-Baustein (Mehrfachauswahl wird ergänzt statt ersetzt, Titel/Bildunterschrift pro Datei, Retry bei Fehlern) nach Vorbild des Release-Medien-Uploads statt getrennt gebauter Upload-Flächen; Gruppenmedien-Upload (GroupMediaReviewUploadPanel) und Release-Medien-Upload laufen über denselben Baustein, die übrigen Upload-Wege werden nur auf Konvertierbarkeit geprüft
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Zwei gemeinsame Präsentations-Primitives (`UploadDropzone`, `UploadFileRow`) und ein
+geteilter Orchestrierungs-Hook (`useUploadQueue`) ersetzen sechs unabhängige Upload-Implementierungen;
+Weg 1 (Release-Medien) und Weg 2 (Gruppenmedien) laufen funktional über denselben Baustein
+(Mehrfachauswahl-Merge statt Ersetzen, optionale Pro-Datei-Felder, Einzel-Retry), alle acht Upload-Wege
+teilen sich die Präsentations-Primitives, und Weg 4 (Anime-Assets) gewinnt echtes Drag&Drop.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung — Decision-Coverage via D-01 bis D-16 in
+`180-CONTEXT.md` (alle 5 ursprünglich offenen Fragen plus 3 Recherche-Weichen beantwortet).
 **Depends on:** Phase 179
-**Plans:** 0 plans
+**Plans:** 12 plans across 3 waves
+
+  - Wave 1: 180-01 (Präsentations-Primitives UploadDropzone/UploadFileRow + /dev/ui-system-Showcase),
+    180-02 (Orchestrierungs-Hook useUploadQueue + reine Helfer), 180-03 (Backend D-14:
+    fansub_group_media_id additiv + Frontend-Typ), 180-04 (Weg-1-Strukturaufteilung: D-15-Entscheidung
+    + Grid/EditDrawer-Extraktion), 180-06 (Weg-2-Strukturaufteilung: useGroupMediaReviewFilters-Hook)
+  - Wave 2: 180-05 (Weg-1-Upload-Verdrahtung auf die geteilten Primitives/Hook, depends on 180-01/02/04),
+    180-07 (Weg-2-Upload-Migration inkl. D-03-Altlast-Entfernung, depends on 180-01/02/03/06),
+    180-08 (Weg 3 + Weg 7 präsentational, depends on 180-01), 180-09 (Weg 5 + Weg 8 präsentational,
+    depends on 180-01), 180-10 (Weg 6 präsentational, depends on 180-01), 180-11 (Weg 4 D-16
+    Drag&Drop-Verhaltenszugewinn, depends on 180-01)
+  - Wave 3: 180-12 (voller automatisierter Gate-Lauf + Live-UAT-Checkpoint für D-13/D-16)
+
+**Plan-time read first**: `frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx`,
+`ReleaseVersionMediaUploadQueue.tsx`, `useReleaseVersionMedia.ts`,
+`frontend/src/app/admin/fansubs/[id]/edit/GroupMediaReviewSection.tsx`,
+`GroupMediaReviewUploadPanel.tsx`, `useGroupMediaReviewActions.ts`,
+`backend/internal/handlers/fansub_media_upload.go`, and
+`.planning/phases/180-.../180-RESEARCH.md`/`180-PATTERNS.md`/`180-UI-SPEC.md`/`180-VALIDATION.md` as
+read-only analogs.
+**UI hint**: yes
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 180 to break down)
+**Wave 1**
+
+- [ ] 180-01-PLAN.md — Shared presentation primitives UploadDropzone/UploadFileRow + /dev/ui-system showcase (D-02, D-04, D-05, D-06, D-09, D-11, D-12, D-13).
+- [ ] 180-02-PLAN.md — useUploadQueue orchestration hook + pure helpers (D-02, D-05, D-08, D-09, D-10, D-12).
+- [ ] 180-03-PLAN.md — Backend D-14 additive fansub_group_media_id field + frontend type (D-01, D-14).
+- [ ] 180-04-PLAN.md — Weg-1 structural split: D-15 dead-code decision + Grid/EditDrawer extraction (D-06, D-15).
+- [ ] 180-06-PLAN.md — Weg-2 structural split: useGroupMediaReviewFilters extraction (D-06).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 180-05-PLAN.md — Weg-1 upload wiring onto the shared primitives/hook (D-01, D-02, D-06, D-08, D-09, D-10, D-11, D-12, D-13).
+- [ ] 180-07-PLAN.md — Weg-2 upload migration + removal of superseded replace/batch-error code (D-01, D-03, D-04, D-09, D-11, D-12, D-13, D-14).
+- [ ] 180-08-PLAN.md — Weg 3 (Fansub-Logo/Banner) + Weg 7 (Profil-Avatar/-Hintergrund) presentational adoption (D-01, D-04, D-13).
+- [ ] 180-09-PLAN.md — Weg 5 (Segment-Assets) + Weg 8 (Medien-Vorschläge) presentational adoption (D-01, D-04, D-13).
+- [ ] 180-10-PLAN.md — Weg 6 (Release-Theme-Assets, 2 Einstiege) presentational adoption (D-01, D-04, D-13).
+- [ ] 180-11-PLAN.md — Weg 4 (Anime-Assets) D-16 drag&drop behavioral gain + multi-file-single-slot guard (D-01, D-04, D-13, D-16).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 180-12-PLAN.md — Full automated gate + Live-UAT checkpoint for D-13 (visual parity) and D-16 (Weg-4 drag&drop) (D-04, D-06, D-07, D-13, D-16).
