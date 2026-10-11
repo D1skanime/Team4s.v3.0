@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-import { FormField, Select } from '@/components/ui'
+import { Button, FormField, Select, UploadDropzone } from '@/components/ui'
 import {
   deleteAdminReleaseThemeAsset,
   getAdminCanonicalFansubRelease,
@@ -167,20 +167,33 @@ export function ReleaseThemeAssetsSection({
           </Select>
         </FormField>
 
-        <label className={styles.field}>
+        <div className={styles.field}>
           <span>Video-Datei</span>
-          {/* hidden file input bleibt nativ — kein @/components/ui-Primitive für file inputs */}
-          <input type="file" accept="video/*" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
-        </label>
+          <UploadDropzone
+            accept="video/*"
+            multiple={false}
+            allowDrop={true}
+            density="roomy"
+            disabled={busy}
+            onFilesSelected={(files) => setFile(files[0] ?? null)}
+            promptLabel="Video-Datei auswählen"
+            dropHintLabel={file ? file.name : undefined}
+          />
+        </div>
 
         <div className={styles.progressWrap}>
           <span>Upload</span>
           <progress value={progress} max={100} />
         </div>
 
-        <button type="button" className={styles.button} onClick={() => void handleUpload()} disabled={!file || !themeID || busy || !hasAccessToken || !ownerCtx?.ownerResolved}>
+        <Button
+          type="button"
+          onClick={() => void handleUpload()}
+          disabled={!file || !themeID || busy || !hasAccessToken || !ownerCtx?.ownerResolved}
+          loading={busy}
+        >
           {busy ? 'Lade hoch...' : 'Video hochladen'}
-        </button>
+        </Button>
       </div>
 
       {error ? <p className={styles.errorBox}>{error}</p> : null}
