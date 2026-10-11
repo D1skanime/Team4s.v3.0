@@ -1,8 +1,8 @@
 ---
 phase: 180
 slug: einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-10-11
 ---
@@ -38,20 +38,23 @@ created: 2026-10-11
 
 > Phase 180 hat keine zugeordneten `REQ-`/`P1NN-`-IDs (`phase_req_ids: null`) — die
 > Entscheidungen D-01 bis D-16 in `180-CONTEXT.md` sind der verbindliche, nachverfolgte Vertrag
-> statt formaler Requirement-IDs. Konkrete Task-IDs werden vom Planer vergeben; diese Tabelle
-> bildet die Decisions bereits auf Testart/Datei ab, damit der Planer sie 1:1 übernehmen kann.
+> statt formaler Requirement-IDs. Die Datei-Spalte ist nach der Planungsrevision (180-04/180-05/
+> 180-07) auf die tatsächlich in den Plänen committeten Testdateien abgeglichen.
 
-| Decision | Requirement (Ersatz) | Secure Behavior / Verhalten | Test Type | Automated Command | File Exists | Status |
+| Decision | Requirement (Ersatz) | Secure Behavior / Verhalten | Test Type | Automated Command | File Planned | Status |
 |----------|----------------------|------------------------------|-----------|---------------------|-------------|--------|
-| D-01/D-03 | D-01/D-03 | Weg 2 merged statt ersetzt Auswahl | unit (pure fn) | `npx vitest run frontend/src/hooks/useUploadQueue.helpers.test.ts` | ❌ W0 | ⬜ pending |
-| D-05 | D-05 | Merge/Retry/Validierung als reine Funktionen getestet | unit (pure fn) | `npx vitest run frontend/src/hooks/useUploadQueue.helpers.test.ts` | ❌ W0 | ⬜ pending |
-| D-09 | D-09 | Dropzone unterstützt Klick + Drag&Drop | component (jsdom) | `npx vitest run frontend/src/components/ui/UploadDropzone.test.tsx` | ❌ W0 | ⬜ pending |
-| D-11 | D-11 | Titel/Caption optional, kein Pflichtfeld-Fehler bei leerem Submit | component (jsdom) | `npx vitest run frontend/src/components/ui/UploadFileRow.test.tsx` | ❌ W0 | ⬜ pending |
-| D-12 | D-12 | Einzel-Retry pro Datei bei Teil-Fehlschlag (beide Wege) | unit (hook, Vorbild `useReleaseVersionMedia.test.ts`) | `npx vitest run frontend/src/hooks/useUploadQueue.test.ts` | ❌ W0 | ⬜ pending |
+| D-01/D-03 | D-01/D-03 | Weg 2 merged statt ersetzt Auswahl | unit (pure fn) | `npx vitest run frontend/src/hooks/useUploadQueue.helpers.test.ts` | ✅ W0 (180-02) | ⬜ pending |
+| D-01/D-03 | D-01/D-03 | Weg 2 merged statt ersetzt Auswahl (Komponenten-Beweis) | component (jsdom) | `npx vitest run "frontend/src/app/admin/fansubs/[id]/edit/GroupMediaReviewUploadPanel.test.tsx"` | ✅ (180-07 Task 1) | ⬜ pending |
+| D-01 (Weg 1) | D-01 | Weg 1 merged statt ersetzt Auswahl (Komponenten-Beweis) | component (jsdom) | `npx vitest run "frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaUploadDrawer.test.tsx"` | ✅ (180-05 Task 1) | ⬜ pending |
+| D-05 | D-05 | Merge/Retry/Validierung als reine Funktionen getestet | unit (pure fn) | `npx vitest run frontend/src/hooks/useUploadQueue.helpers.test.ts` | ✅ W0 (180-02) | ⬜ pending |
+| D-09 | D-09 | Dropzone unterstützt Klick + Drag&Drop | component (jsdom) | `npx vitest run frontend/src/components/ui/UploadDropzone.test.tsx` | ✅ W0 (180-01) | ⬜ pending |
+| D-11 | D-11 | Titel/Caption optional, kein Pflichtfeld-Fehler bei leerem Submit | component (jsdom) | `npx vitest run frontend/src/components/ui/UploadFileRow.test.tsx` | ✅ W0 (180-01) | ⬜ pending |
+| D-12 | D-12 | Einzel-Retry pro Datei bei Teil-Fehlschlag (beide Wege) | unit (hook, Vorbild `useReleaseVersionMedia.test.ts`) | `npx vitest run frontend/src/hooks/useUploadQueue.test.ts` | ✅ W0 (180-02) | ⬜ pending |
+| D-12 (Weg 2) | D-12 | Einzel-Retry bei gemischtem ready/failed-Batch (Komponenten-Beweis) | component (jsdom) | `npx vitest run "frontend/src/app/admin/fansubs/[id]/edit/GroupMediaReviewUploadPanel.test.tsx"` | ✅ (180-07 Task 1) | ⬜ pending |
 | D-13 | D-13 | Alle 8 Wege rendern über die neuen Primitives | manual-only (Live-UAT, kein etablierter Visual-Diff im Projekt) | — | n/a | ⬜ pending |
-| D-14 | D-14 | Gruppenmedien-Upload-Response enthält `fansub_group_media_id` je Datei | integration (`httptest` gegen Fake-Repository, Go) | `go test ./internal/handlers/... -run TestUploadFansubGroupMedia` | ❌ W0 | ⬜ pending |
-| D-15 | D-15 | `ReleaseVersionMediaGallery.tsx` explizit reaktiviert ODER gelöscht, nicht ignoriert | source assertion (Datei existiert + wird importiert, ODER Datei + ihr Test sind entfernt) | `grep -rln "ReleaseVersionMediaGallery" frontend/src` | n/a (Entscheidung, kein neues Testfile) | ⬜ pending |
-| D-16 | D-16 | Weg 4: Drag&Drop funktioniert, Mehrfachablage auf Single-Slot nimmt nur die erste Datei + zeigt Hinweis | component (jsdom) | `npx vitest run frontend/src/components/AnimeEditPage/AnimeJellyfinAssetUploadControls.test.tsx` | ❌ W0 | ⬜ pending |
+| D-14 | D-14 | Gruppenmedien-Upload-Response enthält `fansub_group_media_id` je Datei | integration (`httptest` gegen Fake-Repository, Go) | `go test ./internal/handlers/... -run TestUploadFansubGroupMedia` | ✅ (180-03) | ⬜ pending |
+| D-15 | D-15 | `ReleaseVersionMediaGallery.tsx` explizit auditiert und als überholter Dead Code gelöscht, nicht ignoriert | source assertion (Datei + ihr Test sind entfernt) | `test ! -f "frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaGallery.tsx"` | n/a (Entscheidung, kein neues Testfile — 180-04 Task 1) | ⬜ pending |
+| D-16 | D-16 | Weg 4: Drag&Drop funktioniert, Mehrfachablage auf Single-Slot nimmt nur die erste Datei + zeigt Hinweis | component (jsdom) | `npx vitest run frontend/src/components/AnimeEditPage/AnimeJellyfinAssetUploadControls.test.tsx` | ✅ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -66,6 +69,11 @@ created: 2026-10-11
 - [ ] Backend-Test für D-14 (`fansub_group_media_id` im Response-Body) — kein bestehendes Testfile deckt das neue Feld ab
 - Framework-Install: keiner nötig — Vitest 3 bereits vollständig konfiguriert
 
+Zusätzlich (nicht Wave 0, aber jetzt in den Plänen committet): `ReleaseVersionMediaUploadDrawer.test.tsx`
+(180-05 Task 1) und `GroupMediaReviewUploadPanel.test.tsx` (180-07 Task 1) liefern die
+Komponenten-Ebene-Beweise für D-01/D-03/D-12, die Wave 0's reinen Hook-/Primitive-Tests allein
+nicht abdecken (Adapter-Verdrahtung ist pro Weg spezifisch).
+
 ---
 
 ## Manual-Only Verifications
@@ -79,11 +87,11 @@ created: 2026-10-11
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-10-11
