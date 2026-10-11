@@ -1,10 +1,9 @@
 "use client";
 
-import { type MutableRefObject } from "react";
 import { ExternalLink, X } from "lucide-react";
 
 import { resolveApiUrl } from "@/lib/api";
-import { Button, Modal } from "@/components/ui";
+import { Button, Modal, UploadDropzone } from "@/components/ui";
 import {
   episodeReleaseTitle,
   themeSegmentEpisodeRange,
@@ -27,9 +26,8 @@ type ReleaseThemeDrawerSectionProps = {
   themeUploadName: string;
   themePreviewOpen: boolean;
   setThemePreviewOpen: (open: boolean) => void;
-  themeUploadInputRef: MutableRefObject<HTMLInputElement | null>;
   closeThemeDrawer: () => void;
-  handleThemeUploadInputChange: () => void;
+  handleThemeUploadInputChange: (file: File | null) => void;
   handleDrawerUploadClick: () => Promise<void>;
   handleDrawerDelete: () => Promise<void>;
 };
@@ -47,7 +45,6 @@ export function ReleaseThemeDrawerSection({
   themeUploadName,
   themePreviewOpen,
   setThemePreviewOpen,
-  themeUploadInputRef,
   closeThemeDrawer,
   handleThemeUploadInputChange,
   handleDrawerUploadClick,
@@ -203,24 +200,18 @@ export function ReleaseThemeDrawerSection({
                           </span>
                         ) : null}
                       </div>
-                      <input
-                        ref={themeUploadInputRef}
-                        className={styles.fansubEditThemeUploadInput}
-                        type="file"
+                      <UploadDropzone
                         accept="video/*"
+                        multiple={false}
+                        allowDrop={true}
+                        density="compact"
                         disabled={drawerBusy || !hasAuthSession}
-                        onChange={handleThemeUploadInputChange}
+                        onFilesSelected={(files) =>
+                          handleThemeUploadInputChange(files[0] ?? null)
+                        }
+                        promptLabel="Video-Datei auswählen"
                       />
                       <div className={styles.fansubEditThemeUploadPicker}>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => themeUploadInputRef.current?.click()}
-                          disabled={drawerBusy || !hasAuthSession}
-                        >
-                          Datei wählen
-                        </Button>
                         <span className={styles.fansubEditThemeUploadFileName}>
                           {themeUploadName || "Keine Datei ausgewählt"}
                         </span>

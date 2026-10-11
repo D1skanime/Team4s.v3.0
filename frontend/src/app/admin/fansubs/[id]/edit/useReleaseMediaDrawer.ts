@@ -85,6 +85,7 @@ export function useReleaseMediaDrawer({
   const [themePreviewOpen, setThemePreviewOpen] = useState(false);
   const [drawerError, setDrawerError] = useState<string | null>(null);
   const [themeUploadName, setThemeUploadName] = useState("");
+  const [themeUploadFile, setThemeUploadFile] = useState<File | null>(null);
   const [selectedReleaseId, setSelectedReleaseId] = useState<number | null>(
     null,
   );
@@ -95,7 +96,6 @@ export function useReleaseMediaDrawer({
     number | null
   >(null);
 
-  const themeUploadInputRef = useRef<HTMLInputElement | null>(null);
   const releaseDrawerRequestSeqRef = useRef(0);
   const themeDrawerMutationSeqRef = useRef(0);
   const themeDrawerOpenRef = useRef(false);
@@ -116,9 +116,7 @@ export function useReleaseMediaDrawer({
   }, [themeDrawerOpen, selectedReleaseSegment]);
 
   const clearThemeUploadInput = useCallback(() => {
-    if (themeUploadInputRef.current) {
-      themeUploadInputRef.current.value = "";
-    }
+    setThemeUploadFile(null);
     setThemeUploadName("");
   }, []);
 
@@ -247,9 +245,8 @@ export function useReleaseMediaDrawer({
       setThemeDrawerOpen(false);
       setDrawerError(null);
       setDrawerUploadProgress(null);
-      if (themeUploadInputRef.current) {
-        themeUploadInputRef.current.value = "";
-      }
+      setThemeUploadFile(null);
+      setThemeUploadName("");
       return;
     }
     if (latestCard === selectedReleaseSegment.card) return;
@@ -337,16 +334,15 @@ export function useReleaseMediaDrawer({
   );
 
   const handleDrawerUploadClick = useCallback(async () => {
-    const file = themeUploadInputRef.current?.files?.[0] ?? null;
-    if (!file) {
+    if (!themeUploadFile) {
       setDrawerError("Bitte zuerst eine Videodatei auswählen.");
       return;
     }
-    await handleDrawerUpload(file);
-  }, [handleDrawerUpload]);
+    await handleDrawerUpload(themeUploadFile);
+  }, [handleDrawerUpload, themeUploadFile]);
 
-  const handleThemeUploadInputChange = useCallback(() => {
-    const file = themeUploadInputRef.current?.files?.[0] ?? null;
+  const handleThemeUploadInputChange = useCallback((file: File | null) => {
+    setThemeUploadFile(file);
     setThemeUploadName(file?.name || "");
     if (file) {
       setDrawerError(null);
@@ -413,9 +409,8 @@ export function useReleaseMediaDrawer({
     setThemePreviewOpen(false);
     setDrawerBusy(false);
     themeDrawerMutationSeqRef.current += 1;
-    if (themeUploadInputRef.current) {
-      themeUploadInputRef.current.value = "";
-    }
+    setThemeUploadFile(null);
+    setThemeUploadName("");
   }, []);
 
   const invalidateDrawerRequests = useCallback(() => {
@@ -427,7 +422,7 @@ export function useReleaseMediaDrawer({
     drawerReleaseLoading, drawerReleaseError, themeDrawerOpen, drawerBusy,
     drawerUploadProgress, themePreviewOpen, setThemePreviewOpen, drawerError,
     themeUploadName, selectedReleaseId, selectedAnimeFansubContextKey,
-    selectedAnimeId, selectedFansubGroupId, themeUploadInputRef,
+    selectedAnimeId, selectedFansubGroupId,
     openReleaseDrawer, closeReleaseDrawer, openThemeDrawer, closeThemeDrawer,
     handleDrawerUploadClick, handleThemeUploadInputChange, handleDrawerDelete,
     resetDrawerState, invalidateDrawerRequests,

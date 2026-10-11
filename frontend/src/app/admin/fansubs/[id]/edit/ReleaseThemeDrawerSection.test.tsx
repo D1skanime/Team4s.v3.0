@@ -87,7 +87,6 @@ describe('ReleaseThemeDrawerSection', () => {
         themeUploadName=""
         themePreviewOpen={false}
         setThemePreviewOpen={vi.fn()}
-        themeUploadInputRef={{ current: null }}
         closeThemeDrawer={vi.fn()}
         handleThemeUploadInputChange={vi.fn()}
         handleDrawerUploadClick={vi.fn()}

@@ -51,7 +51,6 @@ export function ReleaseMediaDrawer({
     selectedReleaseId,
     selectedAnimeFansubContextKey,
     selectedAnimeId,
-    themeUploadInputRef,
     closeReleaseDrawer,
     closeThemeDrawer,
     handleDrawerUploadClick,
@@ -278,7 +277,6 @@ export function ReleaseMediaDrawer({
         themeUploadName={themeUploadName}
         themePreviewOpen={themePreviewOpen}
         setThemePreviewOpen={setThemePreviewOpen}
-        themeUploadInputRef={themeUploadInputRef}
         closeThemeDrawer={closeThemeDrawer}
         handleThemeUploadInputChange={handleThemeUploadInputChange}
         handleDrawerUploadClick={handleDrawerUploadClick}
