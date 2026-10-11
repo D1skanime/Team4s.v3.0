@@ -4,12 +4,12 @@ import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useS
 
 import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
-import { Button, Drawer, useConfirmDialog } from '@/components/ui'
-import { UploadFileDraft, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
-import { ReleaseVersionMediaUploadQueue } from './ReleaseVersionMediaUploadQueue'
+import { useConfirmDialog } from '@/components/ui'
+import { useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
+import { ReleaseVersionMediaUploadDrawer } from './ReleaseVersionMediaUploadDrawer'
 import { ReleaseVersionMediaGrid } from './ReleaseVersionMediaGrid'
 import { ReleaseVersionMediaEditDrawer } from './ReleaseVersionMediaEditDrawer'
-import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, buildStoryReorderRequest, fileKey, isTerminalStatus, moveStoryItem, sortStoryItems, storyItemKey } from './ReleaseVersionMediaSection.helpers'
+import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, buildStoryReorderRequest, moveStoryItem, sortStoryItems, storyItemKey } from './ReleaseVersionMediaSection.helpers'
 import styles from './ReleaseVersionMediaSection.module.css'
 
 interface ReleaseVersionMediaSectionProps {
@@ -39,11 +39,7 @@ export function ReleaseVersionMediaSection({
 
   const [uploadCategory, setUploadCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [previewFileKey, setPreviewFileKey] = useState<string | null>(null)
-  const [selectedDrafts, setSelectedDrafts] = useState<UploadFileDraft[]>([])
-  const [isDragActive, setIsDragActive] = useState(false)
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null)
-  const [uploadError, setUploadError] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editCaption, setEditCaption] = useState('')
   const [editPreviewCandidate, setEditPreviewCandidate] = useState(false)
@@ -55,7 +51,6 @@ export function ReleaseVersionMediaSection({
   const [toast, setToast] = useState<string | null>(null)
   const [draggedStoryKey, setDraggedStoryKey] = useState<string | null>(null)
   const [dragOverStoryKey, setDragOverStoryKey] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const replaceFileInputRef = useRef<HTMLInputElement | null>(null)
 
   const stagedReplacePreviewURL = useMemo(() => (stagedReplaceFile ? buildLocalPreviewURL(stagedReplaceFile) : null), [stagedReplaceFile])
@@ -92,9 +87,6 @@ export function ReleaseVersionMediaSection({
     return () => window.clearTimeout(timeout)
   }, [toast])
 
-  const isBusy = media.uploadItems.some(
-    (item) => item.status === 'uploading' || item.status === 'processing',
-  )
   const canViewMedia = media.capabilities?.can_view_media ?? false
   const canUploadMedia = media.capabilities?.can_upload_media ?? false
   const canUpdateMedia = media.capabilities?.can_update_media ?? false
@@ -103,9 +95,7 @@ export function ReleaseVersionMediaSection({
   const canReorderMedia = media.capabilities?.can_reorder_media ?? false
   const canManageHighlights = media.capabilities?.can_manage_highlights ?? false
   const canShowPreviewToggle = CATEGORY_ALLOWS_PREVIEW[uploadCategory]
-  const uploadStarted = media.uploadItems.length > 0
-  const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy && !uploadStarted
-  const canUpload = canChooseFiles && selectedDrafts.length > 0
+  const canChooseFiles = canUploadMedia && versionId > 0
   const storyCount = media.storyItems?.length ?? visibleItems.length
   const karaCount = media.storyItems?.filter((item) => item.type === 'kara').length ?? 0
   const canEditSelectedItem = Boolean(selectedItem && (selectedItem.can_update ?? canUpdateMedia))
@@ -118,9 +108,6 @@ export function ReleaseVersionMediaSection({
     (selectedItem != null && (editTitle.trim() || null) !== (selectedItem.title ?? null)) ||
     (selectedItem != null && editCategory !== selectedItem.category) ||
     (selectedItem != null && (editCaption.trim() || null) !== (selectedItem.caption ?? null))
-  const uploadSummaryVisible =
-    media.uploadItems.length > 0 && media.uploadItems.every((item) => isTerminalStatus(item.status))
-  const successCount = media.uploadItems.filter((item) => item.status === 'ready').length
 
   function showToast(message: string) {
     setToast(message)
@@ -174,75 +161,14 @@ export function ReleaseVersionMediaSection({
     setSelectedItemId(item.id)
   }
 
-  function resetUploadDraft() {
-    setSelectedDrafts([])
-    setPreviewFileKey(null)
-    setUploadError(null)
-    setIsDragActive(false)
-    media.clearUploadQueue()
-  }
-
   function openCategoryUpload(category: ReleaseVersionMediaCategory) {
-    if (isBusy || !canUploadMedia || versionId <= 0) return
+    if (!canUploadMedia || versionId <= 0) return
     setUploadCategory(category)
-    resetUploadDraft()
     setIsUploadOpen(true)
   }
 
   function closeUploadSheet() {
-    if (isBusy) return
-    resetUploadDraft()
     setIsUploadOpen(false)
-  }
-
-  function handleFiles(nextFiles: File[]) {
-    if (!canChooseFiles) return
-    setSelectedDrafts((current) => {
-      const merged = [...current]
-      const seen = new Set(current.map((draft) => fileKey(draft.file)))
-      for (const file of nextFiles) {
-        const key = fileKey(file)
-        if (seen.has(key)) continue
-        seen.add(key)
-        merged.push({ file, title: '', caption: '' })
-      }
-      return merged
-    })
-  }
-
-  function changeDraft(key: string, field: 'title' | 'caption', value: string) {
-    if (uploadStarted) return
-    setSelectedDrafts((current) => current.map((draft) => fileKey(draft.file) === key ? { ...draft, [field]: value } : draft))
-  }
-
-  function removeDraft(key: string) {
-    if (uploadStarted) return
-    setSelectedDrafts((current) => current.filter((draft) => fileKey(draft.file) !== key))
-    setPreviewFileKey((current) => current === key ? null : current)
-  }
-
-  function onFileChange(event: ChangeEvent<HTMLInputElement>) {
-    handleFiles(Array.from(event.target.files ?? []))
-    event.target.value = ''
-  }
-
-  function openFilePicker() {
-    if (!canChooseFiles) return
-    fileInputRef.current?.click()
-  }
-
-  function onDropZoneKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      openFilePicker()
-    }
-  }
-
-  function onDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault()
-    setIsDragActive(false)
-    if (!canChooseFiles) return
-    handleFiles(Array.from(event.dataTransfer.files ?? []))
   }
 
   function onReplaceFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -273,34 +199,6 @@ export function ReleaseVersionMediaSection({
     setIsReplaceDragActive(false)
     const file = event.dataTransfer.files?.[0] ?? null
     if (file) setStagedReplaceFile(file)
-  }
-
-  async function handleUploadClick() {
-    if (!canUpload) return
-
-    setUploadError(null)
-    try {
-      const result = await media.startUpload(
-        uploadCategory,
-        selectedDrafts,
-        canShowPreviewToggle ? previewFileKey : null,
-      )
-      if (!result.allSucceeded) {
-        return
-      }
-      setSelectedDrafts([])
-      setPreviewFileKey(null)
-      setIsUploadOpen(false)
-      showToast('Upload abgeschlossen.')
-    } catch (error) {
-      setUploadError(error instanceof Error ? error.message : 'Upload fehlgeschlagen.')
-    }
-  }
-
-  function handleRetryClick(index: number) {
-    media.retryUpload(index).catch((error: unknown) => {
-      setUploadError(error instanceof Error ? error.message : 'Erneuter Versuch fehlgeschlagen.')
-    })
   }
 
   async function handleSaveSelectedItem() {
@@ -399,8 +297,8 @@ export function ReleaseVersionMediaSection({
               <button
                 key={option.value}
                 type="button"
-                aria-haspopup={canUploadMedia && versionId > 0 && !isBusy ? 'dialog' : undefined}
-                disabled={isBusy || !canUploadMedia || versionId <= 0}
+                aria-haspopup={canUploadMedia && versionId > 0 ? 'dialog' : undefined}
+                disabled={!canUploadMedia || versionId <= 0}
                 className={`${styles.segmentButton} ${isUploadOpen && uploadCategory === option.value ? styles.segmentButtonActive : ''}`}
                 title={`${option.label} hinzufügen`}
                 onClick={() => openCategoryUpload(option.value)}
@@ -450,96 +348,18 @@ export function ReleaseVersionMediaSection({
 
       {toast ? <div className={styles.toast} role="status">{toast}</div> : null}
 
-      <Drawer
+      <ReleaseVersionMediaUploadDrawer
         open={isUploadOpen}
         onClose={closeUploadSheet}
-        title="Medien hochladen"
-        description={`Kategorie: ${categoryLabel(uploadCategory)}`}
-        variant="responsiveSheet"
-        footer={
-          <>
-            <Button variant="ghost" className={styles.ghostAction} onClick={closeUploadSheet} disabled={isBusy}>
-              Abbrechen
-            </Button>
-            <Button
-              variant="ghost"
-              className={styles.accentButton}
-              onClick={() => void handleUploadClick()}
-              disabled={!canUpload}
-            >
-              Upload starten
-            </Button>
-          </>
-        }
-      >
-        <div className={styles.sheetStack}>
-          <div className={styles.statusHint}>
-            Neue Uploads starten als „In Prüfung“ und werden im Review freigegeben.
-          </div>
-          {uploadError ? <div className={styles.errorBox}>{uploadError}</div> : null}
-
-          <div
-            className={[
-              styles.dropZone,
-              isDragActive ? styles.dropZoneActive : '',
-              !canChooseFiles ? styles.dropZoneDisabled : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-            role="button"
-            tabIndex={canChooseFiles ? 0 : -1}
-            aria-disabled={!canChooseFiles}
-            onClick={() => openFilePicker()}
-            onKeyDown={onDropZoneKeyDown}
-            onDragEnter={(event) => {
-              event.preventDefault()
-              if (canChooseFiles) setIsDragActive(true)
-            }}
-            onDragOver={(event) => {
-              event.preventDefault()
-              event.dataTransfer.dropEffect = 'copy'
-              if (canChooseFiles) setIsDragActive(true)
-            }}
-            onDragLeave={(event) => {
-              event.preventDefault()
-              setIsDragActive(false)
-            }}
-            onDrop={onDrop}
-          >
-            <div className={styles.dropZoneHeader}>
-              <p className={styles.dropZoneCallout}>Dateien hier hineinziehen oder antippen.</p>
-              <p className={styles.helper}>Alle Dateien landen in „{categoryLabel(uploadCategory)}“.</p>
-            </div>
-            <input
-              ref={fileInputRef}
-              className={styles.fileInput}
-              type="file"
-              aria-label="Dateien"
-              multiple
-              accept="image/*"
-              disabled={!canChooseFiles}
-              onChange={onFileChange}
-              onClick={(event) => event.stopPropagation()}
-            />
-          </div>
-
-          <ReleaseVersionMediaUploadQueue
-            drafts={selectedDrafts}
-            items={media.uploadItems}
-            previewFileKey={previewFileKey}
-            allowsPreview={canShowPreviewToggle}
-            locked={uploadStarted}
-            busy={isBusy}
-            onChange={changeDraft}
-            onRemove={removeDraft}
-            onPreviewChange={setPreviewFileKey}
-            onRetry={handleRetryClick}
-          />
-          {uploadSummaryVisible ? (
-            <p className={styles.summaryRow}>{successCount} von {media.uploadItems.length} erfolgreich hochgeladen.</p>
-          ) : null}
-        </div>
-      </Drawer>
+        versionId={versionId}
+        uploadCategory={uploadCategory}
+        canChooseFiles={canChooseFiles}
+        canShowPreviewToggle={canShowPreviewToggle}
+        onUploadComplete={() => {
+          media.reload()
+          showToast('Upload abgeschlossen.')
+        }}
+      />
 
       <ReleaseVersionMediaEditDrawer
         selectedItem={selectedItem}

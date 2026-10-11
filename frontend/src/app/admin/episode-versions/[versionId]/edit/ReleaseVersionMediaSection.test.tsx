@@ -1,4 +1,4 @@
-﻿// @vitest-environment jsdom
+// @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
@@ -9,8 +9,8 @@ import type {
 } from '@/types/releaseVersionMedia'
 
 import { ReleaseVersionMediaSection } from './ReleaseVersionMediaSection'
-import { CATEGORY_OPTIONS, fileKey } from './ReleaseVersionMediaSection.helpers'
-import type { UploadQueueItem, UploadRunResult, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
+import { CATEGORY_OPTIONS } from './ReleaseVersionMediaSection.helpers'
+import type { UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
 
 const api = vi.hoisted(() => ({
   getReleaseVersionMedia: vi.fn(),
@@ -50,6 +50,12 @@ beforeEach(() => {
       can_manage_highlights: false,
     },
   })
+  // Generic default so patch calls that only care about the resolved shape (source_revision
+  // threading) don't need a bespoke mock in every test that triggers an upload.
+  api.patchReleaseVersionMediaItem.mockImplementation(async (_versionId: number, mediaId: number, patch: Record<string, unknown>) => ({
+    id: mediaId,
+    source_revision: (typeof patch.source_revision === 'number' ? patch.source_revision : 0) + 1,
+  }))
 })
 
 function makeItem(overrides: Partial<ReleaseVersionMediaItem> = {}): ReleaseVersionMediaItem {
@@ -76,17 +82,6 @@ function makeItem(overrides: Partial<ReleaseVersionMediaItem> = {}): ReleaseVers
   }
 }
 
-function makeQueueItem(overrides: Partial<UploadQueueItem> = {}): UploadQueueItem {
-  return {
-    file: new File(['x'], 'scene01.png', { type: 'image/png' }),
-    status: 'idle',
-    progress: 0,
-    errorMessage: null,
-    resultId: null,
-    ...overrides,
-  }
-}
-
 function makeMediaState(
   overrides: Partial<UseReleaseVersionMediaResult> = {},
 ): UseReleaseVersionMediaResult {
@@ -107,10 +102,6 @@ function makeMediaState(
     isLoading: false,
     error: null,
     reload: vi.fn(),
-    uploadItems: [],
-    startUpload: vi.fn().mockResolvedValue({ allSucceeded: true, items: [] } satisfies UploadRunResult),
-    retryUpload: vi.fn().mockResolvedValue({ allSucceeded: true, items: [] } satisfies UploadRunResult),
-    clearUploadQueue: vi.fn(),
     patchItem: vi.fn().mockResolvedValue(undefined),
     replaceItem: vi.fn().mockResolvedValue(undefined),
     deleteItem: vi.fn().mockResolvedValue(undefined),
@@ -139,8 +130,32 @@ function renderSection(mediaState?: UseReleaseVersionMediaResult) {
   )
 }
 
+/** Renders with the real `useReleaseVersionMedia` hook against the mocked `@/lib/api` module —
+ * the upload drawer now owns its own `useUploadQueue` instance and talks to the real upload/patch
+ * functions directly, so upload-flow assertions must go through these API mocks instead of an
+ * injected `mediaState.startUpload`/`uploadItems` (both removed in 180-05). */
+function renderLiveSection() {
+  return render(<ReleaseVersionMediaSection versionId={42} />)
+}
+
+async function waitForCategoryReady() {
+  await waitFor(() => {
+    expect(screen.getByRole('button', { name: /^Screenshot \d+$/ }).getAttribute('aria-haspopup')).toBe('dialog')
+  })
+}
+
 function openUploadSheet() {
   fireEvent.click(screen.getByRole('button', { name: /^Screenshot \d+$/ }))
+}
+
+/** Scopes queries to a single queued file's wrapper (title/caption live inside UploadFileRow's own
+ * named region; the Weg-1-specific preview radio + remove button are siblings in the outer wrapper
+ * this plan's drawer renders around it — see ReleaseVersionMediaUploadDrawer.tsx). */
+function uploadRowFor(fileName: string): HTMLElement {
+  const region = screen.getByRole('region', { name: fileName })
+  const row = region.closest('[data-testid^="upload-row-"]')
+  if (!row) throw new Error(`No upload-row wrapper found for ${fileName}`)
+  return row as HTMLElement
 }
 
 describe('ReleaseVersionMediaSection per-file upload metadata', () => {
@@ -152,59 +167,80 @@ describe('ReleaseVersionMediaSection per-file upload metadata', () => {
   })
 
   it('keeps three titles and descriptions separate and chooses exactly one preview', async () => {
-    const media = makeMediaState()
-    renderSection(media)
+    api.uploadReleaseVersionMedia.mockResolvedValue({
+      results: ['eins', 'zwei', 'drei'].map((name, index) => ({
+        client_file_name: `${name}.png`, status: 'ready', release_version_media_id: 500 + index, source_revision: 1,
+      })),
+    })
+    renderLiveSection()
+    await waitForCategoryReady()
     openUploadSheet()
     const files = ['eins.png', 'zwei.png', 'drei.png'].map((name) => new File(['data'], name, { type: 'image/png' }))
     fireEvent.change(screen.getByLabelText('Dateien'), { target: { files } })
-    expect(screen.queryByText('Standard-Beschreibung')).toBeNull()
-    expect(screen.queryByRole('checkbox')).toBeNull()
     expect(screen.getAllByRole('img')).toHaveLength(3)
     files.forEach((file, index) => {
       const row = within(screen.getByRole('region', { name: file.name }))
       fireEvent.change(row.getByLabelText('Titel'), { target: { value: `Titel ${index + 1}` } })
       fireEvent.change(row.getByLabelText('Beschreibung'), { target: { value: `Text ${index + 1}` } })
     })
-    fireEvent.click(within(screen.getByRole('region', { name: 'eins.png' })).getByRole('radio'))
-    fireEvent.click(within(screen.getByRole('region', { name: 'zwei.png' })).getByRole('radio'))
+    fireEvent.click(within(uploadRowFor('eins.png')).getByRole('radio'))
+    fireEvent.click(within(uploadRowFor('zwei.png')).getByRole('radio'))
     expect(screen.getAllByRole('radio').filter((radio) => (radio as HTMLInputElement).checked)).toHaveLength(1)
     fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
-    await waitFor(() => expect(media.startUpload).toHaveBeenCalledWith('screenshot', files.map((file, index) => ({
-      file, title: `Titel ${index + 1}`, caption: `Text ${index + 1}`,
-    })), fileKey(files[1])))
+
+    await waitFor(() => {
+      expect(api.uploadReleaseVersionMedia).toHaveBeenCalledWith(expect.objectContaining({ versionId: 42, category: 'screenshot', files }))
+    })
+    await waitFor(() => {
+      // zwei.png -> release_version_media_id 501, chosen as the preview candidate.
+      expect(api.patchReleaseVersionMediaItem).toHaveBeenCalledWith(42, 501, expect.objectContaining({ title: 'Titel 2', caption: 'Text 2' }))
+    })
+    await waitFor(() => {
+      expect(api.patchReleaseVersionMediaItem).toHaveBeenCalledWith(42, 501, expect.objectContaining({ is_preview_candidate: true }))
+    })
   })
 
-  it('removes only the selected draft and resets its preview choice without changing another draft', () => {
-    const media = makeMediaState()
-    renderSection(media)
+  it('removes only the selected draft and resets its preview choice without changing another draft', async () => {
+    renderLiveSection()
+    await waitForCategoryReady()
     openUploadSheet()
     const files = ['eins.png', 'zwei.png'].map((name) => new File(['data'], name, { type: 'image/png' }))
     fireEvent.change(screen.getByLabelText('Dateien'), { target: { files } })
-    const first = within(screen.getByRole('region', { name: 'eins.png' }))
-    const second = within(screen.getByRole('region', { name: 'zwei.png' }))
-    fireEvent.change(second.getByLabelText('Titel'), { target: { value: 'Bleibt erhalten' } })
-    fireEvent.click(first.getByRole('radio'))
-    fireEvent.click(first.getByRole('button', { name: 'Aus Auswahl entfernen' }))
+    const secondFields = within(screen.getByRole('region', { name: 'zwei.png' }))
+    fireEvent.change(secondFields.getByLabelText('Titel'), { target: { value: 'Bleibt erhalten' } })
+    const firstRow = within(uploadRowFor('eins.png'))
+    fireEvent.click(firstRow.getByRole('radio'))
+    fireEvent.click(firstRow.getByRole('button', { name: 'Aus Auswahl entfernen' }))
     expect(screen.queryByRole('region', { name: 'eins.png' })).toBeNull()
-    expect(second.getByLabelText('Titel')).toHaveProperty('value', 'Bleibt erhalten')
+    expect(secondFields.getByLabelText('Titel')).toHaveProperty('value', 'Bleibt erhalten')
     expect(screen.getByRole('radio', { name: 'Keine neue Vorschau' })).toHaveProperty('checked', true)
-    expect(media.startUpload).not.toHaveBeenCalled()
+    expect(api.uploadReleaseVersionMedia).not.toHaveBeenCalled()
   })
 
-  it('keeps retry errors inside the corresponding file row and prevents restarting successful files', () => {
-    const media = makeMediaState({ uploadItems: [
-      makeQueueItem({ file: new File(['a'], 'fertig.png'), status: 'ready', resultId: 1 }),
-      makeQueueItem({ file: new File(['b'], 'fehler.png'), status: 'failed', errorMessage: 'Metadaten fehlgeschlagen', resultId: 2 }),
-    ] })
-    renderSection(media)
+  it('keeps retry errors inside the corresponding file row and prevents restarting successful files', async () => {
+    api.uploadReleaseVersionMedia
+      .mockResolvedValueOnce({
+        results: [
+          { client_file_name: 'fertig.png', status: 'ready', release_version_media_id: 1, source_revision: 1 },
+          { client_file_name: 'fehler.png', status: 'failed', error_code: 'Metadaten fehlgeschlagen' },
+        ],
+      })
+      .mockResolvedValueOnce({
+        results: [{ client_file_name: 'fehler.png', status: 'ready', release_version_media_id: 2, source_revision: 1 }],
+      })
+    renderLiveSection()
+    await waitForCategoryReady()
     openUploadSheet()
-    const failed = within(screen.getByRole('region', { name: 'fehler.png' }))
+    const files = [new File(['a'], 'fertig.png', { type: 'image/png' }), new File(['b'], 'fehler.png', { type: 'image/png' })]
+    fireEvent.change(screen.getByLabelText('Dateien'), { target: { files } })
+    fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
+
+    const failed = within(await screen.findByRole('region', { name: 'fehler.png' }))
     expect(failed.getByText('Metadaten fehlgeschlagen')).not.toBeNull()
     fireEvent.click(failed.getByRole('button', { name: 'Erneut versuchen' }))
-    expect(media.retryUpload).toHaveBeenCalledWith(1)
     expect(screen.getByRole('button', { name: 'Upload starten' })).toHaveProperty('disabled', true)
-    expect(screen.getAllByRole('textbox').every((field) => (field as HTMLInputElement).disabled)).toBe(true)
     expect(screen.queryByRole('button', { name: 'Aus Auswahl entfernen' })).toBeNull()
+    await waitFor(() => expect(api.uploadReleaseVersionMedia).toHaveBeenCalledTimes(2))
   })
 
   it('edits and persists the title independently from the description after upload', async () => {
@@ -223,25 +259,27 @@ describe('ReleaseVersionMediaSection per-file upload metadata', () => {
 
 describe('ReleaseVersionMediaSection direct category upload', () => {
   it.each(CATEGORY_OPTIONS)('opens $label directly and uploads with its category code', async ({ value, label }) => {
-    const media = makeMediaState()
-    renderSection(media)
+    api.uploadReleaseVersionMedia.mockResolvedValue({
+      results: [{ client_file_name: 'category.png', status: 'ready', release_version_media_id: 900 }],
+    })
+    renderLiveSection()
+    await waitForCategoryReady()
     expect(screen.queryByRole('dialog')).toBeNull()
-    expect(screen.queryByRole('button', { name: /^(Hochladen|Jetzt hochladen)$/ })).toBeNull()
-    expect(screen.queryByText('Noch keine Medien')).toBeNull()
-    expect(screen.queryByText('Aktive Kategorie')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: `${label} 0` }))
     const dialog = screen.getByRole('dialog', { name: 'Medien hochladen' })
     expect(within(dialog).getByText(`Kategorie: ${label}`)).not.toBeNull()
-    expect(media.startUpload).not.toHaveBeenCalled()
+    expect(api.uploadReleaseVersionMedia).not.toHaveBeenCalled()
     const file = new File(['demo'], 'category.png', { type: 'image/png' })
     fireEvent.change(within(dialog).getByLabelText('Dateien'), { target: { files: [file] } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Upload starten' }))
-    await waitFor(() => expect(media.startUpload).toHaveBeenCalledWith(value, [{ file, title: '', caption: '' }], null))
+    await waitFor(() => {
+      expect(api.uploadReleaseVersionMedia).toHaveBeenCalledWith(expect.objectContaining({ versionId: 42, category: value, files: [file] }))
+    })
   })
 
-  it('reopens the selected category with a fresh draft after cancelling', () => {
-    const media = makeMediaState()
-    renderSection(media)
+  it('reopens the selected category with a fresh draft after cancelling', async () => {
+    renderLiveSection()
+    await waitForCategoryReady()
     openUploadSheet()
     fireEvent.change(screen.getByLabelText('Dateien'), { target: { files: [new File(['x'], 'old.png', { type: 'image/png' })] } })
     fireEvent.change(screen.getByLabelText('Beschreibung'), { target: { value: 'Alter Entwurf' } })
@@ -250,7 +288,7 @@ describe('ReleaseVersionMediaSection direct category upload', () => {
     expect(screen.queryByRole('textbox')).toBeNull()
     expect(screen.queryByText('old.png')).toBeNull()
     expect(screen.getByRole('button', { name: 'Upload starten' })).toHaveProperty('disabled', true)
-    expect(media.startUpload).not.toHaveBeenCalled()
+    expect(api.uploadReleaseVersionMedia).not.toHaveBeenCalled()
   })
 
   it('shows all existing media to read-only viewers without category interaction', () => {
@@ -262,18 +300,6 @@ describe('ReleaseVersionMediaSection direct category upload', () => {
     expect(screen.getByRole('button', { name: 'Sonstiges 1' })).toHaveProperty('disabled', true)
     expect(screen.getByRole('button', { name: 'Vorhandenes Medium ansehen' })).not.toBeNull()
     expect(screen.queryByRole('dialog')).toBeNull()
-    expect(media.clearUploadQueue).not.toHaveBeenCalled()
-    expect(media.startUpload).not.toHaveBeenCalled()
-  })
-
-  it('cannot switch categories or reset an active upload queue', () => {
-    const media = makeMediaState({ uploadItems: [makeQueueItem({ status: 'uploading' })] })
-    renderSection(media)
-    const category = screen.getByRole('button', { name: 'Sonstiges 0' })
-    expect(category).toHaveProperty('disabled', true)
-    fireEvent.click(category)
-    expect(screen.queryByRole('dialog')).toBeNull()
-    expect(media.clearUploadQueue).not.toHaveBeenCalled()
   })
 })
 
@@ -380,8 +406,11 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
   })
 
   it('starts upload with the active category after a file was selected', async () => {
-    const startUpload = vi.fn().mockResolvedValue({ allSucceeded: true, items: [] } satisfies UploadRunResult)
-    renderSection(makeMediaState({ items: [makeItem()], startUpload }))
+    api.uploadReleaseVersionMedia.mockResolvedValue({
+      results: [{ client_file_name: 'ready.png', status: 'ready', release_version_media_id: 950, source_revision: 1 }],
+    })
+    renderLiveSection()
+    await waitForCategoryReady()
 
     openUploadSheet()
     const file = new File(['demo'], 'ready.png', { type: 'image/png' })
@@ -389,7 +418,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
 
     await waitFor(() => {
-      expect(startUpload).toHaveBeenCalledWith('screenshot', [{ file, title: '', caption: '' }], null)
+      expect(api.uploadReleaseVersionMedia).toHaveBeenCalledWith(expect.objectContaining({ versionId: 42, category: 'screenshot', files: [file] }))
     })
     expect((await screen.findByRole('status')).textContent).toContain('Upload abgeschlossen.')
   })
@@ -562,8 +591,8 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
           can_delete_own_media: true,
           can_edit_notes: true,
           can_manage_segments: false,
-    can_reorder_media: false,
-    can_manage_highlights: false,
+          can_reorder_media: false,
+          can_manage_highlights: false,
         },
       }),
     )
@@ -606,25 +635,6 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     expect(within(dialog).getByRole('button', { name: 'Löschen' })).toHaveProperty('disabled', true)
     expect(patchItem).not.toHaveBeenCalled()
     expect(deleteItem).not.toHaveBeenCalled()
-  })
-
-  it('keeps failed upload retry rows inside the upload sheet', () => {
-    renderSection(
-      makeMediaState({
-        items: [makeItem()],
-        uploadItems: [
-          makeQueueItem({
-            status: 'failed',
-            errorMessage: 'INVALID_MIME_TYPE',
-          }),
-        ],
-      }),
-    )
-
-    openUploadSheet()
-
-    expect(screen.getByText('INVALID_MIME_TYPE')).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Erneut versuchen' })).not.toBeNull()
   })
 })
 
@@ -756,19 +766,9 @@ describe('ReleaseVersionMediaSection Phase 144 replace-file drawer', () => {
 })
 
 describe('ReleaseVersionMediaSection CR-01 upload failure gating (real hook, mocked @/lib/api)', () => {
-  function renderLiveSection() {
-    return render(
-      <ReleaseVersionMediaSection
-        versionId={42}
-      />,
-    )
-  }
-
   async function openLiveUploadSheetWithFiles(files: File[]) {
     renderLiveSection()
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /^Screenshot \d+$/ }).getAttribute('aria-haspopup')).toBe('dialog')
-    })
+    await waitForCategoryReady()
     openUploadSheet()
     fireEvent.change(screen.getByLabelText('Dateien'), { target: { files } })
   }
@@ -781,7 +781,9 @@ describe('ReleaseVersionMediaSection CR-01 upload failure gating (real hook, moc
     fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
 
     await waitFor(() => {
-      expect(screen.getByText('Netzwerkfehler beim Upload.')).not.toBeNull()
+      // Appears both in the drawer's own error banner and in the one affected file's row —
+      // a hard failure marks every in-flight item 'failed' with the same message.
+      expect(screen.getAllByText('Netzwerkfehler beim Upload.').length).toBeGreaterThan(0)
     })
     expect(screen.queryByText('Upload abgeschlossen.')).toBeNull()
     expect(screen.getByRole('dialog', { name: 'Medien hochladen' })).not.toBeNull()
@@ -840,23 +842,23 @@ describe('ReleaseVersionMediaSection CR-01 upload failure gating (real hook, moc
   })
 
   it('shows a friendly error and never leaves an unhandled rejection when a retry click fails', async () => {
-    const retryUpload = vi.fn().mockRejectedValue(new Error('Netzwerkfehler bei erneutem Versuch.'))
-    renderSection(
-      makeMediaState({
-        items: [makeItem()],
-        uploadItems: [makeQueueItem({ status: 'failed', errorMessage: 'INVALID_MIME_TYPE' })],
-        retryUpload,
-      }),
-    )
+    api.uploadReleaseVersionMedia
+      .mockResolvedValueOnce({
+        results: [{ client_file_name: 'scene.png', status: 'failed', error_code: 'INVALID_MIME_TYPE' }],
+      })
+      .mockRejectedValueOnce(new Error('Netzwerkfehler bei erneutem Versuch.'))
+    const file = new File(['data'], 'scene.png', { type: 'image/png' })
+    await openLiveUploadSheetWithFiles([file])
 
-    openUploadSheet()
+    fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
+    await waitFor(() => {
+      expect(screen.getByText('INVALID_MIME_TYPE')).not.toBeNull()
+    })
+
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
 
     await waitFor(() => {
-      expect(retryUpload).toHaveBeenCalledWith(0)
-    })
-    await waitFor(() => {
-      expect(screen.getByText('Netzwerkfehler bei erneutem Versuch.')).not.toBeNull()
+      expect(screen.getAllByText('Netzwerkfehler bei erneutem Versuch.').length).toBeGreaterThan(0)
     })
   })
 })

@@ -1,44 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ApiError, getAnimeSegments, getReleaseVersionCapabilities, deleteReleaseVersionMediaItem, getReleaseVersionMedia, patchReleaseVersionMediaItem, replaceReleaseVersionMediaFile, reorderReleaseVersionMedia, reorderReleaseVersionMediaHighlights, setReleaseVersionMediaHighlight, uploadReleaseVersionMedia } from '@/lib/api'
+import { ApiError, getAnimeSegments, getReleaseVersionCapabilities, deleteReleaseVersionMediaItem, getReleaseVersionMedia, patchReleaseVersionMediaItem, replaceReleaseVersionMediaFile, reorderReleaseVersionMedia, reorderReleaseVersionMediaHighlights, setReleaseVersionMediaHighlight } from '@/lib/api'
 import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
-import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionCapabilities, ReleaseVersionMediaItem, ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, ReleaseVersionMediaPatchRequest, ReleaseVersionMediaReorderRequest, ReleaseVersionMediaHighlightReorderRequest, ReleaseVersionAdminStoryItem, ReleaseVersionStoryOrderItem } from '@/types/releaseVersionMedia'
-import { buildReplaceMediaFileRequest, createKaraStoryItem, fileKey, sortStoryItems } from './ReleaseVersionMediaSection.helpers'
-
-export interface UploadFileDraft {
-  file: File
-  title: string
-  caption: string
-}
-
-export interface UploadQueueItem {
-  file: File
-  status: 'idle' | 'uploading' | 'processing' | 'ready' | 'failed'
-  progress: number
-  errorMessage: string | null
-  resultId: number | null
-  title?: string
-  caption?: string
-  isPreviewCandidate?: boolean
-  /** Kept with resultId so metadata retries never upload the binary again. */
-  sourceRevision?: number
-}
-
-export interface UploadRunResult {
-  items: UploadQueueItem[]
-  allSucceeded: boolean
-}
+import { ReleaseVersionMediaCategory, ReleaseVersionCapabilities, ReleaseVersionMediaItem, ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, ReleaseVersionMediaPatchRequest, ReleaseVersionMediaReorderRequest, ReleaseVersionMediaHighlightReorderRequest, ReleaseVersionAdminStoryItem, ReleaseVersionStoryOrderItem } from '@/types/releaseVersionMedia'
+import { buildReplaceMediaFileRequest, createKaraStoryItem, sortStoryItems } from './ReleaseVersionMediaSection.helpers'
 
 interface StoryContext {
   animeId: number | null
   groupId: number | null
   version: string | null
-}
-
-interface UploadConfig {
-  category: ReleaseVersionMediaCategory
-  versionId: number
 }
 
 export interface UseReleaseVersionMediaResult {
@@ -47,10 +18,6 @@ export interface UseReleaseVersionMediaResult {
   isLoading: boolean
   error: string | null
   reload: () => void
-  uploadItems: UploadQueueItem[]
-  startUpload: (category: ReleaseVersionMediaCategory, drafts: UploadFileDraft[], previewFileKey?: string | null) => Promise<UploadRunResult>
-  retryUpload: (fileIndex: number) => Promise<UploadRunResult>
-  clearUploadQueue: () => void
   patchItem: (mediaId: number, patch: ReleaseVersionMediaPatchRequest) => Promise<void>
   replaceItem: (mediaId: number, options: { file: File; category?: ReleaseVersionMediaCategory; title?: string | null; caption?: string | null; isPreviewCandidate?: boolean }) => Promise<void>
   deleteItem: (mediaId: number) => Promise<void>
@@ -100,7 +67,6 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
   const [segments, setSegments] = useState<import('@/types/admin').AdminThemeSegment[]>([])
   const [storyItems, setStoryItems] = useState<ReleaseVersionAdminStoryItem[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [uploadItems, setUploadItems] = useState<UploadQueueItem[]>([])
   const [patchError, setPatchError] = useState<string | null>(null)
   const [replaceError, setReplaceError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -111,7 +77,6 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
   const [capabilitiesError, setCapabilitiesError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [appliedKey, setAppliedKey] = useState<string | null>(null)
-  const lastUploadConfigRef = useRef<UploadConfig | null>(null)
   const itemsRef = useRef<ReleaseVersionMediaItem[]>([])
   const storyItemsRef = useRef<ReleaseVersionAdminStoryItem[]>([])
 
@@ -122,155 +87,6 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
 
   const reload = useCallback(() => {
     setReloadKey((k) => k + 1)
-  }, [])
-
-  const patchUploadedItem = useCallback(
-    async (queueItem: UploadQueueItem): Promise<UploadQueueItem> => {
-      const patch: ReleaseVersionMediaPatchRequest = {}
-      const title = queueItem.title?.trim()
-      const caption = queueItem.caption?.trim()
-      if (title) patch.title = title
-      if (caption) patch.caption = caption
-      // Unselected images must not clear an existing preview.
-      if (queueItem.isPreviewCandidate) patch.is_preview_candidate = true
-
-      try {
-        let sourceRevision = queueItem.sourceRevision
-        if (Object.keys(patch).length > 0 && versionId !== null && queueItem.resultId !== null) {
-          if (sourceRevision != null) patch.source_revision = sourceRevision
-          const updated = await patchReleaseVersionMediaItem(versionId, queueItem.resultId, patch)
-          sourceRevision = updated.source_revision ?? sourceRevision
-        }
-        return { ...queueItem, status: 'ready', progress: 100, errorMessage: null, sourceRevision }
-      } catch (patchError) {
-        return {
-          ...queueItem,
-          status: 'failed',
-          progress: 100,
-          errorMessage: readUploadError(patchError, 'Metadaten konnten nach dem Upload nicht gesetzt werden.'),
-        }
-      }
-    },
-    [versionId],
-  )
-
-  const runUpload = useCallback(
-    async (queueIndices: number[], queue: UploadQueueItem[], config: UploadConfig): Promise<UploadRunResult> => {
-      if (versionId === null || queue.length === 0) {
-        return { items: [], allSucceeded: true }
-      }
-
-      setError(null)
-      setUploadItems((current) => current.map((item, index) => queueIndices.includes(index)
-        ? { ...item, status: 'uploading', progress: 0, errorMessage: null }
-        : item))
-
-      try {
-        const response = await uploadReleaseVersionMedia({
-          versionId,
-          category: config.category,
-          files: queue.map(item => item.file),
-          // The existing XHR reports progress for the whole multipart request.
-          onProgress: (_fileIndex, percent) => {
-            setUploadItems((current) => current.map((item, index) =>
-              queueIndices.includes(index) && item.status === 'uploading'
-                ? { ...item, progress: percent }
-                : item))
-          },
-        })
-
-        setUploadItems((current) => current.map((item, index) =>
-          queueIndices.includes(index) && item.status === 'uploading'
-            ? { ...item, status: 'processing', progress: 100 }
-            : item))
-
-        const outcomes: UploadQueueItem[] = []
-        let shouldReload = false
-        // Backend appends exactly one result per multipart input in input order,
-        // including failures. Filenames are not unique and are never lookup keys.
-        for (const [position, queueItem] of queue.entries()) {
-          const result = response.results[position]
-          const targetIndex = queueIndices[position]
-          let outcome: UploadQueueItem
-          if (result?.status === 'ready' && typeof result.release_version_media_id === 'number') {
-            shouldReload = true
-            const uploaded: UploadQueueItem = {
-              ...queueItem, status: 'processing', progress: 100, errorMessage: null,
-              resultId: result.release_version_media_id, sourceRevision: result.source_revision,
-            }
-            setUploadItems(current => current.map((item, index) => index === targetIndex ? uploaded : item))
-            outcome = await patchUploadedItem(uploaded)
-          } else {
-            outcome = {
-              ...queueItem, status: 'failed', progress: 100,
-              errorMessage: result?.error_code || 'Upload fehlgeschlagen.', resultId: null,
-            }
-          }
-          outcomes.push(outcome)
-          setUploadItems(current => current.map((item, index) => index === targetIndex ? outcome : item))
-        }
-        if (shouldReload) reload()
-        return { items: outcomes, allSucceeded: outcomes.every(item => item.status === 'ready') }
-      } catch (uploadError) {
-        const message = readUploadError(uploadError, 'Upload fehlgeschlagen.')
-        setError(message)
-        setUploadItems(current => current.map((item, index) => queueIndices.includes(index)
-          ? { ...item, status: 'failed', errorMessage: message }
-          : item))
-        throw uploadError
-      }
-    },
-    [patchUploadedItem, reload, versionId],
-  )
-
-  const startUpload = useCallback(
-    async (
-      category: ReleaseVersionMediaCategory,
-      drafts: UploadFileDraft[],
-      previewFileKey?: string | null,
-    ): Promise<UploadRunResult> => {
-      if (versionId === null || drafts.length === 0) return { items: [], allSucceeded: true }
-
-      const config: UploadConfig = { category, versionId }
-      lastUploadConfigRef.current = config
-      const previewIndex = CATEGORY_ALLOWS_PREVIEW[category] && previewFileKey
-        ? drafts.findIndex(draft => fileKey(draft.file) === previewFileKey)
-        : -1
-      const initialQueue = drafts.map<UploadQueueItem>((draft, index) => ({
-        ...draft,
-        isPreviewCandidate: index === previewIndex,
-        status: 'idle', progress: 0, errorMessage: null, resultId: null,
-      }))
-      setUploadItems(initialQueue)
-      return runUpload(initialQueue.map((_, index) => index), initialQueue, config)
-    },
-    [runUpload, versionId],
-  )
-
-  const retryUpload = useCallback(
-    async (fileIndex: number): Promise<UploadRunResult> => {
-      const config = lastUploadConfigRef.current
-      const queueItem = uploadItems[fileIndex]
-      if (!config || config.versionId !== versionId || !queueItem || queueItem.status !== 'failed') {
-        return { items: [], allSucceeded: false }
-      }
-      if (queueItem.resultId === null) return runUpload([fileIndex], [queueItem], config)
-
-      setError(null)
-      setUploadItems(current => current.map((item, index) => index === fileIndex
-        ? { ...item, status: 'processing', errorMessage: null }
-        : item))
-      const outcome = await patchUploadedItem(queueItem)
-      setUploadItems(current => current.map((item, index) => index === fileIndex ? outcome : item))
-      if (outcome.status === 'ready') reload()
-      return { items: [outcome], allSucceeded: outcome.status === 'ready' }
-    },
-    [patchUploadedItem, reload, runUpload, uploadItems, versionId],
-  )
-
-  const clearUploadQueue = useCallback(() => {
-    lastUploadConfigRef.current = null
-    setUploadItems([])
   }, [])
 
   const patchItem = useCallback(
@@ -531,10 +347,6 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
     isLoading,
     error,
     reload,
-    uploadItems,
-    startUpload,
-    retryUpload,
-    clearUploadQueue,
     patchItem,
     replaceItem,
     deleteItem,

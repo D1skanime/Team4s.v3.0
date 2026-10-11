@@ -140,6 +140,11 @@ export function ReleaseVersionMediaUploadDrawer({
     }
   }
 
+  function handleRemoveDraft(key: string) {
+    removeDraft(key)
+    setPreviewFileKey((current) => (current === key ? null : current))
+  }
+
   function handleClose() {
     if (isBusy) return
     clearQueue()
@@ -233,7 +238,7 @@ export function ReleaseVersionMediaUploadDrawer({
                     errorMessage={item.errorMessage}
                     onChange={(field, value) => updateDraft(key, field, value)}
                     onRetry={item.status === 'failed' ? () => void handleRetryClick(index) : undefined}
-                    onRemove={!localUploadStarted ? () => removeDraft(key) : undefined}
+                    onRemove={!localUploadStarted ? () => handleRemoveDraft(key) : undefined}
                     density="roomy"
                   />
                 </div>
