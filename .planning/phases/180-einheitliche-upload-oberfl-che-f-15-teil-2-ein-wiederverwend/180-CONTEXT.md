@@ -1,6 +1,11 @@
 # Phase 180: Einheitliche Upload-Oberfläche (F-15 Teil 2) — Context
 
-**Stand:** 2026-10-11, Entwurf — 5 offene Fragen an den Nutzer, noch nicht beantwortet.
+**Stand:** 2026-10-11, alle 5 offenen Fragen beantwortet (D-09 bis D-13). Antwort 5 ist eine
+bewusste Scope-Erweiterung gegenüber der ursprünglichen Empfehlung: zusätzlich zur funktionalen
+Umstellung von Weg 1/2 (D-01–D-03) bekommen alle acht Upload-Wege eine gemeinsame
+Präsentations-Primitives-Schicht für ihr Erscheinungsbild (D-13), ohne ihre getrennten Abläufe
+zusammenzuführen.
+
 **Quelle:** `.planning/phases/175-inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-/175-ROADMAP-PROPOSAL.md`
 (Abschnitt „Phase 180: Upload-Frontend/-Workflow (F-15 Teil 2)" + Übersichtstabelle);
 `175-INVENTORY.md` Fachaufgabe 1 „Medien hochladen" (Wege 1–8, 15 UI-Flächen, 12
@@ -28,18 +33,28 @@ Phase baut **keinen neuen Rechte-Mechanismus** — sie übernimmt die Phase-179-
   bestehenden Release-Medien-Uploads.
 - **Weg 1 (Release-Medien, `ReleaseVersionMediaSection.tsx` + `uploadReleaseVersionMedia`)** und
   **Weg 2 (Gruppenmedien, `GroupMediaReviewUploadPanel.tsx` + `uploadFansubGroupMedia`)** laufen
-  über denselben Baustein.
-- **Alle übrigen Upload-Wege (3, 4, 5, 6, 7, 8) werden in dieser Phase NICHT umgebaut** — nur auf
-  Konvertierbarkeit auf den gemeinsamen Baustein geprüft (Dokumentation, keine Code-Änderung).
+  funktional (Auswahl-Merge, Pro-Datei-Felder, Retry, Rechte, Review-Verhalten) über denselben
+  Baustein.
+- **Scope-Erweiterung (D-13, Nutzerentscheidung 2026-10-11):** Zusätzlich zur funktionalen
+  Umstellung von Weg 1/2 bekommen **alle übrigen Upload-Wege (3, 4, 5, 6, 7, 8)** eine gemeinsame
+  **Darstellung** aus einer Schicht von Präsentations-Primitives unter
+  `frontend/src/components/ui` (Ablagefläche/Dropzone, Datei-Auswahl-Button,
+  Pro-Datei-Fortschrittsanzeige, Fehler-/Retry-Zeile). Ihre fachlichen Abläufe (Single-Slot-Replace,
+  zweistufiger Upload+PATCH, Self-Service, Rechte aus Phase 179) bleiben dabei unverändert
+  getrennt — nur das Erscheinungsbild wird angeglichen, keine Abläufe werden zusammengezwungen.
+  Dies ersetzt die ursprünglich vorgesehene reine Konvertierbarkeits-Prüfung ohne Code-Änderung für
+  diese sechs Wege.
 
 **Abweichung von 175-ROADMAP-PROPOSAL.md:** Die ursprüngliche Roadmap-Vorlage (Zeilen 244–281)
 hatte Weg 6 (Release-Theme-Assets, 2 Einstiege: `ReleaseThemeAssetsSection.tsx` auf Anime-Ebene,
 `useReleaseMediaDrawer.ts` auf Release-Ebene) ausdrücklich in den Umbau-Umfang dieser Phase
 aufgenommen, aufsetzend auf der in Phase 179 neu geschaffenen `ActionReleaseThemeAssetUpload`.
-Der Zusatzauftrag vom 2026-10-11 grenzt den Umfang enger: nur Weg 1 und Weg 2 werden tatsächlich
-umgestellt, Weg 6 fällt — wie 3/4/5/7/8 — unter „nur Konvertierbarkeit prüfen". Diese Lücke ist
-hier als **D-01** festgehalten, nicht als offene Frage, weil der Zusatzauftrag den engeren Umfang
-bereits explizit vorgibt.
+Der Zusatzauftrag vom 2026-10-11 grenzt den **funktionalen** Umfang enger: nur Weg 1 und Weg 2
+werden funktional tatsächlich umgestellt, Weg 6 fällt funktional — wie 3/4/5/7/8 — weiterhin
+außerhalb (D-01 bleibt dafür gültig). Die spätere Nutzerentscheidung zu Offener Frage 5 (D-13)
+ergänzt davon unabhängig eine **präsentationale** Schicht für alle acht Wege (siehe oben) — das
+ändert nichts an der funktionalen Abgrenzung aus D-01, nur das Erscheinungsbild wird über die
+gemeinsame Primitives-Schicht angeglichen.
 
 **Explizit außerhalb des Umfangs:** Phase 181 (Release-Bearbeitung zusammenführen, `/me`-Workspace
 entfällt) ist **nicht** Teil dieser Phase — läuft laut Roadmap-Vorlage sequenziell nach 180, nicht
@@ -48,11 +63,14 @@ einsetzen kann (keine Prop-/API-Neugestaltung dort erwartet).
 
 **Risiko:** Hoch — berührt Review-Workflows mehrerer Fachbereiche (Release-Medien unterliegt
 keinem Review-Gate, Gruppenmedien löst `review_status=in_pruefung` aus; die Merge-Semantik darf
-dieses Verhalten nicht vermischen).
+dieses Verhalten nicht vermischen). Durch D-13 zusätzlich erhöht: die Präsentations-Primitives
+werden in alle 15 UI-Flächen der Fachaufgabe-1-Inventur eingezogen, nicht nur in die zu Weg 1/2
+gehörenden — jede optische Umstellung an Wegen 3/4/5/6/7/8 muss deren getrennte Abläufe und
+Rechte (aus Phase 179) unverändert lassen.
 
-**Aufwandsklasse:** Groß (laut Fachaufgabe-1-Summenzeile sind 15 UI-Flächen und 12
-Frontend-API-Funktionen von der Inventur erfasst; diese Phase ändert davon nur die zu Weg 1/2
-gehörenden Flächen, prüft aber den Rest auf Konvertierbarkeit).
+**Aufwandsklasse:** Groß, durch D-13 vergrößert — laut Fachaufgabe-1-Summenzeile sind 15
+UI-Flächen und 12 Frontend-API-Funktionen von der Inventur erfasst; diese Phase ändert Weg 1/2
+funktional UND alle 15 Flächen präsentational (Primitives-Einsatz statt Eigen-Markup).
 </domain>
 
 <facts>
@@ -76,7 +94,10 @@ granulare Slot-Zuweisung nach dem Upload), Weg 5 (Video statt Bild, ersetzt ein 
 Galerie-Charakter), Weg 7 (Self-Service ohne Capability-Prüfung, drei unterschiedliche Felder ohne
 einheitlichen Flow), Weg 8 (fließt in einen Vorschlags-/Review-Workflow, kein direktes
 Asset-Objekt). Weg 6 ist laut Roadmap-Vorlage fachlich am nächsten am Umbau (Galerie-Charakter wie
-Weg 1/2), bleibt aber laut D-01 ebenfalls außerhalb des tatsächlichen Umbau-Umfangs dieser Phase.
+Weg 1/2), bleibt aber laut D-01 ebenfalls außerhalb des tatsächlichen **funktionalen**
+Umbau-Umfangs dieser Phase. Laut D-13 (Nutzerentscheidung 2026-10-11) bekommen diese sechs Wege
+zusätzlich die **Darstellung** der neuen Präsentations-Primitives — ihre hier beschriebene
+fachliche Trennung (Abläufe, Rechte) bleibt davon unberührt.
 
 **Vorbestehende 450-Zeilen-Überschreitungen (Fakt, nicht Teil dieser Phase als Fehler, aber
 relevant für die Umsetzung):** `ReleaseVersionMediaSection.tsx` (826 Zeilen),
@@ -144,72 +165,77 @@ ohne die bestehenden Dateien weiter aufzublähen.
   ist nicht Teil dieser Phase. Der gemeinsame Upload-Baustein muss aber so entworfen sein
   (Props/API), dass Phase 181 ihn unverändert in die zusammengeführte Release-Bearbeitungsseite
   einsetzen kann, ohne eine erneute Schnittstellen-Überarbeitung zu erfordern.
+- **D-09:** Drag&Drop wird in den gemeinsamen Baustein übernommen (Nutzer 2026-10-11, beantwortet
+  Offene Frage 1, Option A) — der Baustein unterstützt sowohl Ablegen (Drag&Drop) als auch
+  Klick-Auswahl; eine Implementierung statt der bisher zwei getrennten Dropzone-Implementierungen
+  in Weg 1 und Weg 2.
+- **D-10:** Upload startet erst per Klick auf „Upload starten" (Nutzer 2026-10-11, beantwortet
+  Offene Frage 2, Option A) — kein Sofort-Upload bei Dateiauswahl; die Verzögerung erlaubt es,
+  vorher Titel/Bildunterschrift pro Datei einzutragen. Entspricht dem Status quo beider migrierten
+  Wege, kein Verhaltensbruch.
+- **D-11:** Keine Pflichtfelder pro Datei (Nutzer 2026-10-11, beantwortet Offene Frage 3, Option A)
+  — Titel/Bildunterschrift bleiben freiwillig, genau wie heute bei Weg 1; Weg 2 bekommt durch die
+  Migration neue, aber ebenfalls freiwillige Pro-Datei-Felder.
+- **D-12:** Einzel-Retry pro Datei bei Teil-Fehlschlag für beide migrierten Wege (Nutzer
+  2026-10-11, beantwortet Offene Frage 4, Option A) — jede Datei bekommt einen eigenen Status;
+  erfolgreiche Dateien bleiben erfolgreich, fehlgeschlagene zeigen eine Fehlermeldung plus
+  „Erneut versuchen"-Button. Gilt ausdrücklich auch für Gruppenmedien (Weg 2) und ersetzt dort die
+  bisherige zusammengefasste Sammel-Fehlermeldung ohne Einzel-Retry
+  (`useGroupMediaReviewActions.ts:171-173`).
+- **D-13 (Scope-Erweiterung, abweichend von der ursprünglichen Empfehlung):** Optische
+  Vereinheitlichung ALLER acht Upload-Wege über eine gemeinsame Präsentations-Primitives-Schicht
+  (Nutzer 2026-10-11, beantwortet Offene Frage 5) — zwei Schichten:
+  (a) Gemeinsame Präsentations-Primitives unter `frontend/src/components/ui` (Namen nach
+  bestehender Konvention, in `/dev/ui-system` gezeigt): Ablagefläche/Dropzone inkl.
+  Klick-Auswahl, Datei-Auswahl-Button, Pro-Datei-Fortschrittsanzeige, Fehler-/
+  Erneut-versuchen-Zeile.
+  (b) Alle acht Upload-Wege — inklusive der laut Inventur legitim getrennten Wege 3
+  (Fansub-Logo/Banner), 4 (Anime-Assets), 5 (Segment-Assets), 6 (Theme-Assets), 7
+  (Profil-Avatar/-Hintergrund), 8 (Medien-Vorschläge) — nutzen diese Primitives für ihr
+  Erscheinungsbild. Ihre fachlichen Abläufe (Single-Slot-Replace, zweistufiger Upload+PATCH,
+  Self-Service, Rechte aus Phase 179) bleiben unverändert getrennt — nur die Darstellung wird
+  angeglichen, keine Abläufe werden zusammengezwungen. Begründung des Nutzers: Es gibt keine
+  spätere Phase, die dies nachholen würde; unterschiedliche Upload-Oberflächen nebeneinander
+  widersprechen der Pflicht-Regel „globales UI-System" (CLAUDE.md). D-01 bleibt für die
+  **funktionale** Abgrenzung (nur Weg 1/2) unverändert gültig — D-13 gilt zusätzlich und nur für
+  die **präsentationale** Schicht (alle acht Wege). Dateien über 450 Zeilen, die beim
+  Primitives-Einsatz angefasst werden, werden aufgeteilt (D-06 gilt unverändert).
 </decisions>
 
 <open_questions>
-## Offene Fragen an den Nutzer
+## Offene Fragen an den Nutzer — beantwortet
 
-1. **Drag&Drop im gemeinsamen Baustein — übernehmen oder weglassen?**
-   Fakt: Beide bestehenden Wege (1 und 2) haben heute je eine eigene Dropzone-Implementierung
-   (`onDrop`-Handler mit eigenem Hover-State). Ein Wegfall wäre für beide Wege ein
-   Feature-Verlust.
-   - **Option A:** Drag&Drop wird in den gemeinsamen Baustein übernommen (eine Implementierung
-     statt zwei).
-   - **Option B:** Drag&Drop entfällt im ersten Schritt, nur Datei-Dialog bleibt — geringerer
-     Umsetzungsaufwand, aber Rückschritt für beide migrierten Wege.
-   - **Empfehlung:** Option A — beide Vorbilder haben es bereits, Vereinheitlichung heißt hier
-     „einmal richtig bauen", nicht „Feature entfernen".
+Alle fünf offenen Fragen wurden am 2026-10-11 vom Nutzer entschieden; die Entscheidungen sind oben
+als D-09 bis D-13 festgehalten. Keine offenen Fragen mehr ausstehend.
 
-2. **Upload sofort nach Auswahl oder erst nach explizitem „Hochladen"-Klick?**
-   Fakt: Beide bestehenden Wege lösen den eigentlichen Netzwerk-Request heute erst nach einem
-   expliziten Button-Klick aus (Weg 1: „Upload starten" im Drawer-Footer, Weg 2: „Bilder
-   hochladen"-Button) — kein automatischer Upload direkt bei Dateiauswahl.
-   - **Option A:** Explizites Klick-Modell übernehmen (Status quo beider Wege, kein Verhaltensbruch).
-   - **Option B:** Auf Sofort-Upload bei Auswahl umstellen (modernerer Pattern, aber Verhaltensänderung
-     für beide bestehenden Wege und mehr State-Management für Teil-Rückgängig/Abbrechen).
-   - **Empfehlung:** Option A — beide Vorbilder stimmen bereits überein, kein Grund für einen
-     Verhaltensbruch in dieser Phase.
+1. ~~**Drag&Drop im gemeinsamen Baustein — übernehmen oder weglassen?**~~ → beantwortet mit
+   Option A, siehe D-09. Fakt war: Beide bestehenden Wege (1 und 2) haben heute je eine eigene
+   Dropzone-Implementierung (`onDrop`-Handler mit eigenem Hover-State); ein Wegfall wäre für beide
+   Wege ein Feature-Verlust gewesen.
 
-3. **Pflichtfelder pro Datei — Titel/Caption optional oder Pflicht?**
-   Fakt: Weg 1 hat Titel/Caption heute als optionale Felder (Platzhalter „Optionaler Bildtitel").
-   Weg 2 hat aktuell gar keine Pro-Datei-Felder (nur eine Kategorie für den ganzen Batch) — die
-   Migration führt also für Weg 2 neue Felder ein, die vorher nicht existierten.
-   - **Option A:** Optional bleibt optional (Status quo Weg 1, keine neue Zwangs-Eingabe für die
-     Weg-2-Migration).
-   - **Option B:** Titel wird Pflicht (z. B. für bessere Durchsuchbarkeit/Barrierefreiheit), was für
-     Weg 1 ein neuer Zwang und für Weg 2 eine zusätzliche Hürde beim ersten Einsatz wäre.
-   - **Empfehlung:** Option A — Verhaltenserhalt für Weg 1, keine neue Eingabehürde für Weg 2 beim
-     ersten Einsatz des gemeinsamen Bausteins.
+2. ~~**Upload sofort nach Auswahl oder erst nach explizitem „Hochladen"-Klick?**~~ → beantwortet
+   mit Option A, siehe D-10. Fakt war: Beide bestehenden Wege lösen den eigentlichen
+   Netzwerk-Request heute erst nach einem expliziten Button-Klick aus (Weg 1: „Upload starten" im
+   Drawer-Footer, Weg 2: „Bilder hochladen"-Button) — kein automatischer Upload direkt bei
+   Dateiauswahl.
 
-4. **Verhalten bei teilweisem Fehlschlag (n von m Dateien schlagen fehl)?**
-   Fakt: Weg 1 unterstützt bereits Einzel-Retry pro Datei (`retryUpload(fileIndex)`, Button
-   „Erneut versuchen" nur bei der fehlgeschlagenen Datei). Weg 2 sendet einen Batch-Request,
-   zeigt bei Teil-Fehlschlag nur eine zusammengefasste Fehlermeldung ohne Unterscheidung
-   erfolgreich/fehlgeschlagen und ohne Einzel-Retry — die Auswahl bleibt unverändert stehen,
-   ein erneuter Klick auf „Hochladen" würde alle Dateien (auch die bereits erfolgreichen) erneut
-   senden.
-   - **Option A:** Weg-1-Verhalten übernehmen — jede Datei bekommt einen eigenen Status
-     (hochgeladen/fehlgeschlagen/wartend) und einen eigenen Retry-Button; nur fehlgeschlagene
-     Dateien werden bei Retry erneut gesendet.
-   - **Option B:** Vereinfachtes Verhalten für beide Wege — bei jedem Fehlschlag wird der komplette
-     Batch erneut gesendet (Status quo Weg 2, weniger Implementierungsaufwand, aber doppelte
-     Uploads bei Teil-Erfolg).
-   - **Empfehlung:** Option A — das ist der fachliche Kern der Aufgabe („Retry bei Fehlern" laut
-     Auftrag) und bereits in Weg 1 bewährt; Option B würde eine bekannte Schwäche von Weg 2 in den
-     gemeinsamen Baustein übernehmen statt sie zu beheben.
+3. ~~**Pflichtfelder pro Datei — Titel/Caption optional oder Pflicht?**~~ → beantwortet mit
+   Option A, siehe D-11. Fakt war: Weg 1 hat Titel/Caption heute als optionale Felder (Platzhalter
+   „Optionaler Bildtitel"); Weg 2 hat aktuell gar keine Pro-Datei-Felder (nur eine Kategorie für den
+   ganzen Batch).
 
-5. **Sollen die bewusst getrennt bleibenden Wege (3, 4, 5, 6, 7, 8) optisch denselben
-   Auswahl-/Fortschritts-Look bekommen wie der neue gemeinsame Baustein?**
-   Fakt: Diese Phase prüft laut Auftrag nur die Konvertierbarkeit dieser Wege, baut sie aber nicht
-   um. Eine rein visuelle Angleichung (ohne Struktur-/Rechte-Änderung) wäre separat möglich.
-   - **Option A:** Keine visuelle Angleichung in dieser Phase — reine Konvertierbarkeits-Prüfung
-     als Dokumentation, keine Code-Änderung an diesen sechs Wegen.
-   - **Option B:** Die Wege, die strukturell am nächsten am gemeinsamen Baustein liegen (v. a.
-     Weg 6, laut Inventur „fachlich am nächsten"), bekommen in dieser Phase schon den visuellen
-     Look des Bausteins, auch ohne volle funktionale Migration.
-   - **Empfehlung:** Option A — der Auftrag grenzt den Umbau-Umfang explizit auf Weg 1/2 ein
-     (siehe D-01); eine Teil-Angleichung von Weg 6 würde diese Grenze wieder aufweichen und sollte,
-     falls gewünscht, eine bewusste eigene Entscheidung sein statt ein Nebeneffekt dieser Phase.
+4. ~~**Verhalten bei teilweisem Fehlschlag (n von m Dateien schlagen fehl)?**~~ → beantwortet mit
+   Option A, siehe D-12. Fakt war: Weg 1 unterstützt bereits Einzel-Retry pro Datei
+   (`retryUpload(fileIndex)`); Weg 2 sendet einen Batch-Request mit zusammengefasster
+   Fehlermeldung ohne Unterscheidung erfolgreich/fehlgeschlagen und ohne Einzel-Retry.
+
+5. ~~**Sollen die bewusst getrennt bleibenden Wege (3, 4, 5, 6, 7, 8) optisch denselben
+   Auswahl-/Fortschritts-Look bekommen wie der neue gemeinsame Baustein?**~~ → beantwortet
+   **abweichend von der ursprünglichen Empfehlung** mit einer erweiterten Option B, siehe D-13:
+   alle acht Upload-Wege nutzen künftig eine gemeinsame Präsentations-Primitives-Schicht für ihr
+   Erscheinungsbild, ihre fachlichen Abläufe bleiben getrennt. Begründung des Nutzers: Es gibt
+   keine spätere Phase, die dies nachholen würde; unterschiedliche Upload-Oberflächen nebeneinander
+   widersprechen der Pflicht-Regel „globales UI-System" (CLAUDE.md).
 </open_questions>
 
 <references>
