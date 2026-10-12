@@ -50,7 +50,6 @@ export function AdminFansubCreateMediaSection({
             <MediaUpload
               type="logo"
               fansubID={createdGroup.id}
-              groupName={formName.trim() || createdGroup.name}
               value={logoMedia}
               disabled={!hasRuntimeAuthToken || saving}
               onBusyChange={(isBusy) =>
@@ -71,7 +70,6 @@ export function AdminFansubCreateMediaSection({
             <MediaUpload
               type="banner"
               fansubID={createdGroup.id}
-              groupName={formName.trim() || createdGroup.name}
               value={bannerMedia}
               disabled={!hasRuntimeAuthToken || saving}
               onBusyChange={(isBusy) =>

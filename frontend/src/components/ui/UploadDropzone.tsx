@@ -1,6 +1,6 @@
 'use client'
 
-import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react'
+import type { ChangeEvent, DragEvent, KeyboardEvent, ReactNode } from 'react'
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import { UploadCloud } from 'lucide-react'
 
@@ -31,6 +31,19 @@ export interface UploadDropzoneProps {
   promptLabel?: string
   dropHintLabel?: string
   multiFileOnSingleSlotWarning?: string
+  /** Extra class on the dropzone's own root — lets a caller size/shape an EMPTY-state dropzone
+   * to match the eventual preview (e.g. square for an avatar/logo slot, a fixed banner ratio for
+   * a banner slot) instead of a generic oversized box. */
+  className?: string
+  /** When provided, rendered INSIDE the dropzone instead of the default icon/prompt/button chrome
+   * — turns an EXISTING preview (image, etc.) into the drop target itself, so there is no second,
+   * redundant drop area shown alongside an already-filled slot. Click and drag&drop both still
+   * open/accept via the same picker; pass `overlayHintLabel` for a short hint shown only while a
+   * file is dragged over. */
+  children?: ReactNode
+  /** Short hint (e.g. "Zum Ersetzen loslassen") shown only while dragging over the dropzone AND
+   * `children` are present. Ignored in the default (no-children) chrome. */
+  overlayHintLabel?: string
 }
 
 const DEFAULT_PROMPT_LABEL = 'Dateien hier hineinziehen oder zum Auswählen klicken.'
@@ -53,6 +66,18 @@ export function sliceToSingleFileIfNeeded(
   return { selected: files.slice(0, 1), droppedExtra: true }
 }
 
+export type UploadSlotPresentation = 'empty-dropzone' | 'replace-overlay'
+
+/**
+ * Pure state switch (Live-UAT follow-up 2026-10-12): a slot that already has a value must NOT
+ * show a second, large empty dropzone alongside its preview — the preview itself becomes the
+ * drop target ('replace-overlay'). Only a slot with no value yet shows the full empty-state
+ * dropzone ('empty-dropzone'). Shared by every upload-slot caller instead of each re-deriving it.
+ */
+export function resolveUploadSlotPresentation(hasExistingValue: boolean): UploadSlotPresentation {
+  return hasExistingValue ? 'replace-overlay' : 'empty-dropzone'
+}
+
 export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzoneProps>(function UploadDropzone({
   onFilesSelected,
   accept = 'image/*',
@@ -66,6 +91,9 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
   promptLabel = DEFAULT_PROMPT_LABEL,
   dropHintLabel,
   multiFileOnSingleSlotWarning = DEFAULT_MULTI_FILE_ON_SINGLE_SLOT_WARNING,
+  className,
+  children,
+  overlayHintLabel,
 }: UploadDropzoneProps, ref) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragActive, setIsDragActive] = useState(false)
@@ -128,13 +156,16 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
     applySelection(files)
   }
 
+  const hasOverlayContent = Boolean(children)
+
   return (
     <div
       className={classNames(
         styles.dropzone,
-        density === 'compact' ? styles.dropzoneCompact : styles.dropzoneRoomy,
+        hasOverlayContent ? styles.dropzoneOverlay : (density === 'compact' ? styles.dropzoneCompact : styles.dropzoneRoomy),
         isDragActive ? styles.dropzoneDragging : null,
         disabled ? styles.dropzoneDisabled : null,
+        className,
       )}
       role="button"
       tabIndex={disabled ? -1 : 0}
@@ -158,23 +189,34 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
         onClick={(event) => event.stopPropagation()}
         onChange={onInputChange}
       />
-      <UploadCloud size={22} aria-hidden="true" className={styles.icon} />
-      <div className={styles.copy}>
-        <p className={styles.promptLabel}>{promptLabel}</p>
-        {dropHintLabel ? <p className={styles.dropHintLabel}>{dropHintLabel}</p> : null}
-      </div>
-      <Button
-        type="button"
-        variant="secondary"
-        size="sm"
-        disabled={disabled}
-        onClick={(event) => {
-          event.stopPropagation()
-          openFilePicker()
-        }}
-      >
-        Dateien auswählen
-      </Button>
+      {hasOverlayContent ? (
+        <>
+          {children}
+          {isDragActive && overlayHintLabel ? (
+            <p className={styles.dropzoneOverlayHint}>{overlayHintLabel}</p>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <UploadCloud size={22} aria-hidden="true" className={styles.icon} />
+          <div className={styles.copy}>
+            <p className={styles.promptLabel}>{promptLabel}</p>
+            {dropHintLabel ? <p className={styles.dropHintLabel}>{dropHintLabel}</p> : null}
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={disabled}
+            onClick={(event) => {
+              event.stopPropagation()
+              openFilePicker()
+            }}
+          >
+            Dateien auswählen
+          </Button>
+        </>
+      )}
       {showSingleSlotWarning ? (
         <p className={styles.singleSlotWarning} role="status">
           {multiFileOnSingleSlotWarning}

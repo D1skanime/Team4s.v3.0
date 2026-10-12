@@ -16,10 +16,8 @@ vi.mock('next/image', () => ({
 }))
 
 vi.mock('lucide-react', () => ({
-  ImagePlus: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
+  Crop: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
   Loader2: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
-  Pencil: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
-  RefreshCw: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
   Trash2: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
   UploadCloud: ({ children }: { children?: ReactNode }) => <span aria-hidden="true">{children}</span>,
 }))
@@ -128,7 +126,6 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="banner"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={null}
         onBusyChange={onBusyChange}
         onChange={onChange}
@@ -193,14 +190,13 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="banner"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={null}
         onChange={vi.fn()}
       />,
     )
 
     const file = new File(['banner'], 'dropped-banner.png', { type: 'image/png' })
-    fireEvent.drop(screen.getByRole('button', { name: 'Bild hierher ziehen oder klicken zum Hochladen' }), {
+    fireEvent.drop(screen.getByRole('button', { name: 'Banner hierher ziehen oder klicken zum Hochladen' }), {
       dataTransfer: { files: [file] },
     })
 
@@ -225,7 +221,6 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="banner"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={null}
         onChange={vi.fn()}
       />,
@@ -247,7 +242,6 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="logo"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={makeValue()}
         onChange={onChange}
       />,
@@ -265,14 +259,14 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="banner"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={null}
         disabled
         onChange={vi.fn()}
       />,
     )
 
-    expect(screen.getByText('Hochladen').closest('button')).toHaveProperty('disabled', true)
+    const dropzone = screen.getByRole('button', { name: 'Banner hierher ziehen oder klicken zum Hochladen' })
+    expect(dropzone.getAttribute('aria-disabled')).toBe('true')
     const file = new File(['banner'], 'banner.png', { type: 'image/png' })
     fireEvent.change(screen.getByLabelText('Dateien'), { target: { files: [file] } })
 
@@ -290,7 +284,6 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="logo"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={makeValue({
           id: null,
           publicURL: 'https://cdn.example/logo.png',
@@ -304,12 +297,18 @@ describe('MediaUpload', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /Logo bearbeiten/i }))
+    const input = screen.getByLabelText('Dateien') as HTMLInputElement
+    const inputClickSpy = vi.spyOn(input, 'click')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ausschnitt bearbeiten' }))
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
     expect(fetchMock).toHaveBeenCalledWith('https://cdn.example/logo.png', { cache: 'no-store' })
     expect(fetchMock.mock.calls[0][1]).not.toHaveProperty('headers')
     expect(uploadFansubMediaMock).not.toHaveBeenCalled()
+    // The corner "Ausschnitt bearbeiten" button sits INSIDE the slot's own click-to-replace
+    // region -- it must stopPropagation, otherwise clicking it would also reopen the file picker.
+    expect(inputClickSpy).not.toHaveBeenCalled()
   })
 
   it('opens the shared cropper for existing raster banners from the retained source original', async () => {
@@ -323,7 +322,6 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="banner"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={makeValue({
           id: null,
           publicURL: 'http://127.0.0.1:8092/api/v1/media/files/banner.png',
@@ -338,7 +336,7 @@ describe('MediaUpload', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /Banner bearbeiten/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ausschnitt bearbeiten' }))
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
     expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/^\/api\/v1\/media\/files\/banner-source\.png/), { cache: 'no-store' })
@@ -362,7 +360,6 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="logo"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={null}
         onChange={vi.fn()}
       />,
@@ -402,7 +399,6 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="logo"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={null}
         onChange={vi.fn()}
       />,
@@ -421,7 +417,6 @@ describe('MediaUpload', () => {
       <MediaUpload
         type="banner"
         fansubID={17}
-        groupName="Phase Fansubs"
         value={null}
         onChange={vi.fn()}
       />,
@@ -432,22 +427,35 @@ describe('MediaUpload', () => {
     expect(screen.queryByText(/in Prüfung/i)).toBeNull()
   })
 
-  it('"Hochladen"-Aktions-Button oeffnet denselben Picker wie die UploadDropzone, kein zweites natives Input mehr', () => {
+  it('shows no second dropzone next to an existing preview -- the preview itself is the only drop target', () => {
     render(
       <MediaUpload
         type="banner"
         fansubID={17}
-        groupName="Phase Fansubs"
-        value={null}
+        value={makeValue({ publicURL: '/media/groups/17/banner.png' })}
         onChange={vi.fn()}
       />,
     )
 
     expect(screen.getAllByLabelText('Dateien')).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Banner hierher ziehen oder klicken zum Hochladen' })).toBeNull()
+    expect(screen.getByAltText('Banner Vorschau')).not.toBeNull()
+  })
+
+  it('clicking the existing preview opens the same file picker as the empty-state dropzone (implicit "Ersetzen")', () => {
+    render(
+      <MediaUpload
+        type="banner"
+        fansubID={17}
+        value={makeValue({ publicURL: '/media/groups/17/banner.png' })}
+        onChange={vi.fn()}
+      />,
+    )
+
     const input = screen.getByLabelText('Dateien') as HTMLInputElement
     const clickSpy = vi.spyOn(input, 'click')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Banner hochladen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Banner ersetzen' }))
 
     expect(clickSpy).toHaveBeenCalledTimes(1)
   })

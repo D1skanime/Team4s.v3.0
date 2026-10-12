@@ -2,11 +2,13 @@
 
 import Image from 'next/image'
 import { useRef } from 'react'
-import { ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from 'lucide-react'
+import { Crop, Loader2, Trash2 } from 'lucide-react'
 
-import { Button, UploadDropzone, type UploadDropzoneHandle } from '@/components/ui'
+import { Button, MediaSlot, type UploadDropzoneHandle } from '@/components/ui'
+import { classNames } from '@/components/ui/classNames'
 
 import type { EditableMediaValue } from './MediaUpload'
+import { BANNER_CROP_OUTPUT_HEIGHT, BANNER_CROP_OUTPUT_WIDTH, LOGO_CROP_OUTPUT_SIZE } from './MediaUpload'
 import styles from './MediaUpload.module.css'
 
 export interface MediaUploadCoreProps {
@@ -14,12 +16,8 @@ export interface MediaUploadCoreProps {
   type: 'logo' | 'banner'
   /** Aktuell gespeichertes Medium (für Preview) */
   value: EditableMediaValue | null
-  /** Dateiname für Anzeige */
   /** Vorschau-URL (bereits mit Cache-Buster) */
   previewURL: string
-  /** Formatierte Dateigröße */
-  /** Logo-Fallback (Initialen + Farbe) */
-  fallback: { initials: string; background: string; color: '#FFFFFF' | '#111111' }
   /** Läuft gerade eine Aktion? */
   busy: boolean
   /** Wird gerade bearbeitet (Cropper vorbereiten)? */
@@ -36,11 +34,11 @@ export interface MediaUploadCoreProps {
   disabled?: boolean
   /** Accept-Mime-Types für das File-Input */
   acceptedMime: string
-  /** Wird von UploadDropzone (Klick, Dateiauswahl-Button oder Drag&Drop) mit den rohen Files
-   * aufgerufen -- der "Hochladen/Ersetzen"-Aktions-Button triggert denselben Picker ueber das
-   * UploadDropzone-eigene open()-Handle, kein zweites natives <input> mehr. */
+  /** Wird von der MediaSlot-Dropzone (Klick, Dateiauswahl-Button oder Drag&Drop) mit den rohen
+   * Files aufgerufen. */
   onFilesSelected: (files: File[]) => void
-  /** Wird aufgerufen, wenn der User auf „Edit" klickt */
+  /** Öffnet den Zuschnitt für das VORHANDENE Bild erneut (Stift/Crop-Icon, eindeutig Zuschnitt --
+   * Fansub-Logo/Banner hat keine Provider-Suche, daher keine Bedeutungs-Kollision). */
   onEditClick: () => void
   /** Wird aufgerufen, wenn der User löschen möchte */
   onRemoveClick: () => void
@@ -48,14 +46,13 @@ export interface MediaUploadCoreProps {
 
 /**
  * Reiner Render-Kern von MediaUpload.
- * Enthält Dropzone, Preview, Fortschrittsbalken, Aktions-Buttons und Meldungen.
+ * Enthält den Medien-Slot (Vorschau + Dropzone), Fortschrittsbalken und Meldungen.
  * Alle Zustands- und Upload-Logik verbleibt im Koordinator MediaUpload.tsx.
  */
 export function MediaUploadCore({
   type,
   value,
   previewURL,
-  fallback,
   busy,
   preparingEdit,
   busyAction,
@@ -72,14 +69,6 @@ export function MediaUploadCore({
   const isLogo = type === 'logo'
   const hasValue = Boolean(value?.publicURL?.trim())
   const title = isLogo ? 'Logo' : 'Banner'
-  const uploadActionLabel = hasValue ? 'Ersetzen' : 'Hochladen'
-  const previewBoxClassName = [
-    styles.dropzone,
-    isLogo ? styles.dropzoneLogo : styles.dropzoneBanner,
-    hasValue ? styles.dropzoneWithPreview : '',
-    error ? styles.dropzoneError : '',
-    disabled ? styles.dropzoneDisabled : '',
-  ].filter(Boolean).join(' ')
 
   return (
     <>
@@ -93,51 +82,71 @@ export function MediaUploadCore({
         ) : null}
       </div>
 
-      <div className={previewBoxClassName} aria-busy={busy}>
-        {hasValue ? (
-          <>
-            {isLogo ? (
-              <div className={styles.previewRound}>
-                <Image
-                  src={previewURL}
-                  alt="Logo Vorschau"
-                  className={styles.previewImageRound}
-                  width={116}
-                  height={116}
-                  unoptimized
-                />
-              </div>
-            ) : (
-              <div className={styles.previewWide}>
-                <Image
-                  src={previewURL}
-                  alt="Banner Vorschau"
-                  className={styles.previewImageWide}
-                  width={520}
-                  height={130}
-                  unoptimized
-                />
-              </div>
-            )}
-          </>
-        ) : isLogo ? (
-          <div className={styles.previewRoundFallback} style={{ backgroundColor: fallback.background, color: fallback.color }}>
-            {fallback.initials}
-          </div>
-        ) : (
-          <div className={styles.previewWideEmpty}>Kein Banner vorhanden</div>
-        )}
-      </div>
-
-      <UploadDropzone
+      <MediaSlot
         ref={dropzoneRef}
+        aspectRatio={isLogo ? 1 : BANNER_CROP_OUTPUT_WIDTH / BANNER_CROP_OUTPUT_HEIGHT}
+        shape={isLogo ? 'round' : 'rect'}
+        label={title}
+        hasValue={hasValue}
         onFilesSelected={onFilesSelected}
         accept={acceptedMime}
-        multiple={false}
-        allowDrop={true}
         disabled={disabled || busy}
-        density="compact"
-        promptLabel="Bild hierher ziehen oder klicken zum Hochladen"
+        className={classNames(
+          styles.mediaSlotDecoration,
+          isLogo ? styles.logoSlot : null,
+          error ? styles.dropzoneError : null,
+        )}
+        previewContent={
+          isLogo ? (
+            <Image
+              src={previewURL}
+              alt="Logo Vorschau"
+              className={styles.previewImageRound}
+              width={LOGO_CROP_OUTPUT_SIZE}
+              height={LOGO_CROP_OUTPUT_SIZE}
+              unoptimized
+              draggable={false}
+            />
+          ) : (
+            <Image
+              src={previewURL}
+              alt="Banner Vorschau"
+              className={styles.previewImageWide}
+              width={BANNER_CROP_OUTPUT_WIDTH}
+              height={BANNER_CROP_OUTPUT_HEIGHT}
+              unoptimized
+              draggable={false}
+            />
+          )
+        }
+        cornerActions={
+          hasValue ? (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                iconOnly
+                onClick={onEditClick}
+                disabled={disabled || busy}
+                aria-label="Ausschnitt bearbeiten"
+                title="Ausschnitt bearbeiten"
+                leftIcon={<Crop size={14} />}
+              />
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                iconOnly
+                onClick={onRemoveClick}
+                disabled={disabled || busy}
+                aria-label={`${title} löschen`}
+                title="Löschen"
+                leftIcon={<Trash2 size={14} />}
+              />
+            </>
+          ) : null
+        }
       />
 
       {busyAction === 'upload' ? (
@@ -148,44 +157,6 @@ export function MediaUploadCore({
           <span className={styles.progressLabel}>{progress}%</span>
         </div>
       ) : null}
-
-      <div className={styles.actions}>
-        {hasValue ? (
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={onEditClick}
-            disabled={disabled || busy}
-            aria-label={`${title} bearbeiten`}
-            leftIcon={<Pencil size={14} />}
-          >
-            Bearbeiten
-          </Button>
-        ) : null}
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => dropzoneRef.current?.open()}
-          disabled={disabled || busy}
-          aria-label={`${title} ${hasValue ? 'ersetzen' : 'hochladen'}`}
-          leftIcon={hasValue ? <RefreshCw size={14} /> : <ImagePlus size={14} />}
-        >
-          {uploadActionLabel}
-        </Button>
-        <Button
-          type="button"
-          variant="danger"
-          size="sm"
-          onClick={onRemoveClick}
-          disabled={disabled || busy || !hasValue}
-          aria-label={`${title} löschen`}
-          leftIcon={<Trash2 size={14} />}
-        >
-          Löschen
-        </Button>
-      </div>
 
       {warning ? <p className={styles.warning} aria-live="polite">{warning}</p> : null}
       {error ? <p className={styles.error} role="alert">{error}</p> : null}

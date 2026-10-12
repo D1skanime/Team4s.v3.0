@@ -4,7 +4,12 @@ import { createRef } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { UploadDropzone, sliceToSingleFileIfNeeded, type UploadDropzoneHandle } from './UploadDropzone'
+import {
+  UploadDropzone,
+  resolveUploadSlotPresentation,
+  sliceToSingleFileIfNeeded,
+  type UploadDropzoneHandle,
+} from './UploadDropzone'
 
 const PROMPT = 'Dateien hier hineinziehen oder zum Auswählen klicken.'
 
@@ -38,6 +43,16 @@ describe('sliceToSingleFileIfNeeded', () => {
   it('never flags droppedExtra for a single file regardless of multiple', () => {
     const fileA = makeFile('a.png')
     expect(sliceToSingleFileIfNeeded([fileA], false)).toEqual({ selected: [fileA], droppedExtra: false })
+  })
+})
+
+describe('resolveUploadSlotPresentation', () => {
+  it('shows the full empty-state dropzone when the slot has no existing value', () => {
+    expect(resolveUploadSlotPresentation(false)).toBe('empty-dropzone')
+  })
+
+  it('shows the preview-as-drop-target overlay once the slot already has a value', () => {
+    expect(resolveUploadSlotPresentation(true)).toBe('replace-overlay')
   })
 })
 
@@ -127,5 +142,67 @@ describe('UploadDropzone', () => {
     ref.current?.open()
 
     expect(clickSpy).not.toHaveBeenCalled()
+  })
+
+  describe('preview-as-drop-target mode (children)', () => {
+    it('renders the children instead of the default icon/prompt/button chrome', () => {
+      render(
+        <UploadDropzone onFilesSelected={vi.fn()} promptLabel="Banner ersetzen">
+          <img alt="Aktuelles Banner" src="blob:fake" />
+        </UploadDropzone>,
+      )
+
+      expect(screen.getByAltText('Aktuelles Banner')).not.toBeNull()
+      expect(screen.queryByRole('button', { name: 'Dateien auswählen' })).toBeNull()
+      expect(screen.getByRole('button', { name: 'Banner ersetzen' })).not.toBeNull()
+    })
+
+    it('accepts a dropped replacement file the same way as the default chrome', () => {
+      const onFilesSelected = vi.fn()
+      render(
+        <UploadDropzone onFilesSelected={onFilesSelected} multiple={false} promptLabel="Banner ersetzen">
+          <img alt="Aktuelles Banner" src="blob:fake" />
+        </UploadDropzone>,
+      )
+      const file = makeFile('neues-banner.png')
+
+      fireEvent.drop(screen.getByRole('button', { name: 'Banner ersetzen' }), {
+        dataTransfer: { files: [file] },
+      })
+
+      expect(onFilesSelected).toHaveBeenCalledWith([file])
+    })
+
+    it('shows the overlay hint only while a file is dragged over, not before or after', () => {
+      render(
+        <UploadDropzone onFilesSelected={vi.fn()} promptLabel="Banner ersetzen" overlayHintLabel="Zum Ersetzen loslassen">
+          <img alt="Aktuelles Banner" src="blob:fake" />
+        </UploadDropzone>,
+      )
+      const dropzone = screen.getByRole('button', { name: 'Banner ersetzen' })
+
+      expect(screen.queryByText('Zum Ersetzen loslassen')).toBeNull()
+
+      fireEvent.dragEnter(dropzone, { dataTransfer: { files: [] } })
+      expect(screen.getByText('Zum Ersetzen loslassen')).not.toBeNull()
+
+      fireEvent.dragLeave(dropzone)
+      expect(screen.queryByText('Zum Ersetzen loslassen')).toBeNull()
+    })
+
+    it('still opens the file picker via the imperative handle when wrapping a preview', () => {
+      const ref = createRef<UploadDropzoneHandle>()
+      render(
+        <UploadDropzone ref={ref} onFilesSelected={vi.fn()} promptLabel="Banner ersetzen">
+          <img alt="Aktuelles Banner" src="blob:fake" />
+        </UploadDropzone>,
+      )
+      const input = screen.getByLabelText('Dateien') as HTMLInputElement
+      const clickSpy = vi.spyOn(input, 'click')
+
+      ref.current?.open()
+
+      expect(clickSpy).toHaveBeenCalledTimes(1)
+    })
   })
 })

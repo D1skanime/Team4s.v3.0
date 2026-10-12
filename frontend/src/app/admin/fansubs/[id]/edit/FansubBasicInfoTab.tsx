@@ -288,7 +288,6 @@ export function FansubBasicInfoTab({
                 <MediaUpload
                   type="logo"
                   fansubID={fansubID}
-                  groupName={form.name.trim() || group?.name || ""}
                   value={logoMedia}
                   disabled={!hasAuthSession || saving || !canEditBranding}
                   onBusyChange={handleLogoMediaBusyChange}
@@ -305,7 +304,6 @@ export function FansubBasicInfoTab({
                 <MediaUpload
                   type="banner"
                   fansubID={fansubID}
-                  groupName={form.name.trim() || group?.name || ""}
                   value={bannerMedia}
                   disabled={!hasAuthSession || saving || !canEditBranding}
                   onBusyChange={handleBannerMediaBusyChange}

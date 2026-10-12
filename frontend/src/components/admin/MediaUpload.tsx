@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
 import { Card } from '@/components/ui'
@@ -24,7 +24,6 @@ export interface EditableMediaValue {
 interface MediaUploadProps {
   type: FansubMediaKind
   fansubID: number
-  groupName: string
   value: EditableMediaValue | null
   disabled?: boolean
   onBusyChange?: (isBusy: boolean) => void
@@ -32,9 +31,9 @@ interface MediaUploadProps {
   [compatProp: string]: unknown
 }
 
-const LOGO_CROP_OUTPUT_SIZE = 512
-const BANNER_CROP_OUTPUT_WIDTH = 1200
-const BANNER_CROP_OUTPUT_HEIGHT = 220
+export const LOGO_CROP_OUTPUT_SIZE = 512
+export const BANNER_CROP_OUTPUT_WIDTH = 1200
+export const BANNER_CROP_OUTPUT_HEIGHT = 220
 
 function extensionForMime(mimeType: string): string {
   if (mimeType === 'image/jpeg') return 'jpg'
@@ -191,7 +190,7 @@ function validateFile(type: FansubMediaKind, file: File): string | null {
   return null
 }
 
-export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusyChange, onChange }: MediaUploadProps) {
+export function MediaUpload({ type, fansubID, value, disabled, onBusyChange, onChange }: MediaUploadProps) {
   const [busyAction, setBusyAction] = useState<'upload' | 'delete' | null>(null)
   const [preparingEdit, setPreparingEdit] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -200,7 +199,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
   const [cropSourceFile, setCropSourceFile] = useState<File | null>(null)
   const [cropOriginalFile, setCropOriginalFile] = useState<File | null>(null)
 
-  const fallback = useMemo(() => buildFansubLogoFallback(groupName), [groupName])
   const busy = busyAction !== null || preparingEdit
   const isLogo = type === 'logo'
   const mediaLabel = isLogo ? 'Logo' : 'Banner'
@@ -372,7 +370,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         type={type}
         value={value}
         previewURL={previewURL}
-        fallback={fallback}
         busy={busy}
         preparingEdit={preparingEdit}
         busyAction={busyAction}

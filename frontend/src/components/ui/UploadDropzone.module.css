@@ -33,6 +33,40 @@
   cursor: not-allowed;
 }
 
+/* Preview-as-drop-target mode (children present): shrink-wrap to the preview's own size/shape
+   instead of imposing the default icon/prompt/button box, and leave the preview's own
+   border/background alone. */
+.dropzoneOverlay {
+  display: inline-block;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  position: relative;
+}
+
+.dropzoneOverlay.dropzoneDragging {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  background: none;
+}
+
+.dropzoneOverlayHint {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  margin: 0;
+  background: color-mix(in srgb, var(--text-primary) 82%, transparent);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .hiddenFileInput {
   position: absolute;
   width: 1px;
