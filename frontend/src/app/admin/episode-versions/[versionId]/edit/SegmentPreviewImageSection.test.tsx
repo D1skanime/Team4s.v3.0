@@ -81,22 +81,41 @@ describe('SegmentPreviewImageSection', () => {
     expect(screen.getByText('Standardbild')).not.toBeNull()
   })
 
-  it('Bild hochladen oeffnet die Dateiauswahl des globalen Uploaders, ohne eigene Dropzone', () => {
+  it('zeigt die gemeinsame UploadDropzone fuer das Vorschaubild (D-17: echtes Drag&Drop)', () => {
     render(<SegmentPreviewImageSection {...baseProps()} />)
-    const input = screen.getByLabelText('Vorschaubild-Datei auswählen') as HTMLInputElement
-    const clickSpy = vi.spyOn(input, 'click')
-    fireEvent.click(screen.getByRole('button', { name: 'Bild hochladen' }))
-    expect(clickSpy).toHaveBeenCalled()
-    expect(screen.queryByText('Bild hierher ziehen oder klicken zum Hochladen')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Vorschaubild hochladen' })).not.toBeNull()
   })
 
-  it('ruft onPreviewUpload mit der ausgewaehlten Datei auf', () => {
+  it('ruft onPreviewUpload mit der per Klick ausgewaehlten Datei auf', () => {
     const onPreviewUpload = vi.fn()
     render(<SegmentPreviewImageSection {...baseProps({ onPreviewUpload })} />)
-    const input = screen.getByLabelText('Vorschaubild-Datei auswählen') as HTMLInputElement
+    const input = screen.getByLabelText('Dateien') as HTMLInputElement
     const file = new File(['img'], 'preview.jpg', { type: 'image/jpeg' })
     fireEvent.change(input, { target: { files: [file] } })
     expect(onPreviewUpload).toHaveBeenCalledWith(file)
+  })
+
+  it('ruft onPreviewUpload mit der per Drag&Drop abgelegten Datei auf', () => {
+    const onPreviewUpload = vi.fn()
+    render(<SegmentPreviewImageSection {...baseProps({ onPreviewUpload })} />)
+    const file = new File(['img'], 'dropped.jpg', { type: 'image/jpeg' })
+    fireEvent.drop(screen.getByRole('button', { name: 'Vorschaubild hochladen' }), {
+      dataTransfer: { files: [file] },
+    })
+    expect(onPreviewUpload).toHaveBeenCalledWith(file)
+  })
+
+  it('uebernimmt bei einem Mehrfach-Drop nur die erste Datei (Single-Slot, D-16)', () => {
+    const onPreviewUpload = vi.fn()
+    render(<SegmentPreviewImageSection {...baseProps({ onPreviewUpload })} />)
+    const first = new File(['a'], 'a.jpg', { type: 'image/jpeg' })
+    const second = new File(['b'], 'b.jpg', { type: 'image/jpeg' })
+    fireEvent.drop(screen.getByRole('button', { name: 'Vorschaubild hochladen' }), {
+      dataTransfer: { files: [first, second] },
+    })
+    expect(onPreviewUpload).toHaveBeenCalledTimes(1)
+    expect(onPreviewUpload).toHaveBeenCalledWith(first)
+    expect(screen.getByText(/Nur die erste Datei wurde übernommen/)).not.toBeNull()
   })
 
   it('zeigt einen Platzhalter, wenn preview_url defensiv fehlt', () => {

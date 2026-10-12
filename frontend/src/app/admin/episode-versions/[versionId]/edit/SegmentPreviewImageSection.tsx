@@ -1,9 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
-import { ImageIcon, RefreshCw, Upload } from 'lucide-react'
+import { ImageIcon, RefreshCw } from 'lucide-react'
 
-import { Badge, Button, Input } from '@/components/ui'
+import { Badge, Button, UploadDropzone } from '@/components/ui'
 import type { AdminSegmentPreviewImageCandidate, AdminThemeSegment } from '@/types/admin'
 import { SegmentPreviewImagePicker } from './SegmentPreviewImagePicker'
 import styles from './SegmentPreviewImageSection.module.css'
@@ -59,8 +58,6 @@ export function SegmentPreviewImageSection({
   onResetPreview,
   onDismissSuccess,
 }: SegmentPreviewImageSectionProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
   if (!editingSegment) {
     return null
   }
@@ -87,29 +84,19 @@ export function SegmentPreviewImageSection({
         {badge ? <Badge variant={badge.variant}>{badge.label}</Badge> : null}
       </div>
 
+      <UploadDropzone
+        onFilesSelected={(files) => {
+          const file = files[0]
+          if (file) onPreviewUpload(file)
+        }}
+        accept={ACCEPTED_MIME}
+        multiple={false}
+        density="compact"
+        disabled={isUploadingPreview}
+        promptLabel="Vorschaubild hochladen"
+      />
+
       <div className={styles.actionsRow}>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          leftIcon={<Upload size={14} />}
-          loading={isUploadingPreview}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          Bild hochladen
-        </Button>
-        <Input
-          ref={fileInputRef}
-          type="file"
-          accept={ACCEPTED_MIME}
-          hidden
-          aria-label="Vorschaubild-Datei auswählen"
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            if (file) onPreviewUpload(file)
-            event.target.value = ''
-          }}
-        />
         <Button
           type="button"
           variant="secondary"
