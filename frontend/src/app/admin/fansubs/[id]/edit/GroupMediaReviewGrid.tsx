@@ -230,6 +230,7 @@ export function GroupMediaReviewGrid({
                 draggable={canReorderMedia}
                 onDragStart={(event) => handleDragStart(event, item)}
                 onDragEnd={handleDragEnd}
+                onDragEnter={(event) => handleDragOver(event, item)}
                 onDragOver={(event) => handleDragOver(event, item)}
                 onDrop={(event) => void handleReorderDrop(event, item)}
                 onDragLeave={() => {

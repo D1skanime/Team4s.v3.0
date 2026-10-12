@@ -326,6 +326,12 @@ describe('GroupMediaReviewSection', () => {
     fireEvent.dragStart(firstCard as HTMLElement, {
       dataTransfer: { setData: vi.fn(), effectAllowed: 'move' },
     })
+    // dragenter muss genau wie dragover sofort preventDefault bekommen, sonst zeigt der
+    // Browser bis zum nächsten dragover den Verbot-Cursor (Live-UAT-Nachprüfung 2026-10-12).
+    const dragEnterNotCancelled = fireEvent.dragEnter(secondCard as HTMLElement, {
+      dataTransfer: { types: [GROUP_MEDIA_REORDER_MIME_TYPE], dropEffect: 'move' },
+    })
+    expect(dragEnterNotCancelled).toBe(false)
     fireEvent.dragOver(secondCard as HTMLElement, {
       dataTransfer: { types: [GROUP_MEDIA_REORDER_MIME_TYPE], dropEffect: 'move' },
     })
