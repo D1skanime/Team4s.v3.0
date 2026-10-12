@@ -97,6 +97,14 @@ const publicNoAuthFetchAllowlist = new Set([
   // protects -- same pre-existing shape it had inside api.ts before this file's
   // relocation (174-03/174-04/174-05 precedent: physical relocation, same boundary).
   'src/lib/api/admin/anime-assets.ts',
+  // 180-12 Live-UAT-Korrektur 2026-10-12: openAssetCrop's fetch(resolved.url) reads a
+  // persisted Cover/Banner source for re-cropping via a backend-RELATIVE path only
+  // (resolveAnimeAssetCropSource rejects any absolute URL first) -- same-origin through
+  // the Next.js app's own /api/v1/[...path] or /media/[...path] route handlers, never the
+  // central Team4s API's absolute backend origin this boundary test protects (that's
+  // exactly the bug: apiClientFetch resolves to the absolute origin and fails CORS there).
+  // The underlying backend route it reaches either way is itself public/unauthenticated.
+  'src/app/admin/anime/hooks/useAnimeEditAssetCropFlow.ts',
 ])
 
 const docsAllowlist = new Set([
