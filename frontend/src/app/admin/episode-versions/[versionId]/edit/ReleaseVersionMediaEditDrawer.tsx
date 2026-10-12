@@ -1,11 +1,10 @@
 'use client'
 
-import { ChangeEvent, DragEvent, KeyboardEvent, RefObject } from 'react'
 import { ImageIcon, Trash2 } from 'lucide-react'
 
 import { ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
-import { Button, Drawer, FormField, Input, Textarea } from '@/components/ui'
+import { Button, Drawer, FormField, Input, Textarea, UploadDropzone } from '@/components/ui'
 import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
 import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
 import { resolveEditDrawerPrimaryLabel } from './ReleaseVersionMediaSection.helpers'
@@ -20,7 +19,6 @@ export interface ReleaseVersionMediaEditDrawerProps {
   editPreviewCandidate: boolean
   stagedReplaceFile: File | null
   stagedReplacePreviewURL: string | null
-  isReplaceDragActive: boolean
   editError: string | null
   canEditSelectedItem: boolean
   canDeleteSelectedItem: boolean
@@ -35,12 +33,7 @@ export interface ReleaseVersionMediaEditDrawerProps {
   onSave: () => void
   onDelete: () => void
   onPreviewChange: (item: ReleaseVersionMediaItem, nextValue: boolean) => void
-  onReplaceFileChange: (event: ChangeEvent<HTMLInputElement>) => void
-  openReplaceFilePicker: () => void
-  onReplaceDropZoneKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
-  onReplaceDragToggle: (event: DragEvent<HTMLDivElement>, active: boolean) => void
-  onReplaceDrop: (event: DragEvent<HTMLDivElement>) => void
-  replaceFileInputRef: RefObject<HTMLInputElement>
+  onReplaceFileSelected: (files: File[]) => void
 }
 
 export function ReleaseVersionMediaEditDrawer({
@@ -52,7 +45,6 @@ export function ReleaseVersionMediaEditDrawer({
   editPreviewCandidate,
   stagedReplaceFile,
   stagedReplacePreviewURL,
-  isReplaceDragActive,
   editError,
   canEditSelectedItem,
   canDeleteSelectedItem,
@@ -67,12 +59,7 @@ export function ReleaseVersionMediaEditDrawer({
   onSave,
   onDelete,
   onPreviewChange,
-  onReplaceFileChange,
-  openReplaceFilePicker,
-  onReplaceDropZoneKeyDown,
-  onReplaceDragToggle,
-  onReplaceDrop,
-  replaceFileInputRef,
+  onReplaceFileSelected,
 }: ReleaseVersionMediaEditDrawerProps) {
   return (
     <Drawer
@@ -126,31 +113,14 @@ export function ReleaseVersionMediaEditDrawer({
           {isRejectedEditable ? <ReleaseVersionMediaReplaceControls editCategory={editCategory} onCategoryChange={setEditCategory} /> : null}
           {isRejectedEditable ? (
             <FormField label="Datei ersetzen" hint="Ersetzt die aktuell abgelehnte Datei durch eine neue Fassung. Beschreibung und Kategorie kannst du im selben Formular anpassen.">
-              <div
-                className={[styles.dropZone, isReplaceDragActive ? styles.dropZoneActive : ''].filter(Boolean).join(' ')}
-                role="button"
-                tabIndex={0}
-                onClick={openReplaceFilePicker}
-                onKeyDown={onReplaceDropZoneKeyDown}
-                onDragEnter={(event) => onReplaceDragToggle(event, true)}
-                onDragOver={(event) => onReplaceDragToggle(event, true)}
-                onDragLeave={(event) => onReplaceDragToggle(event, false)}
-                onDrop={onReplaceDrop}
-              >
-                <div className={styles.dropZoneHeader}>
-                  <p className={styles.dropZoneCallout}>Neue Datei hier hineinziehen oder antippen.</p>
-                  {stagedReplaceFile ? <p className={styles.helper}>Ausgewählt: {stagedReplaceFile.name}</p> : null}
-                </div>
-                <input
-                  ref={replaceFileInputRef}
-                  className={styles.fileInput}
-                  type="file"
-                  aria-label="Ersatzdatei"
-                  accept="image/*"
-                  onChange={onReplaceFileChange}
-                  onClick={(event) => event.stopPropagation()}
-                />
-              </div>
+              <UploadDropzone
+                onFilesSelected={onReplaceFileSelected}
+                accept="image/*"
+                multiple={false}
+                density="compact"
+                promptLabel="Neue Datei hier hineinziehen oder antippen"
+                dropHintLabel={stagedReplaceFile ? `Ausgewählt: ${stagedReplaceFile.name}` : undefined}
+              />
             </FormField>
           ) : null}
           <FormField label="Titel" htmlFor="release-media-edit-title">

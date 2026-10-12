@@ -359,38 +359,6 @@
   font-weight: 700;
 }
 
-.dropZone {
-  border: 1.5px dashed color-mix(in srgb, var(--accent-primary) 36%, transparent);
-  border-radius: calc(var(--radius-md) + 6px);
-  padding: 1rem;
-  background: color-mix(in srgb, var(--accent-primary) 8%, white);
-  display: grid;
-  gap: 0.7rem;
-  cursor: pointer;
-}
-
-.dropZoneActive {
-  border-color: var(--accent-primary);
-  background: color-mix(in srgb, var(--accent-primary) 13%, white);
-}
-
-.dropZoneDisabled {
-  opacity: 0.62;
-  cursor: not-allowed;
-}
-
-.dropZoneHeader {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.dropZoneCallout {
-  margin: 0;
-  color: color-mix(in srgb, var(--accent-primary) 76%, var(--text-primary));
-  font-size: 0.95rem;
-  font-weight: 800;
-}
-
 .fileInput {
   display: none;
 }

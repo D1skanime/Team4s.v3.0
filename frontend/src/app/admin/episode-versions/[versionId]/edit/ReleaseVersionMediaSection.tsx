@@ -1,6 +1,6 @@
 'use client'
 
-import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { DragEvent, useEffect, useMemo, useState } from 'react'
 
 import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
@@ -45,13 +45,11 @@ export function ReleaseVersionMediaSection({
   const [editPreviewCandidate, setEditPreviewCandidate] = useState(false)
   const [editCategory, setEditCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
   const [stagedReplaceFile, setStagedReplaceFile] = useState<File | null>(null)
-  const [isReplaceDragActive, setIsReplaceDragActive] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [previewSavingId, setPreviewSavingId] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [draggedStoryKey, setDraggedStoryKey] = useState<string | null>(null)
   const [dragOverStoryKey, setDragOverStoryKey] = useState<string | null>(null)
-  const replaceFileInputRef = useRef<HTMLInputElement | null>(null)
 
   const stagedReplacePreviewURL = useMemo(() => (stagedReplaceFile ? buildLocalPreviewURL(stagedReplaceFile) : null), [stagedReplaceFile])
 
@@ -171,33 +169,8 @@ export function ReleaseVersionMediaSection({
     setIsUploadOpen(false)
   }
 
-  function onReplaceFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0] ?? null
-    if (file) setStagedReplaceFile(file)
-    event.target.value = ''
-  }
-
-  function openReplaceFilePicker() {
-    replaceFileInputRef.current?.click()
-  }
-
-  function onReplaceDropZoneKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      openReplaceFilePicker()
-    }
-  }
-
-  function onReplaceDragToggle(event: DragEvent<HTMLDivElement>, active: boolean) {
-    event.preventDefault()
-    if (active) event.dataTransfer.dropEffect = 'copy'
-    setIsReplaceDragActive(active)
-  }
-
-  function onReplaceDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault()
-    setIsReplaceDragActive(false)
-    const file = event.dataTransfer.files?.[0] ?? null
+  function handleReplaceFileSelected(files: File[]) {
+    const file = files[0] ?? null
     if (file) setStagedReplaceFile(file)
   }
 
@@ -370,7 +343,6 @@ export function ReleaseVersionMediaSection({
         editPreviewCandidate={editPreviewCandidate}
         stagedReplaceFile={stagedReplaceFile}
         stagedReplacePreviewURL={stagedReplacePreviewURL}
-        isReplaceDragActive={isReplaceDragActive}
         editError={editError}
         canEditSelectedItem={canEditSelectedItem}
         canDeleteSelectedItem={canDeleteSelectedItem}
@@ -385,12 +357,7 @@ export function ReleaseVersionMediaSection({
         onSave={() => void handleSaveSelectedItem()}
         onDelete={() => void handleDeleteSelectedItem()}
         onPreviewChange={(item, nextValue) => void handlePreviewChange(item, nextValue)}
-        onReplaceFileChange={onReplaceFileChange}
-        openReplaceFilePicker={openReplaceFilePicker}
-        onReplaceDropZoneKeyDown={onReplaceDropZoneKeyDown}
-        onReplaceDragToggle={onReplaceDragToggle}
-        onReplaceDrop={onReplaceDrop}
-        replaceFileInputRef={replaceFileInputRef}
+        onReplaceFileSelected={handleReplaceFileSelected}
       />
       {confirmDialog}
     </section>

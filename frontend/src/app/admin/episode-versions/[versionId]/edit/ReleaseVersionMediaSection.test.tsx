@@ -656,7 +656,7 @@ describe('ReleaseVersionMediaSection Phase 144 replace-file drawer', () => {
     fireEvent.click(screen.getByRole('button', { name: /Rejected Item bearbeiten/i }))
     const rejectedDialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
     expect(within(rejectedDialog).getByLabelText('Kategorie')).not.toBeNull()
-    expect(within(rejectedDialog).getByLabelText('Ersatzdatei')).not.toBeNull()
+    expect(within(rejectedDialog).getByRole('button', { name: 'Neue Datei hier hineinziehen oder antippen' })).not.toBeNull()
 
     cleanup()
 
@@ -674,7 +674,7 @@ describe('ReleaseVersionMediaSection Phase 144 replace-file drawer', () => {
     fireEvent.click(screen.getByRole('button', { name: /Confirmed Item bearbeiten/i }))
     const confirmedDialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
     expect(within(confirmedDialog).queryByLabelText('Kategorie')).toBeNull()
-    expect(within(confirmedDialog).queryByLabelText('Ersatzdatei')).toBeNull()
+    expect(within(confirmedDialog).queryByRole('button', { name: 'Neue Datei hier hineinziehen oder antippen' })).toBeNull()
   })
 
   it('primärer Button liest "Erneut einreichen" (deaktiviert) ohne Änderungen und "Überarbeitung einreichen" (aktiv) nach Datei-Auswahl', async () => {
@@ -697,7 +697,7 @@ describe('ReleaseVersionMediaSection Phase 144 replace-file drawer', () => {
     expect(within(dialog).getByRole('button', { name: 'Erneut einreichen' })).toHaveProperty('disabled', true)
 
     const file = new File(['x'], 'replacement.png', { type: 'image/png' })
-    fireEvent.change(within(dialog).getByLabelText('Ersatzdatei'), { target: { files: [file] } })
+    fireEvent.change(within(dialog).getByLabelText('Dateien'), { target: { files: [file] } })
 
     expect(within(dialog).getByRole('button', { name: 'Überarbeitung einreichen' })).toHaveProperty('disabled', false)
   })
@@ -724,7 +724,7 @@ describe('ReleaseVersionMediaSection Phase 144 replace-file drawer', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
 
     const file = new File(['x'], 'replacement.png', { type: 'image/png' })
-    fireEvent.change(within(dialog).getByLabelText('Ersatzdatei'), { target: { files: [file] } })
+    fireEvent.change(within(dialog).getByLabelText('Dateien'), { target: { files: [file] } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Überarbeitung einreichen' }))
 
     await waitFor(() => {
