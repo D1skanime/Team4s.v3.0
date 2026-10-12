@@ -750,10 +750,58 @@
   padding-bottom: 0;
 }
 
-.mediaGrid {
+.mediaManagementGrid {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.mediaManagementCard {
+  overflow: hidden;
+}
+
+.mediaManagementCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 0;
+}
+
+.mediaManagementSelection {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #625c56;
+}
+
+.mediaManagementGrip {
+  display: inline-flex;
+  color: #8c857e;
+}
+
+.mediaManagementPreview {
+  aspect-ratio: 16 / 9;
+  margin: 8px 10px 0;
+  border-radius: 10px;
+  border: 1px solid rgba(45, 41, 38, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(255, 106, 61, 0.2), transparent 44%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 239, 232, 0.92) 100%);
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  color: #8c857e;
+  font-size: 0.78rem;
+}
+
+.mediaManagementBadgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px 10px;
 }
 
 .releaseCompositionShell {
@@ -852,18 +900,6 @@
   overflow: hidden;
   font-size: 0.76rem;
   line-height: 1.3;
-}
-
-.mediaThumb {
-  aspect-ratio: 16 / 9;
-  border-radius: 16px;
-  border: 1px solid rgba(45, 41, 38, 0.12);
-  background:
-    radial-gradient(circle at top right, rgba(255, 106, 61, 0.2), transparent 44%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 239, 232, 0.92) 100%);
-  padding: 14px;
-  display: grid;
-  align-content: end;
 }
 
 .projectNotesList {
@@ -1708,7 +1744,7 @@
   .feedbackGrid,
   .overlayGrid,
   .tokenGrid,
-  .mediaGrid,
+  .mediaManagementGrid,
   .stateGrid,
   .cardCompareGrid,
   .nestedCompareGrid,

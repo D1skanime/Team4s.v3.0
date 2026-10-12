@@ -1,13 +1,12 @@
 'use client'
 
-import { Pencil, Search, Upload } from 'lucide-react'
+import { Pencil, Search } from 'lucide-react'
 
 import {
   ActionBar,
   Badge,
   Button,
   Card,
-  EmptyState,
   FormField,
   Input,
   Pagination,
@@ -23,6 +22,7 @@ import {
   Toolbar,
 } from '@/components/ui'
 
+import { MediaManagementCompositionShowcase } from './MediaManagementCompositionShowcase'
 import { ProjectNoteShowcase } from './ProjectNoteShowcase'
 import { ReleaseCompositionShowcase } from './ReleaseCompositionShowcase'
 import styles from '../page.module.css'
@@ -153,18 +153,7 @@ export function CompositionShowcase({ page, onPageChange, onOpenDrawer }: Compos
           </div>
         </Card>
 
-        <Card variant="section" title="Komposition 5 – Media Management Layout" description="Toolbar, Upload-Hinweis, Media Grid und Status-Badges ohne echte Upload-Logik.">
-          <Toolbar
-            leading={<Badge variant="muted">12 Mock-Assets</Badge>}
-            trailing={<Button leftIcon={<Upload size={16} />}>Upload vorbereiten</Button>}
-          />
-          <div className={styles.mediaGrid}>
-            <div className={styles.mediaThumb}><Badge variant="info">Poster</Badge></div>
-            <div className={styles.mediaThumb}><Badge variant="success">Freigegeben</Badge></div>
-            <div className={styles.mediaThumb}><Badge variant="warning">Review</Badge></div>
-          </div>
-          <EmptyState title="Keine echte Upload-Logik in 48A" description="Die Medienverwaltung bleibt hier absichtlich ein rein visuelles Referenzlayout." />
-        </Card>
+        <MediaManagementCompositionShowcase />
 
         <ProjectNoteShowcase />
 
