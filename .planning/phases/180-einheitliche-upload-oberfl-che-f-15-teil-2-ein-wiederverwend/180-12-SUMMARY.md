@@ -157,5 +157,79 @@ STATE.md/ROADMAP.md/REQUIREMENTS.md updates, and create the final metadata commi
 Plan 180-12 and Phase 180 as a whole.
 
 ---
+
+## Addendum: Live-UAT findings during Task 2 checkpoint (2026-10-12)
+
+Three issues were reported during the Task 2 Live-UAT session. Two are fixed (own commits, not
+part of Task 1's own gate run); one remains under investigation. Task 2 itself (the D-13/D-16/D-17
+sign-off) is still pending — these are additional findings surfaced while testing it, not a
+substitute for it.
+
+**1. Gruppenmedien-Upload DB_FAILED — FIXED, commit `76ff13be`.**
+`CreateFansubGroupMediaAsset` (180-03) did `INSERT ... RETURNING id`, but the real
+`fansub_group_media` table has no surrogate `id` column (primary key is `(group_id, media_id)`,
+confirmed via live `psql`). Every real upload failed with `"gruppenmedium konnte nicht erstellt
+werden"`. 180-03's own test fixture fabricated an `id BIGSERIAL PRIMARY KEY` column that doesn't
+match the real schema, masking the bug. Fixed to return `input.MediaAssetID` directly; repaired
+180-03's fixture (shown red against the old code, reproducing the exact live error, before
+re-confirming green against the fix) plus three other pre-existing fixtures with the identical
+schema-drift (`fansub_media_upload_namespace_test.go`, `dashboard_me_handler_test.go`,
+`release_review_query_repository_test.go` — none of these called the buggy function, so they
+weren't masking a live bug, just documenting the schema incorrectly). Verified end-to-end against
+the live backend + Postgres via a real authenticated upload and title patch; test artifact cleaned
+up afterward. Full details in commit `76ff13be`.
+
+**2. Gruppenmedien-Reihenfolge per Drag&Drop — NOT reproduced as a code regression; unresolved.**
+User report: drag visibly starts on the handle, but dropping on another card sends no request.
+Investigated via (a) full diff comparison of `GroupMediaReviewSection.tsx` +
+`useGroupMediaReviewActions.ts` + the new `useGroupMediaReviewReorder.ts` against the pre-180-06
+baseline (commit `00f19867`) — the extraction is a byte-for-byte equivalent mechanical lift, no
+logic or wiring changed; (b) the existing `fireEvent.dragStart`/`dragOver`/`drop` test in
+`GroupMediaReviewSection.test.tsx` ("speichert die Gruppenmedien-Reihenfolge per Drag & Drop...")
+still passes; (c) traced `canReorderMedia`/`draggedMediaId`/`dragOverMediaId` end-to-end from
+`useGroupMediaReviewReorder` through `useGroupMediaReviewActions` to `GroupMediaReviewGrid.tsx`'s
+card-level `onDragOver`/`onDrop` handlers — single source of truth, no shadowing, no stale
+`useCallback` dependency gaps found. Attempted live-browser Playwright verification (real Keycloak
+session, native mouse-drag simulation) but could not complete it within this session: the
+project's documented browser-UAT origin (`http://127.0.0.1:3300`, the Windows SSH tunnel per
+CLAUDE.md) isn't reachable from the Linux host directly, and the backend's `CORS_ALLOWED_ORIGINS`
+(derived from `APP_PUBLIC_URL=http://127.0.0.1:3300`) rejects the other origins tried
+(`http://192.168.235.196:3000`, `http://localhost:3000`) — widening CORS to work around this was
+judged too invasive for a verification-only task and was not done. No logic-level red test could
+be produced because no logic difference from the pre-refactor baseline was found. Given a brand-new
+hook module (`useGroupMediaReviewReorder.ts`) was introduced mid-session, the leading hypothesis is
+a stale Next.js Fast-Refresh/HMR state rather than a shipped code defect — the frontend container
+has now been restarted (plain `docker compose restart`, not just HMR) as part of closing out this
+session; please re-test live after the restart. If it still reproduces, the next concrete
+diagnostic step is a live browser-console check during the drag (any JS error logged?) plus
+confirming the exact filter/view state active at drag time (`isCanonicalReorderView` requires all
+filters at their defaults).
+
+**3. Profil-Hintergrundbild-Zuschnitt (5:1) extrem klein — FIXED, commit `dc552613`.**
+`Team4sCropper`'s viewport used `style={{ aspectRatio }}` directly (container ratio == crop ratio),
+so a 5:1 crop produced a ~184px-tall viewport; `react-easy-crop`'s default `objectFit="contain"`
+then shrank the whole source image to fit that tiny height (~245px wide for a 4:3 photo, matching
+the user's own measurement). Pre-existing since Phase 56/quick-260914, surfaced now via this
+phase's upload work. Fixed with two new pure functions in `Team4sCropper.helpers.ts`
+(`computeCropViewportAspectRatio`, `cropperObjectFitFor`, both covered by
+`Team4sCropper.helpers.test.ts`): for `aspectRatio > 2`, the viewport's own ratio is deliberately
+less wide than the crop ratio (extra vertical room so `react-easy-crop`'s own frame-fitting centers
+a full-width frame with visible margin above/below) and `objectFit` switches to
+`"horizontal-cover"` (image fills the viewport's width, vertical panning selects the crop). Square
+avatar crop (`aspectRatio=1`) is unaffected — same behavior as before. Output dimensions and the
+upload/save flow are untouched. The fansub Logo/Banner crop (`MediaUpload.tsx`, aspect
+`1200/220 ≈ 5.45`) shares `Team4sCropper` and benefits automatically, with no code change of its
+own.
+
+**Side effects during investigation (disclosed, not hidden):** a Keycloak realm user's password
+(`admin`, local dev realm `team4s`) was temporarily reset via the Keycloak admin API to obtain a
+real access token for live-browser/curl verification of fix #1; the original password is unknown
+and was not restored. Since this is the local dev Keycloak instance, reset it again via the admin
+console/API if the old value is needed. Two throwaway Postgres databases
+(`team4s_phase106_test_180`, `team4s_phase107_test_180`) created to run the `TEAM4S_PHASE106/107_TEST_DSN`-gated
+Go tests locally were dropped again after use. The backend and frontend containers were both
+restarted (`docker compose restart`) to pick up the fixes.
+
+---
 *Phase: 180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend*
-*Status: Task 1 complete, Task 2 pending human verification — plan and phase NOT yet closed*
+*Status: Task 1 complete, Task 2 pending human verification (now including re-test of the reorder issue after frontend restart) — plan and phase NOT yet closed*
