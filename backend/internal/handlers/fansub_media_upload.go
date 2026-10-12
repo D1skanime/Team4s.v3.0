@@ -295,9 +295,12 @@ func (h *FansubHandler) persistFansubMediaAsset(
 }
 
 type fansubGroupMediaFileResult struct {
-	ClientFileName     string `json:"client_file_name"`
-	Status             string `json:"status"`
-	MediaAssetID       *int64 `json:"media_asset_id,omitempty"`
+	ClientFileName string `json:"client_file_name"`
+	Status         string `json:"status"`
+	MediaAssetID   *int64 `json:"media_asset_id,omitempty"`
+	// FansubGroupMediaID is intentionally identical to MediaAssetID — fansub_group_media has no
+	// surrogate id column (primary key is group_id+media_id), so the only addressable identity
+	// for the patch-nachlauf (PATCH /admin/fansubs/:id/media/:mediaId) is media_id itself.
 	FansubGroupMediaID *int64 `json:"fansub_group_media_id,omitempty"`
 	PreviewURL         string `json:"preview_url,omitempty"`
 	ThumbnailURL       string `json:"thumbnail_url,omitempty"`

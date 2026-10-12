@@ -76,7 +76,6 @@ func openFansubGroupMediaUploadExecFixture(t *testing.T) *pgxpool.Pool {
 			status TEXT NOT NULL DEFAULT 'processing'
 		);
 		CREATE TABLE fansub_group_media (
-			id BIGSERIAL PRIMARY KEY,
 			group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
 			media_id BIGINT NOT NULL REFERENCES media_assets(id) ON DELETE CASCADE,
 			category VARCHAR(40) NOT NULL DEFAULT 'other',
@@ -85,7 +84,8 @@ func openFansubGroupMediaUploadExecFixture(t *testing.T) *pgxpool.Pool {
 			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 			updated_at TIMESTAMPTZ,
 			deleted_at TIMESTAMPTZ,
-			deleted_by_user_id BIGINT NULL REFERENCES users(id) ON DELETE SET NULL
+			deleted_by_user_id BIGINT NULL REFERENCES users(id) ON DELETE SET NULL,
+			PRIMARY KEY (group_id, media_id)
 		);
 
 		INSERT INTO media_types(name) VALUES ('image');
@@ -153,11 +153,14 @@ func fansubGroupMediaUploadExecContext(req *http.Request, params gin.Params, ide
 	return c, recorder
 }
 
-// TestUploadFansubGroupMediaReturnsRealFansubGroupMediaID proves (180-03 D-14), by actually
-// invoking h.UploadFansubMedia end to end against a real Postgres fixture, that a real
-// successful group-media image upload's JSON response carries results[0].fansub_group_media_id
-// set to the actual persisted fansub_group_media.id for that upload -- never by reading
-// fansub_media_upload.go's source text and grepping for the field name.
+// TestUploadFansubGroupMediaReturnsRealFansubGroupMediaID proves (180-03 D-14, repaired per the
+// 2026-10-12 Live-UAT finding), by actually invoking h.UploadFansubMedia end to end against a
+// real Postgres fixture whose fansub_group_media table matches the REAL migrated schema exactly
+// (no surrogate id column -- primary key is (group_id, media_id), see migration 0026/0109), that
+// a real successful group-media image upload's JSON response carries results[0].fansub_group_media_id
+// equal to results[0].media_asset_id (the only addressable identity fansub_group_media actually
+// has), AND that the row is genuinely persisted under that (group_id, media_id) pair -- never by
+// reading fansub_media_upload.go's source text and grepping for the field name.
 func TestUploadFansubGroupMediaReturnsRealFansubGroupMediaID(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	pool := openFansubGroupMediaUploadExecFixture(t)
@@ -184,14 +187,16 @@ func TestUploadFansubGroupMediaReturnsRealFansubGroupMediaID(t *testing.T) {
 	assert.Equal(t, "ready", resp.Results[0].Status, rec.Body.String())
 	require.NotNil(t, resp.Results[0].MediaAssetID)
 	require.NotNil(t, resp.Results[0].FansubGroupMediaID, "a real successful upload must carry fansub_group_media_id, not just media_asset_id")
+	assert.Equal(t, *resp.Results[0].MediaAssetID, *resp.Results[0].FansubGroupMediaID,
+		"fansub_group_media has no surrogate id column -- fansub_group_media_id must equal media_asset_id, not a fabricated/distinct value")
 
-	var persistedID int64
+	var persistedCount int
 	err = pool.QueryRow(ctx, `
-		SELECT id FROM fansub_group_media WHERE media_id = $1
-	`, *resp.Results[0].MediaAssetID).Scan(&persistedID)
+		SELECT count(*) FROM fansub_group_media WHERE group_id = $1 AND media_id = $2
+	`, fansubGroupID, *resp.Results[0].MediaAssetID).Scan(&persistedCount)
 	require.NoError(t, err)
-	assert.Equal(t, persistedID, *resp.Results[0].FansubGroupMediaID,
-		"the response's fansub_group_media_id must match the real persisted row's id, not a fabricated value")
+	assert.Equal(t, 1, persistedCount,
+		"a row must genuinely exist under the real (group_id, media_id) primary key for this upload")
 }
 
 // TestUploadFansubGroupMediaOmitsFansubGroupMediaIDOnFailure proves a failed upload (here: an

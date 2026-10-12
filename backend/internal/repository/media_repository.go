@@ -991,22 +991,25 @@ type FansubGroupMediaCreateInput struct {
 	UploadedByUserID *int64
 }
 
+// CreateFansubGroupMediaAsset inserts the group/media relation row. fansub_group_media has
+// NO surrogate id column — its primary key is the (group_id, media_id) pair (see migration
+// schema and UpdateFansubGroupMediaMetadata/SoftDeleteFansubGroupMedia, which both address by
+// that pair). The returned int64 is therefore input.MediaAssetID itself, not a generated row id —
+// callers (e.g. the upload handler's patch-nachlauf) already use media_id as the addressable key.
 func (r *MediaRepository) CreateFansubGroupMediaAsset(ctx context.Context, tx pgx.Tx, input FansubGroupMediaCreateInput) (int64, error) {
 	var uploadedByUserID interface{}
 	if input.UploadedByUserID != nil {
 		uploadedByUserID = *input.UploadedByUserID
 	}
-	var id int64
-	err := tx.QueryRow(ctx, `
+	_, err := tx.Exec(ctx, `
 		INSERT INTO fansub_group_media
 			(group_id, media_id, category, sort_order, uploaded_by_user_id, created_at)
 		VALUES ($1, $2, $3, $4, (SELECT id FROM users WHERE id = $5), NOW())
-		RETURNING id
-	`, input.FansubGroupID, input.MediaAssetID, input.Category, input.SortOrder, uploadedByUserID).Scan(&id)
+	`, input.FansubGroupID, input.MediaAssetID, input.Category, input.SortOrder, uploadedByUserID)
 	if err != nil {
 		return 0, fmt.Errorf("create fansub_group_media (group_id=%d, media_id=%d): %w", input.FansubGroupID, input.MediaAssetID, err)
 	}
-	return id, nil
+	return input.MediaAssetID, nil
 }
 
 func (r *MediaRepository) UpdateFansubGroupMediaMetadata(ctx context.Context, fansubGroupID, mediaID int64, patch FansubGroupMediaMetadataPatch) error {

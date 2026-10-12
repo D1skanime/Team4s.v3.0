@@ -168,6 +168,9 @@ export interface FansubGroupMediaUploadResult {
   client_file_name: string;
   status: "ready" | "failed";
   media_asset_id?: number;
+  /** Always identical to media_asset_id — fansub_group_media has no surrogate id column
+   * (primary key is group_id+media_id); this field exists only to mirror the Weg-1 adapter's
+   * resultId naming so useUploadQueue's generic readyResultId contract stays uniform. */
   fansub_group_media_id?: number;
   preview_url?: string;
   thumbnail_url?: string;

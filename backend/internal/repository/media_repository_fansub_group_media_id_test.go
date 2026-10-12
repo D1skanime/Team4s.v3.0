@@ -29,7 +29,6 @@ func openFansubGroupMediaIDFixture(t *testing.T) *pgxpool.Pool {
 			id BIGINT PRIMARY KEY
 		);
 		CREATE TABLE fansub_group_media (
-			id BIGSERIAL PRIMARY KEY,
 			group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
 			media_id BIGINT NOT NULL REFERENCES media_assets(id) ON DELETE CASCADE,
 			category VARCHAR(40) NOT NULL DEFAULT 'other',
@@ -38,18 +37,21 @@ func openFansubGroupMediaIDFixture(t *testing.T) *pgxpool.Pool {
 			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 			updated_at TIMESTAMPTZ,
 			deleted_at TIMESTAMPTZ,
-			deleted_by_user_id BIGINT NULL REFERENCES users(id) ON DELETE SET NULL
+			deleted_by_user_id BIGINT NULL REFERENCES users(id) ON DELETE SET NULL,
+			PRIMARY KEY (group_id, media_id)
 		);
 	`)
 	require.NoError(t, err)
 	return pool
 }
 
-// TestCreateFansubGroupMediaAssetReturnsRealPersistedID proves (180-03 D-14) that
-// CreateFansubGroupMediaAsset's returned int64 is the actual id Postgres assigned to the new
-// fansub_group_media row -- not merely a non-zero placeholder -- by cross-checking it against a
-// real follow-up SELECT, and that a real FK violation still returns (0, non-nil error) with no
-// row persisted.
+// TestCreateFansubGroupMediaAssetReturnsRealPersistedID proves (180-03 D-14, repaired per the
+// 2026-10-12 Live-UAT finding), against a fixture matching the REAL migrated schema exactly (no
+// surrogate id column -- primary key is (group_id, media_id)), that CreateFansubGroupMediaAsset's
+// returned int64 equals the input MediaAssetID (the only addressable identity fansub_group_media
+// actually has) AND that a row genuinely persists under that (group_id, media_id) pair -- not
+// merely a non-zero placeholder -- and that a real FK violation still returns (0, non-nil error)
+// with no row persisted.
 func TestCreateFansubGroupMediaAssetReturnsRealPersistedID(t *testing.T) {
 	pool := openFansubGroupMediaIDFixture(t)
 	ctx := context.Background()
@@ -78,15 +80,15 @@ func TestCreateFansubGroupMediaAssetReturnsRealPersistedID(t *testing.T) {
 		UploadedByUserID: &uploaderUserID,
 	})
 	require.NoError(t, err)
-	assert.Greater(t, returnedID, int64(0))
+	assert.Equal(t, mediaAssetID, returnedID, "fansub_group_media has no surrogate id column -- the returned value must equal the input MediaAssetID")
 	require.NoError(t, tx.Commit(ctx))
 
-	var persistedID int64
+	var persistedCount int
 	err = pool.QueryRow(ctx, `
-		SELECT id FROM fansub_group_media WHERE group_id = $1 AND media_id = $2
-	`, fansubGroupID, mediaAssetID).Scan(&persistedID)
+		SELECT COUNT(*) FROM fansub_group_media WHERE group_id = $1 AND media_id = $2
+	`, fansubGroupID, mediaAssetID).Scan(&persistedCount)
 	require.NoError(t, err)
-	assert.Equal(t, persistedID, returnedID, "returned id must match the actual persisted row, not just be non-zero")
+	assert.Equal(t, 1, persistedCount, "a row must genuinely exist under the real (group_id, media_id) primary key")
 
 	// Second call with a nonexistent media_assets.id violates the FK -- must return (0, non-nil
 	// error) and leave no row behind for this failed attempt.

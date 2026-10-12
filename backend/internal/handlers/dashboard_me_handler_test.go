@@ -366,10 +366,10 @@ func openDashboardGroupMediaAttentionHandlerFixture(t *testing.T) *pgxpool.Pool 
 			ADD COLUMN logo_id BIGINT REFERENCES media_assets(id) ON DELETE SET NULL,
 			ADD COLUMN banner_id BIGINT REFERENCES media_assets(id) ON DELETE SET NULL;
 		CREATE TABLE fansub_group_media (
-			id BIGINT PRIMARY KEY,
 			group_id BIGINT NOT NULL REFERENCES fansub_groups(id),
 			media_id BIGINT NOT NULL REFERENCES media_assets(id),
-			deleted_at TIMESTAMPTZ
+			deleted_at TIMESTAMPTZ,
+			PRIMARY KEY (group_id, media_id)
 		);
 	`)
 	require.NoError(t, err)
@@ -393,7 +393,7 @@ func TestAttachPendingGroupMediaReviewAttentionRequiresGroupEdit(t *testing.T) {
 		INSERT INTO review_statuses(id, code) VALUES (1, 'in_review');
 		INSERT INTO fansub_groups(id, name) VALUES (21, 'Alpha'), (22, 'Beta');
 		INSERT INTO media_assets(id, review_status_id) VALUES (701, 1), (702, 1);
-		INSERT INTO fansub_group_media(id, group_id, media_id, deleted_at) VALUES (1, 21, 701, NULL), (2, 22, 702, NULL);
+		INSERT INTO fansub_group_media(group_id, media_id, deleted_at) VALUES (21, 701, NULL), (22, 702, NULL);
 	`)
 	require.NoError(t, err)
 

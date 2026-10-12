@@ -75,7 +75,6 @@ func openFansubMediaUploadFixture(t *testing.T) *pgxpool.Pool {
 			status TEXT NOT NULL DEFAULT 'ready'
 		);
 		CREATE TABLE fansub_group_media (
-			id BIGSERIAL PRIMARY KEY,
 			group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
 			media_id BIGINT NOT NULL REFERENCES media_assets(id) ON DELETE CASCADE,
 			category TEXT NOT NULL DEFAULT 'other',
@@ -86,7 +85,8 @@ func openFansubMediaUploadFixture(t *testing.T) *pgxpool.Pool {
 			alt_text TEXT NULL,
 			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 			updated_at TIMESTAMPTZ NULL,
-			deleted_at TIMESTAMPTZ NULL
+			deleted_at TIMESTAMPTZ NULL,
+			PRIMARY KEY (group_id, media_id)
 		);
 
 		INSERT INTO fansub_groups (id) VALUES (55);

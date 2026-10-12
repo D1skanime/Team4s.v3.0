@@ -963,10 +963,10 @@ func openDashboardGroupMediaAttentionFixture(t *testing.T) *pgxpool.Pool {
 			ADD COLUMN logo_id BIGINT REFERENCES media_assets(id) ON DELETE SET NULL,
 			ADD COLUMN banner_id BIGINT REFERENCES media_assets(id) ON DELETE SET NULL;
 		CREATE TABLE fansub_group_media (
-			id BIGINT PRIMARY KEY,
 			group_id BIGINT NOT NULL REFERENCES fansub_groups(id),
 			media_id BIGINT NOT NULL REFERENCES media_assets(id),
-			deleted_at TIMESTAMPTZ
+			deleted_at TIMESTAMPTZ,
+			PRIMARY KEY (group_id, media_id)
 		);
 	`)
 	require.NoError(t, err)
@@ -991,11 +991,11 @@ func TestPendingGroupMediaReviewAttentionExcludesLogoBannerAndNonReviewItems(t *
 			(703, 2), -- approved, not in review -> excluded
 			(704, 1); -- in-review but soft-deleted link -> excluded
 		UPDATE fansub_groups SET logo_id = 702 WHERE id = 21;
-		INSERT INTO fansub_group_media(id, group_id, media_id, deleted_at) VALUES
-			(1, 21, 701, NULL),
-			(2, 21, 702, NULL),
-			(3, 21, 703, NULL),
-			(4, 21, 704, NOW());
+		INSERT INTO fansub_group_media(group_id, media_id, deleted_at) VALUES
+			(21, 701, NULL),
+			(21, 702, NULL),
+			(21, 703, NULL),
+			(21, 704, NOW());
 	`)
 	require.NoError(t, err)
 
