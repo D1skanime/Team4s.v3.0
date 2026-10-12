@@ -1,10 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import type { MutableRefObject } from 'react'
+import { useRef } from 'react'
 import { ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 
-import { Button, UploadDropzone } from '@/components/ui'
+import { Button, UploadDropzone, type UploadDropzoneHandle } from '@/components/ui'
 
 import type { EditableMediaValue } from './MediaUpload'
 import styles from './MediaUpload.module.css'
@@ -34,14 +34,11 @@ export interface MediaUploadCoreProps {
   warning: string | null
   /** Ist disabled? */
   disabled?: boolean
-  /** Ref auf das versteckte File-Input-Element (von den Aktions-Buttons verwendet) */
-  inputRef: MutableRefObject<HTMLInputElement | null>
   /** Accept-Mime-Types für das File-Input */
   acceptedMime: string
-  /** Wird vom versteckten Fallback-<input> (Aktions-Button) aufgerufen -- echtes ChangeEvent. */
-  onFileInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  /** Wird von UploadDropzone (Klick oder Drag&Drop) mit den rohen Files aufgerufen -- kein
-   * ChangeEvent, da UploadDropzone keinen echten `currentTarget` liefert. */
+  /** Wird von UploadDropzone (Klick, Dateiauswahl-Button oder Drag&Drop) mit den rohen Files
+   * aufgerufen -- der "Hochladen/Ersetzen"-Aktions-Button triggert denselben Picker ueber das
+   * UploadDropzone-eigene open()-Handle, kein zweites natives <input> mehr. */
   onFilesSelected: (files: File[]) => void
   /** Wird aufgerufen, wenn der User auf „Edit" klickt */
   onEditClick: () => void
@@ -66,13 +63,12 @@ export function MediaUploadCore({
   error,
   warning,
   disabled,
-  inputRef,
   acceptedMime,
-  onFileInputChange,
   onFilesSelected,
   onEditClick,
   onRemoveClick,
 }: MediaUploadCoreProps) {
+  const dropzoneRef = useRef<UploadDropzoneHandle>(null)
   const isLogo = type === 'logo'
   const hasValue = Boolean(value?.publicURL?.trim())
   const title = isLogo ? 'Logo' : 'Banner'
@@ -134,6 +130,7 @@ export function MediaUploadCore({
       </div>
 
       <UploadDropzone
+        ref={dropzoneRef}
         onFilesSelected={onFilesSelected}
         accept={acceptedMime}
         multiple={false}
@@ -170,7 +167,7 @@ export function MediaUploadCore({
           type="button"
           variant="secondary"
           size="sm"
-          onClick={() => inputRef.current?.click()}
+          onClick={() => dropzoneRef.current?.open()}
           disabled={disabled || busy}
           aria-label={`${title} ${hasValue ? 'ersetzen' : 'hochladen'}`}
           leftIcon={hasValue ? <RefreshCw size={14} /> : <ImagePlus size={14} />}
@@ -192,15 +189,6 @@ export function MediaUploadCore({
 
       {warning ? <p className={styles.warning} aria-live="polite">{warning}</p> : null}
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
-
-      <input
-        ref={inputRef}
-        className={styles.fileInput}
-        type="file"
-        accept={acceptedMime}
-        aria-label={`${title} Datei auswählen`}
-        onChange={onFileInputChange}
-      />
     </>
   )
 }

@@ -136,7 +136,7 @@ describe('MediaUpload', () => {
     )
 
     const file = new File(['banner'], 'banner.png', { type: 'image/png' })
-    fireEvent.change(screen.getByLabelText(/Banner Datei/i), { target: { files: [file] } })
+    fireEvent.change(screen.getByLabelText('Dateien'), { target: { files: [file] } })
 
     expect(await screen.findByRole('dialog', { name: 'Banner ausrichten' })).not.toBeNull()
     expect(uploadFansubMediaMock).not.toHaveBeenCalled()
@@ -232,7 +232,7 @@ describe('MediaUpload', () => {
     )
 
     const file = new File(['gif'], 'banner.gif', { type: 'image/gif' })
-    fireEvent.change(screen.getByLabelText(/Banner Datei/i), { target: { files: [file] } })
+    fireEvent.change(screen.getByLabelText('Dateien'), { target: { files: [file] } })
 
     await waitFor(() => expect(uploadFansubMediaMock).toHaveBeenCalledTimes(1))
     expect(uploadFansubMediaMock.mock.calls[0][0]).toMatchObject({ file })
@@ -274,7 +274,7 @@ describe('MediaUpload', () => {
 
     expect(screen.getByText('Hochladen').closest('button')).toHaveProperty('disabled', true)
     const file = new File(['banner'], 'banner.png', { type: 'image/png' })
-    fireEvent.change(screen.getByLabelText(/Banner Datei/i), { target: { files: [file] } })
+    fireEvent.change(screen.getByLabelText('Dateien'), { target: { files: [file] } })
 
     expect(uploadFansubMediaMock).not.toHaveBeenCalled()
   })
@@ -368,7 +368,7 @@ describe('MediaUpload', () => {
       />,
     )
 
-    fireEvent.change(screen.getByLabelText(/Logo Datei/i), {
+    fireEvent.change(screen.getByLabelText('Dateien'), {
       target: { files: [new File(['logo'], 'logo.webp', { type: 'image/webp' })] },
     })
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt speichern' }))
@@ -409,7 +409,7 @@ describe('MediaUpload', () => {
     )
 
     const file = new File(['<svg />'], 'logo.svg', { type: 'image/svg+xml' })
-    fireEvent.change(screen.getByLabelText(/Logo Datei/i), { target: { files: [file] } })
+    fireEvent.change(screen.getByLabelText('Dateien'), { target: { files: [file] } })
 
     await waitFor(() => expect(uploadFansubMediaMock).toHaveBeenCalledTimes(1))
     expect(uploadFansubMediaMock.mock.calls[0][0]).toMatchObject({ file })
@@ -430,5 +430,25 @@ describe('MediaUpload', () => {
     expect(screen.queryByText(/Owner-Typ/i)).toBeNull()
     expect(screen.queryByText(/öffentlich.*Identität/i)).toBeNull()
     expect(screen.queryByText(/in Prüfung/i)).toBeNull()
+  })
+
+  it('"Hochladen"-Aktions-Button oeffnet denselben Picker wie die UploadDropzone, kein zweites natives Input mehr', () => {
+    render(
+      <MediaUpload
+        type="banner"
+        fansubID={17}
+        groupName="Phase Fansubs"
+        value={null}
+        onChange={vi.fn()}
+      />,
+    )
+
+    expect(screen.getAllByLabelText('Dateien')).toHaveLength(1)
+    const input = screen.getByLabelText('Dateien') as HTMLInputElement
+    const clickSpy = vi.spyOn(input, 'click')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Banner hochladen' }))
+
+    expect(clickSpy).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,7 +1,6 @@
 'use client'
 
-import type { ChangeEvent } from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
 import { Card } from '@/components/ui'
@@ -193,7 +192,6 @@ function validateFile(type: FansubMediaKind, file: File): string | null {
 }
 
 export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusyChange, onChange }: MediaUploadProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null)
   const [busyAction, setBusyAction] = useState<'upload' | 'delete' | null>(null)
   const [preparingEdit, setPreparingEdit] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -342,13 +340,6 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     await submitUpload(file)
   }
 
-  const onInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    event.currentTarget.value = ''
-    if (!file || busy || disabled) return
-    await processFile(file)
-  }
-
   // UploadDropzone delivers plain Files (click or drop), never a native ChangeEvent -- calling
   // processFile directly instead of routing through onInputChange avoids reconstructing a fake
   // event just to satisfy its signature (a prior pseudo-event adapter crashed here because the
@@ -389,9 +380,7 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         error={error}
         warning={warning}
         disabled={disabled || !ownerResolved}
-        inputRef={inputRef}
         acceptedMime={acceptedMime}
-        onFileInputChange={(event) => void onInputChange(event)}
         onFilesSelected={onFilesSelected}
         onEditClick={() => void onEditCurrentMedia()}
         onRemoveClick={() => void onRemove()}

@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
+import { createRef } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { UploadDropzone, sliceToSingleFileIfNeeded } from './UploadDropzone'
+import { UploadDropzone, sliceToSingleFileIfNeeded, type UploadDropzoneHandle } from './UploadDropzone'
 
 const PROMPT = 'Dateien hier hineinziehen oder zum Auswählen klicken.'
 
@@ -104,5 +105,27 @@ describe('UploadDropzone', () => {
     fireEvent.drop(dropzone, { dataTransfer: { files: [makeFile('x.png')] } })
 
     expect(onFilesSelected).not.toHaveBeenCalled()
+  })
+
+  it('exposes an imperative open() handle so an external button can trigger the same file picker', () => {
+    const ref = createRef<UploadDropzoneHandle>()
+    render(<UploadDropzone ref={ref} onFilesSelected={vi.fn()} />)
+    const input = screen.getByLabelText('Dateien') as HTMLInputElement
+    const clickSpy = vi.spyOn(input, 'click')
+
+    ref.current?.open()
+
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not open the file picker via the imperative handle while disabled', () => {
+    const ref = createRef<UploadDropzoneHandle>()
+    render(<UploadDropzone ref={ref} onFilesSelected={vi.fn()} disabled />)
+    const input = screen.getByLabelText('Dateien') as HTMLInputElement
+    const clickSpy = vi.spyOn(input, 'click')
+
+    ref.current?.open()
+
+    expect(clickSpy).not.toHaveBeenCalled()
   })
 })

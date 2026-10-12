@@ -212,10 +212,6 @@
   color: color-mix(in srgb, var(--color-error) 82%, var(--text-primary));
 }
 
-.fileInput {
-  display: none;
-}
-
 @keyframes spin {
   from {
     transform: rotate(0deg);

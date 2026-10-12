@@ -1,13 +1,20 @@
 'use client'
 
 import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react'
-import { useRef, useState } from 'react'
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import { UploadCloud } from 'lucide-react'
 
 import { Button } from './Button'
 import { Input } from './Input'
 import { classNames } from './classNames'
 import styles from './UploadDropzone.module.css'
+
+/** Imperative handle for callers that need an EXTERNAL trigger (e.g. an action-row "Ersetzen"
+ * button next to an existing preview) to open the SAME file picker as the dropzone itself,
+ * instead of maintaining a second, redundant native `<input type="file">`. */
+export interface UploadDropzoneHandle {
+  open: () => void
+}
 
 export interface UploadDropzoneProps {
   /** Fires with the picked or dropped files (already sliced to one file for single-slot dropzones). */
@@ -46,7 +53,7 @@ export function sliceToSingleFileIfNeeded(
   return { selected: files.slice(0, 1), droppedExtra: true }
 }
 
-export function UploadDropzone({
+export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzoneProps>(function UploadDropzone({
   onFilesSelected,
   accept = 'image/*',
   multiple = true,
@@ -59,7 +66,7 @@ export function UploadDropzone({
   promptLabel = DEFAULT_PROMPT_LABEL,
   dropHintLabel,
   multiFileOnSingleSlotWarning = DEFAULT_MULTI_FILE_ON_SINGLE_SLOT_WARNING,
-}: UploadDropzoneProps) {
+}: UploadDropzoneProps, ref) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragActive, setIsDragActive] = useState(false)
   const [showSingleSlotWarning, setShowSingleSlotWarning] = useState(false)
@@ -68,6 +75,8 @@ export function UploadDropzone({
     if (disabled) return
     inputRef.current?.click()
   }
+
+  useImperativeHandle(ref, () => ({ open: openFilePicker }))
 
   function applySelection(files: File[]) {
     const { selected, droppedExtra } = sliceToSingleFileIfNeeded(files, multiple)
@@ -173,4 +182,4 @@ export function UploadDropzone({
       ) : null}
     </div>
   )
-}
+})
