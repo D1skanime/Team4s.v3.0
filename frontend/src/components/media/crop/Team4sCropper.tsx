@@ -9,6 +9,7 @@ import { X } from 'lucide-react'
 import { Button } from '@/components/ui'
 
 import { getFocusableElements, getFocusTrapNextIndex } from './mediaCropA11y'
+import { computeCropViewportAspectRatio, cropperObjectFitFor } from './Team4sCropper.helpers'
 import styles from './Team4sCropper.module.css'
 
 export type Team4sCropperShape = 'circle' | 'rectangle'
@@ -223,7 +224,7 @@ export function Team4sCropper({
         <div>
           <div
             className={`${styles.cropViewport} ${isWideCrop ? styles.cropViewportWide : ''}`}
-            style={{ aspectRatio }}
+            style={{ aspectRatio: computeCropViewportAspectRatio(aspectRatio) }}
             aria-label={cropAriaLabel}
             tabIndex={0}
           >
@@ -235,6 +236,7 @@ export function Team4sCropper({
                 minZoom={MIN_ZOOM}
                 maxZoom={MAX_ZOOM}
                 aspect={aspectRatio}
+                objectFit={cropperObjectFitFor(aspectRatio)}
                 cropShape={shape === 'circle' ? 'round' : 'rect'}
                 showGrid={shape !== 'circle'}
                 onCropChange={setCrop}
