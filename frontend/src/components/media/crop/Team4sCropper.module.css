@@ -79,6 +79,13 @@
   width: min(100%, 920px);
 }
 
+/* Hochformat-Zuschnitte (z. B. Anime-Cover 2:3) bekommen einen groesseren Viewport als der
+   quadratische Avatar-Standard (340px) -- sonst wirkt der Ausschnittrahmen winzig, siehe
+   computeCropViewportAspectRatio's horizontales Schwenk-Polster in Team4sCropper.helpers.ts. */
+.cropViewportPortrait {
+  width: min(100%, 460px);
+}
+
 .cropViewport:focus-visible,
 .closeButton:focus-visible {
   outline: 3px solid rgba(47, 95, 227, 0.42);
