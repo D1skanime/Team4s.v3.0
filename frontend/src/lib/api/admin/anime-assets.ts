@@ -5,8 +5,9 @@
 // create-flow helper. Siblings of anime-core.ts/anime-release-assets.ts
 // (174-03) but a distinct sub-concern (own-display assets vs. fansub
 // release/theme assets) -- confirmed via grep call-site triage against
-// AnimeEditWorkspace.tsx/AnimeJellyfinAssetUploadControls.tsx/
-// useAnimePatchMutations.ts/createAssetUploadPlan.ts.
+// AnimeEditWorkspace.tsx/useAnimePatchMutations.ts/createAssetUploadPlan.ts
+// (AnimeJellyfinAssetUploadControls.tsx was a dead, unreached call site and
+// was removed in Phase 180's dead-code cleanup, 2026-10-12).
 import {
   AdminAnimeAssetKind,
   AdminAnimeBackgroundAssetResponse,
