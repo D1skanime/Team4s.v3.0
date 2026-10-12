@@ -78,6 +78,31 @@ export function resolveUploadSlotPresentation(hasExistingValue: boolean): Upload
   return hasExistingValue ? 'replace-overlay' : 'empty-dropzone'
 }
 
+export type UploadDropzoneLayout = 'roomy' | 'compact' | 'inline'
+
+/** Below this available block-size (height, px), the vertical icon/text/button stack no longer
+ * fits without clipping — a flat slot (e.g. a 5.4:1 banner tile) can be well under 90px tall.
+ * Mirrored by the `@container (max-height: ...)` rule in UploadDropzone.module.css, which is the
+ * actual runtime mechanism (CSS container queries, not a JS-measured ResizeObserver) — this
+ * constant/function documents and tests the threshold the CSS implements. */
+export const INLINE_LAYOUT_MAX_HEIGHT_PX = 110
+
+/**
+ * Pure decision table (Live-UAT follow-up 2026-10-12: empty dropzone content got clipped in
+ * flat/short slots — aspect-ratio sized the box smaller than the vertical icon+text+button
+ * stack needs). Below the inline threshold, layout switches to a single compact row regardless
+ * of the caller's requested density; otherwise the caller's own roomy/compact choice stands.
+ */
+export function resolveUploadDropzoneLayout(
+  density: 'roomy' | 'compact',
+  availableHeightPx: number | null | undefined,
+): UploadDropzoneLayout {
+  if (typeof availableHeightPx === 'number' && availableHeightPx > 0 && availableHeightPx <= INLINE_LAYOUT_MAX_HEIGHT_PX) {
+    return 'inline'
+  }
+  return density
+}
+
 export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzoneProps>(function UploadDropzone({
   onFilesSelected,
   accept = 'image/*',
@@ -208,6 +233,7 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
             variant="secondary"
             size="sm"
             disabled={disabled}
+            className={styles.selectButton}
             onClick={(event) => {
               event.stopPropagation()
               openFilePicker()

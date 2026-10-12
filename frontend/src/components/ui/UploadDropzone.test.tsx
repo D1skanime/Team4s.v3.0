@@ -5,7 +5,9 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  INLINE_LAYOUT_MAX_HEIGHT_PX,
   UploadDropzone,
+  resolveUploadDropzoneLayout,
   resolveUploadSlotPresentation,
   sliceToSingleFileIfNeeded,
   type UploadDropzoneHandle,
@@ -53,6 +55,33 @@ describe('resolveUploadSlotPresentation', () => {
 
   it('shows the preview-as-drop-target overlay once the slot already has a value', () => {
     expect(resolveUploadSlotPresentation(true)).toBe('replace-overlay')
+  })
+})
+
+describe('resolveUploadDropzoneLayout', () => {
+  it('keeps the caller-requested density when the available height is unknown', () => {
+    expect(resolveUploadDropzoneLayout('roomy', undefined)).toBe('roomy')
+    expect(resolveUploadDropzoneLayout('compact', null)).toBe('compact')
+  })
+
+  it('keeps the caller-requested density when the available height is well above the inline threshold', () => {
+    expect(resolveUploadDropzoneLayout('roomy', 220)).toBe('roomy')
+    expect(resolveUploadDropzoneLayout('compact', 150)).toBe('compact')
+  })
+
+  it('switches to inline right at and below the threshold, regardless of the requested density', () => {
+    expect(resolveUploadDropzoneLayout('roomy', INLINE_LAYOUT_MAX_HEIGHT_PX)).toBe('inline')
+    expect(resolveUploadDropzoneLayout('compact', INLINE_LAYOUT_MAX_HEIGHT_PX)).toBe('inline')
+    expect(resolveUploadDropzoneLayout('roomy', 56)).toBe('inline')
+  })
+
+  it('stays just above the threshold at the requested density (exclusive boundary)', () => {
+    expect(resolveUploadDropzoneLayout('compact', INLINE_LAYOUT_MAX_HEIGHT_PX + 1)).toBe('compact')
+  })
+
+  it('ignores a zero or negative height as "unknown" rather than forcing inline', () => {
+    expect(resolveUploadDropzoneLayout('roomy', 0)).toBe('roomy')
+    expect(resolveUploadDropzoneLayout('roomy', -10)).toBe('roomy')
   })
 })
 

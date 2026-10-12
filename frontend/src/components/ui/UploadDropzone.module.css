@@ -13,6 +13,11 @@
   background: var(--bg-card);
   text-align: center;
   cursor: pointer;
+  /* Live-UAT follow-up 2026-10-12: a MediaSlot consumer can shrink this box well below its
+     natural content height (e.g. a 5.4:1 banner tile at a few hundred px wide) by zeroing
+     min-height via its own className -- container-type: size lets the @container rule below
+     react to that actual shrunk height and switch to a layout that still fits. */
+  container-type: size;
 }
 
 .dropzoneRoomy {
@@ -110,4 +115,40 @@
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
+}
+
+.selectButton {
+  flex-shrink: 0;
+}
+
+/* Live-UAT follow-up 2026-10-12 (resolveUploadDropzoneLayout's 'inline' tier, see
+   UploadDropzone.tsx -- keep the threshold in sync, INLINE_LAYOUT_MAX_HEIGHT_PX): below this
+   available height, the vertical icon/text/button stack no longer fits -- switch to a single
+   compact row (icon + short prompt text only, no separate hint, no separate button). The whole
+   dropzone stays clickable via its own role="button", so dropping the button costs no
+   functionality, only the dedicated visible affordance for it. */
+@container (max-height: 110px) {
+  .dropzoneRoomy,
+  .dropzoneCompact {
+    flex-direction: row;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .copy {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    text-align: left;
+  }
+
+  .dropHintLabel,
+  .selectButton {
+    display: none;
+  }
+
+  .promptLabel {
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
 }
