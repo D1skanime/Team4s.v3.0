@@ -11,6 +11,11 @@
 
 .profileHeaderCard {
   position: relative;
+  /* min-height ist nur noch eine Untergrenze fuer schmale Viewports -- aspect-ratio ist der
+     primaere Groessentreiber, damit der gespeicherte 5:1-Zuschnitt ab ausreichender Breite
+     exakt (WYSIWYG) angezeigt wird, statt durch eine feste Hoehe oben/unten beschnitten zu
+     werden (Live-UAT-Fix 2026-10-12). */
+  aspect-ratio: var(--profile-banner-aspect-ratio);
   min-height: 224px;
   display: grid;
   grid-template-columns: 136px minmax(0, 1fr) auto;

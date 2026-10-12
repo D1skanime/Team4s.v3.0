@@ -180,6 +180,13 @@
   /* Gemeinsamer Breitenvertrag fuer oeffentliche Fansub-Oberflaechen. */
   --public-page-max-width: 1360px;
   --public-page-gutter: 48px;
+
+  /* Seitenverhaeltnis des Profil-Banners (5:1 == 1920x384), gemeinsam fuer alle
+     Anzeige-Container (profileHeaderCard, heroPanel) -- muss mit PROFILE_BANNER_ASPECT_RATIO
+     in frontend/src/lib/profileBanner.ts uebereinstimmen (Live-UAT-Fix 2026-10-12: eine fest
+     min-height ohne aspect-ratio schnitt bei breiten Viewports oben/unten vom gespeicherten
+     Zuschnitt ab). */
+  --profile-banner-aspect-ratio: 1920 / 384;
 }
 
 @media (min-width: 1600px) {

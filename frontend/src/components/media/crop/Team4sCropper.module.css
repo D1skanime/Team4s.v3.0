@@ -107,6 +107,35 @@
   box-shadow: 0 0 0 9999em rgba(15, 23, 42, 0.58);
 }
 
+/* Dezente Markierung des Bereichs, der auch auf schmalen Bildschirmen sichtbar bleibt
+   (Live-UAT-Fix 2026-10-12). Die Linien sitzen relativ zur Crop-Fläche selbst (0-100% ==
+   die volle Breite des gespeicherten Ausschnitts), gesetzt über --mobile-safe-*-percent auf
+   .cropViewport (von Team4sCropper.tsx) und über CSS-Vererbung hier gelesen. */
+.cropperAreaWithMobileSafeZone::before,
+.cropperAreaWithMobileSafeZone::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 2px dashed rgba(255, 255, 255, 0.78);
+  pointer-events: none;
+}
+
+.cropperAreaWithMobileSafeZone::before {
+  left: var(--mobile-safe-left-percent);
+}
+
+.cropperAreaWithMobileSafeZone::after {
+  left: var(--mobile-safe-right-percent);
+}
+
+.mobileSafeZoneHint {
+  margin: 4px 0 0;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.82rem;
+}
+
 .controls {
   display: grid;
   gap: 12px;

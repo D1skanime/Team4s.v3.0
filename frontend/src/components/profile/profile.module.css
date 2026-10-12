@@ -21,6 +21,12 @@
   isolation: isolate;
   max-width: 100%;
   min-width: 0;
+  /* min-height ist nur noch eine Untergrenze fuer schmale Viewports -- aspect-ratio ist der
+     primaere Groessentreiber, damit der gespeicherte 5:1-Zuschnitt ab ausreichender Breite
+     exakt (WYSIWYG) angezeigt wird (Live-UAT-Fix 2026-10-12). Die @container-Regel unten bei
+     max-width: 760px setzt min-height bewusst auf 0 und bleibt unveraendert -- dort ist das
+     Panel bereits ein inhaltsgetriebenes, einspaltig gestapeltes Layout, kein Banner mehr. */
+  aspect-ratio: var(--profile-banner-aspect-ratio);
   min-height: 230px;
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr);
@@ -513,6 +519,11 @@
 
 @container member-profile-hero (max-width: 760px) {
   .heroPanel {
+    /* Unterhalb dieser Breite ist das Panel bereits ein inhaltsgetriebenes, einspaltig
+       gestapeltes Layout (Avatar ueber Text), kein Banner mehr -- aspect-ratio muss daher
+       zurueckgesetzt werden, sonst wuerde die von der Basisregel vererbte 5:1-Ratio den
+       gestapelten Inhalt auf eine viel zu kurze Box abschneiden (overflow: hidden). */
+    aspect-ratio: auto;
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;

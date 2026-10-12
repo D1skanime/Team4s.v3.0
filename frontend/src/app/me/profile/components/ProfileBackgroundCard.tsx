@@ -8,6 +8,13 @@ import { Crop } from 'lucide-react'
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
 import { Button, UploadDropzone } from '@/components/ui'
 import { apiClientFetch } from '@/lib/api'
+import {
+  PROFILE_BANNER_ASPECT_RATIO,
+  PROFILE_BANNER_HEIGHT,
+  PROFILE_BANNER_MOBILE_REFERENCE_MIN_HEIGHT_PX,
+  PROFILE_BANNER_MOBILE_REFERENCE_WIDTH_PX,
+  PROFILE_BANNER_WIDTH,
+} from '@/lib/profileBanner'
 import type { MemberProfileData } from '@/types/profile'
 
 import styles from '../page.module.css'
@@ -21,11 +28,6 @@ type ProfileBackgroundCardProps = {
   variant?: 'full' | 'compact'
   onBackgroundSelected: (payload: { sourceFile: File; croppedFile: File }) => Promise<void> | void
 }
-
-const PROFILE_BACKGROUND_BANNER_WIDTH = 1920
-const PROFILE_BACKGROUND_BANNER_HEIGHT = 384
-const PROFILE_BACKGROUND_BANNER_ASPECT =
-  PROFILE_BACKGROUND_BANNER_WIDTH / PROFILE_BACKGROUND_BANNER_HEIGHT
 
 function backgroundFilename(sourceName: string): string {
   const baseName = sourceName.replace(/\.[^.]+$/, '').trim() || 'profil-hintergrund'
@@ -149,10 +151,14 @@ export function ProfileBackgroundCard({
           title="Hintergrundbild zuschneiden"
           cropAriaLabel="Hintergrundbild-Ausschnitt wählen"
           shape="rectangle"
-          aspectRatio={PROFILE_BACKGROUND_BANNER_ASPECT}
+          aspectRatio={PROFILE_BANNER_ASPECT_RATIO}
+          mobileSafeZone={{
+            referenceWidthPx: PROFILE_BANNER_MOBILE_REFERENCE_WIDTH_PX,
+            minHeightPx: PROFILE_BANNER_MOBILE_REFERENCE_MIN_HEIGHT_PX,
+          }}
           output={{
-            width: PROFILE_BACKGROUND_BANNER_WIDTH,
-            height: PROFILE_BACKGROUND_BANNER_HEIGHT,
+            width: PROFILE_BANNER_WIDTH,
+            height: PROFILE_BANNER_HEIGHT,
             mimeType: 'image/jpeg',
             filename: backgroundFilename(selectedFile.name),
           }}

@@ -1,12 +1,13 @@
 'use client'
 
-import type { KeyboardEvent } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Cropper, { type Area, type Point } from 'react-easy-crop'
 import { X } from 'lucide-react'
 
 import { Button } from '@/components/ui'
+import { computeVisibleBannerGuideLines } from '@/lib/profileBanner'
 
 import { getFocusableElements, getFocusTrapNextIndex } from './mediaCropA11y'
 import { computeCropViewportAspectRatio, cropperObjectFitFor } from './Team4sCropper.helpers'
@@ -21,6 +22,11 @@ export type Team4sCropperOutput = {
   filename: string
 }
 
+export type Team4sCropperMobileSafeZone = {
+  referenceWidthPx: number
+  minHeightPx: number
+}
+
 type Team4sCropperProps = {
   file: File
   title: string
@@ -33,6 +39,10 @@ type Team4sCropperProps = {
   resetLabel?: string
   cancelLabel?: string
   disabled?: boolean
+  // Nur für breite Banner-Zuschnitte gedacht (per Prop opt-in, z. B. Profil-Hintergrundbild):
+  // markiert im Zuschnitt-Dialog den Bereich, der auch bei der angegebenen schmalen
+  // Referenzbreite/Mindesthöhe noch sichtbar bleibt (Live-UAT-Fix 2026-10-12).
+  mobileSafeZone?: Team4sCropperMobileSafeZone
   onCancel: () => void
   onApply: (croppedFile: File) => Promise<void> | void
 }
@@ -100,12 +110,20 @@ export function Team4sCropper({
   resetLabel = 'Position zurücksetzen',
   cancelLabel = 'Abbrechen',
   disabled = false,
+  mobileSafeZone,
   onCancel,
   onApply,
 }: Team4sCropperProps) {
   const panelRef = useRef<HTMLDivElement | null>(null)
   const titleID = useId()
   const hintID = useId()
+  const mobileSafeZoneHintID = useId()
+
+  const mobileSafeZoneGuides = useMemo(() => (
+    mobileSafeZone
+      ? computeVisibleBannerGuideLines(mobileSafeZone.referenceWidthPx, mobileSafeZone.minHeightPx, aspectRatio)
+      : null
+  ), [aspectRatio, mobileSafeZone])
 
   const [sourceURL, setSourceURL] = useState<string | null>(null)
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
@@ -224,8 +242,17 @@ export function Team4sCropper({
         <div>
           <div
             className={`${styles.cropViewport} ${isWideCrop ? styles.cropViewportWide : ''}`}
-            style={{ aspectRatio: computeCropViewportAspectRatio(aspectRatio) }}
+            style={{
+              aspectRatio: computeCropViewportAspectRatio(aspectRatio),
+              ...(mobileSafeZoneGuides
+                ? ({
+                    '--mobile-safe-left-percent': `${mobileSafeZoneGuides.leftPercent}%`,
+                    '--mobile-safe-right-percent': `${mobileSafeZoneGuides.rightPercent}%`,
+                  } as CSSProperties)
+                : null),
+            }}
             aria-label={cropAriaLabel}
+            aria-describedby={mobileSafeZoneGuides ? mobileSafeZoneHintID : undefined}
             tabIndex={0}
           >
             {sourceURL ? (
@@ -245,12 +272,19 @@ export function Team4sCropper({
                 classes={{
                   containerClassName: styles.cropperContainer,
                   mediaClassName: styles.cropperMedia,
-                  cropAreaClassName: styles.cropperArea,
+                  cropAreaClassName: mobileSafeZoneGuides
+                    ? `${styles.cropperArea} ${styles.cropperAreaWithMobileSafeZone}`
+                    : styles.cropperArea,
                 }}
               />
             ) : null}
           </div>
           <p id={hintID} className={styles.hint}>{hint}</p>
+          {mobileSafeZoneGuides ? (
+            <p id={mobileSafeZoneHintID} className={styles.mobileSafeZoneHint}>
+              Der Bereich zwischen den gestrichelten Linien bleibt auch auf dem Handy sichtbar.
+            </p>
+          ) : null}
         </div>
 
         <div className={styles.controls}>
