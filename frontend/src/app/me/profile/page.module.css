@@ -481,35 +481,18 @@
   background: rgba(248, 250, 252, 0.72);
 }
 
-.mediaControlAvatar,
-.mediaControlBanner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: rgba(47, 95, 227, 0.1);
-  color: var(--color-primary, #2f5fe3);
-  font-weight: 900;
+/* MediaSlot (components/ui) owns sizing (aspect-ratio/shape) and the empty-vs-replace-overlay
+   state switch -- these classes only cap the compact thumbnail's width (avatar) or give it a
+   legible min-height floor (banner: the real 5:1 ratio at a 92px-wide compact column would be an
+   18px-tall sliver, same aspect-ratio+min-height floor technique as the public profile banner
+   fix) (Live-UAT follow-up 2026-10-12: the dropzone used to sit NEXT TO the preview as a second,
+   oversized box -- now the preview itself is the drop target). */
+.mediaControlAvatarSlot {
+  max-width: 76px;
 }
 
-.mediaControlAvatar {
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  font-size: 1.65rem;
-}
-
-.mediaControlBanner {
-  width: 92px;
-  aspect-ratio: 5 / 2;
-  border-radius: 8px;
-}
-
-.mediaControlAvatar img,
-.mediaControlBanner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.mediaControlBannerSlot {
+  min-height: 36px;
 }
 
 .mediaControlBody {
@@ -518,51 +501,14 @@
   gap: 8px;
 }
 
-.mediaControlActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.avatarPreview {
-  aspect-ratio: 1;
-  width: min(100%, 260px);
+.avatarPreviewSlot {
+  max-width: 260px;
   margin: 0 auto;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(47, 95, 227, 0.1);
-  color: var(--color-primary, #2f5fe3);
-  font-size: 4rem;
-  font-weight: 800;
 }
 
-.avatarPreview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.backgroundPreview {
-  aspect-ratio: 5 / 1;
-  width: 100%;
+.backgroundPreviewSlot {
   min-height: 112px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: rgba(47, 95, 227, 0.1);
-  color: var(--color-primary, #2f5fe3);
-  font-weight: 800;
-}
-
-.backgroundPreview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  margin: 0 auto;
 }
 
 

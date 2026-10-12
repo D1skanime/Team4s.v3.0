@@ -30,7 +30,8 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('next/image', () => ({
-  default: ({ alt, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
+  default: ({ alt, unoptimized, fill, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean; fill?: boolean }) => {
+    void fill
     // eslint-disable-next-line @next/next/no-img-element
     return <img alt={alt} data-unoptimized={unoptimized ? 'true' : 'false'} {...props} />
   },
@@ -280,11 +281,13 @@ async function openProfileTab(name: string) {
 
 /** MemberAvatarCard and ProfileBackgroundCard sit side by side on the same tab and both render
  * an UploadDropzone whose internal file input shares the generic aria-label "Dateien" -- scope
- * the query via each card's own distinct hint paragraph (a DOM sibling of its dropzone) instead
- * of relying on a now-removed per-card aria-label. */
+ * the query via each card's own distinct hint paragraph. The hint and the MediaSlot dropzone are
+ * both direct children of the card's shared grid row (hint's grandparent), not siblings of each
+ * other (the MediaSlot occupies the row's own first grid column, the hint sits in the second). */
 async function fileInputNear(hintText: string): Promise<HTMLInputElement> {
   const hint = await screen.findByText(hintText)
-  return within(hint.parentElement as HTMLElement).getByLabelText('Dateien') as HTMLInputElement
+  const row = hint.parentElement?.parentElement as HTMLElement
+  return within(row).getByLabelText('Dateien') as HTMLInputElement
 }
 
 describe('MyProfilePage', () => {

@@ -6,7 +6,7 @@ import type { RefObject } from 'react'
 import { Crop } from 'lucide-react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
-import { Button, UploadDropzone } from '@/components/ui'
+import { Button, MediaSlot } from '@/components/ui'
 import type { UploadDropzoneHandle } from '@/components/ui'
 import { apiClientFetch } from '@/lib/api'
 import {
@@ -93,43 +93,44 @@ export function ProfileBackgroundCard({
 
   return (
     <div className={isCompact ? styles.mediaControlRow : styles.backgroundStack}>
-      <div className={isCompact ? styles.mediaControlBanner : styles.backgroundPreview}>
-        {backgroundURL ? (
-          <Image src={backgroundURL} alt="Aktuelles Profil-Hintergrundbild" width={960} height={192} unoptimized />
-        ) : (
-          <span>Banner</span>
-        )}
-      </div>
+      <MediaSlot
+        ref={resolvedInputRef}
+        aspectRatio={PROFILE_BANNER_ASPECT_RATIO}
+        label="Hintergrundbild"
+        hasValue={Boolean(backgroundURL)}
+        onFilesSelected={(files) => {
+          const file = files[0]
+          if (!file) return
+          handleSelectedFile(file)
+        }}
+        accept="image/jpeg,image/png,image/webp"
+        disabled={isUploading || isPreparingExistingBackground || !canUpload}
+        className={isCompact ? styles.mediaControlBannerSlot : styles.backgroundPreviewSlot}
+        previewContent={backgroundURL ? (
+          <Image
+            src={backgroundURL}
+            alt="Aktuelles Profil-Hintergrundbild"
+            fill
+            unoptimized
+            style={{ objectFit: 'contain' }}
+          />
+        ) : null}
+        cornerActions={canEditExistingBackground ? (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            iconOnly
+            loading={isPreparingExistingBackground}
+            disabled={isUploading || isPreparingExistingBackground}
+            onClick={handleEditExistingBackground}
+            aria-label="Ausschnitt bearbeiten"
+            title="Ausschnitt bearbeiten"
+            leftIcon={<Crop size={16} aria-hidden="true" />}
+          />
+        ) : null}
+      />
       <div className={isCompact ? styles.mediaControlBody : styles.backgroundStack}>
-        <div className={styles.mediaControlActions}>
-          {canEditExistingBackground ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size={isCompact ? 'sm' : 'md'}
-              leftIcon={<Crop size={16} aria-hidden="true" />}
-              loading={isPreparingExistingBackground}
-              disabled={isUploading || isPreparingExistingBackground}
-              onClick={handleEditExistingBackground}
-            >
-              {isPreparingExistingBackground ? 'Bild wird geladen...' : 'Ausschnitt bearbeiten'}
-            </Button>
-          ) : null}
-        </div>
-        <UploadDropzone
-          ref={resolvedInputRef}
-          onFilesSelected={(files) => {
-            const file = files[0]
-            if (!file) return
-            handleSelectedFile(file)
-          }}
-          accept="image/jpeg,image/png,image/webp"
-          multiple={false}
-          allowDrop={true}
-          disabled={isUploading || isPreparingExistingBackground || !canUpload}
-          density="compact"
-          promptLabel={isUploading ? 'Bild lädt...' : isCompact ? 'Ändern' : backgroundURL ? 'Hintergrundbild ändern' : 'Hintergrundbild hochladen'}
-        />
         <p id={uploadHintID} className={styles.mutedText}>
           Wähle ein breites JPG, PNG oder WEBP. Der Ausschnitt wird als Profil-Banner gespeichert.
         </p>
