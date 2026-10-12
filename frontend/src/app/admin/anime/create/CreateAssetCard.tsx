@@ -1,7 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { UploadDropzone } from "@/components/ui";
+import { MediaSlot } from "@/components/ui";
+import { classNames } from "@/components/ui/classNames";
+import {
+  ANIME_BANNER_CROP_OUTPUT_HEIGHT,
+  ANIME_BANNER_CROP_OUTPUT_WIDTH,
+  ANIME_COVER_CROP_OUTPUT_HEIGHT,
+  ANIME_COVER_CROP_OUTPUT_WIDTH,
+} from "../utils/animeAssetCropConfig";
 import createStyles from "./page.module.css";
 
 export type AssetSource =
@@ -20,22 +27,22 @@ export type CreateAssetCardVariant =
   | "banner"
   | "logo"
   | "background"
-  | "backgroundVideo"
-  | "adder";
+  | "backgroundVideo";
 
 interface CreateAssetCardProps {
   label: string;
   previewUrl?: string | null;
   source?: AssetSource | null;
   variant?: CreateAssetCardVariant;
-  isEmpty?: boolean;
   isRequired?: boolean;
   statusNote?: string;
+  /** Rendered as its own row BELOW the slot (Live-UAT-Nachtrag 2026-10-12, dasselbe Muster wie
+   * MediaSlot bei Fansub-Logo/Banner/Profil): Suchen/Zuschnitt/Entfernen ueberlagern das Bild
+   * nicht mehr und werden nicht mehr abgeschnitten. */
   actions?: ReactNode;
-  /** D-16/D-17 (Live-UAT-Nachtrag 2026-10-12): echter Upload-Trigger (Klick + Drag&Drop) über
-   * die gemeinsame Primitive. Wird sowohl im leeren als auch im befüllten Zustand gezeigt --
-   * im befüllten Fall ersetzt ein Drop/Klick das vorhandene Asset (Single-Slot-Replace bzw.
-   * neuer Listeneintrag, je nach aufrufendem Slot). */
+  /** Weglassen fuer einen Slot, der nur geloescht, nie per Drop ersetzt werden kann (ein
+   * einzelner bestehender Hintergrund/Video-Eintrag der Liste -- neue Eintraege kommen ueber
+   * einen eigenen leeren "Adder"-Slot mit eigenem onFilesSelected). */
   onFilesSelected?: (files: File[]) => void;
   uploadAccept?: string;
   uploadMultiple?: boolean;
@@ -43,12 +50,32 @@ interface CreateAssetCardProps {
   uploadDisabled?: boolean;
 }
 
+/** Ausgabeformat-Seitenverhaeltnis je Slot (Live-UAT-Nachtrag 2026-10-12, Scope-Erweiterung):
+ * Cover/Banner spiegeln exakt den Zuschnitt-Ausgang wider (keine doppelte Konstante), Logo bleibt
+ * optisch unveraendert (kein Zuschnitt), Background/Background-Video bleiben 16:9-aehnlich. */
+function resolveAssetCardAspectRatio(variant: CreateAssetCardVariant): number {
+  switch (variant) {
+    case "cover":
+      return ANIME_COVER_CROP_OUTPUT_WIDTH / ANIME_COVER_CROP_OUTPUT_HEIGHT;
+    case "banner":
+      return ANIME_BANNER_CROP_OUTPUT_WIDTH / ANIME_BANNER_CROP_OUTPUT_HEIGHT;
+    case "logo":
+      return 16 / 10.5;
+    case "background":
+    case "backgroundVideo":
+      return 16 / 9;
+  }
+}
+
+function defaultEmptyPromptLabel(label: string): string {
+  return `${label} hochladen`;
+}
+
 export function CreateAssetCard({
   label,
   previewUrl,
   source,
   variant = "cover",
-  isEmpty,
   isRequired,
   statusNote,
   actions,
@@ -81,21 +108,8 @@ export function CreateAssetCard({
       logo: createStyles.assetCardLogo,
       background: createStyles.assetCardBackground,
       backgroundVideo: createStyles.assetCardBackgroundVideo,
-      adder: createStyles.assetCardAdder,
     };
     return map[variant] ?? createStyles.assetCardCover;
-  })();
-
-  const previewVariantClass: string = (() => {
-    const map: Record<CreateAssetCardVariant, string> = {
-      cover: createStyles.assetCardPreviewCover,
-      banner: createStyles.assetCardPreviewBanner,
-      logo: createStyles.assetCardPreviewLogo,
-      background: createStyles.assetCardPreviewBackground,
-      backgroundVideo: createStyles.assetCardPreviewBackgroundVideo,
-      adder: createStyles.assetCardPreviewAdder,
-    };
-    return map[variant] ?? createStyles.assetCardPreviewCover;
   })();
 
   const imageVariantClass: string = (() => {
@@ -105,84 +119,61 @@ export function CreateAssetCard({
       logo: createStyles.assetCardImageLogo,
       background: createStyles.assetCardImageBackground,
       backgroundVideo: createStyles.assetCardImageBackgroundVideo,
-      adder: createStyles.assetCardImageCover,
     };
     return map[variant] ?? createStyles.assetCardImageCover;
   })();
 
-  const emptyClass =
-    variant === "adder" ? createStyles.assetCardEmptyAdder : createStyles.assetCardEmptyStandard;
+  const hasValue = Boolean(previewUrl);
+  const sourceBadge = source ? (
+    <span className={classNames(createStyles.assetCardSourcePill, sourceModifierClass)}>{source}</span>
+  ) : undefined;
+
+  const previewContent = previewUrl
+    ? variant === "backgroundVideo" ? (
+        <video
+          src={previewUrl}
+          className={classNames(createStyles.assetCardImage, imageVariantClass)}
+          muted
+          playsInline
+          preload="metadata"
+        />
+      ) : (
+        <img
+          src={previewUrl}
+          alt={label}
+          className={classNames(createStyles.assetCardImage, imageVariantClass)}
+        />
+      )
+    : undefined;
 
   return (
-    <div className={[createStyles.assetCard, cardVariantClass].join(" ")}>
+    <div className={classNames(createStyles.assetCard, cardVariantClass)}>
       <div className={createStyles.assetCardHeader}>
         <span className={createStyles.assetCardLabel}>
           {label}
           {isRequired ? <span className={createStyles.assetCardRequired}> *</span> : null}
         </span>
-        {source ? (
-          <span
-            className={[createStyles.assetCardSourcePill, sourceModifierClass]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {source}
-          </span>
-        ) : null}
+        {sourceBadge}
       </div>
-      <div className={[createStyles.assetCardPreview, previewVariantClass].join(" ")}>
-        {previewUrl && variant === "backgroundVideo" ? (
-          <video
-            src={previewUrl}
-            className={[createStyles.assetCardImage, imageVariantClass].join(" ")}
-            muted
-            playsInline
-            preload="metadata"
-          />
-        ) : previewUrl ? (
-          <img
-            src={previewUrl}
-            alt={label}
-            className={[createStyles.assetCardImage, imageVariantClass].join(" ")}
-          />
-        ) : (
-          <div className={[createStyles.assetCardEmpty, emptyClass].join(" ")}>
-            <span>
-              {variant === "adder"
-                ? "+ Neuer Hintergrund"
-                : isEmpty
-                  ? isRequired
-                    ? "Cover fehlt"
-                    : "Noch nichts ausgewählt"
-                  : "-"}
-            </span>
-          </div>
-        )}
-        {actions ? (
-          <div className={createStyles.assetCardActions}>{actions}</div>
-        ) : null}
-        {onFilesSelected ? (
-          <div className={createStyles.assetCardUploadSlot}>
-            <UploadDropzone
-              density="compact"
-              multiple={uploadMultiple}
-              accept={uploadAccept}
-              disabled={uploadDisabled}
-              promptLabel={uploadPromptLabel ?? (previewUrl ? `${label} ersetzen` : `${label} hochladen`)}
-              onFilesSelected={onFilesSelected}
-            />
-          </div>
-        ) : null}
-        {source ? (
-          <span
-            className={[createStyles.assetCardImageSource, sourceModifierClass]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {source}
-          </span>
-        ) : null}
+
+      <div className={createStyles.assetCardMediaSlotWrap}>
+        <MediaSlot
+          aspectRatio={resolveAssetCardAspectRatio(variant)}
+          label={label}
+          hasValue={hasValue}
+          previewContent={previewContent}
+          disabled={uploadDisabled}
+          onFilesSelected={onFilesSelected}
+          accept={uploadAccept}
+          multiple={uploadMultiple}
+          emptyPromptLabel={uploadPromptLabel ?? defaultEmptyPromptLabel(label)}
+          replaceAriaLabel={`${label} ersetzen`}
+          actions={actions}
+          cornerBadge={sourceBadge}
+          className={createStyles.assetCardMediaSlot}
+        />
       </div>
+
       {statusNote ? (
         <div className={createStyles.assetCardFooter}>
           <span className={createStyles.assetStatusNote}>{statusNote}</span>

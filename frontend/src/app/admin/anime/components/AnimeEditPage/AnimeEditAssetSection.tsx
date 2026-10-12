@@ -272,7 +272,6 @@ export function AnimeEditAssetSection({
               previewUrl={resolvePersistedAssetUrl(cover)}
               source={resolveAssetSource(cover)}
               statusNote={buildPersistedStatusNote(cover)}
-              isEmpty={!resolvePersistedAssetUrl(cover)}
               uploadDisabled={isBusy}
               onFilesSelected={(files) => onAssetFilesSelected("cover", files)}
               actions={
@@ -296,7 +295,6 @@ export function AnimeEditAssetSection({
               previewUrl={resolvePersistedAssetUrl(banner)}
               source={resolveAssetSource(banner)}
               statusNote={buildPersistedStatusNote(banner)}
-              isEmpty={!resolvePersistedAssetUrl(banner)}
               uploadDisabled={isBusy}
               onFilesSelected={(files) => onAssetFilesSelected("banner", files)}
               actions={
@@ -320,7 +318,6 @@ export function AnimeEditAssetSection({
               previewUrl={resolvePersistedAssetUrl(logo)}
               source={resolveAssetSource(logo)}
               statusNote={buildPersistedStatusNote(logo)}
-              isEmpty={!resolvePersistedAssetUrl(logo)}
               uploadDisabled={isBusy}
               onFilesSelected={(files) => onAssetFilesSelected("logo", files)}
               actions={
@@ -350,7 +347,6 @@ export function AnimeEditAssetSection({
               <CreateAssetCard
                 label="Background-Video"
                 variant="backgroundVideo"
-                isEmpty
                 uploadMultiple
                 uploadAccept="video/*"
                 uploadDisabled={isBusy}
@@ -372,7 +368,6 @@ export function AnimeEditAssetSection({
             <CreateAssetCard
               label="Background"
               variant="background"
-              isEmpty
               uploadMultiple
               uploadDisabled={isBusy}
               onFilesSelected={(files) => onAssetFilesSelected("background", files)}

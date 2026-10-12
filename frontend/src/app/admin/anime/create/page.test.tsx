@@ -58,7 +58,10 @@ describe("AdminAnimeCreatePage", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
     expect(markup).toContain("Fehlend:</strong> Titel, Cover");
-    expect(markup).toContain("Cover fehlt");
+    // Live-UAT-Nachtrag 2026-10-12: der eigene "Cover fehlt"-Platzhaltertext wurde zugunsten des
+    // generischen Dropzone-Leer-Zustands (MediaSlot) gestrichen -- das Pflichtfeld bleibt ueber
+    // das Sternchen im Label und die Validierungs-Zusammenfassung oben erkennbar.
+    expect(markup).toContain("Cover hochladen");
     expect(markup).toContain("Anime erstellen");
     expect(markup).toContain("Fehlend:</strong> Titel, Cover");
     expect(markup).toContain("Titel *");

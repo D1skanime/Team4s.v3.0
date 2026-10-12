@@ -229,7 +229,6 @@ export function CreateAssetSection({
               previewUrl={coverPreview}
               source={coverSource}
               statusNote={buildStatusNote(coverPreview)}
-              isEmpty={!coverPreview}
               onFilesSelected={(files) => onAssetFilesSelected("cover", files)}
               actions={
                 <AssetActionRow
@@ -249,7 +248,6 @@ export function CreateAssetSection({
               previewUrl={bannerPreview}
               source={bannerSource}
               statusNote={buildStatusNote(bannerPreview)}
-              isEmpty={!bannerPreview}
               onFilesSelected={(files) => onAssetFilesSelected("banner", files)}
               actions={
                 <AssetActionRow
@@ -271,7 +269,6 @@ export function CreateAssetSection({
               previewUrl={logoPreview}
               source={logoSource}
               statusNote={buildStatusNote(logoPreview)}
-              isEmpty={!logoPreview}
               onFilesSelected={(files) => onAssetFilesSelected("logo", files)}
               actions={
                 <AssetActionRow
@@ -299,7 +296,6 @@ export function CreateAssetSection({
               <CreateAssetCard
                 label="Background-Video"
                 variant="backgroundVideo"
-                isEmpty
                 uploadMultiple
                 uploadAccept="video/*"
                 onFilesSelected={(files) => onAssetFilesSelected("background_video", files)}
@@ -320,7 +316,6 @@ export function CreateAssetSection({
             <CreateAssetCard
               label="Background"
               variant="background"
-              isEmpty
               uploadMultiple
               onFilesSelected={(files) => onAssetFilesSelected("background", files)}
             />
