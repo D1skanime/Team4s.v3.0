@@ -153,6 +153,7 @@ function GroupMediaReviewSectionInner({
 
   const {
     pointerReorderRef,
+    sourceMediaIdRef,
     draggedMediaId,
     dragOverMediaId,
     setDragOverMediaId,
@@ -200,10 +201,10 @@ function GroupMediaReviewSectionInner({
     canReorderMedia,
     setReorderError,
     setReorderSaving,
-    draggedMediaId,
     dragOverMediaId,
     handleDragEnd,
     pointerReorderRef,
+    sourceMediaIdRef,
     getPointerTargetMediaId,
     canDeleteMediaItem,
     editingMediaId,

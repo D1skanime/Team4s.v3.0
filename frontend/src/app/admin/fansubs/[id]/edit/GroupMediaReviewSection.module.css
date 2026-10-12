@@ -232,8 +232,9 @@
 }
 
 .mediaCardDragging {
+  /* Nur Opazität, kein transform -- ein transform auf der Quellkarte destabilisiert die
+     native HTML5-Drag-Geste (Live-UAT-Fix 2026-10-12). */
   opacity: 0.62;
-  transform: scale(0.985);
 }
 
 .mediaCardDropTarget {
@@ -274,27 +275,11 @@
   cursor: grab;
   touch-action: none;
   user-select: none;
-  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
 }
 
-.dragHandle:hover {
-  border-color: var(--border-subtle);
-  background: var(--surface-card-muted);
-  color: var(--text-strong);
-}
-
-.dragHandle:active {
-  cursor: grabbing;
-}
-
-.dragHandle:disabled {
+.dragHandleDisabled {
   opacity: 0.42;
   cursor: not-allowed;
-}
-
-.dragHandle:focus-visible {
-  outline: 2px solid var(--button-primary-mid);
-  outline-offset: 2px;
 }
 
 .selectionCheckbox {

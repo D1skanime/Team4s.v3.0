@@ -13,6 +13,7 @@ import {
 } from '@/lib/api'
 
 import styles from './GroupMediaReviewSection.module.css'
+import { isInteractiveDragTarget } from './useGroupMediaReviewReorder.helpers'
 
 interface MediaDraft {
   visibility: FansubMediaVisibility
@@ -143,11 +144,11 @@ interface GroupMediaReviewGridProps {
   handleQuickReview: (item: FansubGroupMediaItem, reviewStatus: FansubMediaReviewStatus) => void | Promise<void>
   handleDragOver: (event: DragEvent<HTMLElement>, item: FansubGroupMediaItem) => void
   handleReorderDrop: (event: DragEvent<HTMLElement>, item: FansubGroupMediaItem) => void | Promise<void>
-  handleDragStart: (event: DragEvent<HTMLButtonElement>, item: FansubGroupMediaItem) => void
+  handleDragStart: (event: DragEvent<HTMLElement>, item: FansubGroupMediaItem) => void
   handleDragEnd: () => void
-  handlePointerDragStart: (event: ReactPointerEvent<HTMLButtonElement>, item: FansubGroupMediaItem) => void
-  handlePointerDragMove: (event: ReactPointerEvent<HTMLButtonElement>) => void
-  handlePointerDragEnd: (event: ReactPointerEvent<HTMLButtonElement>) => void | Promise<void>
+  handlePointerDragStart: (event: ReactPointerEvent<HTMLElement>, item: FansubGroupMediaItem) => void
+  handlePointerDragMove: (event: ReactPointerEvent<HTMLElement>) => void
+  handlePointerDragEnd: (event: ReactPointerEvent<HTMLElement>) => void | Promise<void>
 }
 
 export function GroupMediaReviewGrid({
@@ -210,6 +211,10 @@ export function GroupMediaReviewGrid({
             const displayTitle = getMediaDisplayTitle(item)
             const uploaderLine = getUploaderLine(item)
 
+            const reorderLockedHint = canReorder && !canReorderMedia
+              ? 'Reihenfolge kann nur in der Gesamtansicht geändert werden'
+              : undefined
+
             return (
               <Card
                 key={item.id}
@@ -222,20 +227,21 @@ export function GroupMediaReviewGrid({
                   isDropTarget && styles.mediaCardDropTarget,
                 )}
                 tabIndex={0}
+                draggable={canReorderMedia}
+                onDragStart={(event) => handleDragStart(event, item)}
+                onDragEnd={handleDragEnd}
                 onDragOver={(event) => handleDragOver(event, item)}
                 onDrop={(event) => void handleReorderDrop(event, item)}
                 onDragLeave={() => {
                   if (dragOverMediaId === item.id) setDragOverMediaId(null)
                 }}
                 onClick={(event) => {
-                  const target = event.target as HTMLElement
-                  if (target.closest('button, input, label, a, select, textarea')) return
+                  if (isInteractiveDragTarget(event.target as Element)) return
                   startEditing(item)
                 }}
                 onKeyDown={(event) => {
                   if (event.key !== 'Enter' && event.key !== ' ') return
-                  const target = event.target as HTMLElement
-                  if (target.closest('button, input, label, a, select, textarea')) return
+                  if (isInteractiveDragTarget(event.target as Element)) return
                   event.preventDefault()
                   startEditing(item)
                 }}
@@ -257,28 +263,17 @@ export function GroupMediaReviewGrid({
                     <span />
                   )}
                   {canReorder ? (
-                    <button
-                      type="button"
-                      draggable={canReorderMedia}
-                      className={styles.dragHandle}
-                      aria-label={`${displayTitle} verschieben`}
-                      title={
-                        canReorderMedia
-                          ? 'Reihenfolge ändern'
-                          : 'Reihenfolge kann nur in der Gesamtansicht geändert werden'
-                      }
-                      disabled={!canReorderMedia}
-                      onClick={(event) => event.stopPropagation()}
-                      onKeyDown={(event) => event.stopPropagation()}
-                      onDragStart={(event) => handleDragStart(event, item)}
-                      onDragEnd={handleDragEnd}
+                    <span
+                      className={classNames(styles.dragHandle, !canReorderMedia && styles.dragHandleDisabled)}
+                      title={canReorderMedia ? 'Ganze Karte ziehen, um die Reihenfolge zu ändern' : reorderLockedHint}
+                      aria-hidden="true"
                       onPointerDown={(event) => handlePointerDragStart(event, item)}
                       onPointerMove={handlePointerDragMove}
                       onPointerUp={(event) => void handlePointerDragEnd(event)}
                       onPointerCancel={handleDragEnd}
                     >
-                      <GripVertical size={16} aria-hidden="true" />
-                    </button>
+                      <GripVertical size={16} />
+                    </span>
                   ) : null}
                 </div>
 
@@ -303,6 +298,7 @@ export function GroupMediaReviewGrid({
                         sizes="96px"
                         unoptimized
                         loading="lazy"
+                        draggable={false}
                         onError={() => setFailedPreviewIds((prev) => ({ ...prev, [item.id]: true }))}
                       />
                     ) : (

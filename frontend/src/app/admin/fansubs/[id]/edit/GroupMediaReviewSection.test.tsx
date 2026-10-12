@@ -53,6 +53,7 @@ vi.mock('@/lib/api', () => ({
 }))
 
 import { GroupMediaReviewSection } from './GroupMediaReviewSection'
+import { GROUP_MEDIA_REORDER_MIME_TYPE } from './useGroupMediaReviewReorder.helpers'
 import type { FansubGroupMediaItem } from '@/lib/api'
 import type { FansubGroupCapabilities } from '@/types/fansub'
 
@@ -307,7 +308,7 @@ describe('GroupMediaReviewSection', () => {
     expect(screen.queryByDisplayValue('Zweites Medium')).toBeNull()
   })
 
-  it('speichert die Gruppenmedien-Reihenfolge per Drag & Drop über Medien-IDs', async () => {
+  it('speichert die Gruppenmedien-Reihenfolge per Drag & Drop über die ganze Karte', async () => {
     const { container } = renderSection([
       mediaItem({ id: 101, title: 'Erstes Medium', sort_order: 1000 }),
       mediaItem({ id: 102, title: 'Zweites Medium', sort_order: 2000 }),
@@ -315,18 +316,21 @@ describe('GroupMediaReviewSection', () => {
     reorderFansubGroupMedia.mockResolvedValue(undefined)
 
     await screen.findByText('Erstes Medium')
-    const dragHandle = screen.getByRole('button', { name: 'Erstes Medium verschieben' })
+    const firstCard = screen.getByText('Erstes Medium').closest('section')
     const secondCard = screen.getByText('Zweites Medium').closest('section')
+    expect(firstCard).not.toBeNull()
     expect(secondCard).not.toBeNull()
 
-    fireEvent.dragStart(dragHandle, {
+    // dragover/drop müssen allein über dataTransfer.types/getData entscheiden, nicht über
+    // React-State -- das bildet die reale Browser-Reihenfolge nach (Live-UAT-Fix 2026-10-12).
+    fireEvent.dragStart(firstCard as HTMLElement, {
       dataTransfer: { setData: vi.fn(), effectAllowed: 'move' },
     })
     fireEvent.dragOver(secondCard as HTMLElement, {
-      dataTransfer: { dropEffect: 'move' },
+      dataTransfer: { types: [GROUP_MEDIA_REORDER_MIME_TYPE], dropEffect: 'move' },
     })
     fireEvent.drop(secondCard as HTMLElement, {
-      dataTransfer: { getData: vi.fn(() => '101') },
+      dataTransfer: { types: [GROUP_MEDIA_REORDER_MIME_TYPE], getData: vi.fn(() => '101') },
     })
 
     await waitFor(() => {
@@ -348,9 +352,10 @@ describe('GroupMediaReviewSection', () => {
     reorderFansubGroupMedia.mockResolvedValue(undefined)
 
     await screen.findByText('Erstes Medium')
-    const dragHandle = screen.getByRole('button', { name: 'Erstes Medium verschieben' })
+    const firstCard = screen.getByText('Erstes Medium').closest('section') as HTMLElement
     const secondCard = screen.getByText('Zweites Medium').closest('section')
     expect(secondCard).not.toBeNull()
+    const dragHandle = within(firstCard).getByTitle('Ganze Karte ziehen, um die Reihenfolge zu ändern')
     dragHandle.setPointerCapture = vi.fn()
     dragHandle.releasePointerCapture = vi.fn()
     Object.defineProperty(document, 'elementFromPoint', {

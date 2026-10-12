@@ -20,6 +20,8 @@ import {
   reorderFansubGroupMedia,
 } from '@/lib/api'
 
+import { computeReorderedMediaItems, isReorderDrag, resolveSourceMediaId } from './useGroupMediaReviewReorder.helpers'
+
 const SORT_ORDER_STEP = 1000
 
 interface MediaDraft {
@@ -81,11 +83,11 @@ interface UseGroupMediaReviewActionsParams {
   canReorderMedia: boolean
   setReorderError: Dispatch<SetStateAction<string | null>>
   setReorderSaving: Dispatch<SetStateAction<boolean>>
-  draggedMediaId: number | null
   dragOverMediaId: number | null
   handleDragEnd: () => void
   pointerReorderRef: MutableRefObject<PointerReorderRefValue | null>
-  getPointerTargetMediaId: (event: ReactPointerEvent<HTMLButtonElement>) => number | null
+  sourceMediaIdRef: MutableRefObject<number | null>
+  getPointerTargetMediaId: (event: ReactPointerEvent<HTMLElement>) => number | null
   canDeleteMediaItem: (item: FansubGroupMediaItem) => boolean
   editingMediaId: number | null
   setPendingDeleteItem: Dispatch<SetStateAction<FansubGroupMediaItem | null>>
@@ -115,10 +117,10 @@ export function useGroupMediaReviewActions({
   canReorderMedia,
   setReorderError,
   setReorderSaving,
-  draggedMediaId,
   dragOverMediaId,
   handleDragEnd,
   pointerReorderRef,
+  sourceMediaIdRef,
   getPointerTargetMediaId,
   canDeleteMediaItem,
   editingMediaId,
@@ -239,22 +241,11 @@ export function useGroupMediaReviewActions({
   }, [canReview, fansubId, filteredMediaIdSet, selectedMediaIds, setBulkError, setBulkSavingStatus, setSelectedMediaIds, setToast, updateMediaReviewStatus])
 
   const applyMediaReorder = useCallback(async (sourceMediaId: number, targetMediaId: number) => {
-    if (!canReorderMedia || sourceMediaId === targetMediaId) {
-      return
-    }
+    if (!canReorderMedia) return
 
     const previousItems = mediaItems
-    const sourceIndex = previousItems.findIndex((item) => item.id === sourceMediaId)
-    const targetIndex = previousItems.findIndex((item) => item.id === targetMediaId)
-    if (sourceIndex === -1 || targetIndex === -1) return
-
-    const reorderedItems = [...previousItems]
-    const [movedItem] = reorderedItems.splice(sourceIndex, 1)
-    reorderedItems.splice(targetIndex, 0, movedItem)
-    const normalizedItems = reorderedItems.map((item, index) => ({
-      ...item,
-      sort_order: (index + 1) * SORT_ORDER_STEP,
-    }))
+    const normalizedItems = computeReorderedMediaItems(previousItems, sourceMediaId, targetMediaId, SORT_ORDER_STEP)
+    if (!normalizedItems) return
 
     setReorderError(null)
     setReorderSaving(true)
@@ -283,19 +274,23 @@ export function useGroupMediaReviewActions({
   }, [canReorderMedia, fansubId, mediaItems, setDrafts, setMediaItems, setReorderError, setReorderSaving, setToast])
 
   const handleReorderDrop = useCallback(async (event: DragEvent<HTMLElement>, targetItem: FansubGroupMediaItem) => {
-    if (!canReorderMedia || draggedMediaId === null || draggedMediaId === targetItem.id) {
+    // Erlaubnis-Check und Quell-ID kommen bewusst aus dataTransfer/Ref, nicht aus dem
+    // draggedMediaId-State -- der ist für den allerersten dragover/drop nach dragstart
+    // ggf. noch nicht committed (Live-UAT-Regression 2026-10-12).
+    if (!isReorderDrag(event.dataTransfer.types, canReorderMedia)) {
       handleDragEnd()
       return
     }
     event.preventDefault()
     event.stopPropagation()
 
-    const sourceMediaId = draggedMediaId
+    const sourceMediaId = resolveSourceMediaId(event.dataTransfer, sourceMediaIdRef.current)
     handleDragEnd()
+    if (sourceMediaId === null || sourceMediaId === targetItem.id) return
     await applyMediaReorder(sourceMediaId, targetItem.id)
-  }, [applyMediaReorder, canReorderMedia, draggedMediaId, handleDragEnd])
+  }, [applyMediaReorder, canReorderMedia, handleDragEnd, sourceMediaIdRef])
 
-  const handlePointerDragEnd = useCallback(async (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const handlePointerDragEnd = useCallback(async (event: ReactPointerEvent<HTMLElement>) => {
     const pointerState = pointerReorderRef.current
     if (!pointerState || pointerState.pointerId !== event.pointerId) return
     event.preventDefault()
