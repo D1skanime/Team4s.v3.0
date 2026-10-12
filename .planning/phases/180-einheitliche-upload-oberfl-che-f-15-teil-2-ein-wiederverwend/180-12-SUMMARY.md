@@ -384,6 +384,57 @@ Host fehlen) bleiben unverändert und unberührt von dieser Phase.
 
 **Keine Zugangsdaten/Passwörter wurden in diesem gesamten Addendum-2-Zyklus verändert.**
 
+## Addendum 3: Weg 8 "Medien-Vorschläge" — entfernt (toter Code, kein Einstieg) (2026-10-12)
+
+Befund + Nutzerentscheidung (2026-10-12): `ReportModal.tsx`/`ReportFormMedia.tsx` (Typen "Fehler
+melden", "Story vorschlagen", "Medium einreichen", "Ich war in einem Projekt dabei") wurden von
+**keiner** Route/Komponente mehr importiert — nur zwei Kommentare in `lib/api/members-me.ts`/
+`lib/api/contributions-me.ts` nannten den Namen. Das Mitgliederprofil nutzt für den tatsächlichen
+Korrektur-Flow stattdessen `CorrectionReportModal` (eigener Endpunkt, eigene Tabelle, **unverändert
+belassen**). Nutzerentscheidung: **B — entfernen.**
+
+**Frontend entfernt** (Commit `01097ed6`, nach Grep-Beleg auf null verbleibende Importeure je
+Datei): `ReportModal.tsx` + `.test.tsx`, `ReportFormMedia.tsx`, `ReportFormFehler.tsx`,
+`ReportFormStory.tsx`, `ReportTargetField.tsx`, `reportTargets.ts` + `.test.ts` (8 Dateien, 1025
+Zeilen). In `lib/api/contributions-me.ts` die nur dafür existierenden Exporte entfernt
+(`submitSuggestion`, `SubmitSuggestionBody`, `getMySuggestions`, `uploadMediaSuggestion`,
+`UploadMediaSuggestionOptions`) — die Datei selbst bleibt (9 weitere, produktiv genutzte Exporte).
+`MeSuggestion`/`MeSuggestionsResponse` aus `types/contributions.ts` entfernt (nur für
+`getMySuggestions` typisiert). In `contributions.module.css` die dadurch verwaisten Klassen
+entfernt (`.suggestionTypeGrid`, `.suggestionTypeButton`, `.modalBackAction`, `.reportForm`,
+`.formNote`) — geteilte Geschwisterklassen (`.scopeGrid`, `.scopeOption`, `.scopeOptionSoon`)
+bleiben unverändert, da von lebenden Komponenten weiterhin genutzt.
+
+**Backend bewusst NICHT angefasst** — vorab geprüft und dem Nutzer vor jeder Entscheidung
+gemeldet (keine Migration/Löschung ohne Rückfrage):
+- **(a) Admin-/Review-Oberfläche:** keine. `MemberSuggestionsRepository` hat nur `Create`/
+  `ListBySubmitter`, kein `Approve`/`Reject`/`UpdateStatus`; keine Admin-Route, kein Admin-Page-File
+  referenziert `member_suggestions`. Der Review-Teil der Funktion ist genauso unerreichbar wie das
+  jetzt entfernte Formular — nicht nur das Einreichen, auch das spätere Bearbeiten eingereichter
+  Vorschläge war nie end-to-end benutzbar.
+- **(b) Live-Datensätze:** `SELECT count(*) FROM member_suggestions;` → **0 Zeilen.**
+- **(c) Gemeinsamer Endpunkt/Tabelle mit `CorrectionReportModal`:** nein. `CorrectionReportModal`
+  nutzt `POST /api/v1/me/members/:id/correction` → `MemberCorrectionHandler` →
+  `member_correction_reports` (Migration 0099) — vollständig getrennt von `SuggestionsMeHandler` →
+  `member_suggestions` (Migration 0098, `POST /api/v1/me/suggestions`,
+  `POST /api/v1/me/suggestions/media`).
+
+Da weder (a) noch (c) zutrifft und keine Daten vorliegen, wäre eine Backend-Löschung nach den
+eigenen Kriterien des Nutzers technisch zulässig — die Entscheidung dazu liegt aber explizit beim
+Nutzer (separate Rückfrage im Chat, nicht in diesem Dokument vorweggenommen). `suggestions_me_handler.go`,
+`MemberSuggestionsRepository` und die Tabelle `member_suggestions` bleiben bis zu einer expliziten
+Freigabe unverändert im Code.
+
+**Gate-Re-Check:** `grep -rln 'type="file"' frontend/src --include="*.tsx" | grep -v "^components/ui/" | grep -v "\.test\."`
+liefert weiterhin ausschließlich `components/editor/StoryImageToolbarButton.tsx` — unverändert
+durch diese Löschung.
+
+Voller Vitest-Lauf im Container (`docker compose exec -T team4sv30-frontend ...`) nach der
+Löschung: 384 Testdateien, 3515 Tests grün (Rückgang von 386 auf 384 Dateien entspricht genau den
+2 gelöschten Testdateien). `tsc --noEmit` zeigt einen einzigen, von dieser Änderung unabhängigen
+Fund in `.next/dev/types` für `create/page.tsx` (von dieser Phase an anderer Stelle bereits
+dokumentiert). ESLint ohne neue Fehler. Kein `git stash` verwendet. Keine Zugangsdaten verändert.
+
 ---
 *Phase: 180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend*
-*Status: Task 1 complete, Task 2 pending human verification (now including re-test of the reorder issue after frontend restart, plus everything in Addendum 2) — plan and phase NOT yet closed*
+*Status: Task 1 complete, Task 2 pending human verification (now including re-test of the reorder issue after frontend restart, plus everything in Addendum 2 and Addendum 3) — plan and phase NOT yet closed*
