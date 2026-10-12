@@ -3,7 +3,6 @@
 // reads.
 import type {
   MeAnimeContributionsResponse,
-  MeSuggestionsResponse,
   ProposalFormData,
   PublicAnimeContributionsResponse,
   PublicGroupContributionsResponse,
@@ -13,7 +12,6 @@ import {
   apiClientFetch,
   ApiError,
   authorizedFetch,
-  authorizedUploadXhr,
   getApiBaseUrl,
   parseApiErrorPayload,
 } from "./client";
@@ -156,98 +154,6 @@ export async function rejectAnimeContributionWithReason(
       parsed.details,
     );
   }
-}
-
-export interface SubmitSuggestionBody {
-  suggestion_type: "error_report" | "story" | "media";
-  target_type: "anime" | "contribution" | "fansub_group" | "member";
-  target_id: number;
-  content_text?: string | null;
-}
-
-export async function submitSuggestion(
-  body: SubmitSuggestionBody,
-): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/me/suggestions`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-}
-
-export async function getMySuggestions(): Promise<MeSuggestionsResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/me/suggestions`,
-    { cache: "no-store" },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  return response.json() as Promise<MeSuggestionsResponse>;
-}
-
-// 174-06: relocated from api.ts's media/assets bucket (not a generic
-// "media.ts" upload -- target_type/target_id/category are member-suggestion
-// fields, same shape as submitSuggestion/getMySuggestions above, and its
-// sole call site is ReportFormMedia.tsx's member-authored report flow).
-export interface UploadMediaSuggestionOptions {
-  file: File;
-  fields: {
-    target_type: string;
-    target_id: string;
-    category: string;
-  };
-  onProgress?: (percent: number) => void;
-}
-
-export async function uploadMediaSuggestion(
-  options: UploadMediaSuggestionOptions,
-): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl();
-  return authorizedUploadXhr<void>({
-    endpoint: `${API_BASE_URL}/api/v1/me/suggestions/media`,
-    retryEligibility: "never",
-    onProgress: options.onProgress,
-    buildBody: () => {
-      const body = new FormData();
-      body.set("file", options.file);
-      body.set("target_type", options.fields.target_type);
-      body.set("target_id", options.fields.target_id);
-      body.set("category", options.fields.category);
-      return body;
-    },
-  });
 }
 
 export async function searchAnimeForProposal(

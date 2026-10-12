@@ -1,9 +1,8 @@
 // D-24 truly-shared bucket (174-06): RESEARCH.md anticipated that most of
 // the media/assets cross-cutting bucket would turn out to be consumer-
 // specific (see admin/anime-assets.ts, admin/fansub-media.ts,
-// admin/segment-assets.ts, releases.ts, members-media.ts, and
-// contributions-me.ts's uploadMediaSuggestion) rather than belonging in one
-// shared media.ts god-module. getMediaOwnershipProjection is the one
+// admin/segment-assets.ts, releases.ts, members-media.ts) rather than
+// belonging in one shared media.ts god-module. getMediaOwnershipProjection is the one
 // genuine exception: it takes a generic `ownerType` string parameter (not
 // hardcoded to one domain) and has zero production call sites of its own
 // (Phase 72's GET-only media-ownership projection infrastructure) -- the

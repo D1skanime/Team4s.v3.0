@@ -249,16 +249,6 @@
   margin-right: auto;
 }
 
-.suggestionTypeGrid,
-.scopeGrid {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.suggestionTypeGrid {
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-}
-
 .scopeGrid {
   display: flex;
   align-items: center;
@@ -266,7 +256,6 @@
   min-width: 0;
 }
 
-.suggestionTypeButton,
 .scopeOption {
   flex: 1 1 68%;
   min-width: 0;
@@ -297,11 +286,6 @@
   text-align: center;
 }
 
-.suggestionTypeButton {
-  padding: 12px;
-}
-
-.suggestionTypeButton strong,
 .scopeOption strong {
   display: block;
   margin-bottom: 5px;
@@ -316,7 +300,6 @@
   line-height: 1.15;
 }
 
-.suggestionTypeButton span,
 .scopeOption span {
   font-size: 0.82rem;
   line-height: 1.4;
@@ -335,25 +318,10 @@
   line-height: 1.2 !important;
 }
 
-.modalBackAction {
-  margin-top: 8px;
-}
-
 .reviewHint {
   margin: 8px 0 0;
   color: var(--text-muted);
   font-size: 0.875rem;
-}
-
-.reportForm {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.formNote {
-  font-size: 0.875rem;
-  color: var(--text-muted);
 }
 
 .proposalForm {

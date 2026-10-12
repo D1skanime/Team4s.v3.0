@@ -124,23 +124,6 @@ export interface MeAnimeContribution {
   confirmed_at?: string | null;
 }
 
-/** Phase 76: Einzelner Vorschlag des eingeloggten Members (Decision 6) */
-export interface MeSuggestion {
-  id: number;
-  suggestion_type: "error_report" | "story" | "media";
-  target_type: "anime" | "contribution" | "fansub_group" | "member";
-  target_id: number;
-  content_text: string | null;
-  status: "pending" | "in_review" | "approved" | "rejected";
-  review_note: string | null;
-  created_at: string;
-}
-
-/** Phase 76: Response-Envelope für GET /me/suggestions */
-export interface MeSuggestionsResponse {
-  data: MeSuggestion[];
-}
-
 export interface ProposalFormData {
   fansub_group_id: number;
   anime_id: number;
