@@ -231,5 +231,159 @@ Go tests locally were dropped again after use. The backend and frontend containe
 restarted (`docker compose restart`) to pick up the fixes.
 
 ---
+
+## Addendum 2: Weiterer Live-UAT-Zyklus (2026-10-12, Fortsetzung)
+
+Fortsetzung von Addendum 1. Nutzer hat 2026-10-12 mehrere weitere Befunde gemeldet und zusätzliche
+Aufräumarbeiten explizit freigegeben ("Beides jetzt in Phase 180 erledigen"). Alle unten gelisteten
+Punkte sind committet, nicht gepusht. Task 2 (D-13/D-16/D-17-Live-Abnahme) bleibt weiterhin offen.
+
+**4. Gruppenmedien-Reihenfolge per Drag&Drop — jetzt FIXED (zwei Commits).**
+Addendum 1's Investigation fand keine Code-Differenz zum Pre-Refactor-Stand und vermutete einen
+HMR-Stale-State. Der Nutzer hat selbst mit echter Maus + Console-Logging nachgemessen und die
+tatsächliche Ursache gefunden: ein React-State-Timing-Problem — `handleDragOver`/`handleReorderDrop`
+hingen an `draggedMediaId` (State), der beim allerersten `dragover` nach `dragstart` im echten
+Browser noch nicht committed war; zusätzlich fehlte `preventDefault` auf `dragenter` (nur auf
+`dragover`), wodurch der Browser bis zum nächsten `dragover` den Verbot-Cursor zeigte. Commit
+`2f147c76`: eigener MIME-Typ (`application/x-team4s-group-media`) im `dataTransfer` plus ein
+`sourceMediaIdRef` (synchron, state-unabhängig) für die Drop-Entscheidung; `dragOverMediaId` wird
+nur noch bei Kartenwechsel gesetzt; `mediaCardDragging` verzichtet auf `transform` (nur Opazität);
+die ganze Karte (nicht mehr nur der 8-Punkte-Griff) ist jetzt der Ziehgriff für die Maus, der Griff
+bleibt als rein visueller Hinweis und bedient weiterhin die separate Touch-Pointer-Geste. Reine
+Logikfunktionen (`isReorderDrag`/`resolveSourceMediaId`/`computeReorderedMediaItems`) sind sowohl
+produktiv verdrahtet als auch direkt getestet. Commit `82f952a3`: `onDragEnter` fehlte komplett auf
+der Karte — mit demselben `handleDragOver`-Handler ergänzt (gleiche `isReorderDrag`-Prüfung).
+**Keine Zugangsdaten/Keycloak-Passwörter wurden bei diesen beiden Fixes verändert** — Live-Prüfung
+lag beim Nutzer selbst.
+
+**5. Profil-Banner-Anzeige (Live/öffentlich) stimmte nicht mit dem Zuschnitt überein — FIXED, commit
+`66a3c4e0`.** Getrennt vom Cropper-Fix (Addendum 1, Punkt 3): die ANZEIGE-Container
+(`profileHeaderCard` in `/me/profile`, `heroPanel`/`heroBackdrop` im öffentlichen Profil) nutzten
+eine feste `min-height` + `background-size`/`object-fit: cover` — auf breiten Bildschirmen schnitt
+`cover` oben/unten vom gespeicherten 5:1-Zuschnitt ab (dem Nutzer fehlte der Mund im Screenshot).
+Beide Container bekommen `aspect-ratio: var(--profile-banner-aspect-ratio)` (neuer globaler Token,
+einzige Quelle für beide Stellen); `min-height` bleibt nur noch Untergrenze für schmale Viewports.
+Die bereits content-getriebene `heroPanel`-Variante bei ≤760px (`min-height: 0`) bekam zusätzlich
+`aspect-ratio: auto` zurück, sonst hätte die vererbte 5:1-Ratio den gestapelten Avatar+Text-Inhalt
+auf eine zu kurze Box abgeschnitten — das wäre ein neuer Bug gewesen, wurde vor dem Commit erkannt
+und mitbehoben. Neues Modul `frontend/src/lib/profileBanner.ts` (mit Tests) ist die einzige Quelle
+für Breite/Höhe/Verhältnis; `Team4sCropper` bekam eine optionale `mobileSafeZone`-Prop (nur vom
+Profil-Banner genutzt), die im Zuschnitt-Dialog zwei gestrichelte Linien + Hinweistext zeigt, die
+den auch auf schmalen Bildschirmen garantiert sichtbaren Bereich markieren.
+
+**6. Weg 4 Anime-Assets hatte gar kein Drag&Drop — FIXED, commit `88921d4c`, plus Tot-Code-Funde.**
+Nutzerbefund: "Anime anlegen"/"Anime bearbeiten" zeigten für Cover/Banner/Logo/Hintergründe/
+Hintergrundvideo weiterhin den alten nativen `<input type="file">`-Upload ohne Drag&Drop. Grund: die
+180-Recherche hatte nur `AnimeJellyfinAssetUploadControls.tsx` umgestellt — aber dieser
+Komponentenbaum wird von **keiner Route** gerendert (nur aus seiner eigenen Testdatei importiert);
+die echten, live erreichbaren Flächen (`create/page.tsx`, `AnimeEditWorkspace.tsx`) blieben
+unangetastet. `CreateAssetCard` (gemeinsame Präsentationskomponente für Create- und Edit-Workspace)
+bekommt jetzt eine eingebettete `UploadDropzone` je Slot (leer UND befüllt — Klick/Drop ersetzt das
+vorhandene Asset), damit keine doppelte Upload-Fläche neben der Vorschau entsteht; Hintergrund-/
+Hintergrundvideo-Listen bekommen eine immer sichtbare Addier-Kachel statt nur im leeren Zustand.
+Neuer gemeinsamer reiner Adapter `utils/animeAssetUploadSelection.ts` (mit Tests) routet eine
+Dateiauswahl zum richtigen Slot-Verhalten (Single-Slot-Replace vs. Listen-Add). Create-Flow bleibt
+beim lokalen Zwischenspeichern bis zum Submit, Edit-Flow lädt weiterhin sofort hoch — beide Abläufe
+unverändert, nur der Auswahl-/Drop-Mechanismus ist jetzt gemeinsam. Ein vollständiger repo-weiter
+Inventar-Grep nach allen verbleibenden `type="file"`-Stellen wurde im Zuge dessen erstellt (siehe
+Punkt 7-9 unten für die Auflösung).
+
+**7. DRINGEND — Weg 3 Fansub-Logo/Banner-Upload stürzte ab — FIXED, commit `51099544`.** Während der
+Live-Nachprüfung meldete der Nutzer einen Absturz beim Banner-Hochladen:
+`TypeError: Cannot set properties of undefined (setting 'value')` in `MediaUploadCore.tsx`. Ursache:
+der 180-08-Adapter baute aus den von `UploadDropzone` gelieferten Files ein Pseudo-`ChangeEvent`
+(`{ target: { files } }`) und reichte es an den alten `onInputChange`-Handler weiter, der
+`event.currentTarget.value = ''` zurücksetzt — beim Pseudo-Event ist `currentTarget` `undefined`.
+Fix: eine neue `onFilesSelected`-Prop (`File[] -> void`) ruft `processFile` direkt auf, ohne
+Event-Konstruktion. Ein repo-weiter Grep nach demselben Anti-Muster (`as unknown as.*ChangeEvent`,
+`target: { files`) in Produktcode bestätigte: **dieses Muster kam nur hier vor** — alle anderen
+`UploadDropzone`-Adapter riefen ihre Handler bereits direkt mit `File[]` auf. Regressionstest
+reproduziert den Absturz per echtem `fireEvent.drop` (rot vor dem Fix, grün danach).
+
+**8. `/dev/ui-system`-Showcase war an zwei Stellen veraltet — FIXED, commits `edfed94c`, `c1620bfc`.**
+"Komposition 5 – Media Management Layout" zeigte noch eine Mock-Toolbar ("Upload vorbereiten"),
+graue Thumb-Kästen und den Hinweis "Keine echte Upload-Logik in 48A". Neue eigene Datei
+`MediaManagementCompositionShowcase.tsx` zeigt jetzt die echte Komposition: `UploadDropzone` +
+`UploadFileRow`-Warteschlange mit allen fünf Status-Badges + "Upload starten", plus ein Medien-Grid
+im aktuellen Karten-Stil (Auswahl-Checkbox, Ziehgriff-Hinweis, Kategorie-/Status-/
+Sichtbarkeits-Badges wie bei den Gruppenmedien). "Public Release Surfaces" demonstrierte nirgends
+den seit Phase 177 gemeinsamen Bild-Viewer — ergänzt um eine per Button öffenbare
+`FansubMediaLightbox`-Demo mit Release-Mock-Bildern, ohne `NavArrow`/`ThumbnailStrip` zu
+duplizieren (beide haben bereits eigene Showcase-Einträge in `page.tsx` bzw.
+`PublicFansubSurfacesShowcase.tsx`). Generelle Prüfung: keine kaputten Imports, keine
+nativen-Element-Verstöße irgendwo unter `/dev/ui-system` (eslint + voller Typecheck bestätigt);
+einziger kosmetischer Fund ohne Funktionsauswirkung: `PublicFansubSurfacesShowcase` und
+`UploadPrimitivesShowcase` tragen beide `eyebrow="09"` (Nummerierungs-Drift, nicht behoben).
+
+**9. Nutzerfreigabe "Beides jetzt in Phase 180 erledigen": Toter Code gelöscht + verbleibende
+Wege angeglichen.**
+
+*Toter Code (3 Commits, jeweils per erneutem Grep vor dem Löschen belegt):*
+- `d104dc3f` — `ManualCreateWorkspace.tsx`, `ManualCreateAssetUploadPanel.tsx`,
+  `AnimeCreateCoverField.tsx` entfernt (kein Importeur außer sich selbst/einander).
+  `ManualCreateWorkspace.module.css` bleibt, da `create/page.tsx`/`AnimeEditWorkspace.tsx` dessen
+  CSS-Klassen weiterhin für ihr eigenes Layout nutzen. Zusätzlich im selben Verzeichnis gefunden
+  und mitentfernt, obwohl nicht explizit benannt: `JellyfinDraftAssets.tsx` (+Test),
+  `ManualCreatePreview.tsx`, `ManualCreateValidationSummary.tsx` — bereits vor diesem Cleanup ohne
+  jeden Importeur, auch nicht von `ManualCreateWorkspace` selbst.
+- `ddf147ff` — `AnimePatchForm.tsx` (alias `AnimeEditor.tsx`), `AnimeBasicFields.tsx`,
+  `AnimeMetaFields.tsx`, `AnimeCoverField.tsx` entfernt. Ein Source-Grep-Test in
+  `page.test.tsx`, der nur den Inhalt der jetzt gelöschten `AnimeCoverField.tsx` prüfte, wurde
+  entfernt (testete faktisch nur totes Dateimaterial). Der bestehende, legitime
+  Abwesenheits-Test ("drops the old jellyfin metadata shell...") bleibt unverändert, da er die
+  LIVE `page.tsx` prüft.
+- `468f4ac9` — `AnimeJellyfinMetadataSection.tsx` (+Helpers, +`AnimeJellyfinFolderList.tsx`) und
+  `AnimeJellyfinAssetUploadControls.tsx` (+`animeJellyfinAssetUpload.ts`) entfernt.
+  **D-13-Prüfung (Phase 179 Admin-Anzeige-Capability):** der einzige Konsument der D-13-Logik war
+  diese eine, nie gerenderte Komponente — sie führte dort eine zusätzliche Client-Prüfung von
+  `getCurrentUser().is_platform_admin` durch (Spiegelung der Backend-Durchsetzung
+  `requirePlatformAdminIdentity`). `is_platform_admin` selbst ist **kein** Phase-179-spezifisches
+  Flag, sondern ein generisches, breit genutztes Auth-Feld (u. a. von `PlatformAdminGate.tsx`
+  selbst sowie 6 weiteren Live-Dateien) — es gibt **kein verwaistes Flag oder Endpoint-Feld zu
+  entfernen**. Beide echten Konsumentenrouten (`/admin/anime/create`, `/admin/anime/[id]/edit`)
+  bleiben vollständig per `<PlatformAdminGate>` geschützt; durch diese Löschung entsteht **keine
+  Rechtelücke**.
+
+*Vier live, noch nicht einheitliche Stellen angeglichen (4 Commits):*
+- `ffa718c4` — `SegmentPreviewImageSection.tsx` (Release-Editor, Segment-Vorschaubild): Klick-Button
+  + verstecktes `<input>` durch `UploadDropzone` (Single-Slot) ersetzt. Alte Tests (u. a. ein Test,
+  der explizit behauptete "ohne eigene Dropzone") durch echte Drag&Drop- und
+  Mehrfach-Datei-D-16-Tests ersetzt.
+- `0691c6a9` — `ReleaseVersionMediaEditDrawer.tsx` ("Datei ersetzen" bei abgelehntem Release-Medium):
+  komplett selbstgebautes Drag&Drop (5 Handler + eigener State + verstecktes `<input>`) durch
+  `UploadDropzone` ersetzt; Ablauf (Datei → `stagedReplaceFile` → `replaceItem` bei Submit)
+  unverändert. Tote CSS-Klassen (`.dropZone*`) entfernt.
+- `MediaUploadCore.tsx` (Weg 3/5, Fansub-Logo/Banner) und `MemberAvatarCard.tsx`/
+  `ProfileBackgroundCard.tsx` (Weg 7, `/me/profile`): redundantes zweites natives `<input>` hinter
+  dem "Hochladen/Ersetzen"-Aktions-Button entfernt. Dafür wurde `UploadDropzone` um ein
+  **imperatives `open()`-Handle** erweitert (`forwardRef` + `useImperativeHandle`, neuer exportierter
+  Typ `UploadDropzoneHandle`) — der externe Button ruft jetzt `dropzoneRef.current?.open()` auf
+  denselben internen Picker, den die Dropzone selbst nutzt, statt einen zweiten Input zu pflegen.
+  Bei `MemberAvatarCard`/`ProfileBackgroundCard` wird derselbe Ref sogar eine Ebene höher (vom
+  Bleistift-Button im Profilkopf, `page.tsx`) durchgereicht — das Muster funktioniert über
+  Komponentengrenzen hinweg unverändert. Alle bestehenden Tests, die vorher die alten,
+  separaten `aria-label`s der Zweit-Inputs abfragten, wurden auf die generische
+  `UploadDropzone`-Markierung ("Dateien"-Label, mit `within(...)`-Scoping wo zwei Dropzones
+  gleichzeitig sichtbar sind) umgestellt; neue Tests für `open()` (inkl. `disabled`-Fall) ergänzt.
+
+**Abschluss-Gate-Erweiterung für 180-12 (dauerhaft, nicht nur einmalig geprüft):**
+`grep -rln 'type="file"' frontend/src --include="*.tsx" | grep -v "^components/ui/" | grep -v "\.test\."`
+muss **ausschließlich** `components/editor/StoryImageToolbarButton.tsx` zurückgeben. Begründung für
+diese eine Ausnahme: `StoryImageToolbarButton` ist eine Rich-Text-Editor-Toolbar-Aktion, die Inhalt
+an der Cursor-Position einfügt, kein persistenter Upload-Slot — `UploadDropzone`s
+Drop-Ziel-UX passt nicht zu diesem Interaktionsmodell. Zum Zeitpunkt dieses Addendums bestätigt:
+Grep liefert exakt diese eine Zeile.
+
+Vollständiger automatisierter Gate-Re-Lauf nach allen Punkten 4-9: `npx tsc --noEmit` clean,
+gezielte `eslint`-Läufe auf allen geänderten Dateien ohne neue Fehler/Warnungen, alle betroffenen
+Vitest-Suiten grün (u. a. 504 Anime-Tests, 317 Episode-Versions-Tests, 56 Profil-Tests, 10
+UploadDropzone-Tests, 11 MediaUpload-Tests). Zwei vorbestehende, unabhängig bestätigte
+Umgebungs-Failures (`ResponsiveImage.config.test.ts`, `RoleCapabilityDetail.membershipBaselineDrift.test.ts`,
+`badgeArtwork.test.ts` — alle drei brauchen Docker-Compose-Pfade/Env-Variablen, die auf dem bloßen
+Host fehlen) bleiben unverändert und unberührt von dieser Phase.
+
+**Keine Zugangsdaten/Passwörter wurden in diesem gesamten Addendum-2-Zyklus verändert.**
+
+---
 *Phase: 180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend*
-*Status: Task 1 complete, Task 2 pending human verification (now including re-test of the reorder issue after frontend restart) — plan and phase NOT yet closed*
+*Status: Task 1 complete, Task 2 pending human verification (now including re-test of the reorder issue after frontend restart, plus everything in Addendum 2) — plan and phase NOT yet closed*
