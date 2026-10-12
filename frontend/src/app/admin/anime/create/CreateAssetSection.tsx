@@ -1,10 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Crop, Pencil, Trash2 } from "lucide-react";
 import type { AdminAnimeAssetKind, AdminJellyfinIntakeAssetSlots } from "@/types/admin";
 import { resolveJellyfinIntakeAssetUrl } from "../utils/jellyfin-intake-assets";
 import type { JellyfinDraftAssetTarget } from "../hooks/useManualAnimeDraft";
+import type { AnimeCroppableAssetKind } from "../utils/animeAssetCropConfig";
 import type { CreateAssetUploadDraftValue } from "./createAssetUploadPlan";
 import { CreateAssetCard, type AssetSource } from "./CreateAssetCard";
 import createStyles from "./page.module.css";
@@ -18,6 +19,10 @@ interface CreateAssetSectionProps {
   jellyfinDraftAssets?: AdminJellyfinIntakeAssetSlots | null;
   onAssetFilesSelected: (kind: AdminAnimeAssetKind, files: File[]) => void;
   onOpenAssetSearch: (kind: "cover" | "banner" | "logo" | "background") => void;
+  /** Eigener Zuschnitt-Button (Crop-Icon), getrennt vom Stift (Provider-Suche) -- nur fuer
+   * Cover/Banner, die einen festen Zuschnitt haben (Live-UAT-Korrektur 2026-10-12). */
+  onOpenAssetCrop: (kind: AnimeCroppableAssetKind) => void;
+  canOpenAssetCrop: (kind: AnimeCroppableAssetKind) => boolean;
   onRemoveSingleAsset: (kind: "banner" | "logo") => void;
   onRemoveBackground: (index: number) => void;
   onRemoveBackgroundVideo: (index: number) => void;
@@ -26,12 +31,14 @@ interface CreateAssetSectionProps {
 
 interface AssetActionRowProps {
   onSearch?: () => void;
+  onCrop?: () => void;
   onRemove?: () => void;
   searchLabel?: string;
 }
 
 function AssetActionRow({
   onSearch,
+  onCrop,
   onRemove,
   searchLabel = "Online suchen",
 }: AssetActionRowProps) {
@@ -48,6 +55,17 @@ function AssetActionRow({
         >
           <Pencil size={14} />
           <span>{searchLabel}</span>
+        </button>
+      ) : null}
+      {onCrop ? (
+        <button
+          type="button"
+          className={createStyles.assetActionIconButton}
+          title="Ausschnitt bearbeiten"
+          aria-label="Ausschnitt bearbeiten"
+          onClick={onCrop}
+        >
+          <Crop size={14} />
         </button>
       ) : null}
       {onRemove ? (
@@ -106,6 +124,8 @@ export function CreateAssetSection({
   jellyfinDraftAssets,
   onAssetFilesSelected,
   onOpenAssetSearch,
+  onOpenAssetCrop,
+  canOpenAssetCrop,
   onRemoveSingleAsset,
   onRemoveBackground,
   onRemoveBackgroundVideo,
@@ -233,6 +253,7 @@ export function CreateAssetSection({
               actions={
                 <AssetActionRow
                   onSearch={() => onOpenAssetSearch("cover")}
+                  onCrop={canOpenAssetCrop("cover") ? () => onOpenAssetCrop("cover") : undefined}
                   onRemove={
                     stagedCover || jellyfinCoverUrl
                       ? () => onRemoveJellyfinAsset({ kind: "cover" })
@@ -252,6 +273,7 @@ export function CreateAssetSection({
               actions={
                 <AssetActionRow
                   onSearch={() => onOpenAssetSearch("banner")}
+                  onCrop={canOpenAssetCrop("banner") ? () => onOpenAssetCrop("banner") : undefined}
                   onRemove={
                     bannerPreview
                       ? stagedBanner

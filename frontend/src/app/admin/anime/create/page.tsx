@@ -20,7 +20,9 @@ import { CreateJellyfinCard } from "./CreateJellyfinCard";
 import { CreateReviewSection } from "./CreateReviewSection";
 import { DiscoveryReturnLink } from "./DiscoveryReturnLink";
 import { SharedAnimeEditorWorkspace } from "../components/AnimeEditPage/SharedAnimeEditorWorkspace";
+import { useAnimeAssetCropGate } from "../hooks/useAnimeAssetCropGate";
 import { planAnimeAssetFileSelection } from "../utils/animeAssetUploadSelection";
+import type { AnimeCroppableAssetKind } from "../utils/animeAssetCropConfig";
 import type { AdminAnimeAssetKind } from "@/types/admin";
 import {
   buildCreateSuccessMessage,
@@ -102,6 +104,17 @@ function AdminAnimeCreateContent() {
       return;
     }
     handlers.handleBackgroundVideoFilesSelected(plan.files);
+  }
+
+  const assetCropGate = useAnimeAssetCropGate({ onFilesReady: handleAssetFilesSelected });
+  const stagedCropSourceFile: Record<AnimeCroppableAssetKind, File | undefined> = {
+    cover: manualDraft.stagedCover?.file,
+    banner: manualDraft.stagedAssets.banner?.file,
+  };
+
+  function openAssetCrop(kind: AnimeCroppableAssetKind) {
+    const file = stagedCropSourceFile[kind];
+    if (file) assetCropGate.openCropForExistingFile(kind, file);
   }
 
   useCreatePageDiscoveryHandoff({
@@ -190,8 +203,10 @@ function AdminAnimeCreateContent() {
       stagedBackgrounds={manualDraft.stagedAssets.background}
       stagedBackgroundVideos={manualDraft.stagedAssets.background_video}
       jellyfinDraftAssets={jellyfin.draftAssets}
-      onAssetFilesSelected={handleAssetFilesSelected}
+      onAssetFilesSelected={assetCropGate.handleFilesSelected}
       onOpenAssetSearch={handlers.openAssetSearch}
+      onOpenAssetCrop={openAssetCrop}
+      canOpenAssetCrop={(kind) => Boolean(stagedCropSourceFile[kind])}
       onRemoveSingleAsset={handlers.removeSingleAsset}
       onRemoveBackground={handlers.removeBackground}
       onRemoveBackgroundVideo={handlers.removeBackgroundVideo}
@@ -407,6 +422,8 @@ function AdminAnimeCreateContent() {
           void handlers.handleAssetCandidateAdoption();
         }}
       />
+
+      {assetCropGate.cropDialog}
 
       {debug.showDebugPanel ? (
         <details className={createStyles.developerDetails}>
