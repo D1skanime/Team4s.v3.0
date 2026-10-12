@@ -20,6 +20,8 @@ import { CreateJellyfinCard } from "./CreateJellyfinCard";
 import { CreateReviewSection } from "./CreateReviewSection";
 import { DiscoveryReturnLink } from "./DiscoveryReturnLink";
 import { SharedAnimeEditorWorkspace } from "../components/AnimeEditPage/SharedAnimeEditorWorkspace";
+import { planAnimeAssetFileSelection } from "../utils/animeAssetUploadSelection";
+import type { AdminAnimeAssetKind } from "@/types/admin";
 import {
   buildCreateSuccessMessage,
   appendJellyfinLinkageToCreatePayload,
@@ -78,12 +80,29 @@ function AdminAnimeCreateContent() {
     assetSearch,
     debug,
     errorMessage,
-    fileInputRefs,
     handlers,
     jellyfin,
     manualDraft,
     status,
   } = controller;
+
+  function handleAssetFilesSelected(kind: AdminAnimeAssetKind, files: File[]) {
+    const plan = planAnimeAssetFileSelection(kind, files);
+    if (plan.action === "noop") return;
+    if (plan.action === "replace") {
+      if (plan.kind === "cover") {
+        void handlers.handleCoverUpload(plan.file);
+        return;
+      }
+      handlers.handleSingleAssetFileSelected(plan.kind, plan.file);
+      return;
+    }
+    if (plan.kind === "background") {
+      handlers.handleBackgroundFilesSelected(plan.files);
+      return;
+    }
+    handlers.handleBackgroundVideoFilesSelected(plan.files);
+  }
 
   useCreatePageDiscoveryHandoff({
     jellyfinID: discoveryJellyfinID,
@@ -164,71 +183,20 @@ function AdminAnimeCreateContent() {
   );
 
   const assetsSection = (
-    <>
-      <CreateAssetSection
-        stagedCover={manualDraft.stagedCover}
-        stagedBanner={manualDraft.stagedAssets.banner}
-        stagedLogo={manualDraft.stagedAssets.logo}
-        stagedBackgrounds={manualDraft.stagedAssets.background}
-        stagedBackgroundVideos={manualDraft.stagedAssets.background_video}
-        jellyfinDraftAssets={jellyfin.draftAssets}
-        onOpenFileDialog={handlers.openAssetFileDialog}
-        onOpenAssetSearch={handlers.openAssetSearch}
-        onRemoveSingleAsset={handlers.removeSingleAsset}
-        onRemoveBackground={handlers.removeBackground}
-        onRemoveBackgroundVideo={handlers.removeBackgroundVideo}
-        onRemoveJellyfinAsset={handlers.handleRemoveJellyfinAsset}
-        fileInputRefs={fileInputRefs}
-      />
-
-      <input
-        ref={fileInputRefs.cover}
-        className={styles.fileInput}
-        type="file"
-        accept="image/*"
-        onChange={async (event) => {
-          const file = event.target.files?.[0];
-          if (!file) return;
-          try {
-            await handlers.handleCoverUpload(file);
-          } finally {
-            event.target.value = "";
-          }
-        }}
-      />
-      <input
-        ref={fileInputRefs.banner}
-        className={styles.fileInput}
-        type="file"
-        accept="image/*"
-        onChange={(event) =>
-          handlers.handleSingleAssetInputChange("banner", event)
-        }
-      />
-      <input
-        ref={fileInputRefs.logo}
-        className={styles.fileInput}
-        type="file"
-        accept="image/*"
-        onChange={(event) =>
-          handlers.handleSingleAssetInputChange("logo", event)
-        }
-      />
-      <input
-        ref={fileInputRefs.background}
-        className={styles.fileInput}
-        type="file"
-        accept="image/*"
-        onChange={handlers.handleBackgroundInputChange}
-      />
-      <input
-        ref={fileInputRefs.background_video}
-        className={styles.fileInput}
-        type="file"
-        accept="video/*"
-        onChange={handlers.handleBackgroundVideoInputChange}
-      />
-    </>
+    <CreateAssetSection
+      stagedCover={manualDraft.stagedCover}
+      stagedBanner={manualDraft.stagedAssets.banner}
+      stagedLogo={manualDraft.stagedAssets.logo}
+      stagedBackgrounds={manualDraft.stagedAssets.background}
+      stagedBackgroundVideos={manualDraft.stagedAssets.background_video}
+      jellyfinDraftAssets={jellyfin.draftAssets}
+      onAssetFilesSelected={handleAssetFilesSelected}
+      onOpenAssetSearch={handlers.openAssetSearch}
+      onRemoveSingleAsset={handlers.removeSingleAsset}
+      onRemoveBackground={handlers.removeBackground}
+      onRemoveBackgroundVideo={handlers.removeBackgroundVideo}
+      onRemoveJellyfinAsset={handlers.handleRemoveJellyfinAsset}
+    />
   );
 
   const detailsSection = (

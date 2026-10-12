@@ -1,6 +1,6 @@
 'use client'
 
-import React, { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -45,6 +45,7 @@ import {
   type JellyfinDraftAssetTarget,
 } from '../../hooks/useManualAnimeDraft'
 import { buildAniSearchAnimeURL, resolveAniSearchID, resolveCoverUrl } from '../../utils/anime-helpers'
+import { planAnimeAssetFileSelection } from '../../utils/animeAssetUploadSelection'
 import { formatAdminError } from '../../utils/studio-helpers'
 import { AnimeEditAssetSection } from './AnimeEditAssetSection'
 import { SharedAnimeEditorWorkspace } from './SharedAnimeEditorWorkspace'
@@ -139,11 +140,6 @@ export function AnimeEditWorkspace({
   const [isApplyingAssetCandidates, setIsApplyingAssetCandidates] = useState(false)
   const jellyfinIntake = useJellyfinIntake()
 
-  const coverFileInputRef = useRef<HTMLInputElement | null>(null)
-  const bannerFileInputRef = useRef<HTMLInputElement | null>(null)
-  const logoFileInputRef = useRef<HTMLInputElement | null>(null)
-  const backgroundFileInputRef = useRef<HTMLInputElement | null>(null)
-  const backgroundVideoFileInputRef = useRef<HTMLInputElement | null>(null)
 
   const editor = useAnimeEditor('edit', {
     isDirty: patch.isDirty,
@@ -243,17 +239,6 @@ export function AnimeEditWorkspace({
     }
   }, [adoptedJellyfinPreview, anime.id, jellyfinIntake, onError, onRequest, onResponse, patch, refreshAssetContext])
 
-  function openAssetFileDialog(kind: AdminAnimeAssetKind) {
-    const refs: Record<AdminAnimeAssetKind, React.RefObject<HTMLInputElement | null>> = {
-      cover: coverFileInputRef,
-      banner: bannerFileInputRef,
-      logo: logoFileInputRef,
-      background: backgroundFileInputRef,
-      background_video: backgroundVideoFileInputRef,
-    }
-    refs[kind].current?.click()
-  }
-
   function closeAssetSearch() {
     setActiveAssetSearchKind(null)
     setAssetSearchCandidates([])
@@ -263,12 +248,19 @@ export function AnimeEditWorkspace({
     setAssetSearchPage(1)
   }
 
-  async function handleAssetFileChange(kind: AdminAnimeAssetKind, event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
+  async function handleAssetFilesSelected(kind: AdminAnimeAssetKind, files: File[]) {
+    const plan = planAnimeAssetFileSelection(kind, files)
+    if (plan.action === 'noop') return
 
-    await patch.uploadAndLinkAsset(file, kind, anime.id)
+    if (plan.action === 'replace') {
+      await patch.uploadAndLinkAsset(plan.file, plan.kind, anime.id)
+      await refreshAssetContext()
+      return
+    }
+
+    for (const file of plan.files) {
+      await patch.uploadAndLinkAsset(file, plan.kind, anime.id)
+    }
     await refreshAssetContext()
   }
 
@@ -542,57 +534,19 @@ export function AnimeEditWorkspace({
   )
 
   const assetsSection = (
-    <>
-      <AnimeEditAssetSection
-        persistedAssets={persistedAssets}
-        jellyfinAssetSlots={visibleJellyfinAssetSlots ?? jellyfinContext?.asset_slots ?? null}
-        isBusy={patch.isUploadingCover || isRefreshingAssets || isApplyingAssetCandidates}
-        onOpenFileDialog={openAssetFileDialog}
-        onOpenAssetSearch={(kind) => setActiveAssetSearchKind(kind)}
-        onRemoveJellyfinAsset={handleRemoveVisibleJellyfinAsset}
-        onRemoveCover={() => void handleRemoveSingularAsset('cover')}
-        onRemoveBanner={() => void handleRemoveSingularAsset('banner')}
-        onRemoveLogo={() => void handleRemoveSingularAsset('logo')}
-        onRemoveBackground={(backgroundID) => void handleRemoveBackground(backgroundID)}
-        onRemoveBackgroundVideo={() => void handleRemoveSingularAsset('background_video')}
-      />
-
-      <input
-        ref={coverFileInputRef}
-        className={styles.fileInput}
-        type="file"
-        accept="image/*"
-        onChange={(event) => void handleAssetFileChange('cover', event)}
-      />
-      <input
-        ref={bannerFileInputRef}
-        className={styles.fileInput}
-        type="file"
-        accept="image/*"
-        onChange={(event) => void handleAssetFileChange('banner', event)}
-      />
-      <input
-        ref={logoFileInputRef}
-        className={styles.fileInput}
-        type="file"
-        accept="image/*"
-        onChange={(event) => void handleAssetFileChange('logo', event)}
-      />
-      <input
-        ref={backgroundFileInputRef}
-        className={styles.fileInput}
-        type="file"
-        accept="image/*"
-        onChange={(event) => void handleAssetFileChange('background', event)}
-      />
-      <input
-        ref={backgroundVideoFileInputRef}
-        className={styles.fileInput}
-        type="file"
-        accept="video/*"
-        onChange={(event) => void handleAssetFileChange('background_video', event)}
-      />
-    </>
+    <AnimeEditAssetSection
+      persistedAssets={persistedAssets}
+      jellyfinAssetSlots={visibleJellyfinAssetSlots ?? jellyfinContext?.asset_slots ?? null}
+      isBusy={patch.isUploadingCover || isRefreshingAssets || isApplyingAssetCandidates}
+      onAssetFilesSelected={(kind, files) => void handleAssetFilesSelected(kind, files)}
+      onOpenAssetSearch={(kind) => setActiveAssetSearchKind(kind)}
+      onRemoveJellyfinAsset={handleRemoveVisibleJellyfinAsset}
+      onRemoveCover={() => void handleRemoveSingularAsset('cover')}
+      onRemoveBanner={() => void handleRemoveSingularAsset('banner')}
+      onRemoveLogo={() => void handleRemoveSingularAsset('logo')}
+      onRemoveBackground={(backgroundID) => void handleRemoveBackground(backgroundID)}
+      onRemoveBackgroundVideo={() => void handleRemoveSingularAsset('background_video')}
+    />
   )
 
   const detailsSection = (

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Pencil, Trash2, Upload } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 import type {
   AdminAnimeAssetKind,
@@ -25,7 +25,7 @@ interface AnimeEditAssetSectionProps {
   persistedAssets: AdminAnimePersistedAssets;
   jellyfinAssetSlots?: AdminJellyfinIntakeAssetSlots | null;
   isBusy?: boolean;
-  onOpenFileDialog: (kind: AdminAnimeAssetKind) => void;
+  onAssetFilesSelected: (kind: AdminAnimeAssetKind, files: File[]) => void;
   onOpenAssetSearch: (kind: SearchableAssetKind) => void;
   onRemoveJellyfinAsset: (target: JellyfinDraftAssetTarget) => void;
   onRemoveCover: () => void;
@@ -36,35 +36,20 @@ interface AnimeEditAssetSectionProps {
 }
 
 interface AssetActionRowProps {
-  onUpload?: () => void;
   onSearch?: () => void;
   onRemove?: () => void;
   disabled?: boolean;
-  uploadLabel?: string;
   searchLabel?: string;
 }
 
 function AssetActionRow({
-  onUpload,
   onSearch,
   onRemove,
   disabled = false,
-  uploadLabel = "Upload",
   searchLabel = "Online suchen",
 }: AssetActionRowProps) {
   return (
     <div className={createStyles.assetActionRow}>
-      {onUpload ? (
-        <button
-          type="button"
-          className={createStyles.assetActionButton}
-          onClick={onUpload}
-          disabled={disabled}
-        >
-          <Upload size={14} />
-          <span>{uploadLabel}</span>
-        </button>
-      ) : null}
       {onSearch ? (
         <button
           type="button"
@@ -146,7 +131,7 @@ export function AnimeEditAssetSection({
   persistedAssets,
   jellyfinAssetSlots,
   isBusy = false,
-  onOpenFileDialog,
+  onAssetFilesSelected,
   onOpenAssetSearch,
   onRemoveJellyfinAsset,
   onRemoveCover,
@@ -228,7 +213,6 @@ export function AnimeEditAssetSection({
         actions={
           <AssetActionRow
             disabled={isBusy}
-            onUpload={() => onOpenFileDialog("background")}
             onSearch={() => onOpenAssetSearch("background")}
             onRemove={() => onRemoveJellyfinAsset({ kind: "background", index: background.index })}
           />
@@ -250,7 +234,6 @@ export function AnimeEditAssetSection({
               <AssetActionRow
                 disabled={isBusy}
                 onRemove={onRemoveBackgroundVideo}
-                onUpload={() => onOpenFileDialog("background_video")}
               />
             }
           />,
@@ -269,7 +252,6 @@ export function AnimeEditAssetSection({
             actions={
               <AssetActionRow
                 disabled={isBusy}
-                onUpload={() => onOpenFileDialog("background_video")}
                 onRemove={() => onRemoveJellyfinAsset({ kind: "background_video" })}
               />
             }
@@ -291,11 +273,11 @@ export function AnimeEditAssetSection({
               source={resolveAssetSource(cover)}
               statusNote={buildPersistedStatusNote(cover)}
               isEmpty={!resolvePersistedAssetUrl(cover)}
-              onEmptyClick={!resolvePersistedAssetUrl(cover) ? () => onOpenFileDialog("cover") : undefined}
+              uploadDisabled={isBusy}
+              onFilesSelected={(files) => onAssetFilesSelected("cover", files)}
               actions={
                 <AssetActionRow
                   disabled={isBusy}
-                  onUpload={() => onOpenFileDialog("cover")}
                   onSearch={() => onOpenAssetSearch("cover")}
                   onRemove={
                     persistedAssets.cover
@@ -315,11 +297,11 @@ export function AnimeEditAssetSection({
               source={resolveAssetSource(banner)}
               statusNote={buildPersistedStatusNote(banner)}
               isEmpty={!resolvePersistedAssetUrl(banner)}
-              onEmptyClick={!resolvePersistedAssetUrl(banner) ? () => onOpenFileDialog("banner") : undefined}
+              uploadDisabled={isBusy}
+              onFilesSelected={(files) => onAssetFilesSelected("banner", files)}
               actions={
                 <AssetActionRow
                   disabled={isBusy}
-                  onUpload={() => onOpenFileDialog("banner")}
                   onSearch={() => onOpenAssetSearch("banner")}
                   onRemove={
                     persistedAssets.banner
@@ -339,11 +321,11 @@ export function AnimeEditAssetSection({
               source={resolveAssetSource(logo)}
               statusNote={buildPersistedStatusNote(logo)}
               isEmpty={!resolvePersistedAssetUrl(logo)}
-              onEmptyClick={!resolvePersistedAssetUrl(logo) ? () => onOpenFileDialog("logo") : undefined}
+              uploadDisabled={isBusy}
+              onFilesSelected={(files) => onAssetFilesSelected("logo", files)}
               actions={
                 <AssetActionRow
                   disabled={isBusy}
-                  onUpload={() => onOpenFileDialog("logo")}
                   onSearch={() => onOpenAssetSearch("logo")}
                   onRemove={
                     persistedAssets.logo
@@ -362,30 +344,18 @@ export function AnimeEditAssetSection({
               <h3 className={createStyles.assetBackgroundTitle}>
                 Background-Videos ({backgroundVideoCards.length})
               </h3>
-              <AssetActionRow
-                disabled={isBusy}
-                onUpload={() => onOpenFileDialog("background_video")}
-                uploadLabel="+ Hinzufügen"
-              />
             </div>
             <div className={createStyles.assetVideoGrid}>
-              {backgroundVideoCards.length > 0 ? (
-                backgroundVideoCards
-              ) : (
-                <CreateAssetCard
-                  label="Background-Video"
-                  variant="backgroundVideo"
-                  isEmpty
-                  onEmptyClick={() => onOpenFileDialog("background_video")}
-                  actions={
-                    <AssetActionRow
-                      disabled={isBusy}
-                      onUpload={() => onOpenFileDialog("background_video")}
-                      uploadLabel="Upload"
-                    />
-                  }
-                />
-              )}
+              {backgroundVideoCards}
+              <CreateAssetCard
+                label="Background-Video"
+                variant="backgroundVideo"
+                isEmpty
+                uploadMultiple
+                uploadAccept="video/*"
+                uploadDisabled={isBusy}
+                onFilesSelected={(files) => onAssetFilesSelected("background_video", files)}
+              />
             </div>
           </section>
         </div>
@@ -395,31 +365,18 @@ export function AnimeEditAssetSection({
             <h3 className={createStyles.assetBackgroundTitle}>
               Hintergründe ({backgroundCards.length})
             </h3>
-            <AssetActionRow
-              disabled={isBusy}
-              onUpload={() => onOpenFileDialog("background")}
-              uploadLabel="+ Hinzufügen"
-              onSearch={() => onOpenAssetSearch("background")}
-            />
+            <AssetActionRow disabled={isBusy} onSearch={() => onOpenAssetSearch("background")} />
           </div>
           <div className={createStyles.assetBackgroundGrid}>
-            {backgroundCards.length > 0 ? (
-              backgroundCards
-            ) : (
-              <CreateAssetCard
-                label="Background"
-                variant="background"
-                isEmpty
-                onEmptyClick={() => onOpenFileDialog("background")}
-                actions={
-                  <AssetActionRow
-                    disabled={isBusy}
-                    onUpload={() => onOpenFileDialog("background")}
-                    onSearch={() => onOpenAssetSearch("background")}
-                  />
-                }
-              />
-            )}
+            {backgroundCards}
+            <CreateAssetCard
+              label="Background"
+              variant="background"
+              isEmpty
+              uploadMultiple
+              uploadDisabled={isBusy}
+              onFilesSelected={(files) => onAssetFilesSelected("background", files)}
+            />
           </div>
         </section>
       </div>

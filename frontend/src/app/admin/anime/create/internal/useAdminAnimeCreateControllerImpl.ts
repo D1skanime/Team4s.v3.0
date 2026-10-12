@@ -4,7 +4,7 @@
 // from page.tsx so the page can stay below the 700-line guardrail while the
 // mutable create, asset, and Jellyfin state remains in one readable place.
 
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuthSession } from "@/lib/useAuthSession";
 import { AnimeStatus, ContentType } from "@/types/anime";
@@ -217,11 +217,6 @@ export function useAdminAnimeCreateController(
   const [jellyfinHydratedDraftSnapshot, setJellyfinHydratedDraftSnapshot] =
     useState<ManualAnimeDraftValues | null>(null);
 
-  const coverFileInputRef = useRef<HTMLInputElement | null>(null);
-  const bannerFileInputRef = useRef<HTMLInputElement | null>(null);
-  const logoFileInputRef = useRef<HTMLInputElement | null>(null);
-  const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
-  const backgroundVideoFileInputRef = useRef<HTMLInputElement | null>(null);
   const createRedirectTimeoutRef = useRef<number | null>(null);
 
   useEffect(
@@ -583,44 +578,19 @@ export function useAdminAnimeCreateController(
     clearMessages,
   });
 
-  function handleSingleAssetInputChange(
-    kind: CreateSingleAssetKind,
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  function handleSingleAssetFileSelected(kind: CreateSingleAssetKind, file: File) {
     clearMessages();
     replaceStagedSingleAsset(kind, file);
-    event.target.value = "";
   }
 
-  function handleBackgroundInputChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  function handleBackgroundFilesSelected(files: File[]) {
     clearMessages();
-    addStagedBackground(file);
-    event.target.value = "";
+    files.forEach((file) => addStagedBackground(file));
   }
 
-  function handleBackgroundVideoInputChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  function handleBackgroundVideoFilesSelected(files: File[]) {
     clearMessages();
-    addStagedBackgroundVideo(file);
-    event.target.value = "";
-  }
-
-  function openAssetFileDialog(
-    kind: "cover" | "banner" | "logo" | "background" | "background_video",
-  ) {
-    const refMap = {
-      cover: coverFileInputRef,
-      banner: bannerFileInputRef,
-      logo: logoFileInputRef,
-      background: backgroundFileInputRef,
-      background_video: backgroundVideoFileInputRef,
-    };
-    refMap[kind].current?.click();
+    files.forEach((file) => addStagedBackgroundVideo(file));
   }
 
   const { handleJellyfinSearch, handleJellyfinCandidateReview, handleJellyfinCandidateAdopt } =
@@ -802,13 +772,6 @@ export function useAdminAnimeCreateController(
     debug: { lastRequest, lastResponse, showDebugPanel },
     editor,
     errorMessage,
-    fileInputRefs: {
-      cover: coverFileInputRef,
-      banner: bannerFileInputRef,
-      logo: logoFileInputRef,
-      background: backgroundFileInputRef,
-      background_video: backgroundVideoFileInputRef,
-    },
     jellyfin: {
       draftAssets: jellyfinAssetSlots,
       folderPath: jellyfinPreview?.jellyfin_series_path?.trim() ?? "",
@@ -888,8 +851,8 @@ export function useAdminAnimeCreateController(
       handleAssetCandidateAdoption,
       handleAssetCandidateSearch,
       handleLoadMoreAssets,
-      handleBackgroundInputChange,
-      handleBackgroundVideoInputChange,
+      handleBackgroundFilesSelected,
+      handleBackgroundVideoFilesSelected,
       handleAniSearchCandidateSearch,
       handleAniSearchCandidateSelect,
       handleAniSearchDraftLoad,
@@ -902,13 +865,12 @@ export function useAdminAnimeCreateController(
       handleJellyfinCandidateSelect,
       handleJellyfinSearch,
       handleRemoveJellyfinAsset,
-      handleSingleAssetInputChange,
+      handleSingleAssetFileSelected,
       increaseGenreLimit: () =>
         setGenreSuggestionLimit((current) => Math.min(1000, current + 40)),
       increaseTagLimit: () =>
         setTagSuggestionLimit((current) => Math.min(1000, current + 40)),
       openAssetSearch,
-      openAssetFileDialog,
       removeBackground: removeStagedBackground,
       removeBackgroundVideo: removeStagedBackgroundVideo,
       removeGenreToken: (name: string) =>

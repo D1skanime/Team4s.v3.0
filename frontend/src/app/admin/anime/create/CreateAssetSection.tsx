@@ -1,15 +1,13 @@
 "use client";
 
-import type { RefObject, ReactNode } from "react";
-import { Pencil, Trash2, Upload } from "lucide-react";
-import type { AdminJellyfinIntakeAssetSlots } from "@/types/admin";
+import type { ReactNode } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import type { AdminAnimeAssetKind, AdminJellyfinIntakeAssetSlots } from "@/types/admin";
 import { resolveJellyfinIntakeAssetUrl } from "../utils/jellyfin-intake-assets";
 import type { JellyfinDraftAssetTarget } from "../hooks/useManualAnimeDraft";
 import type { CreateAssetUploadDraftValue } from "./createAssetUploadPlan";
 import { CreateAssetCard, type AssetSource } from "./CreateAssetCard";
 import createStyles from "./page.module.css";
-
-type AssetKind = "cover" | "banner" | "logo" | "background" | "background_video";
 
 interface CreateAssetSectionProps {
   stagedCover?: CreateAssetUploadDraftValue | null;
@@ -18,48 +16,27 @@ interface CreateAssetSectionProps {
   stagedBackgrounds?: CreateAssetUploadDraftValue[];
   stagedBackgroundVideos?: CreateAssetUploadDraftValue[];
   jellyfinDraftAssets?: AdminJellyfinIntakeAssetSlots | null;
-  onOpenFileDialog: (kind: AssetKind) => void;
+  onAssetFilesSelected: (kind: AdminAnimeAssetKind, files: File[]) => void;
   onOpenAssetSearch: (kind: "cover" | "banner" | "logo" | "background") => void;
   onRemoveSingleAsset: (kind: "banner" | "logo") => void;
   onRemoveBackground: (index: number) => void;
   onRemoveBackgroundVideo: (index: number) => void;
   onRemoveJellyfinAsset: (target: JellyfinDraftAssetTarget) => void;
-  fileInputRefs: {
-    cover: RefObject<HTMLInputElement | null>;
-    banner: RefObject<HTMLInputElement | null>;
-    logo: RefObject<HTMLInputElement | null>;
-    background: RefObject<HTMLInputElement | null>;
-    background_video: RefObject<HTMLInputElement | null>;
-  };
 }
 
 interface AssetActionRowProps {
-  onUpload?: () => void;
   onSearch?: () => void;
   onRemove?: () => void;
-  uploadLabel?: string;
   searchLabel?: string;
 }
 
 function AssetActionRow({
-  onUpload,
   onSearch,
   onRemove,
-  uploadLabel = "Upload",
   searchLabel = "Online suchen",
 }: AssetActionRowProps) {
   return (
     <div className={createStyles.assetActionRow}>
-      {onUpload ? (
-        <button
-          type="button"
-          className={createStyles.assetActionButton}
-          onClick={onUpload}
-        >
-          <Upload size={14} />
-          <span>{uploadLabel}</span>
-        </button>
-      ) : null}
       {onSearch ? (
         <button
           type="button"
@@ -127,7 +104,7 @@ export function CreateAssetSection({
   stagedBackgrounds = [],
   stagedBackgroundVideos = [],
   jellyfinDraftAssets,
-  onOpenFileDialog,
+  onAssetFilesSelected,
   onOpenAssetSearch,
   onRemoveSingleAsset,
   onRemoveBackground,
@@ -253,10 +230,9 @@ export function CreateAssetSection({
               source={coverSource}
               statusNote={buildStatusNote(coverPreview)}
               isEmpty={!coverPreview}
-              onEmptyClick={!coverPreview ? () => onOpenFileDialog("cover") : undefined}
+              onFilesSelected={(files) => onAssetFilesSelected("cover", files)}
               actions={
                 <AssetActionRow
-                  onUpload={() => onOpenFileDialog("cover")}
                   onSearch={() => onOpenAssetSearch("cover")}
                   onRemove={
                     stagedCover || jellyfinCoverUrl
@@ -274,10 +250,9 @@ export function CreateAssetSection({
               source={bannerSource}
               statusNote={buildStatusNote(bannerPreview)}
               isEmpty={!bannerPreview}
-              onEmptyClick={!bannerPreview ? () => onOpenFileDialog("banner") : undefined}
+              onFilesSelected={(files) => onAssetFilesSelected("banner", files)}
               actions={
                 <AssetActionRow
-                  onUpload={() => onOpenFileDialog("banner")}
                   onSearch={() => onOpenAssetSearch("banner")}
                   onRemove={
                     bannerPreview
@@ -297,10 +272,9 @@ export function CreateAssetSection({
               source={logoSource}
               statusNote={buildStatusNote(logoPreview)}
               isEmpty={!logoPreview}
-              onEmptyClick={!logoPreview ? () => onOpenFileDialog("logo") : undefined}
+              onFilesSelected={(files) => onAssetFilesSelected("logo", files)}
               actions={
                 <AssetActionRow
-                  onUpload={() => onOpenFileDialog("logo")}
                   onSearch={() => onOpenAssetSearch("logo")}
                   onRemove={
                     logoPreview
@@ -319,28 +293,17 @@ export function CreateAssetSection({
               <h3 className={createStyles.assetBackgroundTitle}>
                 Background-Videos ({backgroundVideoCards.length})
               </h3>
-              <AssetActionRow
-                onUpload={() => onOpenFileDialog("background_video")}
-                uploadLabel="+ Hinzufügen"
-              />
             </div>
             <div className={createStyles.assetVideoGrid}>
-              {backgroundVideoCards.length > 0 ? (
-                backgroundVideoCards
-              ) : (
-                <CreateAssetCard
-                  label="Background-Video"
-                  variant="backgroundVideo"
-                  isEmpty
-                  onEmptyClick={() => onOpenFileDialog("background_video")}
-                  actions={
-                    <AssetActionRow
-                      onUpload={() => onOpenFileDialog("background_video")}
-                      uploadLabel="Upload"
-                    />
-                  }
-                />
-              )}
+              {backgroundVideoCards}
+              <CreateAssetCard
+                label="Background-Video"
+                variant="backgroundVideo"
+                isEmpty
+                uploadMultiple
+                uploadAccept="video/*"
+                onFilesSelected={(files) => onAssetFilesSelected("background_video", files)}
+              />
             </div>
           </section>
         </div>
@@ -350,14 +313,17 @@ export function CreateAssetSection({
             <h3 className={createStyles.assetBackgroundTitle}>
               Hintergründe ({backgroundCards.length})
             </h3>
-            <AssetActionRow
-              onUpload={() => onOpenFileDialog("background")}
-              uploadLabel="+ Hinzufügen"
-              onSearch={() => onOpenAssetSearch("background")}
-            />
+            <AssetActionRow onSearch={() => onOpenAssetSearch("background")} />
           </div>
           <div className={createStyles.assetBackgroundGrid}>
             {backgroundCards}
+            <CreateAssetCard
+              label="Background"
+              variant="background"
+              isEmpty
+              uploadMultiple
+              onFilesSelected={(files) => onAssetFilesSelected("background", files)}
+            />
           </div>
         </section>
       </div>

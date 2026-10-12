@@ -77,10 +77,13 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Background");
     expect(markup).toContain("Background-Video");
     expect(markup).toContain("Hintergründe");
-    expect(markup).toContain("+ Hinzufügen");
+    // D-16/D-17 (Live-UAT-Nachtrag 2026-10-12): die frühere reine Klick-Schaltfläche
+    // "+ Hinzufügen" ist durch einen echten Klick-und-Drag&Drop-Dropzone-Trigger ersetzt.
+    expect(markup).toContain("Background hochladen");
+    expect(markup).toContain("Background-Video hochladen");
     expect(markup).toContain("Assets");
     expect(markup).toContain("Cover");
-    expect(markup).toContain("Upload");
+    expect(markup).toContain("Dateien auswählen");
     expect(markup).toContain("Online suchen");
   });
 

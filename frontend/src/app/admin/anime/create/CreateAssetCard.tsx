@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Upload } from "lucide-react";
+import { UploadDropzone } from "@/components/ui";
 import createStyles from "./page.module.css";
 
 export type AssetSource =
@@ -32,7 +32,15 @@ interface CreateAssetCardProps {
   isRequired?: boolean;
   statusNote?: string;
   actions?: ReactNode;
-  onEmptyClick?: () => void;
+  /** D-16/D-17 (Live-UAT-Nachtrag 2026-10-12): echter Upload-Trigger (Klick + Drag&Drop) über
+   * die gemeinsame Primitive. Wird sowohl im leeren als auch im befüllten Zustand gezeigt --
+   * im befüllten Fall ersetzt ein Drop/Klick das vorhandene Asset (Single-Slot-Replace bzw.
+   * neuer Listeneintrag, je nach aufrufendem Slot). */
+  onFilesSelected?: (files: File[]) => void;
+  uploadAccept?: string;
+  uploadMultiple?: boolean;
+  uploadPromptLabel?: string;
+  uploadDisabled?: boolean;
 }
 
 export function CreateAssetCard({
@@ -44,7 +52,11 @@ export function CreateAssetCard({
   isRequired,
   statusNote,
   actions,
-  onEmptyClick,
+  onFilesSelected,
+  uploadAccept = "image/*",
+  uploadMultiple = false,
+  uploadPromptLabel,
+  uploadDisabled = false,
 }: CreateAssetCardProps) {
   const sourceModifierClass: string = (() => {
     if (!source) return "";
@@ -133,22 +145,6 @@ export function CreateAssetCard({
             alt={label}
             className={[createStyles.assetCardImage, imageVariantClass].join(" ")}
           />
-        ) : onEmptyClick ? (
-          <div
-            className={[createStyles.assetCardEmpty, createStyles.assetCardEmptyClickable].join(" ")}
-            onClick={onEmptyClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onEmptyClick();
-              }
-            }}
-          >
-            <span>{isEmpty ? (isRequired ? "Cover fehlt" : "Noch nichts ausgewählt") : "–"}</span>
-            <Upload size={20} className={createStyles.assetCardEmptyUploadIcon} />
-          </div>
         ) : (
           <div className={[createStyles.assetCardEmpty, emptyClass].join(" ")}>
             <span>
@@ -164,6 +160,18 @@ export function CreateAssetCard({
         )}
         {actions ? (
           <div className={createStyles.assetCardActions}>{actions}</div>
+        ) : null}
+        {onFilesSelected ? (
+          <div className={createStyles.assetCardUploadSlot}>
+            <UploadDropzone
+              density="compact"
+              multiple={uploadMultiple}
+              accept={uploadAccept}
+              disabled={uploadDisabled}
+              promptLabel={uploadPromptLabel ?? (previewUrl ? `${label} ersetzen` : `${label} hochladen`)}
+              onFilesSelected={onFilesSelected}
+            />
+          </div>
         ) : null}
         {source ? (
           <span
