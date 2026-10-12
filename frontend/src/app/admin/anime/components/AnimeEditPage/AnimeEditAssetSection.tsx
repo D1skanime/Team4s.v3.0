@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Crop, Pencil, Trash2 } from "lucide-react";
 
 import type {
   AdminAnimeAssetKind,
@@ -14,6 +14,7 @@ import type { JellyfinDraftAssetTarget } from "../../hooks/useManualAnimeDraft";
 
 import { CreateAssetCard, type AssetSource } from "../../create/CreateAssetCard";
 import createStyles from "../../create/page.module.css";
+import type { AnimeCroppableAssetKind } from "../../utils/animeAssetCropConfig";
 import { resolveJellyfinIntakeAssetUrl } from "../../utils/jellyfin-intake-assets";
 
 type SearchableAssetKind = Extract<
@@ -27,6 +28,10 @@ interface AnimeEditAssetSectionProps {
   isBusy?: boolean;
   onAssetFilesSelected: (kind: AdminAnimeAssetKind, files: File[]) => void;
   onOpenAssetSearch: (kind: SearchableAssetKind) => void;
+  /** Eigener Zuschnitt-Button (Crop-Icon), getrennt vom Stift (Provider-Suche) -- gilt nur fuer
+   * Cover/Banner, die einen festen Zuschnitt haben (Live-UAT-Korrektur 2026-10-12). */
+  onOpenAssetCrop: (kind: AnimeCroppableAssetKind) => void;
+  canOpenAssetCrop: (kind: AnimeCroppableAssetKind) => boolean;
   onRemoveJellyfinAsset: (target: JellyfinDraftAssetTarget) => void;
   onRemoveCover: () => void;
   onRemoveBanner: () => void;
@@ -37,6 +42,7 @@ interface AnimeEditAssetSectionProps {
 
 interface AssetActionRowProps {
   onSearch?: () => void;
+  onCrop?: () => void;
   onRemove?: () => void;
   disabled?: boolean;
   searchLabel?: string;
@@ -44,6 +50,7 @@ interface AssetActionRowProps {
 
 function AssetActionRow({
   onSearch,
+  onCrop,
   onRemove,
   disabled = false,
   searchLabel = "Online suchen",
@@ -62,6 +69,18 @@ function AssetActionRow({
         >
           <Pencil size={14} />
           <span>{searchLabel}</span>
+        </button>
+      ) : null}
+      {onCrop ? (
+        <button
+          type="button"
+          className={createStyles.assetActionIconButton}
+          title="Ausschnitt bearbeiten"
+          aria-label="Ausschnitt bearbeiten"
+          onClick={onCrop}
+          disabled={disabled}
+        >
+          <Crop size={14} />
         </button>
       ) : null}
       {onRemove ? (
@@ -133,6 +152,8 @@ export function AnimeEditAssetSection({
   isBusy = false,
   onAssetFilesSelected,
   onOpenAssetSearch,
+  onOpenAssetCrop,
+  canOpenAssetCrop,
   onRemoveJellyfinAsset,
   onRemoveCover,
   onRemoveBanner,
@@ -278,6 +299,7 @@ export function AnimeEditAssetSection({
                 <AssetActionRow
                   disabled={isBusy}
                   onSearch={() => onOpenAssetSearch("cover")}
+                  onCrop={canOpenAssetCrop("cover") ? () => onOpenAssetCrop("cover") : undefined}
                   onRemove={
                     persistedAssets.cover
                       ? onRemoveCover
@@ -301,6 +323,7 @@ export function AnimeEditAssetSection({
                 <AssetActionRow
                   disabled={isBusy}
                   onSearch={() => onOpenAssetSearch("banner")}
+                  onCrop={canOpenAssetCrop("banner") ? () => onOpenAssetCrop("banner") : undefined}
                   onRemove={
                     persistedAssets.banner
                       ? onRemoveBanner

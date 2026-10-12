@@ -36,6 +36,7 @@ import { CreateJellyfinCard } from '../../create/CreateJellyfinCard'
 import { CreateReviewSection } from '../../create/CreateReviewSection'
 import { stageRemoteCreateAssetCandidate } from '../../create/createAssetUploadPlan'
 import { useAnimePatch } from '../../hooks/useAnimePatch'
+import { useAnimeEditAssetCropFlow } from '../../hooks/useAnimeEditAssetCropFlow'
 import { useAnimeEditor } from '../../hooks/useAnimeEditor'
 import { useJellyfinIntake } from '../../hooks/useJellyfinIntake'
 import {
@@ -263,6 +264,12 @@ export function AnimeEditWorkspace({
     }
     await refreshAssetContext()
   }
+
+  const assetCropFlow = useAnimeEditAssetCropFlow({
+    persistedAssets,
+    onAssetFilesSelected: handleAssetFilesSelected,
+    onError,
+  })
 
   async function handleRemoveSingularAsset(kind: 'cover' | 'banner' | 'logo' | 'background_video') {
     try {
@@ -537,9 +544,11 @@ export function AnimeEditWorkspace({
     <AnimeEditAssetSection
       persistedAssets={persistedAssets}
       jellyfinAssetSlots={visibleJellyfinAssetSlots ?? jellyfinContext?.asset_slots ?? null}
-      isBusy={patch.isUploadingCover || isRefreshingAssets || isApplyingAssetCandidates}
-      onAssetFilesSelected={(kind, files) => void handleAssetFilesSelected(kind, files)}
+      isBusy={patch.isUploadingCover || isRefreshingAssets || isApplyingAssetCandidates || assetCropFlow.isFetchingCropSource}
+      onAssetFilesSelected={assetCropFlow.handleAssetFilesSelected}
       onOpenAssetSearch={(kind) => setActiveAssetSearchKind(kind)}
+      onOpenAssetCrop={(kind) => void assetCropFlow.openAssetCrop(kind)}
+      canOpenAssetCrop={assetCropFlow.canOpenAssetCrop}
       onRemoveJellyfinAsset={handleRemoveVisibleJellyfinAsset}
       onRemoveCover={() => void handleRemoveSingularAsset('cover')}
       onRemoveBanner={() => void handleRemoveSingularAsset('banner')}
@@ -795,6 +804,7 @@ export function AnimeEditWorkspace({
           void handleAssetCandidateAdoption()
         }}
       />
+      {assetCropFlow.cropDialog}
     </AnimeEditorShell>
   )
 }
