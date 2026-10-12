@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  PORTRAIT_CROP_ASPECT_THRESHOLD,
   WIDE_CROP_ASPECT_THRESHOLD,
   computeCropViewportAspectRatio,
   cropperObjectFitFor,
+  isPortraitCropAspect,
   isWideCropAspect,
 } from './Team4sCropper.helpers'
 
@@ -38,6 +40,27 @@ describe('computeCropViewportAspectRatio', () => {
     const viewportRatio = computeCropViewportAspectRatio(bannerAspect)
     expect(viewportRatio).toBeLessThan(bannerAspect)
   })
+
+  it('gives the anime-cover crop (1000/1500 ~= 0.667) extra horizontal pan room above the crop ratio', () => {
+    const coverAspect = 1000 / 1500
+    const viewportRatio = computeCropViewportAspectRatio(coverAspect)
+    expect(viewportRatio).toBeGreaterThan(coverAspect)
+  })
+})
+
+describe('isPortraitCropAspect', () => {
+  it('does not treat a square avatar crop (aspect 1) as portrait', () => {
+    expect(isPortraitCropAspect(1)).toBe(false)
+  })
+
+  it('treats the anime-cover crop (2:3 ~= 0.667) as portrait', () => {
+    expect(isPortraitCropAspect(1000 / 1500)).toBe(true)
+  })
+
+  it('is exclusive at the threshold itself', () => {
+    expect(isPortraitCropAspect(PORTRAIT_CROP_ASPECT_THRESHOLD)).toBe(false)
+    expect(isPortraitCropAspect(PORTRAIT_CROP_ASPECT_THRESHOLD - 0.01)).toBe(true)
+  })
 })
 
 describe('cropperObjectFitFor', () => {
@@ -57,5 +80,9 @@ describe('cropperObjectFitFor', () => {
     const imageAspect = 16 / 9
     expect(targetAspect).toBeGreaterThan(imageAspect)
     expect(cropperObjectFitFor(targetAspect)).toBe('horizontal-cover')
+  })
+
+  it('switches to vertical-cover for the anime-cover crop so the image fills the height', () => {
+    expect(cropperObjectFitFor(1000 / 1500)).toBe('vertical-cover')
   })
 })
