@@ -115,7 +115,7 @@ export function ProfileBackgroundCard({
             style={{ objectFit: 'contain' }}
           />
         ) : null}
-        cornerActions={canEditExistingBackground ? (
+        actions={canEditExistingBackground ? (
           <Button
             type="button"
             variant="secondary"

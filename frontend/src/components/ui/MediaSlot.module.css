@@ -1,3 +1,9 @@
+.mediaSlotWrapper {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
 .mediaSlot {
   position: relative;
   width: 100%;
@@ -23,12 +29,11 @@
   border-radius: 999px !important;
 }
 
-.mediaSlotCornerActions {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
-  z-index: 2;
+/* Its own row directly below the slot, never overlapping or clipped by a round/rect preview. */
+.mediaSlotActions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
 }
 

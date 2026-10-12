@@ -29,10 +29,11 @@ export interface MediaSlotProps {
   /** Overrides the default "`label` ersetzen" accessible name while a value already exists. */
   replaceAriaLabel?: string
   replaceOverlayHintLabel?: string
-  /** Non-overlapping corner overlay (edit/replace/remove icon buttons) on top of the slot --
-   * clicks inside it never trigger the dropzone's own click-to-pick (stopPropagation). */
-  cornerActions?: ReactNode
-  /** Small pill overlay (e.g. a provider-source badge), opposite corner from `cornerActions`. */
+  /** Rendered as its OWN row directly below the slot (Live-UAT follow-up 2026-10-12: an overlay
+   * on top of the preview got clipped by a round shape and covered the image) -- never
+   * overlapping or clipped, works the same for round and rect shapes. */
+  actions?: ReactNode
+  /** Small pill overlay (e.g. a provider-source badge) in a corner of the slot itself. */
   cornerBadge?: ReactNode
   className?: string
 }
@@ -58,7 +59,7 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
   emptyPromptLabel,
   replaceAriaLabel,
   replaceOverlayHintLabel = 'Zum Ersetzen loslassen',
-  cornerActions,
+  actions,
   cornerBadge,
   className,
 }, ref) {
@@ -68,29 +69,27 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
     : (emptyPromptLabel ?? `${label} hierher ziehen oder klicken zum Hochladen`)
 
   return (
-    <div
-      className={classNames(styles.mediaSlot, shape === 'round' ? styles.mediaSlotRound : null, className)}
-      style={{ aspectRatio }}
-    >
-      <UploadDropzone
-        ref={ref}
-        onFilesSelected={onFilesSelected}
-        accept={accept}
-        multiple={multiple}
-        disabled={disabled}
-        density="compact"
-        promptLabel={promptLabel}
-        overlayHintLabel={presentation === 'replace-overlay' ? replaceOverlayHintLabel : undefined}
-        className={classNames(styles.mediaSlotDropzone, shape === 'round' ? styles.mediaSlotRoundDropzone : null)}
+    <div className={styles.mediaSlotWrapper}>
+      <div
+        className={classNames(styles.mediaSlot, shape === 'round' ? styles.mediaSlotRound : null, className)}
+        style={{ aspectRatio }}
       >
-        {presentation === 'replace-overlay' ? previewContent : null}
-      </UploadDropzone>
-      {cornerActions ? (
-        <div className={styles.mediaSlotCornerActions} onClick={(event) => event.stopPropagation()}>
-          {cornerActions}
-        </div>
-      ) : null}
-      {cornerBadge ? <div className={styles.mediaSlotCornerBadge}>{cornerBadge}</div> : null}
+        <UploadDropzone
+          ref={ref}
+          onFilesSelected={onFilesSelected}
+          accept={accept}
+          multiple={multiple}
+          disabled={disabled}
+          density="compact"
+          promptLabel={promptLabel}
+          overlayHintLabel={presentation === 'replace-overlay' ? replaceOverlayHintLabel : undefined}
+          className={classNames(styles.mediaSlotDropzone, shape === 'round' ? styles.mediaSlotRoundDropzone : null)}
+        >
+          {presentation === 'replace-overlay' ? previewContent : null}
+        </UploadDropzone>
+        {cornerBadge ? <div className={styles.mediaSlotCornerBadge}>{cornerBadge}</div> : null}
+      </div>
+      {actions ? <div className={styles.mediaSlotActions}>{actions}</div> : null}
     </div>
   )
 })

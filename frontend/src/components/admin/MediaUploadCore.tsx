@@ -119,7 +119,7 @@ export function MediaUploadCore({
             />
           )
         }
-        cornerActions={
+        actions={
           hasValue ? (
             <>
               <Button

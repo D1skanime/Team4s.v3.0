@@ -158,7 +158,7 @@ export function MemberAvatarCard({
             style={{ objectFit: 'cover' }}
           />
         ) : null}
-        cornerActions={canEditExistingAvatar ? (
+        actions={canEditExistingAvatar ? (
           <Button
             type="button"
             variant="secondary"

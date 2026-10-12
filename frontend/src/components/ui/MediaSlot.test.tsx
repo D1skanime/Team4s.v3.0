@@ -71,22 +71,26 @@ describe('MediaSlot', () => {
     expect(clickSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('stops a click inside cornerActions from also opening the file picker', () => {
+  it('renders actions as their own row below the slot, never overlapping the preview', () => {
     const onFilesSelected = vi.fn()
     render(
       <MediaSlot
         aspectRatio={1}
-        label="Banner"
+        shape="round"
+        label="Logo"
         hasValue
         onFilesSelected={onFilesSelected}
-        previewContent={<img alt="Banner Vorschau" src="x" />}
-        cornerActions={<button type="button">Löschen</button>}
+        previewContent={<img alt="Logo Vorschau" src="x" />}
+        actions={<button type="button">Löschen</button>}
       />,
     )
     const input = screen.getByLabelText('Dateien') as HTMLInputElement
     const clickSpy = vi.spyOn(input, 'click')
+    const deleteButton = screen.getByRole('button', { name: 'Löschen' })
+    const slot = screen.getByRole('button', { name: 'Logo ersetzen' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    expect(slot.contains(deleteButton)).toBe(false)
+    fireEvent.click(deleteButton)
 
     expect(clickSpy).not.toHaveBeenCalled()
   })
