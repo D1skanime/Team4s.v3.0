@@ -139,7 +139,6 @@ export default function UISystemPlaygroundPage() {
             <ul className={styles.list}>
               <li className={styles.listItem}><span>Keine API-Aufrufe</span><Badge variant="success">aktiv</Badge></li>
               <li className={styles.listItem}><span>Keine Team4s-Fachlogik in `src/components/ui`</span><Badge variant="success">aktiv</Badge></li>
-              <li className={styles.listItem}><span>Keine breite Seitenmigration in 48A</span><Badge variant="warning">bewusst später</Badge></li>
             </ul>
           </Card>
         </div>
