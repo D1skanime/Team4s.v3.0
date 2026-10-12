@@ -21,7 +21,11 @@ export interface MediaSlotProps {
   /** Rendered only while `hasValue` is true (the actual image/video preview). */
   previewContent?: ReactNode
   disabled?: boolean
-  onFilesSelected: (files: File[]) => void
+  /** Omit for a slot that can only ever be deleted, never replaced in place (e.g. one entry of
+   * an existing Background/Background-Video list -- new entries are added through a separate
+   * "adder" slot). Without it, the slot renders a plain, non-interactive preview box -- no
+   * UploadDropzone, no click/drop-to-replace affordance -- while `actions` below still works. */
+  onFilesSelected?: (files: File[]) => void
   accept?: string
   multiple?: boolean
   /** Overrides the default "`label` hierher ziehen oder klicken zum Hochladen" empty-state text. */
@@ -35,6 +39,10 @@ export interface MediaSlotProps {
   actions?: ReactNode
   /** Small pill overlay (e.g. a provider-source badge) in a corner of the slot itself. */
   cornerBadge?: ReactNode
+  /** Shown in the plain preview box when `onFilesSelected` is omitted AND `hasValue` is false
+   * (e.g. a dashed "+ neuer Hintergrund" adder look is instead handled by the caller passing
+   * `onFilesSelected`; this is only for a genuinely empty, non-interactive static slot). */
+  staticEmptyContent?: ReactNode
   className?: string
 }
 
@@ -61,6 +69,7 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
   replaceOverlayHintLabel = 'Zum Ersetzen loslassen',
   actions,
   cornerBadge,
+  staticEmptyContent,
   className,
 }, ref) {
   const presentation = resolveUploadSlotPresentation(hasValue)
@@ -74,19 +83,25 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
         className={classNames(styles.mediaSlot, shape === 'round' ? styles.mediaSlotRound : null, className)}
         style={{ aspectRatio }}
       >
-        <UploadDropzone
-          ref={ref}
-          onFilesSelected={onFilesSelected}
-          accept={accept}
-          multiple={multiple}
-          disabled={disabled}
-          density="compact"
-          promptLabel={promptLabel}
-          overlayHintLabel={presentation === 'replace-overlay' ? replaceOverlayHintLabel : undefined}
-          className={classNames(styles.mediaSlotDropzone, shape === 'round' ? styles.mediaSlotRoundDropzone : null)}
-        >
-          {presentation === 'replace-overlay' ? previewContent : null}
-        </UploadDropzone>
+        {onFilesSelected ? (
+          <UploadDropzone
+            ref={ref}
+            onFilesSelected={onFilesSelected}
+            accept={accept}
+            multiple={multiple}
+            disabled={disabled}
+            density="compact"
+            promptLabel={promptLabel}
+            overlayHintLabel={presentation === 'replace-overlay' ? replaceOverlayHintLabel : undefined}
+            className={classNames(styles.mediaSlotDropzone, shape === 'round' ? styles.mediaSlotRoundDropzone : null)}
+          >
+            {presentation === 'replace-overlay' ? previewContent : null}
+          </UploadDropzone>
+        ) : (
+          <div className={styles.mediaSlotStatic}>
+            {hasValue ? previewContent : staticEmptyContent}
+          </div>
+        )}
         {cornerBadge ? <div className={styles.mediaSlotCornerBadge}>{cornerBadge}</div> : null}
       </div>
       {actions ? <div className={styles.mediaSlotActions}>{actions}</div> : null}

@@ -113,4 +113,36 @@ describe('MediaSlot', () => {
     fireEvent.drop(screen.getByRole('button', { name: 'Cover ersetzen' }), { dataTransfer: { files: [file] } })
     expect(onFilesSelected).toHaveBeenCalledWith([file])
   })
+
+  it('renders a plain, non-interactive preview with no dropzone when onFilesSelected is omitted', () => {
+    render(
+      <MediaSlot
+        aspectRatio={16 / 9}
+        label="Background 1"
+        hasValue
+        previewContent={<img alt="Background Vorschau" src="x" />}
+        actions={<button type="button">Entfernen</button>}
+      />,
+    )
+
+    expect(screen.getByAltText('Background Vorschau')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: /ersetzen/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /hochladen/i })).toBeNull()
+    expect(screen.queryByLabelText('Dateien')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Entfernen' })).not.toBeNull()
+  })
+
+  it('shows staticEmptyContent instead of a dropzone when empty and onFilesSelected is omitted', () => {
+    render(
+      <MediaSlot
+        aspectRatio={16 / 9}
+        label="Background"
+        hasValue={false}
+        staticEmptyContent={<span>Kein Hintergrund</span>}
+      />,
+    )
+
+    expect(screen.getByText('Kein Hintergrund')).not.toBeNull()
+    expect(screen.queryByRole('button')).toBeNull()
+  })
 })
