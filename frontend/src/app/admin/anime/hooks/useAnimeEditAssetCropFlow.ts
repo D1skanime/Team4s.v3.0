@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 
-import { apiClientFetch } from '@/lib/api'
 import type { AdminAnimeAssetKind, AdminAnimePersistedAssets } from '@/types/admin'
 
 import type { AnimeCroppableAssetKind } from '../utils/animeAssetCropConfig'
-import { resolveJellyfinIntakeAssetUrl } from '../utils/jellyfin-intake-assets'
+import { resolveAnimeAssetCropSource } from '../utils/animeAssetCropSource'
 import { formatAdminError } from '../utils/studio-helpers'
 import { useAnimeAssetCropGate } from './useAnimeAssetCropGate'
 
@@ -17,30 +16,32 @@ interface UseAnimeEditAssetCropFlowOptions {
 }
 
 /**
- * Edit-Ergänzung von useAnimeAssetCropGate: ein persistiertes Cover/Banner ist nach dem Upload
- * immer same-origin -- uploadAdminAnimeMedia lädt jede Quelle (auch adoptierte Provider-Treffer)
- * real auf den eigenen Server hoch, `ownership` ist nur eine Herkunfts-Markierung, keine
- * Speicherort-Aussage. Ein normaler apiClientFetch genügt daher für den erneuten Zuschnitt. Ein
- * noch nicht adoptierter Jellyfin-Vorschlag (nur ein Entwurfs-Link, kein echtes Asset) bekommt
- * bewusst KEINEN Zuschnitt-Button -- erst nach "Online suchen" + Übernehmen entsteht ein echtes,
- * zuschneidbares Asset (Live-UAT-Nachtrag 2026-10-12: kein kaputter Button statt defensivem
- * Ausblenden).
+ * Edit-Ergänzung von useAnimeAssetCropGate: ein persistiertes Cover/Banner kann sowohl ein echter
+ * Upload (same-origin /media/...) als auch der Jellyfin-Bild-Proxy (/api/v1/media/image?...) aus
+ * "Jellyfin-Metadaten anwenden" sein -- letzterer lädt das Bild NIE auf den eigenen Server
+ * herunter, bleibt aber ein backend-relativer Pfad. Beide müssen daher mit einem einfachen,
+ * SAME-ORIGIN fetch() über die bestehende Next.js-Proxy-Infrastruktur geladen werden, NIEMALS
+ * über apiClientFetch (das die URL im Browser zur absoluten Backend-Origin aufloest -- das scheitert
+ * dort am CORS, siehe Live-UAT-Korrektur 2026-10-12: "Failed to fetch" trotz funktionierendem
+ * <img src> auf dieselbe URL). resolveAnimeAssetCropSource entscheidet das als reine Funktion;
+ * eine absolute/externe URL blendet den Zuschnitt-Button defensiv aus statt einen kaputten
+ * Button zu zeigen.
  */
 export function useAnimeEditAssetCropFlow({ persistedAssets, onAssetFilesSelected, onError }: UseAnimeEditAssetCropFlowOptions) {
   const [isFetchingCropSource, setIsFetchingCropSource] = useState(false)
   const cropGate = useAnimeAssetCropGate({ onFilesReady: onAssetFilesSelected })
 
   function canOpenAssetCrop(kind: AnimeCroppableAssetKind): boolean {
-    return Boolean(persistedAssets[kind]?.url)
+    return resolveAnimeAssetCropSource(persistedAssets[kind]?.url).fetchable
   }
 
   async function openAssetCrop(kind: AnimeCroppableAssetKind) {
-    const url = resolveJellyfinIntakeAssetUrl(persistedAssets[kind]?.url)
-    if (!url || isFetchingCropSource) return
+    const resolved = resolveAnimeAssetCropSource(persistedAssets[kind]?.url)
+    if (!resolved.fetchable || isFetchingCropSource) return
 
     setIsFetchingCropSource(true)
     try {
-      const response = await apiClientFetch(url)
+      const response = await fetch(resolved.url)
       if (!response.ok) {
         throw new Error(`(${response.status}) Bild konnte nicht zum Zuschneiden geladen werden.`)
       }
