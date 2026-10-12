@@ -7,6 +7,16 @@ import type { AdminAnimePersistedAssets } from '@/types/admin'
 
 import { useAnimeEditAssetCropFlow } from './useAnimeEditAssetCropFlow'
 
+const API_BASE_URL = 'http://192.168.235.196:18092'
+
+vi.mock('@/lib/publicApiUrl', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/publicApiUrl')>()
+  return {
+    ...actual,
+    getBrowserApiBaseUrl: () => API_BASE_URL,
+  }
+})
+
 vi.mock('@/components/media/crop/Team4sCropper', () => ({
   Team4sCropper: ({
     title,
@@ -60,6 +70,10 @@ function Harness({
   )
 }
 
+function okImageResponse(): { ok: true; blob: () => Promise<Blob> } {
+  return { ok: true, blob: () => Promise.resolve(new Blob(['x'], { type: 'image/jpeg' })) }
+}
+
 describe('useAnimeEditAssetCropFlow', () => {
   it('canOpenAssetCrop is false when no persisted asset exists for that kind', () => {
     render(<Harness persistedAssets={emptyPersistedAssets()} onError={vi.fn()} />)
@@ -91,13 +105,25 @@ describe('useAnimeEditAssetCropFlow', () => {
     expect(screen.getByTestId('can-open-cover').textContent).toBe('true')
   })
 
-  it('canOpenAssetCrop is false for an absolute backend-origin URL (CORS risk) -- button stays hidden', () => {
+  it('canOpenAssetCrop is true for an ABSOLUTE URL on the known backend origin (Live-UAT-Korrektur 2026-10-12)', () => {
     const persistedAssets: AdminAnimePersistedAssets = {
       cover: {
-        url: 'http://192.168.235.196:18092/api/v1/media/image?item_id=x&kind=primary&provider=jellyfin',
+        url: `${API_BASE_URL}/api/v1/media/image?item_id=68546f5d1871ad1c42d8d674376e83e6&kind=primary&provider=jellyfin`,
         ownership: 'provider',
         provider: 'jellyfin',
       },
+      banner: { url: `${API_BASE_URL}/media/anime/2/banner/some-uuid/display.jpg`, ownership: 'manual' },
+      backgrounds: [],
+    }
+    render(<Harness persistedAssets={persistedAssets} onError={vi.fn()} />)
+
+    expect(screen.getByTestId('can-open-cover').textContent).toBe('true')
+    expect(screen.getByTestId('can-open-banner').textContent).toBe('true')
+  })
+
+  it('canOpenAssetCrop is false for an absolute URL on a genuinely foreign origin -- button stays hidden', () => {
+    const persistedAssets: AdminAnimePersistedAssets = {
+      cover: { url: 'https://image.tmdb.org/t/p/original/poster.jpg', ownership: 'provider', provider: 'tmdb' },
       backgrounds: [],
     }
     render(<Harness persistedAssets={persistedAssets} onError={vi.fn()} />)
@@ -106,8 +132,7 @@ describe('useAnimeEditAssetCropFlow', () => {
   })
 
   it('fetches the relative Jellyfin-image-proxy URL same-origin via plain fetch() and opens the crop dialog', async () => {
-    const blob = new Blob(['x'], { type: 'image/jpeg' })
-    fetchMock.mockResolvedValue({ ok: true, blob: () => Promise.resolve(blob) })
+    fetchMock.mockResolvedValue(okImageResponse())
     vi.stubGlobal('fetch', fetchMock)
     const rawUrl = '/api/v1/media/image?item_id=68546f5d1871ad1c42d8d674376e83e6&kind=primary&provider=jellyfin'
     const persistedAssets: AdminAnimePersistedAssets = {
@@ -123,7 +148,73 @@ describe('useAnimeEditAssetCropFlow', () => {
     expect(fetchMock).toHaveBeenCalledWith(rawUrl)
   })
 
-  it('reports a fetch failure via onError instead of opening a broken dialog', async () => {
+  it('strips the absolute backend-origin URL to its relative path before fetching (the CORS fix)', async () => {
+    fetchMock.mockResolvedValue(okImageResponse())
+    vi.stubGlobal('fetch', fetchMock)
+    const persistedAssets: AdminAnimePersistedAssets = {
+      cover: {
+        url: `${API_BASE_URL}/api/v1/media/image?item_id=68546f5d1871ad1c42d8d674376e83e6&kind=primary&provider=jellyfin`,
+        ownership: 'provider',
+        provider: 'jellyfin',
+      },
+      backgrounds: [],
+    }
+    render(<Harness persistedAssets={persistedAssets} onError={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cover-Ausschnitt oeffnen' }))
+
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Cover zuschneiden' })).not.toBeNull())
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/media/image?item_id=68546f5d1871ad1c42d8d674376e83e6&kind=primary&provider=jellyfin')
+    const calledWithAbsolute = fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.startsWith('http'))
+    expect(calledWithAbsolute).toBe(false)
+  })
+
+  it('falls back to the display variant when none of the original candidates are available', async () => {
+    const displayUrl = '/media/anime/2/cover/some-uuid/display.jpg'
+    fetchMock.mockImplementation((url: string) => {
+      if (url === displayUrl) return Promise.resolve(okImageResponse())
+      return Promise.resolve({ ok: false, status: 404 })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const persistedAssets: AdminAnimePersistedAssets = {
+      cover: { url: displayUrl, ownership: 'manual' },
+      backgrounds: [],
+    }
+    render(<Harness persistedAssets={persistedAssets} onError={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cover-Ausschnitt oeffnen' }))
+
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Cover zuschneiden' })).not.toBeNull())
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+      '/media/anime/2/cover/some-uuid/original.jpg',
+      '/media/anime/2/cover/some-uuid/original.png',
+      '/media/anime/2/cover/some-uuid/original.webp',
+      '/media/anime/2/cover/some-uuid/original.gif',
+      displayUrl,
+    ])
+  })
+
+  it('stops at the first available original candidate instead of trying the rest', async () => {
+    const displayUrl = '/media/anime/2/cover/some-uuid/display.png'
+    fetchMock.mockImplementation((url: string) => {
+      if (url === '/media/anime/2/cover/some-uuid/original.png') return Promise.resolve(okImageResponse())
+      return Promise.resolve({ ok: false, status: 404 })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const persistedAssets: AdminAnimePersistedAssets = {
+      cover: { url: displayUrl, ownership: 'manual' },
+      backgrounds: [],
+    }
+    render(<Harness persistedAssets={persistedAssets} onError={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cover-Ausschnitt oeffnen' }))
+
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Cover zuschneiden' })).not.toBeNull())
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledWith('/media/anime/2/cover/some-uuid/original.png')
+  })
+
+  it('reports a fetch failure via onError instead of opening a broken dialog when even the display fallback fails', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 502 })
     vi.stubGlobal('fetch', fetchMock)
     const onError = vi.fn()
