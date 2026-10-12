@@ -185,6 +185,29 @@ describe('MediaUpload', () => {
     await waitFor(() => expect(onBusyChange).toHaveBeenLastCalledWith(false))
   })
 
+  it('accepts a dropped banner file via the UploadDropzone without crashing (regression: pseudo-event adapter)', async () => {
+    // UploadDropzone hands back a raw File[] (click or drag&drop), never a native ChangeEvent --
+    // a prior adapter wrapped it in a hand-built pseudo-event and crashed on
+    // `event.currentTarget.value = ''` since the pseudo-event had no real currentTarget.
+    render(
+      <MediaUpload
+        type="banner"
+        fansubID={17}
+        groupName="Phase Fansubs"
+        value={null}
+        onChange={vi.fn()}
+      />,
+    )
+
+    const file = new File(['banner'], 'dropped-banner.png', { type: 'image/png' })
+    fireEvent.drop(screen.getByRole('button', { name: 'Bild hierher ziehen oder klicken zum Hochladen' }), {
+      dataTransfer: { files: [file] },
+    })
+
+    expect(await screen.findByRole('dialog', { name: 'Banner ausrichten' })).not.toBeNull()
+    expect(uploadFansubMediaMock).not.toHaveBeenCalled()
+  })
+
   it('uploads animated banner GIFs directly without opening the cropper', async () => {
     uploadFansubMediaMock.mockResolvedValue({
       data: {

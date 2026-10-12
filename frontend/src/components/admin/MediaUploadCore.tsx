@@ -38,8 +38,11 @@ export interface MediaUploadCoreProps {
   inputRef: MutableRefObject<HTMLInputElement | null>
   /** Accept-Mime-Types für das File-Input */
   acceptedMime: string
-  /** Wird aufgerufen, wenn der User eine Datei auswählt oder per Drag&Drop ablegt */
+  /** Wird vom versteckten Fallback-<input> (Aktions-Button) aufgerufen -- echtes ChangeEvent. */
   onFileInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  /** Wird von UploadDropzone (Klick oder Drag&Drop) mit den rohen Files aufgerufen -- kein
+   * ChangeEvent, da UploadDropzone keinen echten `currentTarget` liefert. */
+  onFilesSelected: (files: File[]) => void
   /** Wird aufgerufen, wenn der User auf „Edit" klickt */
   onEditClick: () => void
   /** Wird aufgerufen, wenn der User löschen möchte */
@@ -66,6 +69,7 @@ export function MediaUploadCore({
   inputRef,
   acceptedMime,
   onFileInputChange,
+  onFilesSelected,
   onEditClick,
   onRemoveClick,
 }: MediaUploadCoreProps) {
@@ -130,11 +134,7 @@ export function MediaUploadCore({
       </div>
 
       <UploadDropzone
-        onFilesSelected={(files) => {
-          const file = files[0]
-          if (!file) return
-          onFileInputChange({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>)
-        }}
+        onFilesSelected={onFilesSelected}
         accept={acceptedMime}
         multiple={false}
         allowDrop={true}

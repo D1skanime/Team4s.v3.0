@@ -349,6 +349,16 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
     await processFile(file)
   }
 
+  // UploadDropzone delivers plain Files (click or drop), never a native ChangeEvent -- calling
+  // processFile directly instead of routing through onInputChange avoids reconstructing a fake
+  // event just to satisfy its signature (a prior pseudo-event adapter crashed here because the
+  // synthetic object had no real `currentTarget`). UploadDropzone resets its own input value.
+  const onFilesSelected = (files: File[]) => {
+    const file = files[0]
+    if (!file || busy || disabled) return
+    void processFile(file)
+  }
+
   const onRemove = async () => {
     if (busy || disabled || !Boolean(value?.publicURL?.trim())) return
     setError(null)
@@ -382,6 +392,7 @@ export function MediaUpload({ type, fansubID, groupName, value, disabled, onBusy
         inputRef={inputRef}
         acceptedMime={acceptedMime}
         onFileInputChange={(event) => void onInputChange(event)}
+        onFilesSelected={onFilesSelected}
         onEditClick={() => void onEditCurrentMedia()}
         onRemoveClick={() => void onRemove()}
       />
