@@ -1,9 +1,15 @@
-import { Card, SectionHeader } from '@/components/ui'
+'use client'
+
+import { useState } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+
+import { Button, Card, SectionHeader } from '@/components/ui'
+import { FansubMediaLightbox } from '@/components/fansubs/FansubMediaLightbox'
+import type { PublicImageLightboxItem } from '@/components/fansubs/FansubMediaLightbox'
 import { PublicReleaseBlock } from '@/components/fansubs/PublicReleaseBlock'
 import type { PublicReleasePreview } from '@/components/fansubs/PublicReleaseBlock'
 import { DesktopReleaseRow } from '@/app/anime/[id]/group/[groupId]/sections/OlderReleasesList.rows'
 import type { EpisodeReleaseSummary } from '@/types/group'
-import type { CSSProperties, ReactNode } from 'react'
 
 import styles from '../page.module.css'
 
@@ -168,6 +174,18 @@ const releaseListCardExamples: EpisodeReleaseSummary[] = [
   },
 ]
 
+const releaseLightboxMedia: PublicImageLightboxItem[] = releaseImages.map((image) => ({
+  id: image.id,
+  title: image.label,
+  caption: image.alt,
+  media_type: 'image',
+  original_url: image.src,
+  display_url: image.src,
+  thumbnail_url: image.src,
+  episode_label: latestRelease.episodeLabel,
+  release_version_label: latestRelease.versionLabel,
+}))
+
 function ReleaseSurfaceFrame({
   title,
   width,
@@ -191,6 +209,8 @@ function ReleaseSurfaceFrame({
 }
 
 export function PublicReleaseSurfacesShowcase() {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
   return (
     <Card variant="section">
       <SectionHeader
@@ -236,6 +256,23 @@ export function PublicReleaseSurfacesShowcase() {
             title="Releases zum Fansub"
             description="So wirkt der Bereich, wenn noch keine öffentlichen Release-Daten freigegeben sind."
             releases={[]}
+          />
+        </ReleaseSurfaceFrame>
+
+        <Card
+          variant="flat"
+          title="Gemeinsamer Bild-Viewer (Phase 177)"
+          description="Die Release-Vorschaubilder öffnen denselben Viewer wie überall sonst öffentlich (FansubMediaLightbox: Vollbild-Schleier, große NavArrow-Pfeile, ThumbnailStrip, Titel oben/Text unten mit „Weiterlesen“, Zoom)."
+        />
+        <ReleaseSurfaceFrame title="Release-Bilder-Viewer" width="1180px">
+          <Button type="button" variant="secondary" size="sm" onClick={() => setLightboxIndex(0)}>
+            Bild-Viewer mit Release-Bildern öffnen
+          </Button>
+          <FansubMediaLightbox
+            media={releaseLightboxMedia}
+            index={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+            onNavigate={setLightboxIndex}
           />
         </ReleaseSurfaceFrame>
       </div>

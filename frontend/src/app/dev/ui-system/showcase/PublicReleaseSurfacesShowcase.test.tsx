@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { forwardRef, type ImgHTMLAttributes } from 'react'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { PublicReleaseSurfacesShowcase } from './PublicReleaseSurfacesShowcase'
@@ -38,5 +38,13 @@ describe('PublicReleaseSurfacesShowcase', () => {
     // (Vorschaubild + Pfeil), benannt nach episodeLabel(episode) + ' öffnen'.
     expect(screen.getAllByRole('link', { name: 'Folge 12 öffnen' })).toHaveLength(2)
     expect(screen.getAllByRole('link', { name: 'Folge 11 öffnen' })).toHaveLength(2)
+  })
+
+  it('öffnet den gemeinsamen Bild-Viewer (FansubMediaLightbox) mit Release-Mock-Bildern über den Demo-Button', () => {
+    render(<PublicReleaseSurfacesShowcase />)
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Bild-Viewer mit Release-Bildern öffnen' }))
+    expect(screen.getByRole('dialog')).toBeTruthy()
   })
 })
