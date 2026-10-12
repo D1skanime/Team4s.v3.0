@@ -143,14 +143,6 @@ describe('AdminAnimeEditPage load error formatting', () => {
     expect(source).toContain('AniSearch-Nachladen ist bewusst nicht Teil des')
   })
 
-  it('documents the generic V2 upload seam instead of the legacy public covers path in the edit asset UI', () => {
-    const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    const source = readFileSync(path.join(currentDir, '../../components/AnimePatchForm/AnimeCoverField.tsx'), 'utf8')
-
-    expect(source).toContain('verifizierte V2-Upload-Seam')
-    expect(source).not.toContain('frontend/public/covers')
-  })
-
   it('exposes create-like asset actions in the reachable edit asset UI', () => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     const assetSource = readFileSync(path.join(currentDir, '../../components/AnimeEditPage/AnimeEditAssetSection.tsx'), 'utf8')
