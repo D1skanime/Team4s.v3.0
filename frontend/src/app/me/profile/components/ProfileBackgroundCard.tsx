@@ -7,6 +7,7 @@ import { Crop } from 'lucide-react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
 import { Button, UploadDropzone } from '@/components/ui'
+import type { UploadDropzoneHandle } from '@/components/ui'
 import { apiClientFetch } from '@/lib/api'
 import {
   PROFILE_BANNER_ASPECT_RATIO,
@@ -24,7 +25,9 @@ type ProfileBackgroundCardProps = {
   backgroundURL: string
   sourceBackgroundURL: string
   isUploading: boolean
-  inputRef?: RefObject<HTMLInputElement>
+  /** Laesst einen externen Trigger (z. B. der Bleistift-Button im Profilkopf) denselben Picker
+   * oeffnen wie die UploadDropzone selbst -- kein zweites natives <input> mehr. */
+  inputRef?: RefObject<UploadDropzoneHandle>
   variant?: 'full' | 'compact'
   onBackgroundSelected: (payload: { sourceFile: File; croppedFile: File }) => Promise<void> | void
 }
@@ -52,7 +55,7 @@ export function ProfileBackgroundCard({
   variant = 'full',
   onBackgroundSelected,
 }: ProfileBackgroundCardProps) {
-  const localInputRef = useRef<HTMLInputElement>(null)
+  const localInputRef = useRef<UploadDropzoneHandle>(null)
   const resolvedInputRef = inputRef ?? localInputRef
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isPreparingExistingBackground, setIsPreparingExistingBackground] = useState(false)
@@ -114,6 +117,7 @@ export function ProfileBackgroundCard({
           ) : null}
         </div>
         <UploadDropzone
+          ref={resolvedInputRef}
           onFilesSelected={(files) => {
             const file = files[0]
             if (!file) return
@@ -131,20 +135,6 @@ export function ProfileBackgroundCard({
         </p>
         {localError ? <p role="alert" className={styles.inlineError}>{localError}</p> : null}
       </div>
-      <input
-        ref={resolvedInputRef}
-        type="file"
-        aria-label="Hintergrundbild auswählen"
-        accept="image/jpeg,image/png,image/webp"
-        onChange={(event) => {
-          const file = event.target.files?.[0] ?? null
-          event.currentTarget.value = ''
-          if (!file) return
-          handleSelectedFile(file)
-        }}
-        disabled={isUploading || isPreparingExistingBackground || !canUpload}
-        className={styles.visuallyHiddenInput}
-      />
       {selectedFile ? (
         <Team4sCropper
           file={selectedFile}

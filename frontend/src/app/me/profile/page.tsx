@@ -10,6 +10,7 @@ import { RecentContributionsSection } from '@/components/profile/RecentContribut
 import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { Button, Card, ErrorState, FormField, LoadingState, SectionHeader, Textarea } from '@/components/ui'
+import type { UploadDropzoneHandle } from '@/components/ui'
 import { ApiError, getMyBadges, getMyMemberClaim, getOwnProfile, patchMyBadgeVisibility, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground, uploadOwnProfileStoryImage } from '@/lib/api'
 import { consumeRegistrationCompletion } from '@/lib/registrationCompletion'
 import { uploadPendingStoryImages } from '@/lib/storyImageUpload'
@@ -194,8 +195,8 @@ function MyProfilePageContent() {
   const isFormDirtyRef = useRef(false)
   const isRefreshingAccountRef = useRef(false)
   const hasConsumedRegistrationCompletionRef = useRef(false)
-  const avatarInputRef = useRef<HTMLInputElement>(null)
-  const backgroundInputRef = useRef<HTMLInputElement>(null)
+  const avatarInputRef = useRef<UploadDropzoneHandle>(null)
+  const backgroundInputRef = useRef<UploadDropzoneHandle>(null)
   const queryTab = searchParams.get('tab')
   const requestedTab: ProfileTab = isProfileTab(queryTab) ? queryTab : 'profile'
   const [activeTab, setActiveTab] = useState<ProfileTab>(requestedTab)
@@ -586,8 +587,8 @@ function MyProfilePageContent() {
               profile={profile}
               avatarURL={avatarURL}
               backgroundImageURL={backgroundImageURL}
-              onAvatarEdit={() => avatarInputRef.current?.click()}
-              onBackgroundEdit={() => backgroundInputRef.current?.click()}
+              onAvatarEdit={() => avatarInputRef.current?.open()}
+              onBackgroundEdit={() => backgroundInputRef.current?.open()}
             />
             {error ? <div className={styles.errorBox}>{error}</div> : null}
             {success ? <div className={styles.successBox}>{success}</div> : null}

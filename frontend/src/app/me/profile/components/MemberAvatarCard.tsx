@@ -5,6 +5,7 @@ import { Crop } from 'lucide-react'
 
 import { AvatarCropDialog } from '@/components/media/crop/AvatarCropDialog'
 import { Button, UploadDropzone } from '@/components/ui'
+import type { UploadDropzoneHandle } from '@/components/ui'
 import type { MemberProfileData } from '@/types/profile'
 
 import styles from '../page.module.css'
@@ -14,7 +15,9 @@ type MemberAvatarCardProps = {
   avatarURL: string
   sourceAvatarURL: string
   isUploading: boolean
-  inputRef?: RefObject<HTMLInputElement>
+  /** Laesst einen externen Trigger (z. B. der Bleistift-Button im Profilkopf) denselben Picker
+   * oeffnen wie die UploadDropzone selbst -- kein zweites natives <input> mehr. */
+  inputRef?: RefObject<UploadDropzoneHandle>
   variant?: 'full' | 'compact'
   onAvatarSelected: (payload: { sourceFile: File; croppedFile: File }) => Promise<void> | void
 }
@@ -83,7 +86,7 @@ export function MemberAvatarCard({
   variant = 'full',
   onAvatarSelected,
 }: MemberAvatarCardProps) {
-  const localInputRef = useRef<HTMLInputElement>(null)
+  const localInputRef = useRef<UploadDropzoneHandle>(null)
   const resolvedInputRef = inputRef ?? localInputRef
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isPreparingExistingAvatar, setIsPreparingExistingAvatar] = useState(false)
@@ -156,6 +159,7 @@ export function MemberAvatarCard({
           ) : null}
         </div>
         <UploadDropzone
+          ref={resolvedInputRef}
           onFilesSelected={(files) => {
             const file = files[0]
             if (!file) return
@@ -173,20 +177,6 @@ export function MemberAvatarCard({
         </p>
         {localError ? <p role="alert" className={styles.inlineError}>{localError}</p> : null}
       </div>
-      <input
-        ref={resolvedInputRef}
-        type="file"
-        aria-label="Avatar-Bild auswählen"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        onChange={(event) => {
-          const file = event.target.files?.[0] ?? null
-          event.currentTarget.value = ''
-          if (!file || !canUpload || isUploading) return
-          void handleSelectedFile(file)
-        }}
-        disabled={isUploading || isPreparingExistingAvatar || !canUpload}
-        className={styles.visuallyHiddenInput}
-      />
       {selectedFile ? (
         <AvatarCropDialog
           file={selectedFile}

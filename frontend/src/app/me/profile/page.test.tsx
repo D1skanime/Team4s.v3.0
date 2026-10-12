@@ -278,6 +278,15 @@ async function openProfileTab(name: string) {
   fireEvent.click(await screen.findByRole('tab', { name }))
 }
 
+/** MemberAvatarCard and ProfileBackgroundCard sit side by side on the same tab and both render
+ * an UploadDropzone whose internal file input shares the generic aria-label "Dateien" -- scope
+ * the query via each card's own distinct hint paragraph (a DOM sibling of its dropzone) instead
+ * of relying on a now-removed per-card aria-label. */
+async function fileInputNear(hintText: string): Promise<HTMLInputElement> {
+  const hint = await screen.findByText(hintText)
+  return within(hint.parentElement as HTMLElement).getByLabelText('Dateien') as HTMLInputElement
+}
+
 describe('MyProfilePage', () => {
   it('keeps role catalog authority out of the own-profile route', () => {
     expect(ownProfilePageSource).not.toContain('FANSUB_GROUP_ROLE_OPTIONS')
@@ -855,7 +864,7 @@ describe('MyProfilePage', () => {
     const fansubNickInput = await screen.findByLabelText('Fansub-Nick')
     fireEvent.change(fansubNickInput, { target: { value: 'Ungespeicherter Nick' } })
     await openProfileTab('Sichtbarkeit')
-    fireEvent.change(screen.getByLabelText('Avatar-Bild auswählen'), {
+    fireEvent.change(await fileInputNear('Wähle ein Avatar-Bild als JPG, PNG, WEBP, animiertes WebP oder animiertes GIF.'), {
       target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
     })
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
@@ -888,7 +897,7 @@ describe('MyProfilePage', () => {
     render(<MyProfilePage />)
 
     await openProfileTab('Sichtbarkeit')
-    fireEvent.change(await screen.findByLabelText('Avatar-Bild auswählen'), {
+    fireEvent.change(await fileInputNear('Wähle ein Avatar-Bild als JPG, PNG, WEBP, animiertes WebP oder animiertes GIF.'), {
       target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
     })
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
@@ -918,7 +927,7 @@ describe('MyProfilePage', () => {
 
     await openProfileTab('Sichtbarkeit')
     const gifFile = new File(['gif'], 'avatar.gif', { type: 'image/gif' })
-    fireEvent.change(await screen.findByLabelText('Avatar-Bild auswählen'), {
+    fireEvent.change(await fileInputNear('Wähle ein Avatar-Bild als JPG, PNG, WEBP, animiertes WebP oder animiertes GIF.'), {
       target: { files: [gifFile] },
     })
 
@@ -956,7 +965,7 @@ describe('MyProfilePage', () => {
     animatedWebPHeader[20] = 0x02
     const webPFile = new File([animatedWebPHeader], 'avatar.gif.webp', { type: 'image/webp' })
     await openProfileTab('Sichtbarkeit')
-    fireEvent.change(await screen.findByLabelText('Avatar-Bild auswählen'), {
+    fireEvent.change(await fileInputNear('Wähle ein Avatar-Bild als JPG, PNG, WEBP, animiertes WebP oder animiertes GIF.'), {
       target: { files: [webPFile] },
     })
 
@@ -981,7 +990,7 @@ describe('MyProfilePage', () => {
     render(<MyProfilePage />)
 
     await openProfileTab('Sichtbarkeit')
-    fireEvent.change(await screen.findByLabelText('Hintergrundbild auswählen'), {
+    fireEvent.change(await fileInputNear('Wähle ein breites JPG, PNG oder WEBP. Der Ausschnitt wird als Profil-Banner gespeichert.'), {
       target: { files: [new File(['source'], 'background.png', { type: 'image/png' })] },
     })
     expect((await screen.findByTestId('cropper-output-size')).textContent).toBe('1920x384')
