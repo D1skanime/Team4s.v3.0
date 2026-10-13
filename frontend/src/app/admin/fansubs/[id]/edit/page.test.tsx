@@ -4,7 +4,7 @@ import { createElement, type ImgHTMLAttributes, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
-import type { UseReleaseVersionMediaResult } from '@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia'
+import type { UseReleaseVersionMediaResult } from '@/components/releaseEditor/useReleaseVersionMedia'
 
 vi.mock('next/link', () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
@@ -147,7 +147,7 @@ vi.mock('./NotesTab', () => ({
   NotesTab: () => <div data-testid="notes-tab" />,
 }))
 
-vi.mock('@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia', () => ({
+vi.mock('@/components/releaseEditor/useReleaseVersionMedia', () => ({
   useReleaseVersionMedia: (versionId: number | null) => mockedUseReleaseVersionMedia(versionId),
 }))
 

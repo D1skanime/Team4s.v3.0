@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useReleaseVersionMedia } from '@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia'
+import { useReleaseVersionMedia } from '@/components/releaseEditor/useReleaseVersionMedia'
 import { CATEGORY_LABELS, ReleaseVersionMediaCategory, RELEASE_VERSION_MEDIA_CATEGORIES } from '@/types/releaseVersionMedia'
 import styles from './ReleaseVersionMediaDrawerSummary.module.css'
 

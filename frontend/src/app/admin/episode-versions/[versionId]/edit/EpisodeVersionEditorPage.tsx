@@ -23,7 +23,7 @@ import {
   padEpisodeNumber,
 } from "./episodeVersionEditorUtils";
 import { EpisodeNavigationControls } from "./EpisodeNavigationControls";
-import { ReleaseVersionMediaSection } from "./ReleaseVersionMediaSection";
+import { ReleaseVersionMediaSection } from "@/components/releaseEditor/ReleaseVersionMediaSection";
 import { ReleaseVersionNotesTab } from "./ReleaseVersionNotesTab";
 import { useEpisodeNeighborNavigation } from "./useEpisodeNeighborNavigation";
 import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
