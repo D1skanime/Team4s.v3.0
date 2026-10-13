@@ -146,3 +146,11 @@ None.
 ---
 *Phase: 181-release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-*
 *Completed: 2026-10-13*
+
+## Self-Check: PASSED
+
+Alle 20 relozierten/neuen Dateien unter `frontend/src/components/releaseEditor/` auf der
+Festplatte gefunden; die alten Pfade (`ReleaseVersionMediaSection.tsx`,
+`episodeVersionEditorUtils.ts` u.a. unter `app/admin/episode-versions/[versionId]/edit/`)
+bestätigt nicht mehr vorhanden. Alle 4 Commits (`3b293b17`, `24aa2c9b`, `7a0375f7`, `02ea0b27`)
+im Git-Log gefunden.

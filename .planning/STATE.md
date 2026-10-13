@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 181-02-PLAN.md
-last_updated: "2026-10-13T15:55:06.024Z"
+stopped_at: Completed 181-03-PLAN.md
+last_updated: "2026-10-13T16:04:28.058Z"
 last_activity: 2026-10-13
 progress:
   total_phases: 46
   completed_phases: 40
   total_plans: 436
-  completed_plans: 426
+  completed_plans: 427
   percent: 87
 ---
 
@@ -303,7 +303,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — EXECUTING
-Plan: 3 of 9
+Plan: 4 of 9
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -1078,6 +1078,8 @@ Last activity: 2026-10-13
 - [Phase 181]: D-05 behoben: GetMemberProjectDetail LEFT JOIN own_roles + Handler-Sentinel memberID=0 statt 404 bei fehlendem member_claims-Eintrag — Zwei-teiliger Fix noetig (Pattern 4/Pitfall 2, 181-RESEARCH.md) -- ein Handler-only-Fix haette den 404 nur eine Ebene tiefer verschoben
 - [Phase 181]: buildReleaseEditorRedirects() framework-frei gehalten (kein next-Import); next.config.mjs-Verdrahtung bewusst auf Plan 09/Wave 5 verschoben
 - [Phase 181]: resolveNavigationContext() faellt ohne jeglichen Kontext konservativ auf 'project' zurueck (RESEARCH.md Assumption A1), jetzt als expliziter Regressionstest abgesichert
+- [Phase ?]: [Phase 181]: 181-03: ReleaseVersionMediaEditDrawer.tsx's relativer Cross-Folder-Import (RELEASE_REVIEW_REJECTION_CATEGORY_LABELS aus ../../../fansubs/releaseReviewPresentation) auf absoluten Pfad @/app/admin/fansubs/releaseReviewPresentation umgestellt -- Plan-Annahme 'Familie importiert nur sich selbst + @/...' hatte diesen Ausbruch nicht erfasst
+- [Phase ?]: [Phase 181]: 181-03: 2 Testdateien ausserhalb der Plan-files_modified-Liste (admin editor page.test.tsx, workspace page.test.tsx) hatten vi.mock()-Pfade/relative Imports auf die alte Familie-Adresse -- beide korrigiert, sonst waeren Mocks nach dem Verschieben stillschweigend wirkungslos geworden
 
 ### Pending Todos
 
@@ -1724,11 +1726,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 180 P11 | 25min | 2 tasks tasks | 2 files files |
 | Phase 181 P01 | 25min | 2 tasks | 6 files |
 | Phase 181 P02 | 5min | 3 tasks | 6 files |
+| Phase 181 P03 | 12min | 3 tasks | 29 files |
 
 ## Session Continuity
 
-Last session: 2026-10-13T15:55:05.992Z
-Stopped at: Completed 181-02-PLAN.md
+Last session: 2026-10-13T16:04:28.034Z
+Stopped at: Completed 181-03-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
