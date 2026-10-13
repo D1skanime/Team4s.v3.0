@@ -110,6 +110,13 @@ describe('UploadDropzone', () => {
     clickSpy.mockRestore()
   })
 
+  it('removes the hidden file input from the sequential tab order (the dropzone div is the single keyboard target)', () => {
+    render(<UploadDropzone onFilesSelected={vi.fn()} />)
+    const input = screen.getByLabelText('Dateien') as HTMLInputElement
+
+    expect(input.tabIndex).toBe(-1)
+  })
+
   it('calls onFilesSelected with the dropped files (drag&drop is always active per D-17)', () => {
     const onFilesSelected = vi.fn()
     render(<UploadDropzone onFilesSelected={onFilesSelected} />)

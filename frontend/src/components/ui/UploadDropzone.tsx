@@ -210,6 +210,7 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
         accept={accept}
         aria-label="Dateien"
         disabled={disabled}
+        tabIndex={-1}
         className={styles.hiddenFileInput}
         onClick={(event) => event.stopPropagation()}
         onChange={onInputChange}
