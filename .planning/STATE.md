@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 181-03-PLAN.md
-last_updated: "2026-10-13T16:04:28.058Z"
+stopped_at: Completed 181-04-PLAN.md
+last_updated: "2026-10-13T16:13:00.394Z"
 last_activity: 2026-10-13
 progress:
   total_phases: 46
   completed_phases: 40
   total_plans: 436
-  completed_plans: 427
+  completed_plans: 428
   percent: 87
 ---
 
@@ -303,7 +303,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -1080,6 +1080,8 @@ Last activity: 2026-10-13
 - [Phase 181]: resolveNavigationContext() faellt ohne jeglichen Kontext konservativ auf 'project' zurueck (RESEARCH.md Assumption A1), jetzt als expliziter Regressionstest abgesichert
 - [Phase ?]: [Phase 181]: 181-03: ReleaseVersionMediaEditDrawer.tsx's relativer Cross-Folder-Import (RELEASE_REVIEW_REJECTION_CATEGORY_LABELS aus ../../../fansubs/releaseReviewPresentation) auf absoluten Pfad @/app/admin/fansubs/releaseReviewPresentation umgestellt -- Plan-Annahme 'Familie importiert nur sich selbst + @/...' hatte diesen Ausbruch nicht erfasst
 - [Phase ?]: [Phase 181]: 181-03: 2 Testdateien ausserhalb der Plan-files_modified-Liste (admin editor page.test.tsx, workspace page.test.tsx) hatten vi.mock()-Pfade/relative Imports auf die alte Familie-Adresse -- beide korrigiert, sonst waeren Mocks nach dem Verschieben stillschweigend wirkungslos geworden
+- [Phase 181-04]: ReleaseVersionNotesTab's einzige relative Import-Tiefe auf '../editor/...' angepasst, Rest der 743-Zeilen-Datei unveraendert verschoben
+- [Phase 181-04]: 2 vi.mock()-Pfad-Strings in page.test.tsx (Admin) und workspace/page.test.tsx nach Segmente/Notizen-Verschiebung korrigiert (nicht im Plan gelistet)
 
 ### Pending Todos
 
@@ -1727,11 +1729,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 181 P01 | 25min | 2 tasks | 6 files |
 | Phase 181 P02 | 5min | 3 tasks | 6 files |
 | Phase 181 P03 | 12min | 3 tasks | 29 files |
+| Phase 181 P04 | 8min | 3 tasks | 30 files |
 
 ## Session Continuity
 
-Last session: 2026-10-13T16:04:28.034Z
-Stopped at: Completed 181-03-PLAN.md
+Last session: 2026-10-13T16:13:00.371Z
+Stopped at: Completed 181-04-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
