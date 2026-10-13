@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 180-12-PLAN.md (phase 180 complete)
-last_updated: "2026-10-13T08:30:00.000Z"
+stopped_at: Completed 180-09-PLAN.md
+last_updated: "2026-10-13T14:16:44.922Z"
 last_activity: 2026-10-13
 progress:
-  total_phases: 45
+  total_phases: 46
   completed_phases: 40
-  total_plans: 427
+  total_plans: 436
   completed_plans: 424
-  percent: 99
+  percent: 87
 ---
 
 # Phase 180 — Einheitliche Upload-Oberfläche (F-15 Teil 2) — COMPLETE (2026-10-13)
@@ -411,7 +411,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-11
+Last activity: 2026-10-13
 
 ## Accumulated Context
 

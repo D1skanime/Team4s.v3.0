@@ -685,35 +685,25 @@ Redirect-Quellen, dauerhaft (D-04), nicht nur übergangsweise.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED in Planungsrunde, siehe Plan-Checker-Bericht 2026-10-13)
 
-1. **Soll `EpisodeNavigationControls` (mit Positionsanzeige) erhalten bleiben oder vollständig
-   durch `AdjacentNavigation` ersetzt werden?**
-   - What we know: UI-SPEC §4 markiert dies explizit als offene Annahme; die globale Primitive
-     unterstützt keine Positionsanzeige.
-   - What's unclear: ob "Folge X / Y" fachlich benötigt wird oder reines Nice-to-have war.
-   - Recommendation: in der Planungsrunde (nicht in dieser Research-Phase) klären, bevor
-     `useReleaseEditorNavigation`s Rückgabeform final festgelegt wird — die Antwort entscheidet,
-     ob die Fassade zusätzlich `currentIndex`/`totalCount` mit zurückgeben muss.
+1. **(RESOLVED → Plan 181-05)** Soll `EpisodeNavigationControls` (mit Positionsanzeige) erhalten
+   bleiben oder vollständig durch `AdjacentNavigation` ersetzt werden?
+   - Entscheidung: `AdjacentNavigation` wird um einen optionalen `centerLabel`-Slot erweitert,
+     damit die Positionsanzeige ("Folge X / Y") im episodenbezogenen Navigationsmodus erhalten
+     bleibt, ohne die Primitive für andere Aufrufstellen zu verändern. Umgesetzt in
+     `181-05-PLAN.md` (`useReleaseEditorNavigation.ts`).
 
-2. **Fallback-Navigationskontext ohne jeden Hinweis (A1) — ist "project" wirklich die richtige
-   Default-Wahl?**
-   - What we know: alle 11 bekannten Einstiegspunkte liefern immer entweder `return_to` oder
-     `animeId`+`episodeId`.
-   - What's unclear: ob es reale Zugriffe ganz ohne Query-Parameter gibt (z. B. manuell
-     eingegebene URL `/releases/42/edit` ohne jeden Zusatz).
-   - Recommendation: Default auf "project" (konservativer, zeigt im Zweifel weniger statt
-     potenziell falsche Nachbarn) belassen, aber als expliziten Testfall in der Validation
-     Architecture führen (siehe unten), nicht stillschweigend offenlassen.
+2. **(RESOLVED → Plan 181-02)** Fallback-Navigationskontext ohne jeden Hinweis — ist "project"
+   wirklich die richtige Default-Wahl?
+   - Entscheidung: Default bleibt `'project'` (konservativ), wie empfohlen. Als expliziter
+     Testfall in `181-02-PLAN.md` (`releaseEditorRouting.ts`/`resolveNavigationContext`)
+     verankert, nicht stillschweigend offengelassen.
 
-3. **Contract-Textkorrektur für den 404 in `contributions.yaml`/`openapi.yaml` — eigener Task
-   oder Teil des D-05-Tasks?**
-   - What we know: die Beschreibung ist nach dem Fix nicht mehr falsch, nur ungenau (deckt noch
-     den jetzt nicht mehr existierenden Fall ab).
-   - What's unclear: ob das Projekt eine separate Spur für reine Doku-Textkorrekturen pflegt
-     oder das im selben Plan mit dem Code-Fix erledigt.
-   - Recommendation: im selben Plan wie der D-05-Fix erledigen (ein Task, zwei Zeilen Text in
-     zwei YAML-Dateien, kein Schema-Bruch).
+3. **(RESOLVED → Plan 181-01)** Contract-Textkorrektur für den 404 in
+   `contributions.yaml`/`openapi.yaml` — eigener Task oder Teil des D-05-Tasks?
+   - Entscheidung: im selben Plan wie der D-05-Fix erledigt (`181-01-PLAN.md`), kein separater
+     Task.
 
 ---
 

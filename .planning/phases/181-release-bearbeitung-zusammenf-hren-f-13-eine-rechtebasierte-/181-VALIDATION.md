@@ -1,9 +1,9 @@
 ---
 phase: 181
 slug: release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: planned
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-10-13
 ---
 
@@ -41,25 +41,26 @@ created: 2026-10-13
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD-D01 | TBD | 0 | D-01/D-04 | — | `/admin/episode-versions/42/edit?return_to=X` → 308 → `/releases/42/edit?return_to=X` (Query erhalten) | unit | `npx vitest run src/lib/releaseEditorRedirects.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-D01b | TBD | 0 | D-01/D-04 | — | `/me/releases/42/workspace?tab=media` → 308 → `/releases/42/edit?tab=media` | unit | dieselbe Testdatei wie oben | ❌ W0 | ⬜ pending |
-| TBD-D02 | TBD | 0 | D-02 | — | Nicht-Admin mit nur `can_view_media=true` sieht ausschließlich den `media`-Tab, kein `files`/`changelog` | unit | `npx vitest run "src/app/releases/[versionId]/edit/releaseEditorTabs.test.ts"` | ❌ W0 | ⬜ pending |
-| TBD-D03 | TBD | 0 | D-03 | — | `return_to=/me/projects/5/group/3` → `resolveNavigationContext` liefert `'project'`; `return_to=/admin/fansubs/5/edit` → `'episode'` | unit | `npx vitest run "src/app/releases/[versionId]/edit/releaseEditorRouting.test.ts"` | ❌ W0 (Logik existiert bereits zweimal getrennt als Testvorbild: `EpisodeVersionEditorPage.tsx:71-93`, `workspaceHelpers.ts:26-30`) | ⬜ pending |
-| TBD-D05a | TBD | 0 | D-05 | T-181-01 | App-User ohne verifizierten `member_claims`-Eintrag, aber mit Platform-Admin-Flag → `GET /api/v1/me/projects/:animeId?fansub_group_id=:id` liefert 200 mit echten `release_versions`, nicht 404 | integration | `go test ./internal/handlers/... -run TestGetMyProjectDetailGracefulWithoutMemberProfile` | ❌ W0 — kein existierendes Testfile `contributions_me_project_handler_test.go` | ⬜ pending |
-| TBD-D05b | TBD | 0 | D-05 (SQL) | T-181-01 | `GetMemberProjectDetail(ctx, memberID=0, appUserID, animeID, fansubGroupID)` gegen reale Fixture-Daten liefert `role_codes=[]`, aber korrekte `anime_title`/`release_versions`, kein `ErrNotFound` | integration | `go test ./internal/repository/... -run TestGetMemberProjectDetailWithSentinelMemberID` | ❌ W0 | ⬜ pending |
+| 181-02 Task 1 | 02 | 1 | D-01/D-04 | — | `/admin/episode-versions/:versionId/edit` → 308 → `/releases/:versionId/edit` (Query erhalten) | unit | `cd frontend && npx vitest run src/lib/releaseEditorRedirects.test.ts` | ❌ Wave 0 (erstellt in Plan 02) | ⬜ pending |
+| 181-02 Task 1 | 02 | 1 | D-01/D-04 | — | `/me/releases/:versionId/workspace` → 308 → `/releases/:versionId/edit` (zweite Regel im selben Modul) | unit | dieselbe Testdatei wie oben | ❌ Wave 0 (erstellt in Plan 02) | ⬜ pending |
+| 181-06 Task 3 | 06 | 3 | D-02 | — | Nicht-Admin mit nur `can_view_media=true` sieht ausschließlich den `media`-Tab, kein `files`/`changelog` | unit | `cd frontend && npx vitest run "src/app/releases/[versionId]/edit/releaseEditorTabs.test.ts"` | ❌ Wave 0 (erstellt in Plan 02 Task 3 als `releaseEditorTabs.ts`, konsumiert in Plan 06) | ⬜ pending |
+| 181-02 Task 2 | 02 | 1 | D-03 | — | `resolveNavigationContext({returnTo:'/me/projects/5/group/3',...})` liefert `'project'`; `resolveNavigationContext({returnTo:'/admin/fansubs/5/edit',...})` liefert `'episode'`; Fallback ohne jeden Hinweis liefert `'project'` (RESEARCH.md Assumption A1, explizit als Regressionsfall erfasst) | unit | `cd frontend && npx vitest run "src/app/releases/[versionId]/edit/releaseEditorRouting.test.ts"` | ❌ Wave 0 (erstellt in Plan 02; Logik vorher zweimal getrennt in `EpisodeVersionEditorPage.tsx:56-93` und `workspaceHelpers.ts`) | ⬜ pending |
+| 181-01 Task 2 | 01 | 1 | D-05 | T-181-01 | App-User ohne verifizierten `member_claims`-Eintrag, aber mit Platform-Admin-Flag → `GET /api/v1/me/projects/:animeId?fansub_group_id=:id` liefert 200 mit echten `release_versions`, nicht 404 | integration | `cd backend && go test ./internal/handlers/... -run TestGetMyProjectDetailGracefulWithoutMemberProfile` | ❌ Wave 0 (neues Testfile `contributions_me_project_handler_test.go`, erstellt in Plan 01) | ⬜ pending |
+| 181-01 Task 1 | 01 | 1 | D-05 (SQL) | T-181-01 | `GetMemberProjectDetail(ctx, memberID=0, appUserID, animeID, fansubGroupID)` gegen reale Fixture-Daten liefert `role_codes=[]`, aber korrekte `anime_title`/`release_versions`, kein `ErrNotFound` — Repository-Fix: `JOIN own_roles ON true` → `LEFT JOIN own_roles ON true` | integration | `cd backend && go test ./internal/repository/... -run TestGetMemberProjectDetailWithSentinelMemberID` | ❌ Wave 0 (neues Testfile `anime_contributions_member_project_repository_test.go`, erstellt in Plan 01) | ⬜ pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-*Task-IDs sind Platzhalter (`TBD-*`) — der Planner weist bei der Plan-Erstellung die endgültigen Task-/Plan-IDs zu und aktualisiert diese Tabelle nicht erneut (Nyquist-Dimension-8-Nachweis erfolgt stattdessen über die must_haves/truths-Zitate in den PLAN.md-Dateien selbst).*
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky — Status bleibt pending bis `/gsd:execute-phase 181` läuft; diese Tabelle wurde nach Planabschluss mit den tatsächlichen Plan-/Task-Referenzen aktualisiert (gsd-plan-checker-Bericht 2026-10-13, Warnung #5).*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `frontend/src/lib/releaseEditorRedirects.ts` + Test — extrahierte, testbare Redirect-Regelliste für `next.config.mjs`
-- [ ] `frontend/src/app/releases/[versionId]/edit/releaseEditorRouting.ts` + Test — vereinheitlichtes `getSafeReturnPath` + `resolveNavigationContext`
-- [ ] `frontend/src/app/releases/[versionId]/edit/releaseEditorTabs.ts` + Test — `buildReleaseEditorTabIds`
-- [ ] `backend/internal/handlers/contributions_me_project_handler_test.go` — existiert noch gar nicht, erster Test für diesen Handler überhaupt
-- [ ] `backend/internal/repository/anime_contributions_member_project_repository_test.go` — Sentinel-`memberID`-Fall gegen reale Postgres-Fixture
+- [x] `frontend/src/lib/releaseEditorRedirects.ts` + Test — extrahierte, testbare Redirect-Regelliste für `next.config.mjs` (Plan 181-02 Task 1)
+- [x] `frontend/src/app/releases/[versionId]/edit/releaseEditorRouting.ts` + Test — vereinheitlichtes `getSafeReturnPath` + `resolveNavigationContext` (Plan 181-02 Task 2)
+- [x] `frontend/src/app/releases/[versionId]/edit/releaseEditorTabs.ts` + Test — `buildReleaseEditorTabIds` (Plan 181-02 Task 3)
+- [x] `backend/internal/handlers/contributions_me_project_handler_test.go` — existiert noch gar nicht, erster Test für diesen Handler überhaupt (Plan 181-01 Task 2)
+- [x] `backend/internal/repository/anime_contributions_member_project_repository_test.go` — Sentinel-`memberID`-Fall gegen reale Postgres-Fixture (Plan 181-01 Task 1)
+
+*Checkboxen markieren "im Plan vorgesehen", nicht "bereits ausgeführt" — Ausführung erfolgt erst mit `/gsd:execute-phase 181`.*
 
 ---
 
@@ -76,11 +77,11 @@ created: 2026-10-13
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (confirmed by gsd-plan-checker, 2026-10-13)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (5 new test files, all assigned to Plans 01/02)
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-10-13 (plan-level; execution-level sign-off happens at `/gsd:verify-work` after `/gsd:execute-phase 181`)

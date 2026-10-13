@@ -2577,8 +2577,10 @@ duplikativ — Grundlage für das gemeinsame Upload-Frontend in Phase 180.
     upload-only custom-permission fallback + real-Postgres regression), 179-04 (D-14 shared
     soft-delete helper for fansub_group_media/release_version_media), 179-05 (D-13 frontend
     isPlatformAdmin display flag for AnimeJellyfinAssetUploadControls)
+
   - Wave 2: 179-02 (D-12 theme-asset handler action swap + persistence-tail extraction, depends on
     179-01)
+
   - Wave 3: 179-06 (full automated gate + migration fresh/down proof across the whole phase)
 
 **Plan-time read first**: `backend/internal/handlers/fansub_media_upload.go`,
@@ -2625,6 +2627,7 @@ Nutzerkorrektur nach Planungsbeginn beantwortet).
   - Wave 1: 180-01 (Präsentations-Primitives UploadDropzone/UploadFileRow + /dev/ui-system-Showcase),
     180-02 (Orchestrierungs-Hook useUploadQueue + reine Helfer), 180-03 (Backend D-14:
     fansub_group_media_id additiv + Frontend-Typ), 180-04 (Weg-1-Strukturaufteilung: D-15-Entscheidung
+
     + Grid/EditDrawer-Extraktion), 180-06 (Weg-2-Strukturaufteilung: useGroupMediaReviewFilters-Hook)
   - Wave 2: 180-05 (Weg-1-Upload-Verdrahtung auf die geteilten Primitives/Hook, depends on 180-01/02/04),
     180-07 (Weg-2-Upload-Migration inkl. D-03-Altlast-Entfernung, depends on 180-01/02/03/06),
@@ -2632,6 +2635,7 @@ Nutzerkorrektur nach Planungsbeginn beantwortet).
     (Weg 5 + Weg 8 präsentational + D-17 Drag&Drop für beide, depends on 180-01), 180-10 (Weg 6
     präsentational + D-17 Drag&Drop für beide Einstiege, depends on 180-01), 180-11 (Weg 4 D-16
     Drag&Drop-Verhaltenszugewinn, depends on 180-01)
+
   - Wave 3: 180-12 (voller automatisierter Gate-Lauf + Live-UAT-Checkpoint für D-13 und D-16/D-17
     Drag&Drop auf allen acht Wegen)
 
@@ -2674,12 +2678,29 @@ Plans:
 **Plans:** 9 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 181-01-PLAN.md — D-05 Backend-Fix: Repository LEFT JOIN + Handler-Sentinel + Contract-Textkorrektur (Wave 1)
 - [ ] 181-02-PLAN.md — Pure Frontend-Utilities: releaseEditorRedirects/-Routing/-Tabs + Tests (D-01/D-02/D-03/D-04, Wave 1)
 - [ ] 181-03-PLAN.md — Media/Metadata/Classification/JellyfinNotice + episodeVersionEditorUtils nach components/releaseEditor/ verschoben (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 181-04-PLAN.md — Segments + Notes nach components/releaseEditor/ verschoben (Wave 2)
 - [ ] 181-05-PLAN.md — AdjacentNavigation-Erweiterung + Navigations-/Daten-Hooks fuer die neue Seite (D-03, Wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 181-06-PLAN.md — Neue Tab-Komponenten: Basisdaten/Dateien/Aenderungsverlauf (D-01/D-02, Wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 181-07-PLAN.md — ReleaseEditorPage-Zusammenbau unter /releases/[versionId]/edit (D-01/D-02/D-03/D-05, Wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 181-08-PLAN.md — Alle 11 Einstiegspunkte umgestellt + toten Link entfernt (D-01, Wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 181-09-PLAN.md — Redirects aktiviert + alte Routen geloescht (D-01/D-04, Wave 6)
