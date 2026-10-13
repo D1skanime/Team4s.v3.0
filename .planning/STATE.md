@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 181-08-PLAN.md
-last_updated: "2026-10-13T17:12:29.408Z"
+status: verifying
+stopped_at: Completed 181-09-PLAN.md (final plan of Phase 181 — ready for verification)
+last_updated: "2026-10-13T17:25:23.897Z"
 last_activity: 2026-10-13
 progress:
   total_phases: 46
-  completed_phases: 40
+  completed_phases: 41
   total_plans: 436
-  completed_plans: 432
-  percent: 87
+  completed_plans: 433
+  percent: 89
 ---
 
 # Phase 180 — Einheitliche Upload-Oberfläche (F-15 Teil 2) — COMPLETE (2026-10-13)
@@ -302,11 +302,11 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — EXECUTING
+Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — 9/9 Pläne ausgeführt, code-complete
 Plan: 9 of 9
-Status: Ready to execute
+Status: Alle 9 Pläne code-complete (automatisierte Regression grün: tsc/lint/Frontend-Tests/Backend-Build/-Vet). Das in 181-VALIDATION.md dokumentierte Live-UAT-Checklist (11 Einstiegspunkte, Tab-Sichtbarkeit Admin-vs-Mitglied, Projekt-vs-Episode-Navigation, Plattform-Admin-ohne-Mitgliederprofil) ist noch ausständig und NICHT von einem Agenten als bestanden markiert — menschliche Verifikation erforderlich.
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
-Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
+Next: Live-UAT für Phase 181 ausstehend (siehe oben). Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
 ## Vorherige Position (Phase 153, abgeschlossen)
 
@@ -1087,6 +1087,7 @@ Last activity: 2026-10-13
 - [Phase 181]: 181-07: ReleaseEditorPage uebernimmt keinen zweiten useAuthSession()-Gate -- useReleaseEditorData() traegt hasAuthSession bereits intern — Vermeidet redundante Auth-Pruefung; Fehlerzustand kommt bereits ueber editor.errorMessage
 - [Phase 181]: 181-07: activeTab ist einseitig state->URL (router.replace bei Klick), nicht laufend URL->state resynchronisiert — Vermeidet react-hooks/set-state-in-effect-Lint-Fehler und einen Flacker-Bug zurueck zum alten Tab direkt nach Klick
 - [Phase 181]: 181-08: fansubEditAccess.ts's releaseVersionToolsTarget retired the "notizen" tab id in favor of the unified "notes" vocabulary; releaseEditorRedirects.ts was deliberately left untouched since it is Plan 02's redirect-source config consumed by Plan 09
+- [Phase 181]: Plan 181-09: releaseEditorRedirects.ts zu .mjs umbenannt (Rule 1), da next.config.mjs .ts-Importe unter Node 20 nicht laedt (ERR_UNKNOWN_FILE_EXTENSION); begleitende .d.mts nach publicImagePatterns.mjs/.d.ts-Vorbild ergaenzt — Node 20 im Frontend-Container laedt next.config.mjs direkt ohne TS-/Bundler-Schritt; der Import schlug fehl und liess den Container in eine Neustart-Schleife laufen
 
 ### Pending Todos
 
@@ -1739,11 +1740,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 181 P06 | 15min | 3 tasks | 5 files |
 | Phase 181 P07 | 55min | 2 tasks | 4 files |
 | Phase 181 P08 | ~12min | 3 tasks | 18 files |
+| Phase 181 P09 | 35min | 2 tasks | 20 files |
 
 ## Session Continuity
 
-Last session: 2026-10-13T17:12:29.381Z
-Stopped at: Completed 181-08-PLAN.md
+Last session: 2026-10-13T17:25:23.872Z
+Stopped at: Completed 181-09-PLAN.md (final plan of Phase 181 — ready for verification)
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None

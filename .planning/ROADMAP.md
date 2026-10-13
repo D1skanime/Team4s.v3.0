@@ -2670,12 +2670,12 @@ Plans:
 
 - [x] 180-12-PLAN.md — Full automated gate + Live-UAT checkpoint for D-13 (visual parity) and D-16/D-17 (drag&drop on all eight ways, not just Weg 4) (D-04, D-06, D-07, D-13, D-16, D-17).
 
-### Phase 181: Release-Bearbeitung zusammenführen (F-13): eine rechtebasierte Release-Bearbeitungsseite statt Admin-Editor plus /me-Workspace; alte Workspace-URL leitet weiter, alle Einstiegspunkte zeigen auf die eine Seite, Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr
+### Phase 181: Release-Bearbeitung zusammenführen (F-13): eine rechtebasierte Release-Bearbeitungsseite statt Admin-Editor plus /me-Workspace; alte Workspace-URL leitet weiter, alle Einstiegspunkte zeigen auf die eine Seite, Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr — 9/9 Pläne code-complete, Live-UAT ausständig
 
 **Goal:** Eine rechtebasierte Release-Bearbeitungsseite unter `/releases/[versionId]/edit` ersetzt den Admin-Editor und den `/me`-Workspace; beide Altadressen leiten dauerhaft weiter, alle 11 externen Einstiegspunkte zeigen direkt auf die neue Seite, und ein Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr.
 **Requirements**: D-01 bis D-05 (siehe 181-CONTEXT.md — additive Phase ohne formale REQ-IDs, Traceability läuft über Entscheidungen statt Requirements-Katalog)
 **Depends on:** Phase 180
-**Plans:** 8/9 plans executed
+**Plans:** 9/9 plans complete
 
 Plans:
 **Wave 1**
@@ -2703,4 +2703,4 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 181-09-PLAN.md — Redirects aktiviert + alte Routen geloescht (D-01/D-04, Wave 6)
+- [x] 181-09-PLAN.md — Redirects aktiviert + alte Routen geloescht (D-01/D-04, Wave 6)
