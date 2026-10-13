@@ -132,6 +132,22 @@ describe('MediaSlot', () => {
     expect(screen.getByRole('button', { name: 'Entfernen' })).not.toBeNull()
   })
 
+  it('exposes a safe, always-defined open() handle in static mode instead of leaving ref.current unset', () => {
+    const ref = createRef<UploadDropzoneHandle>()
+    render(
+      <MediaSlot
+        ref={ref}
+        aspectRatio={16 / 9}
+        label="Background 1"
+        hasValue
+        previewContent={<img alt="Background Vorschau" src="x" />}
+      />,
+    )
+
+    expect(ref.current).not.toBeNull()
+    expect(() => ref.current?.open()).not.toThrow()
+  })
+
   it('shows staticEmptyContent instead of a dropzone when empty and onFilesSelected is omitted', () => {
     render(
       <MediaSlot

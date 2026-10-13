@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, type ReactNode } from 'react'
+import { forwardRef, useImperativeHandle, useRef, type ReactNode } from 'react'
 
 import { classNames } from './classNames'
 import { UploadDropzone, resolveUploadSlotPresentation, type UploadDropzoneHandle } from './UploadDropzone'
@@ -72,6 +72,17 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
   staticEmptyContent,
   className,
 }, ref) {
+  // Static mode (no onFilesSelected) renders no UploadDropzone at all, so there is nothing for a
+  // forwarded ref to attach to -- without this indirection, `ref.current` itself would silently
+  // stay null and `ref.current?.open()` would be an unexplained no-op with no signal why
+  // (code-review finding 2026-10-13). Exposing a handle that ALWAYS exists, with `open()` simply
+  // delegating to the inner dropzone when one is rendered, makes "nothing to open in static mode"
+  // an explicit, intentional no-op instead of an unguarded null dereference.
+  const innerDropzoneRef = useRef<UploadDropzoneHandle>(null)
+  useImperativeHandle(ref, () => ({
+    open: () => innerDropzoneRef.current?.open(),
+  }))
+
   const presentation = resolveUploadSlotPresentation(hasValue)
   const promptLabel = presentation === 'replace-overlay'
     ? (replaceAriaLabel ?? `${label} ersetzen`)
@@ -85,7 +96,7 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
       >
         {onFilesSelected ? (
           <UploadDropzone
-            ref={ref}
+            ref={innerDropzoneRef}
             onFilesSelected={onFilesSelected}
             accept={accept}
             multiple={multiple}
