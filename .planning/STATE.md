@@ -3,16 +3,32 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 180-09-PLAN.md
-last_updated: "2026-10-11T21:03:25.060Z"
-last_activity: 2026-10-11
+stopped_at: Completed 180-12-PLAN.md (phase 180 complete)
+last_updated: "2026-10-13T08:30:00.000Z"
+last_activity: 2026-10-13
 progress:
   total_phases: 45
-  completed_phases: 39
+  completed_phases: 40
   total_plans: 427
-  completed_plans: 423
-  percent: 87
+  completed_plans: 424
+  percent: 99
 ---
+
+# Phase 180 — Einheitliche Upload-Oberfläche (F-15 Teil 2) — COMPLETE (2026-10-13)
+
+Alle 12 Pläne ausgeführt. 180-01..180-11 lieferten die gemeinsamen Upload-Primitives
+(`UploadDropzone`/`UploadFileRow`/`MediaSlot`) und migrierten alle acht Upload-Wege darauf;
+180-12 lief den vollen automatisierten Gate-Durchgang und einen ausgedehnten Live-UAT-Zyklus
+(dokumentiert als Addenda 1–4 in `180-12-SUMMARY.md`), der weit über den ursprünglichen
+Plan-Umfang hinausging: Fansub-Logo/Banner- und Profil-Zuschnitt+Anzeige-Korrekturen, eine
+MediaSlot-Primitive mit Aktionsleiste unter statt über der Vorschau, Anime-Cover/-Banner-
+Zuschnitt (neu, inkl. CORS-Fix für Provider-Quellen), eine Container-Query-Lösung für
+abgeschnittene Inhalte in flachen Upload-Slots, und die Entfernung von Weg 8
+("Medien-Vorschläge") als bestätigt totem Code (Frontend UND Backend inkl. Migration 0183).
+Ein abschließender Code-Review über die volle Phase-Diff (100 Commits/179 Dateien, 4 parallele
+Review-Agenten) fand 3 BLOCKER und mehrere WARNING/INFO-Funde — alle einzeln committet behoben.
+Finaler Gate-Lauf: `tsc`/`go build`/`go vet`/`git diff --check` clean, 384 Testdateien/3521 Tests
+grün im Container. Keine Zugangsdaten verändert, kein `git stash` verwendet.
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
 

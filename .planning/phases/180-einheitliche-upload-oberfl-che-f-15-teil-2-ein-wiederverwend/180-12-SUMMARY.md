@@ -435,6 +435,88 @@ Löschung: 384 Testdateien, 3515 Tests grün (Rückgang von 386 auf 384 Dateien 
 Fund in `.next/dev/types` für `create/page.tsx` (von dieser Phase an anderer Stelle bereits
 dokumentiert). ESLint ohne neue Fehler. Kein `git stash` verwendet. Keine Zugangsdaten verändert.
 
+## Addendum 4: Backend-Löschung Weg 8, tsc-Nebenfund behoben, Phase-Abschluss-Code-Review (2026-10-13)
+
+**Backend-Löschung (Nutzerfreigabe 2026-10-13, nach den (a)/(b)/(c)-Prüfungen aus Addendum 3):**
+`suggestions_me_handler.go` + Test, `member_suggestions_repository.go`, die drei Routen in
+`cmd/server/main.go` sowie der OpenAPI-Contract-Teil entfernt (Commit `07863869`). Migration `0183`
+(Commit `ccad36ff`) löscht die Tabelle `member_suggestions` per `DROP TABLE ... CASCADE`; vorher
+per psql erneut bestätigt: 0 Zeilen, keine Trigger, keine fremden FKs. Down-Migration rekonstruiert
+das Schema byte-identisch aus Migration `0098`, ohne die separate, weiterhin lebende Spalte
+`anime_contributions.member_reason` zu berühren. `docker compose up -d --build team4sv30-backend` +
+automatischer Migrationslauf (via `docker-compose.override.yml`) angewendet und verifiziert:
+`schema_migrations` zeigt Version 183, `\dt member_suggestions` bestätigt die Tabelle ist weg,
+`/health` liefert durchgehend 200, kein Crash-Loop. `go build ./...`/`go vet ./...` clean, keine
+"suggestion"-Erwähnung mehr in den Go-Test-Ausgaben der betroffenen Pakete.
+
+**tsc-Nebenfund behoben:** `create/page.tsx` re-exportierte neun Helfer aus
+`createPageHelpers.ts`/`useManualAnimeDraft.ts`/`createAssetUploadPlan.ts` ausschließlich dafür,
+dass `page.test.tsx` sie "nach den Mocks" importieren konnte — Next.js' Typed-Routes-Vertrag
+flaggte das als ungültigen Page-Export. Alle anderen Aufrufer importierten diese Helfer bereits
+direkt aus ihren Ursprungsdateien. Re-Exports entfernt; `page.test.tsx` importiert jetzt direkt aus
+den Ursprungsdateien (commit `e94479e4`). `tsc --noEmit` jetzt vollständig clean.
+
+**Phase-Abschluss-Code-Review (4 parallele Review-Agenten, volle Phase-180-Diff seit `db029c3f^`,
+100 Commits/179 Dateien):**
+- Backend Weg-8-Entfernung + Migration 0183: **keine Funde.**
+- MediaSlot/UploadDropzone/Team4sCropper-Primitives: 2 BLOCKER, 4 WARNING, 3 INFO/Nitpick.
+- Anime-Cover/-Banner-Zuschnitt-Integration: 1 BLOCKER, 2 WARNING, 2 INFO/Nitpick.
+- Rest der Phase-180-Bulk-Migration + Weg-8-Frontend-Cleanup (Stichprobe): 1 WARNING (CSS-Fund),
+  1 INFO (weitere tote Exporte), Rest verifiziert sauber.
+
+**Alle Befunde einzeln behoben (je Befund ein Commit):**
+- `f7ce05ce` — BLOCKER: `resolveAnimeAssetCropSource` blockte Protocol-Relative-URLs
+  (`//evil.example.com/...`) nicht vor dem same-origin-Check — eine absolute
+  Sicherheitsinvariante der Funktion war umgehbar. 4 neue Tests.
+- `bafe2830` — BLOCKER: `container-type: size` auf der gemeinsamen `.dropzone`-Basisregel hätte
+  die drei echten Nicht-MediaSlot-Aufrufer (`GroupMediaReviewUploadPanel`,
+  `ReleaseVersionMediaUploadDrawer`, `ReleaseThemeAssetsSection`) auf die bloße `min-height`
+  kollabieren lassen. Verschoben auf die MediaSlot-spezifische Zusatzklasse — noch nicht live im
+  Browser nachgestellt, nur anhand der CSS-Containment-Spezifikation hergeleitet.
+- `1140ebb5` — WARNING: `Team4sCropper.tsx` nutzte eine eigene, unsynchronisierte
+  Breitformat-Schwelle (1,5 statt der Helper-Konstante 2) — aktuell schlummernd, kein Live-Fehler.
+- `b1c65cce` — WARNING: verstecktes Datei-Input war ein doppelter Tab-Stopp (kein `tabIndex`).
+- `a983f758` — WARNING: `MediaSlot`-Ref war im statischen Modus ein stiller No-Op statt eines
+  immer definierten Handles.
+- `17f14ca2` — INFO: verwaister `dropzoneRef` in `MediaUploadCore.tsx` entfernt.
+- `02bb8ef0` — WARNING: 10 längst verwaiste CSS-Klassen in `contributions.module.css` entfernt
+  (Weg-8-Löschcommit hatte "geteilt, weiterhin genutzt" behauptet, ohne es zu prüfen — tatsächlich
+  seit der Phase-93-Wizard-Neufassung tot, lange vor Phase 180).
+- `856131fe` — INFO: 2 weitere längst tote Exporte (`rejectAnimeContribution`,
+  `searchAnimeForProposal`) aus `contributions-me.ts` entfernt, ebenfalls vor Phase 180 tot.
+- `7535c670` — INFO/Nitpick: `deriveOriginalCropCandidates`s Regex ignorierte Query-Strings nicht
+  explizit (folgenlos, aber dokumentations-widersprüchlich).
+- `1330ca71` — WARNING: Crop-Quell-Abruf (`isFetchingCropSource`) war ein geteiltes Bool, das die
+  ganze Asset-Sektion sperrte statt nur die betroffene Art (Cover ODER Banner).
+
+**Bewusst nicht verändert (geprüft, Entscheidung dokumentiert statt Fix):**
+- `resolveUploadDropzoneLayout`/`INLINE_LAYOUT_MAX_HEIGHT_PX` sind reine Dokumentation/Spezifikation
+  einer Schwelle, die zur Laufzeit per CSS-Container-Query (nicht per JS-Messung) umgesetzt wird —
+  genau das vom Nutzer für diese Funktion explizit verlangte Modell ("Per Container-Query...").
+  Kein Drift-Schutz zwischen der CSS-Zahl (110px) und der TS-Konstante über die Tests hinaus, aber
+  eine ResizeObserver-Kopplung wäre hier Überengineering gegen die eigene Vorgabe.
+- `allowDrop`-Prop bleibt bewusst wirkungslos (D-17, bereits vor diesem Review dokumentiert).
+- Anlegen-Flow kann einen adoptierten Jellyfin-Cover/-Banner noch nicht zuschneiden (nur ein
+  manuell/direkt hochgeladenes, gestagtes Bild hat eine lokale Datei zum erneuten Zuschnitt) —
+  möglicherweise bewusster Scope-Schnitt, kein Crash/Datenverlust; als bekannte Lücke dokumentiert,
+  nicht als Bug behoben.
+- `!important` auf `.mediaSlotRoundDropzone` bleibt (bereits dokumentierte, begründete Ausnahme).
+
+**Finaler Gate-Lauf nach allen Fixes:** `tsc --noEmit` clean, `go build ./...`/`go vet ./...` clean,
+`git diff --check` clean, voller Vitest-Lauf im Container: 384 Testdateien, 3521 Tests grün. Kein
+`git stash` verwendet. Keine Zugangsdaten/Keycloak verändert. Frontend und Backend neu gestartet,
+beide stabil (kein Crash-Loop, `/health` durchgehend 200).
+
+**Live-UAT-Abnahme (Nutzer, 2026-10-13):** alle Live-UAT-Punkte dieser Phase abgenommen —
+Gruppenmedien-Upload, Release-Medien, Reorder, Profil-Banner-Zuschnitt+Anzeige, Fansub-Logo/Banner,
+`/dev/ui-system`-Showcase, Segment-Video/-Vorschau, Theme-Assets, Anime bearbeiten inkl.
+Cover-/Banner-Zuschnitt, Anime anlegen; Weg 8 vollständig entfernt (Frontend + Backend). Damit ist
+Task 2's Human-Verify-Checkpoint (D-13 visuelle Parität + D-16/D-17 Drag&Drop auf allen Wegen)
+erfüllt — der ursprüngliche Prüfpunkt "Weg 8: Datei auf die Dropzone ziehen" ist durch die
+Löschentscheidung gegenstandslos geworden und entsprechend vermerkt, nicht stillschweigend
+übersprungen.
+
 ---
 *Phase: 180-einheitliche-upload-oberfl-che-f-15-teil-2-ein-wiederverwend*
-*Status: Task 1 complete, Task 2 pending human verification (now including re-test of the reorder issue after frontend restart, plus everything in Addendum 2 and Addendum 3) — plan and phase NOT yet closed*
+*Status: COMPLETE — Task 1 (automated gate) und Task 2 (Live-UAT-Checkpoint) beide erfüllt,
+Phase-Abschluss-Code-Review über die volle Diff durchgeführt und alle Funde behoben.*

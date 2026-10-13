@@ -2620,7 +2620,7 @@ teilen sich die Präsentations-Primitives, und echtes Drag&Drop ist auf allen ac
 `180-CONTEXT.md` (alle 5 ursprünglich offenen Fragen plus 3 Recherche-Weichen plus 1
 Nutzerkorrektur nach Planungsbeginn beantwortet).
 **Depends on:** Phase 179
-**Plans:** 11/12 plans executed
+**Plans:** 12/12 plans executed — phase complete
 
   - Wave 1: 180-01 (Präsentations-Primitives UploadDropzone/UploadFileRow + /dev/ui-system-Showcase),
     180-02 (Orchestrierungs-Hook useUploadQueue + reine Helfer), 180-03 (Backend D-14:
@@ -2664,4 +2664,4 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 180-12-PLAN.md — Full automated gate + Live-UAT checkpoint for D-13 (visual parity) and D-16/D-17 (drag&drop on all eight ways, not just Weg 4) (D-04, D-06, D-07, D-13, D-16, D-17).
+- [x] 180-12-PLAN.md — Full automated gate + Live-UAT checkpoint for D-13 (visual parity) and D-16/D-17 (drag&drop on all eight ways, not just Weg 4) (D-04, D-06, D-07, D-13, D-16, D-17).
