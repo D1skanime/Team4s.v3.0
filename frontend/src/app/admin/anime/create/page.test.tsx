@@ -6,11 +6,24 @@ import { CreateAssetSearchDialog } from "./CreateAssetSearchDialog";
 import { CreateAniSearchIntakeCard } from "./CreateAniSearchIntakeCard";
 import { ApiError } from "@/lib/api";
 import {
+  buildManualCreateDraftSnapshot,
   hydrateManualDraftFromJellyfinPreview,
   removeJellyfinDraftAsset,
 } from "../hooks/useManualAnimeDraft";
 import { splitTagTokens } from "../utils/anime-helpers";
 import type { AdminAnimeCreateAniSearchSummary } from "@/types/admin";
+import {
+  buildCreateSuccessMessage,
+  appendJellyfinLinkageToCreatePayload,
+  buildManualCreateRedirectPath,
+  CREATE_REDIRECT_DELAY_MS,
+  createManualAnimeAndRedirect,
+  formatCreatePageError,
+  resolveJellyfinPreviewBaseDraft,
+  resolveJellyfinReviewVisibility,
+  resolveSourceActionState,
+} from "./createPageHelpers";
+import { stageManualCreateCover, uploadCreatedAnimeCover } from "./createAssetUploadPlan";
 
 vi.mock("@/components/auth/PlatformAdminGate", () => ({
   PlatformAdminGate: ({ children }: { children: ReactNode }) => <>{children}</>,
@@ -31,21 +44,12 @@ vi.mock("./useCreatePageDiscoveryHandoff", () => ({
 }));
 
 // Imported AFTER the mocks above so the page module resolves the mocked
-// 'next/navigation' / './useCreatePageDiscoveryHandoff' modules.
-import AdminAnimeCreatePage, {
-  buildCreateSuccessMessage,
-  appendJellyfinLinkageToCreatePayload,
-  buildManualCreateDraftSnapshot,
-  buildManualCreateRedirectPath,
-  CREATE_REDIRECT_DELAY_MS,
-  createManualAnimeAndRedirect,
-  formatCreatePageError,
-  resolveJellyfinPreviewBaseDraft,
-  resolveJellyfinReviewVisibility,
-  resolveSourceActionState,
-  stageManualCreateCover,
-  uploadCreatedAnimeCover,
-} from "./page";
+// 'next/navigation' / './useCreatePageDiscoveryHandoff' modules. The pure helpers used below are
+// imported directly from their own files (createPageHelpers.ts, useManualAnimeDraft.ts,
+// createAssetUploadPlan.ts) above instead of via page.tsx re-exports -- page.tsx only exports its
+// default component now (Next.js' typed-routes page-export contract flagged the old extra
+// re-exports as invalid).
+import AdminAnimeCreatePage from "./page";
 
 describe("AdminAnimeCreatePage", () => {
   beforeEach(() => {

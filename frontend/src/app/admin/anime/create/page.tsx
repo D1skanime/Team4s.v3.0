@@ -24,36 +24,8 @@ import { useAnimeAssetCropGate } from "../hooks/useAnimeAssetCropGate";
 import { planAnimeAssetFileSelection } from "../utils/animeAssetUploadSelection";
 import type { AnimeCroppableAssetKind } from "../utils/animeAssetCropConfig";
 import type { AdminAnimeAssetKind } from "@/types/admin";
-import {
-  buildCreateSuccessMessage,
-  appendJellyfinLinkageToCreatePayload,
-  buildManualCreateRedirectPath,
-  CREATE_REDIRECT_DELAY_MS,
-  createManualAnimeAndRedirect,
-  formatCreatePageError,
-  resolveJellyfinPreviewBaseDraft,
-  resolveJellyfinReviewVisibility,
-  resolveSourceActionState,
-} from "./createPageHelpers";
 import { useAdminAnimeCreateController } from "./useAdminAnimeCreateController";
 import { useCreatePageDiscoveryHandoff } from "./useCreatePageDiscoveryHandoff";
-
-export {
-  buildCreateSuccessMessage,
-  appendJellyfinLinkageToCreatePayload,
-  buildManualCreateRedirectPath,
-  CREATE_REDIRECT_DELAY_MS,
-  createManualAnimeAndRedirect,
-  formatCreatePageError,
-  resolveJellyfinPreviewBaseDraft,
-  resolveJellyfinReviewVisibility,
-  resolveSourceActionState,
-};
-export { buildManualCreateDraftSnapshot } from "../hooks/useManualAnimeDraft";
-export {
-  stageManualCreateCover,
-  uploadCreatedAnimeCover,
-} from "./createAssetUploadPlan";
 
 const ANIME_TYPES = ["tv", "film", "ova", "ona", "special", "bonus"] as const;
 const CONTENT_TYPES = ["anime", "hentai"] as const;
