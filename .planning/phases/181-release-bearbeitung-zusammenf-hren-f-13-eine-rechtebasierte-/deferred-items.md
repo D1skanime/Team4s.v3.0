@@ -21,3 +21,12 @@ Both findings pre-date this plan and were already present in the original
 `app/admin/episode-versions/[versionId]/edit/` location before relocation; they are unrelated to
 the move itself (import paths only) and are therefore left untouched per the deviation rules'
 scope boundary (pre-existing issues in moved files remain out of scope for auto-fix).
+
+## 181-04 (Task 3, full regression)
+
+- **`frontend/src/components/releaseEditor/ReleaseVersionNotesTab.test.tsx:44`** — ESLint error
+  `no-restricted-syntax` (native `<textarea>` inside the test's own `RichTextEditor` mock
+  implementation, not product UI). Pre-existing: this file was `git mv`-ed as a pure 100% rename
+  (0 content diff, confirmed via `git show <commit> -- <path>`); the relocation only touched
+  `ReleaseVersionNotesTab.tsx`'s own relative CSS import, never this test file. Belongs to the
+  same UI-primitives migration backlog referenced in CLAUDE.md, not to this relocation plan.
