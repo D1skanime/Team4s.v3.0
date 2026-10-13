@@ -7,7 +7,6 @@ import type {
   PublicAnimeContributionsResponse,
   PublicGroupContributionsResponse,
 } from "@/types/contributions";
-import type { PaginatedAnimeResponse } from "@/types/anime";
 import {
   apiClientFetch,
   ApiError,
@@ -15,7 +14,6 @@ import {
   getApiBaseUrl,
   parseApiErrorPayload,
 } from "./client";
-import { getAnimeList } from "./fansubs-core";
 
 export async function getMyAnimeContributions(): Promise<MeAnimeContributionsResponse> {
   const API_BASE_URL = getApiBaseUrl();
@@ -101,32 +99,6 @@ export async function confirmAnimeContribution(
   }
 }
 
-export async function rejectAnimeContribution(
-  contributionId: number,
-): Promise<void> {
-  // Ablehnen setzt den Status auf 'disputed' und entzieht die Profil-Sichtbarkeit
-  // (Eintrag bleibt intern erhalten).
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/me/anime-contributions/${contributionId}/reject`,
-    { method: "POST" },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-}
-
 export async function rejectAnimeContributionWithReason(
   contributionId: number,
   memberReason: string,
@@ -154,15 +126,6 @@ export async function rejectAnimeContributionWithReason(
       parsed.details,
     );
   }
-}
-
-export async function searchAnimeForProposal(
-  query: string,
-): Promise<PaginatedAnimeResponse> {
-  return getAnimeList(
-    { q: query, per_page: 8 },
-    { cache: "no-store" },
-  );
 }
 
 export async function createContributionProposal(
