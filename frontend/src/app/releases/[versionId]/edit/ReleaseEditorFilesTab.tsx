@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, FormField, Input } from '@/components/ui'
+import { Accordion, Button, FormField, Input } from '@/components/ui'
 import { formatBytes, formatDateTime } from '@/components/releaseEditor/episodeVersionEditorUtils'
 import { jellyfinSourceKey } from '@/lib/jellyfinSourceIdentity'
 
@@ -73,28 +73,36 @@ export function ReleaseEditorFilesTab({ editor }: ReleaseEditorFilesTabProps) {
         </div>
       ) : null}
 
-      <details
-        open={editor.advancedMode}
-        onToggle={(event) => editor.setAdvancedMode(event.currentTarget.open)}
-      >
-        <summary>Advanced Mode: manuelle Media-Override</summary>
-        <FormField label="Media Provider">
-          <Input
-            value={editor.formState.mediaProvider}
-            onChange={(event) =>
-              editor.setFormState((current) => ({ ...current, mediaProvider: event.target.value }))
-            }
-          />
-        </FormField>
-        <FormField label="Media ID">
-          <Input
-            value={editor.formState.mediaItemID}
-            onChange={(event) =>
-              editor.setFormState((current) => ({ ...current, mediaItemID: event.target.value }))
-            }
-          />
-        </FormField>
-      </details>
+      <Accordion
+        items={[
+          {
+            id: 'advanced-mode',
+            title: 'Advanced Mode: manuelle Media-Override',
+            children: (
+              <>
+                <FormField label="Media Provider">
+                  <Input
+                    value={editor.formState.mediaProvider}
+                    onChange={(event) =>
+                      editor.setFormState((current) => ({ ...current, mediaProvider: event.target.value }))
+                    }
+                  />
+                </FormField>
+                <FormField label="Media ID">
+                  <Input
+                    value={editor.formState.mediaItemID}
+                    onChange={(event) =>
+                      editor.setFormState((current) => ({ ...current, mediaItemID: event.target.value }))
+                    }
+                  />
+                </FormField>
+              </>
+            ),
+          },
+        ]}
+        openIds={editor.advancedMode ? new Set(['advanced-mode']) : new Set()}
+        onOpenChange={(next) => editor.setAdvancedMode(next.has('advanced-mode'))}
+      />
     </>
   )
 }

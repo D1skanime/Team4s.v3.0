@@ -78,12 +78,10 @@ describe('ReleaseEditorFilesTab', () => {
     expect(applyFile).toHaveBeenCalledWith(file)
   })
 
-  it('calls setAdvancedMode(true) when the Advanced-Mode details is opened', () => {
+  it('calls setAdvancedMode(true) when the Advanced-Mode accordion header is toggled open', () => {
     const setAdvancedMode = vi.fn()
     render(<ReleaseEditorFilesTab editor={buildEditor({ setAdvancedMode })} />)
-    const details = screen.getByText('Advanced Mode: manuelle Media-Override').closest('details')!
-    Object.defineProperty(details, 'open', { value: true, writable: true })
-    fireEvent(details, new Event('toggle'))
+    fireEvent.click(screen.getByText('Advanced Mode: manuelle Media-Override'))
     expect(setAdvancedMode).toHaveBeenCalledWith(true)
   })
 })
