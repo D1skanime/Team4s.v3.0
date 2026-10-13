@@ -1,7 +1,8 @@
-# Phase 181 – CONTEXT (Entwurf)
+# Phase 181 – CONTEXT (freigegeben)
 
-Status: Entwurf, read-only Inventur abgeschlossen. Noch NICHT geplant (kein `/gsd:plan-phase`
-gelaufen). Dient als Diskussionsgrundlage für die offenen Fragen unten.
+Status: **Freigegeben** — Nutzerentscheidungen D-01 bis D-05 liegen vor (2026-10-13), alle
+Empfehlungen aus dem Entwurf wurden angenommen. Grundlage für `/gsd:ui-phase 181` und
+`/gsd:plan-phase 181`. Kein Code wurde für diese Inventur verändert.
 
 ## Ziel
 
@@ -102,17 +103,21 @@ Insgesamt **11 externe Einstiegspunkte** (6 Admin + 5 Workspace), die bei einer 
 auf die eine Zielseite umgestellt werden müssen, zzgl. der zwei internen Selbst-Navigationspfade
 (Vor/Zurück innerhalb der jeweiligen Seite).
 
-## Vorschlag Zielbild (zur Diskussion, siehe offene Fragen unten)
+## Zielbild (freigegeben, Details siehe Entscheidungen D-01..D-05 unten)
 
-- **Eine** Seite/Komponente ersetzt beide bisherigen Implementierungen. Tabs und Aktionen werden
-  rein aus `ReleaseVersionCapabilities` + `isPlatformAdmin` berechnet (additiv, kein Sonderpfad
-  pro Rolle mehr in zwei getrennten Code-Pfaden).
-- Admin-exklusive Inhalte (Jellyfin-Scan, Gruppen-Zuweisung, Episoden-Klassifikation, Löschen)
-  bleiben hinter `isPlatformAdmin` sichtbar — das Backend erzwingt die entsprechenden Grenzen
-  bereits unabhängig vom Frontend (`isReleaseMetadataOnlyPatch`).
-- Die alte Workspace-URL (`/me/releases/[versionId]/workspace`) wird zu einer Weiterleitung auf
-  die neue Zielroute (Mechanismus: siehe offene Frage 4).
-- Alle 11 gefundenen Einstiegspunkte werden auf die neue Zielroute umgestellt.
+- **Eine** Seite/Komponente unter dem neutralen Pfad `/releases/[versionId]/edit` ersetzt beide
+  bisherigen Implementierungen. Tabs und Aktionen werden rein aus `ReleaseVersionCapabilities` +
+  `isPlatformAdmin` berechnet (additiv, kein Sonderpfad pro Rolle mehr in zwei getrennten
+  Code-Pfaden).
+- Admin-exklusive Inhalte (Jellyfin-Scan, Gruppen-Zuweisung, Episoden-Klassifikation, Löschen,
+  Dateien-Tab, Änderungsverlauf-Tab) bleiben hinter `isPlatformAdmin` sichtbar — das Backend
+  erzwingt die entsprechenden Grenzen bereits unabhängig vom Frontend
+  (`isReleaseMetadataOnlyPatch`).
+- Beide alten Adressen (`/admin/episode-versions/[versionId]/edit` und
+  `/me/releases/[versionId]/workspace`) leiten dauerhaft auf die neue Zielroute weiter,
+  Query-Parameter (`return_to` usw.) bleiben beim Redirect erhalten.
+- Alle 11 gefundenen externen Einstiegspunkte zeigen direkt auf die neue Zielroute (kein
+  Umweg über eine der beiden alten Adressen mehr).
 - `GetMyProjectDetail` bekommt das `GetOwnDashboard`-Muster (graceful statt 404 bei fehlendem
   Member-Claim), damit die projektbezogene Vor/Zurück-Navigation für einen Plattform-Admin ohne
   Mitgliederprofil nicht hart fehlschlägt.
@@ -128,119 +133,95 @@ auf die eine Zielseite umgestellt werden müssen, zzgl. der zwei internen Selbst
 - **F-15** (globaler Upload-Baustein) — Release-Medien-Upload bleibt funktional wie heute,
   nur die umgebende Seite wird vereinheitlicht.
 
-## Offene Fragen an den Nutzer
+## Entscheidungen (D-01 bis D-05, Nutzer 2026-10-13, verbindlich)
 
-### Frage 1: Kanonische URL — welcher Pfad bleibt?
+### D-01 Kanonische Adresse: neutraler Pfad `/releases/[versionId]/edit`
 
-- **Option A — Admin-Pfad bleibt kanonisch** (`/admin/episode-versions/[versionId]/edit`,
-  ggf. umbenannt). Vorteil: mehr Einstiegspunkte (6) zeigen bereits dorthin, Admin-Editor ist der
-  funktional vollständigere der beiden (hat alle Tabs). Nachteil: Pfad klingt nach „nur für
-  Admins", obwohl künftig auch Mitglieder ohne Admin-Rechte dort landen sollen — potenziell
-  verwirrend im Alltag, wenn ein normales Gruppenmitglied in der URL „/admin/..." sieht.
-- **Option B — neutraler Pfad** (z. B. `/releases/[versionId]/edit` oder `/releases/[versionId]`
-  ohne „/admin"- oder „/me"-Präfix). Vorteil: URL beschreibt die Fachaufgabe statt der Rolle,
-  passt zu „eine rechtebasierte Seite für alle". Nachteil: 11 Einstiegspunkte + alte Workspace-
-  Weiterleitung müssen auf einen komplett neuen Pfad umgestellt werden (mehr Änderungsfläche);
-  ggf. Kollision mit bestehenden Routing-Konventionen prüfen.
-- **Option C — `/me`-Pfad bleibt kanonisch**, Admin-Route leitet um. Vorteil: wenig Änderung aus
-  Mitglieder-Sicht. Nachteil: 6 Admin-Einstiegspunkte (Episoden-Übersicht, User-Medien-Tab,
-  Review-Queue, Fansub-Edit ×2) müssten auf einen `/me`-Pfad zeigen, der Admins ohne
-  Mitgliederprofil historisch ausgesperrt hat — widerspricht dem eigentlichen Phasenziel.
+Geprüft: Es existiert **keine** öffentliche Top-Level-`/releases`-Route unter
+`frontend/src/app/` — nur `app/me/releases/` (der abzulösende Workspace) und die interne
+API-Route `app/api/releases/`. Es gibt auch keine andere Top-Level-Kollision (vorhandene
+Top-Level-Ordner: `admin`, `anime`, `api`, `archiv`, `claim-invitations`, `covers`, `dev`,
+`episodes`, `fansubs`, `invitations`, `login`, `me`, `media`, `members`, `suche`, `watchlist`).
+Die öffentliche Release-Galerie liegt verschachtelt unter
+`anime/[id]/group/[groupId]/releases/[releaseVersionId]/` und kollidiert damit ebenfalls nicht
+mit einem neuen Top-Level-Pfad `/releases/[versionId]/edit`. **`/releases/[versionId]/edit` ist
+damit kollisionsfrei und wird die kanonische Adresse.**
 
-**Empfehlung:** Option B (neutraler Pfad). Er trifft den Kern des Phasenziels „eine
-rechtebasierte Seite" am saubersten — die URL soll nicht mehr implizieren, wer sie nutzen darf.
-Der Migrationsaufwand (11 Stellen + Redirect) ist ohnehin für jede Option ähnlich groß, weil
-mindestens eine der beiden alten Routen in jedem Fall abgelöst wird.
+- Beide alten Adressen leiten dorthin weiter:
+  - `/admin/episode-versions/[versionId]/edit` → `/releases/[versionId]/edit`
+  - `/me/releases/[versionId]/workspace` → `/releases/[versionId]/edit` (dauerhaft, siehe D-04)
+- Query-Parameter (`return_to`, `tab`, `animeId`, `episodeId` usw.) bleiben beim Redirect
+  erhalten (Pass-through, kein Parameter-Verlust).
+- Alle 11 gefundenen externen Einstiegspunkte (6 Admin, siehe Tabelle „Zur Admin-Route" oben;
+  5 Workspace, siehe Tabelle „Zur Workspace-Route" oben) werden direkt auf
+  `/releases/[versionId]/edit` umgestellt statt über eine alte Adresse umzuleiten.
+- Der fragwürdige/vermutlich tote Pfad in `EpisodeEditForm.tsx:289` wird vor dem Umbau verifiziert
+  (erreichbar ja/nein) und entsprechend behandelt (umstellen oder als toten Code entfernen).
+- Tab-Query-Parameter-Konvention wird vereinheitlicht: Admin nutzt heute
+  `uebersicht/dateien/informationen/segmente/media/changelog/notizen`, Workspace nutzt
+  `metadata/media/segments/notes` — die neue Seite braucht ein einheitliches Set (Ableitung aus
+  D-02: nur die 4 gemeinsamen Tabs plus ggf. admin-exklusive Zusatz-Tabs).
 
-### Frage 2: Mitglieder ohne Admin-Rechte — welche Tabs sehen sie künftig?
+### D-02 Tabs für Mitglieder ohne Admin-Rechte: wie heute im Workspace
 
-- **Option A — exakt wie heute im Workspace**: nur die 4 capability-gated Tabs (Basisdaten,
-  Medien, Segmente, Notizen), keine Admin-Tabs sichtbar, auch nicht ausgegraut. Vorteil: keine
-  Verhaltensänderung für bestehende Mitglieder-Workflows. Nachteil: falls künftig weitere
-  Capabilities feiner differenzieren sollen (z. B. Lesezugriff auf „Speicherort"), fehlt dafür
-  heute ein Tab-Konzept.
-- **Option B — alle Tabs sichtbar, Admin-exklusive Felder/Aktionen pro Feld deaktiviert/versteckt**
-  statt ganzer Tabs. Vorteil: konsistentere Navigation (Tab-Liste ändert sich nicht je Rolle).
-  Nachteil: mehr Felder-genaue Gating-Logik statt Tab-genauer Logik, höheres Risiko für
-  versehentlich sichtbare, aber nicht wirklich nutzbare Admin-Funktionen.
-- **Option C — Hybrid**: Tabs, die für die Rolle komplett irrelevant sind (Dateien/Jellyfin,
-  Changelog), bleiben ausgeblendet; Tabs mit gemischten Rechten (Informationen/Segmente/Media/
-  Notizen) bleiben sichtbar, aber einzelne Felder/Buttons darin sind capability-gated — das
-  entspricht im Kern dem heutigen Verhalten des Admin-Editors für Contributor-Zugriff.
+Mitglieder ohne Plattform-Admin-Rechte sehen weiterhin **nur die 4 rechtegesteuerten Tabs**
+(Basisdaten, Medien, Segmente, Notizen), gesteuert durch `ReleaseVersionCapabilities`. Die
+Admin-exklusiven Tabs (Dateien/Jellyfin, Änderungsverlauf/Changelog) sind für sie **nicht
+sichtbar** — keine ausgegrauten Tabs, kein Hinweis auf deren Existenz. Die admin-internen
+Inhalte aus „Informationen" (Episoden-Klassifikation, Speicherort, Fansub-Gruppen-Zuweisung)
+bleiben ebenfalls nur für `isPlatformAdmin` sichtbar, analog zum heutigen Admin-Editor-Verhalten
+für Contributor-Zugriff.
 
-**Empfehlung:** Option A (Fortsetzung des heutigen Workspace-Verhaltens), weil es das am
-wenigsten riskante Verhalten für bestehende Mitglieder ist und der heutige Admin-Editor für
-Contributor-Zugriff bereits strukturell ähnlich (reduzierte Tab-Liste) arbeitet — Option C wäre
-im Ergebnis fast identisch, nur mit mehr Implementierungsaufwand pro Feld statt pro Tab.
+### D-03 Vor/Zurück-Blättern: kontextabhängig nach Einstieg, kein Umschalter
 
-### Frage 3: Was passiert mit reinen `/me`-Funktionen (projektbezogene Vor/Zurück-Navigation)?
+Die Navigation leitet sich automatisch aus dem Einstiegskontext ab (heute schon über
+`return_to` transportiert, kein neuer Parameter nötig):
+- Einstieg aus einem Projekt-Kontext (z. B. `return_to=/me/projects/{animeId}/group/{groupId}`
+  oder direkt aus `/me/projects/.../page.tsx`) → Blättern **innerhalb des Anime+Gruppe-Projekts**
+  (heutiges Workspace-Verhalten, Datenquelle `getMyProjectDetail(...).release_versions`).
+- Einstieg aus der Episoden-Übersicht (z. B. `return_to=/admin/fansubs/{id}/edit` oder aus den
+  Episoden-/Versionen-Listen-Einstiegspunkten) → Blättern **durch alle Episoden der Anime**
+  (heutiges Admin-Verhalten, Datenquelle `getGroupedEpisodes(animeId)`).
+- Beide Navigationsmodi bleiben als Code bestehen; die neue Seite wählt zur Laufzeit anhand des
+  Kontexts, welcher aktiv ist — kein sichtbarer Umschalter für den Nutzer.
 
-Der Workspace navigiert zwischen Release-Versionen **innerhalb eines Anime+Gruppe-Projekts**
-(`getMyProjectDetail`), der Admin-Editor navigiert zwischen **Episoden derselben Anime** über
-alle Gruppen hinweg (`getGroupedEpisodes`). Das sind zwei unterschiedliche Fachmodelle, kein
-zufällig doppelter Code.
+### D-04 Weiterleitung der alten Workspace-Adresse: dauerhaft
 
-- **Option A — nur die episodenübergreifende Navigation bleibt** (heutiges Admin-Verhalten).
-  Vorteil: ein Navigationsmodell, weniger Code. Nachteil: Mitglieder verlieren die projektbezogene
-  Eingrenzung („nur mein Projekt"), was für sie im Alltag weniger fokussiert sein könnte, wenn ein
-  Anime viele Gruppen/Episoden hat.
-- **Option B — nur die projektbezogene Navigation bleibt** (heutiges Workspace-Verhalten).
-  Vorteil: fokussierter für den Alltag einzelner Mitarbeiter in einem Projekt. Nachteil: Admins
-  verlieren die Möglichkeit, zügig durch alle Episoden einer Anime zu blättern (z. B. beim
-  Massen-Review mehrerer Episoden).
-- **Option C — beide Navigationsmodi bleiben erhalten, aber als bewusste Wahl** (z. B. Umschalter
-  oder: Navigation ist kontextabhängig — wer über eine Projekt-URL (`return_to` auf ein Projekt)
-  eingestiegen ist, bekommt Projekt-Navigation; wer über eine Episoden-Liste eingestiegen ist,
-  bekommt Episoden-Navigation). Vorteil: kein Funktionsverlust für beide Nutzergruppen. Nachteil:
-  höhere Komplexität, zwei Navigationspfade bleiben im Code bestehen (Ziel „eine Seite" wird nur
-  teilweise erreicht).
+`/me/releases/[versionId]/workspace` leitet **dauerhaft** auf `/releases/[versionId]/edit` weiter
+(kein Entfernungstermin, kein Cutover). Grund: marginaler Code-Aufwand für den Redirect
+gegenüber echtem, aber leicht unbemerktem Risiko kaputter Lesezeichen bei Mitgliedern.
 
-**Empfehlung:** Option C, aber als Nebeneffekt des Einstiegskontexts statt als sichtbarer
-Umschalter — die Navigation folgt automatisch dem `return_to`/Herkunfts-Kontext (Projekt vs.
-Episoden-Übersicht). Das deckt sich mit Frage 5 unten (Vor/Zurück im Kontext bleiben) und
-vermeidet echten Funktionsverlust, ohne dass Nutzer manuell umschalten müssen.
+### D-05 Plattform-Admin ohne Mitgliederprofil: kein 404 mehr
 
-### Frage 4: Weiterleitung der alten Workspace-URL — dauerhaft oder temporär?
+Analog zum bereits im Code dokumentierten `GetOwnDashboard`-Muster
+(`dashboard_me_handler.go:90-120`, „D-09-Kontrast") antwortet `ContributionsMeHandler.
+GetMyProjectDetail` (`contributions_me_project_handler.go:13-35`) künftig graceful statt mit
+404, wenn für den `app_user` kein verifizierter `member_claim` existiert — sowohl auf der
+zusammengeführten Release-Seite selbst als auch bei der projektbezogenen Vor/Zurück-Navigation
+(D-03). Die übrigen 9 `/me`-Handler mit Pflicht-`member_claim` (siehe Liste oben, Punkte 2–10)
+sind nicht Teil dieser Änderung — sie betreffen andere Fachaufgaben (Beitragslisten,
+Mitgliedschaften, Vorschläge) außerhalb des Release-Editor-Scopes von F-13.
 
-- **Option A — dauerhafter Redirect**: `/me/releases/[versionId]/workspace` bleibt für immer als
-  Weiterleitung bestehen (z. B. Next.js `redirect()` in der Route). Vorteil: alte Lesezeichen/
-  Links (auch außerhalb des Codes, z. B. in Chat-Verläufen) funktionieren unbegrenzt weiter.
-  Nachteil: dauerhafte Alt-Code-Last, auch wenn minimal.
-- **Option B — temporärer Redirect mit geplantem Entfernungstermin** (z. B. nach N Monaten oder
-  nach Abschluss einer Folgephase entfernen, dokumentiert in FOLLOWUPS). Vorteil: klarer Aufräum-
-  Pfad, kein dauerhafter Alt-Code. Nachteil: Risiko, dass der Termin verpasst wird und alte Links
-  irgendwann brechen, ohne dass es jemand bemerkt (V1 ist admin-only, aber Mitglieder sind keine
-  Admins im engeren Sinne — hier besonders relevant, weil reale Mitglieder-Lesezeichen betroffen
-  wären).
-- **Option C — kein Redirect, harter Cutover**: alte URL liefert 404, alle bekannten Links werden
-  vorher umgestellt. Widerspricht aber direkt dem Auftrag („alte Workspace-URL leitet weiter")
-  und wird daher nicht ernsthaft vorgeschlagen, nur zur Vollständigkeit genannt.
+## Pflicht-Constraints (gelten für Planung und Umsetzung dieser Phase)
 
-**Empfehlung:** Option A (dauerhafter Redirect). Der Umsetzungsaufwand für einen dauerhaften
-Redirect ist marginal (eine Zeile Next.js-Routing), während ein verpasster Entfernungstermin bei
-Option B echte, aber unsichtbare Breakage für Mitglieder verursachen kann, die ihre Workspace-URL
-als Lesezeichen gespeichert haben.
-
-### Frage 5: Bleibt die Vor/Zurück-Navigation kontextabhängig (Projekt vs. Gruppe/Episode)?
-
-Eng verknüpft mit Frage 3 — hier geht es konkret darum, OB die Navigation den Einstiegskontext
-überhaupt erkennen soll, unabhängig davon, welches Modell im Zweifelsfall gewinnt.
-
-- **Option A — ja, kontextabhängig**: die Seite weiß (über `return_to` oder einen expliziten
-  Query-Parameter), aus welchem Kontext sie geöffnet wurde, und zeigt die dazu passende
-  Navigation (Projekt-Liste vs. Episoden-Liste). Vorteil: kein Funktionsverlust, Navigation bleibt
-  für die jeweilige Aufgabe sinnvoll. Nachteil: Navigationslogik muss den Kontext explizit tracken
-  statt sich nur aus `versionId` abzuleiten.
-- **Option B — nein, immer ein festes Modell** (eines der beiden aus Frage 3 wird globale
-  Standardnavigation, unabhängig vom Einstieg). Vorteil: einfachster Code. Nachteil: eine
-  Nutzergruppe verliert ihr bisheriges Navigationsverhalten ohne Ausweichmöglichkeit.
-
-**Empfehlung:** Option A — konsistent mit der Empfehlung zu Frage 3. Der Kontext ist über
-`return_to` ohnehin schon heute auf beiden Seiten vorhanden (`getSafeReturnPath` /
-`getProjectReturnPath`), die Navigation müsste also nur denselben, bereits vorhandenen Kontext
-zusätzlich für die Nachbar-Berechnung nutzen statt nur für den Rücksprung-Button.
+- **Globale UI-Primitives**: jede neue/angepasste Oberfläche nutzt ausschließlich
+  `@/components/ui` (Button, Select, FormField, Modal, Input, Textarea, Tabs, Drawer, Card,
+  Table …) — keine handgebauten nativen `<select>/<input>/<textarea>/<button>`.
+- **Globale Design-Tokens** statt neuer Ad-hoc-Werte.
+- **Korrekte Umlaute** in jedem user-facing deutschen String (JSX-Text, Labels,
+  Fehlermeldungen, Platzhalter, aria-labels, Toasts, Go-Response-Strings) — keine
+  ASCII-Ersetzungen (ae/oe/ue/ss).
+- **Modularität**: Produktionsdateien ≤ 450 Zeilen. `EpisodeVersionEditorPage.tsx` (966 Zeilen)
+  wird im Rahmen der Zusammenführung aufgeteilt, nicht 1:1 in die neue Seite kopiert.
+- **Teststil**: Tests führen den geprüften Code tatsächlich aus (Logik hinter den Knöpfen,
+  z. B. Capability-Berechnung, Redirect-Ziel-Auflösung, kontextabhängige Navigationswahl) —
+  keine Render-/Klick-Simulationstests und keine Quelltext-Inspektionstests
+  (`os.ReadFile` + `strings.Contains` auf Produktionsdateien).
+- **Live-UAT**: die eigentlichen Klickabläufe (Redirects, Tab-Sichtbarkeit je Rolle,
+  Vor/Zurück-Navigation je Kontext) werden in der Live-UAT abgenommen, nicht nur durch
+  automatisierte Tests.
 
 ---
 
-*Diese Datei ist ein Entwurf für die Diskussion mit dem Nutzer (`/gsd:discuss-phase`), noch keine
-freigegebene Planungsgrundlage. Kein Code wurde für diese Inventur verändert.*
+*Dieser Stand ist freigegeben (D-01 bis D-05) und Grundlage für `/gsd:ui-phase 181` und
+`/gsd:plan-phase 181`. Kein Code wurde für diese Inventur verändert.*
