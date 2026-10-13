@@ -1,0 +1,71 @@
+/*
+ * D-02 (UI-SPEC "Spacing Scale"): uebernimmt exakt die vorhandenen .page/.shell-Wrapper-Werte aus
+ * frontend/src/app/me/releases/[versionId]/workspace/workspace.module.css -- keine neuen
+ * Ad-hoc-Pixelwerte beim Zusammenfuehren. Nicht im Plan-files_modified gelistet, aber noetig fuer
+ * die Pflicht-Constraint-konforme Seiten-Chrome (Rule 2 Deviation, siehe SUMMARY.md).
+ */
+.page {
+  min-height: 100vh;
+  padding: 32px 18px 48px;
+  background: linear-gradient(to bottom, #f5f7fb, #edf1f7);
+  color: var(--text-body, #1c1c1e);
+}
+
+.shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--text-soft, #6b7280);
+  font-size: 0.88rem;
+}
+
+.breadcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.badgeRow {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.releaseNavigation {
+  min-width: 0;
+}
+
+.navigationStatus {
+  margin: 0;
+  min-width: 0;
+  color: var(--text-soft, #6b7280);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 20px 12px 36px;
+  }
+
+  .headerActions,
+  .badgeRow {
+    justify-content: flex-start;
+  }
+}
