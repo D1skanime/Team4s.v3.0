@@ -1,10 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import { useRef } from 'react'
 import { Crop, Loader2, Trash2 } from 'lucide-react'
 
-import { Button, MediaSlot, type UploadDropzoneHandle } from '@/components/ui'
+import { Button, MediaSlot } from '@/components/ui'
 import { classNames } from '@/components/ui/classNames'
 
 import type { EditableMediaValue } from './MediaUpload'
@@ -65,7 +64,6 @@ export function MediaUploadCore({
   onEditClick,
   onRemoveClick,
 }: MediaUploadCoreProps) {
-  const dropzoneRef = useRef<UploadDropzoneHandle>(null)
   const isLogo = type === 'logo'
   const hasValue = Boolean(value?.publicURL?.trim())
   const title = isLogo ? 'Logo' : 'Banner'
@@ -83,7 +81,6 @@ export function MediaUploadCore({
       </div>
 
       <MediaSlot
-        ref={dropzoneRef}
         aspectRatio={isLogo ? 1 : BANNER_CROP_OUTPUT_WIDTH / BANNER_CROP_OUTPUT_HEIGHT}
         shape={isLogo ? 'round' : 'rect'}
         label={title}
