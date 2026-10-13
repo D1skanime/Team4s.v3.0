@@ -6,6 +6,7 @@ import {
   FIXED_REMOTE_IMAGE_URLS,
   configuredApiMediaPatterns,
 } from './src/lib/images/publicImagePatterns.mjs'
+import { buildReleaseEditorRedirects } from './src/lib/releaseEditorRedirects.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -50,6 +51,7 @@ const nextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  redirects: async () => buildReleaseEditorRedirects(),
 }
 
 export default nextConfig

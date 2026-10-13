@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 
-import { buildReleaseEditorRedirects } from './releaseEditorRedirects'
+import { buildReleaseEditorRedirects } from './releaseEditorRedirects.mjs'
 
 describe('buildReleaseEditorRedirects (D-01/D-04)', () => {
   it('leitet die alte Admin-Adresse dauerhaft auf die neue Release-Route weiter', () => {
