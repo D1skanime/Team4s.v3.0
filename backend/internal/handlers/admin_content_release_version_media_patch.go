@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"team4s.v3/backend/internal/permissions"
@@ -206,53 +205,24 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 	if !previewOnly {
-		if isReleaseVersionMediaUploader(relationMeta.UploadedByUserID, identity.UserID) {
-			if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
-				c.Request.Context(),
-				repository.ReleaseReviewSubmissionInput{
-					SourceID:         relationID,
-					ActorAppUserID:   identity.AppUserID,
-					ExpectedRevision: expectedRevision,
-					LastActivityAt:   time.Now().UTC(),
-				},
-			); err != nil {
-				if errors.Is(err, repository.ErrConflict) {
-					c.JSON(http.StatusConflict, gin.H{"error": gin.H{
-						"message":    "Das Medium wurde zwischenzeitlich geändert.",
-						"error_code": "SOURCE_REVISION_CONFLICT",
-					}})
-					return
-				}
-				if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrValidation) {
-					c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-						"message":    "Die Einreicher-Zuordnung ist nicht mehr eindeutig.",
-						"error_code": "SOURCE_ATTRIBUTION_INVALID",
-					}})
-					return
-				}
-				writeInternalErrorResponse(c, "interner serverfehler", err, "Review-Lifecycle konnte nicht aktualisiert werden.")
-				return
-			}
-		} else if expectedRevision == nil {
-			// WR-02 (176-REVIEW): a non-uploader's metadata-only edit never calls
-			// SubmitMedia (BUG-174-04, Option 1 -- no re-review on non-uploader
-			// corrections), so CheckMediaRevisionConflict below is this path's only
-			// optimistic-concurrency protection. Treating a missing source_revision as
-			// "no-op, skip the check" (the original D-06 behavior) made the guard
-			// opt-in per request instead of enforced server-side. Non-uploaders must
-			// now always send source_revision; omitting it is rejected outright.
+		// 2026-10-12 user decision (Option B, debug session release-review-metadata-409):
+		// a metadata-only edit (title/caption/category) never reopens review, no matter who
+		// makes it. Only an actual file replacement (ReplaceReleaseVersionMediaFile) may reset
+		// review_state back to 'pending'. Earlier revisions of this handler called SubmitMedia
+		// for the uploader's own edits, which conflated "bump the optimistic-concurrency
+		// revision" with "trigger re-review" and silently reopened a confirmed/rejected medium
+		// -- BumpMediaRevisionForMetadataEdit keeps those two concepts separate for every
+		// editor, uploader and non-uploader alike.
+		if expectedRevision == nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{
-				"message":    "Source-Revision ist erforderlich, wenn jemand anderes als der Hochladende Metadaten ändert.",
+				"message":    "Source-Revision ist erforderlich, um Metadaten zu ändern.",
 				"error_code": "SOURCE_REVISION_REQUIRED",
 			}})
 			return
-		} else if err := repository.NewReleaseReviewLifecycleRepository(tx).CheckMediaRevisionConflict(
+		}
+		if _, err := repository.NewReleaseReviewLifecycleRepository(tx).BumpMediaRevisionForMetadataEdit(
 			c.Request.Context(), relationID, expectedRevision,
 		); err != nil {
-			// D-06 (176-09, F-14 Folgehinweis / BUG-174-04): a non-uploader's metadata-only
-			// edit never calls SubmitMedia (BUG-174-04, Option 1 -- no re-review on
-			// non-uploader corrections), so it never got SubmitMedia's optimistic-concurrency
-			// check either. This restores just the conflict check, without reopening review.
 			if errors.Is(err, repository.ErrConflict) {
 				c.JSON(http.StatusConflict, gin.H{"error": gin.H{
 					"message":    "Das Medium wurde zwischenzeitlich geändert.",

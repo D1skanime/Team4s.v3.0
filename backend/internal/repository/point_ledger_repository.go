@@ -176,6 +176,25 @@ func (r *PointLedgerRepository) InsertReversal(ctx context.Context, input PointR
 	return existing, nil
 }
 
+// HasAward reports whether an award entry already exists for the given idempotency key.
+// Callers that credit a one-time, stable contribution (e.g. a submitter's work credit that
+// must not be re-awarded just because the same source was reviewed again under a new
+// revision) use this to skip crediting entirely instead of calling InsertAward and relying
+// on its EffectiveAt-sensitive match-or-conflict fallback, which is meant for literal retries
+// of the exact same request, not legitimately repeated business events.
+func (r *PointLedgerRepository) HasAward(ctx context.Context, key string) (bool, error) {
+	if r == nil || r.db == nil || strings.TrimSpace(key) == "" {
+		return false, fmt.Errorf("check point award idempotency key: %w", ErrValidation)
+	}
+	var exists bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (SELECT 1 FROM point_ledger_entries WHERE idempotency_key = $1)
+	`, key).Scan(&exists); err != nil {
+		return false, fmt.Errorf("check point award idempotency key %q: %w", key, err)
+	}
+	return exists, nil
+}
+
 func (r *PointLedgerRepository) getByIdempotencyKey(ctx context.Context, key string) (*PointLedgerEntry, error) {
 	entry, err := scanPointLedgerEntry(r.db.QueryRow(ctx, `SELECT `+pointLedgerColumns+` FROM point_ledger_entries WHERE idempotency_key = $1`, key))
 	if errors.Is(err, pgx.ErrNoRows) {

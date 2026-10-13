@@ -33,7 +33,8 @@ func creditReleaseReviewContribution(
 	}
 	appUserID := *target.SubmitterAppUserID
 	groupID := target.FansubGroupID
-	_, err = NewPointService(nil).CreditInTx(ctx, db, CreditCommand{
+	points := NewPointService(nil)
+	command := CreditCommand{
 		MemberID:       *target.BeneficiaryMemberID,
 		ActorAppUserID: &appUserID,
 		Source: SourceRef{
@@ -46,8 +47,27 @@ func creditReleaseReviewContribution(
 		FansubGroupID:    &groupID,
 		ReleaseVersionID: &releaseVersionID,
 		EffectiveAt:      effectiveAt,
-	})
+	}
+	// The work-contribution credit is a one-time award per (source type/key, beneficiary,
+	// slot) -- not per revision. A confirmed-then-metadata-edited-then-confirmed-again
+	// source (or a confirmed-then-legitimately-file-replaced-then-confirmed-again one)
+	// reaches this code a second time with the SAME idempotency key but a LATER
+	// EffectiveAt; InsertAward's literal-retry fallback would reject that as a conflict
+	// even though it is not a retry at all, just the same submitter being credited for the
+	// same contribution a second time. Skip the award outright once already granted.
+	alreadyCredited, err := points.HasBeenCredited(ctx, db, command)
 	if err != nil {
+		return fmt.Errorf(
+			"check release review contribution credit %s:%d: %w",
+			target.Ref.SourceType,
+			sourceID,
+			err,
+		)
+	}
+	if alreadyCredited {
+		return nil
+	}
+	if _, err = points.CreditInTx(ctx, db, command); err != nil {
 		return fmt.Errorf(
 			"credit release review contribution %s:%d: %w",
 			target.Ref.SourceType,

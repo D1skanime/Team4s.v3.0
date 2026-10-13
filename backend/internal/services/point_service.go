@@ -67,6 +67,18 @@ func (s *PointService) CreditInTx(ctx context.Context, db repository.DBTX, cmd C
 	return entry, nil
 }
 
+// HasBeenCredited reports whether CreditInTx has already awarded this exact
+// (reward kind, source type/key, beneficiary, slot) combination, regardless of when. Callers
+// that credit a one-time, stable contribution -- not a per-attempt retry -- use this to skip
+// crediting entirely on a repeat call instead of invoking CreditInTx, whose InsertAward
+// fallback compares EffectiveAt and treats a legitimately later timestamp as a conflict.
+func (s *PointService) HasBeenCredited(ctx context.Context, db repository.DBTX, cmd CreditCommand) (bool, error) {
+	if err := validateCreditCommand(db, cmd); err != nil {
+		return false, err
+	}
+	return repository.NewPointLedgerRepository(db).HasAward(ctx, buildCreditIdempotencyKey(cmd))
+}
+
 func (s *PointService) Credit(ctx context.Context, cmd CreditCommand) (*repository.PointLedgerEntry, error) {
 	if s == nil || s.starter == nil {
 		return nil, fmt.Errorf("credit points begin: %w", repository.ErrValidation)

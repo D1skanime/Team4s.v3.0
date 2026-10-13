@@ -905,7 +905,13 @@ func rvmExecMediaLifecycleSnapshot(t *testing.T, pool *pgxpool.Pool, relationID 
 // calls against a real Postgres fixture (not source-text inspection), that a non-uploader's
 // stale source_revision is now rejected with a genuine 409 SOURCE_REVISION_CONFLICT and leaves
 // the relation completely untouched, while a non-uploader's correctly-matched source_revision
-// still succeeds without bumping the revision or touching review_state (BUG-174-04 stays intact).
+// still succeeds and never touches review_state (BUG-174-04 stays intact).
+//
+// 2026-10-13 (debug session release-review-metadata-409, user decision 2026-10-12 Option B):
+// a correctly-matched metadata edit now DOES bump source_revision by exactly one via
+// BumpMediaRevisionForMetadataEdit — the revision counter and the re-review trigger are
+// deliberately separate concepts now, both for the uploader and for a non-uploader. Only
+// review_state (and thus whether the medium reappears in the review queue) stays untouched.
 func TestPatchReleaseVersionMediaNonUploaderRevisionConflictProtection(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	pool := openRVMExecFixture(t)
@@ -943,7 +949,7 @@ func TestPatchReleaseVersionMediaNonUploaderRevisionConflictProtection(t *testin
 		assert.Equal(t, captionBefore, captionAfter, "a rejected non-uploader edit must not persist its caption")
 	})
 
-	t.Run("matching source_revision from a non-uploader succeeds without bumping revision or review state", func(t *testing.T) {
+	t.Run("matching source_revision from a non-uploader succeeds, bumps the revision by one, and never changes review state", func(t *testing.T) {
 		body := bytes.NewBufferString(fmt.Sprintf(`{"caption":"von leitung korrigiert","source_revision":%d}`, revisionBefore))
 		req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/release-versions/41/media/%d", relationID), body)
 		req.Header.Set("Content-Type", "application/json")
@@ -956,8 +962,8 @@ func TestPatchReleaseVersionMediaNonUploaderRevisionConflictProtection(t *testin
 		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
 
 		revisionAfter, stateAfter, captionAfter := rvmExecMediaLifecycleSnapshot(t, pool, relationID)
-		assert.Equal(t, revisionBefore, revisionAfter,
-			"BUG-174-04 (Option 1): a non-uploader's metadata edit must never bump the revision")
+		assert.Equal(t, revisionBefore+1, revisionAfter,
+			"release-review-metadata-409: a metadata edit still bumps the optimistic-concurrency revision by one")
 		assert.Equal(t, stateBefore, stateAfter,
 			"BUG-174-04 (Option 1): a non-uploader's metadata edit must never change the review state")
 		assert.Equal(t, "von leitung korrigiert", captionAfter, "the accepted edit must still persist")
