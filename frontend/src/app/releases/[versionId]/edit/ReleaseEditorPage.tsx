@@ -374,7 +374,7 @@ export function ReleaseEditorPage() {
           onActiveIdChange={handleTabChange}
         />
 
-        {capabilities.can_edit_notes && memberId == null ? (
+        {!isPlatformAdmin && capabilities.can_edit_notes && memberId == null ? (
           <ErrorState
             title="Member-Profil fehlt"
             description="Notizen sind erst verfügbar, wenn dein App-Profil mit einem Member-Profil verknüpft ist."

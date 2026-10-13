@@ -193,6 +193,19 @@ describe('ReleaseEditorPage Navigationskontext-Auswahl (D-03)', () => {
   })
 })
 
+describe('ReleaseEditorPage D-05 Fehlerbanner-Bypass fuer Plattform-Admins', () => {
+  it('zeigt den "Member-Profil fehlt"-Banner nicht fuer einen Plattform-Admin ohne Member-Profil', async () => {
+    getCurrentUserMock.mockResolvedValue({ data: { is_platform_admin: true } })
+    getOwnProfileMock.mockResolvedValue({ data: { member_id: 0 } })
+    mockCapabilities({ can_edit_notes: true })
+
+    render(<ReleaseEditorPage />)
+
+    expect(await screen.findByRole('tab', { name: 'Notizen' })).toBeTruthy()
+    expect(screen.queryByText('Member-Profil fehlt')).toBeNull()
+  })
+})
+
 describe('ReleaseEditorPage D-05 Graceful-Leerzustand', () => {
   it('rendert bei fehlender Projekt-Navigationsuebereinstimmung weder eine Navigationsleiste noch einen Fehlerbanner', async () => {
     mockCapabilities({ can_view_media: true })
