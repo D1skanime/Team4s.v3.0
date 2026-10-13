@@ -284,7 +284,7 @@ export default function ReleaseReviewPage() {
         ) : null}
         {detail.can_edit_release ? (
           <Button
-            href={`/admin/episode-versions/${detail.release_version_id}/edit`}
+            href={`/releases/${detail.release_version_id}/edit`}
             variant="secondary"
           >
             Release bearbeiten

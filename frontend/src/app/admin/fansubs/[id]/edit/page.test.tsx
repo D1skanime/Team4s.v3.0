@@ -284,7 +284,7 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
     )
 
     const link = screen.getByRole('link', { name: 'Media verwalten' })
-    expect(link.getAttribute('href')).toContain('/admin/episode-versions/1/edit')
+    expect(link.getAttribute('href')).toContain('/releases/1/edit')
     expect(screen.getByText('Erste Folge · SubGroup · v1')).not.toBeNull()
   })
 
@@ -548,7 +548,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
     const mediaLink = await screen.findByRole('link', { name: 'Medien öffnen' })
     expect(mediaLink.getAttribute('href')).toContain(
-      '/admin/episode-versions/41/edit?tab=media',
+      '/releases/41/edit?tab=media',
     )
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
@@ -791,9 +791,9 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     const toolsLink = await screen.findByRole('link', { name: 'Notizen & Bilder öffnen' })
     expect(toolsLink.getAttribute('href')).toBe(
-      '/admin/episode-versions/6201/edit?tab=notizen&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
+      '/releases/6201/edit?tab=notes&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
     )
-    expect(toolsLink.getAttribute('href')).not.toContain('/admin/episode-versions/62/edit')
+    expect(toolsLink.getAttribute('href')).not.toContain('/releases/62/edit')
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
 
@@ -847,7 +847,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     const toolsLink = await screen.findByRole('link', { name: 'Notizen & Bilder öffnen' })
     expect(toolsLink.getAttribute('href')).toBe(
-      '/admin/episode-versions/6201/edit?tab=notizen&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
+      '/releases/6201/edit?tab=notes&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
     )
   })
 
@@ -1237,12 +1237,12 @@ describe('AdminFansubEditPage token-free wiring', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
     expect(
       (await within(screen.getByRole('article', { name: 'Episode 1: Erste Folge' })).findByRole('link', { name: 'Notizen & Bilder öffnen' })).getAttribute('href'),
-    ).toContain('/admin/episode-versions/6201/edit?tab=notizen')
+    ).toContain('/releases/6201/edit?tab=notes')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 2 ausklappen' }))
     expect(
       (await within(screen.getByRole('article', { name: 'Episode 2: Zweite Folge' })).findByRole('link', { name: 'Notizen & Bilder öffnen' })).getAttribute('href'),
-    ).toContain('/admin/episode-versions/6301/edit?tab=notizen')
+    ).toContain('/releases/6301/edit?tab=notes')
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
 })

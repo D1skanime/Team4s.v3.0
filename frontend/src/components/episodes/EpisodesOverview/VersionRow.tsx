@@ -120,7 +120,7 @@ export function VersionRow({ version, isDefault = false }: VersionRowProps) {
         <button
           type="button"
           className={styles.episodeEditButton}
-          onClick={() => router.push(`/admin/episode-versions/${version.id}/edit`)}
+          onClick={() => router.push(`/releases/${version.id}/edit`)}
           aria-label={`Version ${version.id} bearbeiten`}
         >
           Edit

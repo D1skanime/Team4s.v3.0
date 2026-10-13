@@ -660,7 +660,7 @@ function AdminAnimeEpisodeVersionsContent() {
 
                     <div className={styles.actionsRow}>
                       <Link
-                        href={`/admin/episode-versions/${version.id}/edit?animeId=${anime.id}&episodeId=${episode.id}`}
+                        href={`/releases/${version.id}/edit?animeId=${anime.id}&episodeId=${episode.id}`}
                         className={`${styles.button} ${styles.buttonSecondary}`}
                       >
                         Bearbeiten
