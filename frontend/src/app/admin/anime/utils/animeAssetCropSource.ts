@@ -64,14 +64,24 @@ const ORIGINAL_VARIANT_EXTENSIONS = ["jpg", "png", "webp", "gif"];
  * uebrigen bekannten), OHNE Netzwerkzugriff. Liefert eine leere Liste fuer alles, was nicht exakt
  * auf ".../display.<ext>" endet -- insbesondere fuer den Jellyfin-Bild-Proxy
  * (/api/v1/media/image?...), der keine Original-/Display-Unterscheidung kennt.
+ *
+ * Die Query-String wird VOR dem Pfad-Abgleich abgetrennt (Code-Review-Fund 2026-10-13): ohne das
+ * wuerde der gierige ".*"-Praefix auch gegen den vollen String inkl. Query matchen, falls ein
+ * Query-Wert zufaellig auf "display.<ext>" endet (z. B. "...&filename=foo/display.jpg") --
+ * praktisch folgenlos (der erfundene Kandidat 404t einfach und der Fallback greift), aber nicht
+ * das, was die eigene Dokumentation behauptet.
  */
 export function deriveOriginalCropCandidates(fetchableUrl: string): string[] {
-  const match = fetchableUrl.match(/^(.*\/)display\.([a-zA-Z0-9]+)$/);
+  const queryIndex = fetchableUrl.indexOf("?");
+  const path = queryIndex === -1 ? fetchableUrl : fetchableUrl.slice(0, queryIndex);
+  const query = queryIndex === -1 ? "" : fetchableUrl.slice(queryIndex);
+
+  const match = path.match(/^(.*\/)display\.([a-zA-Z0-9]+)$/);
   if (!match) return [];
   const [, directoryPrefix, displayExtension] = match;
   const orderedExtensions = [
     displayExtension,
     ...ORIGINAL_VARIANT_EXTENSIONS.filter((ext) => ext !== displayExtension),
   ];
-  return orderedExtensions.map((ext) => `${directoryPrefix}original.${ext}`);
+  return orderedExtensions.map((ext) => `${directoryPrefix}original.${ext}${query}`);
 }

@@ -93,4 +93,18 @@ describe("deriveOriginalCropCandidates", () => {
     expect(deriveOriginalCropCandidates("/media/anime/2/cover/some-uuid/original.jpg")).toEqual([]);
     expect(deriveOriginalCropCandidates("/media/anime/2/cover/some-uuid/thumb.jpg")).toEqual([]);
   });
+
+  it("ignores a query string that happens to contain 'display.<ext>' instead of misfiring on it (code-review finding 2026-10-13)", () => {
+    expect(deriveOriginalCropCandidates("/api/v1/media/image?filename=foo/display.jpg")).toEqual([]);
+  });
+
+  it("preserves a real query string on every derived candidate instead of dropping it", () => {
+    const candidates = deriveOriginalCropCandidates("/media/anime/2/cover/some-uuid/display.jpg?v=3");
+    expect(candidates).toEqual([
+      "/media/anime/2/cover/some-uuid/original.jpg?v=3",
+      "/media/anime/2/cover/some-uuid/original.png?v=3",
+      "/media/anime/2/cover/some-uuid/original.webp?v=3",
+      "/media/anime/2/cover/some-uuid/original.gif?v=3",
+    ]);
+  });
 });
