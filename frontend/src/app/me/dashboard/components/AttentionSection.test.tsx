@@ -138,7 +138,7 @@ describe("AttentionSection (Phase 116, D-02)", () => {
       screen
         .getByRole("link", { name: /Release-Zuweisung/i })
         .getAttribute("href"),
-    ).toBe("/me/releases/62/workspace?tab=segments");
+    ).toBe("/releases/62/edit?tab=segments");
     expect(
       screen
         .getByRole("link", { name: /Projekt-Zuweisung/i })
@@ -223,7 +223,7 @@ describe("AttentionSection (Phase 116, D-02)", () => {
     const releaseLink = screen.getByRole("link", {
       name: /Testanime.*Folge 05.*Qualitätsprüfung/i,
     });
-    expect(releaseLink.getAttribute("href")).toBe("/me/releases/61/workspace?tab=segments");
+    expect(releaseLink.getAttribute("href")).toBe("/releases/61/edit?tab=segments");
     expect(screen.getAllByRole("link")).toHaveLength(1);
     expect(releaseLink.textContent).toContain('Übersetzung');
   });
@@ -266,7 +266,7 @@ describe("AttentionSection (Phase 116, D-02)", () => {
     expect(screen.queryByText("Nichts Neues im Moment")).toBeNull();
     const releaseLink = screen.getByRole("link", { name: /Folge 05/i });
     expect(releaseLink.getAttribute("href")).toBe(
-      "/me/releases/61/workspace?tab=segments",
+      "/releases/61/edit?tab=segments",
     );
     expect(screen.getByText("Überarbeitung nötig")).not.toBeNull();
   });
@@ -383,7 +383,7 @@ describe("AttentionSection (Phase 116, D-02)", () => {
       name: "Folge 05 · Timing-Hinweis überarbeiten öffnen",
     });
     expect(withEpisode.getAttribute("href")).toBe(
-      "/me/releases/61/workspace?tab=notes",
+      "/releases/61/edit?tab=notes",
     );
     expect(withEpisode.textContent).toContain("Folge 05");
     expect(withEpisode.textContent).toContain("Timing-Hinweis");
@@ -392,7 +392,7 @@ describe("AttentionSection (Phase 116, D-02)", () => {
       name: "Release-Version · Ohne Titel überarbeiten öffnen",
     });
     expect(withoutEpisode.getAttribute("href")).toBe(
-      "/me/releases/62/workspace?tab=notes",
+      "/releases/62/edit?tab=notes",
     );
     expect(withoutEpisode.textContent).toContain("Release-Version");
     expect(withoutEpisode.textContent).toContain("Ohne Titel");

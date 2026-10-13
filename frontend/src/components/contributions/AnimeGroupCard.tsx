@@ -277,7 +277,7 @@ export function AnimeGroupCard({
                       <Button
                         size="sm"
                         variant="secondary"
-                        href={`/me/releases/${entry.release_version_id}/workspace`}
+                        href={`/releases/${entry.release_version_id}/edit`}
                       >
                         Arbeitsfläche öffnen
                       </Button>
