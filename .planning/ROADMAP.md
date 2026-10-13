@@ -2675,12 +2675,12 @@ Plans:
 **Goal:** Eine rechtebasierte Release-Bearbeitungsseite unter `/releases/[versionId]/edit` ersetzt den Admin-Editor und den `/me`-Workspace; beide Altadressen leiten dauerhaft weiter, alle 11 externen Einstiegspunkte zeigen direkt auf die neue Seite, und ein Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr.
 **Requirements**: D-01 bis D-05 (siehe 181-CONTEXT.md — additive Phase ohne formale REQ-IDs, Traceability läuft über Entscheidungen statt Requirements-Katalog)
 **Depends on:** Phase 180
-**Plans:** 9 plans
+**Plans:** 1/9 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 181-01-PLAN.md — D-05 Backend-Fix: Repository LEFT JOIN + Handler-Sentinel + Contract-Textkorrektur (Wave 1)
+- [x] 181-01-PLAN.md — D-05 Backend-Fix: Repository LEFT JOIN + Handler-Sentinel + Contract-Textkorrektur (Wave 1)
 - [ ] 181-02-PLAN.md — Pure Frontend-Utilities: releaseEditorRedirects/-Routing/-Tabs + Tests (D-01/D-02/D-03/D-04, Wave 1)
 - [ ] 181-03-PLAN.md — Media/Metadata/Classification/JellyfinNotice + episodeVersionEditorUtils nach components/releaseEditor/ verschoben (Wave 1)
 
