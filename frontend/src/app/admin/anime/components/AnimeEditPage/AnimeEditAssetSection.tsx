@@ -32,6 +32,10 @@ interface AnimeEditAssetSectionProps {
    * Cover/Banner, die einen festen Zuschnitt haben (Live-UAT-Korrektur 2026-10-12). */
   onOpenAssetCrop: (kind: AnimeCroppableAssetKind) => void;
   canOpenAssetCrop: (kind: AnimeCroppableAssetKind) => boolean;
+  /** Scoped to the ONE kind whose crop source is currently being fetched (code-review finding
+   * 2026-10-13) -- deliberately NOT folded into `isBusy`, which would disable every other kind's
+   * search/crop/remove buttons and upload slot for the duration of a single kind's fetch. */
+  isFetchingCropSourceFor?: (kind: AnimeCroppableAssetKind) => boolean;
   onRemoveJellyfinAsset: (target: JellyfinDraftAssetTarget) => void;
   onRemoveCover: () => void;
   onRemoveBanner: () => void;
@@ -154,6 +158,7 @@ export function AnimeEditAssetSection({
   onOpenAssetSearch,
   onOpenAssetCrop,
   canOpenAssetCrop,
+  isFetchingCropSourceFor,
   onRemoveJellyfinAsset,
   onRemoveCover,
   onRemoveBanner,
@@ -161,6 +166,9 @@ export function AnimeEditAssetSection({
   onRemoveBackground,
   onRemoveBackgroundVideo,
 }: AnimeEditAssetSectionProps) {
+  const isCoverBusy = isBusy || Boolean(isFetchingCropSourceFor?.("cover"));
+  const isBannerBusy = isBusy || Boolean(isFetchingCropSourceFor?.("banner"));
+
   const cover =
     persistedAssets.cover ??
     (jellyfinAssetSlots?.cover.present && jellyfinAssetSlots.cover.url
@@ -293,11 +301,11 @@ export function AnimeEditAssetSection({
               previewUrl={resolvePersistedAssetUrl(cover)}
               source={resolveAssetSource(cover)}
               statusNote={buildPersistedStatusNote(cover)}
-              uploadDisabled={isBusy}
+              uploadDisabled={isCoverBusy}
               onFilesSelected={(files) => onAssetFilesSelected("cover", files)}
               actions={
                 <AssetActionRow
-                  disabled={isBusy}
+                  disabled={isCoverBusy}
                   onSearch={() => onOpenAssetSearch("cover")}
                   onCrop={canOpenAssetCrop("cover") ? () => onOpenAssetCrop("cover") : undefined}
                   onRemove={
@@ -317,11 +325,11 @@ export function AnimeEditAssetSection({
               previewUrl={resolvePersistedAssetUrl(banner)}
               source={resolveAssetSource(banner)}
               statusNote={buildPersistedStatusNote(banner)}
-              uploadDisabled={isBusy}
+              uploadDisabled={isBannerBusy}
               onFilesSelected={(files) => onAssetFilesSelected("banner", files)}
               actions={
                 <AssetActionRow
-                  disabled={isBusy}
+                  disabled={isBannerBusy}
                   onSearch={() => onOpenAssetSearch("banner")}
                   onCrop={canOpenAssetCrop("banner") ? () => onOpenAssetCrop("banner") : undefined}
                   onRemove={

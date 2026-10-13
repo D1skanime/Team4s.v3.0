@@ -544,11 +544,12 @@ export function AnimeEditWorkspace({
     <AnimeEditAssetSection
       persistedAssets={persistedAssets}
       jellyfinAssetSlots={visibleJellyfinAssetSlots ?? jellyfinContext?.asset_slots ?? null}
-      isBusy={patch.isUploadingCover || isRefreshingAssets || isApplyingAssetCandidates || assetCropFlow.isFetchingCropSource}
+      isBusy={patch.isUploadingCover || isRefreshingAssets || isApplyingAssetCandidates}
       onAssetFilesSelected={assetCropFlow.handleAssetFilesSelected}
       onOpenAssetSearch={(kind) => setActiveAssetSearchKind(kind)}
       onOpenAssetCrop={(kind) => void assetCropFlow.openAssetCrop(kind)}
       canOpenAssetCrop={assetCropFlow.canOpenAssetCrop}
+      isFetchingCropSourceFor={assetCropFlow.isFetchingCropSourceFor}
       onRemoveJellyfinAsset={handleRemoveVisibleJellyfinAsset}
       onRemoveCover={() => void handleRemoveSingularAsset('cover')}
       onRemoveBanner={() => void handleRemoveSingularAsset('banner')}

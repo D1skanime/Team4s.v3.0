@@ -49,18 +49,26 @@ async function fetchFirstAvailableImage(urls: string[]): Promise<Blob> {
  * Display-Variante als garantiertem Fallback.
  */
 export function useAnimeEditAssetCropFlow({ persistedAssets, onAssetFilesSelected, onError }: UseAnimeEditAssetCropFlowOptions) {
-  const [isFetchingCropSource, setIsFetchingCropSource] = useState(false)
+  // Scoped to WHICH kind is being fetched, not a single shared boolean (code-review finding
+  // 2026-10-13): folding one global busy flag into the whole asset section's isBusy prop disabled
+  // every kind's search/crop/remove buttons and upload slots while only Cover OR Banner's source
+  // was actually being fetched.
+  const [fetchingCropSourceKind, setFetchingCropSourceKind] = useState<AnimeCroppableAssetKind | null>(null)
   const cropGate = useAnimeAssetCropGate({ onFilesReady: onAssetFilesSelected })
 
   function canOpenAssetCrop(kind: AnimeCroppableAssetKind): boolean {
     return resolveAnimeAssetCropSource(persistedAssets[kind]?.url, getBrowserApiBaseUrl()).fetchable
   }
 
+  function isFetchingCropSourceFor(kind: AnimeCroppableAssetKind): boolean {
+    return fetchingCropSourceKind === kind
+  }
+
   async function openAssetCrop(kind: AnimeCroppableAssetKind) {
     const resolved = resolveAnimeAssetCropSource(persistedAssets[kind]?.url, getBrowserApiBaseUrl())
-    if (!resolved.fetchable || isFetchingCropSource) return
+    if (!resolved.fetchable || fetchingCropSourceKind !== null) return
 
-    setIsFetchingCropSource(true)
+    setFetchingCropSourceKind(kind)
     try {
       const candidateUrls = [...deriveOriginalCropCandidates(resolved.url), resolved.url]
       const blob = await fetchFirstAvailableImage(candidateUrls)
@@ -69,7 +77,7 @@ export function useAnimeEditAssetCropFlow({ persistedAssets, onAssetFilesSelecte
     } catch (error) {
       onError(formatAdminError(error, 'Bild konnte nicht zum Zuschneiden geladen werden.'))
     } finally {
-      setIsFetchingCropSource(false)
+      setFetchingCropSourceKind(null)
     }
   }
 
@@ -78,6 +86,6 @@ export function useAnimeEditAssetCropFlow({ persistedAssets, onAssetFilesSelecte
     canOpenAssetCrop,
     openAssetCrop,
     cropDialog: cropGate.cropDialog,
-    isFetchingCropSource,
+    isFetchingCropSourceFor,
   }
 }
