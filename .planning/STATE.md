@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 181-06-PLAN.md
-last_updated: "2026-10-13T16:36:46.182Z"
+stopped_at: Completed 181-07-PLAN.md
+last_updated: "2026-10-13T17:00:31.316Z"
 last_activity: 2026-10-13
 progress:
   total_phases: 46
   completed_phases: 40
   total_plans: 436
-  completed_plans: 430
+  completed_plans: 431
   percent: 87
 ---
 
@@ -303,7 +303,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — EXECUTING
-Plan: 7 of 9
+Plan: 8 of 9
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -1084,6 +1084,8 @@ Last activity: 2026-10-13
 - [Phase 181-04]: 2 vi.mock()-Pfad-Strings in page.test.tsx (Admin) und workspace/page.test.tsx nach Segmente/Notizen-Verschiebung korrigiert (nicht im Plan gelistet)
 - [Phase 181]: useReleaseEditorNavigation ergaenzt activeTab/projectReturnHref zum Href-Bauen (D-03 Facade), formatProjectReleaseLabel bleibt lokal statt releaseEditorRouting.ts zu erweitern
 - [Phase 181]: ReleaseEditorMetadataTab: expliziter Null-Guard fuer editor.contextData ergaenzt (Typsicherheit, Plan 07 mountet den Tab erst nach geladenem Context)
+- [Phase 181]: 181-07: ReleaseEditorPage uebernimmt keinen zweiten useAuthSession()-Gate -- useReleaseEditorData() traegt hasAuthSession bereits intern — Vermeidet redundante Auth-Pruefung; Fehlerzustand kommt bereits ueber editor.errorMessage
+- [Phase 181]: 181-07: activeTab ist einseitig state->URL (router.replace bei Klick), nicht laufend URL->state resynchronisiert — Vermeidet react-hooks/set-state-in-effect-Lint-Fehler und einen Flacker-Bug zurueck zum alten Tab direkt nach Klick
 
 ### Pending Todos
 
@@ -1734,11 +1736,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 181 P04 | 8min | 3 tasks | 30 files |
 | Phase 181 P05 | ~7min | 3 tasks | 13 files |
 | Phase 181 P06 | 15min | 3 tasks | 5 files |
+| Phase 181 P07 | 55min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-13T16:36:46.158Z
-Stopped at: Completed 181-06-PLAN.md
+Last session: 2026-10-13T17:00:31.290Z
+Stopped at: Completed 181-07-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None

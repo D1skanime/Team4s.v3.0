@@ -2675,7 +2675,7 @@ Plans:
 **Goal:** Eine rechtebasierte Release-Bearbeitungsseite unter `/releases/[versionId]/edit` ersetzt den Admin-Editor und den `/me`-Workspace; beide Altadressen leiten dauerhaft weiter, alle 11 externen Einstiegspunkte zeigen direkt auf die neue Seite, und ein Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr.
 **Requirements**: D-01 bis D-05 (siehe 181-CONTEXT.md — additive Phase ohne formale REQ-IDs, Traceability läuft über Entscheidungen statt Requirements-Katalog)
 **Depends on:** Phase 180
-**Plans:** 6/9 plans executed
+**Plans:** 7/9 plans executed
 
 Plans:
 **Wave 1**
@@ -2695,7 +2695,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 181-07-PLAN.md — ReleaseEditorPage-Zusammenbau unter /releases/[versionId]/edit (D-01/D-02/D-03/D-05, Wave 4)
+- [x] 181-07-PLAN.md — ReleaseEditorPage-Zusammenbau unter /releases/[versionId]/edit (D-01/D-02/D-03/D-05, Wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
