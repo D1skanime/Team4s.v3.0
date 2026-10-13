@@ -26,6 +26,16 @@ export function resolveAnimeAssetCropSource(
 ): AnimeAssetCropSourceResolution {
   const value = (rawUrl ?? "").trim();
   if (!value) return { fetchable: false };
+
+  // Reject protocol-relative ("//host/path") and backslash-variant ("/\host/path") forms BEFORE
+  // the relative-path fast path below -- both resolve to an ATTACKER-CONTROLLED host per the
+  // WHATWG URL spec, not a same-origin relative path, even though a naive `startsWith("/")` check
+  // would otherwise accept them. Code-review finding 2026-10-13: this bypassed the exact
+  // "foreign origin -> hide the crop button" invariant this function exists to enforce (no live
+  // occurrence observed, but persisted asset URLs are provider/import-influenced data, not
+  // admin-typed, so this must be rejected defensively).
+  if (/^[/\\]{2}/.test(value)) return { fetchable: false };
+
   if (value.startsWith("/")) return { fetchable: true, url: value };
   if (!/^https?:\/\//i.test(value)) return { fetchable: false };
 

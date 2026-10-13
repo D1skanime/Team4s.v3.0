@@ -56,6 +56,17 @@ describe("resolveAnimeAssetCropSource", () => {
   it("does not throw on a malformed absolute-looking value", () => {
     expect(resolveAnimeAssetCropSource("http://", API_BASE_URL)).toEqual({ fetchable: false });
   });
+
+  it("rejects a protocol-relative URL instead of treating its leading slash as a safe relative path (security-review finding 2026-10-13)", () => {
+    const result = resolveAnimeAssetCropSource("//evil.example.com/cover.jpg", API_BASE_URL);
+    expect(result).toEqual({ fetchable: false });
+  });
+
+  it("rejects a backslash-variant protocol-relative URL the same way", () => {
+    expect(resolveAnimeAssetCropSource("/\\evil.example.com/cover.jpg", API_BASE_URL)).toEqual({ fetchable: false });
+    expect(resolveAnimeAssetCropSource("\\\\evil.example.com/cover.jpg", API_BASE_URL)).toEqual({ fetchable: false });
+    expect(resolveAnimeAssetCropSource("\\/evil.example.com/cover.jpg", API_BASE_URL)).toEqual({ fetchable: false });
+  });
 });
 
 describe("deriveOriginalCropCandidates", () => {
