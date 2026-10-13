@@ -19,6 +19,16 @@
   width: 100%;
   height: 100%;
   min-height: 0;
+  /* Opts THIS specific UploadDropzone instance into CSS size containment (Live-UAT/code-review
+     follow-up 2026-10-13, moved here from the shared .dropzone base rule): .mediaSlot's own box
+     has a definite, aspect-ratio-driven height (set via an inline style a few lines up the
+     ancestor chain), so letting this box's height collapse below its own content's natural size
+     is exactly the fix a flat/short MediaSlot tile (e.g. a 5.4:1 banner) needs -- UploadDropzone's
+     own @container (max-height: ...) rule reacts to that shrunk height and switches to a layout
+     that still fits. A non-MediaSlot UploadDropzone caller (density="roomy", sized by its own
+     content, no aspect-ratio ancestor) never gets this class and keeps its natural content-driven
+     height instead of collapsing to UploadDropzone's bare min-height. */
+  container-type: size;
 }
 
 /* The shared UploadDropzone draws its own border-radius (not reliably overridable by

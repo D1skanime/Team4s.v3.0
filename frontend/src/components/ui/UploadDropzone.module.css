@@ -13,11 +13,15 @@
   background: var(--bg-card);
   text-align: center;
   cursor: pointer;
-  /* Live-UAT follow-up 2026-10-12: a MediaSlot consumer can shrink this box well below its
-     natural content height (e.g. a 5.4:1 banner tile at a few hundred px wide) by zeroing
-     min-height via its own className -- container-type: size lets the @container rule below
-     react to that actual shrunk height and switch to a layout that still fits. */
-  container-type: size;
+  /* container-type: size deliberately does NOT live here (Live-UAT/code-review follow-up
+     2026-10-13): it forces the box's own height to ignore its content (CSS size containment),
+     collapsing to `min-height` (8rem) whenever a non-MediaSlot caller lets this box size itself
+     from its own content (no explicit/aspect-ratio-driven height up the ancestor chain) --
+     exactly the kind of caller this component serves by default (density="roomy", no MediaSlot).
+     MediaSlot.module.css's .mediaSlotDropzone opts specific instances INTO size containment
+     instead, since only THOSE have a definite, aspect-ratio-driven height that can safely shrink
+     below the content's natural size -- see the comment there for the original clipping bug this
+     mechanism fixes. */
 }
 
 .dropzoneRoomy {
