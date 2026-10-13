@@ -367,7 +367,7 @@ Wege angeglichen.**
   gleichzeitig sichtbar sind) umgestellt; neue Tests für `open()` (inkl. `disabled`-Fall) ergänzt.
 
 **Abschluss-Gate-Erweiterung für 180-12 (dauerhaft, nicht nur einmalig geprüft):**
-`grep -rln 'type="file"' frontend/src --include="*.tsx" | grep -v "^components/ui/" | grep -v "\.test\."`
+`cd frontend/src && grep -rln 'type="file"' . --include="*.tsx" | grep -v "^components/ui/" | grep -v "\.test\."` (run FROM `frontend/src` -- gsd-verifier 2026-10-13 caught that this command, run from the repo root against `frontend/src` as the grep target, never actually matched its own `^components/ui/` exclusion, since the grep output paths then keep the `frontend/src/` prefix)
 muss **ausschließlich** `components/editor/StoryImageToolbarButton.tsx` zurückgeben. Begründung für
 diese eine Ausnahme: `StoryImageToolbarButton` ist eine Rich-Text-Editor-Toolbar-Aktion, die Inhalt
 an der Cursor-Position einfügt, kein persistenter Upload-Slot — `UploadDropzone`s
@@ -425,7 +425,7 @@ Nutzer (separate Rückfrage im Chat, nicht in diesem Dokument vorweggenommen). `
 `MemberSuggestionsRepository` und die Tabelle `member_suggestions` bleiben bis zu einer expliziten
 Freigabe unverändert im Code.
 
-**Gate-Re-Check:** `grep -rln 'type="file"' frontend/src --include="*.tsx" | grep -v "^components/ui/" | grep -v "\.test\."`
+**Gate-Re-Check:** `cd frontend/src && grep -rln 'type="file"' . --include="*.tsx" | grep -v "^components/ui/" | grep -v "\.test\."` (run FROM `frontend/src` -- gsd-verifier 2026-10-13 caught that this command, run from the repo root against `frontend/src` as the grep target, never actually matched its own `^components/ui/` exclusion, since the grep output paths then keep the `frontend/src/` prefix)
 liefert weiterhin ausschließlich `components/editor/StoryImageToolbarButton.tsx` — unverändert
 durch diese Löschung.
 
