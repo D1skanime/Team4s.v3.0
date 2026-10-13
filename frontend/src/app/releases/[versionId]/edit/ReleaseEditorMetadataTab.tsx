@@ -27,6 +27,11 @@ export function ReleaseEditorMetadataTab({
   canEditMetadata,
   projectTimeline,
 }: ReleaseEditorMetadataTabProps) {
+  // Caller (Plan 07's page orchestrator) only mounts this tab after the editor context has
+  // loaded; this guard exists purely for type-safety (contextData is nullable in the hook's
+  // return type while isLoading), not an expected runtime state for this component.
+  if (!editor.contextData) return null
+
   return (
     <>
       <Card title="Basisdaten">

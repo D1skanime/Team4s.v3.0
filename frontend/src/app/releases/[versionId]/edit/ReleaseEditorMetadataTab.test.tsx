@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { EpisodeVersionEditorContext } from '@/types/episodeVersion'
-import type { FansubGroupSummary } from '@/types/fansub'
+import type { FansubGroup, FansubGroupSummary } from '@/types/fansub'
 
 import { ReleaseEditorMetadataTab } from './ReleaseEditorMetadataTab'
 import type { useReleaseEditorData } from './useReleaseEditorData'
@@ -52,7 +52,7 @@ function buildEditor(overrides: Partial<Editor> = {}): Editor {
     folderPath: '',
     groupQuery: '',
     setGroupQuery: vi.fn(),
-    groupResults: [] as FansubGroupSummary[],
+    groupResults: [] as FansubGroup[],
     isSearching: false,
     searchMessage: null,
     isSaving: false,
