@@ -10,7 +10,12 @@ import { Button } from '@/components/ui'
 import { computeVisibleBannerGuideLines } from '@/lib/profileBanner'
 
 import { getFocusableElements, getFocusTrapNextIndex } from './mediaCropA11y'
-import { computeCropViewportAspectRatio, cropperObjectFitFor, isPortraitCropAspect } from './Team4sCropper.helpers'
+import {
+  computeCropViewportAspectRatio,
+  cropperObjectFitFor,
+  isPortraitCropAspect,
+  isWideCropAspect,
+} from './Team4sCropper.helpers'
 import styles from './Team4sCropper.module.css'
 
 export type Team4sCropperShape = 'circle' | 'rectangle'
@@ -218,7 +223,7 @@ export function Team4sCropper({
   }
 
   const busy = disabled || isApplying
-  const isWideCrop = shape === 'rectangle' && aspectRatio > 1.5
+  const isWideCrop = shape === 'rectangle' && isWideCropAspect(aspectRatio)
   const isPortraitCrop = shape === 'rectangle' && isPortraitCropAspect(aspectRatio)
 
   const dialog = (
