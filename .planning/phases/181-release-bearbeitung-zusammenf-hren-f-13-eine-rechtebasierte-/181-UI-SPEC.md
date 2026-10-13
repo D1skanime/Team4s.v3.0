@@ -61,11 +61,25 @@ Bestehende Projekt-Styles, **keine neuen Größen/Gewichte**:
 |------|------|--------|-------------|
 | Body | 16px (`1rem`) | 400 | 1.55 |
 | Label (Eyebrow/Breadcrumb) | 11px | 700, uppercase, `letter-spacing: 0.12em` | 1.2 |
-| Heading (Card-/Section-Titel, z. B. „Basisdaten") | 16px (`~0.98rem`) | 600 | 1.3 |
+| Heading (Card-/Section-Titel, z. B. „Basisdaten") | 16px (`~0.98rem`) | 700 | 1.3 |
 | Display (Seitentitel `h1` in `PageHeader`) | `clamp(2rem, 3vw, 2.75rem)` (32–44px) | 700 | 0.98 |
 
+**Korrektur gegenüber vorheriger Fassung:** Die vorherige Version dieses Dokuments führte für die
+Rolle „Heading (Card-/Section-Titel)" das Gewicht 600 — damit drei statt zwei Gewichte in dieser
+Phase. Verifiziert gegen die tatsächliche Implementierung
+(`frontend/src/components/ui/Card.tsx:28` + `Card.module.css`): `.cardTitle` rendert als `<h3>` und
+setzt **kein eigenes** `font-weight` — ohne Override fällt der Browser-Standard für `<h3>` auf
+`bold` (= 700). Keine Fundstelle im Projekt belegt 600 für diese konkrete Rolle (die einzigen
+600-Treffer im Repo betreffen andere, hier nicht verwendete Elemente wie `Switch`, `HeroMetrics`
+oder den alten handgebauten `tabActive`-Stil des Admin-Editors, der in dieser Phase ohnehin durch
+die globale `Tabs`-Primitive ersetzt wird). Korrigiert auf 700 — damit führt diese Phase exakt
+**zwei** Gewichte: 400 (Body) und 700 (Label/Heading/Display), konsistent mit der übrigen
+Primitive-Bibliothek (`Button` 700, `Badge` 700, `Tabs` 700, `FormField`-Label 700,
+`AdjacentNavigation` 700).
+
 Fußnote — fixe Primitive-interne Typografie (nicht überschreibbar, unverändert übernehmen):
-`Tabs`-Tab-Label 14.4px/700/1.1 (`Tabs.module.css`), `Badge`-Text 12px/700.
+`Tabs`-Tab-Label 14.4px/700/1.1 (`Tabs.module.css`), `Badge`-Text 12px/700 — beide bereits im
+2-Gewichte-Budget enthalten (700), keine zusätzliche dritte Stufe.
 
 ---
 
@@ -78,12 +92,13 @@ Bestehende Projekt-Tokens, **keine neuen Hex-Werte**:
 | Dominant (60%) | `var(--surface-canvas)` `#f6f4ef` | Seitenhintergrund (`<main>`) |
 | Secondary (30%) | `var(--surface-card)` `#ffffff` | `Card`-Flächen, `PageHeader`, `Tabs`-Panel-Hintergrund |
 | Accent (10%) | `var(--accent-primary)` `#5f84dd` | Primäre Aktions-Buttons („Basisdaten speichern", „Zurück zum Projekt" als sekundär zählt NICHT), aktiver Tab-Hintergrund (`Tabs`-Gradient), Fokusring, Link-Hover |
-| Destructive | `var(--button-danger-mid)` `#580c22` (Button-Gradient `--button-danger-start/-mid/-end`) | ausschließlich der „Löschen"-Button für Admins |
+| Destructive | `var(--button-danger-mid)` `#580c22` (Button-Gradient `--button-danger-start/-mid/-end`) | ausschließlich der „Version löschen"-Button für Admins |
 
 Accent reserved for: aktiver Tab-Zustand (`Tabs`-Primitive, unverändert), primärer Submit-Button
 je Tab-Formular, Fokus-Ring (`--focus-ring`), aktive Navigations-Links in `AdjacentNavigation`.
 **Nicht** für: Badges (nutzen `info`/`success`/`neutral`-Varianten der `Badge`-Komponente, keine
-Ad-hoc-Akzentfarbe), Breadcrumb-Text im Ruhezustand, Icon-Farben allgemein.
+Ad-hoc-Akzentfarbe), Breadcrumb-Text im Ruhezustand, Icon-Farben allgemein, `PageHeader`-Titel
+(bewusst neutral, siehe visueller Fokuspunkt unten).
 
 ---
 
@@ -97,7 +112,7 @@ Ad-hoc-Akzentfarbe), Breadcrumb-Text im Ruhezustand, Icon-Farben allgemein.
 | Error state — Laden fehlgeschlagen | Titel „Release-Version nicht verfügbar" / Beschreibung „Diese Release-Version konnte nicht geladen werden." — **Annahme (nicht durch D-01..D-05 abgedeckt) — zur Bestätigung:** Titel wurde von „Projektbereich nicht verfügbar" auf einen rollenneutralen Wortlaut angepasst, da die neue Seite nicht mehr ausschließlich ein Mitglieder-Projektbereich ist. Action-Button bleibt `Button variant="secondary"` mit Linkziel `/me/contributions` für Mitglieder bzw. der bestehenden Admin-Rückfallroute für `isPlatformAdmin` (siehe Navigationskontrakt unten). |
 | Hinweis — Notizen ohne Member-Profil | Titel „Member-Profil fehlt" / Beschreibung „Notizen sind erst verfügbar, wenn dein App-Profil mit einem Member-Profil verknüpft ist." (unverändert; betrifft NICHT den D-05-Fix — D-05 betrifft nur `GetMyProjectDetail`, nicht die Notizen-Capability-Prüfung) |
 | D-05-Graceful-Fall — Plattform-Admin ohne Mitgliederprofil, projektbezogene Navigation nicht auflösbar | **Kein Fehlertext.** `AdjacentNavigation` erhält `previous=null, next=null` und rendert laut eigener Implementierung (`AdjacentNavigation.tsx:28-30`) gar nichts — das ist der korrekte, bereits vorhandene Leerzustand. Es darf an dieser Stelle **keine neue** Fehlermeldung oder EmptyState-Karte ergänzt werden; die Seite selbst bleibt vollständig nutzbar (kein 404, kein Blocker), nur die projektbezogene Vor/Zurück-Leiste bleibt leer. |
-| Destructive confirmation — Release-Version löschen | Bestehender Wortlaut aus `useEpisodeVersionEditor.ts:364-368` unverändert übernehmen: Titel „Version #{id} wirklich löschen?", Beschreibung „Episode bleibt erhalten, nur diese Version wird entfernt.", `confirmLabel` „Löschen", `tone: 'danger'`. Der Auslöser-Button wechselt von einem handgebauten `<button className={styles.dangerButton}>` auf `<Button variant="danger">` (Pflicht-Primitive-Fix, siehe Interaktionskontrakt). |
+| Destructive confirmation — Release-Version löschen | Auslöser-Button-Label wird um das Objekt-Nomen ergänzt: „Version löschen" (statt bisher nur „Löschen" — Primitive-Fix, siehe Interaktionskontrakt §2). Der Bestätigungsdialog selbst bleibt unverändert, Wortlaut aus `useEpisodeVersionEditor.ts:364-368`: Titel „Version #{id} wirklich löschen?", Beschreibung „Episode bleibt erhalten, nur diese Version wird entfernt.", `confirmLabel` „Löschen" (im Dialog genügt das Kurzwort, da Titel bereits das Objekt nennt), `tone: 'danger'`. Der Auslöser-Button wechselt von einem handgebauten `<button className={styles.dangerButton}>` auf `<Button variant="danger">`. |
 | Redirect-Seiten (alte URLs) | Kein sichtbarer Zwischenzustand nötig — serverseitiger/Route-Redirect (308 permanent) ohne Flash of Content. Falls ein kurzzeitiger Client-Fallback nötig wird, ausschließlich `LoadingState` mit Titel „Weiterleitung" / Beschreibung „Du wirst zur neuen Release-Bearbeitungsseite weitergeleitet." verwenden — keine eigene Textvariante erfinden. |
 
 ---
@@ -139,7 +154,7 @@ die Zusammenführung behebt dies, statt den Code 1:1 zu kopieren:
 | Handgebaute Tab-Buttons (`<button className={styles.tab/tabActive}>`) | Globale `Tabs`-Komponente (`@/components/ui`), `items`-Array aus der Matrix oben |
 | Handgebauter Header-Markup (`<nav className={styles.topLinks}>`, `<header className={styles.header}>`) | `PageHeader`-Primitive mit `breadcrumbs`/`eyebrow`/`title`/`description`/`actions`-Props, analog zum heutigen Workspace-Header |
 | Submit-Button als rohes `<button className={styles.primaryButton + styles.successButton}>` | `<Button type="submit" variant="success">Basisdaten speichern</Button>` |
-| Löschen-Button als rohes `<button className={styles.dangerButton}>` | `<Button variant="danger" onClick={...}>Löschen</Button>` — der bestehende `useConfirmDialog`-Fluss (`editor.confirmDialog`) bleibt unverändert, nur der Auslöser-Button wird zur Primitive |
+| Löschen-Button als rohes `<button className={styles.dangerButton}>` | `<Button variant="danger" onClick={...}>Version löschen</Button>` (Label um Objekt-Nomen ergänzt gegenüber dem bisherigen reinen „Löschen", siehe Copywriting-Contract) — der bestehende `useConfirmDialog`-Fluss (`editor.confirmDialog`) bleibt unverändert, nur der Auslöser-Button wird zur Primitive |
 
 ### 3. Header-Kontrakt
 
@@ -169,6 +184,23 @@ Einheitlicher `PageHeader` für beide Rollen, Inhalt je Einstiegskontext:
   „Notizen", unverändert aus Workspace). „Ungespeicherte Änderungen"-Badge (`Badge variant="warning"`
   oder neutral, aus Admin-Editor übernommen) erscheint nur, wenn die aktive Tab-Formularlogik
   tatsächlich einen Dirty-State führt (heute nur im admin-seitigen Multi-Feld-Formular relevant).
+
+### 3a. Visueller Fokuspunkt (Hierarchie)
+
+Damit die Umsetzung nicht raten muss, welches Element auf `/releases/[versionId]/edit` den Blick
+führt:
+
+- **Primärer Blickfang:** der aktive Tab-Inhalt — das `Card`-Panel mit Formular/Liste (z. B. die
+  „Basisdaten"-Card). Hier verbringt der Admin die eigentliche Interaktionszeit; dieser Bereich,
+  nicht der `PageHeader`, ist der visuelle Fokus der Seite.
+- **Sekundärer Ankerpunkt innerhalb des Fokus:** der primäre Submit-Button des aktiven Tabs
+  (`--accent-primary`, siehe Color-Kontrakt) — bewusst das **einzige** akzentfarbene Flächenelement
+  pro Tab-Ansicht, damit der Blick gezielt zur Speichern-Aktion gezogen wird, ohne mit anderen
+  Elementen zu konkurrieren.
+- **Kontextrahmen, kein Fokuspunkt:** `PageHeader` (Titel, Breadcrumbs, Eyebrow) sitzt bewusst auf
+  der neutralen Secondary-Fläche (`--surface-card`) ohne Akzentfarbe — er orientiert, zieht aber den
+  Blick nicht vom Tab-Inhalt ab. Ebenso die `AdjacentNavigation`-Leiste darunter: reine
+  Orientierungs-Chrome, keine Akzentfarbe.
 
 ### 4. Navigations-Kontrakt (D-03, unverändert in der Fachlogik, hier nur die UI-Seite)
 
