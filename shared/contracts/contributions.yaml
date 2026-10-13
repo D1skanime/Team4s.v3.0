@@ -257,7 +257,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
-          description: Kein verifizierter Member-Account verknüpft oder kein eigenes Projekt
+          description: Kein eigenes Projekt für diese Anime/Fansub-Gruppen-Kombination gefunden
           content:
             application/json:
               schema:

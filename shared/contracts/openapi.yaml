@@ -9331,7 +9331,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
-          description: Verified member account or own project not found
+          description: Own project not found for this anime/fansub group combination
           content:
             application/json:
               schema:
