@@ -2665,3 +2665,13 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 180-12-PLAN.md — Full automated gate + Live-UAT checkpoint for D-13 (visual parity) and D-16/D-17 (drag&drop on all eight ways, not just Weg 4) (D-04, D-06, D-07, D-13, D-16, D-17).
+
+### Phase 181: Release-Bearbeitung zusammenführen (F-13): eine rechtebasierte Release-Bearbeitungsseite statt Admin-Editor plus /me-Workspace; alte Workspace-URL leitet weiter, alle Einstiegspunkte zeigen auf die eine Seite, Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 180
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 181 to break down)

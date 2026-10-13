@@ -417,6 +417,12 @@ Last activity: 2026-10-11
 
 ### Roadmap Evolution
 
+- Phase 181 added (2026-10-13): Release-Bearbeitung zusammenführen (F-13) — eine rechtebasierte
+  Release-Bearbeitungsseite statt Admin-Editor (/admin/episode-versions/[id]/edit) plus
+  /me-Workspace (/me/releases/[id]/workspace); alte Workspace-URL leitet weiter, alle
+  Einstiegspunkte zeigen auf die eine Seite, Plattform-Admin ohne Mitgliederprofil bekommt kein
+  404 mehr. Nur add-phase — noch nicht geplant.
+
 - Phase 180 geplant (2026-10-11): 12 Pläne (180-01 bis 180-12) über 3 Wellen. UI-SPEC.md
   durchlief Research → Checker (APPROVED, 1 non-blocking FLAG auf Dimension 2 "Visuals",
   per Ergänzung behoben) vor der Planung. Plan-Checker-Runde 1: 3 Blocker (180-07/180-05
