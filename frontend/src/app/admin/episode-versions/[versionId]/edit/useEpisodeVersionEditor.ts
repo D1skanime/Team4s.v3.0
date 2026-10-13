@@ -27,7 +27,7 @@ import {
   parseDurationInput,
   validateReleaseDateOrder,
   FormState,
-} from './episodeVersionEditorUtils'
+} from '@/components/releaseEditor/episodeVersionEditorUtils'
 
 export function useEpisodeVersionEditor() {
   const params = useParams<{ versionId: string }>()

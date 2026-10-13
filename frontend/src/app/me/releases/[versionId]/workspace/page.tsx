@@ -22,7 +22,7 @@ import type { ReleaseVersionCapabilities } from '@/types/releaseVersionMedia'
 import { ReleaseVersionMediaSection } from '@/components/releaseEditor/ReleaseVersionMediaSection'
 import { ReleaseVersionNotesTab } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab'
 import { SegmenteTab } from '@/app/admin/episode-versions/[versionId]/edit/SegmenteTab'
-import { ReleaseVersionMetadataFields } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMetadataFields'
+import { ReleaseVersionMetadataFields } from '@/components/releaseEditor/ReleaseVersionMetadataFields'
 import {
   buildInitialFormState,
   fromDateInputValue,
@@ -31,7 +31,7 @@ import {
   parseDurationInput,
   validateReleaseDateOrder,
   type FormState,
-} from '@/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils'
+} from '@/components/releaseEditor/episodeVersionEditorUtils'
 import {
   AdjacentReleases,
   NavigationState,

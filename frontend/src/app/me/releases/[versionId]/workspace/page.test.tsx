@@ -45,7 +45,7 @@ vi.mock('@/lib/api', () => ({
   AUTH_SESSION_CHANGED_EVENT: 'team4s:auth-session-changed',
 }))
 
-vi.mock('@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection', () => ({
+vi.mock('@/components/releaseEditor/ReleaseVersionMediaSection', () => ({
   ReleaseVersionMediaSection: ({ versionId }: { versionId: number }) => (
     <div data-testid="media-section">Media {versionId}</div>
   ),

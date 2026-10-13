@@ -10,7 +10,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 
-import type { UseReleaseVersionMediaResult } from "./useReleaseVersionMedia";
+import type { UseReleaseVersionMediaResult } from "@/components/releaseEditor/useReleaseVersionMedia";
 
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
@@ -49,7 +49,7 @@ vi.mock("./useEpisodeVersionEditor", () => ({
   useEpisodeVersionEditor: () => useEpisodeVersionEditorMock(),
 }));
 
-vi.mock("./useReleaseVersionMedia", () => ({
+vi.mock("@/components/releaseEditor/useReleaseVersionMedia", () => ({
   useReleaseVersionMedia: () => useReleaseVersionMediaMock(),
 }));
 

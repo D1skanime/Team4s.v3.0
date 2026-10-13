@@ -21,18 +21,18 @@ import {
   formatBytes,
   formatDateTime,
   padEpisodeNumber,
-} from "./episodeVersionEditorUtils";
+} from "@/components/releaseEditor/episodeVersionEditorUtils";
 import { EpisodeNavigationControls } from "./EpisodeNavigationControls";
 import { ReleaseVersionMediaSection } from "@/components/releaseEditor/ReleaseVersionMediaSection";
 import { ReleaseVersionNotesTab } from "./ReleaseVersionNotesTab";
 import { useEpisodeNeighborNavigation } from "./useEpisodeNeighborNavigation";
 import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
 import { SegmenteTab } from "./SegmenteTab";
-import { JellyfinEnrichmentNotice } from "./JellyfinEnrichmentNotice";
+import { JellyfinEnrichmentNotice } from "@/components/releaseEditor/JellyfinEnrichmentNotice";
 import styles from "./EpisodeVersionEditor.module.css";
 import { Button } from "@/components/ui/Button";
-import { ReleaseVersionMetadataFields } from "./ReleaseVersionMetadataFields";
-import { EpisodeClassificationSection } from "./EpisodeClassificationSection";
+import { ReleaseVersionMetadataFields } from "@/components/releaseEditor/ReleaseVersionMetadataFields";
+import { EpisodeClassificationSection } from "@/components/releaseEditor/EpisodeClassificationSection";
 
 type ActiveTab =
   | "uebersicht"

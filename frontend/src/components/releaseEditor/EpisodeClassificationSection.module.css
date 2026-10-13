@@ -1,0 +1,26 @@
+.card {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: #ffffff;
+}
+.sectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.sectionTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+.helperText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b6b70;
+}
