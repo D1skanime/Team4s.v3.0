@@ -20,8 +20,8 @@ import type { EpisodeVersionEditorContext } from '@/types/episodeVersion'
 import type { AnimeFansubProjectTimeline } from '@/types/fansubNotes'
 import type { ReleaseVersionCapabilities } from '@/types/releaseVersionMedia'
 import { ReleaseVersionMediaSection } from '@/components/releaseEditor/ReleaseVersionMediaSection'
-import { ReleaseVersionNotesTab } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab'
-import { SegmenteTab } from '@/app/admin/episode-versions/[versionId]/edit/SegmenteTab'
+import { ReleaseVersionNotesTab } from '@/components/releaseEditor/ReleaseVersionNotesTab'
+import { SegmenteTab } from '@/components/releaseEditor/SegmenteTab'
 import { ReleaseVersionMetadataFields } from '@/components/releaseEditor/ReleaseVersionMetadataFields'
 import {
   buildInitialFormState,

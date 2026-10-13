@@ -51,7 +51,7 @@ vi.mock('@/components/releaseEditor/ReleaseVersionMediaSection', () => ({
   ),
 }))
 
-vi.mock('@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab', () => ({
+vi.mock('@/components/releaseEditor/ReleaseVersionNotesTab', () => ({
   ReleaseVersionNotesTab: ({
     versionId,
     memberIdFilter,
@@ -65,7 +65,7 @@ vi.mock('@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab', 
   ),
 }))
 
-vi.mock('@/app/admin/episode-versions/[versionId]/edit/SegmenteTab', () => ({
+vi.mock('@/components/releaseEditor/SegmenteTab', () => ({
   SegmenteTab: (props: Record<string, unknown>) => {
     segmenteTabMock(props)
     return <div data-testid="segments-tab">Segmente</div>

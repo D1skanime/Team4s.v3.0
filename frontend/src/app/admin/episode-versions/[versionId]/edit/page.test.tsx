@@ -63,13 +63,13 @@ vi.mock("./EpisodeNavigationControls", () => ({
   ),
 }));
 
-vi.mock("./ReleaseVersionNotesTab", () => ({
+vi.mock("@/components/releaseEditor/ReleaseVersionNotesTab", () => ({
   ReleaseVersionNotesTab: ({ versionId }: { versionId: number }) => (
     <div data-testid="release-version-notes-tab">Notes {versionId}</div>
   ),
 }));
 
-vi.mock("./SegmenteTab", () => ({
+vi.mock("@/components/releaseEditor/SegmenteTab", () => ({
   SegmenteTab: () => <div data-testid="segmente-tab">Segmente</div>,
 }));
 

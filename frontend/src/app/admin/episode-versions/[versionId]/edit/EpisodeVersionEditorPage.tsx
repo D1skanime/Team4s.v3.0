@@ -24,10 +24,10 @@ import {
 } from "@/components/releaseEditor/episodeVersionEditorUtils";
 import { EpisodeNavigationControls } from "./EpisodeNavigationControls";
 import { ReleaseVersionMediaSection } from "@/components/releaseEditor/ReleaseVersionMediaSection";
-import { ReleaseVersionNotesTab } from "./ReleaseVersionNotesTab";
+import { ReleaseVersionNotesTab } from "@/components/releaseEditor/ReleaseVersionNotesTab";
 import { useEpisodeNeighborNavigation } from "./useEpisodeNeighborNavigation";
 import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
-import { SegmenteTab } from "./SegmenteTab";
+import { SegmenteTab } from "@/components/releaseEditor/SegmenteTab";
 import { JellyfinEnrichmentNotice } from "@/components/releaseEditor/JellyfinEnrichmentNotice";
 import styles from "./EpisodeVersionEditor.module.css";
 import { Button } from "@/components/ui/Button";
