@@ -35,4 +35,30 @@ describe('AdjacentNavigation', () => {
 
     expect(screen.getByRole('navigation').className).toMatch(/adjacentNavFloating/)
   })
+
+  it('rendert ein zentrales Label auch ohne previous/next', () => {
+    const { container } = render(<AdjacentNavigation centerLabel="Folge 3 / 12" previous={null} next={null} />)
+
+    expect(container.firstChild).not.toBeNull()
+    expect(screen.getByText('Folge 3 / 12')).toBeTruthy()
+  })
+
+  it('rendert ohne centerLabel weiterhin nichts, wenn kein benachbarter Inhalt vorhanden ist', () => {
+    const { container } = render(<AdjacentNavigation previous={null} next={null} />)
+
+    expect(container.firstChild).toBeNull()
+  })
+
+  it('rendert centerLabel zusammen mit dem vorherigen Link', () => {
+    render(
+      <AdjacentNavigation
+        centerLabel="Folge 1 / 1"
+        previous={{ href: '/a', label: 'A' }}
+        next={null}
+      />,
+    )
+
+    expect(screen.getByText('Folge 1 / 1')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Vorheriger Inhalt: A/i }).getAttribute('href')).toBe('/a')
+  })
 })
