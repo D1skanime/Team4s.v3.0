@@ -2668,10 +2668,18 @@ Plans:
 
 ### Phase 181: Release-Bearbeitung zusammenführen (F-13): eine rechtebasierte Release-Bearbeitungsseite statt Admin-Editor plus /me-Workspace; alte Workspace-URL leitet weiter, alle Einstiegspunkte zeigen auf die eine Seite, Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Eine rechtebasierte Release-Bearbeitungsseite unter `/releases/[versionId]/edit` ersetzt den Admin-Editor und den `/me`-Workspace; beide Altadressen leiten dauerhaft weiter, alle 11 externen Einstiegspunkte zeigen direkt auf die neue Seite, und ein Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr.
+**Requirements**: D-01 bis D-05 (siehe 181-CONTEXT.md — additive Phase ohne formale REQ-IDs, Traceability läuft über Entscheidungen statt Requirements-Katalog)
 **Depends on:** Phase 180
-**Plans:** 0 plans
+**Plans:** 9 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 181 to break down)
+- [ ] 181-01-PLAN.md — D-05 Backend-Fix: Repository LEFT JOIN + Handler-Sentinel + Contract-Textkorrektur (Wave 1)
+- [ ] 181-02-PLAN.md — Pure Frontend-Utilities: releaseEditorRedirects/-Routing/-Tabs + Tests (D-01/D-02/D-03/D-04, Wave 1)
+- [ ] 181-03-PLAN.md — Media/Metadata/Classification/JellyfinNotice + episodeVersionEditorUtils nach components/releaseEditor/ verschoben (Wave 1)
+- [ ] 181-04-PLAN.md — Segments + Notes nach components/releaseEditor/ verschoben (Wave 2)
+- [ ] 181-05-PLAN.md — AdjacentNavigation-Erweiterung + Navigations-/Daten-Hooks fuer die neue Seite (D-03, Wave 2)
+- [ ] 181-06-PLAN.md — Neue Tab-Komponenten: Basisdaten/Dateien/Aenderungsverlauf (D-01/D-02, Wave 3)
+- [ ] 181-07-PLAN.md — ReleaseEditorPage-Zusammenbau unter /releases/[versionId]/edit (D-01/D-02/D-03/D-05, Wave 4)
+- [ ] 181-08-PLAN.md — Alle 11 Einstiegspunkte umgestellt + toten Link entfernt (D-01, Wave 5)
+- [ ] 181-09-PLAN.md — Redirects aktiviert + alte Routen geloescht (D-01/D-04, Wave 6)
