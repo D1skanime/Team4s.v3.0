@@ -34,7 +34,7 @@ import { Button } from "@/components/ui/Button";
 import { ReleaseVersionMetadataFields } from "./ReleaseVersionMetadataFields";
 import { EpisodeClassificationSection } from "./EpisodeClassificationSection";
 
-type ActiveTab =
+export type ActiveTab =
   | "uebersicht"
   | "dateien"
   | "informationen"
@@ -66,6 +66,18 @@ function parseActiveTab(value: string | null): ActiveTab {
   return ACTIVE_TABS.includes(value as ActiveTab)
     ? (value as ActiveTab)
     : "informationen";
+}
+
+export function resolveVisibleActiveTab(
+  activeTab: ActiveTab,
+  allowedTabs: Set<ActiveTab>,
+): ActiveTab {
+  if (allowedTabs.has(activeTab)) return activeTab;
+  if (allowedTabs.has("segmente")) return "segmente";
+  if (allowedTabs.has("media")) return "media";
+  if (allowedTabs.has("notizen")) return "notizen";
+  if (allowedTabs.has("informationen")) return "informationen";
+  return activeTab;
 }
 
 function getSafeReturnPath(value: string | null): string | null {
@@ -246,15 +258,10 @@ export function EpisodeVersionEditorPage() {
     isCapabilityScopeReady,
     isPlatformAdmin,
   ]);
-  const visibleActiveTab: ActiveTab = allowedTabs.has(activeTab)
-    ? activeTab
-    : allowedTabs.has("segmente")
-      ? "segmente"
-      : allowedTabs.has("media")
-      ? "media"
-      : allowedTabs.has("notizen")
-        ? "notizen"
-        : activeTab;
+  const visibleActiveTab: ActiveTab = resolveVisibleActiveTab(
+    activeTab,
+    allowedTabs,
+  );
 
   const fansubGroupHref =
     primaryGroup != null

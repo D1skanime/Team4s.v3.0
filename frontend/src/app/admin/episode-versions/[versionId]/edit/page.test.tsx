@@ -82,7 +82,11 @@ vi.mock("@/lib/api", () => ({
   getAnimeFansubProjectTimeline: () => getAnimeFansubProjectTimelineMock(),
 }));
 
-import { EpisodeVersionEditorPage } from "./EpisodeVersionEditorPage";
+import {
+  EpisodeVersionEditorPage,
+  resolveVisibleActiveTab,
+  type ActiveTab,
+} from "./EpisodeVersionEditorPage";
 
 afterEach(() => {
   cleanup();
@@ -630,5 +634,41 @@ describe("EpisodeVersionEditorPage media tab", () => {
       screen.getByRole("button", { name: "Bearbeitung abgeschlossen am auswählen" }),
     ).not.toBeNull();
     expect(screen.getByText("24.12.2009")).not.toBeNull();
+  });
+});
+
+describe("resolveVisibleActiveTab", () => {
+  it("gibt den angeforderten Tab unverändert zurück, wenn er erlaubt ist", () => {
+    const allowedTabs = new Set<ActiveTab>(["informationen", "segmente"]);
+    expect(resolveVisibleActiveTab("segmente", allowedTabs)).toBe("segmente");
+  });
+
+  it("fällt auf 'segmente' zurück, wenn der angeforderte Tab nicht erlaubt ist", () => {
+    const allowedTabs = new Set<ActiveTab>(["segmente", "media", "notizen"]);
+    expect(resolveVisibleActiveTab("informationen", allowedTabs)).toBe(
+      "segmente",
+    );
+  });
+
+  it("fällt auf 'media' zurück, wenn nur 'media' erlaubt ist", () => {
+    const allowedTabs = new Set<ActiveTab>(["media"]);
+    expect(resolveVisibleActiveTab("segmente", allowedTabs)).toBe("media");
+  });
+
+  it("fällt auf 'notizen' zurück, wenn nur 'notizen' erlaubt ist", () => {
+    const allowedTabs = new Set<ActiveTab>(["notizen"]);
+    expect(resolveVisibleActiveTab("segmente", allowedTabs)).toBe("notizen");
+  });
+
+  it("fällt auf 'informationen' zurück, wenn nur 'informationen' erlaubt ist (WR-01-Regressionsfall)", () => {
+    const allowedTabs = new Set<ActiveTab>(["informationen"]);
+    expect(resolveVisibleActiveTab("segmente", allowedTabs)).toBe(
+      "informationen",
+    );
+  });
+
+  it("gibt den ursprünglich angeforderten Tab zurück, wenn nichts erlaubt ist", () => {
+    const allowedTabs = new Set<ActiveTab>();
+    expect(resolveVisibleActiveTab("segmente", allowedTabs)).toBe("segmente");
   });
 });
