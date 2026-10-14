@@ -2,17 +2,50 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: 181-02-PLAN.md complete — Task 3 checkpoint approved by user; Phase 181 plans complete, pending code review/verification
-last_updated: "2026-10-14T10:54:01.633Z"
+status: executing
+stopped_at: Phase 181 fully closed — WR-01/WR-02 code-review findings fixed per explicit user decision (commits 2be605e49/0f6881e83), full gate green, frontend container restarted healthy
+last_updated: "2026-10-14T12:01:08.000Z"
 last_activity: 2026-10-14
 progress:
   total_phases: 46
-  completed_phases: 40
+  completed_phases: 41
   total_plans: 429
   completed_plans: 426
-  percent: 87
+  percent: 89
 ---
+
+# Phase 181 — Release-Bearbeitung zusammenführen (F-13) — COMPLETE (2026-10-14)
+
+Beide Pläne (181-01, 181-02) waren bereits code-vollständig und der blockierende Live-UAT-
+Checkpoint vom Nutzer bestätigt, als 181-VERIFICATION.md 8/8 Must-haves (D-01..D-05) bestätigte,
+aber `status: human_needed` zurückgab: 181-REVIEW.md hatte zwei Warnungen gefunden — WR-01 (der
+`visibleActiveTab`-Fallback in `EpisodeVersionEditorPage.tsx` übersprang `informationen`, wodurch
+ein rein metadaten-berechtigter Mitwirkender über den Dashboard-Link einen leeren Editor sehen
+konnte) und WR-02 (keinem Regressionstest sicherte die Exact-Match-Eigenschaft der neuen
+`/me/dashboard`/`/me/contributions`-Allowlist-Einträge gegen einen künftigen
+`startsWith`-Refactor ab). Der Nutzer entschied, beide jetzt zu beheben statt sie als Restrisiko
+zu tracken:
+
+- **WR-01** (Commit `2be605e49`): Fallback-Kette in eine reine, exportierte
+  `resolveVisibleActiveTab`-Funktion extrahiert; `informationen` als letzter Fallback nach
+  segmente/media/notizen ergänzt. Logik-only Unit-Test deckt alle 6 Fallback-Fälle ab, inkl. des
+  WR-01-Regressionsfalls (nur `informationen` erlaubt). Keine weitere Produktionscode-Änderung
+  an der Datei.
+- **WR-02** (Commit `0f6881e83`): 5 Negativtests in `page.test.tsx` ergänzt
+  (`/me/dashboardX`, `/me/dashboard/evil`, `//evil.com`, `/me/contributionsX`,
+  `/me/contributions/evil`) — alle werden korrekt abgelehnt und fallen auf den bestehenden
+  Default-`backHref` zurück. Keine Produktionscode-Änderung nötig (die bestehenden
+  `===`-Checks waren bereits korrekt).
+
+Volle Gate-Läufe im Container grün: 31/31 gezielte Tests (admin-episode-versions `page.test.tsx`),
+`tsc --noEmit` clean, `npm run lint` nur mit den bereits in `deferred-items.md` dokumentierten
+4 vorbestehenden, unabhängigen Fehlern (unberührte Dateien), volle Suite 383/385 Testdateien
+grün (1 Datei mit 1 Flake in `ReviewDelegationSection.test.tsx`, isoliert erneut grün gelaufen —
+bestätigt vorbestehend/timing-bedingt, nicht durch diese Änderung verursacht). Frontend-Container
+neu gestartet und als gesund bestätigt (`curl -sI http://192.168.235.196:3000/` → 200). Kein
+`git stash`, keine `git add -A`. `181-HUMAN-UAT.md` beide Punkte jetzt `result: resolved`;
+`181-VERIFICATION.md` um eine Resolution-Ergänzung erweitert. Phase 181 ist damit vollständig
+abgeschlossen.
 
 # Phase 180 — Einheitliche Upload-Oberfläche (F-15 Teil 2) — COMPLETE (2026-10-13)
 
@@ -302,9 +335,9 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — NEUSTART, 2/2 Pläne vollständig (Code + Checkpoint), Phase-Review/Verifizierung noch offen
-Plan: 2 of 2 (181-01 komplett; 181-02 alle 3 Tasks komplett, Task 3 vom Nutzer freigegeben)
-Status: Plans complete — pending phase-level code review and verification (not yet marked verified/done)
+Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — NEUSTART, vollständig abgeschlossen (2/2 Pläne + Review-Fixes WR-01/WR-02)
+Plan: 2 of 2 (181-01 komplett; 181-02 alle 3 Tasks komplett, Task 3 vom Nutzer freigegeben) plus die WR-01/WR-02-Fixes aus dem Code-Review
+Status: Phase complete — 181-VERIFICATION.md's 8/8 Must-haves bestätigt; beide als `human_needed` eskalierten Review-Funde (WR-01/WR-02) auf expliziten Nutzerwunsch jetzt behoben statt zurückgestellt
 181-01 fertig (Link-Retargeting der 5 Workspace-Einstiegspunkte auf den
 Episode-Version-Editor, return_to-Allowlist erweitert, D-01/D-02/D-04 erfüllt — siehe
 181-01-SUMMARY.md; volle Frontend-Testsuite 384 Dateien/3525 Tests und `tsc --noEmit` grün).
@@ -317,12 +350,15 @@ nachweislich unabhängige Befunde (Turbopack `/_global-error`-Prerender-Defekt,
 **181-02 Task 3 (blockierender Live-UAT-Checkpoint, D-05-Regressionswächter +
 D-02/D-03-Stichprobe) wurde vom Nutzer bestätigt** ("alle 4 Prüfungen, inkl. reiner
 Mitwirkender ohne Gruppenrolle; Punkte 1, 3, 4 zusätzlich von Claude im Browser als
-D1sk nachgeprüft") — siehe 181-02-SUMMARY.md "Approved Checkpoint". Beide Pläne der
-Phase 181 sind damit code- und checkpoint-vollständig; die phasenweite Code-Review
-und Phasen-Verifizierung durch den Orchestrator stehen noch aus — die Phase ist in
-STATE.md bewusst noch nicht als "verifiziert"/"abgeschlossen" markiert.
+D1sk nachgeprüft") — siehe 181-02-SUMMARY.md "Approved Checkpoint". Die anschließende
+Verifizierung (`181-VERIFICATION.md`) bestätigte 8/8 Must-haves, eskalierte aber WR-01/WR-02
+aus `181-REVIEW.md` als `human_needed`. Der Nutzer entschied, beide sofort zu beheben
+(Commits `2be605e49` WR-01, `0f6881e83` WR-02 — siehe den Phase-181-Abschluss-Eintrag oben
+im Log). `181-HUMAN-UAT.md` beide Punkte jetzt `result: resolved`; `181-VERIFICATION.md`
+um eine Resolution-Ergänzung erweitert. Phase 181 ist damit vollständig abgeschlossen
+(ROADMAP.md/STATE.md entsprechend aktualisiert, `completed_phases` 40→41).
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
-Next: The orchestrator runs phase-level code review and verification for Phase 181 next; only after that passes is Phase 181 marked complete in ROADMAP.md/STATE.md. Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
+Next: Phase 181 is closed. Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 182+ in `ROADMAP.md` zur Planung an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
 ## Vorherige Position (Phase 153, abgeschlossen)
 
@@ -1761,6 +1797,7 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 181 P08 | ~12min | 3 tasks | 18 files |
 | Phase 181 P09 | 35min | 2 tasks | 20 files |
 | Phase 181 P01 | 12min | 3 tasks | 12 files |
+| Phase 181 P03-fix | 20min | 2 tasks | 2 files |
 
 ## Session Continuity
 

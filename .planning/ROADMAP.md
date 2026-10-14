@@ -2675,7 +2675,7 @@ Plans:
 **Goal:** `/admin/episode-versions/[versionId]/edit` (unverändertes Layout) ist die einzige Release-Bearbeitungsseite; alle Einstiege, die heute auf `/me/releases/[id]/workspace` zeigen, springen stattdessen dorthin (mit `return_to`), und die alte Workspace-URL leitet dauerhaft weiter.
 **Requirements**: D-01 bis D-05 (siehe 181-CONTEXT.md — additive Phase ohne formale REQ-IDs, Traceability läuft über Entscheidungen statt Requirements-Katalog)
 **Depends on:** Phase 180
-**Plans:** 2/2 plans complete
+**Plans:** 2/2 plans complete — phase complete
 
   - Wave 1: 181-01 (retarget all 5 workspace-pointing links to the admin episode-version editor with return_to, extend the editor's return_to allowlist)
   - Wave 2: 181-02 (permanent redirect from the old workspace URL + delete workspace code + D-05 live regression checkpoint)
@@ -2688,3 +2688,12 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 181-02-PLAN.md — Permanent redirect /me/releases/[id]/workspace -> editor; delete workspace route (Tasks 1-2, commits `22b2e81ca`/`7d3b4041e`); live D-05 regression checkpoint (release version 27 / timer role) — Task 3 user-approved 2026-10-14, see 181-02-SUMMARY.md.
+
+**Phase closure (2026-10-14):** 181-VERIFICATION.md confirmed 8/8 must-haves (D-01..D-05) and
+escalated two code-review findings (181-REVIEW.md WR-01, WR-02) as `human_needed`. User decided
+to fix both now rather than defer: WR-01 (`informationen` added as last `visibleActiveTab`
+fallback, extracted into pure `resolveVisibleActiveTab`, commit `2be605e49`) and WR-02 (negative
+exact-match allowlist regression tests for `/me/dashboard`/`/me/contributions`, commit
+`0f6881e83`). Full gate (tests/tsc/lint) green in container, frontend restarted and confirmed
+healthy. Phase 181 is now fully closed — see `181-VERIFICATION.md` Resolution addendum and
+`181-HUMAN-UAT.md` (both items `result: resolved`).
