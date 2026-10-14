@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 181-09-PLAN.md (final plan of Phase 181 — ready for verification)
-last_updated: "2026-10-14T08:17:21.974Z"
+stopped_at: Completed 181-01-PLAN.md (plan 1 of 2 in Phase 181 Neustart — 181-02 remains)
+last_updated: "2026-10-14T10:20:16.484Z"
 last_activity: 2026-10-14
 progress:
   total_phases: 46
   completed_phases: 40
   total_plans: 429
-  completed_plans: 424
+  completed_plans: 425
   percent: 87
 ---
 
@@ -302,11 +302,14 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — 9/9 Pläne ausgeführt, code-complete
-Plan: 9 of 9
-Status: Ready to execute
+Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — NEUSTART, 1/2 Pläne ausgeführt
+Plan: 1 of 2
+Status: Executing — 181-01 fertig (Link-Retargeting der 5 Workspace-Einstiegspunkte auf den
+Episode-Version-Editor, return_to-Allowlist erweitert, D-01/D-02/D-04 erfüllt — siehe
+181-01-SUMMARY.md; volle Frontend-Testsuite 384 Dateien/3525 Tests und `tsc --noEmit` grün),
+181-02 (dauerhafter Workspace→Editor-Redirect + Code-Entfernung, D-03) steht noch aus.
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
-Next: Live-UAT für Phase 181 ausstehend (siehe oben). Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
+Next: Execute 181-02 (Workspace-Redirect + Code-Entfernung, D-03). Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
 ## Vorherige Position (Phase 153, abgeschlossen)
 
@@ -1741,11 +1744,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 181 P07 | 55min | 2 tasks | 4 files |
 | Phase 181 P08 | ~12min | 3 tasks | 18 files |
 | Phase 181 P09 | 35min | 2 tasks | 20 files |
+| Phase 181 P01 | 12min | 3 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-10-13T17:25:23.872Z
-Stopped at: Completed 181-09-PLAN.md (final plan of Phase 181 — ready for verification)
+Last session: 2026-10-14T10:20:16.462Z
+Stopped at: Completed 181-01-PLAN.md (plan 1 of 2 in Phase 181 Neustart — 181-02 remains)
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None

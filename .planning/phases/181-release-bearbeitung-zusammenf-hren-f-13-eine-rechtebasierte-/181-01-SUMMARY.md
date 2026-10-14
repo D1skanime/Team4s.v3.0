@@ -124,7 +124,8 @@ None - no external service configuration required.
 
 ## Self-Check: PASSED
 
-Verified file existence and commit presence below (see Self-Check output).
+All 13 files listed under "Files Created/Modified" confirmed present on disk. All 4 commit
+hashes (`5fcdec889`, `c662ee868`, `7bbdb9b37`, `755b3c850`) confirmed present in `git log`.
 
 ---
 *Phase: 181-release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-*
