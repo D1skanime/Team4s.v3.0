@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -56,45 +55,6 @@ func TestMapDBRelationTypeToAdmin_OnlyExposesNarrowV1Labels(t *testing.T) {
 
 	if _, ok := mapDBRelationTypeToAdmin("prequel"); ok {
 		t.Fatal("expected prequel to stay hidden in Phase 5")
-	}
-}
-
-func TestSearchAdminAnimeRelationTargetsQuery_UsesCurrentAnimeExclusionAndNormalizedTitles(t *testing.T) {
-	query := `
-		SELECT
-			a.id,
-			` + primaryNormalizedTitleSQL("a.id", "a.title") + `,
-			a.type,
-			a.status,
-			a.year,
-			a.cover_image
-		FROM anime a
-		WHERE a.id <> $1
-		  AND a.status <> 'disabled'
-		  AND (
-			` + primaryNormalizedTitleSQL("a.id", "a.title") + ` ILIKE $2
-			OR a.title_de ILIKE $2
-			OR a.title_en ILIKE $2
-			OR EXISTS (
-				SELECT 1
-				FROM anime_titles at
-				WHERE at.anime_id = a.id
-				  AND at.title ILIKE $2
-			)
-		  )
-	`
-
-	required := []string{
-		"a.id <> $1",
-		"a.status <> 'disabled'",
-		"FROM anime_titles at",
-		"at.anime_id = a.id",
-	}
-
-	for _, fragment := range required {
-		if !strings.Contains(query, fragment) {
-			t.Fatalf("expected query to contain %q", fragment)
-		}
 	}
 }
 

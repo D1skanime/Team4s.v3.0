@@ -65,15 +65,25 @@ type ProjectNavigationItem struct {
 // distinguish the two negative branches (T-155-01).
 func (r *FansubProjectResolverRepository) ResolveProject(ctx context.Context, groupSlug string, animeSlug string) (*ResolvedFansubProject, error) {
 	query := fmt.Sprintf(`
-		SELECT afg.fansub_group_id, a.id, %s AS anime_slug, a.cover_image, %s AS banner_url
+		SELECT afg.fansub_group_id, a.id, %s AS anime_slug, %s AS cover_image, %s AS banner_url
 		FROM fansub_groups fg
 		JOIN anime_fansub_groups afg ON afg.fansub_group_id = fg.id
 		JOIN anime a ON a.id = afg.anime_id
 		%s
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'poster'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) poster ON true
 		WHERE fg.slug = $1
 		  AND %s = $2
 		  AND a.status <> 'disabled'
-	`, publicAnimeSlugSQL("a"), publicProjectBannerSelectSQL, publicProjectBannerJoinSQL, publicAnimeSlugSQL("a"))
+	`, publicAnimeSlugSQL("a"), animeCoverImageSelectSQL("a"), publicProjectBannerSelectSQL, publicProjectBannerJoinSQL, publicAnimeSlugSQL("a"))
 
 	var resolved ResolvedFansubProject
 	var bannerPath *string

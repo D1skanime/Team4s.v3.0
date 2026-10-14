@@ -56,10 +56,20 @@ func (r *AdminContentRepository) ListAdminAnimeRelations(ctx context.Context, an
 			a.type,
 			a.year,
 			a.status,
-			a.cover_image
+			`+animeCoverImageSelectSQL("a")+` AS cover_image
 		FROM anime_relations ar
 		JOIN relation_types rt ON rt.id = ar.relation_type_id
 		JOIN anime a ON a.id = ar.target_anime_id
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'poster'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) poster ON true
 		WHERE ar.source_anime_id = $1
 		  AND a.status <> 'disabled'
 		ORDER BY a.year DESC NULLS LAST, a.title ASC
@@ -124,8 +134,18 @@ func (r *AdminContentRepository) SearchAdminAnimeRelationTargets(
 			a.type,
 			a.status,
 			a.year,
-			a.cover_image
+			`+animeCoverImageSelectSQL("a")+` AS cover_image
 		FROM anime a
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'poster'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) poster ON true
 		WHERE a.id <> $1
 		  AND a.status <> 'disabled'
 		  AND (

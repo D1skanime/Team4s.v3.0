@@ -225,8 +225,8 @@ func createFansubProjectBannerSchema(t *testing.T, pool *pgxpool.Pool) {
 	_, err := pool.Exec(context.Background(), `
 CREATE TABLE anime (
 	id BIGINT PRIMARY KEY, slug TEXT, title TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'tv',
-	status TEXT NOT NULL DEFAULT 'ongoing', year SMALLINT, cover_image TEXT, max_episodes SMALLINT,
-	banner_resolved_url TEXT, banner_asset_id BIGINT
+	status TEXT NOT NULL DEFAULT 'ongoing', year SMALLINT, cover_image TEXT, cover_resolved_url TEXT,
+	source TEXT, max_episodes SMALLINT, banner_resolved_url TEXT, banner_asset_id BIGINT
 );
 CREATE TABLE anime_fansub_groups (fansub_group_id BIGINT, anime_id BIGINT);
 CREATE TABLE media_types (id BIGINT PRIMARY KEY, name TEXT);

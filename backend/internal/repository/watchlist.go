@@ -38,9 +38,19 @@ func (r *WatchlistRepository) ListByUser(
 
 	offset := (filter.Page - 1) * filter.PerPage
 	rows, err := r.db.Query(ctx, `
-		SELECT w.anime_id, a.title, a.type, a.status, a.year, a.cover_image, a.max_episodes, w.created_at
+		SELECT w.anime_id, a.title, a.type, a.status, a.year, `+animeCoverImageSelectSQL("a")+` AS cover_image, a.max_episodes, w.created_at
 		FROM watchlist_entries w
 		INNER JOIN anime a ON a.id = w.anime_id
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'poster'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) poster ON true
 		WHERE w.user_id = $1
 		ORDER BY w.created_at DESC, w.id DESC
 		LIMIT $2 OFFSET $3
@@ -144,9 +154,19 @@ func (r *WatchlistRepository) GetByUserAndAnimeID(
 
 	var item models.WatchlistItem
 	if err := r.db.QueryRow(ctx, `
-		SELECT w.anime_id, a.title, a.type, a.status, a.year, a.cover_image, a.max_episodes, w.created_at
+		SELECT w.anime_id, a.title, a.type, a.status, a.year, `+animeCoverImageSelectSQL("a")+` AS cover_image, a.max_episodes, w.created_at
 		FROM watchlist_entries w
 		INNER JOIN anime a ON a.id = w.anime_id
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'poster'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) poster ON true
 		WHERE w.user_id = $1
 		  AND w.anime_id = $2
 		LIMIT 1

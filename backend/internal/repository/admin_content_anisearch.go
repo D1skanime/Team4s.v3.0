@@ -144,8 +144,18 @@ func (r *AdminContentRepository) ResolveAdminAnimeRelationTargetsByTitles(
 			a.type,
 			a.status,
 			a.year,
-			a.cover_image
+			`+animeCoverImageSelectSQL("a")+` AS cover_image
 		FROM anime a
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'poster'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) poster ON true
 		JOIN requested_titles ON (
 			lower(btrim(COALESCE(a.title, ''))) = requested_titles.normalized_title
 			OR lower(btrim(COALESCE(a.title_de, ''))) = requested_titles.normalized_title
