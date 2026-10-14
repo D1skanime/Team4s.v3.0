@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
+status: executing
 stopped_at: Completed 181-09-PLAN.md (final plan of Phase 181 — ready for verification)
-last_updated: "2026-10-13T17:25:23.897Z"
-last_activity: 2026-10-13
+last_updated: "2026-10-14T08:17:21.974Z"
+last_activity: 2026-10-14
 progress:
   total_phases: 46
-  completed_phases: 41
-  total_plans: 436
-  completed_plans: 433
-  percent: 89
+  completed_phases: 40
+  total_plans: 429
+  completed_plans: 424
+  percent: 87
 ---
 
 # Phase 180 — Einheitliche Upload-Oberfläche (F-15 Teil 2) — COMPLETE (2026-10-13)
@@ -304,7 +304,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — 9/9 Pläne ausgeführt, code-complete
 Plan: 9 of 9
-Status: Alle 9 Pläne code-complete (automatisierte Regression grün: tsc/lint/Frontend-Tests/Backend-Build/-Vet). Das in 181-VALIDATION.md dokumentierte Live-UAT-Checklist (11 Einstiegspunkte, Tab-Sichtbarkeit Admin-vs-Mitglied, Projekt-vs-Episode-Navigation, Plattform-Admin-ohne-Mitgliederprofil) ist noch ausständig und NICHT von einem Agenten als bestanden markiert — menschliche Verifikation erforderlich.
+Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Live-UAT für Phase 181 ausstehend (siehe oben). Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -411,7 +411,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-13
+Last activity: 2026-10-14
 
 ## Accumulated Context
 
