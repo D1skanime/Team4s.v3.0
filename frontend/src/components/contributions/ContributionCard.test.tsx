@@ -84,7 +84,9 @@ describe('ContributionCard', () => {
     )
 
     const link = screen.getByRole('link', { name: 'Arbeitsfläche öffnen' })
-    expect(link.getAttribute('href')).toBe('/me/releases/42/workspace')
+    expect(link.getAttribute('href')).toBe(
+      '/admin/episode-versions/42/edit?return_to=%2Fme%2Fcontributions',
+    )
   })
 
   it('does not show a workspace link for anime-wide contributions', () => {

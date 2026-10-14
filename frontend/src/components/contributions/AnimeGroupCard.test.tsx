@@ -121,6 +121,24 @@ describe('AnimeGroupCard', () => {
     expect(screen.getAllByRole('group', { name: 'Sichtbarkeit dieses Eintrags' })).toHaveLength(2)
     expect(screen.queryByText('wie oben')).toBeNull()
   })
+
+  it('verlinkt eine Rolle mit release_version_id auf den Episode-Version-Editor mit return_to', () => {
+    render(
+      <AnimeGroupCard
+        animeId={10}
+        animeTitle="Naruto"
+        contributions={[makeContribution({ release_version_id: 42, role_codes: ['timer'], role_labels: ['Timing'] })]}
+        onVisibilityChange={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Projektrollen anzeigen' }))
+
+    const link = screen.getByRole('link', { name: 'Arbeitsfläche öffnen' })
+    expect(link.getAttribute('href')).toBe(
+      '/admin/episode-versions/42/edit?return_to=%2Fme%2Fcontributions',
+    )
+  })
 })
 
 describe('AnimeGroupCard catalog mutation propagation', () => {

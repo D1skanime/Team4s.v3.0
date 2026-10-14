@@ -348,7 +348,7 @@ function MyProjectDetailPage() {
                   </Badge>
                 </div>
                 <Button
-                  href={`/me/releases/${release.release_version_id}/workspace?return_to=${encodeURIComponent(projectReturnHref)}`}
+                  href={`/admin/episode-versions/${release.release_version_id}/edit?return_to=${encodeURIComponent(projectReturnHref)}`}
                   variant={hasOwnArtifacts ? 'primary' : 'secondary'}
                   size="sm"
                   leftIcon={<Pencil size={15} aria-hidden="true" />}
