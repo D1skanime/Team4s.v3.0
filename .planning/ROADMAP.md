@@ -2700,10 +2700,42 @@ healthy. Phase 181 is now fully closed — see `181-VERIFICATION.md` Resolution 
 
 ### Phase 182: Alten Bildspeicher entfernen (F-01): Legacy-Bildpfade (anime.cover_image, Legacy-Zweige in anime_assets*, hasV2AssetSchema-Abfrage, syncLegacyAnimeCoverImageV2) entfallen; alle Leser nutzen nur noch den V2-Speicher (anime_media + media_assets); Spalte per Migration entfernt, API-Vertrag bereinigt — ohne sichtbare Änderung für Nutzer
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Alle Leser des Anime-Covers (Liste, Detail, Watchlist, Fansub-Profile, Admin-Beziehungen,
+AniSearch-Matching) lesen ausschliesslich aus dem V2-Speicher (anime_media + media_assets,
+COALESCE-Helper + Jellyfin-Fallback); die Legacy-Spalte anime.cover_image, ihre
+hasV2AssetSchema-Abzweigungen, der Mirror-Writer syncLegacyAnimeCoverImageV2 und das historische
+Einmal-Migrationswerkzeug sind entfernt, die Spalte ist per sicherheitsgeprueft-abbrechender
+Migration gedroppt, und der API-Vertrag ist bereinigt — ohne sichtbare Regression, mit dem bewusst
+in Kauf genommenen Nebeneffekt aus D-01 (zuvor fehlende Jellyfin-Cover erscheinen neu auf
+/fansubs und /me/watchlist).
+**Requirements**: D-01, D-02, D-03, D-04 (Decision-Coverage via 182-CONTEXT.md, kein
+REQUIREMENTS.md-Mapping vorhanden; jede Plan-Datei traegt die zutreffenden D-IDs im
+`requirements`-Frontmatter-Feld)
 **Depends on:** Phase 181
-**Plans:** 0 plans
+**Plans:** 3 plans across 3 waves
+
+  - Wave 1: 182-01 (hasV2AssetSchema-Legacy-Zweige entfernen + die 5 rohen Cover-Leser auf den
+    V2-COALESCE-Helper umstellen + syncLegacyAnimeCoverImageV2/ApplyProviderCover-Fix, D-01/D-03)
+  - Wave 2: 182-02 (reversible Migration mit Vorab-Sicherheitscheck + COALESCE-Helper kuerzen +
+    Vertragsbereinigung, D-02/D-03)
+  - Wave 3: 182-03 (historisches Migrationswerkzeug/Skripte entfernen + Live-Checkpoint ueber die
+    5 D-04-Vergleichs-URLs, D-03/D-04)
+
+**Plan-time read first**: `backend/internal/repository/anime_v2.go`,
+`backend/internal/repository/anime_assets.go`, `backend/internal/repository/anime_assets_cover.go`,
+`backend/internal/testsupport/phase165_postgres.go`, `backend/internal/testsupport/phase106_postgres.go`,
+and `182-CONTEXT.md` (contains the full file:line inventory and the verified Jellyfin-image
+next/image-allowlist finding; serves as this phase's research source, no separate RESEARCH.md).
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 182 to break down)
+**Wave 1**
+
+- [ ] 182-01-PLAN.md — Remove dead hasV2AssetSchema legacy branches + migrate the 5 raw cover_image readers to the V2-aware COALESCE helper + remove syncLegacyAnimeCoverImageV2 + fix ApplyProviderCover (D-01, D-03).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 182-02-PLAN.md — Reversible migration dropping anime.cover_image behind a pre-flight safety check + shrink the shared COALESCE helpers + clean up shared/contracts/*.yaml (D-02, D-03).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 182-03-PLAN.md — Remove the historical migrate-covers tool/scripts + Live-Checkpoint comparing the 5 D-04 reference URLs before/after (D-03, D-04).
