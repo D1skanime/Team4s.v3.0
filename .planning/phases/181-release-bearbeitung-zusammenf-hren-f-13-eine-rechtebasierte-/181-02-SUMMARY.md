@@ -16,7 +16,7 @@ provides:
      as a permanent (308) redirect to /admin/episode-versions/:versionId/edit"
   - "frontend/src/app/me/releases directory tree fully removed (page.tsx,
      workspace.module.css, page.test.tsx, workspaceHelpers.ts)"
-affects: [181-03 (pending human-verify checkpoint, not yet executed)]
+affects: []
 
 # Tech tracking
 tech-stack:
@@ -67,23 +67,23 @@ key-decisions:
      commits — confirmed via git log, logged to deferred-items.md rather
      than fixed, per the scope-boundary rule."
 
-requirements-completed: [D-03]
+requirements-completed: [D-01, D-03, D-05]
 
 # Metrics
 duration: ~13min
 completed: 2026-10-14
 ---
 
-# Phase 181 Plan 02: Retire the workspace route — redirect + deletion (Task 3 checkpoint pending) Summary
+# Phase 181 Plan 02: Retire the workspace route — redirect + deletion + approved live-UAT Summary
 
-**`/me/releases/[id]/workspace` now permanently (308) redirects to `/admin/episode-versions/[versionId]/edit` with query params preserved, and the entire dead `frontend/src/app/me/releases` route tree is deleted — Task 1 and Task 2 are complete and committed; Task 3 (the closing live-UAT checkpoint) is a mandatory human-in-the-loop gate and has NOT been executed, approved, or checked off.**
+**`/me/releases/[id]/workspace` now permanently (308) redirects to `/admin/episode-versions/[versionId]/edit` with query params preserved, and the entire dead `frontend/src/app/me/releases` route tree is deleted — Task 1 and Task 2 were completed and committed by the prior executor run; Task 3, the closing live-UAT checkpoint, has now been performed by the user and confirmed APPROVED (all 4 checks passed, including the pure-contributor-without-group-role case). Plan 181-02 and Phase 181 as a whole are code-complete and the only remaining gate is the orchestrator's code review / phase verification.**
 
 ## Performance
 
-- **Duration:** ~13 min
+- **Duration:** ~13 min (Tasks 1-2, automated execution)
 - **Started:** 2026-10-14T10:20:30Z (approx.)
-- **Completed:** 2026-10-14T10:33:39Z
-- **Tasks:** 2 of 3 completed (Task 3 is a blocking human checkpoint, intentionally not executed)
+- **Completed:** 2026-10-14T10:33:39Z (Tasks 1-2); checkpoint approved 2026-10-14 (Task 3, this finalization pass)
+- **Tasks:** 3 of 3 completed (Task 3 is the closing human checkpoint; approved by the user)
 - **Files modified:** 10 (4 created, 1 modified, 4 deleted, 1 deferred-items doc)
 
 ## Accomplishments
@@ -101,7 +101,7 @@ Each task was committed atomically:
 1. **Task 1: Build the redirect + wire it into next.config.mjs + verify live** - `22b2e81ca` (feat)
 2. **Task 2: Delete the now-unreferenced workspace route + run the full gate** - `7d3b4041e` (chore)
 
-**Task 3 (checkpoint:human-verify, gate: blocking) is NOT executed.** No commit, no approval, no checkoff. See "Pending Checkpoint" below.
+**Task 3 (checkpoint:human-verify, gate: blocking) is APPROVED.** No code changes were required for Task 3 itself (manual verification only, per the plan's own `<files>none</files>`); the approval and this SUMMARY update are recorded in a separate finalization commit. See "Approved Checkpoint" below.
 
 **Plan metadata:** (final docs commit for SUMMARY.md/STATE.md/ROADMAP.md follows this summary)
 
@@ -148,21 +148,25 @@ Each task was committed atomically:
 
 None - no external service configuration required.
 
-## Pending Checkpoint — Task 3 (NOT executed, NOT approved)
+## Approved Checkpoint — Task 3 (user-confirmed, 2026-10-14)
 
-Task 3 is a `type="checkpoint:human-verify" gate="blocking"` live-UAT step. It has intentionally **not** been run, approved, or checked off by this executor. The plan and the phase are **not complete** until a human performs these 4 checks and responds with "approved" (or reports a failure):
+Task 3 is a `type="checkpoint:human-verify" gate="blocking"` live-UAT step. It has now been performed by the user, who confirmed:
 
-1. Open `http://127.0.0.1:3300/admin/episode-versions/27/edit?tab=notizen` (through the SSH tunnel, as an account with access to this release version) and confirm the "Notizen / Beiträge" tab shows the existing note correctly attributed to the `timer` role — NOT a "Keine Rollen zugeordnet" message. This is the exact D-05 regression from the first attempt; it must not reappear.
-2. As a contributor account with only an `anime_contribution` role (no fansub-group role, no platform-admin), open `/me/dashboard` and click a new-assignment or rejected-note-revision card if one is present; confirm it opens the editor (not a 404 or the old workspace) and that "Zurück" returns to `/me/dashboard`.
-3. Open a project page under `/me/projects/{animeId}/group/{fansubGroupId}` as a contributor on that project, click "Notizen & Medien" on any release row, confirm it opens the editor and "Zurück" returns to that same project page.
-4. Visit `http://127.0.0.1:3300/me/releases/27/workspace` directly and confirm the browser ends up on `/admin/episode-versions/27/edit` (redirected, not a 404 or the old page).
+> "Live-Checkpoint 181-02 vom Nutzer bestätigt (alle 4 Prüfungen, inkl. reiner Mitwirkender ohne Gruppenrolle; Punkte 1, 3, 4 zusätzlich von Claude im Browser als D1sk nachgeprüft)."
 
-Resume signal: type "approved" once all 4 checks pass, or describe which one failed.
+All 4 checks passed:
+
+1. `http://127.0.0.1:3300/admin/episode-versions/27/edit?tab=notizen` — "Notizen / Beiträge" tab shows the existing note correctly attributed to the `timer` role, NOT "Keine Rollen zugeordnet". The exact D-05 regression from the first, reverted attempt did not reappear. (Independently re-verified in-browser by Claude as user D1sk.)
+2. Contributor account with only an `anime_contribution` role, no fansub-group role, no platform-admin — opened `/me/dashboard`, clicked a new-assignment/rejected-note-revision card, confirmed it opens the editor (not a 404 or the old workspace) and that "Zurück" returns to `/me/dashboard`. This is the exact pure-contributor-without-group-role case flagged in `181-CONTEXT.md`'s "Rechtevergleich Editor vs. Workspace" finding (D-04) — confirmed working, not just structurally argued.
+3. Project page under `/me/projects/{animeId}/group/{fansubGroupId}` — "Notizen & Medien" on a release row opens the editor and "Zurück" returns to that same project page. (Independently re-verified in-browser by Claude as user D1sk.)
+4. Direct visit to `http://127.0.0.1:3300/me/releases/27/workspace` ends up redirected to `/admin/episode-versions/27/edit` (not a 404 or the old page). (Independently re-verified in-browser by Claude as user D1sk.)
+
+Resume signal received: "approved" (all 4 checks pass, no failures reported).
 
 ## Next Phase Readiness
-- Task 1 and Task 2's automated work is done and committed; the redirect is live and verified via curl, the dead route is gone, and the full automated gate (minus the two pre-existing, independently-confirmed-unrelated issues above) is green.
-- Phase 181 as a whole is **not** complete — Task 3's live human checkpoint is the sole remaining gate.
-- No blockers for a human to perform Task 3's verification now; the dev server is confirmed healthy and both the redirect and the editor route are live.
+- All 3 tasks of 181-02 are complete: Task 1 and Task 2's automated work is committed (redirect live and verified via curl, dead route gone, full automated gate green minus the two pre-existing, independently-confirmed-unrelated issues in `deferred-items.md`); Task 3's live-UAT checkpoint is user-approved.
+- Plan 181-02 is code-complete and checkpoint-approved. Phase 181 (both plans: 181-01 and 181-02) is now 2/2 plans complete.
+- Phase 181 is **not yet** marked fully verified/done — a phase-level code review and phase verification pass are the next, separate steps (owned by the orchestrator), not part of this plan's scope.
 
 ## Self-Check: PASSED
 
@@ -170,4 +174,4 @@ All 9 created/modified/deleted files confirmed present (or absent, for deletions
 
 ---
 *Phase: 181-release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-*
-*Completed: 2026-10-14 (Tasks 1-2 only — Task 3 checkpoint pending)*
+*Completed: 2026-10-14 (Tasks 1-2-3 — Task 3 checkpoint approved by user)*
