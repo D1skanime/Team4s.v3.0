@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 181-01-PLAN.md (plan 1 of 2 in Phase 181 Neustart — 181-02 remains)
-last_updated: "2026-10-14T10:20:16.484Z"
+stopped_at: 181-02-PLAN.md Tasks 1-2 complete (committed); Task 3 is a blocking checkpoint:human-verify and is NOT approved — Phase 181 is NOT complete
+last_updated: "2026-10-14T10:33:39Z"
 last_activity: 2026-10-14
 progress:
   total_phases: 46
@@ -302,14 +302,22 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — NEUSTART, 1/2 Pläne ausgeführt
-Plan: 1 of 2
+Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — NEUSTART, 2/2 Pläne code-vollständig, Phase NICHT abgeschlossen
+Plan: 2 of 2 (Tasks 1-2 committed; Task 3 blocking checkpoint pending human approval)
 Status: Executing — 181-01 fertig (Link-Retargeting der 5 Workspace-Einstiegspunkte auf den
 Episode-Version-Editor, return_to-Allowlist erweitert, D-01/D-02/D-04 erfüllt — siehe
-181-01-SUMMARY.md; volle Frontend-Testsuite 384 Dateien/3525 Tests und `tsc --noEmit` grün),
-181-02 (dauerhafter Workspace→Editor-Redirect + Code-Entfernung, D-03) steht noch aus.
+181-01-SUMMARY.md; volle Frontend-Testsuite 384 Dateien/3525 Tests und `tsc --noEmit` grün).
+181-02 Tasks 1-2 sind committet (`22b2e81ca` dauerhafter 308-Redirect
+/me/releases/:versionId/workspace → /admin/episode-versions/:versionId/edit,
+`7d3b4041e` Löschung von frontend/src/app/me/releases) — siehe 181-02-SUMMARY.md;
+volle Testsuite (384 Dateien/3506 Tests) und `tsc --noEmit` grün; zwei vorbestehende,
+nachweislich unabhängige Befunde (Turbopack `/_global-error`-Prerender-Defekt,
+4 Lint-Fehler in unberührten Dateien) in deferred-items.md dokumentiert, nicht behoben.
+**181-02 Task 3 (blockierender Live-UAT-Checkpoint, D-05-Regressionswächter +
+D-02/D-03-Stichprobe) ist NICHT ausgeführt, NICHT freigegeben.** Phase 181 ist
+NICHT abgeschlossen, bis ein Mensch die 4 Prüfschritte bestätigt.
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
-Next: Execute 181-02 (Workspace-Redirect + Code-Entfernung, D-03). Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
+Next: A human must perform 181-02 Task 3's 4-step live-UAT (see 181-02-SUMMARY.md "Pending Checkpoint") and respond "approved" or report a failure. Only then is Phase 181 complete. Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
 ## Vorherige Position (Phase 153, abgeschlossen)
 
@@ -1091,6 +1099,8 @@ Last activity: 2026-10-14
 - [Phase 181]: 181-07: activeTab ist einseitig state->URL (router.replace bei Klick), nicht laufend URL->state resynchronisiert — Vermeidet react-hooks/set-state-in-effect-Lint-Fehler und einen Flacker-Bug zurueck zum alten Tab direkt nach Klick
 - [Phase 181]: 181-08: fansubEditAccess.ts's releaseVersionToolsTarget retired the "notizen" tab id in favor of the unified "notes" vocabulary; releaseEditorRedirects.ts was deliberately left untouched since it is Plan 02's redirect-source config consumed by Plan 09
 - [Phase 181]: Plan 181-09: releaseEditorRedirects.ts zu .mjs umbenannt (Rule 1), da next.config.mjs .ts-Importe unter Node 20 nicht laedt (ERR_UNKNOWN_FILE_EXTENSION); begleitende .d.mts nach publicImagePatterns.mjs/.d.ts-Vorbild ergaenzt — Node 20 im Frontend-Container laedt next.config.mjs direkt ohne TS-/Bundler-Schritt; der Import schlug fehl und liess den Container in eine Neustart-Schleife laufen
+- [Phase 181 NEUSTART, 181-02]: buildReleaseEditorRedirects() liegt von Anfang an als .mjs vor (kein Rename noetig wie im ersten, verworfenen Versuch oben). releaseEditorRedirects.d.mts (nicht nur .d.ts) wurde ergaenzt, weil tsc unter moduleResolution:"bundler" fuer einen .mjs-Import aus einer .ts-Datei (hier: releaseEditorRedirects.test.ts) nur eine .d.mts-Deklaration aufloest, keine .d.ts-Deklaration -- empirisch durch Ein-/Ausblenden der Datei verifiziert. Bestaetigt denselben Befund wie der erste, verworfene Versuch (Zeile oben), diesmal unabhaengig in der Neustart-Ausfuehrung wiedergefunden.
+- [Phase 181 NEUSTART, 181-02]: `npm run build`s vorbestehender `/_global-error`-Turbopack-Prerender-Defekt (TypeError: Cannot read properties of null (reading 'useContext'), digest 53468840) wurde NICHT als von 181-02 verursacht behandelt -- Nachweis per throwaway `git worktree` auf Commit 50c0961b1 (Stand unmittelbar vor 181-02) + Einweg-`docker run` gegen dasselbe Image/Volume: identischer Fehler, identischer Digest, identische erstbetroffene Seite. Deckt sich mit dem bereits in diesem Dokument (Phase-164-Abschnitt) dokumentierten Befund, dass der Defekt unabhaengig von der geloeschten Route existiert. Nicht behoben, in deferred-items.md dokumentiert.
 
 ### Pending Todos
 
