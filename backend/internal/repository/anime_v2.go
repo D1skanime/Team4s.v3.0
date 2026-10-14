@@ -426,7 +426,6 @@ func animeCoverImageSelectSQL(animeAlias string) string {
 	return fmt.Sprintf(`
 		COALESCE(
 			NULLIF(BTRIM(%s.cover_resolved_url), ''),
-			NULLIF(BTRIM(%s.cover_image), ''),
 			poster.file_path,
 			CASE
 				WHEN %s.source LIKE 'jellyfin:%%' AND BTRIM(REPLACE(%s.source, 'jellyfin:', '')) <> ''
@@ -434,7 +433,7 @@ func animeCoverImageSelectSQL(animeAlias string) string {
 				ELSE NULL
 			END
 		)
-	`, animeAlias, animeAlias, animeAlias, animeAlias, animeAlias)
+	`, animeAlias, animeAlias, animeAlias, animeAlias)
 }
 
 func animeCoverAvailableSQL(animeAlias string) string {
@@ -450,9 +449,8 @@ func animeCoverAvailableSQL(animeAlias string) string {
 			  AND btrim(ma.file_path) <> ''
 		)
 		OR NULLIF(BTRIM(%s.cover_resolved_url), '') IS NOT NULL
-		OR NULLIF(BTRIM(%s.cover_image), '') IS NOT NULL
 		OR (%s.source LIKE 'jellyfin:%%' AND BTRIM(REPLACE(%s.source, 'jellyfin:', '')) <> '')
-	)`, animeAlias, animeAlias, animeAlias, animeAlias, animeAlias)
+	)`, animeAlias, animeAlias, animeAlias, animeAlias)
 }
 
 func mapAnimeTypeNameToAPI(name *string) string {

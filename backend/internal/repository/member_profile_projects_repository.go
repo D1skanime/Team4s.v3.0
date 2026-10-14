@@ -21,7 +21,6 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 			a.id,
 			COALESCE(a.title_de, a.title_en, a.title, ''),
 			COALESCE(
-				NULLIF(BTRIM(a.cover_image), ''),
 				NULLIF(BTRIM(cover_file.path), ''),
 				NULLIF(BTRIM(cover_asset.file_path), ''),
 				NULLIF(BTRIM(anime_poster.path), '')
@@ -79,7 +78,7 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		  AND ac.status = 'confirmed'
 		  AND ac.is_public_on_member_profile = true
 		  AND ac.ended_year IS NULL
-		GROUP BY a.id, a.title_de, a.title_en, a.title, a.cover_image, cover_file.path, cover_asset.file_path, anime_poster.path, fg.id, fg.name
+		GROUP BY a.id, a.title_de, a.title_en, a.title, cover_file.path, cover_asset.file_path, anime_poster.path, fg.id, fg.name
 		-- Domain sort keys first (most-recently-active, then title, then group name).
 		-- Trailing (a.id DESC, fg.id DESC) is the UNIQUE tie-breaker: (anime_id,
 		-- fansub_group_id) is exactly this query's GROUP BY grouping key, so it makes the

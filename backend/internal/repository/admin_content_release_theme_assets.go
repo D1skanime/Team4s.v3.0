@@ -101,7 +101,6 @@ func (r *AdminContentRepository) ListFansubAnime(ctx context.Context, fansubGrou
 			) AS header_image,
 			COALESCE(
 				NULLIF(BTRIM(a.cover_resolved_url), ''),
-				NULLIF(BTRIM(a.cover_image), ''),
 				poster.file_path,
 				CASE
 					WHEN a.source LIKE 'jellyfin:%' AND BTRIM(REPLACE(a.source, 'jellyfin:', '')) <> ''

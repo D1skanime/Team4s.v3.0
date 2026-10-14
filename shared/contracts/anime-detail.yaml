@@ -25,7 +25,7 @@ response:
       max_episodes: 25
       genre: "Action, Drama"
       description: "Menschheit gegen Titanen."
-      cover_image: "attack-on-titan.jpg"
+      cover_image: "/media/anime/3/cover/f20a224e-1234-4abc-9def-000000000000/original.jpg"
       source: "jellyfin:series-42"
       source_links:
         - "jellyfin:series-42"

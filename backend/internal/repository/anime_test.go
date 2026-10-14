@@ -113,7 +113,6 @@ func TestBuildAnimeListWhereV2_UsesPersistedFieldsAndFilters(t *testing.T) {
 		"NOT",
 		"btrim(ma.file_path) <> ''",
 		"anime.cover_resolved_url",
-		"anime.cover_image",
 		"anime.source LIKE 'jellyfin:%'",
 		"anime.slug",
 		"at.title ILIKE $3",
@@ -123,6 +122,11 @@ func TestBuildAnimeListWhereV2_UsesPersistedFieldsAndFilters(t *testing.T) {
 		if !strings.Contains(whereSQL, fragment) {
 			t.Fatalf("expected where clause to contain %q, got %q", fragment, whereSQL)
 		}
+	}
+	// Phase 182-03 (D-03): animeCoverAvailableSQL no longer references the dropped
+	// anime.cover_image column.
+	if strings.Contains(whereSQL, "cover_image") {
+		t.Fatalf("expected where clause to no longer reference anime.cover_image, got %q", whereSQL)
 	}
 
 	wantArgs := []any{"movie", "done", "%eva%", "E"}
@@ -135,7 +139,6 @@ func TestAnimeCoverImageSelectSQL_UsesProviderFallbacks(t *testing.T) {
 	selectSQL := animeCoverImageSelectSQL("anime")
 	required := []string{
 		"NULLIF(BTRIM(anime.cover_resolved_url), '')",
-		"NULLIF(BTRIM(anime.cover_image), '')",
 		"poster.file_path",
 		"anime.source LIKE 'jellyfin:%'",
 		"'/api/v1/media/image?item_id='",
@@ -145,6 +148,11 @@ func TestAnimeCoverImageSelectSQL_UsesProviderFallbacks(t *testing.T) {
 		if !strings.Contains(selectSQL, fragment) {
 			t.Fatalf("expected cover select to contain %q, got %q", fragment, selectSQL)
 		}
+	}
+	// Phase 182-03 (D-03): animeCoverImageSelectSQL no longer references the dropped
+	// anime.cover_image column.
+	if strings.Contains(selectSQL, "cover_image") {
+		t.Fatalf("expected cover select to no longer reference anime.cover_image, got %q", selectSQL)
 	}
 }
 

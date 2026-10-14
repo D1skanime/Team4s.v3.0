@@ -78,7 +78,7 @@ endpoints:
         max_episodes: 25
         genre: "Action, Drama"
         description: "Menschen kaempfen gegen Titanen."
-        cover_image: "attack-on-titan.jpg"
+        cover_image: "/media/anime/3/cover/f20a224e-1234-4abc-9def-000000000000/original.jpg"
     response:
       status: 201
       type: AdminAnimeUpsertResponse

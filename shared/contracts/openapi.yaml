@@ -709,7 +709,7 @@ paths:
             default: false
         - name: has_cover
           in: query
-          description: Optional filter for cover_image presence. true = only records with cover_image, false = only records without cover_image.
+          description: Optional filter for whether the anime has a resolved cover image (V2 media store poster, resolved provider URL, or Jellyfin fallback). true = only anime with a resolved cover, false = only anime without one.
           schema:
             type: boolean
       responses:
@@ -11302,6 +11302,7 @@ components:
         cover_image:
           type: string
           nullable: true
+          description: URL to the anime's cover image, resolved from the V2 media store (anime_media + media_assets, poster slot), a resolved provider URL, or a Jellyfin fallback URL — no longer backed by a dedicated anime.cover_image database column.
         max_episodes:
           type: integer
           format: int32
@@ -11475,6 +11476,7 @@ components:
         cover_image:
           type: string
           nullable: true
+          description: URL to the anime's cover image, resolved from the V2 media store (anime_media + media_assets, poster slot), a resolved provider URL, or a Jellyfin fallback URL — no longer backed by a dedicated anime.cover_image database column.
         banner_url:
           type: string
           nullable: true
@@ -11518,7 +11520,6 @@ components:
         - anime_id
         - title
         - relation_type
-        - cover_image
         - year
         - type
       properties:
@@ -11532,6 +11533,7 @@ components:
         cover_image:
           type: string
           nullable: true
+          description: URL to the anime's cover image, resolved from the V2 media store (anime_media + media_assets, poster slot), a resolved provider URL, or a Jellyfin fallback URL — no longer backed by a dedicated anime.cover_image database column.
         year:
           type: integer
           format: int32
@@ -11652,6 +11654,7 @@ components:
         cover_image:
           type: string
           nullable: true
+          description: URL to the anime's cover image, resolved from the V2 media store (anime_media + media_assets, poster slot), a resolved provider URL, or a Jellyfin fallback URL — no longer backed by a dedicated anime.cover_image database column.
         max_episodes:
           type: integer
           format: int32
@@ -11771,6 +11774,7 @@ components:
         cover_image:
           type: string
           nullable: true
+          description: URL to the anime's cover image, resolved from the V2 media store (anime_media + media_assets, poster slot), a resolved provider URL, or a Jellyfin fallback URL — no longer backed by a dedicated anime.cover_image database column.
         source:
           type: string
           nullable: true
@@ -11827,6 +11831,7 @@ components:
         cover_image:
           type: string
           nullable: true
+          description: URL to the anime's cover image, resolved from the V2 media store (anime_media + media_assets, poster slot), a resolved provider URL, or a Jellyfin fallback URL — no longer backed by a dedicated anime.cover_image database column.
         source:
           type: string
           nullable: true
@@ -11966,6 +11971,7 @@ components:
         cover_image:
           type: string
           nullable: true
+          description: URL to the anime's cover image, resolved from the V2 media store (anime_media + media_assets, poster slot), a resolved provider URL, or a Jellyfin fallback URL — no longer backed by a dedicated anime.cover_image database column.
         source:
           type: string
           nullable: true
@@ -14672,6 +14678,7 @@ components:
         cover_image:
           type: string
           nullable: true
+          description: URL to the anime's cover image, resolved from the V2 media store (anime_media + media_assets, poster slot), a resolved provider URL, or a Jellyfin fallback URL — no longer backed by a dedicated anime.cover_image database column.
         max_episodes:
           type: integer
           nullable: true
