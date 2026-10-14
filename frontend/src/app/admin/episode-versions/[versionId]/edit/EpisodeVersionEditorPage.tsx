@@ -84,7 +84,15 @@ function getSafeReturnPath(value: string | null): string | null {
     const isMemberProjectWorkspace = /^\/me\/projects\/\d+\/group\/\d+$/.test(
       parsed.pathname,
     );
-    if (!isAdminFansubWorkspace && !isMemberProjectWorkspace) return null;
+    const isMemberDashboard = parsed.pathname === "/me/dashboard";
+    const isMemberContributions = parsed.pathname === "/me/contributions";
+    if (
+      !isAdminFansubWorkspace &&
+      !isMemberProjectWorkspace &&
+      !isMemberDashboard &&
+      !isMemberContributions
+    )
+      return null;
 
     return `${parsed.pathname}${parsed.search}${parsed.hash}`;
   } catch {
