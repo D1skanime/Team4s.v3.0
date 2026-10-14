@@ -12,51 +12,7 @@ import (
 )
 
 func (r *AnimeAssetRepository) AssignManualCover(ctx context.Context, animeID int64, mediaID string) error {
-	useV2Schema, err := r.hasV2AssetSchema(ctx)
-	if err != nil {
-		return err
-	}
-	if useV2Schema {
-		return r.assignManualCoverV2(ctx, animeID, mediaID)
-	}
-
-	trimmedMediaID := strings.TrimSpace(mediaID)
-	if trimmedMediaID == "" {
-		return ErrNotFound
-	}
-	if err := r.ensureAnimeMediaAsset(ctx, animeID, trimmedMediaID); err != nil {
-		return err
-	}
-
-	var coverPath *string
-	if err := r.db.QueryRow(ctx, `
-		SELECT path
-		FROM media_files
-		WHERE media_id = $1 AND (variant = 'original' OR variant IS NULL)
-		ORDER BY id ASC
-		LIMIT 1
-	`, trimmedMediaID).Scan(&coverPath); err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return fmt.Errorf("load manual anime cover path %q: %w", trimmedMediaID, err)
-	}
-
-	tag, err := r.db.Exec(ctx, `
-		UPDATE anime
-		SET
-			cover_asset_id = $2,
-			cover_source = 'manual',
-			cover_resolved_url = NULL,
-			cover_provider_key = NULL,
-			cover_image = $3,
-			updated_at = NOW()
-		WHERE id = $1
-	`, animeID, trimmedMediaID, normalizeNullableTrimmedString(coverPath))
-	if err != nil {
-		return fmt.Errorf("assign manual anime cover %d: %w", animeID, err)
-	}
-	if tag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-	return nil
+	return r.assignManualCoverV2(ctx, animeID, mediaID)
 }
 
 func (r *AnimeAssetRepository) ClearCover(ctx context.Context, animeID int64) error {
@@ -68,32 +24,7 @@ func (r *AnimeAssetRepository) ClearCoverWithResult(
 	ctx context.Context,
 	animeID int64,
 ) (*models.AnimeAssetRemovalResult, error) {
-	useV2Schema, err := r.hasV2AssetSchema(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if useV2Schema {
-		return r.clearCoverV2(ctx, animeID)
-	}
-
-	tag, err := r.db.Exec(ctx, `
-		UPDATE anime
-		SET
-			cover_asset_id = NULL,
-			cover_source = NULL,
-			cover_resolved_url = NULL,
-			cover_provider_key = NULL,
-			cover_image = NULL,
-			updated_at = NOW()
-		WHERE id = $1
-	`, animeID)
-	if err != nil {
-		return nil, fmt.Errorf("clear anime cover %d: %w", animeID, err)
-	}
-	if tag.RowsAffected() == 0 {
-		return nil, ErrNotFound
-	}
-	return &models.AnimeAssetRemovalResult{}, nil
+	return r.clearCoverV2(ctx, animeID)
 }
 
 func (r *AnimeAssetRepository) assignManualCoverV2(ctx context.Context, animeID int64, mediaRef string) error {

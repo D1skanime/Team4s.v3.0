@@ -18,59 +18,19 @@ import (
 // legacy-vs-V2 (RESEARCH.md Pitfall 4).
 
 func (r *AnimeAssetRepository) AssignManualBackgroundVideo(ctx context.Context, animeID int64, mediaID string) error {
-	useV2Schema, err := r.hasV2AssetSchema(ctx)
-	if err != nil {
-		return err
-	}
-	if !useV2Schema {
-		hasAnimeMedia, err := r.hasAnimeMediaTable(ctx)
-		if err != nil {
-			return err
-		}
-		if !hasAnimeMedia {
-			return ErrNotFound
-		}
-	}
 	return r.assignManualSingularAssetV2(ctx, animeID, mediaID, "background_video")
 }
 
 func (r *AnimeAssetRepository) AddManualBackgroundVideo(ctx context.Context, animeID int64, mediaID string) error {
-	useV2Schema, err := r.hasV2AssetSchema(ctx)
-	if err != nil {
-		return err
-	}
-	if !useV2Schema {
-		return r.AssignManualBackgroundVideo(ctx, animeID, mediaID)
-	}
 	return r.addManualPluralAssetV2(ctx, animeID, mediaID, "background_video")
 }
 
 func (r *AnimeAssetRepository) ClearBackgroundVideo(ctx context.Context, animeID int64) error {
-	useV2Schema, err := r.hasV2AssetSchema(ctx)
-	if err != nil {
-		return err
-	}
-	if !useV2Schema {
-		hasAnimeMedia, err := r.hasAnimeMediaTable(ctx)
-		if err != nil {
-			return err
-		}
-		if !hasAnimeMedia {
-			return ErrNotFound
-		}
-	}
 	return r.clearSingularAssetV2(ctx, animeID, "background_video")
 }
 
 func (r *AnimeAssetRepository) ApplyProviderBackgroundVideo(ctx context.Context, animeID int64, input *models.AnimeProviderAssetInput) error {
-	useV2Schema, err := r.hasV2AssetSchema(ctx)
-	if err != nil {
-		return err
-	}
-	if useV2Schema {
-		return r.applyProviderSingularAssetV2(ctx, animeID, "video", input)
-	}
-	return ErrNotFound
+	return r.applyProviderSingularAssetV2(ctx, animeID, "video", input)
 }
 
 func (r *AnimeAssetRepository) addManualPluralAssetV2(ctx context.Context, animeID int64, mediaRef string, mediaType string) error {

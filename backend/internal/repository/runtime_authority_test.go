@@ -102,38 +102,32 @@ func TestAnimeV2UpdatePathRoutesThroughSchemaAwareWriter(t *testing.T) {
 	}
 }
 
-func TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone(t *testing.T) {
-	// 174-19: anime_assets.go was split by asset type into sibling files
-	// (anime_assets_cover.go, anime_assets_banner_logo.go, anime_assets_background.go,
-	// anime_assets_provider.go). The legacy/V2 fragments this test asserts on are now
-	// distributed across those files plus the retained core file, so the source under
-	// test is their concatenation rather than a single filename.
-	assetContent := readRepositorySource(t, "anime_assets.go") +
-		readRepositorySource(t, "anime_assets_cover.go") +
-		readRepositorySource(t, "anime_assets_banner_logo.go") +
-		readRepositorySource(t, "anime_assets_background.go")
-	assetNormalized := strings.ToLower(assetContent)
-
-	required := []string{
-		"usev2schema, err := r.hasv2assetschema(ctx)",
-		"return r.assignmanualcoverv2(ctx, animeid, mediaid)",
-		"_, err := r.clearcoverwithresult(ctx, animeid)",
-		"return r.assignmanualbannerv2(ctx, animeid, mediaid)",
-		"return r.clearbannerv2(ctx, animeid)",
-		"return r.addmanualbackgroundv2(ctx, animeid, mediaid, providerkey)",
-		"return r.removebackgroundv2(ctx, animeid, backgroundid)",
-		"return r.applyproviderbannerv2(ctx, animeid, input)",
-		"return r.applyproviderbackgroundsv2(ctx, animeid, incoming)",
-		"removeanimeposterassetsv2(ctx, tx, animeid, schema)",
-		"synclegacyanimecoverimagev2(ctx, tx, animeid, mediaid, schema)",
-		"loadv2animemediaidbyref(ctx, tx, trimmedmediaref, \"poster\")",
-		"removeanimemedialinksbytype(ctx, tx, animeid, \"poster\")",
-		"upsertanimemedialink(ctx, tx, animeid, mediaid, 0)",
-		"v2 remains authoritative once anime_media exists",
-	}
-	for _, fragment := range required {
-		if !strings.Contains(assetNormalized, fragment) {
-			t.Fatalf("expected anime asset repository to contain %q, got %s", fragment, assetContent)
+func TestAnimeAssetRepositoryNoLongerHasLegacyV2SchemaDetection(t *testing.T) {
+	// 182-01: hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset and their
+	// gated "if useV2Schema { ... } else { legacy SQL }" branches were removed from
+	// every anime_assets*.go write/read-dispatch function -- anime_media always
+	// exists in production, so the false branch was dead. This supersedes
+	// TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone, which
+	// asserted on exact source fragments of the now-removed dual-path code and is
+	// itself a source-grep test (CLAUDE.md Teststil "Verboten"). This check is kept
+	// as an absence check (CLAUDE.md Teststil exception 1: "ein Bezeichner darf
+	// NIRGENDS in der Datei vorkommen"), not a behavior assertion -- the real V2
+	// behavior is proven by TestGetResolvedAssetsV2_*/TestGetByIDV2_* (Postgres
+	// integration tests in anime_display_variant_test.go) and the httptest-backed
+	// asset handler suites.
+	forbiddenSymbols := []string{"hasv2assetschema", "hasanimemediatable(", "ensureanimemediaasset"}
+	for _, filename := range []string{
+		"anime_assets.go",
+		"anime_assets_cover.go",
+		"anime_assets_banner_logo.go",
+		"anime_assets_background.go",
+		"anime_assets_background_video.go",
+	} {
+		normalized := strings.ToLower(readRepositorySource(t, filename))
+		for _, symbol := range forbiddenSymbols {
+			if strings.Contains(normalized, symbol) {
+				t.Fatalf("expected %s to no longer reference removed legacy symbol %q", filename, symbol)
+			}
 		}
 	}
 }
