@@ -9,6 +9,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -119,4 +120,41 @@ func TestAnimeCoverV2RawReaders_JellyfinAnimeWithoutLocalCoverResolvesCoverEvery
 		require.NotNil(t, matches[0].Target.CoverURL, "ResolveAdminAnimeRelationTargetsByTitles muss fuer ein Jellyfin-Anime ohne cover_image jetzt den Jellyfin-Fallback liefern")
 		require.Equal(t, phase182JellyfinExpectedCoverURL, *matches[0].Target.CoverURL)
 	})
+}
+
+// TestApplyProviderCover_WritesResolvedURLOnlyNeverLegacyCoverImage proves 182-02-PLAN.md
+// Task 2's D-03 behavior: ApplyProviderCover sets cover_resolved_url to the provider URL and
+// never writes anime.cover_image as a side effect (the legacy mirror-write was removed).
+func TestApplyProviderCover_WritesResolvedURLOnlyNeverLegacyCoverImage(t *testing.T) {
+	pool := testsupport.OpenPhase182Postgres(t)
+	ctx := context.Background()
+
+	const animeID int64 = 7
+	const seededLegacyCoverImage = "/media/anime/7/cover/seeded-untouched.jpg"
+	_, err := pool.Exec(ctx, `
+		INSERT INTO anime (id, title, cover_image) VALUES ($1, 'Provider Cover Anime', $2)
+	`, animeID, seededLegacyCoverImage)
+	require.NoError(t, err)
+
+	repo := NewAnimeAssetRepository(pool)
+	const providerURL = "https://provider.example/cover/7.jpg"
+	err = repo.ApplyProviderCover(ctx, animeID, &models.AnimeProviderAssetInput{URL: providerURL, ProviderKey: "anisearch"})
+	require.NoError(t, err)
+
+	var coverResolvedURL, coverImage string
+	require.NoError(t, pool.QueryRow(ctx, `
+		SELECT cover_resolved_url, cover_image FROM anime WHERE id = $1
+	`, animeID).Scan(&coverResolvedURL, &coverImage))
+	require.Equal(t, providerURL, coverResolvedURL, "ApplyProviderCover muss cover_resolved_url auf die Provider-URL setzen")
+	require.Equal(t, seededLegacyCoverImage, coverImage, "ApplyProviderCover darf anime.cover_image nicht mehr anfassen (Legacy-Mirror-Write entfernt)")
+
+	err = repo.ApplyProviderCover(ctx, animeID, nil)
+	require.NoError(t, err)
+
+	var coverResolvedURLAfterClear sql.NullString
+	require.NoError(t, pool.QueryRow(ctx, `
+		SELECT cover_resolved_url, cover_image FROM anime WHERE id = $1
+	`, animeID).Scan(&coverResolvedURLAfterClear, &coverImage))
+	require.False(t, coverResolvedURLAfterClear.Valid, "ApplyProviderCover(nil) muss cover_resolved_url leeren")
+	require.Equal(t, seededLegacyCoverImage, coverImage, "ApplyProviderCover(nil) darf anime.cover_image weiterhin nicht anfassen")
 }

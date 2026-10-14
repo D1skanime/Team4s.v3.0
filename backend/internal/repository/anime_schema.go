@@ -18,7 +18,6 @@ type animeV2SchemaInfo struct {
 	HasMaxEpisodes      bool
 	HasSource           bool
 	HasFolderName       bool
-	HasCoverImage       bool
 	HasAniSearchID      bool
 	AniSearchIDIsNumber bool
 }
@@ -59,8 +58,6 @@ func loadAnimeV2SchemaInfo(ctx context.Context, db animeSchemaQuerier) (animeV2S
 			info.HasSource = true
 		case "folder_name":
 			info.HasFolderName = true
-		case "cover_image":
-			info.HasCoverImage = true
 		case "anisearch_id":
 			info.HasAniSearchID = true
 			switch dataType {

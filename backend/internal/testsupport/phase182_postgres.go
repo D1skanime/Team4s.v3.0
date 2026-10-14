@@ -67,9 +67,13 @@ CREATE TABLE anime (
 	max_episodes        SMALLINT,
 	cover_image         TEXT,
 	cover_resolved_url  TEXT,
+	cover_asset_id      BIGINT,
+	cover_source        TEXT,
+	cover_provider_key  TEXT,
 	source              TEXT,
 	banner_resolved_url TEXT,
-	banner_asset_id     BIGINT
+	banner_asset_id     BIGINT,
+	updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE TABLE media_types (id BIGINT PRIMARY KEY, name TEXT);
 CREATE TABLE media_assets (id BIGINT PRIMARY KEY, media_type_id BIGINT, file_path TEXT);

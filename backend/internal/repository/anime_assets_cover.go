@@ -39,10 +39,6 @@ func (r *AnimeAssetRepository) assignManualCoverV2(ctx context.Context, animeID 
 	}
 	defer tx.Rollback(ctx)
 
-	schema, err := loadAnimeV2SchemaInfo(ctx, tx)
-	if err != nil {
-		return err
-	}
 	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
 		return err
 	}
@@ -54,9 +50,6 @@ func (r *AnimeAssetRepository) assignManualCoverV2(ctx context.Context, animeID 
 		return err
 	}
 	if err := upsertAnimeMediaLink(ctx, tx, animeID, mediaID, 0); err != nil {
-		return err
-	}
-	if err := syncLegacyAnimeCoverImageV2(ctx, tx, animeID, mediaID, schema); err != nil {
 		return err
 	}
 
@@ -76,14 +69,10 @@ func (r *AnimeAssetRepository) clearCoverV2(
 	}
 	defer tx.Rollback(ctx)
 
-	schema, err := loadAnimeV2SchemaInfo(ctx, tx)
-	if err != nil {
-		return nil, err
-	}
 	if err := lockAnimeRow(ctx, tx, animeID); err != nil {
 		return nil, err
 	}
-	result, err := removeAnimePosterAssetsV2(ctx, tx, animeID, schema)
+	result, err := removeAnimePosterAssetsV2(ctx, tx, animeID)
 	if err != nil {
 		return nil, err
 	}
@@ -98,16 +87,16 @@ func removeAnimePosterAssetsV2(
 	ctx context.Context,
 	tx pgx.Tx,
 	animeID int64,
-	schema animeV2SchemaInfo,
 ) (*models.AnimeAssetRemovalResult, error) {
 	// 173-05 Task 0 (Regressionsfix): "original zuerst" statt "display zuerst" -- der hier
-	// aufgeloeste Pfad fliesst in result.RemovedPaths und (ueber syncLegacyAnimeCoverImageV2) in
-	// die Legacy-Spalte anime.cover_image, gegen die resolveOrphanedLocalCoverImageV2 per exaktem
-	// String-Vergleich media_assets.file_path = cover_image prueft. media_assets.file_path
-	// speichert IMMER den Original-Pfad (nie den display-Pfad), daher haette eine
-	// Display-Praeferenz hier cover_image staendig als "verwaist" fehlklassifiziert und zu
-	// faelschlicher Loeschung gefuehrt. Display-Praeferenz bleibt ausschliesslich in
-	// Public-Lesepfaden (z. B. getResolvedAssetsV2) erhalten.
+	// aufgeloeste Pfad fliesst in result.RemovedPaths, das vor Plan 182-02 ueber den inzwischen
+	// entfernten Legacy-Mirror-Write auch in die (ebenfalls inzwischen entfernte) Legacy-Spalte
+	// floss, gegen die resolveOrphanedLocalCoverImageV2 per exaktem String-Vergleich gegen
+	// media_assets.file_path prueft. media_assets.file_path speichert IMMER den Original-Pfad
+	// (nie den display-Pfad), daher haette eine Display-Praeferenz hier die Legacy-Spalte
+	// staendig als "verwaist" fehlklassifiziert und zu faelschlicher Loeschung gefuehrt.
+	// Display-Praeferenz bleibt ausschliesslich in Public-Lesepfaden (z. B. getResolvedAssetsV2)
+	// erhalten.
 	rows, err := tx.Query(ctx, `
 		SELECT
 			ma.id,
@@ -152,15 +141,6 @@ func removeAnimePosterAssetsV2(
 	if err := removeAnimeMediaLinksByType(ctx, tx, animeID, "poster"); err != nil {
 		return nil, err
 	}
-	if schema.HasCoverImage {
-		if _, err := tx.Exec(ctx, `
-			UPDATE anime
-			SET cover_image = NULL, updated_at = NOW()
-			WHERE id = $1
-		`, animeID); err != nil {
-			return nil, fmt.Errorf("clear legacy anime cover image %d: %w", animeID, err)
-		}
-	}
 
 	result := &models.AnimeAssetRemovalResult{RemovedPaths: make([]string, 0, len(assets))}
 	for _, asset := range assets {
@@ -202,51 +182,6 @@ func removeAnimePosterAssetsV2(
 	return result, nil
 }
 
-func syncLegacyAnimeCoverImageV2(
-	ctx context.Context,
-	tx pgx.Tx,
-	animeID int64,
-	mediaID int64,
-	schema animeV2SchemaInfo,
-) error {
-	if !schema.HasCoverImage {
-		return nil
-	}
-
-	// 173-05 Task 0 (Regressionsfix): "original zuerst", s. ausfuehrlichen Kommentar in
-	// removeAnimePosterAssetsV2 -- dieselbe Begruendung gilt hier, da beide Funktionen dieselbe
-	// Legacy-Spalte anime.cover_image gegen media_assets.file_path (immer Original-Pfad) abgleichen.
-	var coverPath string
-	if err := tx.QueryRow(ctx, `
-		SELECT COALESCE(mf.path, ma.file_path)
-		FROM media_assets ma
-		LEFT JOIN LATERAL (
-			SELECT path
-			FROM media_files
-			WHERE media_id = ma.id
-			ORDER BY
-				CASE WHEN variant = 'original' THEN 0 WHEN variant = 'display' THEN 1 ELSE 2 END,
-				id ASC
-			LIMIT 1
-		) mf ON true
-		WHERE ma.id = $1
-	`, mediaID).Scan(&coverPath); errors.Is(err, pgx.ErrNoRows) {
-		return ErrNotFound
-	} else if err != nil {
-		return fmt.Errorf("load legacy anime cover image path %d: %w", mediaID, err)
-	}
-
-	if _, err := tx.Exec(ctx, `
-		UPDATE anime
-		SET cover_image = $2, updated_at = NOW()
-		WHERE id = $1
-	`, animeID, strings.TrimSpace(coverPath)); err != nil {
-		return fmt.Errorf("sync legacy anime cover image %d: %w", animeID, err)
-	}
-
-	return nil
-}
-
 func (r *AnimeAssetRepository) ApplyProviderCover(ctx context.Context, animeID int64, input *models.AnimeProviderAssetInput) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -278,7 +213,6 @@ func (r *AnimeAssetRepository) ApplyProviderCover(ctx context.Context, animeID i
 				cover_source = NULL,
 				cover_resolved_url = NULL,
 				cover_provider_key = NULL,
-				cover_image = NULL,
 				updated_at = NOW()
 			WHERE id = $1
 		`, animeID); err != nil {
@@ -293,7 +227,6 @@ func (r *AnimeAssetRepository) ApplyProviderCover(ctx context.Context, animeID i
 				cover_source = 'provider',
 				cover_resolved_url = $2,
 				cover_provider_key = $3,
-				cover_image = $2,
 				updated_at = NOW()
 			WHERE id = $1
 		`, animeID, trimmedURL, strings.TrimSpace(input.ProviderKey)); err != nil {
