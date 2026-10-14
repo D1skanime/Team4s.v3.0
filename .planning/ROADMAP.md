@@ -2697,3 +2697,13 @@ exact-match allowlist regression tests for `/me/dashboard`/`/me/contributions`, 
 `0f6881e83`). Full gate (tests/tsc/lint) green in container, frontend restarted and confirmed
 healthy. Phase 181 is now fully closed — see `181-VERIFICATION.md` Resolution addendum and
 `181-HUMAN-UAT.md` (both items `result: resolved`).
+
+### Phase 182: Alten Bildspeicher entfernen (F-01): Legacy-Bildpfade (anime.cover_image, Legacy-Zweige in anime_assets*, hasV2AssetSchema-Abfrage, syncLegacyAnimeCoverImageV2) entfallen; alle Leser nutzen nur noch den V2-Speicher (anime_media + media_assets); Spalte per Migration entfernt, API-Vertrag bereinigt — ohne sichtbare Änderung für Nutzer
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 181
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 182 to break down)

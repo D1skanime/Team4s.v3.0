@@ -469,6 +469,12 @@ Last activity: 2026-10-14
 
 ### Roadmap Evolution
 
+- Phase 182 added (2026-10-14): Alten Bildspeicher entfernen (F-01) — Legacy-Bildpfade
+  (anime.cover_image, Legacy-Zweige in anime_assets*, hasV2AssetSchema-Abfrage,
+  syncLegacyAnimeCoverImageV2) entfallen; alle Leser nutzen nur noch den V2-Speicher
+  (anime_media + media_assets); Spalte per Migration entfernt, API-Vertrag bereinigt — ohne
+  sichtbare Änderung für Nutzer. Nur add-phase — noch nicht geplant.
+
 - Phase 181 added (2026-10-13): Release-Bearbeitung zusammenführen (F-13) — eine rechtebasierte
   Release-Bearbeitungsseite statt Admin-Editor (/admin/episode-versions/[id]/edit) plus
   /me-Workspace (/me/releases/[id]/workspace); alte Workspace-URL leitet weiter, alle
