@@ -1,0 +1,11 @@
+-- Reverts migration 0184 (drop anime.cover_image). Recreates the column as a nullable TEXT
+-- column, matching its original shape (no NOT NULL, no default) per the live `\d anime` output
+-- captured in 182-CONTEXT.md section 1a -- the live column never had either.
+--
+-- Data-restoration caveat, same as migration 0183's down: this migration only restores the
+-- column's SHAPE, not its former values (D-03 does not require data restoration, only column
+-- reversibility -- the migration only ever runs once cover_image is already functionally inert
+-- and every value either empty or mirrored into a V2 poster row). Running `migrate down` on
+-- this file alone recreates an empty, NULL-valued column; restoring the original values would
+-- require a separate backfill from the pre-migration backup, not this schema-only revert.
+ALTER TABLE anime ADD COLUMN cover_image TEXT;
