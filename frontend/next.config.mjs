@@ -6,6 +6,7 @@ import {
   FIXED_REMOTE_IMAGE_URLS,
   configuredApiMediaPatterns,
 } from './src/lib/images/publicImagePatterns.mjs'
+import { buildReleaseEditorRedirects } from './src/lib/releaseEditorRedirects.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -49,6 +50,12 @@ const nextConfig = {
   },
   turbopack: {
     root: path.resolve(__dirname),
+  },
+  // Phase 181-02 (D-03): the retired /me/releases/[versionId]/workspace route
+  // now permanently redirects to the surviving admin episode-version editor.
+  // Next.js forwards the incoming query string (tab/return_to) automatically.
+  async redirects() {
+    return buildReleaseEditorRedirects()
   },
 }
 
