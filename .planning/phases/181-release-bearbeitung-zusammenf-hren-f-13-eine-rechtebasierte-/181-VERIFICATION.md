@@ -1,8 +1,9 @@
 ---
 phase: 181-release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-
 verified: 2026-10-14T11:10:00Z
-status: human_needed
-score: 8/8 explicit must-haves verified (plus 1 code-review-derived escalation item, see below)
+status: passed
+resolved: 2026-10-14T12:01:08Z
+score: 8/8 explicit must-haves verified; both escalated WR-01/WR-02 items subsequently fixed per explicit user decision (see Resolution section below)
 overrides_applied: 0
 human_verification:
   - test: "Decide disposition of REVIEW.md WR-01 (dashboard attention-card link can leave the shared editor blank for a release-level capability combination that has can_edit_metadata=true but no segmente/media/notizen capability)"
@@ -190,6 +191,38 @@ attack) before closing the phase, or accept as a tracked follow-up.
 **Expected:** An explicit decision recorded.
 **Why human:** Test-coverage risk tolerance judgment, not a functional defect today.
 
+### Resolution (2026-10-14T12:01:08Z)
+
+Both human-verification items above were resolved by explicit user decision: fix both now
+rather than defer.
+
+- **WR-01** — `EpisodeVersionEditorPage.tsx`'s `visibleActiveTab` fallback chain was extracted
+  into a pure, exported `resolveVisibleActiveTab(activeTab, allowedTabs)` function and extended
+  with `informationen` as the *last* fallback candidate (after segmente/media/notizen — order
+  explicitly chosen by the user, not the first-position suggestion in `181-REVIEW.md`). A
+  logic-only unit test (no render, no Testing Library) covers all 6 branches, including the
+  WR-01 regression case (only `informationen` allowed). No other production code in the file
+  changed. Commit `2be605e49`.
+- **WR-02** — 5 negative regression tests added to `page.test.tsx` asserting
+  `/me/dashboardX`, `/me/dashboard/evil`, `//evil.com`, `/me/contributionsX`, and
+  `/me/contributions/evil` are all rejected by `getSafeReturnPath` and fall back to the
+  existing default `backHref`, covering the exact-match property of both new allowlist
+  entries (`/me/dashboard`, `/me/contributions`). No production code change — the existing
+  `===` checks were already correct. Commit `0f6881e83`.
+
+Full gate re-run in the container after both fixes: targeted `page.test.tsx` 31/31 passed,
+`tsc --noEmit` clean, `npm run lint` shows only the 4 pre-existing errors already documented in
+`deferred-items.md` (unrelated files, confirmed by `git log` to predate this phase), full suite
+383/385 test files passed (1 file — `ReviewDelegationSection.test.tsx` — had 1 flaky timing
+failure in the full run, reproduced as passing when run in isolation; confirmed pre-existing and
+unrelated, last touched by Phase 140). `docker restart team4sv30-frontend` completed and
+`curl -sI http://192.168.235.196:3000/` returned `200 OK`. No `git stash`, no `git add -A`, no
+push.
+
+The phase's `human_needed` status from this verification report is now resolved — all 8
+must-haves remain `✓ VERIFIED` and both escalated review findings are closed. See
+`181-HUMAN-UAT.md` (both items `result: resolved`) for the corresponding UAT record.
+
 ### Gaps Summary
 
 No must-have truth failed. All 8 explicit, plan-declared must-haves (D-01 through D-05,
@@ -202,11 +235,15 @@ One additional, code-review-sourced concern (WR-01) and one test-coverage gap (W
 open from `181-REVIEW.md` and were independently re-confirmed by this verifier reading the
 actual source and the capability-seed migrations. Neither contradicts the stated D-01..D-05
 decisions as literally written, and WR-01 is not reachable through the current default
-capability seed — but both represent real, unresolved latent risk that deserves an explicit
-developer decision before the milestone is considered fully closed, rather than silent
-carry-forward. Hence `status: human_needed` rather than `passed`.
+capability seed — but both represented real, unresolved latent risk that warranted an explicit
+developer decision before the milestone would be considered fully closed, rather than silent
+carry-forward. Hence this report originally returned `status: human_needed` rather than
+`passed`. **Update (2026-10-14T12:01:08Z):** the user decided to fix both now; see the
+"Resolution" section above. Both items are closed, and `status` has been flipped to `passed`
+accordingly.
 
 ---
 
 _Verified: 2026-10-14T11:10:00Z_
 _Verifier: Claude (gsd-verifier)_
+_Resolution recorded: 2026-10-14T12:01:08Z_
