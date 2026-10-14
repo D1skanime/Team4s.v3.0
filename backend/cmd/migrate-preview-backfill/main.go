@@ -5,11 +5,12 @@
 // (Plans 172-03/172-04) -- so e.g. Release 27 (segments 7, 8, 9) get images immediately
 // without waiting for a fresh render.
 //
-// Shape mirrors cmd/migrate-covers/main.go (DRY_RUN env flag, its own pgxpool connection, a
-// structured stats summary). Unlike cmd/migrate-covers, the core logic lives in a separate,
-// importable runBackfill function in backfill.go -- not hidden inside main() -- so it can be
-// proven against a real Postgres fixture in backfill_test.go (closing the exact testability
-// gap 172-RESEARCH.md/172-VALIDATION.md flagged in cmd/migrate-covers itself).
+// Shape mirrored the now-removed cmd/migrate-covers/main.go (Phase 182) (DRY_RUN env flag, its
+// own pgxpool connection, a structured stats summary). Unlike that now-removed tool, the core
+// logic here lives in a separate, importable runBackfill function in backfill.go -- not hidden
+// inside main() -- so it can be proven against a real Postgres fixture in backfill_test.go
+// (closing the exact testability gap 172-RESEARCH.md/172-VALIDATION.md flagged in cmd/migrate-covers
+// itself).
 package main
 
 import (
