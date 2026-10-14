@@ -2712,7 +2712,7 @@ in Kauf genommenen Nebeneffekt aus D-01 (zuvor fehlende Jellyfin-Cover erscheine
 REQUIREMENTS.md-Mapping vorhanden; jede Plan-Datei traegt die zutreffenden D-IDs im
 `requirements`-Frontmatter-Feld)
 **Depends on:** Phase 181
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
   - Wave 1: 182-01 (hasV2AssetSchema-Legacy-Zweige entfernen aus anime_assets.go/anime_assets_cover.go
     [AssignManualCover/ClearCover]/anime_assets_background*.go/anime_assets_banner_logo.go, D-03)
@@ -2739,7 +2739,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 182-02-PLAN.md — Migrate the 5 raw cover_image readers to the V2-aware COALESCE helper + remove syncLegacyAnimeCoverImageV2 + fix ApplyProviderCover (D-01, D-03).
+- [x] 182-02-PLAN.md — Migrate the 5 raw cover_image readers to the V2-aware COALESCE helper + remove syncLegacyAnimeCoverImageV2 + fix ApplyProviderCover (D-01, D-03).
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
