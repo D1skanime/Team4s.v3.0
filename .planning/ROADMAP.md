@@ -2670,37 +2670,9 @@ Plans:
 
 - [x] 180-12-PLAN.md — Full automated gate + Live-UAT checkpoint for D-13 (visual parity) and D-16/D-17 (drag&drop on all eight ways, not just Weg 4) (D-04, D-06, D-07, D-13, D-16, D-17).
 
-### Phase 181: Release-Bearbeitung zusammenführen (F-13): eine rechtebasierte Release-Bearbeitungsseite statt Admin-Editor plus /me-Workspace; alte Workspace-URL leitet weiter, alle Einstiegspunkte zeigen auf die eine Seite, Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr — 9/9 Pläne code-complete, Live-UAT ausständig
+### Phase 181: Release-Bearbeitung zusammenführen (F-13): bestehender Episode-Version-Editor wird die einzige Bearbeitungsseite; Workspace-Einstiege springen dorthin, Workspace-URL leitet weiter — NEUSTART, erster Versuch verworfen (Revert dae19862)
 
-**Goal:** Eine rechtebasierte Release-Bearbeitungsseite unter `/releases/[versionId]/edit` ersetzt den Admin-Editor und den `/me`-Workspace; beide Altadressen leiten dauerhaft weiter, alle 11 externen Einstiegspunkte zeigen direkt auf die neue Seite, und ein Plattform-Admin ohne Mitgliederprofil bekommt kein 404 mehr.
+**Goal:** `/admin/episode-versions/[versionId]/edit` (unverändertes Layout) ist die einzige Release-Bearbeitungsseite; alle Einstiege, die heute auf `/me/releases/[id]/workspace` zeigen, springen stattdessen dorthin (mit `return_to`), und die alte Workspace-URL leitet dauerhaft weiter.
 **Requirements**: D-01 bis D-05 (siehe 181-CONTEXT.md — additive Phase ohne formale REQ-IDs, Traceability läuft über Entscheidungen statt Requirements-Katalog)
 **Depends on:** Phase 180
-**Plans:** 9/9 plans complete
-
-Plans:
-**Wave 1**
-
-- [x] 181-01-PLAN.md — D-05 Backend-Fix: Repository LEFT JOIN + Handler-Sentinel + Contract-Textkorrektur (Wave 1)
-- [x] 181-02-PLAN.md — Pure Frontend-Utilities: releaseEditorRedirects/-Routing/-Tabs + Tests (D-01/D-02/D-03/D-04, Wave 1)
-- [x] 181-03-PLAN.md — Media/Metadata/Classification/JellyfinNotice + episodeVersionEditorUtils nach components/releaseEditor/ verschoben (Wave 1)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 181-04-PLAN.md — Segments + Notes nach components/releaseEditor/ verschoben (Wave 2)
-- [x] 181-05-PLAN.md — AdjacentNavigation-Erweiterung + Navigations-/Daten-Hooks fuer die neue Seite (D-03, Wave 2)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 181-06-PLAN.md — Neue Tab-Komponenten: Basisdaten/Dateien/Aenderungsverlauf (D-01/D-02, Wave 3)
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [x] 181-07-PLAN.md — ReleaseEditorPage-Zusammenbau unter /releases/[versionId]/edit (D-01/D-02/D-03/D-05, Wave 4)
-
-**Wave 5** *(blocked on Wave 4 completion)*
-
-- [x] 181-08-PLAN.md — Alle 11 Einstiegspunkte umgestellt + toten Link entfernt (D-01, Wave 5)
-
-**Wave 6** *(blocked on Wave 5 completion)*
-
-- [x] 181-09-PLAN.md — Redirects aktiviert + alte Routen geloescht (D-01/D-04, Wave 6)
+**Plans:** Neustart — Planung ausständig (erster Versuch: 9/9 Pläne verworfen, Artefakte unter 181-.../verworfen-erster-versuch/)
