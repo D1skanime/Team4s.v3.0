@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "182-02-PLAN.md complete -- fuenf rohe cover_image-Leser auf V2-COALESCE umgestellt, Legacy-Mirror-Write entfernt (D-01/D-03), Commits 888a6383b/d6b72c659; naechster Schritt: Plan 182-03"
-last_updated: "2026-10-14T23:27:27.601Z"
+stopped_at: Completed 182-03-PLAN.md
+last_updated: "2026-10-14T23:42:33.494Z"
 last_activity: 2026-10-14
 progress:
   total_phases: 47
   completed_phases: 41
   total_plans: 433
-  completed_plans: 428
+  completed_plans: 429
   percent: 87
 ---
 
@@ -337,7 +337,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 182 (alten-bildspeicher-entfernen-f-01-legacy-bildpfade-anime-cov) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
 Legacy-Zweige in anime_assets.go, anime_assets_cover.go, anime_assets_background.go,
@@ -1162,6 +1162,8 @@ Last activity: 2026-10-14
 - [Phase 181]: 181-02 Task 3 Live-UAT-Checkpoint vom Nutzer bestaetigt (alle 4 Pruefungen inkl. reiner Mitwirkender ohne Gruppenrolle; Punkte 1,3,4 zusaetzlich von Claude im Browser als D1sk nachgeprueft) -- Phase 181 ist 2/2 Plaene vollstaendig, Phasen-Review/Verifizierung durch den Orchestrator steht noch aus
 - [Phase 182]: 182-01: hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre Legacy-Zweige in anime_assets*.go entfernt — anime_media existiert live immer; der false-Zweig war tot. ApplyProviderCover und die vier rohen Leser bleiben bewusst Plan 182-02 vorbehalten.
 - [Phase 182-02]: Throwaway-DB-Schema (OpenPhase182Postgres) wird per live psql \d verifiziert statt aus CONTEXT.md kopiert — languages/title_types mussten nachtraeglich ergaenzt werden, weil primaryNormalizedTitleSQL sie referenziert -- bestaetigt die projektweite Lehre zu Schema-Drift in Testfixtures
+- [Phase 182]: shared/contracts: cover_image-Beschreibungen nur in openapi.yaml ergaenzt (dort existiert type:+description: bereits durchgaengig); die 4 kompakten feld:typ-Contract-Dateien ohne jedes description-Sibling blieben im Format unangetastet, nur Beispielwerte korrigiert
+- [Phase 182]: Go-SQL-Aenderungen (loadCurrentProjects GROUP BY, ListFansubAnime) vor dem Live-Apply zusaetzlich per direkter psql-Ausfuehrung gegen disposable Postgres bewiesen, nicht nur per go build/vet
 
 ### Pending Todos
 
@@ -1819,11 +1821,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 181 P03-fix | 20min | 2 tasks | 2 files |
 | Phase 182 P01 | 25min | 1 tasks | 7 files |
 | Phase 182 P02 | 90min | 2 tasks | 15 files |
+| Phase 182 P03 | 18min | 3 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-10-14T23:27:27.577Z
-Stopped at: 182-02-PLAN.md complete -- fuenf rohe cover_image-Leser auf V2-COALESCE umgestellt, Legacy-Mirror-Write entfernt (D-01/D-03), Commits 888a6383b/d6b72c659; naechster Schritt: Plan 182-03
+Last session: 2026-10-14T23:42:33.471Z
+Stopped at: Completed 182-03-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None

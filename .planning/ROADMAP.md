@@ -2712,7 +2712,7 @@ in Kauf genommenen Nebeneffekt aus D-01 (zuvor fehlende Jellyfin-Cover erscheine
 REQUIREMENTS.md-Mapping vorhanden; jede Plan-Datei traegt die zutreffenden D-IDs im
 `requirements`-Frontmatter-Feld)
 **Depends on:** Phase 181
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
   - Wave 1: 182-01 (hasV2AssetSchema-Legacy-Zweige entfernen aus anime_assets.go/anime_assets_cover.go
     [AssignManualCover/ClearCover]/anime_assets_background*.go/anime_assets_banner_logo.go, D-03)
@@ -2743,7 +2743,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 182-03-PLAN.md — Reversible migration dropping anime.cover_image behind a pre-flight safety check + shrink the shared COALESCE helpers + clean up shared/contracts/*.yaml + apply migration 0184 live against team4s_v2 and verify (D-02, D-03).
+- [x] 182-03-PLAN.md — Reversible migration dropping anime.cover_image behind a pre-flight safety check + shrink the shared COALESCE helpers + clean up shared/contracts/*.yaml + apply migration 0184 live against team4s_v2 and verify (D-02, D-03).
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
