@@ -2675,4 +2675,16 @@ Plans:
 **Goal:** `/admin/episode-versions/[versionId]/edit` (unverändertes Layout) ist die einzige Release-Bearbeitungsseite; alle Einstiege, die heute auf `/me/releases/[id]/workspace` zeigen, springen stattdessen dorthin (mit `return_to`), und die alte Workspace-URL leitet dauerhaft weiter.
 **Requirements**: D-01 bis D-05 (siehe 181-CONTEXT.md — additive Phase ohne formale REQ-IDs, Traceability läuft über Entscheidungen statt Requirements-Katalog)
 **Depends on:** Phase 180
-**Plans:** Neustart — Planung ausständig (erster Versuch: 9/9 Pläne verworfen, Artefakte unter 181-.../verworfen-erster-versuch/)
+**Plans:** 2 plans across 2 waves
+
+  - Wave 1: 181-01 (retarget all 5 workspace-pointing links to the admin episode-version editor with return_to, extend the editor's return_to allowlist)
+  - Wave 2: 181-02 (permanent redirect from the old workspace URL + delete workspace code + D-05 live regression checkpoint)
+
+Plans:
+**Wave 1**
+
+- [ ] 181-01-PLAN.md — Retarget the 5 workspace-pointing links onto the admin editor with return_to; extend the editor's return_to allowlist (/me/dashboard, /me/contributions).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 181-02-PLAN.md — Permanent redirect /me/releases/[id]/workspace -> editor; delete workspace route; live D-05 regression checkpoint (release version 27 / timer role).
