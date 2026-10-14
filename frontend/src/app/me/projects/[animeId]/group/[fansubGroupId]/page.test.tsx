@@ -105,7 +105,7 @@ describe('MyProjectDetailPage', () => {
     expect(screen.getByRole('group', { name: 'Deine Projektrollen in diesem Projekt' })).toBeTruthy()
     expect(screen.getAllByText('Für das gesamte Projekt')).toHaveLength(2)
     expect(screen.getByRole('link', { name: /Notizen & Medien/i }).getAttribute('href')).toBe(
-      '/releases/41/edit?return_to=%2Fme%2Fprojects%2F10%2Fgroup%2F5',
+      '/me/releases/41/workspace?return_to=%2Fme%2Fprojects%2F10%2Fgroup%2F5',
     )
     expect(screen.queryByRole('link', { name: 'Zurück zum Profil' })).toBeNull()
     expect(screen.queryByText('Keine eigene Mitwirkung')).toBeNull()

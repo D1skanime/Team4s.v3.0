@@ -1,9 +1,3 @@
-/*
- * D-02 (UI-SPEC "Spacing Scale"): uebernimmt exakt die vorhandenen .page/.shell-Wrapper-Werte aus
- * frontend/src/app/me/releases/[versionId]/workspace/workspace.module.css -- keine neuen
- * Ad-hoc-Pixelwerte beim Zusammenfuehren. Nicht im Plan-files_modified gelistet, aber noetig fuer
- * die Pflicht-Constraint-konforme Seiten-Chrome (Rule 2 Deviation, siehe SUMMARY.md).
- */
 .page {
   min-height: 100vh;
   padding: 32px 18px 48px;
@@ -68,4 +62,32 @@
   .badgeRow {
     justify-content: flex-start;
   }
+}
+
+.metadataDescription {
+  margin: 0 0 16px;
+  color: var(--text-soft, #6b7280);
+}
+
+.metadataForm {
+  display: grid;
+  gap: 16px;
+}
+
+.metadataError,
+.metadataSuccess {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.metadataError {
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 12%, var(--bg-card));
+}
+
+.metadataSuccess {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, var(--bg-card));
 }

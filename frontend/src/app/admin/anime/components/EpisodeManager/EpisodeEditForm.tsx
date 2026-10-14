@@ -286,6 +286,9 @@ export function EpisodeEditForm({
                       Stream-Link (proxy): <code>/api/v1/releases/{version.id}/stream</code>
                     </p>
                     <div className={styles.actions}>
+                      <Link href={`/admin/episode-versions/${version.id}/edit`} className={styles.buttonSecondary}>
+                        Version bearbeiten
+                      </Link>
                       {version.fansub_groups && version.fansub_groups.length > 0 ? (
                         <Link href={`/admin/fansubs/${version.fansub_groups[0].id}/edit`} className={styles.buttonSecondary}>
                           Gruppe bearbeiten

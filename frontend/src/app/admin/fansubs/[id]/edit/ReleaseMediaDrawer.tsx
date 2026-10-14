@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 
 import type { FansubGroupCapabilities } from "@/types/fansub";
 import { Button } from "@/components/ui";
-import { ReleaseVersionMediaSection } from "@/components/releaseEditor/ReleaseVersionMediaSection";
+import { ReleaseVersionMediaSection } from "@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection";
 import { ReleaseThemeDrawerSection } from "./ReleaseThemeDrawerSection";
 import { releaseDrawerTitle, releaseFansubDisplayName } from "./fansubEditFormatters";
 import { animeFansubReleaseContextKey } from "./fansubEditReleaseHelpers";

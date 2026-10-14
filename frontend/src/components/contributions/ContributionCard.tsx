@@ -97,7 +97,7 @@ export function ContributionCard({
           <Button
             size="sm"
             variant="secondary"
-            href={`/releases/${release_version_id}/edit`}
+            href={`/me/releases/${release_version_id}/workspace`}
           >
             Arbeitsfläche öffnen
           </Button>

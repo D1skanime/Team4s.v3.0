@@ -4,7 +4,7 @@ import { createElement, type ImgHTMLAttributes, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
-import type { UseReleaseVersionMediaResult } from '@/components/releaseEditor/useReleaseVersionMedia'
+import type { UseReleaseVersionMediaResult } from '@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia'
 
 vi.mock('next/link', () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
@@ -147,7 +147,7 @@ vi.mock('./NotesTab', () => ({
   NotesTab: () => <div data-testid="notes-tab" />,
 }))
 
-vi.mock('@/components/releaseEditor/useReleaseVersionMedia', () => ({
+vi.mock('@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia', () => ({
   useReleaseVersionMedia: (versionId: number | null) => mockedUseReleaseVersionMedia(versionId),
 }))
 
@@ -284,7 +284,7 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
     )
 
     const link = screen.getByRole('link', { name: 'Media verwalten' })
-    expect(link.getAttribute('href')).toContain('/releases/1/edit')
+    expect(link.getAttribute('href')).toContain('/admin/episode-versions/1/edit')
     expect(screen.getByText('Erste Folge · SubGroup · v1')).not.toBeNull()
   })
 
@@ -548,7 +548,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
     const mediaLink = await screen.findByRole('link', { name: 'Medien öffnen' })
     expect(mediaLink.getAttribute('href')).toContain(
-      '/releases/41/edit?tab=media',
+      '/admin/episode-versions/41/edit?tab=media',
     )
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
@@ -791,9 +791,9 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     const toolsLink = await screen.findByRole('link', { name: 'Notizen & Bilder öffnen' })
     expect(toolsLink.getAttribute('href')).toBe(
-      '/releases/6201/edit?tab=notes&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
+      '/admin/episode-versions/6201/edit?tab=notizen&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
     )
-    expect(toolsLink.getAttribute('href')).not.toContain('/releases/62/edit')
+    expect(toolsLink.getAttribute('href')).not.toContain('/admin/episode-versions/62/edit')
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
 
@@ -847,7 +847,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     const toolsLink = await screen.findByRole('link', { name: 'Notizen & Bilder öffnen' })
     expect(toolsLink.getAttribute('href')).toBe(
-      '/releases/6201/edit?tab=notes&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
+      '/admin/episode-versions/6201/edit?tab=notizen&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
     )
   })
 
@@ -1237,12 +1237,12 @@ describe('AdminFansubEditPage token-free wiring', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
     expect(
       (await within(screen.getByRole('article', { name: 'Episode 1: Erste Folge' })).findByRole('link', { name: 'Notizen & Bilder öffnen' })).getAttribute('href'),
-    ).toContain('/releases/6201/edit?tab=notes')
+    ).toContain('/admin/episode-versions/6201/edit?tab=notizen')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 2 ausklappen' }))
     expect(
       (await within(screen.getByRole('article', { name: 'Episode 2: Zweite Folge' })).findByRole('link', { name: 'Notizen & Bilder öffnen' })).getAttribute('href'),
-    ).toContain('/releases/6301/edit?tab=notes')
+    ).toContain('/admin/episode-versions/6301/edit?tab=notizen')
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
 })

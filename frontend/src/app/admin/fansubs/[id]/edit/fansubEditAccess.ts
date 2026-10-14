@@ -175,14 +175,14 @@ export function releaseVersionToolsTarget(
   if (releaseVersionID <= 0) return null;
   if (!options.canEditNotes && !options.canViewMedia) return null;
 
-  const tab = options.canEditNotes ? "notes" : "media";
+  const tab = options.canEditNotes ? "notizen" : "media";
   const label =
     options.canViewMedia && options.canEditNotes
       ? "Notizen & Bilder"
       : options.canViewMedia
         ? "Medien"
         : "Notizen";
-  const href = `/releases/${releaseVersionID}/edit?tab=${tab}`;
+  const href = `/admin/episode-versions/${releaseVersionID}/edit?tab=${tab}`;
 
   return {
     href: returnTo

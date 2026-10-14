@@ -7,7 +7,7 @@ import type {
   EpisodeClassification,
   EpisodeClassificationOptionsResponse,
 } from '@/types/episodeClassification'
-import { EpisodeClassificationSection } from '@/components/releaseEditor/EpisodeClassificationSection'
+import { EpisodeClassificationSection } from '@/app/admin/episode-versions/[versionId]/edit/EpisodeClassificationSection'
 import { EpisodeAccordion } from '@/components/episodes/EpisodesOverview/EpisodeAccordion'
 
 import { EpisodeClassificationFields } from './EpisodeClassificationFields'

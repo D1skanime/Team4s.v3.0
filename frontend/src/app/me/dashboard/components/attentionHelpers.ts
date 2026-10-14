@@ -35,7 +35,7 @@ export function resolveWorkspaceHref(
   >,
 ): string {
   return contribution.release_version_id
-    ? `/releases/${contribution.release_version_id}/edit?tab=segments`
+    ? `/me/releases/${contribution.release_version_id}/workspace?tab=segments`
     : `/me/projects/${contribution.anime_id}/group/${contribution.fansub_group_id}`;
 }
 

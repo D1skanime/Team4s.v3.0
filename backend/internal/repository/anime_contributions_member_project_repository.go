@@ -88,7 +88,7 @@ func (r *AnimeContributionsRepository) GetMemberProjectDetail(
 			COALESCE(ARRAY_AGG(own_roles.role_label ORDER BY own_roles.sort_order, own_roles.role_code) FILTER (WHERE own_roles.role_label IS NOT NULL), ARRAY[]::text[])
 		FROM anime a
 		JOIN fansub_groups fg ON fg.id = $3
-		LEFT JOIN own_roles ON true
+		JOIN own_roles ON true
 		WHERE a.id = $2
 		GROUP BY a.id, a.title_de, a.title_en, a.title, fg.id, fg.name
 	`, memberID, animeID, fansubGroupID).Scan(

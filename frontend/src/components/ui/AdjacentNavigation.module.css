@@ -67,14 +67,6 @@
   white-space: nowrap;
 }
 
-.adjacentNavCenterLabel {
-  flex: 0 0 auto;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
 .adjacentNavNext {
   margin-left: auto;
 }

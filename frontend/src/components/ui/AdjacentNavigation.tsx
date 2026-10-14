@@ -13,7 +13,6 @@ export interface AdjacentNavigationItem {
 export interface AdjacentNavigationProps {
   previous?: AdjacentNavigationItem | null
   next?: AdjacentNavigationItem | null
-  centerLabel?: string
   ariaLabel?: string
   variant?: 'inline' | 'floating'
   className?: string
@@ -22,12 +21,11 @@ export interface AdjacentNavigationProps {
 export function AdjacentNavigation({
   previous,
   next,
-  centerLabel,
   ariaLabel = 'Benachbarte Inhalte',
   variant = 'inline',
   className,
 }: AdjacentNavigationProps) {
-  if (!previous && !next && !centerLabel) {
+  if (!previous && !next) {
     return null
   }
 
@@ -50,7 +48,6 @@ export function AdjacentNavigation({
           <span className={styles.adjacentNavLabel}>{previous.label}</span>
         </Link>
       ) : null}
-      {centerLabel ? <span className={styles.adjacentNavCenterLabel}>{centerLabel}</span> : null}
       {next ? (
         <Link
           href={next.href}

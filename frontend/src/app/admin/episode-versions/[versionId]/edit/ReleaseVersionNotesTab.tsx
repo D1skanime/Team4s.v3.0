@@ -21,7 +21,7 @@ import type {
   ReleaseVersionNote,
 } from '@/types/releaseVersionNotes'
 
-import editorScaffoldStyles from '../editor/EditorScaffold.module.css'
+import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
 import localStyles from './ReleaseVersionNotesTab.module.css'
 
 const styles = { ...localStyles, ...editorScaffoldStyles }

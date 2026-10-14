@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useReleaseVersionMedia } from '@/components/releaseEditor/useReleaseVersionMedia'
+import { useReleaseVersionMedia } from '@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia'
 import { CATEGORY_LABELS, ReleaseVersionMediaCategory, RELEASE_VERSION_MEDIA_CATEGORIES } from '@/types/releaseVersionMedia'
 import styles from './ReleaseVersionMediaDrawerSummary.module.css'
 
@@ -89,7 +89,7 @@ export function ReleaseVersionMediaDrawerSummary({
       )}
 
       <Link
-        href={`/releases/${versionId}/edit?tab=media`}
+        href={`/admin/episode-versions/${versionId}/edit?tab=media`}
         className={styles.fansubEditReleaseDrawerMediaCTA}
       >
         Media verwalten

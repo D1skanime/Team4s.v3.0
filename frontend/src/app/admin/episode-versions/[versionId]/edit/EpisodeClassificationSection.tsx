@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { EpisodeClassificationFields } from '@/components/episodes/EpisodeClassificationFields'
 import type { EpisodeClassification } from '@/types/episodeClassification'
 
-import styles from './EpisodeClassificationSection.module.css'
+import styles from './EpisodeVersionEditor.module.css'
 
 interface EpisodeClassificationSectionProps {
   classification: EpisodeClassification

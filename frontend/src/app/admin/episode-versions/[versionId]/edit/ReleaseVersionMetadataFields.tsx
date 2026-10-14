@@ -13,7 +13,7 @@ import {
   validateReleaseDateOrder,
   type FormState,
 } from './episodeVersionEditorUtils'
-import styles from './ReleaseVersionMetadataFields.module.css'
+import styles from './EpisodeVersionEditor.module.css'
 
 interface ReleaseVersionMetadataFieldsProps {
   context: EpisodeVersionEditorContext

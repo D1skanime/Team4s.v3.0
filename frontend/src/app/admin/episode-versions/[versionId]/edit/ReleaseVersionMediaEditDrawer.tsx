@@ -6,7 +6,7 @@ import { ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/re
 
 import { Button, Drawer, FormField, Input, Textarea, UploadDropzone } from '@/components/ui'
 import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
-import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '@/app/admin/fansubs/releaseReviewPresentation'
+import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
 import { resolveEditDrawerPrimaryLabel } from './ReleaseVersionMediaSection.helpers'
 import styles from './ReleaseVersionMediaSection.module.css'
 

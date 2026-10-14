@@ -31,7 +31,7 @@ describe('attentionHelpers (Phase 116, D-02)', () => {
     it('verlinkt auf die Release-Version-Arbeitsflaeche wenn release_version_id gesetzt ist', () => {
       expect(
         resolveWorkspaceHref({ release_version_id: 62, anime_id: 5, fansub_group_id: 9 }),
-      ).toBe('/releases/62/edit?tab=segments')
+      ).toBe('/me/releases/62/workspace?tab=segments')
     })
 
     it('verlinkt auf die Projekt-Arbeitsflaeche wenn release_version_id null ist', () => {
@@ -74,7 +74,7 @@ describe('groupAttentionContributions', () => {
 
     expect(groups).toHaveLength(1)
     expect(groups[0]?.contributions).toHaveLength(2)
-    expect(groups[0]?.href).toBe('/releases/61/edit?tab=segments')
+    expect(groups[0]?.href).toBe('/me/releases/61/workspace?tab=segments')
   })
 
   it('setzt hasOwnRejectedWork=true, wenn eine Contribution in der Gruppe abgelehnte eigene Arbeit hat', () => {
