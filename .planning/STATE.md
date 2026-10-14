@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 181 fully closed — WR-01/WR-02 code-review findings fixed per explicit user decision (commits 2be605e49/0f6881e83), full gate green, frontend container restarted healthy
-last_updated: "2026-10-14T12:01:08.000Z"
+stopped_at: "182-01-PLAN.md complete — hasV2AssetSchema-Legacy-Zweige in anime_assets*.go entfernt, Commit de2502e65; naechster Schritt: Plan 182-02"
+last_updated: "2026-10-14T23:12:34.008Z"
 last_activity: 2026-10-14
 progress:
-  total_phases: 46
+  total_phases: 47
   completed_phases: 41
-  total_plans: 429
-  completed_plans: 426
-  percent: 89
+  total_plans: 433
+  completed_plans: 427
+  percent: 87
 ---
 
 # Phase 181 — Release-Bearbeitung zusammenführen (F-13) — COMPLETE (2026-10-14)
@@ -31,6 +31,7 @@ zu tracken:
   segmente/media/notizen ergänzt. Logik-only Unit-Test deckt alle 6 Fallback-Fälle ab, inkl. des
   WR-01-Regressionsfalls (nur `informationen` erlaubt). Keine weitere Produktionscode-Änderung
   an der Datei.
+
 - **WR-02** (Commit `0f6881e83`): 5 Negativtests in `page.test.tsx` ergänzt
   (`/me/dashboardX`, `/me/dashboard/evil`, `//evil.com`, `/me/contributionsX`,
   `/me/contributions/evil`) — alle werden korrekt abgelehnt und fallen auf den bestehenden
@@ -329,15 +330,25 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 181 — release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-
+**Current focus:** Phase 182 — alten-bildspeicher-entfernen-f-01-legacy-bildpfade-anime-cov
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 181 (release-bearbeitung-zusammenf-hren-f-13-eine-rechtebasierte-) — NEUSTART, vollständig abgeschlossen (2/2 Pläne + Review-Fixes WR-01/WR-02)
-Plan: 2 of 2 (181-01 komplett; 181-02 alle 3 Tasks komplett, Task 3 vom Nutzer freigegeben) plus die WR-01/WR-02-Fixes aus dem Code-Review
-Status: Phase complete — 181-VERIFICATION.md's 8/8 Must-haves bestätigt; beide als `human_needed` eskalierten Review-Funde (WR-01/WR-02) auf expliziten Nutzerwunsch jetzt behoben statt zurückgestellt
+Phase: 182 (alten-bildspeicher-entfernen-f-01-legacy-bildpfade-anime-cov) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
+Legacy-Zweige in anime_assets.go, anime_assets_cover.go, anime_assets_background.go,
+anime_assets_background_video.go, anime_assets_banner_logo.go entfernt — jede vormals
+gegatete Funktion delegiert jetzt unbedingt an ihre V2-Variante; toter V1-Test entfernt;
+ein durch die Entfernung kaputt gewordener Quelltext-grep-Test ersetzt durch eine echte
+Abwesenheits-Prüfung — siehe 182-01-SUMMARY.md. `go build`/`go vet` clean, die geforderte
+Verifikation (`TestGetResolvedAssetsV2`/`TestGetByIDV2`) läuft echt gegen Postgres durch;
+~40 vorbestehende, themenfremde Testfehlschläge per Baseline-Worktree-Vergleich als
+unverändert bestätigt. Commit `de2502e65`. ApplyProviderCover und die vier rohen Leser
+bleiben bewusst Plan 182-02 vorbehalten.)
 181-01 fertig (Link-Retargeting der 5 Workspace-Einstiegspunkte auf den
 Episode-Version-Editor, return_to-Allowlist erweitert, D-01/D-02/D-04 erfüllt — siehe
 181-01-SUMMARY.md; volle Frontend-Testsuite 384 Dateien/3525 Tests und `tsc --noEmit` grün).
@@ -1149,6 +1160,7 @@ Last activity: 2026-10-14
 - [Phase 181 NEUSTART, 181-02]: buildReleaseEditorRedirects() liegt von Anfang an als .mjs vor (kein Rename noetig wie im ersten, verworfenen Versuch oben). releaseEditorRedirects.d.mts (nicht nur .d.ts) wurde ergaenzt, weil tsc unter moduleResolution:"bundler" fuer einen .mjs-Import aus einer .ts-Datei (hier: releaseEditorRedirects.test.ts) nur eine .d.mts-Deklaration aufloest, keine .d.ts-Deklaration -- empirisch durch Ein-/Ausblenden der Datei verifiziert. Bestaetigt denselben Befund wie der erste, verworfene Versuch (Zeile oben), diesmal unabhaengig in der Neustart-Ausfuehrung wiedergefunden.
 - [Phase 181 NEUSTART, 181-02]: `npm run build`s vorbestehender `/_global-error`-Turbopack-Prerender-Defekt (TypeError: Cannot read properties of null (reading 'useContext'), digest 53468840) wurde NICHT als von 181-02 verursacht behandelt -- Nachweis per throwaway `git worktree` auf Commit 50c0961b1 (Stand unmittelbar vor 181-02) + Einweg-`docker run` gegen dasselbe Image/Volume: identischer Fehler, identischer Digest, identische erstbetroffene Seite. Deckt sich mit dem bereits in diesem Dokument (Phase-164-Abschnitt) dokumentierten Befund, dass der Defekt unabhaengig von der geloeschten Route existiert. Nicht behoben, in deferred-items.md dokumentiert.
 - [Phase 181]: 181-02 Task 3 Live-UAT-Checkpoint vom Nutzer bestaetigt (alle 4 Pruefungen inkl. reiner Mitwirkender ohne Gruppenrolle; Punkte 1,3,4 zusaetzlich von Claude im Browser als D1sk nachgeprueft) -- Phase 181 ist 2/2 Plaene vollstaendig, Phasen-Review/Verifizierung durch den Orchestrator steht noch aus
+- [Phase 182]: 182-01: hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre Legacy-Zweige in anime_assets*.go entfernt — anime_media existiert live immer; der false-Zweig war tot. ApplyProviderCover und die vier rohen Leser bleiben bewusst Plan 182-02 vorbehalten.
 
 ### Pending Todos
 
@@ -1804,11 +1816,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 181 P09 | 35min | 2 tasks | 20 files |
 | Phase 181 P01 | 12min | 3 tasks | 12 files |
 | Phase 181 P03-fix | 20min | 2 tasks | 2 files |
+| Phase 182 P01 | 25min | 1 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-14T10:53:33.399Z
-Stopped at: 181-02-PLAN.md complete — Task 3 checkpoint approved by user; Phase 181 plans complete, pending code review/verification
+Last session: 2026-10-14T23:12:33.982Z
+Stopped at: 182-01-PLAN.md complete — hasV2AssetSchema-Legacy-Zweige in anime_assets*.go entfernt, Commit de2502e65; naechster Schritt: Plan 182-02
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
-None
+182-02-PLAN.md

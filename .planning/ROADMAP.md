@@ -2712,7 +2712,7 @@ in Kauf genommenen Nebeneffekt aus D-01 (zuvor fehlende Jellyfin-Cover erscheine
 REQUIREMENTS.md-Mapping vorhanden; jede Plan-Datei traegt die zutreffenden D-IDs im
 `requirements`-Frontmatter-Feld)
 **Depends on:** Phase 181
-**Plans:** 4 plans across 4 waves
+**Plans:** 1/4 plans executed
 
   - Wave 1: 182-01 (hasV2AssetSchema-Legacy-Zweige entfernen aus anime_assets.go/anime_assets_cover.go
     [AssignManualCover/ClearCover]/anime_assets_background*.go/anime_assets_banner_logo.go, D-03)
@@ -2735,7 +2735,7 @@ next/image-allowlist finding; serves as this phase's research source, no separat
 Plans:
 **Wave 1**
 
-- [ ] 182-01-PLAN.md — Remove dead hasV2AssetSchema legacy branches across anime_assets.go, anime_assets_cover.go (AssignManualCover/ClearCover only), anime_assets_background.go, anime_assets_background_video.go, anime_assets_banner_logo.go (D-03).
+- [x] 182-01-PLAN.md — Remove dead hasV2AssetSchema legacy branches across anime_assets.go, anime_assets_cover.go (AssignManualCover/ClearCover only), anime_assets_background.go, anime_assets_background_video.go, anime_assets_banner_logo.go (D-03).
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
