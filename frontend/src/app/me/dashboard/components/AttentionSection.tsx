@@ -169,7 +169,7 @@ export function AttentionSection({
                       <li key={item.release_version_id}>
                         <Link
                           className={styles.noteRevisionRow}
-                          href={`/me/releases/${item.release_version_id}/workspace?tab=notes`}
+                          href={`/admin/episode-versions/${item.release_version_id}/edit?tab=notizen&return_to=${encodeURIComponent("/me/dashboard")}`}
                           aria-label={`${episode} · ${title} überarbeiten öffnen`}
                         >
                           <span className={styles.noteRevisionEpisode}>
