@@ -588,6 +588,35 @@ describe("EpisodeVersionEditorPage media tab", () => {
     );
   });
 
+  it.each([
+    "/me/dashboardX",
+    "/me/dashboard/evil",
+    "//evil.com",
+    "/me/contributionsX",
+    "/me/contributions/evil",
+  ])(
+    "lehnt den Exact-Match-Angriff %s auf die /me/dashboard-/-contributions-Allowlist ab",
+    async (maliciousReturnTo) => {
+      useSearchParamsMock.mockReturnValue({
+        get: (key: string) =>
+          key === "return_to" ? maliciousReturnTo : null,
+      });
+      mockPlatformAdminScope();
+      useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+      useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+      render(<EpisodeVersionEditorPage />);
+
+      await screen.findByRole("button", { name: "Informationen" });
+
+      const backLink = screen.getByRole("link", { name: "Zurück" });
+      expect(backLink.getAttribute("href")).not.toBe(maliciousReturnTo);
+      expect(backLink.getAttribute("href")).toBe(
+        "/admin/fansubs/10/edit?tab=releases",
+      );
+    },
+  );
+
   it("zeigt groupName in der Subtitle als Link zur Fansubgruppe", async () => {
     mockPlatformAdminScope();
     useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
