@@ -2,10 +2,11 @@ import Image from 'next/image'
 import { AnimeListItem, AnimeStatus } from '@/types/anime'
 
 import { handleCoverImgError, resolveAnimeStatusClass, resolveCoverUrl } from '../../utils/anime-helpers'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import sharedStyles from '../../../admin.module.css'
 import browserStyles from './AnimeBrowser.module.css'
 
-const styles = { ...sharedStyles, ...browserStyles }
+const styles = mergeCssModules(browserStyles, sharedStyles)
 
 /**
  * Props der AnimeRow-Komponente.

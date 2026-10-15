@@ -15,10 +15,11 @@ import {
   useAdminEpisodesPage,
 } from "./useAdminEpisodesPage";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../admin.module.css";
 import browserStyles from "../anime/components/AnimeBrowser/AnimeBrowser.module.css";
 
-const styles = { ...sharedStyles, ...browserStyles };
+const styles = mergeCssModules(browserStyles, sharedStyles);
 
 function AdminEpisodesContent() {
   const {
