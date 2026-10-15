@@ -1,10 +1,10 @@
 ---
-status: pending
+status: passed
 phase: 183-status-label-konsolidierung-fachaufgabe-11-eine-kanonische-i
 source: [183-03-PLAN.md Task 2]
 started: 2026-10-15T09:22:00Z
-updated: 2026-10-15T09:22:00Z
-approved_by: null
+updated: 2026-10-15T09:35:00Z
+approved_by: user
 ---
 
 ## Current Test
@@ -18,8 +18,12 @@ eventuell vorhandene 'active'/'open'/'denied'-Claims. Punkt 5 zeigt „Alte Webs
 „Alte Webseite" fuer Medium id=21 (Kategorie `old_website`) auf
 `/admin/fansubs/1/edit`. Keine Browser-Konsolenfehler auf allen sechs Seiten.
 
-result: **noch offen — wartet auf explizite Nutzerfreigabe ("approved") oder
-Abweichungsbeschreibung.**
+result: **approved.** Beim ersten Durchlauf meldete der Nutzer eine Lücke bei D-02: drei
+weitere Dateien (`GroupMediaReviewUploadPanel.tsx`, `GroupMediaReviewDetailDrawer.tsx`,
+`GroupMediaReviewFilterBar.tsx`) hatten noch eigene `CATEGORY_OPTIONS`-Kopien mit den alten
+Wörtern „Alte Webseite"/„IRC / Chat". Diese wurden auf die zentrale `fansub-labels.ts`-Quelle
+umgestellt (neue `FANSUB_MEDIA_CATEGORY_OPTIONS`, Commit `ac92086bd`), Frontend neu gestartet,
+danach erneut geprüft und vom Nutzer mit "approved" bestätigt.
 
 Ueber den SSH-Tunnel unter `http://127.0.0.1:3300` folgende sechs URLs pruefen:
 
@@ -48,23 +52,38 @@ Datensatz.
 
 ## Tests
 
-_(keine abgeschlossen — Checkpoint ist offen)_
+1. `/admin/users` — bestanden, unverändert.
+2. `/admin/users/2` — bestanden, Claim id=1 zeigt „Genehmigt" statt „Verifiziert".
+3. `/admin/roles` — bestanden, unverändert.
+4. `/admin/claims` — bestanden, weiterhin „Genehmigt" für Claim id=1.
+5. `/admin/fansubs/1/edit` — bestanden nach Nachzug: zeigt jetzt „Alte Website" statt
+   „Alte Webseite" für Medium id=21 (Kategorie `old_website`) — ursprünglich fehlgeschlagen,
+   weil drei weitere Dateien (Upload-Panel, Detail-Drawer, Filter-Bar) noch die alten Wörter
+   zeigten; nach Fix (Commit `ac92086bd`) bestanden.
+6. `/fansubs/new-subs` — bestanden, weiterhin „Alte Website" (Regressionsschutz).
 
 ## Summary
 
 total: 6
-passed: 0
+passed: 6
 issues: 0
-pending: 6
+pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
 
-Keine bekannt — der Checkpoint wurde noch nicht durchlaufen.
+Keine mehr offen für die 6 Referenz-URLs. Zwei **bewusst zurückgestellte** Fundstellen
+außerhalb des Phasen-Scopes (Nutzerentscheidung: unverändert lassen, siehe
+183-03-SUMMARY.md "Deferred Items" und 183-VERIFICATION.md):
+- `frontend/src/lib/profileLabels.ts:11-15` (`ACCOUNT_STATUS_LABELS`/`formatAccountStatusLabel`)
+  — fünfte App-User-Status-Implementierung, genutzt in `AccountSecurityCard.tsx` auf
+  `/me/profile`, mit abweichendem Fallback-Verhalten gegenüber `appUserStatusLabels.ts`.
+- `frontend/src/app/me/profile/components/ClaimStatusCard.tsx` (über `VerifiedBadge`) —
+  dritte Claim-Status-Darstellung auf `/me/profile`, zeigt für `verified` weiterhin
+  „Verifiziert" statt „Genehmigt".
 
 ## Resume-Signal
 
-**Ausstehend.** Der Nutzer tippt "approved", wenn alle 6 Punkte wie oben beschrieben
-bestehen, oder beschreibt exakt, welche URL/welches Verhalten abweicht. Bis dahin
-gelten Plan 183-03 und Phase 183 als NICHT abgeschlossen.
+Erledigt — Nutzer hat mit "approved" bestätigt. Plan 183-03 und Phase 183 gelten als
+abgeschlossen.
