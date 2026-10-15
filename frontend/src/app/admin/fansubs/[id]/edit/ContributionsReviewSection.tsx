@@ -15,6 +15,7 @@ import {
   Textarea,
 } from '@/components/ui'
 import { ApiError, confirmProposal, listGroupProposals, rejectProposal } from '@/lib/api'
+import { formatDateDeOrIso } from '@/lib/formatDate'
 import type { GroupProposalRow } from '@/types/contributions'
 import type { FansubGroupCapabilities } from '@/types/fansub'
 
@@ -29,18 +30,6 @@ function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
   if (error instanceof Error) return error.message
   return fallback
-}
-
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
-  } catch {
-    return iso
-  }
 }
 
 type ProposalWithStatus = GroupProposalRow & { status?: string }
@@ -200,7 +189,7 @@ function ContributionsReviewSectionInner({ fansubId }: { fansubId: number }) {
                     </p>
                   ) : null}
                   <span style={{ fontSize: 12, display: 'block', marginTop: 4 }}>
-                    Eingereicht am {formatDate(row.created_at)}
+                    Eingereicht am {formatDateDeOrIso(row.created_at)}
                   </span>
                   {cardErrors[row.id] ? (
                     <p className={styles.inlineError} role="alert">{cardErrors[row.id]}</p>

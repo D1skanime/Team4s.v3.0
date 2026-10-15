@@ -6,6 +6,7 @@ import {
   FansubMediaReviewStatus,
   FansubMediaVisibility,
 } from '@/lib/api'
+import { formatDateDeOrEmpty } from '@/lib/formatDate'
 import { matchesSearch } from '@/lib/textFilter'
 
 export type CategoryFilter = 'all' | FansubGroupMediaCategory
@@ -30,18 +31,11 @@ function itemToFilterFields(item: FansubGroupMediaItem): FilterMatchFields {
   }
 }
 
-function formatDate(value: string | null | undefined): string {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date)
-}
-
 function getMediaDisplayTitle(item: FansubGroupMediaItem): string {
   const title = item.title?.trim()
   if (title) return title
 
-  const date = formatDate(item.created_at)
+  const date = formatDateDeOrEmpty(item.created_at)
   const suffix = date ? ` vom ${date}` : ''
 
   switch (item.category) {

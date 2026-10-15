@@ -17,6 +17,7 @@ import {
 } from '@/components/ui'
 import { ApiError, getAdminUserMemberClaims } from '@/lib/api'
 import { claimStatusLabel, claimStatusVariant } from '@/lib/claimStatusLabels'
+import { formatDateDeOrIso } from '@/lib/formatDate'
 import type {
   AdminClaimSummary,
   AdminMemberProfileSummary,
@@ -25,18 +26,6 @@ import type {
 
 interface Props {
   userId: number
-}
-
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
-  } catch {
-    return iso
-  }
 }
 
 function MemberProfileSection({ profile }: { profile: AdminMemberProfileSummary | null }) {
@@ -92,7 +81,7 @@ function ClaimsSection({ claims }: { claims: AdminClaimSummary[] }) {
                     {claimStatusLabel(claim.claim_status)}
                   </Badge>
                 </TableCell>
-                <TableCell>{formatDate(claim.created_at)}</TableCell>
+                <TableCell>{formatDateDeOrIso(claim.created_at)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

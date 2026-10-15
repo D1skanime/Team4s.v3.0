@@ -23,6 +23,7 @@ import {
 } from '@/components/ui'
 import { ApiError, listClaims } from '@/lib/api'
 import { claimStatusLabel, claimStatusVariant } from '@/lib/claimStatusLabels'
+import { formatDateDeOrIso } from '@/lib/formatDate'
 import type { AdminClaimListRow } from '@/types/admin-users'
 
 import { ClaimDecisionImpactPanel } from './ClaimDecisionImpactPanel'
@@ -52,18 +53,6 @@ function useIsMobile(): boolean {
   }, [])
 
   return isMobile
-}
-
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
-  } catch {
-    return iso
-  }
 }
 
 function readErrorMessage(err: unknown, fallback: string): string {
@@ -270,7 +259,7 @@ export function ClaimsClient() {
                   </Button>
                 </TableCell>
                 <TableCell>{claim.member_nickname}</TableCell>
-                <TableCell>{formatDate(claim.created_at)}</TableCell>
+                <TableCell>{formatDateDeOrIso(claim.created_at)}</TableCell>
                 <TableCell>
                   <ClaimActionButtons
                     claim={claim}
@@ -361,7 +350,7 @@ function ClaimCard({ claim, onNavigateUser, onNavigateGroup, onDecide }: ClaimCa
         }}
       >
         <Badge variant={claimStatusVariant(claim.claim_status)}>{claimStatusLabel(claim.claim_status)}</Badge>
-        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{formatDate(claim.created_at)}</span>
+        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{formatDateDeOrIso(claim.created_at)}</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', alignItems: 'flex-start' }}>
         <Button variant="ghost" onClick={() => onNavigateUser(claim.app_user_id)}>

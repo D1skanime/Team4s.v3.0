@@ -13,6 +13,7 @@ import {
   Textarea,
 } from '@/components/ui'
 import { ApiError, confirmProposal, listGroupProposals, rejectProposal } from '@/lib/api'
+import { formatDateDeOrIso } from '@/lib/formatDate'
 import type { GroupProposalRow } from '@/types/contributions'
 
 import styles from './ReviewQueue.module.css'
@@ -25,18 +26,6 @@ function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
   if (error instanceof Error) return error.message
   return fallback
-}
-
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
-  } catch {
-    return iso
-  }
 }
 
 export function ReviewQueue({ fansubId }: ReviewQueueProps) {
@@ -132,7 +121,7 @@ export function ReviewQueue({ fansubId }: ReviewQueueProps) {
                   <p className={styles.noteText}>{row.note}</p>
                 ) : null}
                 <span className={styles.dateText}>
-                  Eingereicht am {formatDate(row.created_at)}
+                  Eingereicht am {formatDateDeOrIso(row.created_at)}
                 </span>
                 {cardErrors[row.id] ? (
                   <div role="alert" className={styles.inlineError}>

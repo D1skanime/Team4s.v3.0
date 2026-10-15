@@ -12,6 +12,7 @@ import {
   resolveApiUrl,
 } from '@/lib/api'
 import { getFansubMediaCategoryLabel } from '@/lib/fansub-labels'
+import { formatDateDeOrEmpty } from '@/lib/formatDate'
 
 import styles from './GroupMediaReviewSection.module.css'
 import { isInteractiveDragTarget } from './useGroupMediaReviewReorder.helpers'
@@ -59,13 +60,6 @@ function getVisibilityLabel(value: FansubMediaVisibility): string {
   return VISIBILITY_OPTIONS.find((option) => option.value === value)?.label ?? 'Intern'
 }
 
-function formatDate(value: string | null | undefined): string {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date)
-}
-
 function getOverviewImageURL(item: FansubGroupMediaItem): string {
   return item.thumbnail_url || item.preview_url || item.original_url || ''
 }
@@ -74,7 +68,7 @@ function getMediaDisplayTitle(item: FansubGroupMediaItem): string {
   const title = item.title?.trim()
   if (title) return title
 
-  const date = formatDate(item.created_at)
+  const date = formatDateDeOrEmpty(item.created_at)
   const suffix = date ? ` vom ${date}` : ''
 
   switch (item.category) {
@@ -99,7 +93,7 @@ function getMediaDisplayTitle(item: FansubGroupMediaItem): string {
 
 function getUploaderLine(item: FansubGroupMediaItem): string {
   const uploader = item.uploaded_by_display_name?.trim() || 'Unbekannt'
-  const createdAt = formatDate(item.created_at)
+  const createdAt = formatDateDeOrEmpty(item.created_at)
   return createdAt ? `Hochgeladen von ${uploader} am ${createdAt}` : `Hochgeladen von ${uploader}`
 }
 
