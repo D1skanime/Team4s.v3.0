@@ -2,17 +2,36 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 182-03-PLAN.md
-last_updated: "2026-10-14T23:42:33.494Z"
-last_activity: 2026-10-14
+status: verifying
+stopped_at: Completed 182-04-PLAN.md
+last_updated: "2026-10-15T07:33:11.003Z"
+last_activity: 2026-10-15
 progress:
   total_phases: 47
-  completed_phases: 41
+  completed_phases: 42
   total_plans: 433
-  completed_plans: 429
-  percent: 87
+  completed_plans: 430
+  percent: 89
 ---
+
+# Phase 182 — Alten Bildspeicher entfernen (F-01) — COMPLETE (2026-10-15)
+
+Alle 4 Pläne (182-01 bis 182-04) sind code-vollständig, committet und live abgenommen. 182-01
+entfernte die toten `hasV2AssetSchema`-Legacy-Zweige in `anime_assets*.go`. 182-02 stellte die
+vier rohen `cover_image`-Leser (`watchlist.go`, `fansub_project_resolver_repository.go`,
+`fansub_repository_public_profile.go`, `anime_relations_admin.go`) auf den gemeinsamen
+V2-bewussten `animeCoverImageSelectSQL`-Helfer um und entfernte `syncLegacyAnimeCoverImageV2`
+(D-01). 182-03 schrieb Migration 0184 (reversibel, mit `DO`-Block/`RAISE EXCEPTION`-
+Schutzabfrage) und wendete sie live auf `team4s_v2` an — `anime.cover_image` existiert nicht
+mehr; Vertragsdokumentation in `shared/contracts/*.yaml` bereinigt (D-02/D-03). 182-04 entfernte
+die historische Einmal-Tooling (`backend/cmd/migrate-covers/`,
+`scripts/report-cover-image-state.ps1`, `scripts/remediate-cover-image.ps1`, Commit `bd49ec483`)
+und schloss mit dem blockierenden Live-Checkpoint (D-04): alle 5 Vergleichs-URLs bestanden,
+einschließlich `/watchlist` (eine zunächst gemeldete Datenlücke bei diesem Punkt wurde per
+unabhängiger Live-DB-/Code-Prüfung korrigiert und bestätigt — ein echter Jellyfin-
+Merklisteneintrag, anime_id=2 "11eyes", löst nachweislich zu einer gültigen Cover-URL auf).
+Keine kritischen Code-Review-Befunde über die gesamte Phase. Details: `182-01..04-SUMMARY.md`,
+`182-04-HUMAN-UAT.md`.
 
 # Phase 181 — Release-Bearbeitung zusammenführen (F-13) — COMPLETE (2026-10-14)
 
@@ -336,9 +355,10 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 182 (alten-bildspeicher-entfernen-f-01-legacy-bildpfade-anime-cov) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
+Phase: 182 (alten-bildspeicher-entfernen-f-01-legacy-bildpfade-anime-cov) — COMPLETE (2026-10-15)
+Plan: 4 of 4 (all complete)
+Status: Phase complete. Siehe den "Phase 182 — ... COMPLETE" Log-Eintrag oben für den vollständigen
+Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
 Legacy-Zweige in anime_assets.go, anime_assets_cover.go, anime_assets_background.go,
 anime_assets_background_video.go, anime_assets_banner_logo.go entfernt — jede vormals
@@ -474,7 +494,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-14
+Last activity: 2026-10-15
 
 ## Accumulated Context
 
@@ -1825,7 +1845,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-10-14T23:42:33.471Z
+Last session: 2026-10-15T07:33:10.979Z
 Stopped at: Completed 182-03-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 

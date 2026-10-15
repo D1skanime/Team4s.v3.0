@@ -25,27 +25,28 @@ key-files:
     - backend/cmd/migrate-preview-backfill/main.go
 
 key-decisions:
-  - "Task 2 (D-04, blockierender Live-Checkpoint) wurde NICHT ausgefuehrt oder vorab genehmigt -- dieser Plan ist nach Task 1 bewusst angehalten. Ein Mensch muss die 5 Vergleichs-URLs live pruefen und explizit 'approved' tippen, bevor Plan 182-04 und damit Phase 182 als abgeschlossen gelten."
-  - "Die im Originaltext des Plans genannte Watchlist-URL (/me/watchlist) ist falsch (404) -- die korrekte URL ist /watchlist (ohne /me-Praefix). Diese Korrektur wird dem Nutzer beim Checkpoint explizit mitgeteilt und in der Skeleton-182-04-HUMAN-UAT.md verwendet."
+  - "Task 2 (D-04, blockierender Live-Checkpoint) wurde NICHT vom Ausfuehrungsagenten genehmigt oder simuliert -- die Freigabe wurde vom Nutzer erteilt und ueber den GSD-Orchestrator relayed (woertliches Zitat in 182-04-HUMAN-UAT.md dokumentiert)."
+  - "Die im Originaltext des Plans genannte Watchlist-URL (/me/watchlist) ist falsch (404) -- die korrekte URL ist /watchlist (ohne /me-Praefix)."
+  - "Punkt 5 (/watchlist): eine erste Nutzerrueckmeldung besagte, die Merkliste habe kein Jellyfin-Anime enthalten (ungeprueft, als offene Luecke dokumentiert); eine zweite, korrigierende Nutzerrueckmeldung besagte das Gegenteil (Cover vorhanden, bestanden). Da beide Aussagen sich widersprachen, wurde die zweite NICHT ungeprueft uebernommen, sondern unabhaengig per Live-DB-Abfrage (team4s_v2, watchlist_entries/anime/anime_media) und Code-Lektuere (watchlist.go nutzt animeCoverImageSelectSQL) verifiziert -- Ergebnis bestaetigt die Korrektur eindeutig: ein echter Jellyfin-Merklisteneintrag (anime_id=2, 11eyes) loest zu einer gueltigen Cover-URL auf."
 
-requirements-completed: [D-03]
+requirements-completed: [D-03, D-04]
 
 # Metrics
-duration: ~10min (nur Task 1 -- Task 2 ist ein offener Live-Checkpoint, keine Ausfuehrungszeit)
-completed: 2026-10-14
+duration: ~25min (Task 1 + Finalisierung nach Nutzerfreigabe)
+completed: 2026-10-15
 ---
 
-# Phase 182 Plan 4: Historische Cover-Migrationswerkzeuge entfernt (D-03) — Task 2 (D-04 Live-Checkpoint) steht noch aus Summary
+# Phase 182 Plan 4: Historische Cover-Migrationswerkzeuge entfernt (D-03), Live-Checkpoint vom Nutzer freigegeben und alle 5 Punkte bestanden (D-04) Summary
 
-**`backend/cmd/migrate-covers/` und zwei veraltete PowerShell-Skripte (`report-cover-image-state.ps1`, `remediate-cover-image.ps1`) sind entfernt; der volle Backend-Build bleibt grün. Der blockierende Live-UAT-Checkpoint (D-04, 5 Vergleichs-URLs) ist noch NICHT durchgeführt — dieser Plan und Phase 182 sind damit noch nicht abgeschlossen.**
+**`backend/cmd/migrate-covers/` und zwei veraltete PowerShell-Skripte (`report-cover-image-state.ps1`, `remediate-cover-image.ps1`) sind entfernt; der volle Backend-Build bleibt grün. Der blockierende Live-UAT-Checkpoint (D-04) ist vom Nutzer freigegeben — alle 5 Vergleichspunkte bestanden, einschließlich Punkt 5 (`/watchlist`), dessen zunächst gemeldete Datenlücke per unabhängiger Live-DB-/Code-Prüfung korrigiert und bestätigt wurde.**
 
 ## Performance
 
-- **Duration:** ~10 min (Task 1 only)
+- **Duration:** ~25 min (Task 1 + Checkpoint-Finalisierung)
 - **Started:** 2026-10-14T23:50:00Z
-- **Completed (Task 1):** 2026-10-14T23:59:00Z
-- **Tasks:** 1 von 2 (Task 2 ist ein offener blockierender Human-Checkpoint)
-- **Files modified:** 7 (6 gelöscht, 1 geändert)
+- **Completed:** 2026-10-15T00:20:00Z
+- **Tasks:** 2 von 2
+- **Files modified:** 7 (6 gelöscht, 1 geändert) + 2 Dokumentationsdateien finalisiert
 
 ## Accomplishments
 - `backend/cmd/migrate-covers/` (vier Dateien: `main.go`, `README.md`, `INVENTORY.md`, `test-migration.sh`) vollständig gelöscht — bestätigt per Vorab-Prüfung: kein Verweis in `Dockerfile`, `Makefile`, `docker-compose*.yml`; das Paket war `package main` und damit von keinem anderen Go-Paket importierbar.
@@ -53,15 +54,35 @@ completed: 2026-10-14
 - `scripts/smoke-admin-content.ps1` bewusst **nicht** angefasst — Byte-Identität per MD5-Vergleich vor und nach dem Task bestätigt (`f0b977afe1a5179083e135d14b5c5fd0`), da das Skript die `cover_image`-PATCH-API prüft, nicht die Spalte direkt.
 - `backend/cmd/migrate-preview-backfill/main.go`'s Kopfkommentar (Zeilen 8-12) auf Vergangenheitsform umgestellt, damit er nicht mehr auf ein nicht mehr existierendes Verzeichnis verweist.
 - `grep -rn "migrate-covers" backend/ scripts/ Makefile docker-compose*.yml` zeigt nach der Änderung ausschließlich noch die bewusst aktualisierte historische Kommentarstelle in `migrate-preview-backfill/main.go` — keine toten Referenzen anderswo.
-- `docker compose exec team4sv30-backend sh -c "cd /app && go build ./... && go vet ./..."` läuft grün (im Backend-Container ausgeführt, da auf dem Host kein `go`-Binary vorhanden ist).
+- `docker compose exec team4sv30-backend sh -c "cd /app && go build ./... && go vet ./..."` läuft grün — zweimal bestätigt: direkt nach Task 1 und erneut nach der Checkpoint-Freigabe (reiner Re-Check, keine Code-Änderung dazwischen), im Backend-Container ausgeführt, da auf dem Host kein `go`-Binary vorhanden ist.
+- **Task 2 (D-04 Live-Checkpoint) ist vom Nutzer freigegeben worden — alle 5 Punkte bestanden.** Geprüft wurden `/anime` (10/10 Cover laden), `/anime/1` (Jellyfin Cover/Logo/Banner), `/anime/3` (lokales Cover aus dem V2-Speicher), `/fansubs/new-subs` (Buddy-Complex-Projektkarte zeigt jetzt das Jellyfin-Cover — beabsichtigter D-01-Effekt), `/watchlist` (Jellyfin-Anime zeigt jetzt ein Cover — ebenfalls beabsichtigter D-01-Effekt), keine aktuellen Netzwerk-/Konsolenfehler (vollständiges Zitat und Einzelbewertung in `182-04-HUMAN-UAT.md`).
+- **Korrekturverlauf bei Punkt 5:** Eine erste Nutzerrückmeldung besagte, die Merkliste habe kein Jellyfin-Anime enthalten — Punkt 5 wurde zunächst als offene Lücke dokumentiert. Eine zweite, widersprechende Rückmeldung korrigierte dies zu "bestanden". Statt die zweite Aussage unkritisch zu übernehmen, wurde sie unabhängig verifiziert: eine Live-Abfrage gegen `team4s_v2` zeigt genau einen Merklisteneintrag (`user_id=3`, `anime_id=2` "11eyes", `source='jellyfin:...'`) mit einer `ready`-Poster-Zeile in `anime_media`/`media_assets`; `backend/internal/repository/watchlist.go` nutzt bereits `animeCoverImageSelectSQL` (migriert in 182-02/182-03); die Ausführung derselben COALESCE-Logik gegen diese Zeile liefert eine gültige, nicht-leere Cover-URL. Die Korrektur ist damit technisch bestätigt, nicht nur behauptet (Details in `182-04-HUMAN-UAT.md`, Abschnitt "Unabhängige Verifikation von Punkt 5").
+- Eine nachgelagerte Code-Review der Task-1-Löschungen (siehe "Code-Review" unten) fand keine Befunde mit Entscheidungsbedarf.
 
 ## Task Commits
 
 1. **Task 1: Remove the historical cover-migration tooling (D-03)** - `bd49ec483` (chore)
 
-**Task 2 (D-04, Live-Checkpoint):** NICHT ausgeführt — blockierender Human-Checkpoint, siehe unten.
+**Task 2 (D-04, Live-Checkpoint):** Kein eigener Code-Commit — rein operativer Live-Browser-Check durch den Nutzer, Ergebnis dokumentiert in `182-04-HUMAN-UAT.md` (dieser Plan-Metadaten-Commit).
 
-_Hinweis: Diese SUMMARY.md und die begleitenden Skeleton-Dateien werden separat committet._
+## Code-Review (Task 1)
+
+Umfang: die 7 in Task 1 geänderten Dateien (6 Löschungen + 1 Kommentar-Fix in
+`backend/cmd/migrate-preview-backfill/main.go`).
+
+- Keine verbliebenen Code-Referenzen auf `migrate-covers` außerhalb der bewusst aktualisierten
+  historischen Kommentarstelle (`grep -rln "migrate-covers"` gegen den gesamten Baum zeigt nur
+  noch Planungs-Markdown-Dateien aus früheren Phasen/Historie sowie `docs/architecture/*` —
+  keine ausführbaren Artefakte).
+- `backend/go.mod`/`go.sum` unverändert (keine Abhängigkeits-Drift durch die Löschung).
+- `Dockerfile`/`Makefile`/`docker-compose*.yml` enthalten keine Referenz auf `migrate-covers`
+  (vor und nach der Änderung geprüft).
+- `gofmt -l` auf der geänderten Datei liefert keine Ausgabe (bereits korrekt formatiert).
+- `go build ./... && go vet ./...` erneut grün nach der Löschung (siehe oben).
+- **Keine Befunde mit Entscheidungsbedarf.** Dies war eine reine, risikoarme Löschung
+  historischer Werkzeuge ohne Laufzeitpfad — kein BLOCKER, keine WARNING, keine INFO-Funde.
+
+_Hinweis: Diese SUMMARY.md und `182-04-HUMAN-UAT.md` werden gemeinsam mit `STATE.md`/`ROADMAP.md` separat committet._
 
 ## Files Created/Modified
 - `backend/cmd/migrate-covers/main.go` (gelöscht) - Einmal-Tool für `frontend/public/covers/` → V2-Medienmigration
@@ -73,9 +94,19 @@ _Hinweis: Diese SUMMARY.md und die begleitenden Skeleton-Dateien werden separat 
 - `backend/cmd/migrate-preview-backfill/main.go` - Kopfkommentar auf Vergangenheitsform aktualisiert (kein Verweis mehr auf ein existierendes `cmd/migrate-covers`-Verzeichnis)
 
 ## Decisions Made
-- Task 2 (D-04) wurde als blockierender Checkpoint behandelt und NICHT automatisch genehmigt oder simuliert. Ein Mensch muss die 5 Vergleichs-URLs live über `http://127.0.0.1:3300` prüfen.
-- Die im ursprünglichen Plantext (182-04-PLAN.md, Task 2, Schritt 5) genannte Watchlist-URL `http://127.0.0.1:3300/me/watchlist` ist **falsch** (liefert 404). Die korrekte URL ist `http://127.0.0.1:3300/watchlist` (ohne `/me`-Präfix). Diese Korrektur ist in `182-04-HUMAN-UAT.md` (Skeleton) bereits berücksichtigt und wird dem Nutzer beim Checkpoint explizit mitgeteilt.
-- Zusätzlicher Hinweis an den Nutzer: Die Merkliste muss vor dem Vergleich bereits mindestens ein Jellyfin-stämmiges Anime enthalten, sonst ist der Vorher/Nachher-Vergleich für Punkt 5 leer bzw. aussagelos — der Nutzer wird gebeten, das vor der Prüfung zu bestätigen (oder eines hinzuzufügen).
+- Task 2 (D-04) wurde als blockierender Checkpoint behandelt; der Ausführungsagent hat ihn an
+  keiner Stelle selbst genehmigt oder simuliert. Die Freigabe stammt vom Nutzer (wörtliches
+  Zitat in `182-04-HUMAN-UAT.md`).
+- Die im ursprünglichen Plantext (182-04-PLAN.md, Task 2, Schritt 5) genannte Watchlist-URL `http://127.0.0.1:3300/me/watchlist` ist **falsch** (liefert 404). Die korrekte URL ist `http://127.0.0.1:3300/watchlist` (ohne `/me`-Präfix).
+- **Punkt 5 (`/watchlist`) — Korrekturverlauf:** Eine erste Rückmeldung besagte, die Merkliste
+  habe kein Jellyfin-Anime enthalten (als offene Lücke dokumentiert). Eine zweite,
+  widersprechende Rückmeldung korrigierte dies zu "bestanden, Cover vorhanden". Da sich beide
+  Aussagen widersprachen, wurde die zweite nicht unkritisch übernommen, sondern unabhängig
+  gegen die Live-Datenbank (`team4s_v2`) und den tatsächlichen Backend-Code verifiziert:
+  genau ein Merklisteneintrag (`user_id=3`, `anime_id=2` "11eyes", Jellyfin-Quelle) mit einer
+  `ready`-V2-Poster-Zeile existiert; `watchlist.go` nutzt bereits den V2-bewussten
+  `animeCoverImageSelectSQL`-Helfer; die COALESCE-Logik liefert für diese Zeile eine gültige
+  Cover-URL. Die Korrektur ist damit technisch bestätigt. Punkt 5 gilt als bestanden.
 
 ## Deviations from Plan
 
@@ -86,30 +117,17 @@ None - Task 1 wurde exakt wie im Plan beschrieben ausgeführt. Keine Rule-1/2/3-
 
 ## User Setup Required
 
-None - keine externe Service-Konfiguration erforderlich. Es ist jedoch eine **manuelle Live-Prüfung** durch den Nutzer erforderlich (siehe unten).
+None - keine externe Service-Konfiguration erforderlich. Die manuelle Live-Prüfung durch den Nutzer ist erfolgt (siehe `182-04-HUMAN-UAT.md`).
 
 ## Next Phase Readiness
 
-**Dieser Plan ist NICHT abgeschlossen.** Task 1 (D-03, Code-Entfernung) ist vollständig und committet. Task 2 ist ein blockierender Live-Checkpoint (D-04) und wartet auf explizite Nutzerfreigabe:
+**Dieser Plan und Phase 182 sind abgeschlossen.** Task 1 (D-03, Code-Entfernung) ist vollständig und committet; Task 2 (D-04, Live-Checkpoint) ist vom Nutzer freigegeben worden — alle 5 Vergleichspunkte bestanden, einschließlich Punkt 5 (`/watchlist`), dessen zunächst gemeldete Datenlücke per unabhängiger Live-DB-/Code-Prüfung korrigiert und bestätigt wurde (siehe `182-04-HUMAN-UAT.md`, Abschnitt "Unabhängige Verifikation von Punkt 5" — keine offenen Gaps mehr).
 
-Die 5 Vergleichs-URLs über `http://127.0.0.1:3300` (SSH-Tunnel):
-1. `/anime` — öffentliche Anime-Liste, kein Letter-Filter. Erwartung: identisch zu vorher.
-2. `/anime/3` — Detailseite „11eyes: Pink Phantasmagoria" (einer der 3 Anime mit vorbestehendem lokalem Cover). Erwartung: Cover pixel-identisch zu vorher.
-3. `/anime/1` — Detailseite „Buddy Complex" (Jellyfin-Anime). Erwartung: identisch zu vorher, keine Änderung.
-4. `/fansubs` → Projekt-Übersicht einer Fansub-Gruppe mit einem Jellyfin-stämmigen Anime ohne vorheriges lokales Cover. Erwartung (beabsichtigter D-01-Effekt, KEINE Regression): dieses Projekt zeigt jetzt erstmals ein Cover.
-5. **`/watchlist`** (eingeloggt, mit mindestens einem Jellyfin-stämmigen Anime auf der Merkliste — **vor der Prüfung bitte bestätigen, dass das der Fall ist, sonst ist der Vergleich leer/aussagelos**). Erwartung (beabsichtigter D-01-Effekt, am deutlichsten sichtbare Änderung): dieser Merklisten-Eintrag zeigt jetzt erstmals ein Cover.
-
-**Korrektur gegenüber dem ursprünglichen Plantext:** Punkt 5 lautete im Plan fälschlich `/me/watchlist` (404) — korrekt ist `/watchlist`.
-
-Zusätzlich: Auf allen 5 Seiten sollen keine Browser-Konsolenfehler auftreten (insbesondere keine `next/image`-Remote-Pattern/E426-Fehler).
-
-**Freigabe-Signal:** Der Nutzer tippt "approved", wenn alle 5 URLs den Erwartungen entsprechen (Punkte 1-3 unverändert, Punkte 4-5 zeigen die beabsichtigte neue Cover-Anzeige), oder beschreibt genau, welche URL/welches Verhalten falsch aussieht.
-
-**Bis zu dieser Freigabe gilt Plan 182-04 und damit Phase 182 als NICHT abgeschlossen.** `STATE.md`/`ROADMAP.md` wurden entsprechend nur mit dem Task-1-Fortschritt aktualisiert, nicht mit einem Phasen- oder Plan-Abschluss.
+Phase 182 (Alten Bildspeicher entfernen, F-01) ist damit vollständig: alle 4 Pläne (182-01 bis 182-04) sind code-vollständig, committet und abgenommen. `anime.cover_image` existiert nicht mehr in `team4s_v2`, alle Leser nutzen den gemeinsamen V2-COALESCE-Helfer, die historische Migrationstooling ist entfernt, und der Live-Checkpoint ist vollständig bestätigt — kein Restrisiko offen.
 
 ---
 *Phase: 182-alten-bildspeicher-entfernen-f-01-legacy-bildpfade-anime-cov*
-*Task 1 completed: 2026-10-14 — Task 2 (D-04 Live-Checkpoint) pending*
+*Completed: 2026-10-15*
 
 ## Self-Check: PASSED
 
@@ -118,5 +136,8 @@ Zusätzlich: Auf allen 5 Seiten sollen keine Browser-Konsolenfehler auftreten (i
 - CONFIRMED: `test ! -f scripts/remediate-cover-image.ps1` → true
 - FOUND: `backend/cmd/migrate-preview-backfill/main.go` (geändert, Kopfkommentar aktualisiert)
 - FOUND: commit `bd49ec483` (git log --oneline -1)
-- CONFIRMED: `docker compose exec team4sv30-backend sh -c "cd /app && go build ./... && go vet ./..."` → grün
+- CONFIRMED: `docker compose exec team4sv30-backend sh -c "cd /app && go build ./... && go vet ./..."` → grün (zweimal bestätigt)
 - CONFIRMED: `scripts/smoke-admin-content.ps1` MD5 unverändert (`f0b977afe1a5179083e135d14b5c5fd0`)
+- FOUND: `.planning/phases/182-alten-bildspeicher-entfernen-f-01-legacy-bildpfade-anime-cov/182-04-HUMAN-UAT.md` (status: approved)
+- CONFIRMED: Live-DB-Abfrage gegen `team4s_v2` zeigt `watchlist_entries` mit `user_id=3, anime_id=2 (11eyes), source='jellyfin:68546f5d1871ad1c42d8d674376e83e6'` und eine zugehörige `ready`-Poster-Zeile in `anime_media`/`media_assets`
+- CONFIRMED: `backend/internal/repository/watchlist.go:41,157` nutzt `animeCoverImageSelectSQL("a")`; direkte Ausführung derselben COALESCE-Logik gegen diese Zeile liefert eine gültige, nicht-leere Cover-URL
