@@ -49,3 +49,21 @@ frontend/tmp-playwright-phase4/
 
 # Lokale Datenbank-/Datensicherungen aus Debug- und Migrationsläufen (enthalten Nutzerdaten)
 .planning/debug/backups/
+
+# --- Bereinigung 2026-10-15 ---
+# Nachweis-Artefakte unter docs/ wie unter .planning/ (Markdown-Berichte bleiben getrackt)
+docs/**/evidence/**
+!docs/**/evidence/**/
+!docs/**/evidence/**/*.md
+# Screenshots/Bilder in Planungsdokumenten (Ausnahme: bewusst abgelegte Entwürfe unter notes/)
+.planning/**/*.png
+.planning/**/*.PNG
+.planning/**/*.jpg
+.planning/**/*.jpeg
+.planning/**/*.gif
+.planning/**/*.webp
+!.planning/notes/**
+# Ungeschönter Alt-Import (bereinigte Fassung *.sanitized.tsv bleibt getrackt)
+database/import/v2_full_episodes_min.tsv
+# Persönliche Editor-Einstellungen
+.vscode/
