@@ -116,6 +116,13 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   'src/app/admin/fansubs/create/AdminFansubCreateMediaSection.tsx',
   'src/app/admin/fansubs/merge/page.tsx',
   'src/app/admin/fansubs/page.tsx',
+  // 184-05: reine Code-Verschiebung aus dem bereits gelisteten
+  // admin/fansubs/page.tsx (D-05-Split zur Einhaltung der 450-Zeilen-Grenze,
+  // Zeilen-Komponenten FansubDesktopRow/FansubMobileCard ausgelagert) --
+  // keine neuen nativen Elemente, nur relokierte Altlast (Checkbox-Inputs).
+  // Bewusste, dokumentierte Ergaenzung (184-05-SUMMARY.md), gleiches Muster
+  // wie die 174-14-/156-14-/180-04-Ergaenzungen oben.
+  'src/app/admin/fansubs/FansubListRows.tsx',
   'src/app/anime/\\[id\\]/group/\\[groupId\\]/releases/page.tsx',
   'src/app/archiv/page.tsx',
   'src/app/me/profile/components/AchievementBadgesCard.tsx',
