@@ -15,11 +15,12 @@ import { FansubGroupKuerzelField } from "@/components/admin/FansubGroupKuerzelFi
 import { getFansubStatusLabel } from "@/lib/fansub-labels";
 import { FansubStatus } from "@/types/fansub";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../../admin.module.css";
 import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
 import { FormState, slugify } from "./adminFansubCreateHelpers";
 
-const styles = { ...sharedStyles, ...fansubEditStyles };
+const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 const STATUS_OPTIONS: FansubStatus[] = ["active", "inactive", "dissolved"];
 

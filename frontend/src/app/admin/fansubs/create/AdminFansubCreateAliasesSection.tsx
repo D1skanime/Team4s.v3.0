@@ -8,10 +8,11 @@ import { Dispatch, SetStateAction } from "react";
 
 import { Input } from "@/components/ui";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../../admin.module.css";
 import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
 
-const styles = { ...sharedStyles, ...fansubEditStyles };
+const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 interface AdminFansubCreateAliasesSectionProps {
   aliasDrafts: string[];

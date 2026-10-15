@@ -32,6 +32,17 @@ Out-of-scope issues discovered during execution, not fixed per Scope Boundary ru
   nicht in dieser Shell-Umgebung). Nicht gefixt, außerhalb des Scopes (ReleaseVersionNotesTab-Split
   + mergeCssModules-Migration berührt keine dieser Dateien).
 
+## 184-06
+
+- Voller `npx vitest run` nach Task 2 zeigt dieselben 4 bereits unter 184-09 dokumentierten
+  vorbestehenden Fehler (`src/components/profile/badgeArtwork.test.ts`,
+  `src/components/ui/ResponsiveImage.config.test.ts`,
+  `src/types/__tests__/anime-detail-contract.test.ts`,
+  `src/app/admin/roles/RoleCapabilityDetail.membershipBaselineDrift.test.ts`), unverändert durch
+  diesen Plan. Keiner berührt die 7 Dateien dieses Plans; alle Fansub-bezogenen Testdateien
+  (u. a. `admin/fansubs/page.test.tsx`, `admin/fansubs/create/page.test.tsx`,
+  `admin/fansubs/merge/fansubMergeScoring.test.ts`) sind grün. Nicht gefixt, außerhalb des Scopes.
+
 ## 184-05
 
 - Voller `npx vitest run` nach Task 2 zeigte erneut den bereits oben dokumentierten

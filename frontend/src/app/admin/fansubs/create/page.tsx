@@ -16,6 +16,7 @@ import {
   EditableMediaValue,
 } from "@/components/admin/MediaUpload";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../../admin.module.css";
 import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
 import {
@@ -34,7 +35,7 @@ import { AdminFansubCreateBasicInfoSection } from "./AdminFansubCreateBasicInfoS
 import { AdminFansubCreateLinksSection } from "./AdminFansubCreateLinksSection";
 import { AdminFansubCreateMediaSection } from "./AdminFansubCreateMediaSection";
 
-const styles = { ...sharedStyles, ...fansubEditStyles };
+const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 const YEAR_MIN = 1900;
 const YEAR_MAX = new Date().getFullYear();

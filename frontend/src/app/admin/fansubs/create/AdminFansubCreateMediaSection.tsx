@@ -7,10 +7,11 @@ import { Dispatch, SetStateAction } from "react";
 import { EditableMediaValue, MediaUpload } from "@/components/admin/MediaUpload";
 import { FansubGroup } from "@/types/fansub";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../../admin.module.css";
 import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
 
-const styles = { ...sharedStyles, ...fansubEditStyles };
+const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 interface AdminFansubCreateMediaSectionProps {
   createdGroup: FansubGroup | null;

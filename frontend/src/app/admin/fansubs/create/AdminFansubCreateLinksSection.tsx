@@ -10,11 +10,12 @@ import { Input, Select } from "@/components/ui";
 import { getFansubLinkTypeLabel } from "@/lib/fansub-labels";
 import { FansubGroupLinkType } from "@/types/fansub";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../../admin.module.css";
 import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
 import { CommunityLinkDraft } from "./adminFansubCreateHelpers";
 
-const styles = { ...sharedStyles, ...fansubEditStyles };
+const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [
   "website",

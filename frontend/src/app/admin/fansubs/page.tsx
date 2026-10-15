@@ -25,10 +25,11 @@ import {
   type StatusFilter,
 } from "./useAdminFansubsList";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../admin.module.css";
 import fansubStyles from "./fansubs.module.css";
 
-const styles = { ...sharedStyles, ...fansubStyles };
+const styles = mergeCssModules(fansubStyles, sharedStyles);
 
 const statusFilterOptions: Array<{ value: StatusFilter; label: string }> = [
   { value: "all", label: "Alle Stati" },

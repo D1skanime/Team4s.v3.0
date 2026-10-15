@@ -12,10 +12,11 @@ import {
   type SortMode,
   type StatusFilter,
 } from "./useMergeFansubsWizard";
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../../admin.module.css";
 import mergeStyles from "./MergeWizard.module.css";
 
-const styles = { ...sharedStyles, ...mergeStyles };
+const styles = mergeCssModules(mergeStyles, sharedStyles);
 
 function MergeFansubsContent() {
   const {
