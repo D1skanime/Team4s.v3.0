@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 182-04-PLAN.md
-last_updated: "2026-10-15T07:33:11.003Z"
+status: executing
+stopped_at: Completed 183-01-PLAN.md
+last_updated: "2026-10-15T09:08:35.579Z"
 last_activity: 2026-10-15
 progress:
-  total_phases: 47
+  total_phases: 48
   completed_phases: 42
-  total_plans: 433
-  completed_plans: 430
-  percent: 89
+  total_plans: 436
+  completed_plans: 431
+  percent: 88
 ---
 
 # Phase 182 — Alten Bildspeicher entfernen (F-01) — COMPLETE (2026-10-15)
@@ -349,15 +349,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 182 — alten-bildspeicher-entfernen-f-01-legacy-bildpfade-anime-cov
+**Current focus:** Phase 183 — status-label-konsolidierung-fachaufgabe-11-eine-kanonische-i
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 182 (alten-bildspeicher-entfernen-f-01-legacy-bildpfade-anime-cov) — COMPLETE (2026-10-15)
-Plan: 4 of 4 (all complete)
-Status: Phase complete. Siehe den "Phase 182 — ... COMPLETE" Log-Eintrag oben für den vollständigen
+Phase: 183 (status-label-konsolidierung-fachaufgabe-11-eine-kanonische-i) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
 Legacy-Zweige in anime_assets.go, anime_assets_cover.go, anime_assets_background.go,
@@ -1190,6 +1190,7 @@ Last activity: 2026-10-15
 - [Phase 182-02]: Throwaway-DB-Schema (OpenPhase182Postgres) wird per live psql \d verifiziert statt aus CONTEXT.md kopiert — languages/title_types mussten nachtraeglich ergaenzt werden, weil primaryNormalizedTitleSQL sie referenziert -- bestaetigt die projektweite Lehre zu Schema-Drift in Testfixtures
 - [Phase 182]: shared/contracts: cover_image-Beschreibungen nur in openapi.yaml ergaenzt (dort existiert type:+description: bereits durchgaengig); die 4 kompakten feld:typ-Contract-Dateien ohne jedes description-Sibling blieben im Format unangetastet, nur Beispielwerte korrigiert
 - [Phase 182]: Go-SQL-Aenderungen (loadCurrentProjects GROUP BY, ListFansubAnime) vor dem Live-Apply zusaetzlich per direkter psql-Ausfuehrung gegen disposable Postgres bewiesen, nicht nur per go build/vet
+- [Phase 183]: Task 1 (tdd=true) in 183-01 als kombinierter Commit umgesetzt (Helfer + Tests zusammen) — Zielwerte/Fallback verbatim aus bestehendem, verifiziertem Produktionscode (UserDetailPageClient.tsx) übernommen, kein echtes RED/GREEN-Risiko
 
 ### Pending Todos
 
@@ -1848,11 +1849,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 182 P01 | 25min | 1 tasks | 7 files |
 | Phase 182 P02 | 90min | 2 tasks | 15 files |
 | Phase 182 P03 | 18min | 3 tasks | 12 files |
+| Phase 183 P01 | 15min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-15T07:33:10.979Z
-Stopped at: Completed 182-03-PLAN.md
+Last session: 2026-10-15T09:08:35.563Z
+Stopped at: Completed 183-01-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
