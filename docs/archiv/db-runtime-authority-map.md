@@ -1,5 +1,7 @@
 # DB Runtime Authority Map
 
+> Archiviert am 2026-10-15, Grund: Die gesamte "Legacy-first"-Analyse beruht auf der Tabelle `episode_versions`, die durch Migration `0046_drop_legacy_episode_versions.up.sql` entfernt wurde.
+
 **Date:** 2026-03-22  
 **Purpose:** Record which tables and repository seams are authoritative today for the A-C migration lane  
 **Status:** Recovery snapshot, not a final cutover declaration

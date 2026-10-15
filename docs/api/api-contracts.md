@@ -1,129 +1,138 @@
-# Team4s API Contracts
+# Team4s API-Verträge
 
-## Purpose
+## Zweck
 
-This document defines how API contracts are maintained for Team4s. It is the workflow guide for agents before changing backend handlers, frontend API helpers, DTO types, shared OpenAPI files, or UI behavior that depends on API response shapes.
+Dieses Dokument legt fest, wie API-Verträge für Team4s gepflegt werden. Es ist der Workflow-Leitfaden für Agenten, bevor Backend-Handler, Frontend-API-Helfer, DTO-Typen, gemeinsame OpenAPI-Dateien oder UI-Verhalten geändert werden, das von API-Antwortformen abhängt.
 
-The goal is to prevent contract drift: backend, frontend helpers, UI state handling, and shared contract files must describe the same behavior.
+Das Ziel ist, Vertrags-Drift zu verhindern: Backend, Frontend-Helfer, UI-Zustandsbehandlung und gemeinsame Vertragsdateien müssen dasselbe Verhalten beschreiben.
 
-## Contract Sources
+## Vertragsquellen
 
-Use these sources in this order:
+Diese Quellen in dieser Reihenfolge nutzen:
 
-1. `shared/contracts/openapi.yaml` - canonical cross-surface OpenAPI contract.
-2. `shared/contracts/admin-content.yaml` - focused admin-content contract where present.
-3. Backend handler, service, repository, and validation code - runtime truth when contracts are stale.
-4. `frontend/src/types/*` - frontend DTOs and response/request shapes.
-5. `frontend/src/lib/api.ts` and feature-local API helper files - browser and server API call seams.
-6. Domain architecture docs, especially `docs/architecture/db-schema-fansub-domain.md` and `docs/architecture/db-runtime-authority-map.md`.
+1. `shared/contracts/openapi.yaml` - kanonischer, übergreifender OpenAPI-Vertrag.
+2. Domänenspezifische YAML-Dateien neben `openapi.yaml` unter `shared/contracts/`, zum Beispiel `admin-content.yaml`, `admin-capabilities.yaml`, `anime-backdrops.yaml`, `anime-detail.yaml`, `anime-list.yaml`, `asset-stream.yaml`, `auth.yaml`, `comments.yaml`, `contributions.yaml`, `episodes.yaml`, `episode-versions.yaml`, `fansubs.yaml` und `watchlist.yaml` - fokussierte Verträge für den jeweiligen Bereich, soweit vorhanden.
+3. Backend-Handler-, Service-, Repository- und Validierungscode - Laufzeit-Wahrheit, wenn Verträge veraltet sind.
+4. `frontend/src/types/*` - Frontend-DTOs und Antwort-/Request-Formen.
+5. `frontend/src/lib/api.ts` und feature-lokale API-Helfer-Dateien - Browser- und Server-API-Aufrufstellen.
+6. Domänen-Architekturdokumente, insbesondere `docs/architecture/db-schema-fansub-domain.md` und `docs/architecture/db-runtime-authority-map.md`.
 
-If these sources disagree, stop long enough to identify the runtime owner and either update the contract or document the drift. Do not silently choose a new shape in page code.
+Wenn diese Quellen widersprechen, lange genug anhalten, um den Laufzeit-Eigentümer zu identifizieren, und dann entweder den Vertrag aktualisieren oder die Abweichung dokumentieren. Nicht stillschweigend eine neue Form im Seiten-Code wählen.
 
-## Required Agent Workflow
+## Verbindlicher Agenten-Workflow
 
-Before changing API behavior:
+Vor einer Änderung des API-Verhaltens:
 
-1. Identify the endpoint, method, request body, response body, auth requirement, and owner files.
-2. Read the relevant shared contract YAML and existing frontend DTO/helper.
-3. Check backend validation, handler status codes, and error payloads.
-4. Decide whether the change is additive, breaking, or a bug fix.
-5. Update the shared contract, backend code, frontend DTOs, and API helper together when the behavior changes.
-6. Add or update focused tests that prove the contract from both sides where feasible.
-7. Run the narrowest relevant checks plus `git diff --check`.
+1. Endpoint, Methode, Request-Body, Response-Body, Auth-Anforderung und Eigentümer-Dateien identifizieren.
+2. Die relevante gemeinsame Vertrags-YAML und das bestehende Frontend-DTO/-Helfer lesen.
+3. Backend-Validierung, Handler-Statuscodes und Fehler-Payloads prüfen.
+4. Entscheiden, ob die Änderung additiv, breaking oder ein Bugfix ist.
+5. Den gemeinsamen Vertrag, Backend-Code, Frontend-DTOs und API-Helfer gemeinsam aktualisieren, wenn sich das Verhalten ändert.
+6. Fokussierte Tests hinzufügen oder aktualisieren, die den Vertrag von beiden Seiten belegen, soweit machbar.
+7. Die engsten relevanten Prüfungen plus `git diff --check` ausführen.
 
-## Endpoint Contract Checklist
+## Endpoint-Vertrags-Checkliste
 
-Every new or changed endpoint must have:
+Jeder neue oder geänderte Endpoint muss Folgendes haben:
 
-- Method and path.
-- Auth requirement and backend permission owner.
-- Path/query/body parameters with required/optional status.
-- Success status and response body.
-- Error statuses and response body shape.
-- Frontend helper ownership.
-- Frontend DTO ownership.
-- Tests or an explicit reason tests are not feasible.
+- Methode und Pfad.
+- Auth-Anforderung und Backend-Berechtigungs-Eigentümer.
+- Pfad-/Query-/Body-Parameter mit Pflicht-/Optional-Status.
+- Erfolgs-Status und Response-Body.
+- Fehler-Status und Response-Body-Form.
+- Frontend-Helfer-Eigentümerschaft.
+- Frontend-DTO-Eigentümerschaft.
+- Tests oder einen expliziten Grund, warum Tests nicht machbar sind.
 
-## Frontend Rules
+## Frontend-Regeln
 
-- Normal browser callers must use central API helpers instead of ad hoc authenticated `fetch`.
-- UI components must not parse undocumented response variants.
-- DTO additions must be explicit in `frontend/src/types/*` or the local typed API seam.
-- Status handling such as `409` redirect/conflict behavior must be documented and tested in the helper that owns the call.
-- Do not add token parameters, bearer construction, or direct auth-cookie reads outside the documented auth boundary.
+- Normale Browser-Aufrufer müssen zentrale API-Helfer statt ad-hoc authentifizierter `fetch`-Aufrufe nutzen.
+- UI-Komponenten dürfen keine undokumentierten Response-Varianten parsen.
+- DTO-Ergänzungen müssen explizit in `frontend/src/types/*` oder der lokal typisierten API-Stelle erfolgen.
+- Statusbehandlung wie `409`-Redirect-/Konflikt-Verhalten muss im Helfer, der den Aufruf besitzt, dokumentiert und getestet sein.
+- Keine Token-Parameter, Bearer-Konstruktion oder direkten Auth-Cookie-Lesevorgänge außerhalb der dokumentierten Auth-Grenze hinzufügen.
 
-## Backend Rules
+## Backend-Regeln
 
-- Backend handlers remain authoritative for validation, permission checks, and mutation scope.
-- Response payloads must not attach release, fansub, media, or member data to the wrong domain entity.
-- Error payloads must use the documented project shape and preserve German user-facing messages where they reach the UI.
-- New endpoints must reuse existing service/repository seams unless a documented decision explains a new seam.
+- Backend-Handler bleiben maßgeblich für Validierung, Berechtigungsprüfungen und Mutations-Umfang.
+- Response-Payloads dürfen Release-, Fansub-, Medien- oder Mitglieds-Daten nicht der falschen Domänen-Entität zuordnen.
+- Fehler-Payloads müssen die dokumentierte Projektform nutzen und deutsche, nutzerseitig sichtbare Meldungen erhalten, wenn sie die UI erreichen.
+- Neue Endpoints müssen bestehende Service-/Repository-Stellen wiederverwenden, sofern keine dokumentierte Entscheidung eine neue Stelle begründet.
 
-## Contract Tests
+## Vertragstests
 
-Prefer focused tests near the owner:
+Fokussierte Tests nahe am Eigentümer bevorzugen:
 
-- Backend handler/service tests for status codes, validation, permission behavior, and response payload.
-- Frontend API helper tests for request payload construction, response parsing, and non-200 branches.
-- UI tests only when the screen has meaningful state or copy tied to response variants.
+- Backend-Handler-/Service-Tests für Statuscodes, Validierung, Berechtigungsverhalten und Response-Payload.
+- Frontend-API-Helfer-Tests für Request-Payload-Konstruktion, Response-Parsing und Non-200-Zweige.
+- UI-Tests nur, wenn der Screen bedeutsamen Zustand oder an Response-Varianten gebundene Texte hat.
 
-For YAML-only contract changes, `git diff --check` is the minimum verification. For runtime changes, run the relevant frontend/backend tests.
+Bei reinen YAML-Vertragsänderungen ist `git diff --check` die Mindestprüfung. Bei Laufzeitänderungen die relevanten Frontend-/Backend-Tests ausführen.
 
-## Drift Handling
+## Umgang mit Drift
 
-If implementation and contract disagree:
+Wenn Implementierung und Vertrag widersprechen:
 
-1. Identify which source is runtime-authoritative today.
-2. Fix the stale side when the intended behavior is clear.
-3. If the intended behavior is not clear, stop and document the mismatch as a risk or decision.
-4. Do not create a second helper, route, or DTO family to work around the mismatch.
+1. Identifizieren, welche Quelle heute laufzeit-maßgeblich ist.
+2. Die veraltete Seite korrigieren, wenn das beabsichtigte Verhalten klar ist.
+3. Wenn das beabsichtigte Verhalten nicht klar ist, anhalten und die Abweichung als Risiko oder Entscheidung dokumentieren.
+4. Keinen zweiten Helfer, keine zweite Route und keine zweite DTO-Familie erstellen, um die Abweichung zu umgehen.
 
-## Frontend image display delivery (Phase 159)
+## Frontend-Bilddarstellungs-Auslieferung (Phase 159)
 
-This is an intentional surface split: the backend GET /api/v1/media/files/{filename}
-continues to serve its authoritative original and ignores display_width. The Next
-frontend owns the additive display contract below, removes that query before calling
-the existing fixed internal API proxy, and transforms the returned raster bytes.
-The OpenAPI media-files operation remains the backend original contract; its
-x-frontend-display metadata points here. No backend resize parameter is implied.
+Dies ist ein beabsichtigter Oberflächen-Split: Das Backend-GET /api/v1/media/files/{filename}
+liefert weiterhin sein maßgebliches Original und ignoriert display_width. Das Next-
+Frontend besitzt den untenstehenden additiven Darstellungs-Vertrag, entfernt diese
+Query vor dem Aufruf des bestehenden festen internen API-Proxys und transformiert die
+zurückgegebenen Rasterbytes. Die OpenAPI-media-files-Operation bleibt der maßgebliche
+Backend-Original-Vertrag; ihre x-frontend-display-Metadaten verweisen hierher. Kein
+Backend-Resize-Parameter wird dadurch impliziert.
 
-| Frontend owner | Opt-in GET and HEAD URL | Authoritative source |
+| Frontend-Eigentümer | Opt-in GET- und HEAD-URL | Maßgebliche Quelle |
 | --- | --- | --- |
-| Covers child route | /covers/display/{filename}?display_width=512 | Existing public/covers basename resolution |
-| Existing local media route | /media/anime/{path}?display_width=512 | Existing validated MEDIA_BASE_PATH resolution |
-| Existing API relay, exact three segments | /api/v1/media/files/{filename}?display_width=512 | Existing internal API proxy and backend filename lookup |
+| Covers-Kind-Route | /covers/display/{filename}?display_width=512 | Bestehende public/covers-Basisnamen-Auflösung |
+| Bestehende lokale Medien-Route | /media/anime/{path}?display_width=512 | Bestehende validierte MEDIA_BASE_PATH-Auflösung |
+| Bestehendes API-Relay, genau drei Segmente | /api/v1/media/files/{filename}?display_width=512 | Bestehender interner API-Proxy und Backend-Dateinamen-Lookup |
 
-display_width is required on the covers child route and optional on the other two
-owners. Exactly one decimal value from 512, 760, 1280, 1920 is accepted. It is a
-frontend transform request, not an original-file query. No opt-in leaves existing
-original bytes, SVG/video handling, API methods/statuses and media Range 206/416
-unchanged. The covers child pathname deliberately avoids Next public-file precedence.
+display_width ist auf der Covers-Kind-Route pflicht und auf den beiden anderen
+Eigentümern optional. Genau ein Dezimalwert aus 512, 760, 1280, 1920 wird akzeptiert.
+Es ist eine Frontend-Transform-Anfrage, keine Original-Datei-Query. Ohne Opt-in bleiben
+bestehende Original-Bytes, SVG-/Video-Behandlung, API-Methoden/-Status und Medien-Range
+206/416 unverändert. Der Covers-Kind-Pfadname vermeidet bewusst die Next-Public-File-
+Vorrangregel.
 
-Success is static frame-zero WebP, quality 75 with transparency, never enlarged;
-width <= requested slot, height <= min(3 * width, 4096), <= 4 MiB output. Input is
-limited to 16 MiB and 20 million decoded pixels. Only two transforms per server
-process run concurrently; up to eight requests wait in an abortable FIFO within the same five-second deadline; only excess requests return 429. Source
-reads and Sharp work have finite five-second deadlines; abort cancels source
-transport and a native job retains its slot until completion. Files are checked
-before and during bounded reads. No transformed cache map or original mutation.
+Erfolg ist ein statisches Frame-null-WebP, Qualität 75 mit Transparenz, nie vergrößert;
+Breite <= angeforderter Slot, Höhe <= min(3 * Breite, 4096), <= 4 MiB Ausgabe. Eingabe ist
+auf 16 MiB und 20 Millionen dekodierte Pixel begrenzt. Nur zwei Transforms pro
+Serverprozess laufen gleichzeitig; bis zu acht Anfragen warten in einer abbrechbaren
+FIFO innerhalb derselben Fünf-Sekunden-Frist; nur überschüssige Anfragen liefern 429.
+Quell-Lesevorgänge und Sharp-Arbeit haben endliche Fünf-Sekunden-Fristen; ein Abbruch
+bricht den Quelltransport ab, und ein nativer Job behält seinen Slot bis zum Abschluss.
+Dateien werden vor und während begrenzter Lesevorgänge geprüft. Keine transformierte
+Cache-Map und keine Original-Mutation.
 
-GET ignores source Range/If-* semantics for the transform. HEAD computes the same
-representation headers with no body. Original ETag, Content-Encoding, Content-Range,
-Accept-Ranges, Last-Modified and length are not forwarded as transformed metadata.
-Content-Type and length are recomputed. Local results cache publicly for 60 seconds;
-API-file results are private/no-store. The API relay retains its existing fixed
-target, manual redirect behavior and auth header forwarding; redirects and other
-non-200 source responses never become an image 200.
+GET ignoriert Quell-Range-/If-*-Semantik für die Transformation. HEAD berechnet dieselben
+Repräsentations-Header ohne Body. Original-ETag, Content-Encoding, Content-Range,
+Accept-Ranges, Last-Modified und Länge werden nicht als transformierte Metadaten
+weitergereicht. Content-Type und Länge werden neu berechnet. Lokale Ergebnisse werden
+60 Sekunden öffentlich gecacht; API-Datei-Ergebnisse sind private/no-store. Das API-Relay
+behält seine bestehende feste Zielvorgabe, manuelles Redirect-Verhalten und
+Auth-Header-Weiterleitung bei; Redirects und andere Non-200-Quellantworten werden nie zu
+einem Bild-200.
 
-Display failures have a plain-text body (HEAD/304 have no body), no-store and nosniff:
-400 invalid width, 404 missing/invalid cover or API filename, 408 abort/timeout,
-413 input/pixel/output budget, 415 corrupt/unsupported raster, 429 concurrency,
-502 unavailable or unexpected partial source. Existing source 3xx/401/404/5xx
-statuses are preserved without original image bytes. Existing media traversal
-checks still return 403. Supported input raster families are JPEG, PNG/APNG, GIF,
-WebP and AVIF; SVG/video are not decoded by the opt-in display helper.
+Darstellungs-Fehlschläge haben einen Klartext-Body (HEAD/304 haben keinen Body), no-store
+und nosniff: 400 ungültige Breite, 404 fehlendes/ungültiges Cover oder API-Dateiname,
+408 Abbruch/Timeout, 413 Eingabe-/Pixel-/Ausgabe-Budget, 415 defektes/nicht unterstütztes
+Raster, 429 Nebenläufigkeit, 502 nicht verfügbare oder unerwartet partielle Quelle.
+Bestehende Quell-Status 3xx/401/404/5xx bleiben erhalten, ohne Original-Bild-Bytes.
+Bestehende Medien-Traversal-Prüfungen liefern weiterhin 403. Unterstützte Eingabe-
+Rasterfamilien sind JPEG, PNG/APNG, GIF, WebP und AVIF; SVG/Video werden vom
+Opt-in-Darstellungs-Helfer nicht dekodiert.
 
-Focused coverage: imageDisplay.test.ts, covers/display/[file]/route.test.ts,
-api/v1/[...path]/route.test.ts, existing media Range tests and animeBackdrops.test.ts.
+Fokussierte Abdeckung: imageDisplay.test.ts, covers/display/[file]/route.test.ts,
+api/v1/[...path]/route.test.ts, bestehende Medien-Range-Tests und animeBackdrops.test.ts.
 
-Admission correction from cold-start review: four distinct parallel images must complete with 200 through two active transforms. At most eight waiters share the five-second request deadline; queued abort removes the waiter before source IO. Saturation beyond this finite bound returns 429.
+Korrektur aus der Cold-Start-Prüfung: Vier verschiedene parallele Bilder müssen mit 200
+über zwei aktive Transforms hinweg abschließen. Höchstens acht Wartende teilen sich die
+Fünf-Sekunden-Request-Frist; ein abgebrochener Wartender wird vor der Quell-IO entfernt.
+Sättigung über diese endliche Grenze hinaus liefert 429.

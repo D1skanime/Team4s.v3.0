@@ -1,5 +1,7 @@
 # DB Schema v2 Draft
 
+> Archiviert am 2026-10-15, Grund: Als "Working Draft" (2026-03-13) markiert; die beschriebenen Tabellen sind längst durch die Migrationen 0061–0090 umgesetzt.
+
 **Status:** Working draft
 **Date:** 2026-03-13 (Updated: 2026-03-22)
 **Purpose:** Canonical target-model draft for the normalized Team4s schema migration

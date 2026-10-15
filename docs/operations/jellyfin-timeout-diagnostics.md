@@ -1,47 +1,47 @@
-# Jellyfin Timeout Diagnostics
+# Jellyfin-Timeout-Diagnose
 
-## Purpose
-Provide a repeatable triage path when operators see `server nicht erreichbar` in Jellyfin admin flows.
+## Zweck
+Bietet einen wiederholbaren Triage-Pfad, wenn Operatoren `server nicht erreichbar` in Jellyfin-Admin-Abläufen sehen.
 
-## Signals Added (2026-03-03)
-Jellyfin HTTP calls now emit structured backend logs on failures:
+## Hinzugefügte Signale (2026-03-03)
+Jellyfin-HTTP-Aufrufe geben bei Fehlern jetzt strukturierte Backend-Logs aus:
 - `admin_content jellyfin_http: request failed (...)`
 - `admin_content jellyfin_http: upstream status (...)`
 - `admin_content jellyfin_http: read response failed (...)`
 - `admin_content jellyfin_http: decode response failed (...)`
 
-Captured fields:
+Erfasste Felder:
 - `path`
 - `elapsed_ms`
 - `category` (`timeout`, `connectivity`, `transport`)
 
-## Triage Workflow
-1. Reproduce failing admin action:
-   - search, preview, sync, or single-episode sync
-2. Inspect backend logs for `jellyfin_http` entries.
-3. Classify by category:
-   - `timeout`: request exceeded allowed time budget
-   - `connectivity`: host/DNS/port/reachability problem
-   - `transport`: other request-layer failure
-4. Correlate with response payload:
+## Triage-Workflow
+1. Fehlschlagende Admin-Aktion reproduzieren:
+   - Suche, Vorschau, Sync oder Einzelepisoden-Sync
+2. Backend-Logs auf `jellyfin_http`-Einträge prüfen.
+3. Nach Kategorie klassifizieren:
+   - `timeout`: Anfrage hat das erlaubte Zeitbudget überschritten
+   - `connectivity`: Problem bei Host/DNS/Port/Erreichbarkeit
+   - `transport`: sonstiger Fehler auf Anfrage-Ebene
+4. Mit der Antwort-Payload korrelieren:
    - `error.code`
    - `error.details`
-5. Apply targeted action:
-   - timeout: check Jellyfin server load/network latency
-   - connectivity: verify base URL, DNS, routing, firewall
-   - auth failures (`401/403`): verify API key/permissions
+5. Gezielte Maßnahme ergreifen:
+   - timeout: Last/Netzwerklatenz des Jellyfin-Servers prüfen
+   - connectivity: Basis-URL, DNS, Routing, Firewall prüfen
+   - Auth-Fehler (`401/403`): API-Key/Berechtigungen prüfen
 
-## Quick Runtime Checks
+## Schnelle Laufzeitprüfungen
 ```powershell
 docker compose ps
 Invoke-RestMethod -Method GET -Uri http://localhost:8092/health
 docker compose exec -T team4sv30-backend ./migrate status
 ```
 
-## Escalation Trigger
-Escalate if either condition persists across repeated attempts:
-- `timeout` category appears consistently for the same route/path.
-- `connectivity` category appears despite confirmed network availability.
+## Eskalations-Schwelle
+Eskalieren, wenn eine der folgenden Bedingungen über mehrere Versuche hinweg bestehen bleibt:
+- Kategorie `timeout` tritt für dieselbe Route/denselben Pfad konsistent auf.
+- Kategorie `connectivity` tritt trotz bestätigter Netzwerkverfügbarkeit auf.
 
-## Next Improvement
-- Add dedicated integration fixture for timeout behavior to lock regression coverage on diagnostics mapping.
+## Nächste Verbesserung
+- Dedizierte Integrationsfixture für das Timeout-Verhalten hinzufügen, um die Regressionsabdeckung für das Diagnose-Mapping abzusichern.

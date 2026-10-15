@@ -1,5 +1,7 @@
 # Media Upload Service - Phase 3 Migration (Backend Handoff)
 
+> Archiviert am 2026-10-15, Grund: Beschreibt eine abgeschlossene Einmal-Migration; das referenzierte Skript existiert nicht mehr im Repository.
+
 **Status:** Ready for Execution
 **Date:** 2026-03-20
 **Lane:** Backend (team4s-go)

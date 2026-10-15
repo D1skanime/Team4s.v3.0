@@ -1,5 +1,7 @@
 # Media Upload Service - Phasenplan (GSD)
 
+> Archiviert am 2026-10-15, Grund: Alle Phasen sind als `[x]` abgeschlossen markiert (Stand 2026-03-20); die Migrations-Tooling-Grundlage existiert nicht mehr.
+
 **Status:** Active
 **Created:** 2026-03-20
 **Spec:** [media-upload-service-spec.md](./media-upload-service-spec.md)

@@ -1,5 +1,7 @@
 # Team4s – DB-Schema-Referenz für Fansub-/Anime-Domain
 
+> Archiviert am 2026-10-15, Grund: Nennt `anime.cover_image` (durch Migration `0184_drop_anime_cover_image.up.sql` entfernt) und `member_group_stories` (durch Migration `0178` entfernt) fälschlich als aktuell.
+
 Quelle: `team4s_v2_20260502-214428.sql` plus Repository-Migrationen
 Stand des Dumps: 02.05.2026  
 Repository-/Live-DB-Abgleich: 04.06.2026, bis Migration `0096_hist_group_members_confirmation_audit`

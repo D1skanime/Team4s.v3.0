@@ -1,5 +1,7 @@
 # Phase 115 — Konsolidierte Live-UAT-Checkliste (globale Suche)
 
+> Archiviert am 2026-10-15, Grund: Als "AUSSTEHEND" markiert; laut Git-Historie ist Phase 115 (115-01 bis 115-08) längst abgeschlossen, Migrationen sind bis 0184 fortgeschritten.
+
 **Status:** AUSSTEHEND — auszuführen, sobald Docker wieder läuft.
 **Zweck:** Ein einziger, selbst-enthaltener Live-UAT-Durchlauf, der **alle**
 Live-DB-Verifikationen der Phase 115 bündelt. Solange dieser Durchlauf nicht mit

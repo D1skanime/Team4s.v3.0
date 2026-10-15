@@ -1,94 +1,94 @@
-# Agent Guidelines: UI Implementation
+# Agent-Richtlinien: UI-Implementierung
 
 Detaillierte Regeln für Agenten bei UI-Aufgaben. Werden nur bei visuellen Implementierungsaufgaben angewendet.
 
 ---
 
-## Before Coding UI
+## Vor dem Programmieren von UI
 
-Before implementing a new UI surface or editing an existing persisted-data UI:
+Vor der Implementierung einer neuen UI-Oberfläche oder der Bearbeitung einer bestehenden, persistenzgestützten UI:
 
-1. Read `docs/engineering/implementation-contract.md`.
-2. Read `docs/frontend/ui-system.md`.
-3. Inspect `frontend/src/components/ui` for existing global components.
-4. Inspect nearby pages/components for the current local composition pattern.
-5. Map every API/DB-backed field to a semantic control before writing code.
-6. Reuse or extend existing global components before adding page-local styles.
-7. Keep loading, error, and empty states scoped to the entity being edited or displayed.
-8. If the UI depends on API response shape or status behavior, read `docs/api/api-contracts.md` and the relevant frontend API helper before coding.
-9. Classify every responsive layout decision as either page/app-shell or reusable/embedded before choosing a viewport or container query, following `docs/frontend/ui-system.md`.
-10. Record the minimum viable geometry for every larger composition, including columns, gaps, controls, media, and longest required content. Name transitions by purpose or geometry, never by device.
-11. Inspect the actual flex, grid, media, or text owner of overflow before adding wrapping, clipping, or scrolling.
-12. Apply the incremental adoption boundary: new UI complies; touched existing components are modernized only when responsive behavior is in scope or demonstrably problematic; stable legacy UI is not migrated wholesale.
+1. Lies `docs/engineering/implementation-contract.md`.
+2. Lies `docs/frontend/ui-system.md`.
+3. Prüfe `frontend/src/components/ui` auf bestehende globale Komponenten.
+4. Prüfe benachbarte Seiten/Komponenten auf das aktuelle lokale Kompositionsmuster.
+5. Ordne jedes API-/DB-gestützte Feld einem semantischen Control zu, bevor Code geschrieben wird.
+6. Nutze oder erweitere bestehende globale Komponenten, bevor seitenlokale Styles ergänzt werden.
+7. Halte Lade-, Fehler- und Leerzustände auf die bearbeitete bzw. angezeigte Entität begrenzt.
+8. Wenn die UI von der API-Response-Form oder dem Status-Verhalten abhängt, lies vor dem Programmieren `docs/api/api-contracts.md` und den zuständigen Frontend-API-Helper.
+9. Klassifiziere jede Responsive-Layout-Entscheidung gemäß `docs/frontend/ui-system.md` als entweder Seite/App-Shell oder wiederverwendbar/eingebettet, bevor eine Viewport- oder Container-Query gewählt wird.
+10. Halte für jede größere Komposition die minimal tragfähige Geometrie fest — inklusive Spalten, Abstände, Controls, Medien und längstem benötigtem Inhalt. Benenne Übergänge nach Zweck oder Geometrie, niemals nach Gerät.
+11. Prüfe den tatsächlichen Flex-, Grid-, Medien- oder Text-Besitzer eines Überlaufs, bevor Wrapping, Clipping oder Scrolling ergänzt wird.
+12. Wende die inkrementelle Migrationsgrenze an: Neue UI folgt den Regeln vollständig; angefasste bestehende Komponenten werden nur modernisiert, wenn Responsive-Verhalten im Scope ist oder nachweislich problematisch ist; stabile Legacy-UI wird nicht pauschal migriert.
 
-Required field mapping:
+Erforderliche Feldzuordnung:
 
-| Field meaning | Required control direction |
+| Feldbedeutung | Erforderliche Control-Richtung |
 |---------------|----------------------------|
-| year | year picker or constrained year control |
-| date/datetime | date or datetime control |
-| enum/status | select, segmented control, radio group, or badge/action pattern |
-| boolean | switch or checkbox |
-| relation id | select/combobox with readable labels |
-| media asset | existing media component and domain-specific media API |
-| number | constrained number input, stepper, slider, or select |
-| free text | input or textarea only when the value is genuinely free-form |
+| Jahr | Jahres-Picker oder eingeschränktes Jahres-Control |
+| Datum/Datum-Zeit | Datum- oder Datum-Zeit-Control |
+| Enum/Status | Select, Segmented Control, Radio-Gruppe oder Badge/Aktions-Muster |
+| Boolean | Switch oder Checkbox |
+| Relations-ID | Select/Combobox mit lesbaren Labels |
+| Medien-Asset | bestehende Medien-Komponente und domänenspezifische Medien-API |
+| Zahl | eingeschränktes Zahlen-Input, Stepper, Slider oder Select |
+| Freitext | Input oder Textarea nur, wenn der Wert wirklich frei formulierbar ist |
 
-Do not ship minimalist placeholder UI for real persisted data. If the proper semantic control does not exist, either reuse an existing project pattern or add the smallest shared primitive that fits the global UI system.
-
----
-
-## Responsive Implementation and Verification
-
-Implementation follows the responsive ownership defined in `docs/frontend/ui-system.md`:
-
-- Use mobile-first base styles.
-- Use viewport queries only for page or app-shell composition.
-- For reusable or embedded components, establish a suitable containment boundary with `container-type: inline-size` and query the component's available inline size. Use a purpose-based `container-name` when it improves clarity.
-- Activate a larger composition only at its recorded minimum viable geometry. Do not use device lists or universal pixel breakpoints.
-- Protect shrinking flex/grid children with `min-width: 0` and potentially oversized media with `max-width: 100%` where applicable.
-- Fix overflow locally at its owner. Do not normalize a global `overflow-wrap: anywhere` workaround.
-
-For every changed UI, verification evidence must cover:
-
-1. A narrow size.
-2. An intermediate size.
-3. The exact transition boundary, immediately below and above when practical.
-4. A wide size.
-5. Realistic long German labels and text with correct umlauts.
-6. Browser zoom high enough to expose reflow, overlap, and clipping faults.
-7. An explicit assertion or live inspection that the document has no horizontal overflow.
-8. For reusable components, nested or embedded rendering that proves behavior follows container width rather than viewport assumptions.
-
-Focused CSS/component tests and headless checks may support this evidence. When user-facing flow, navigation, discoverability, or product fit matters, retain the live-browser review required by `AGENTS.md`; headless checks do not replace it.
+Liefere keine minimalistische Platzhalter-UI für real persistierte Daten aus. Existiert das passende semantische Control nicht, nutze entweder ein bestehendes Projektmuster oder ergänze das kleinste gemeinsame Primitive, das zum globalen UI-System passt.
 
 ---
 
-## Screenshot-to-UI Rules
+## Responsive Implementierung und Verifikation
 
-When implementing from a screenshot:
+Die Implementierung folgt der in `docs/frontend/ui-system.md` definierten Responsive-Zuständigkeit:
 
-1. Treat the screenshot as the target, not as loose inspiration.
-2. First extract a visual design specification:
-   - layout
-   - card structure
-   - colors
-   - spacing
-   - typography
-   - borders, radius, shadows
-   - buttons and badges
-3. Then implement against that specification.
-4. Do not freely redesign unless explicitly asked.
-5. Do not add visible UI elements not present in the target unless required by existing data or accessibility.
-6. If possible, compare the result visually and list deviations.
+- Nutze Mobile-First-Basisstyles.
+- Nutze Viewport-Queries nur für Seiten- oder App-Shell-Komposition.
+- Richte für wiederverwendbare oder eingebettete Komponenten eine geeignete Containment-Grenze mit `container-type: inline-size` ein und frage die verfügbare Inline-Größe der Komponente ab. Nutze einen zweckbezogenen `container-name`, wenn das die Klarheit verbessert.
+- Aktiviere eine größere Komposition erst bei ihrer festgehaltenen minimal tragfähigen Geometrie. Verwende keine Gerätelisten oder universellen Pixel-Breakpoints.
+- Schütze schrumpfende Flex-/Grid-Kinder mit `min-width: 0` und potenziell übergroße Medien mit `max-width: 100%`, wo zutreffend.
+- Behebe Überlauf lokal an seinem Besitzer. Normiere keinen globalen `overflow-wrap: anywhere`-Workaround.
+
+Für jede geänderte UI muss der Verifikationsnachweis Folgendes abdecken:
+
+1. Eine schmale Größe.
+2. Eine mittlere Größe.
+3. Die exakte Übergangsgrenze, wenn praktikabel unmittelbar darunter und darüber.
+4. Eine breite Größe.
+5. Realistische lange deutsche Labels und Texte mit korrekten Umlauten.
+6. Browser-Zoom hoch genug, um Reflow-, Überlappungs- und Clipping-Fehler aufzudecken.
+7. Eine explizite Assertion oder Live-Prüfung, dass das Dokument keinen horizontalen Überlauf hat.
+8. Für wiederverwendbare Komponenten ein verschachteltes oder eingebettetes Rendering, das belegt, dass das Verhalten der Container-Breite folgt und nicht Viewport-Annahmen.
+
+Fokussierte CSS-/Komponententests und Headless-Checks können diesen Nachweis unterstützen. Wenn Nutzerfluss, Navigation, Auffindbarkeit oder Produkt-Passung relevant sind, bleibt die von `AGENTS.md` geforderte Live-Browser-Prüfung verbindlich; Headless-Checks ersetzen sie nicht.
 
 ---
 
-## Formatting and Diff Rules
+## Screenshot-zu-UI-Regeln
 
-- Keep diffs small and scoped.
-- Do not run broad formatting commands on large dirty files unless explicitly requested.
-- If a file already has unrelated formatting changes, avoid `prettier --write` on the entire file.
-- Prefer targeted edits.
-- Do not include unrelated refactors.
-- If existing unrelated warnings/errors appear, document them separately.
+Bei der Implementierung anhand eines Screenshots:
+
+1. Behandle den Screenshot als Zielvorgabe, nicht als lose Inspiration.
+2. Extrahiere zuerst eine visuelle Design-Spezifikation:
+   - Layout
+   - Card-Struktur
+   - Farben
+   - Abstände
+   - Typografie
+   - Ränder, Radius, Schatten
+   - Buttons und Badges
+3. Implementiere anschließend gegen diese Spezifikation.
+4. Redesigne nicht frei, außer es wird explizit verlangt.
+5. Füge keine sichtbaren UI-Elemente hinzu, die im Ziel nicht vorhanden sind, außer sie sind durch bestehende Daten oder Barrierefreiheit erforderlich.
+6. Vergleiche das Ergebnis wenn möglich visuell und liste Abweichungen auf.
+
+---
+
+## Formatierungs- und Diff-Regeln
+
+- Halte Diffs klein und fokussiert.
+- Führe keine breiten Formatierungs-Befehle auf großen, bereits veränderten Dateien aus, außer es wird explizit verlangt.
+- Wenn eine Datei bereits unabhängige Formatierungsänderungen enthält, vermeide `prettier --write` auf der gesamten Datei.
+- Bevorzuge gezielte Edits.
+- Nimm keine unabhängigen Refactorings mit auf.
+- Dokumentiere bestehende unabhängige Warnungen/Fehler separat.

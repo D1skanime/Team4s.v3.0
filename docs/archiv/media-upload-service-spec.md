@@ -1,5 +1,7 @@
 # Generic Media Upload Service Specification
 
+> Archiviert am 2026-10-15, Grund: Spezifiziert einen generischen Upload-Endpunkt (`POST /api/admin/upload`), der durch die heutigen entitätsspezifischen Handler ersetzt wurde.
+
 **Status:** Planning (GSD-Reviewed)
 **Created:** 2026-03-20
 **Epic:** Media Upload Service

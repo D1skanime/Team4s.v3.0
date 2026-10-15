@@ -1,5 +1,7 @@
 # DB Phase A-C Validation Baseline
 
+> Archiviert am 2026-10-15, Grund: Basiert auf der Tabelle `episode_versions`, die durch Migration `0046_drop_legacy_episode_versions.up.sql` entfernt wurde.
+
 **Date:** 2026-03-22  
 **Purpose:** Reproducible evidence baseline for the committed DB brief Phase A, B, and C work  
 **Status:** Partial evidence captured, further cutover judgment required

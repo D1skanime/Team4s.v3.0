@@ -1,5 +1,7 @@
 # DB Phase C Cutover Recovery Brief
 
+> Archiviert am 2026-10-15, Grund: Die beschriebene Cutover-Entscheidung hängt von der Tabelle `episode_versions` ab, die durch Migration `0046` entfernt wurde.
+
 **Date:** 2026-03-22  
 **Basis:** Phase 05.1 Plan 01 validation baseline and runtime authority map  
 **Scope:** Post-Phase-C migration posture for the committed A-C DB brief work

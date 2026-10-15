@@ -1,84 +1,114 @@
-# Member achievement artwork
+# Mitglieder-Erfolgsbadge-Grafiken
 
-Phase 151 consolidates the presentation layer. Role eligibility remains in the canonical role
-catalog; badge generation, deduplication and thresholds remain in the Phase-150 backend badge
-and repository code. This document does not define business thresholds.
+Phase 151 konsolidiert die Präsentationsschicht. Die Rollen-Berechtigung bleibt im kanonischen
+Rollenkatalog; Badge-Erzeugung, Deduplizierung und Schwellenwerte bleiben im Backend-Badge- und
+Repository-Code aus Phase 150. Dieses Dokument definiert keine fachlichen Schwellenwerte.
 
-## Add an achievement role
+## Eine Erfolgsrolle hinzufügen
 
-1. Use the role code from the existing `anime_contribution` role catalog. Do not add another
-   frontend list of valid business roles or copy server thresholds.
-2. Add high-resolution PNGs under `frontend/public/member-achievement-badges/`:
+1. Verwende den Rollencode aus dem bestehenden `anime_contribution`-Rollenkatalog. Füge keine
+   zweite Frontend-Liste gültiger Fachrollen hinzu und kopiere keine Server-Schwellenwerte.
+2. Füge hochauflösende PNGs unter `frontend/public/member-achievement-badges/` hinzu:
    - `role_entry_<code>.png`
    - `role-<code>-motif.png`
    - `rank-frame-<code>-bronze.png`, `rank-frame-<code>-silver.png`,
      `rank-frame-<code>-gold.png`, `rank-frame-<code>-platinum.png`
-   Preserve the source resolution and genuine alpha transparency. Frame exteriors and hollow
-   centers must be transparent; a depicted checkerboard is not transparency.
-3. Add `<code>: 'layered'` to `ROLE_ARTWORK_STRATEGIES` in
-   `frontend/src/components/profile/badgeArtwork.ts`. This manifest contains presentation
-   strategies only. It contains no labels, eligibility rules or thresholds. `timer` is the
-   existing `direct-volume` exception, using its four complete `role_volume_timer_<tier>.png`
-   sprites. New exceptions require an explicit reason and review.
-4. Run the live-catalog/file coverage gate below and add visual fixture coverage in the linked
-   dev gallery. Review entry and all four composed tiers, including the compact stage marker.
-   Do not enable a new role with only a plausible filename or a fallback icon as proof of coverage.
+   Behalte die Quellauflösung und echte Alpha-Transparenz bei. Rahmen-Außenflächen und
+   Hohlräume in der Mitte müssen transparent sein; ein dargestelltes Schachbrettmuster ist keine
+   Transparenz.
+3. Füge `<code>: 'layered'` zu `ROLE_ARTWORK_STRATEGIES` in
+   `frontend/src/components/profile/badgeArtwork.ts` hinzu. Dieses Manifest enthält nur
+   Präsentationsstrategien. Es enthält keine Labels, Berechtigungsregeln oder Schwellenwerte.
+   `timer` ist die bestehende `direct-volume`-Ausnahme und nutzt ihre vier vollständigen
+   `role_volume_timer_<tier>.png`-Sprites. Neue Ausnahmen benötigen eine explizite Begründung
+   und ein Review.
+4. Führe das Live-Katalog-/Datei-Abdeckungs-Gate unten aus und ergänze visuelle
+   Fixture-Abdeckung in der verlinkten Dev-Galerie. Prüfe den Entry-Eintrag und alle vier
+   zusammengesetzten Stufen, einschließlich des kompakten Stufen-Markers. Aktiviere keine neue
+   Rolle allein mit einem plausiblen Dateinamen oder einem Fallback-Icon als Nachweis der
+   Abdeckung.
 
-## Coverage gate
+## Abdeckungs-Gate
 
-Run from `/home/d1sk/team4s` on `team4s-linux` with the existing Compose stack:
+Ausführen aus `/home/d1sk/team4s` auf `team4s-linux` mit dem bestehenden Compose-Stack:
 
 ```sh
 docker compose exec -T team4sv30-frontend npx --no-install vitest run src/components/profile/badgeArtwork.test.ts --reporter=dot
 ```
 
-The test calls the existing `listRoleDefinitions('anime_contribution')` helper and reads the
-actual public artwork directory. It fails on an unsupported canonical role or a missing required
-file. Synthetic future-role and removed-file cases prove both failure paths. Deliberate absence
-belongs in `ROLE_ARTWORK_EXCEPTIONS` with a reason; this currently has no entries. Updating an
-exception requires updating the expected coverage result consciously, not skipping the gate.
-The test requires the backend available through the frontend container's existing internal API
-configuration. A disconnected backend is a failed prerequisite, not a passing coverage result.
+Der Test ruft den bestehenden `listRoleDefinitions('anime_contribution')`-Helper auf und liest
+das tatsächliche öffentliche Artwork-Verzeichnis. Er schlägt fehl bei einer nicht unterstützten
+kanonischen Rolle oder einer fehlenden Pflichtdatei. Synthetische Fälle für eine zukünftige Rolle
+und eine entfernte Datei belegen beide Fehlerpfade. Eine bewusste Abwesenheit gehört in
+`ROLE_ARTWORK_EXCEPTIONS` mit einer Begründung; diese hat aktuell keine Einträge. Eine Ausnahme
+zu aktualisieren erfordert eine bewusste Aktualisierung des erwarteten Abdeckungsergebnisses,
+nicht das Überspringen des Gates. Der Test benötigt das über die bestehende interne
+API-Konfiguration des Frontend-Containers erreichbare Backend. Ein nicht erreichbares Backend ist
+eine gescheiterte Voraussetzung, kein bestandenes Abdeckungsergebnis.
 
-## Rendering contract
+## Rendering-Vertrag
 
-`AchievementArtwork` owns direct/layered rendering through the existing `ResponsiveImage` seam.
-Consumers pass a descriptor, badge code, alternative text, and `hero` or `stage`; they do not pass
-ad hoc dimensions. Role cards and family stages establish an unpadded `achievement-card` query
-container, so the query width equals the rendered card's outer width.
+`AchievementArtwork` besitzt direktes/geschichtetes Rendering über die bestehende
+`ResponsiveImage`-Nahtstelle. Aufrufer übergeben einen Descriptor, einen Badge-Code,
+Alternativtext und `hero` oder `stage`; sie übergeben keine Ad-hoc-Maße. Rollenkarten und
+Family-Stages richten einen ungepolsterten `achievement-card`-Query-Container ein, sodass die
+Query-Breite der tatsächlich gerenderten äußeren Breite der Karte entspricht.
 
-| Outer card width | Hero | Stage marker |
+| Äußere Kartenbreite | Hero | Stage-Marker |
 |---|---|---|
-| Below 562 px | 192 × 192 px | 64 × 64 px |
+| Unter 562 px | 192 × 192 px | 64 × 64 px |
 | 562–657 px | 216 × 216 px | 80 × 80 px |
-| At least 658 px | 240 × 240 px | 80 × 80 px |
+| Mindestens 658 px | 240 × 240 px | 80 × 80 px |
 
-Every slot has an 8 px inset, centered `object-fit: contain` images and zero grid/image minima.
-Portraits keep their source aspect ratio. Narrow card wrappers and marker lanes must make room
-for the slot; fix wrapping or outer spacing instead of overriding individual badge sizes.
-Locked, active, inactive and expanded cards use the same geometry. Active emphasis must not
-scale artwork, hide copy, change padding or create height jumps.
+Jeder Slot hat einen 8-px-Inset, zentrierte Bilder mit `object-fit: contain` und keine
+Grid-/Bild-Mindestmaße. Portraits behalten ihr Quell-Seitenverhältnis. Schmale Karten-Wrapper
+und Marker-Spalten müssen Platz für den Slot schaffen; behebe stattdessen Umbruch oder äußere
+Abstände, anstatt einzelne Badge-Größen zu überschreiben. Gesperrte, aktive, inaktive und
+expandierte Karten verwenden dieselbe Geometrie. Aktive Hervorhebung darf Grafiken nicht
+skalieren, Text nicht verstecken, Padding nicht ändern oder Höhensprünge erzeugen.
 
-The static presentation resolver rejects unknown/prototype-like codes. It never tries a
-speculative public filename. Existing versioned non-role mappings remain explicit; superseded
-source files remain available for source review without returning to the active resolver.
+Der statische Präsentations-Resolver weist unbekannte/prototypenartige Codes zurück. Er
+versucht nie einen spekulativen öffentlichen Dateinamen. Bestehende versionierte
+Nicht-Rollen-Zuordnungen bleiben explizit; abgelöste Quelldateien bleiben zur Quell-Durchsicht
+verfügbar, ohne in den aktiven Resolver zurückzukehren.
 
-## Browser review
+## Review im Browser
 
-Open `/dev/ui-system/achievements` from `/dev/ui-system`. It uses production components and
-explicit server-shaped visual fixtures; the fixture is not role-catalog or threshold authority.
-The Phase-151 Playwright collector records all sources and composed badge cases, responsive
-geometry, carousel interaction/performance and blank manual signoff rows. Review the actual
-screenshots before filling subjective verdicts. Exact commands, matrix and gaps are in
+Öffne `/dev/ui-system/achievements` von `/dev/ui-system` aus. Es verwendet Produktionskomponenten
+und explizite serverförmige visuelle Fixtures; die Fixture ist keine Autorität für den
+Rollenkatalog oder Schwellenwerte. Der Phase-151-Playwright-Collector erfasst alle Quellen und
+zusammengesetzten Badge-Fälle, responsive Geometrie, Karussell-Interaktion/-Performance und
+leere manuelle Abnahme-Zeilen. Prüfe die tatsächlichen Screenshots, bevor du subjektive Urteile
+eintägst. Genaue Befehle, Matrix und Lücken stehen in
 `.planning/phases/151-erfolgsbadge-karussell-konsolidierung/`.
 
-Karaoke FX ships six 1254 × 1254 RGBA sources: Entry, motif and the four rank frames.
-The motif and frames compose through the same layered strategy as the other layered roles.
-Generation and the explicitly authorized alpha extraction for three new drafts are documented
-in `151-ARTWORK-GENERATION.md`; all 107 earlier source files remain byte-identical.
+Karaoke FX liefert sechs 1254 × 1254 RGBA-Quellen: Entry, Motiv und die vier Rang-Rahmen. Motiv
+und Rahmen setzen sich über dieselbe geschichtete Strategie wie die anderen geschichteten Rollen
+zusammen. Erzeugung und die explizit autorisierte Alpha-Extraktion für drei neue Entwürfe sind in
+`151-ARTWORK-GENERATION.md` dokumentiert; alle 107 früheren Quelldateien bleiben byteidentisch.
 
-## Container-aware image candidates
+## Containerbreiten-sensitive Bildkandidaten
 
-Lazy artwork uses native `sizes="auto, ..."` with the existing bounded viewport hint as fallback. The browser measures the actual image box inside the shared slot (for example176px within a192px hero, or48px within a64px marker), so narrow embedded cards do not advertise a wide desktop size. Priority/eager images keep the conservative fallback because auto sizes is only valid for lazy images. This follows the [HTML image sizing standard](https://html.spec.whatwg.org/dev/images.html); no ResizeObserver, per-badge fetch or second image component is introduced.
+Seit Phase 153 (RCA-01) verwendet `AchievementArtwork.tsx` kein natives `sizes="auto, ..."` mehr.
+Dieser Lazy-Loading-Hinweis verursachte unbegrenztes Wachstum von DOM-Knoten und Event-Listenern
+bei SPA-Navigation und wurde entfernt; `sizes` ist jetzt für jedes Bild — lazy oder priority
+gleichermaßen — derselbe deterministische, an die CSS-Breakpoints angelehnte String:
 
-The existing Next candidate ladder is unchanged. At DPR2 the176px hero requires352 source pixels and still selects512w because the project has no384w candidate; this is the smallest adequate shipped candidate, not an auto-sizing failure. The48px marker selects96w instead of the former160w. Source PNGs remain untouched. Older browsers may use the conservative fallback hint.
+- `HERO_SIZES = '(min-width: 658px) 240px, (min-width: 562px) 216px, 192px'`
+- `STAGE_SIZES = '(min-width: 562px) 80px, 64px'`
+
+Diese stimmen 1:1 mit den `achievement-card`-Container-Query-Breakpoints in
+`AchievementArtwork.module.css` überein, sodass Next.js' Bildoptimierer für den jeweiligen
+Breakpoint stets die tatsächlich gerenderte Slot-Breite erhält, keinen gemessenen/automatischen
+Wert. Ein Regressions-Stolperdraht in
+`frontend/src/components/editor/__tests__/publicImportGraph.test.ts` stellt sicher, dass das
+literale `auto, `-Präfix in `AchievementArtwork.tsx` nie wieder auftaucht.
+
+Die Next.js-Kandidatenleiter in `frontend/next.config.mjs` ist unverändert:
+`deviceSizes: [640, 1080, 1480, 1920]`, `imageSizes: [64, 96, 128, 160, 192, 256, 512]`. Für die
+feste `sizes`-Breite jedes Breakpoints wählt next/image weiterhin den kleinsten
+Leiter-Kandidaten, der `sizes × devicePixelRatio` abdeckt; der mobile 192-px-Hero benötigt bei
+DPR2 beispielsweise mindestens 384 Quellpixel, und da die Leiter keinen 384er-Eintrag hat, landet
+die Auswahl bei 512w — dem kleinsten passenden Kandidaten, kein Sizing-Fehler. Der
+64-px-Stufen-Marker benötigt bei DPR2 genau 128 Quellpixel, was exakt dem Leiter-Eintrag `128w`
+entspricht. Quell-PNGs bleiben unverändert.

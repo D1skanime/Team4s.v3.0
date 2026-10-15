@@ -1,5 +1,7 @@
 # UI Inventory
 
+> Archiviert am 2026-10-15, Grund: Behauptet ein fehlendes globales `Modal` und ein rein natives `Button`-Element; beide existieren inzwischen unter `frontend/src/components/ui/`.
+
 ## Zweck
 
 Dieses Inventar macht die wiederkehrenden UI-Muster des aktuellen Frontends sichtbar, bevor eine globale UI-System-Basis gebaut und später echte Seiten migriert werden.

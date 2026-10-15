@@ -1,5 +1,7 @@
 # Deployment Hardening Checklist
 
+> Archiviert am 2026-10-15, Grund: Hartcodiert `localhost:3002`/PowerShell-Skripte für "Team4s.v3.0"; widerspricht dem aktuellen Linux-only-Setup und der verifizierten Docker-Port-Zuordnung `3000:3000`.
+
 ## Scope
 Checklist for safe rollout of Team4s.v3.0 with explicit rollback and smoke verification.
 

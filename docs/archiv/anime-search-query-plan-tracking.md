@@ -1,5 +1,7 @@
 # Anime Search Query Plan Tracking
 
+> Archiviert am 2026-10-15, Grund: Beschreibt eine reine `ILIKE`-Baseline; der aktuelle Code nutzt `pg_trgm`/`tsvector` (Migration `0140`).
+
 ## Goal
 Track `ILIKE %query%` search behavior over time after `0017_anime_search_trgm` and react early if query plans drift.
 

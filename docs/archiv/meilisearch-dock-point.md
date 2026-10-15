@@ -1,5 +1,7 @@
 # Meilisearch-Andockpunkt (nur Dokumentation, D-10)
 
+> Archiviert am 2026-10-15, Grund: Reines Konzeptpapier ohne Umsetzung — im Code existiert kein Meilisearch-Paket, -Service oder -Docker-Compose-Eintrag.
+
 **Status:** Konzept-Dokumentation. **Kein Code, keine Paket-/Service-Installation.**
 **Bezug:** Phase 115 (globale Suche), Entscheidungen D-01, D-02, D-10.
 **Erstellt:** 2026-07-28 (Plan 115-08, Task 1).
