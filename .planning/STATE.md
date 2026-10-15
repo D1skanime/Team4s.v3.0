@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: completed
+status: executing
 stopped_at: Completed 184-01-PLAN.md
-last_updated: "2026-10-15T15:14:48.522Z"
+last_updated: "2026-10-15T15:41:45.097Z"
 last_activity: 2026-10-15
 progress:
   total_phases: 49
   completed_phases: 43
   total_plans: 446
-  completed_plans: 434
+  completed_plans: 435
   percent: 88
 ---
 
@@ -370,8 +370,8 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 184
-Plan: 01 of 10 (184-01 complete, 184-02..184-10 offen)
-Status: In Progress — Phase 184 (Aufräumpunkte aus Phase 174, F-07/F-12/F-20/F-23) läuft; 184-01 (D-04/F-23-Nachzieh) abgeschlossen, siehe Eintrag oben.
+Plan: 2 of 10 (184-01, 184-02 complete, 184-03..184-10 offen)
+Status: In Progress — Phase 184 (Aufräumpunkte aus Phase 174, F-07/F-12/F-20/F-23) läuft; 184-02 (D-02/F-07: computePageWindow + zwei formatDate-Helfer, 9 Konsumenten umgestellt) abgeschlossen, siehe 184-02-SUMMARY.md.
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
 Legacy-Zweige in anime_assets.go, anime_assets_cover.go, anime_assets_background.go,
@@ -1215,6 +1215,7 @@ Last activity: 2026-10-15
 - [Phase 183]: Task 1 (tdd=true) in 183-01 als kombinierter Commit umgesetzt (Helfer + Tests zusammen) — Zielwerte/Fallback verbatim aus bestehendem, verifiziertem Produktionscode (UserDetailPageClient.tsx) übernommen, kein echtes RED/GREEN-Risiko
 - [Phase 183]: Lock claim-status wording to 'Genehmigt' (not 'Verifiziert') for verified/active in the new shared claimStatusLabels.ts helper, closing the ClaimsClient.tsx alias gap for active/open/denied
 - [Phase 184]: 184-01 (D-04/F-23-Nachzieh) ausgeführt: alle 4 Literal-Duplikate der display-Namensregel im Release-Version- und generischen Media-Upload-Pfad auf services.DisplayVariantFileName umgestellt — keine Verhaltensänderung, bestehende Display-Variant-Tests weiterhin grün, siehe 184-01-SUMMARY.md
+- [Phase 184]: D-02 befolgt: zwei getrennte formatDate-Helfer (Cluster A ISO-Fallback, Cluster B Leerstring-Fallback) statt Vereinheitlichung
 
 ### Pending Todos
 
@@ -1878,10 +1879,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 183 P01 | 15min | 2 tasks | 6 files |
 | Phase 183 P02 | 6min | 3 tasks | 5 files |
 | Phase 184 P01 | ~10min | 2 tasks | 2 files |
+| Phase 184 P02 | 22min | 3 tasks | 13 files |
 
 ## Session Continuity
 
-Last session: 2026-10-15T15:14:48.492Z
+Last session: 2026-10-15T15:40:53.735Z
 Stopped at: Completed 184-01-PLAN.md
 Last activity: 2026-10-15 - Completed quick task 261015-gm3: README neu schreiben (F-11)
 Resume file: 
