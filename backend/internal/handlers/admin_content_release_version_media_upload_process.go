@@ -107,7 +107,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	assetDir := filepath.Join(h.mediaStorageDir, "release-version", versionIDStr, assetUUID)
 	originalPath := filepath.Join(assetDir, "original."+ext)
 	thumbPath := filepath.Join(assetDir, "thumb.jpg")
-	displayPath := filepath.Join(assetDir, "display."+displayExt)
+	displayPath := filepath.Join(assetDir, services.DisplayVariantFileName(originalPath, displayExt))
 
 	if err := os.MkdirAll(assetDir, 0o755); err != nil {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
@@ -281,7 +281,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 
 	thumbRelPath := strings.Join([]string{"release-version", versionIDStr, assetUUID, "thumb.jpg"}, "/")
 	thumbURL := "/media/" + thumbRelPath
-	displayRelPath := strings.Join([]string{"release-version", versionIDStr, assetUUID, "display." + displayExt}, "/")
+	displayRelPath := strings.Join([]string{"release-version", versionIDStr, assetUUID, services.DisplayVariantFileName(originalPath, displayExt)}, "/")
 	displayURL := "/media/" + displayRelPath
 
 	return rvmFileResult{
