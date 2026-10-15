@@ -67,3 +67,7 @@ docs/**/evidence/**
 database/import/v2_full_episodes_min.tsv
 # Persönliche Editor-Einstellungen
 .vscode/
+# Audit-Läufe unter docs/audits: nur Markdown-Berichte tracken (Messwerte, Screenshots, Skripte bleiben lokal)
+docs/audits/**
+!docs/audits/**/
+!docs/audits/**/*.md

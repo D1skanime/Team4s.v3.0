@@ -1,1 +1,0 @@
-Full frontend gates are independently recorded in root-gates-15905; see RESULTS for exact baseline classification.
