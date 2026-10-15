@@ -1211,6 +1211,7 @@ Last activity: 2026-10-15
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 261015-gm3 | README neu schreiben (F-11): nicht-technisches deutsches README, technischer Altinhalt wandert nach docs/ENTWICKLUNG.md | 2026-10-15 | fd3a08144 | [261015-gm3-readme-neu-schreiben-f-11-nicht-technisc](./quick/261015-gm3-readme-neu-schreiben-f-11-nicht-technisc/) |
 | 261015-gav | Review and correct docs/operations/mail-delivery.md: verify factual claims about Mailpit/Mailjet SMTP against mailer.go and config.go, fix ASCII-substitution umlauts if present | 2026-10-15 | 5e2d7fc6d | [261015-gav-review-and-correct-docs-operations-mail-](./quick/261015-gav-review-and-correct-docs-operations-mail-/) |
 | 261001-trj | Segment-Bearbeitungspanel auf globale UI-Primitives umstellen (Drawer, Button/Input/Select/Textarea, Token-Farben) | 2026-10-01 | 56b10ebb | [261001-trj-segment-bearbeitungspanel-auf-globale-ui](./quick/261001-trj-segment-bearbeitungspanel-auf-globale-ui/) |
 | 260928-6qr | Gruppen-Media-Upload an globales Upload-UI angeglichen, mit sichtbarem Drag-and-drop und Mehrfachauswahl | 2026-09-28 | pending | [260928-6qr-group-media-upload-ui](./quick/260928-6qr-group-media-upload-ui/) |
@@ -1858,6 +1859,6 @@ untruncated list lives in `.planning/todos/pending/`.
 
 Last session: 2026-10-15T09:17:53.077Z
 Stopped at: Completed 183-02-PLAN.md
-Last activity: 2026-10-15 - Completed quick task 261015-gav: Review and correct docs/operations/mail-delivery.md
+Last activity: 2026-10-15 - Completed quick task 261015-gm3: README neu schreiben (F-11)
 Resume file: 
 None
