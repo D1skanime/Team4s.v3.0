@@ -4,13 +4,14 @@ import Link from "next/link";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui";
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import { FansubGroup } from "@/types/fansub";
 import { formatPeriod, statusLabel } from "./useAdminFansubsList";
 
 import sharedStyles from "../admin.module.css";
 import fansubStyles from "./fansubs.module.css";
 
-const styles = { ...sharedStyles, ...fansubStyles };
+const styles = mergeCssModules(fansubStyles, sharedStyles);
 
 function badgeClassFor(status: FansubGroup["status"]): string {
   return status === "active"

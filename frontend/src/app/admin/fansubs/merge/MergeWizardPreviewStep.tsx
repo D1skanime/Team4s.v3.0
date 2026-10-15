@@ -1,12 +1,13 @@
 "use client";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import { FansubGroup, MergeFansubsPreviewResult } from "@/types/fansub";
 import { ConflictRow, KpiCard } from "./MergeWizardCards";
 
 import sharedStyles from "../../admin.module.css";
 import mergeStyles from "./MergeWizard.module.css";
 
-const styles = { ...sharedStyles, ...mergeStyles };
+const styles = mergeCssModules(mergeStyles, sharedStyles);
 
 export function MergeWizardPreviewStep({
   targetGroup,

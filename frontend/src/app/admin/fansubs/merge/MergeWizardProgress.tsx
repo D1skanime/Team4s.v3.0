@@ -1,11 +1,12 @@
 "use client";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import { WIZARD_STEPS, type WizardStep } from "./useMergeFansubsWizard";
 
 import sharedStyles from "../../admin.module.css";
 import mergeStyles from "./MergeWizard.module.css";
 
-const styles = { ...sharedStyles, ...mergeStyles };
+const styles = mergeCssModules(mergeStyles, sharedStyles);
 
 export function MergeWizardProgress({
   currentStep,

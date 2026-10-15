@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import { FansubGroup } from "@/types/fansub";
 
 import sharedStyles from "../../admin.module.css";
 import mergeStyles from "./MergeWizard.module.css";
 
-const styles = { ...sharedStyles, ...mergeStyles };
+const styles = mergeCssModules(mergeStyles, sharedStyles);
 
 export interface CountSummary {
   animeRelations: number;
