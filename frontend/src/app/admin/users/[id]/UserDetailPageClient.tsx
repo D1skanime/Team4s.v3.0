@@ -7,6 +7,7 @@ import { ChevronLeft } from 'lucide-react'
 import { Badge, Button, ErrorState, PageHeader, SectionHeader, Tabs } from '@/components/ui'
 import type { TabItem } from '@/components/ui'
 import { getAdminUserOverview } from '@/lib/api'
+import { appUserStatusLabel, appUserStatusVariant } from '@/lib/appUserStatusLabels'
 import type { AdminUserOverviewResponse } from '@/types/admin-users'
 
 import { UserAuditTab } from '../tabs/UserAuditTab'
@@ -52,32 +53,6 @@ const DEFAULT_DETAIL_TAB: DetailTabId = 'overview'
 
 function parseDetailTab(value: string | null): DetailTabId {
   return DETAIL_TAB_IDS.includes(value as DetailTabId) ? (value as DetailTabId) : DEFAULT_DETAIL_TAB
-}
-
-function statusVariant(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
-  switch (status) {
-    case 'active':
-      return 'success'
-    case 'pending':
-      return 'warning'
-    case 'disabled':
-      return 'danger'
-    default:
-      return 'neutral'
-  }
-}
-
-function statusLabel(status: string): string {
-  switch (status) {
-    case 'active':
-      return 'Aktiv'
-    case 'pending':
-      return 'Ausstehend'
-    case 'disabled':
-      return 'Deaktiviert'
-    default:
-      return status
-  }
 }
 
 export function UserDetailPageClient() {
@@ -215,7 +190,7 @@ export function UserDetailPageClient() {
         }
         actions={
           overview ? (
-            <Badge variant={statusVariant(overview.status)}>{statusLabel(overview.status)}</Badge>
+            <Badge variant={appUserStatusVariant(overview.status)}>{appUserStatusLabel(overview.status)}</Badge>
           ) : undefined
         }
       />

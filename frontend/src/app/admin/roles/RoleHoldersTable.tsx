@@ -15,6 +15,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from '@/components/ui'
+import { appUserStatusLabel, appUserStatusVariant } from '@/lib/appUserStatusLabels'
 import type { RoleHolderEntry } from '@/types/admin-capability'
 
 /**
@@ -35,37 +36,6 @@ function useIsMobile(): boolean {
   }, [])
 
   return isMobile
-}
-
-/**
- * Mitgliedsstatus-Badge-Mapping — identisch zu UserDetailPageClient.tsx's statusVariant/
- * statusLabel (keine zweite, abweichende Zuordnung; fansub_group_members.status kennt heute
- * nur 'active'/'disabled', die weiteren Fälle bleiben für Konsistenz mit dem Original erhalten).
- */
-function statusVariant(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
-  switch (status) {
-    case 'active':
-      return 'success'
-    case 'pending':
-      return 'warning'
-    case 'disabled':
-      return 'danger'
-    default:
-      return 'neutral'
-  }
-}
-
-function statusLabel(status: string): string {
-  switch (status) {
-    case 'active':
-      return 'Aktiv'
-    case 'pending':
-      return 'Ausstehend'
-    case 'disabled':
-      return 'Deaktiviert'
-    default:
-      return status
-  }
 }
 
 export interface RoleHoldersTableProps {
@@ -115,8 +85,8 @@ export function RoleHoldersTable({ holders }: RoleHoldersTableProps) {
                 marginBottom: 'var(--space-2)',
               }}
             >
-              <Badge variant={statusVariant(holder.membership_status)}>
-                {statusLabel(holder.membership_status)}
+              <Badge variant={appUserStatusVariant(holder.membership_status)}>
+                {appUserStatusLabel(holder.membership_status)}
               </Badge>
               <Badge variant={holder.has_overrides ? 'info' : 'muted'}>
                 {holder.has_overrides ? 'Ja' : 'Nein'}
@@ -162,8 +132,8 @@ export function RoleHoldersTable({ holders }: RoleHoldersTableProps) {
               </Button>
             </TableCell>
             <TableCell>
-              <Badge variant={statusVariant(holder.membership_status)}>
-                {statusLabel(holder.membership_status)}
+              <Badge variant={appUserStatusVariant(holder.membership_status)}>
+                {appUserStatusLabel(holder.membership_status)}
               </Badge>
             </TableCell>
             <TableCell>

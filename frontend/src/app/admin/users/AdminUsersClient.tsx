@@ -21,6 +21,7 @@ import {
   TableRow,
 } from '@/components/ui'
 import { ApiError, listAdminUsersPage } from '@/lib/api'
+import { appUserStatusLabel, appUserStatusVariant } from '@/lib/appUserStatusLabels'
 import type { AdminUserListItem } from '@/types/admin-users'
 
 import styles from './AdminUsers.module.css'
@@ -35,20 +36,6 @@ export function formatRelativeDate(isoDate: string | null): string {
   if (days < 30) return `vor ${days} Tagen`
   if (days < 365) return `vor ${Math.floor(days / 30)} Monat(en)`
   return `vor ${Math.floor(days / 365)} Jahr(en)`
-}
-
-function getStatusVariant(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
-  if (status === 'active') return 'success'
-  if (status === 'pending') return 'warning'
-  if (status === 'disabled') return 'danger'
-  return 'neutral'
-}
-
-function getStatusLabel(status: string): string {
-  if (status === 'active') return 'Aktiv'
-  if (status === 'pending') return 'Ausstehend'
-  if (status === 'disabled') return 'Deaktiviert'
-  return status
 }
 
 function readErrorMessage(err: unknown, fallback: string): string {
@@ -256,7 +243,7 @@ function AdminUserTableRow({ item, onClick }: AdminUserTableRowProps) {
 
       {/* Status */}
       <TableCell>
-        <Badge variant={getStatusVariant(item.status)}>{getStatusLabel(item.status)}</Badge>
+        <Badge variant={appUserStatusVariant(item.status)}>{appUserStatusLabel(item.status)}</Badge>
       </TableCell>
 
       {/* Globale Rollen */}

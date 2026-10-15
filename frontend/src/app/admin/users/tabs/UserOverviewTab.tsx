@@ -19,6 +19,7 @@ import {
   getAdminUserRightsSummary,
   updateAdminUserStatus,
 } from '@/lib/api'
+import { appUserStatusLabel, appUserStatusVariant } from '@/lib/appUserStatusLabels'
 import type {
   AdminConflictDetail,
   AdminHeadlineCapabilityState,
@@ -30,36 +31,6 @@ import type {
 interface Props {
   userId: number
   displayName?: string
-}
-
-// ---------------------------------------------------------------------------
-// Status-Badge-Zuordnung
-// ---------------------------------------------------------------------------
-
-function statusVariant(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
-  switch (status) {
-    case 'active':
-      return 'success'
-    case 'pending':
-      return 'warning'
-    case 'disabled':
-      return 'danger'
-    default:
-      return 'neutral'
-  }
-}
-
-function statusLabel(status: string): string {
-  switch (status) {
-    case 'active':
-      return 'Aktiv'
-    case 'pending':
-      return 'Ausstehend'
-    case 'disabled':
-      return 'Deaktiviert'
-    default:
-      return status
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -288,8 +259,8 @@ function AccountStatusSection({ data, onStatusChanged }: AccountStatusSectionPro
           flexWrap: 'wrap',
         }}
       >
-        <Badge variant={statusVariant(data.status)}>
-          {statusLabel(data.status)}
+        <Badge variant={appUserStatusVariant(data.status)}>
+          {appUserStatusLabel(data.status)}
         </Badge>
         {mutationError && (
           <p
