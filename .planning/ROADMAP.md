@@ -2754,9 +2754,9 @@ Plans:
 **Goal:** Jede Status-/Label-Gruppe (App-User-Status, Fansub-Gruppenmedien-Kategorie, Claim-Status) hat genau eine Berechnungsfunktion statt redundanter Parallel-Implementierungen — gleiche Begriffe werden überall identisch angezeigt (D-01/D-02/D-03), bestätigt durch einen Live-Checkpoint gegen echte Daten (D-04).
 **Requirements**: D-01, D-02, D-03, D-04 (Nutzerentscheidungen aus 183-CONTEXT.md, keine formale REQUIREMENTS.md-Zuordnung für diese Phase)
 **Depends on:** Phase 182
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 183-01-PLAN.md — App-User-Status-Helfer (appUserStatusLabels.ts) extrahieren, vier Konsumenten (AdminUsersClient, UserDetailPageClient, UserOverviewTab, RoleHoldersTable) umstellen (D-01).
-- [ ] 183-02-PLAN.md — Fansub-Gruppenmedien-Kategorie-Label im Admin-Review-Grid auf fansub-labels.ts umstellen (D-02); gemeinsamer Claim-Status-Helfer (claimStatusLabels.ts), UserClaimsTab + ClaimsClient umstellen (D-03).
+- [x] 183-02-PLAN.md — Fansub-Gruppenmedien-Kategorie-Label im Admin-Review-Grid auf fansub-labels.ts umstellen (D-02); gemeinsamer Claim-Status-Helfer (claimStatusLabels.ts), UserClaimsTab + ClaimsClient umstellen (D-03).
 - [ ] 183-03-PLAN.md — Frontend-Container neu starten, Live-Checkpoint gegen die 6 Vergleichs-URLs aus 183-CONTEXT.md (D-04).

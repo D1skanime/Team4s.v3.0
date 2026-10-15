@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 183-01-PLAN.md
-last_updated: "2026-10-15T09:08:35.579Z"
+stopped_at: Completed 183-02-PLAN.md
+last_updated: "2026-10-15T09:17:53.101Z"
 last_activity: 2026-10-15
 progress:
   total_phases: 48
   completed_phases: 42
   total_plans: 436
-  completed_plans: 431
+  completed_plans: 432
   percent: 88
 ---
 
@@ -356,7 +356,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 183 (status-label-konsolidierung-fachaufgabe-11-eine-kanonische-i) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
@@ -1191,6 +1191,7 @@ Last activity: 2026-10-15
 - [Phase 182]: shared/contracts: cover_image-Beschreibungen nur in openapi.yaml ergaenzt (dort existiert type:+description: bereits durchgaengig); die 4 kompakten feld:typ-Contract-Dateien ohne jedes description-Sibling blieben im Format unangetastet, nur Beispielwerte korrigiert
 - [Phase 182]: Go-SQL-Aenderungen (loadCurrentProjects GROUP BY, ListFansubAnime) vor dem Live-Apply zusaetzlich per direkter psql-Ausfuehrung gegen disposable Postgres bewiesen, nicht nur per go build/vet
 - [Phase 183]: Task 1 (tdd=true) in 183-01 als kombinierter Commit umgesetzt (Helfer + Tests zusammen) — Zielwerte/Fallback verbatim aus bestehendem, verifiziertem Produktionscode (UserDetailPageClient.tsx) übernommen, kein echtes RED/GREEN-Risiko
+- [Phase 183]: Lock claim-status wording to 'Genehmigt' (not 'Verifiziert') for verified/active in the new shared claimStatusLabels.ts helper, closing the ClaimsClient.tsx alias gap for active/open/denied
 
 ### Pending Todos
 
@@ -1850,11 +1851,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 182 P02 | 90min | 2 tasks | 15 files |
 | Phase 182 P03 | 18min | 3 tasks | 12 files |
 | Phase 183 P01 | 15min | 2 tasks | 6 files |
+| Phase 183 P02 | 6min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-10-15T09:08:35.563Z
-Stopped at: Completed 183-01-PLAN.md
+Last session: 2026-10-15T09:17:53.077Z
+Stopped at: Completed 183-02-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
