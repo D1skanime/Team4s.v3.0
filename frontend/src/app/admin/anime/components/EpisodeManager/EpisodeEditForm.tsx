@@ -10,8 +10,9 @@ import { formatEpisodeStatusLabel, parsePositiveInt } from '../../utils/anime-he
 import sharedStyles from '../../../admin.module.css'
 import contextStyles from '../AnimeContext/AnimeContext.module.css'
 import episodeStyles from './EpisodeManager.module.css'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 
-const styles = { ...sharedStyles, ...contextStyles, ...episodeStyles }
+const styles = mergeCssModules(episodeStyles, mergeCssModules(contextStyles, sharedStyles))
 
 interface EpisodeEditFormProps {
   episodeOpenID: number | null

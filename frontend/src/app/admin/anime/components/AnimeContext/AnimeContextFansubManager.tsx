@@ -7,8 +7,9 @@ import { FansubGroup } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
 import contextStyles from './AnimeContext.module.css'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 
-const styles = { ...sharedStyles, ...contextStyles }
+const styles = mergeCssModules(contextStyles, sharedStyles)
 
 /**
  * Props des AnimeContextFansubManagers.

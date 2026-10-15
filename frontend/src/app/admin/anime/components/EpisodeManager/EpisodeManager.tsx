@@ -17,8 +17,9 @@ import { EpisodeCreateForm } from './EpisodeCreateForm'
 import { EpisodeEditor } from './EpisodeEditor'
 import sharedStyles from '../../../admin.module.css'
 import episodeStyles from './EpisodeManager.module.css'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 
-const styles = { ...sharedStyles, ...episodeStyles }
+const styles = mergeCssModules(episodeStyles, sharedStyles)
 
 const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
 

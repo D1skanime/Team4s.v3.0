@@ -4,8 +4,9 @@ import { EpisodeStatus } from '@/types/anime'
 
 import sharedStyles from '../../../admin.module.css'
 import episodeStyles from './EpisodeManager.module.css'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 
-const styles = { ...sharedStyles, ...episodeStyles }
+const styles = mergeCssModules(episodeStyles, sharedStyles)
 
 interface EpisodeFiltersProps {
   inputRef: RefObject<HTMLInputElement>

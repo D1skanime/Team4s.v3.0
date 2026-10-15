@@ -10,8 +10,9 @@ import { AnimeContextFansubs } from './AnimeContextFansubs'
 import { AnimeContextFansubManager } from './AnimeContextFansubManager'
 import sharedStyles from '../../../admin.module.css'
 import contextStyles from './AnimeContext.module.css'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 
-const styles = { ...sharedStyles, ...contextStyles }
+const styles = mergeCssModules(contextStyles, sharedStyles)
 
 /**
  * Props der AnimeContextCard-Komponente.
