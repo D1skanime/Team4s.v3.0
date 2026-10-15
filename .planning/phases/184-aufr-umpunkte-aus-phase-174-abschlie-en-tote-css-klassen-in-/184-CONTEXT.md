@@ -14,6 +14,56 @@ Vier aus Phase 174 übernommene Wartbarkeits-Altlasten endgültig schließen —
   bereits konsolidierten Kern bestätigen, die verbliebenen Literal-Duplikate im Upload-Pfad auf
   den Helfer umstellen).
 
+## Nutzerentscheidungen (final, verbindlich)
+
+- **D-01 (F-12):** EIN gemeinsamer Helfer für den CSS-Modul-Merge (z. B.
+  `frontend/src/lib/mergeCssModules.ts`, Proxy-basiert wie die 174-23/176-Reparatur:
+  `mergeCssModules(own, shared)` → `new Proxy({}, { get: (_, p) => own[p] ?? shared[p] })`). Alle
+  22 noch fehlerhaften Stellen UND die 16 bereits reparierten Kopien (inline-Proxy) werden darauf
+  umgestellt — danach existiert die Merge-Logik nur noch an einer Stelle (38 Dateien insgesamt).
+  Logik-Test des Helfers: Vorrang eigener Klassen vor geteilten, Fallback auf geteilte wenn eigene
+  fehlt, unbekannte Keys liefern `undefined` (kein Fehler).
+- **D-02 (F-07):** `formatDate` → ZWEI zentrale Helfer, je Verhaltens-Gruppe einer (identische
+  Ausgabe wie heute, inkl. unterschiedlichem Fallback-Verhalten bei leeren/kaputten Daten
+  zwischen Cluster A und Cluster B — siehe Ist-Zustand). Alle 7 Kopien (4× Cluster A + 3× Cluster
+  B) werden auf die zwei Helfer umgestellt. Pagination-Fensterberechnung → ein gemeinsamer Helfer
+  (`computePageWindow`) für beide Pagination-Komponenten. Logik-Tests für alle Fälle (gültiges
+  Datum, leerer String, Grenzwerte der Pagination).
+- **D-03 (F-20):** Nur unbenutzte Klassen aus `FansubEdit.module.css` löschen; die verbliebenen
+  Einzel-Nutzer-Klassen werden NICHT in die Module ihrer Komponenten verschoben. Vor dem Löschen
+  muss die Nutzungsprüfung belegt werden — dabei auch dynamische Klassennamen-Zugriffe
+  (`styles[variable]`, Template-Strings, zusammengesetzte Keys) berücksichtigen, nicht nur
+  `styles.literalName`. Visuelle Absicherung: Vorher/Nachher-Screenshots aller Tabs von
+  `/admin/fansubs/1/edit` und `/admin/fansubs/create`, je Desktop und ~375px, per Playwright im
+  Frontend-Container (`frontend/scripts/shot.mjs`; vor dem Lauf `docker restart
+  team4sv30-frontend` gegen Zombie-Chromium-Prozesse), pixelweise verglichen — jede Abweichung
+  zählt als Fehler und muss vor Abschluss geklärt sein.
+- **D-04 (F-23):** Kernpunkt (zwei Implementierungen → eine) ist bereits erledigt, keine weitere
+  Aktion dafür nötig. Die 4 Literal-Duplikate im Upload-Pfad
+  (`admin_content_release_version_media_upload_process.go:110,284`,
+  `media_upload_image.go:202,303`) werden auf `services.DisplayVariantFileName(...)` umgestellt,
+  sofern risikoarm (Upload-Pfad geht immer von einem frischen `original.<ext>` aus, Helfer liefert
+  denselben Literalwert zurück) — andernfalls wird das begründet weggelassen.
+- **D-05 (Datei-Längen-Regel):** Keine sichtbare Änderung in der gesamten Phase. CLAUDE.md-Regel
+  „Übergroße Dateien beim Anfassen aufteilen" gilt: Jede durch D-01/D-02/D-04 inhaltlich berührte
+  Produktionsdatei über 450 Zeilen wird im selben Plan zuerst per reinem Umbau-Commit (ohne
+  Verhaltensänderung, Tests/typecheck grün) aufgeteilt, danach erst inhaltlich geändert — als
+  zweiter, separater Commit. Nur tatsächlich berührte Dateien, keine Nachbardateien.
+
+**Datei-Längen-Inventur (Stand 2026-10-15, per `wc -l` über alle durch D-01/D-02/D-04 betroffenen
+Dateien) — diese 5 Dateien liegen über 450 Zeilen und werden durch F-12 inhaltlich angefasst
+(Spread-Merge → Helferaufruf), müssen also vor der Änderung aufgeteilt werden:**
+
+| Datei | Zeilen | Betroffen durch |
+|---|---|---|
+| `frontend/src/app/admin/fansubs/merge/page.tsx` | 954 | F-12 |
+| `frontend/src/app/admin/fansubs/page.tsx` | 760 | F-12 |
+| `frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab.tsx` | 743 | F-12 |
+| `frontend/src/app/admin/fansubs/[id]/edit/FansubAppMembersSection.tsx` | 657 | F-12 |
+| `frontend/src/app/admin/episodes/page.tsx` | 637 | F-12 |
+
+Alle übrigen durch F-07/F-12/F-23 berührten Dateien liegen unter 450 Zeilen (größte: `admin/fansubs/create/page.tsx` 426, `admin/anime/components/EpisodeManager/EpisodeManager.tsx` 367, `admin_content_release_version_media_upload_process.go` 296, `media_upload_image.go` 364) — keine weiteren Aufteilungen nötig. F-20 berührt nur die CSS-Datei selbst (3.306 Zeilen, keine Produktionscode-Datei im Sinn der Zeilenregel) und keine der konsumierenden `.tsx`-Dateien inhaltlich (D-03: nur Löschen in der CSS-Datei, kein Verschieben, keine Komponentenänderung).
+
 ## Ist-Zustand (neu verifiziert am Code vom 2026-10-15, per grep/Read — keine Schätzungen)
 
 Seit Phase 174 liefen die Phasen 175–183. Zwei der vier Punkte haben sich dadurch bereits
@@ -144,34 +194,42 @@ Stelle):** Der Upload-Pfad für Release-Medien hartcodiert denselben Trivialfall
 | `backend/internal/handlers/media_upload_image.go:202` | `displayPath := filepath.Join(storagePath, "display."+displayExt)` |
 | `backend/internal/handlers/media_upload_image.go:303` | `displayFilename := "display."+encExt` |
 
-## Vorschlag Umsetzung
+## Vorschlag Umsetzung (gemäß D-01..D-05)
 
-1. **F-23 zuerst (kleinstes Risiko, reiner Bonus):** Die 4 Literal-Stellen in
+1. **F-23 zuerst (kleinstes Risiko, reiner Bonus, D-04):** Die 4 Literal-Stellen in
    `admin_content_release_version_media_upload_process.go` und `media_upload_image.go` auf
    `services.DisplayVariantFileName(originalPath, ext)` umstellen. Da der Upload-Pfad immer von
    einem frischen `original.<ext>` ausgeht, liefert der Helfer in diesen Fällen exakt
-   `"display."+ext"` zurück — keine Verhaltensänderung, nur eine Stelle weniger.
-2. **F-07:**
+   `"display."+ext"` zurück — keine Verhaltensänderung, nur eine Stelle weniger. Keine der beiden
+   Dateien liegt über 450 Zeilen (296 bzw. 364) — kein Split nötig.
+2. **F-07 (D-02):**
    - Pagination: `computePageWindow(currentPage, totalPages): number[]` als reine Funktion
-     extrahieren (z. B. in `frontend/src/components/ui/`), beide Komponenten rufen sie auf.
-   - formatDate: einen gemeinsamen Helfer (z. B. `frontend/src/lib/formatDate.ts`) für den
-     byte-identischen Cluster A (4 Dateien) **und** Cluster B (3 Dateien, zwei unterschiedliche
-     Implementierungen desselben Datumsformats) bereitstellen — siehe offene Frage unten, da beide
-     Cluster leicht unterschiedlich implementiert sind (try/catch+`toLocaleDateString` vs.
-     Null-Guard+`Intl.DateTimeFormat`), aber dieselbe Ausgabe liefern.
-3. **F-12:** Den in den 16 Dateien bereits 16-fach kopierten Proxy-Code zu einem echten,
-   exportierten Helfer machen (z. B. `frontend/src/lib/mergeModuleStyles.ts`,
-   `mergeModuleStyles(own, shared)`), die 16 Dateien darauf umstellen (kein Verhaltensunterschied,
-   nur Entduplizierung), und die 22 noch kaputten Stellen auf denselben Helfer umstellen (das ist
-   eine echte Bugfix-Komponente — siehe Risiken).
-4. **F-20:** Nach einem Vorher/Nachher-Bildvergleich der `admin/fansubs/[id]/edit`-Seite (alle
-   Tabs) die ≈206 unreferenzierten Klassen entfernen, danach die verbliebenen Einzel-Nutzer-
-   Klassen in die Module ihrer jeweiligen Komponente verschieben (wie 174-REPORT es für den
-   "echten Kern" vorzeichnet).
+     extrahieren (z. B. in `frontend/src/components/ui/`), beide Pagination-Komponenten rufen sie
+     auf.
+   - formatDate: ZWEI Helfer bereitstellen — einer für Cluster A (ISO-String-Fallback bei
+     Exception, deckt `UserClaimsTab.tsx`, `ClaimsClient.tsx`, `ReviewQueue.tsx`,
+     `ContributionsReviewSection.tsx` ab), einer für Cluster B (Leerstring-Fallback bei
+     leerem/falsy Wert, deckt `GroupMediaReviewGrid.tsx`, `GroupMediaReviewDetailDrawer.tsx`,
+     `useGroupMediaReviewFilters.ts` ab). Beide Helfer liefern für gültige Daten identische
+     Ausgabe wie heute, ihr unterschiedliches Fallback-Verhalten bleibt erhalten (keine
+     Vereinheitlichung der Philosophie, nur Entduplizierung je Gruppe).
+3. **F-12 (D-01):** `frontend/src/lib/mergeCssModules.ts` mit `mergeCssModules(own, shared)`
+   (Proxy-basiert) anlegen, Logik-Test dafür schreiben. Danach ALLE 38 betroffenen Dateien (16
+   bereits reparierte inline-Proxy-Kopien + 22 noch kaputte Spread-Stellen) auf den Helfer
+   umstellen. Die 5 Dateien über 450 Zeilen (siehe Datei-Längen-Inventur oben) zuerst in einem
+   reinen Umbau-Commit aufteilen, dann erst den Helferaufruf einsetzen.
+4. **F-20 (D-03):** Nutzungsprüfung alle Top-Level-Klassen in `FansubEdit.module.css` gegen alle
+   25 importierenden Dateien — sowohl `styles.literalName`/`fansubEditStyles.literalName` als auch
+   dynamische Zugriffe (`styles[variable]`, berechnete Keys, Template-Strings) grep-geprüft.
+   Danach nur die als unbenutzt belegten Klassen löschen (kein Verschieben, D-03). Vor und nach
+   dem Löschen Playwright-Screenshots aller Tabs von `/admin/fansubs/1/edit` und
+   `/admin/fansubs/create` (Desktop + ~375px) über `frontend/scripts/shot.mjs`
+   (`docker restart team4sv30-frontend` vorher gegen Zombie-Chromium), pixelweiser Vergleich als
+   Live-Checkpoint am Ende der Phase.
 
 Reihenfolge nach Risiko: F-23 (fast risikofrei) → F-07 (Unit-testbar, kein Rendering-Risiko) →
-F-12 (behebt einen echten, bisher nur in Tests sichtbaren Bug — siehe Risiken) → F-20 (einzige
-Änderung mit echtem visuellen Regressionsrisiko).
+F-12 (behebt einen echten, bisher nur in Tests sichtbaren Bug, inkl. nötiger Datei-Splits) → F-20
+(einzige Änderung mit echtem visuellen Regressionsrisiko, daher der Live-Checkpoint am Ende).
 
 ## Risiken
 
@@ -187,16 +245,17 @@ F-12 (behebt einen echten, bisher nur in Tests sichtbaren Bug — siehe Risiken)
   nichts Sichtbares, behebt aber ein latentes Test-/Edge-Case-Risiko. Nach Umstellung je Cluster
   den vorhandenen Komponenten-Test (falls vorhanden) laufen lassen; für Cluster ohne Tests
   (EpisodeManager, AnimeBrowser, AnimeContext) stichprobenhaft im Dev-Server rendern.
-- **F-07 (formatDate-Vereinheitlichung):** Cluster A und Cluster B liefern für gültige Daten
-  dieselbe Textausgabe, unterscheiden sich aber im Verhalten bei ungültiger/leerer Eingabe
-  (Cluster A fällt auf den rohen ISO-String zurück, Cluster B auf einen Leerstring `''`) — das ist
-  eine echte Entscheidung, siehe offene Frage unten.
-- **Datei-Längen-Regel (CLAUDE.md):** Falls eine berührte Datei beim inhaltlichen Anfassen über
-  450 Zeilen liegt, muss sie im selben Auftrag aufgeteilt werden. Keine der hier identifizierten
-  Dateien liegt aktuell über dem Limit (größte Einzeldatei im Scope: `FansubEdit.module.css` ist
-  CSS, keine Produktionscode-Datei im Sinn der Zeilenregel — die Regel gilt für Produktionsdateien;
-  zu klären, ob CSS-Module in ihren Geltungsbereich fallen, ist für dieses Vorhaben irrelevant, da
-  nach dem Entfernen toter Klassen die Datei kleiner, nicht größer wird).
+- **F-07 (formatDate, zwei Helfer statt einer, D-02):** Cluster A und Cluster B liefern für
+  gültige Daten dieselbe Textausgabe, unterscheiden sich aber im Verhalten bei ungültiger/leerer
+  Eingabe (Cluster A fällt auf den rohen ISO-String zurück, Cluster B auf einen Leerstring `''`).
+  Entschieden: beide Fallback-Verhalten bleiben erhalten (zwei Helfer), keine Vereinheitlichung —
+  dadurch keine Verhaltensänderung an den 7 Konsumenten.
+- **Datei-Längen-Regel (CLAUDE.md, D-05):** 5 Dateien über 450 Zeilen werden durch F-12 inhaltlich
+  angefasst (siehe Datei-Längen-Inventur oben) und müssen vor der eigentlichen Änderung in einem
+  reinen Umbau-Commit aufgeteilt werden — zusätzlicher Aufwand und zusätzliches Regressionsrisiko
+  pro Split (öffentliche Schnittstellen/Importe müssen stabil bleiben oder vollständig nachgezogen
+  werden). Jeder Split braucht eine eigene Verifikation (Tests/typecheck grün), bevor der
+  inhaltliche F-12-Commit folgt.
 
 ## Abgrenzung (explizit NICHT Teil dieser Phase)
 
@@ -211,68 +270,12 @@ F-12 (behebt einen echten, bisher nur in Tests sichtbaren Bug — siehe Risiken)
 - Keine Schema-/API-/Verhaltensänderung außerhalb der in den offenen Fragen explizit zur
   Entscheidung gestellten Punkte.
 
-## Offene Fragen an den Nutzer
+## Entscheidungen final (vormals offene Fragen — durch Nutzer entschieden, siehe D-01..D-05 oben)
 
-### Frage 1: formatDate — Cluster A und Cluster B zu einem Helfer zusammenführen, oder getrennt lassen?
-
-Cluster A (4 Dateien: `UserClaimsTab.tsx`, `ClaimsClient.tsx`, `ReviewQueue.tsx`,
-`ContributionsReviewSection.tsx`) und Cluster B (3 Dateien: `GroupMediaReviewGrid.tsx`,
-`GroupMediaReviewDetailDrawer.tsx`, `useGroupMediaReviewFilters.ts`) liefern für ein gültiges
-ISO-Datum **dieselbe Ausgabe** (`TT.MM.JJJJ`), aber unterschiedliches Verhalten bei
-Eingabe-Problemen:
-
-| Eingabe | Cluster A (`try/catch` + `toLocaleDateString`) | Cluster B (Null-Guard + `Intl.DateTimeFormat`) |
-|---|---|---|
-| gültiges ISO-Datum, z. B. `"2026-10-15T00:00:00Z"` | `"15.10.2026"` | `"15.10.2026"` |
-| leerer String `""` | `"15.10.2026"`-ähnlicher Fallback: `new Date('')` ist `Invalid Date`, `toLocaleDateString` wirft **nicht**, liefert `"Invalid Date"` als Text (kein catch-Fall, da keine Exception) | `if (!value) return ''` → leerer String |
-| `null`/`undefined` | Typfehler zur Compile-Zeit vermieden durch TS-Signatur `string`; zur Laufzeit bei `any`-Durchreichung würde `new Date(null)` = Epoch 1970 liefern | von `if (!value)` abgefangen → `''` |
-
-**Optionen:**
-- **(a)** Zwei getrennte Helfer behalten (`formatDateDE` für Cluster A mit ISO-Fallback,
-  `formatDateOrEmpty` für Cluster B mit Leerstring-Fallback) — löst nur die Duplikation
-  *innerhalb* jedes Clusters, lässt die zwei unterschiedlichen Fallback-Philosophien bestehen.
-- **(b)** Einen gemeinsamen Helfer mit dem robusteren Verhalten (Leerstring-Fallback, kein
-  `"Invalid Date"`-Text) für beide Cluster — ändert Cluster A's Verhalten minimal bei kaputten
-  Daten (aktuell theoretisch nie beobachtet, da alle 4 Cluster-A-Stellen echte DB-Timestamps
-  rendern).
-- **Empfehlung:** (a) — zwei Helfer, kein Verhaltensrisiko, passt zur "ohne sichtbare Änderung"-
-  Vorgabe dieser Phase. Eine Vereinheitlichung der Fallback-Philosophie wäre eine eigene,
-  bewusste Entscheidung außerhalb einer reinen Entduplizierungsphase.
-
-### Frage 2: F-12 — welchen Umfang soll Phase 184 abdecken?
-
-174-FOLLOWUPS.md nennt F-12 nur für die 16 Dateien im `admin/fansubs/[id]/edit/`-Ordner — die sind
-bereits gefixt. Der Phasentitel ("latenten CSS-Modul-Merge-Fehler beheben (F-12)") impliziert aber
-das Beheben des Fehlers an sich, nicht nur den ursprünglich genannten Dateikreis, und es wurden
-22 weitere betroffene Produktionsdateien gefunden (siehe oben).
-
-**Optionen:**
-- **(a) Eng:** Nur den bereits gefixten 16-Dateien-Kreis bestätigen + den dort 16-fach kopierten
-  Proxy-Code zu einem zentralen Helfer zusammenführen (reine Entduplizierung der Lösung, kein
-  neuer Scope).
-- **(b) Weit:** Zusätzlich die 22 neu gefundenen Stellen (AnimeBrowser/AnimeContext/EpisodeManager/
-  fansubs-create/-merge/-page + ReleaseVersionNotesTab) auf denselben Helfer umstellen — behebt den
-  latenten Fehler wirklich vollständig, ist aber mehr als der ursprüngliche 174-FOLLOWUPS-Wortlaut
-  und deutlich mehr Dateien (22 statt 16).
-- **Empfehlung:** (b) — der Phasentitel sagt "latenten Fehler beheben", nicht "die 16 bekannten
-  Stellen bestätigen"; den Fehler nur teilweise zu beheben würde bedeuten, dass dieselbe Klasse von
-  Bug in neuem Code (EpisodeManager, AnimeBrowser — beide erst nach 174 entstanden/erweitert)
-  weiterhin unbemerkt bleibt. Kosten sind moderat (22 Dateien, mechanische Umstellung, kein
-  Logikrisiko, da der Helfer bereits 16-fach erprobt im Code liegt).
-
-### Frage 3: F-20 — wie weit beim Verschieben der Einzel-Nutzer-Klassen gehen?
-
-174-REPORT.md schlägt vor, nach dem Löschen der toten Klassen auch die 37 (heute: ähnlich viele)
-nur von einer einzigen Komponente genutzten Klassen aus `FansubEdit.module.css` in das CSS-Modul
-ihrer jeweiligen Komponente zu verschieben.
-
-**Optionen:**
-- **(a)** Nur löschen, nicht verschieben — kleinerer, risikoärmerer Schnitt für diese Phase;
-  Verschieben als eigener Folgepunkt.
-- **(b)** Löschen UND verschieben in einem Zug — größerer Diff, aber vermeidet eine zweite
-  Anfass-Runde derselben Datei.
-- **Empfehlung:** (a) für diese Phase — das Löschen ist bereits die riskantere Teiloperation
-  (visuelle Regression); das Verschieben in derselben Phase würde das Diff unnötig vergrößern und
-  die Ursachensuche bei einem gefundenen Regressions-Screenshot erschweren. Verschieben kann ein
-  kleiner, risikoarmer Folgeschritt sein, sobald die toten Klassen weg sind und die Datei
-  übersichtlicher ist.
+- **formatDate (D-02):** Zwei getrennte Helfer, je einer pro Verhaltens-Gruppe — kein
+  Verhaltensrisiko, Fallback-Philosophien bleiben unverändert erhalten.
+- **F-12-Umfang (D-01):** Weit — alle 38 betroffenen Dateien (16 bereits gefixte + 22 neu
+  gefundene) werden auf den neuen zentralen Helfer umgestellt, nicht nur der ursprüngliche
+  174-Dateikreis.
+- **F-20-Verschieben (D-03):** Nur löschen, nicht verschieben — Einzel-Nutzer-Klassen bleiben an
+  Ort und Stelle in `FansubEdit.module.css`.
