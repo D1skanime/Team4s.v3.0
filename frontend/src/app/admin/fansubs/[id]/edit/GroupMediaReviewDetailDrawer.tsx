@@ -10,6 +10,7 @@ import {
   FansubMediaVisibility,
   resolveApiUrl,
 } from '@/lib/api'
+import { FANSUB_MEDIA_CATEGORY_OPTIONS } from '@/lib/fansub-labels'
 
 import styles from './GroupMediaReviewSection.module.css'
 
@@ -22,17 +23,6 @@ interface MediaDraft {
   category: FansubGroupMediaCategory
   sort_order: number
 }
-
-const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }> = [
-  { value: 'gallery', label: 'Galerie' },
-  { value: 'history_screenshot', label: 'Historische Screenshots' },
-  { value: 'old_website', label: 'Alte Webseite' },
-  { value: 'forum', label: 'Forum' },
-  { value: 'irc_chat', label: 'IRC / Chat' },
-  { value: 'event_meeting', label: 'Event / Treffen' },
-  { value: 'artwork_fanart', label: 'Artwork / Fanart' },
-  { value: 'other', label: 'Sonstiges' },
-]
 
 const REVIEW_STATUS_OPTIONS: Array<{ value: FansubMediaReviewStatus; label: string }> = [
   { value: 'in_pruefung', label: 'In Prüfung' },
@@ -238,7 +228,7 @@ export function GroupMediaReviewDetailDrawer({
                         disabled={!canUpdate}
                         onChange={(event) => updateDraft(editingItem.id, 'category', event.target.value as FansubGroupMediaCategory)}
                       >
-                        {CATEGORY_OPTIONS.map((option) => (
+                        {FANSUB_MEDIA_CATEGORY_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
                       </Select>

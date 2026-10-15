@@ -13,21 +13,11 @@ import {
 } from '@/components/ui'
 import type { FansubGroupMediaCategory, FansubGroupMediaUploadResult } from '@/lib/api'
 import { patchFansubMediaReview, uploadFansubGroupMedia } from '@/lib/api'
+import { FANSUB_MEDIA_CATEGORY_OPTIONS } from '@/lib/fansub-labels'
 import { useUploadQueue, type UploadAdapter } from '@/hooks/useUploadQueue'
 import { fileKey } from '@/hooks/useUploadQueue.helpers'
 
 import styles from './GroupMediaReviewSection.module.css'
-
-const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }> = [
-  { value: 'gallery', label: 'Galerie' },
-  { value: 'history_screenshot', label: 'Historische Screenshots' },
-  { value: 'old_website', label: 'Alte Webseite' },
-  { value: 'forum', label: 'Forum' },
-  { value: 'irc_chat', label: 'IRC / Chat' },
-  { value: 'event_meeting', label: 'Event / Treffen' },
-  { value: 'artwork_fanart', label: 'Artwork / Fanart' },
-  { value: 'other', label: 'Sonstiges' },
-]
 
 interface GroupMediaReviewUploadPanelProps {
   fansubId: number
@@ -109,7 +99,7 @@ export function GroupMediaReviewUploadPanel({
             value={uploadCategory}
             onChange={(event) => setUploadCategory(event.target.value as FansubGroupMediaCategory)}
           >
-            {CATEGORY_OPTIONS.map((option) => (
+            {FANSUB_MEDIA_CATEGORY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </Select>

@@ -3,6 +3,7 @@ import { Filter } from 'lucide-react'
 import { Button, FormField, Input, Select } from '@/components/ui'
 import { classNames } from '@/components/ui/classNames'
 import type { FansubGroupMediaCategory, FansubMediaReviewStatus, FansubMediaVisibility } from '@/lib/api'
+import { FANSUB_MEDIA_CATEGORY_OPTIONS } from '@/lib/fansub-labels'
 
 import styles from './GroupMediaReviewSection.module.css'
 
@@ -10,17 +11,6 @@ type CategoryFilter = 'all' | FansubGroupMediaCategory
 type ReviewStatusFilter = 'all' | FansubMediaReviewStatus
 type VisibilityFilter = 'all' | FansubMediaVisibility
 type SortMode = 'sort_order' | 'created_desc' | 'created_asc'
-
-const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }> = [
-  { value: 'gallery', label: 'Galerie' },
-  { value: 'history_screenshot', label: 'Historische Screenshots' },
-  { value: 'old_website', label: 'Alte Webseite' },
-  { value: 'forum', label: 'Forum' },
-  { value: 'irc_chat', label: 'IRC / Chat' },
-  { value: 'event_meeting', label: 'Event / Treffen' },
-  { value: 'artwork_fanart', label: 'Artwork / Fanart' },
-  { value: 'other', label: 'Sonstiges' },
-]
 
 const REVIEW_STATUS_OPTIONS: Array<{ value: FansubMediaReviewStatus; label: string }> = [
   { value: 'in_pruefung', label: 'In Prüfung' },
@@ -131,7 +121,7 @@ export function GroupMediaReviewFilterBar({
         <FormField label="Kategorie">
           <Select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}>
             <option value="all">Alle Kategorien</option>
-            {CATEGORY_OPTIONS.map((option) => (
+            {FANSUB_MEDIA_CATEGORY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </Select>
