@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 184-09-PLAN.md
-last_updated: "2026-10-15T17:15:05.005Z"
+stopped_at: Completed 184-06-PLAN.md
+last_updated: "2026-10-15T17:25:40.570Z"
 last_activity: 2026-10-15
 progress:
   total_phases: 49
   completed_phases: 43
   total_plans: 446
-  completed_plans: 441
+  completed_plans: 442
   percent: 88
 ---
 
@@ -370,7 +370,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 184
-Plan: 9 of 10 (184-01, 184-02 complete, 184-03..184-10 offen)
+Plan: 10 of 10 (184-01, 184-02 complete, 184-03..184-10 offen)
 Status: Ready to execute
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
@@ -1222,6 +1222,7 @@ Last activity: 2026-10-15
 - [Phase 184]: 184-07: admin/episodes/page.tsx (637 Zeilen) vor der mergeCssModules-Umstellung in Render + useAdminEpisodesPage-Hook aufgeteilt (D-05-Reihenfolge: Split-Commit vor inhaltlichem Commit).
 - [Phase 184]: 184-08: AnimeContext/EpisodeManager-Cluster (11 Dateien) auf mergeCssModules umgestellt, kein D-05-Split nötig (alle Dateien unter 450 Zeilen) — F-12/D-01 weiterer Baustein
 - [Phase 184]: ReleaseVersionNotesTab exportiert die mergeCssModules-styles-Konstante; EditorParts importiert sie statt den Merge-Aufruf zu duplizieren — D-01: genau ein mergeCssModules-Aufruf pro Komponentenfamilie, keine zweite Kopie durch den Datei-Split
+- [Phase 184]: 184-06: Kein weiterer Datei-Split noetig, da 184-05 page.tsx/merge/page.tsx bereits auf <=450 Zeilen gebracht hatte; 7 Fansub-Umfeld-Dateien (Liste, Create-Flow, Merge-Wizard) auf mergeCssModules(X, sharedStyles) umgestellt, F-12/D-01 damit fuer den gesamten 38-Dateien-Umfang abgeschlossen.
 
 ### Pending Todos
 
@@ -1892,11 +1893,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 184 P07 | 15min | 2 tasks | 5 files |
 | Phase 184 P08 | 20min | 2 tasks | 11 files |
 | Phase 184 P09 | 20min | 2 tasks | 3 files |
+| Phase 184 P06 | 20min | 2 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-15T17:15:04.973Z
-Stopped at: Completed 184-09-PLAN.md
+Last session: 2026-10-15T17:25:33.132Z
+Stopped at: Completed 184-06-PLAN.md
 Last activity: 2026-10-15 - Completed quick task 261015-gm3: README neu schreiben (F-11)
 Resume file: 
 None
