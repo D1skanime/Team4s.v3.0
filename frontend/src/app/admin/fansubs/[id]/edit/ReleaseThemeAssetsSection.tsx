@@ -11,15 +11,13 @@ import {
 } from '@/lib/api'
 import { MediaOwnershipContext } from '@/components/admin/media/MediaOwnershipContext'
 import type { MediaOwnershipContextValue } from '@/components/admin/media/MediaOwnershipContext'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import { AdminAnimeTheme, AdminReleaseThemeAsset } from '@/types/admin'
 
 import sharedStyles from '../../../admin.module.css'
 import opEdStyles from './FansubOpEdSection.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    opEdStyles[prop as keyof typeof opEdStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(opEdStyles, sharedStyles)
 
 interface ReleaseThemeAssetsSectionProps {
   fansubID: number

@@ -13,16 +13,14 @@ import {
   TableHeaderCell,
   TableRow,
 } from '@/components/ui'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import type { MemberRequestRow } from '@/types/profile'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 import ownStyles from './GroupMemberRequestsTable.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 function formatDate(value: string): string {
   const date = new Date(value)

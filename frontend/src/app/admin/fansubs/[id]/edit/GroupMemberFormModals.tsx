@@ -13,6 +13,7 @@ import {
   Select,
   Switch,
 } from '@/components/ui'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import { type RoleDefinitionOption } from '@/types/admin-capability'
 import type { HistFansubGroupMember, HistoricalContributionVisibility } from '@/types/fansub'
 import { findDuplicateMemberMatches, type InlineMemberRoleDraft } from './useGroupMembersTab'
@@ -21,10 +22,7 @@ import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 import ownStyles from './GroupMemberFormModals.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 export type MemberFormFields = {
   displayName: string

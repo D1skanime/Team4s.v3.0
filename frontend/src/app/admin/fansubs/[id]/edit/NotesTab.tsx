@@ -11,6 +11,7 @@ import {
   updateFansubGroupNote,
 } from '@/lib/api'
 import { useConfirmDialog } from '@/components/ui'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import { useAuthSession } from '@/lib/useAuthSession'
 import {
   CreateFansubGroupNoteRequest,
@@ -27,10 +28,7 @@ import {
   GroupNotePreview,
 } from './NotesTab.helpers'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 function errMessage(error: unknown): string {
   return error instanceof ApiError ? `(${error.status}) ${error.message}` : 'Anfrage fehlgeschlagen.'

@@ -10,6 +10,7 @@ import {
   ErrorState,
   LoadingState,
 } from '@/components/ui'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import { orderForContext } from '@/lib/roleCatalog'
 
 import sharedStyles from '../../../admin.module.css'
@@ -21,10 +22,7 @@ import { FansubAppMembersOverview } from './FansubAppMembersOverview'
 import { GroupMembersTab } from './GroupMembersTab'
 import { useFansubAppMembersSection } from './useFansubAppMembersSection'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 type FansubAppMembersSectionProps = {
   hasAccessToken?: boolean

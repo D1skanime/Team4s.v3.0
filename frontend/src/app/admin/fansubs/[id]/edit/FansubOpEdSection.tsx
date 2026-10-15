@@ -3,16 +3,14 @@
 import { useEffect, useState } from 'react'
 
 import { getAdminAnimeThemes, getAdminFansubAnime } from '@/lib/api'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import { AdminAnimeTheme, AdminFansubAnimeEntry } from '@/types/admin'
 
 import sharedStyles from '../../../admin.module.css'
 import opEdStyles from './FansubOpEdSection.module.css'
 import { ReleaseThemeAssetsSection } from './ReleaseThemeAssetsSection'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    opEdStyles[prop as keyof typeof opEdStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(opEdStyles, sharedStyles)
 
 interface FansubOpEdSectionProps {
   fansubID: number

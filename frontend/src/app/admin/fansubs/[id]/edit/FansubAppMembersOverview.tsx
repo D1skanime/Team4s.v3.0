@@ -23,6 +23,7 @@ import {
   type FansubGroupMediaPermissions,
 } from '@/types/fansub'
 import { ROLE_CATALOG_CHIP_CLASS, labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 
 import sharedStyles from '../../../admin.module.css'
@@ -30,10 +31,7 @@ import fansubEditStyles from './FansubEdit.module.css'
 import ownStyles from './FansubAppMembersOverview.module.css'
 import { useFansubEditMediaQuery } from './hooks/useFansubEditViewport'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 const MEDIA_PERMISSION_KEYS: Array<keyof FansubGroupMediaPermissions> = [
   'can_upload', 'can_delete_own', 'can_delete_all', 'can_reorder',

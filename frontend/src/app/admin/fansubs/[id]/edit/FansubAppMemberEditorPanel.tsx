@@ -11,6 +11,7 @@ import {
   Select,
 } from '@/components/ui'
 import { type RoleDefinitionOption } from '@/types/admin-capability'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import { ROLE_CATALOG_CHIP_CLASS, presentationForRole } from '@/lib/roleCatalog'
 import {
   type FansubAppMember,
@@ -22,10 +23,7 @@ import fansubEditStyles from './FansubEdit.module.css'
 import ownStyles from './FansubAppMemberEditorPanel.module.css'
 import type { InlineMemberRoleDraft } from './useGroupMembersTab'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 const MEDIA_PERMISSION_OPTIONS: Array<{ key: keyof FansubGroupMediaPermissions; label: string; description: string }> = [
   { key: 'can_upload', label: 'Hochladen', description: 'Kann neue Gruppenmedien hinzufügen.' },

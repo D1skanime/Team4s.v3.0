@@ -7,6 +7,7 @@ import { buildMediaPreviewURL } from "@/components/admin/MediaUpload";
 import { Button } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { getMyAnimeContributions } from "@/lib/api";
+import { mergeCssModules } from "@/lib/mergeCssModules";
 import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import {
   canEditReleaseNotes,
@@ -29,10 +30,7 @@ import { useReleaseMediaDrawer } from "./useReleaseMediaDrawer";
 import sharedStyles from "../../../admin.module.css";
 import fansubEditStyles from "./FansubEdit.module.css";
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-});
+const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 type FansubEditClientProps = {
   fansubID: number;

@@ -6,18 +6,14 @@ import { Save } from 'lucide-react'
 import { RichTextEditor } from '@/components/editor'
 import { Button, FormField, Select } from '@/components/ui'
 import { ApiError, upsertAnimeFansubProjectNote } from '@/lib/api'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import type { AnimeFansubProjectNote, UpsertAnimeFansubProjectNoteRequest } from '@/types/fansubNotes'
 
 import sharedStyles from '../../../admin.module.css'
 import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    editorScaffoldStyles[prop as keyof typeof editorScaffoldStyles] ??
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ??
-    sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(editorScaffoldStyles, mergeCssModules(fansubEditStyles, sharedStyles))
 
 export const ANIME_PROJECT_NOTE_PLACEHOLDER = `Beschreibe hier das Fansubprojekt dieser Gruppe zu diesem Anime.
 Mögliche Fragen als Hilfe: Wie war dieses Fansubprojekt? Warum hat die Gruppe diesen Anime gemacht?

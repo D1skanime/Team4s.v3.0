@@ -5,16 +5,12 @@ import { Pencil, Save, Trash2 } from 'lucide-react'
 import { RichTextEditor } from '@/components/editor'
 import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { Button } from '@/components/ui'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import sharedStyles from '../../../admin.module.css'
 import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    editorScaffoldStyles[prop as keyof typeof editorScaffoldStyles] ??
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ??
-    sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(editorScaffoldStyles, mergeCssModules(fansubEditStyles, sharedStyles))
 
 export const VISIBILITY_OPTIONS: Array<{ value: 'public' | 'internal'; label: string }> = [
   { value: 'public', label: 'Öffentlich' },

@@ -11,6 +11,7 @@ import {
   getAdminFansubAnime,
   getAnimeFansubProjectNote,
 } from '@/lib/api'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { AnimeFansubProjectNote } from '@/types/fansubNotes'
 
@@ -26,12 +27,7 @@ import {
 } from './AnimeProjectNoteForm'
 import type { AnimeEntry } from './AnimeProjectNoteForm'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) =>
-    editorScaffoldStyles[prop as keyof typeof editorScaffoldStyles] ??
-    fansubEditStyles[prop as keyof typeof fansubEditStyles] ??
-    sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(editorScaffoldStyles, mergeCssModules(fansubEditStyles, sharedStyles))
 
 function previewText(value?: string | null): string {
   const normalized = (value || '').replace(/\s+/g, ' ').trim()
