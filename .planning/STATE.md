@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: 184-10 Tasks 1-3 complete (commit ab02cfce8); Task 4 (blockierender Live-Checkpoint) wartet auf Nutzerfreigabe - PLAN NICHT ABGESCHLOSSEN
-last_updated: "2026-10-15T18:01:49.476Z"
+status: milestone_complete
+stopped_at: Phase 184 complete (184-10 Task 4 vom Nutzer approved, 184-VERIFICATION.md 5/5 bestanden) - additive Aufräumphase nach Milestone v1.4 abgeschlossen
+last_updated: "2026-10-15T23:20:00.000Z"
 last_activity: 2026-10-15
 progress:
   total_phases: 49
@@ -13,6 +13,37 @@ progress:
   completed_plans: 443
   percent: 90
 ---
+
+# Phase 184 — Aufräumpunkte aus Phase 174 abschließen (F-07/F-12/F-20/F-23) — COMPLETE (2026-10-15)
+
+Alle 10 Pläne sind code-vollständig, committet und verifiziert (`184-VERIFICATION.md`, 5/5
+must-haves D-01 bis D-05 bestanden). Additiv zu Milestone v1.4 hinzugefügt (siehe
+Roadmap-Evolution unten), Milestone-Status bleibt `milestone_complete`. 184-01 schloss F-23
+(D-04) ab: die 4 verbliebenen Literal-Duplikate der `original→display`-Regel rufen
+`services.DisplayVariantFileName`. 184-02 (D-02) führte `computePageWindow` (beide
+Pagination-Komponenten) und zwei `formatDate`-Helfer (Cluster A/B, je eigene Fallback-Semantik,
+7 Konsumenten) ein. 184-03 schuf den zentralen `mergeCssModules`-Helfer (Proxy-basiert,
+Vorbild `components/ui/Select.tsx`). 184-04/06/07/08/09 stellten alle 38 ursprünglich
+identifizierten Spread-Merge-Stellen (F-12/D-01) auf den Helfer um, inkl. 5 vorgezogener
+Datei-Splits (D-05: FansubAppMembersSection.tsx, admin/fansubs/page.tsx,
+admin/fansubs/merge/page.tsx, admin/episodes/page.tsx, ReleaseVersionNotesTab.tsx, je als reiner
+Umbau-Commit vor der inhaltlichen Änderung). Ein nachträglicher Review-Fund deckte 4 beim
+184-05-Split neu entstandene Kinddateien auf, die das kaputte Spread-Muster unverändert
+mitgenommen hatten (`FansubListRows.tsx`, `MergeWizardCards.tsx`, `MergeWizardPreviewStep.tsx`,
+`MergeWizardProgress.tsx`) — per Commit `cfc6e01bf` nachgezogen, womit F-12 für alle 43
+tatsächlichen Konsumenten geschlossen ist. 184-10 (F-20/D-03) entfernte 120 grep-belegt tote
+Top-Level-Klassen aus `FansubEdit.module.css` (3306→2442 Zeilen) — eine Methodik-Korrektur
+während der Nutzungsprüfung (Fixpunkt-Traversierung von Prop-Drilling statt nur direkter
+Importe) bewahrte dabei 86 tatsächlich noch genutzte Klassen vor versehentlicher Löschung. Der
+blockierende Live-Checkpoint wurde vom Nutzer nach eigener Prüfung aller Tabs von
+`/admin/fansubs/1/edit`/`/create` und 18 Vorher/Nachher-Screenshot-Paaren mit "approved"
+bestätigt (`184-10-HUMAN-UAT.md`). Ein begleitender Code-Review (8 Teilagenten) fand 4 Befunde
+ohne Entscheidungsbedarf-Blocker: 2 verbliebene, nie im D-04-Scope enthaltene hartcodierte
+`display.webp`-Literale in den animierten GIF/WebP-Zweigen von `media_upload_image.go` (kein
+aktives Kollisionsrisiko, da dieser Handler pro Medien-ID isoliert speichert), 2 vorbestehende,
+durch die Datei-Splits lediglich unverändert mitverschobene Dopplungen
+(`handleCoverImgError`, Such-Debounce) und ein geringfügiger Proxy-Laufzeit-Hinweis — alle als
+Nicht-Blocker dem Nutzer zur Entscheidung vorgelegt. Keine sichtbare Änderung für Nutzer:innen.
 
 # Phase 184 Plan 01 — F-23-Nachzieh (D-04) — PLAN COMPLETE (2026-10-15)
 

@@ -2761,12 +2761,12 @@ Plans:
 - [x] 183-02-PLAN.md — Fansub-Gruppenmedien-Kategorie-Label im Admin-Review-Grid auf fansub-labels.ts umstellen (D-02); gemeinsamer Claim-Status-Helfer (claimStatusLabels.ts), UserClaimsTab + ClaimsClient umstellen (D-03).
 - [x] 183-03-PLAN.md — Frontend-Container neu starten, Live-Checkpoint gegen die 6 Vergleichs-URLs aus 183-CONTEXT.md (D-04).
 
-### Phase 184: Aufräumpunkte aus Phase 174 abschließen: tote CSS-Klassen in FansubEdit.module.css entfernen (F-20), doppelte Hilfsfunktionen zusammenführen (formatDate, Pagination-Fenster; F-07), latenten CSS-Modul-Merge-Fehler beheben (F-12), doppelte original→display-Regel zusammenführen (F-23) — ohne sichtbare Änderung
+### Phase 184: Aufräumpunkte aus Phase 174 abschließen: tote CSS-Klassen in FansubEdit.module.css entfernen (F-20), doppelte Hilfsfunktionen zusammenführen (formatDate, Pagination-Fenster; F-07), latenten CSS-Modul-Merge-Fehler beheben (F-12), doppelte original→display-Regel zusammenführen (F-23) — ohne sichtbare Änderung — **COMPLETE (2026-10-15)**
 
 **Goal:** Die vier aus Phase 174 übernommenen Wartbarkeits-Altlasten (F-07 doppelte formatDate-/Pagination-Hilfsfunktionen, F-12 latenter CSS-Modul-Merge-Fehler, F-20 tote CSS-Klassen, F-23 original→display-Regel-Nachzieh) sind geschlossen, ohne dass sich für Nutzer:innen etwas sichtbar ändert.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung — D-01 bis D-05 aus 184-CONTEXT.md sind die verbindlichen Entscheidungen dieser Phase.
 **Depends on:** Phase 183
-**Plans:** 9/10 plans executed
+**Plans:** 10/10 plans executed — Verifikation bestanden (184-VERIFICATION.md, 5/5 must-haves), Live-Checkpoint vom Nutzer "approved" (184-10-HUMAN-UAT.md)
 
 Plans:
 - [x] 184-01-PLAN.md — F-23-Nachzieh (D-04): 4 Literal-Duplikate im Release-Version- und generischen Media-Upload-Pfad auf services.DisplayVariantFileName umstellen.
@@ -2778,4 +2778,4 @@ Plans:
 - [x] 184-07-PLAN.md — F-12 (D-01/D-05): admin/episodes/page.tsx aufteilen (637→≤450), danach AnimeBrowser-Cluster (4 Dateien) auf mergeCssModules umstellen.
 - [x] 184-08-PLAN.md — F-12 (D-01): AnimeContext-Cluster (3) + EpisodeManager-Cluster (8, inkl. 3er-Merge-Sonderfall EpisodeEditForm.tsx) auf mergeCssModules umstellen.
 - [x] 184-09-PLAN.md — F-12 (D-01/D-05): ReleaseVersionNotesTab.tsx aufteilen (743→≤450), danach auf mergeCssModules umstellen.
-- [ ] 184-10-PLAN.md — F-20 (D-03): Grep-belegte Nutzungsprüfung (inkl. dynamischer Zugriffe) über FansubEdit.module.css, tote Klassen löschen (nicht verschieben), Vorher/Nachher-Screenshot-Vergleich, blockierender Live-Checkpoint.
+- [x] 184-10-PLAN.md — F-20 (D-03): Grep-belegte Nutzungsprüfung (inkl. dynamischer Zugriffe) über FansubEdit.module.css, tote Klassen löschen (nicht verschieben), Vorher/Nachher-Screenshot-Vergleich, blockierender Live-Checkpoint — vom Nutzer approved.
