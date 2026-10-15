@@ -42,11 +42,11 @@ key-decisions:
   - "Loeschung in 3 Gruppen (40/39/41 Klassen alphabetisch, da keine CSS-Abschnittskommentare fuer eine Tab-basierte Gruppierung vorhanden sind) mit vollem tsc/eslint/vitest-Gate zwischen jeder Gruppe, wie im Risikohinweis aus 184-CONTEXT.md gefordert."
   - "Descendant-/Kombinator-Selektoren, die eine tote Ankerklasse referenzieren (z. B. '.fansubEditAnimeReleaseActions .fansubEditAnimeContributorsButton'), wurden bewusst NICHT geloescht - sie liegen ausserhalb des per Regex definierten Top-Level-Scopes dieses Plans (Akzeptanzkriterium misst exakt die Top-Level-Selektor-Anzahl) und waeren damit ein ungeplanter Scope-Erweiterungs-Schritt."
 
-requirements-completed: []  # D-03: Tasks 1-3 fertig, Task 4 (Live-Freigabe) noch offen - Requirement erst bei Nutzerfreigabe vollstaendig erfuellt
+requirements-completed: [D-03]  # Task 4 vom Nutzer "approved" bestaetigt (siehe 184-10-HUMAN-UAT.md)
 
 # Metrics
 duration: ~100min
-completed: "2026-10-15 (Tasks 1-3; Task 4 wartet auf Nutzerfreigabe)"
+completed: "2026-10-15 (Tasks 1-4 vollstaendig, Task 4 vom Nutzer approved)"
 ---
 
 # Phase 184 Plan 10: FansubEdit.module.css Dead-Code-Bereinigung (F-20/D-03) Summary
@@ -329,14 +329,26 @@ Keine blockierenden Probleme. Der Proxy-Hintergrundprozess (`node /tmp/proxy-184
 
 None — keine externe Service-Konfiguration noetig. Admin-Zugangsdaten (`admin`/`123` via Keycloak direct-grant) entsprechen den bereits in 174-24-SUMMARY.md dokumentierten lokalen Dev-Credentials.
 
+## Task 4: Live-Freigabe (abgeschlossen)
+
+Der Nutzer hat den Live-Checkpoint am 2026-10-15 mit **"approved"** bestätigt, nach eigener
+Prüfung aller Tabs von `/admin/fansubs/1/edit`, `/admin/fansubs/create`, und der 18
+Before/After-Screenshot-Paare. Zusätzlich hat der Nutzer die 3 nicht byte-identischen Paare
+(`fansub-edit-collaboration-desktop` — animiertes GIF-Avatar-Frame von Mitglied „timer",
+`fansub-edit-roles-desktop` — Kantenglättung/Schatten am aktiven Reiter, `fansub-edit-releases-mobile`
+— 10 Pixel Kartenecke) selbst benannt und bestätigt, dass keine davon eine CSS-Regression ist
+(Details siehe `184-10-HUMAN-UAT.md`). Damit ist D-03 vollständig erfüllt und Phase 184 abgeschlossen.
+
 ## Next Phase Readiness
 
-**Tasks 1-3 sind vollstaendig und verifiziert (Gate gruen, Screenshot-Beweis vorhanden). Task 4 (blockierender Live-Checkpoint) ist NICHT abgeschlossen** — er erfordert explizite Nutzerfreigabe ("approved" oder eine konkrete Abweichung) und wurde bewusst nicht vom Agenten selbst abgehakt oder zertifiziert. Dies ist der letzte Plan der Phase 184; die Phase gilt erst nach Task-4-Freigabe als abgeschlossen.
+**Alle 4 Tasks abgeschlossen.** Dies war der letzte Plan der Phase 184. Mit der Nutzerfreigabe von
+Task 4 gilt die Phase als vollständig abgeschlossen — F-07, F-12, F-20, F-23 (D-01 bis D-05) sind
+alle erledigt, ohne sichtbare Änderung.
 
 ---
 *Phase: 184-aufr-umpunkte-aus-phase-174-abschlie-en-tote-css-klassen-in-*
 *Tasks 1-3 completed: 2026-10-15*
-*Task 4: AWAITING HUMAN VERIFICATION*
+*Task 4 (Live-Freigabe): APPROVED 2026-10-15*
 
 ## Self-Check: PASSED
 
