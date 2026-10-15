@@ -51,7 +51,7 @@ in `docker-compose.yml` zeigen bereits auf Mailpit:
 | `SMTP_USER` | *(leer)* | SMTP-Auth-Benutzername |
 | `SMTP_PASSWORD` | *(leer)* | SMTP-Auth-Passwort |
 | `SMTP_STARTTLS` | `false` | STARTTLS-Upgrade erzwingen (lokal aus; Produktion auf `true`) |
-| `APP_PUBLIC_URL` | `http://127.0.0.1:3002` | Basis-URL für absolute Links in Mails |
+| `APP_PUBLIC_URL` | `http://127.0.0.1:3000` | Basis-URL für absolute Links in Mails |
 
 > **Hinweis:** Die Config liest primär die kanonischen Namen `SMTP_FROM` und
 > `SMTP_USER`. Die früheren Namen `SMTP_FROM_EMAIL` und `SMTP_USERNAME` werden aus
@@ -170,4 +170,4 @@ erstellt. Für Transactional Mail wird ein Sender mit verifizierter Domain benö
 | `infra/keycloak/realm-team4s.json` | Realm-Import mit Mailpit-SMTP-Defaults |
 | `backend/internal/config/config.go` | SMTP-Konfigurationsfelder im Backend |
 | `backend/internal/services/mailer.go` | SMTPMailer und NoopMailer |
-| `backend/internal/handlers/app_auth.go` | `CreateFansubGroupInvitation` mit Cancel-on-fail |
+| `backend/internal/handlers/app_auth_invitations.go` | `CreateFansubGroupInvitation` mit Cancel-on-fail |
