@@ -10,6 +10,7 @@ import {
   getOwnProfile,
   listReleaseVersionNotes,
 } from '@/lib/api'
+import { mergeCssModules } from '@/lib/mergeCssModules'
 import { labelForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { BulkNoteInput, MemberRoleForVersion } from '@/types/releaseVersionNotes'
@@ -30,7 +31,7 @@ import {
 } from './ReleaseVersionNotesTab.helpers'
 import localStyles from './ReleaseVersionNotesTab.module.css'
 
-export const styles = { ...localStyles, ...editorScaffoldStyles }
+export const styles = mergeCssModules(editorScaffoldStyles, localStyles)
 
 interface ReleaseVersionNotesTabProps {
   versionId: number
