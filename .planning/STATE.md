@@ -500,6 +500,14 @@ Last activity: 2026-10-15
 
 ### Roadmap Evolution
 
+- Phase 184 added (2026-10-15): Aufräumpunkte aus Phase 174 abschließen — tote CSS-Klassen in
+  FansubEdit.module.css entfernen (F-20), doppelte Hilfsfunktionen zusammenführen (formatDate,
+  Pagination-Fenster; F-07), latenten CSS-Modul-Merge-Fehler beheben (F-12), doppelte
+  original→display-Regel zusammenführen (F-23) — ohne sichtbare Änderung. Auf Nutzerwunsch
+  additiv zu Milestone v1.4 hinzugefügt, obwohl STATE.md status bereits `milestone_complete`
+  zeigt (Milestone wurde dafür nicht zurückgesetzt/neu angelegt/archiviert). Nur add-phase —
+  noch nicht geplant.
+
 - Phase 183 added (2026-10-15): Status-/Label-Konsolidierung (Fachaufgabe 11) — eine kanonische
   Implementierung je identischer Status-/Label-Gruppe statt Parallel-Implementierungen (u. a.
   App-User-Status-Labels in AdminUsersClient, UserOverviewTab, RoleHoldersTable), tote

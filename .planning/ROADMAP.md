@@ -2760,3 +2760,13 @@ Plans:
 - [x] 183-01-PLAN.md — App-User-Status-Helfer (appUserStatusLabels.ts) extrahieren, vier Konsumenten (AdminUsersClient, UserDetailPageClient, UserOverviewTab, RoleHoldersTable) umstellen (D-01).
 - [x] 183-02-PLAN.md — Fansub-Gruppenmedien-Kategorie-Label im Admin-Review-Grid auf fansub-labels.ts umstellen (D-02); gemeinsamer Claim-Status-Helfer (claimStatusLabels.ts), UserClaimsTab + ClaimsClient umstellen (D-03).
 - [x] 183-03-PLAN.md — Frontend-Container neu starten, Live-Checkpoint gegen die 6 Vergleichs-URLs aus 183-CONTEXT.md (D-04).
+
+### Phase 184: Aufräumpunkte aus Phase 174 abschließen: tote CSS-Klassen in FansubEdit.module.css entfernen (F-20), doppelte Hilfsfunktionen zusammenführen (formatDate, Pagination-Fenster; F-07), latenten CSS-Modul-Merge-Fehler beheben (F-12), doppelte original→display-Regel zusammenführen (F-23) — ohne sichtbare Änderung
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 183
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 184 to break down)
