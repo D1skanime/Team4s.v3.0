@@ -2,17 +2,31 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 183 was final phase)
-last_updated: 2026-10-15T09:51:51.248Z
+status: completed
+stopped_at: Completed 184-01-PLAN.md
+last_updated: "2026-10-15T15:14:48.522Z"
 last_activity: 2026-10-15
 progress:
-  total_phases: 48
-  completed_phases: 42
-  total_plans: 436
-  completed_plans: 487
+  total_phases: 49
+  completed_phases: 43
+  total_plans: 446
+  completed_plans: 434
   percent: 88
 ---
+
+# Phase 184 Plan 01 — F-23-Nachzieh (D-04) — PLAN COMPLETE (2026-10-15)
+
+184-01 (erster von 10 Plänen der Phase 184) ist code-vollständig und committet: die vier
+verbliebenen Literal-Duplikate der `original→display`-Namensregel im Release-Version- und im
+generischen Media-Upload-Pfad (`admin_content_release_version_media_upload_process.go`,
+`media_upload_image.go`) rufen jetzt `services.DisplayVariantFileName(originalPath, ext)` statt
+`"display."+ext` literal zusammenzusetzen. `generateStaticDisplayVariant` erhielt dafür den neuen
+Parameter `originalPath`. Keine Verhaltensänderung: `go build`/`go vet` clean,
+`TestMediaUploadHandler_DisplayVariant*` (3/3) und `TestDisplayVariantFileNameIsUniquePerOriginal`
+weiterhin grün; `TestUploadReleaseVersionMediaHandlerExists` wie gewohnt ohne lokale Postgres-DSN
+übersprungen. Keine der beiden Dateien liegt über 450 Zeilen, keine Datei-Aufteilung (D-05) nötig.
+Commits `34d2d9766`, `8e9d583a4`. Details: `184-01-SUMMARY.md`. Die restlichen 9 Pläne der Phase
+(F-07/F-12/F-20 gemäß 184-CONTEXT.md D-01..D-03) sind noch offen.
 
 # Phase 182 — Alten Bildspeicher entfernen (F-01) — COMPLETE (2026-10-15)
 
@@ -355,9 +369,9 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 183
-Plan: Not started
-Status: Milestone complete
+Phase: 184
+Plan: 01 of 10 (184-01 complete, 184-02..184-10 offen)
+Status: In Progress — Phase 184 (Aufräumpunkte aus Phase 174, F-07/F-12/F-20/F-23) läuft; 184-01 (D-04/F-23-Nachzieh) abgeschlossen, siehe Eintrag oben.
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
 Legacy-Zweige in anime_assets.go, anime_assets_cover.go, anime_assets_background.go,
@@ -1200,6 +1214,7 @@ Last activity: 2026-10-15
 - [Phase 182]: Go-SQL-Aenderungen (loadCurrentProjects GROUP BY, ListFansubAnime) vor dem Live-Apply zusaetzlich per direkter psql-Ausfuehrung gegen disposable Postgres bewiesen, nicht nur per go build/vet
 - [Phase 183]: Task 1 (tdd=true) in 183-01 als kombinierter Commit umgesetzt (Helfer + Tests zusammen) — Zielwerte/Fallback verbatim aus bestehendem, verifiziertem Produktionscode (UserDetailPageClient.tsx) übernommen, kein echtes RED/GREEN-Risiko
 - [Phase 183]: Lock claim-status wording to 'Genehmigt' (not 'Verifiziert') for verified/active in the new shared claimStatusLabels.ts helper, closing the ClaimsClient.tsx alias gap for active/open/denied
+- [Phase 184]: 184-01 (D-04/F-23-Nachzieh) ausgeführt: alle 4 Literal-Duplikate der display-Namensregel im Release-Version- und generischen Media-Upload-Pfad auf services.DisplayVariantFileName umgestellt — keine Verhaltensänderung, bestehende Display-Variant-Tests weiterhin grün, siehe 184-01-SUMMARY.md
 
 ### Pending Todos
 
@@ -1862,11 +1877,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 182 P03 | 18min | 3 tasks | 12 files |
 | Phase 183 P01 | 15min | 2 tasks | 6 files |
 | Phase 183 P02 | 6min | 3 tasks | 5 files |
+| Phase 184 P01 | ~10min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-10-15T09:17:53.077Z
-Stopped at: Completed 183-02-PLAN.md
+Last session: 2026-10-15T15:14:48.492Z
+Stopped at: Completed 184-01-PLAN.md
 Last activity: 2026-10-15 - Completed quick task 261015-gm3: README neu schreiben (F-11)
 Resume file: 
 None
