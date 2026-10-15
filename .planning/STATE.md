@@ -500,6 +500,12 @@ Last activity: 2026-10-15
 
 ### Roadmap Evolution
 
+- Phase 183 added (2026-10-15): Status-/Label-Konsolidierung (Fachaufgabe 11) — eine kanonische
+  Implementierung je identischer Status-/Label-Gruppe statt Parallel-Implementierungen (u. a.
+  App-User-Status-Labels in AdminUsersClient, UserOverviewTab, RoleHoldersTable), tote
+  Label-Pfade entfernt — gleiche Begriffe überall gleich angezeigt. Nur add-phase — noch nicht
+  geplant.
+
 - Phase 182 added (2026-10-14): Alten Bildspeicher entfernen (F-01) — Legacy-Bildpfade
   (anime.cover_image, Legacy-Zweige in anime_assets*, hasV2AssetSchema-Abfrage,
   syncLegacyAnimeCoverImageV2) entfallen; alle Leser nutzen nur noch den V2-Speicher

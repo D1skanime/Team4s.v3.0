@@ -2748,3 +2748,13 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 182-04-PLAN.md — Remove the historical migrate-covers tool/scripts + Live-Checkpoint comparing the 5 D-04 reference URLs before/after (D-03, D-04).
+
+### Phase 183: Status-/Label-Konsolidierung (Fachaufgabe 11): eine kanonische Implementierung je identischer Status-/Label-Gruppe statt Parallel-Implementierungen (u. a. App-User-Status-Labels in AdminUsersClient, UserOverviewTab, RoleHoldersTable), tote Label-Pfade entfernt — gleiche Begriffe überall gleich angezeigt
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 182
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 183 to break down)
