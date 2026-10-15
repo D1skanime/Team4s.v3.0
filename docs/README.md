@@ -8,8 +8,9 @@ Dieser Ordner enthält die technische Dokumentation des Team4s-Projekts. Diese S
 | --- | --- |
 | [FRONTEND_ARCHITEKTUR.md](FRONTEND_ARCHITEKTUR.md) | Next.js-Frontend: Routing, Komponenten, API-Schicht, UI-Primitives, Seiten nach Fachbereich |
 | [BACKEND_ARCHITEKTUR.md](BACKEND_ARCHITEKTUR.md) | Go-Backend: Schichten, Datenflüsse, Rechte/Capabilities, Medienspeicher, Import-Flows |
+| [ENTWICKLUNG.md](ENTWICKLUNG.md) | Entwicklungs-Workflow: Ports, Migrationen, API-Contracts, Auth, Smoke-Checks |
 
-Diese beiden Dokumente sind der aktuelle, gegen den Code verifizierte Gesamtüberblick. Bei Widerspruch zu einer der unten gelisteten Einzeldateien gilt die Architektur-Referenz.
+Diese Dokumente sind der aktuelle, gegen den Code verifizierte Gesamtüberblick. Bei Widerspruch zu einer der unten gelisteten Einzeldateien gilt die Architektur-Referenz.
 
 ## Agenten-Arbeitsweise
 
