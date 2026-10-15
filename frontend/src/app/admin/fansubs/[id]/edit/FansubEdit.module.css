@@ -36,34 +36,10 @@
   min-width: 0;
 }
 
-.fansubEditMembershipCardTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-}
 
-.fansubEditMembershipTitle {
-  margin: 0;
-}
 
-.fansubEditMembershipCard {
-  display: grid;
-  gap: 0.7rem;
-}
 
-.fansubEditMembershipList {
-  display: grid;
-  gap: 0.85rem;
-}
 
-.fansubEditMembershipProfile {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  gap: 0.9rem;
-  min-width: min(100%, 480px);
-}
 
 .fansubEditMembershipAvatar {
   width: 56px;
@@ -90,11 +66,6 @@
   display: block;
 }
 
-.fansubEditMembershipIdentity {
-  display: grid;
-  gap: 0.45rem;
-  min-width: 0;
-}
 
 .fansubEditMembershipIdentity strong,
 .fansubEditMembershipIdentity span {
@@ -102,25 +73,11 @@
   overflow-wrap: anywhere;
 }
 
-.fansubEditMembershipNameRow {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  flex-wrap: wrap;
-  min-width: 0;
-}
 
 .fansubEditMembershipNameRow strong {
   font-size: 1.02rem;
 }
 
-.fansubEditMembershipMetaLine {
-  color: var(--text-secondary);
-  display: flex;
-  gap: 0.7rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
 
 .fansubEditMembershipMetaLine > span {
   display: inline-flex;
@@ -128,45 +85,10 @@
   gap: 0.32rem;
 }
 
-.fansubEditMembershipBadgeRow,
-.fansubEditMembershipControls,
-.fansubEditMembershipActionRow {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-}
 
-.fansubEditMembershipControls {
-  align-self: center;
-  margin-left: auto;
-}
 
-.fansubEditMembershipVisibilityBadge {
-  min-height: 24px;
-  padding: 0 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  box-shadow: none;
-}
 
-.fansubEditMembershipBody {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
-  padding-top: 0.72rem;
-  flex-wrap: wrap;
-}
 
-.fansubEditMembershipRoleSummary,
-.fansubEditMembershipRoleEditor {
-  display: grid;
-  gap: 0.4rem;
-  min-width: min(100%, 320px);
-}
 
 .fansubEditMembershipRoleSummary > span {
   color: var(--text-muted);
@@ -176,27 +98,8 @@
   text-transform: uppercase;
 }
 
-.fansubEditMembershipRoleList {
-  display: grid;
-  gap: 0.55rem;
-}
 
-.fansubEditMembershipRoleItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.85rem;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
-  padding: 0.65rem 0.7rem;
-}
 
-.fansubEditMembershipRoleItemMain {
-  display: grid;
-  gap: 0.2rem;
-  min-width: 0;
-}
 
 .fansubEditMembershipRoleItemMain strong,
 .fansubEditMembershipRoleItemMain span {
@@ -209,34 +112,12 @@
   font-size: 0.84rem;
 }
 
-.fansubEditMembershipRoleControls {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
 
 @media (max-width: 720px) {
-.fansubEditMembershipProfile {
-    grid-template-columns: 44px minmax(0, 1fr);
-  }
 .fansubEditMembershipAvatar {
     width: 44px;
     height: 44px;
     font-size: 0.95rem;
-  }
-.fansubEditMembershipControls {
-    justify-content: flex-start;
-    margin-left: 0;
-  }
-.fansubEditMembershipBody,
-.fansubEditMembershipRoleItem {
-    align-items: stretch;
-    flex-direction: column;
-  }
-.fansubEditMembershipRoleControls {
-    justify-content: flex-start;
   }
 .fansubEditInlineRoleRow {
     grid-template-columns: 1fr;
@@ -246,15 +127,8 @@
   }
 }
 
-.fansubEditMembershipRoleEditor {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
-  padding: 0.7rem;
-}
 
-.fansubEditMembershipModalStack,
-.fansubEditMembershipModalSection {
+.fansubEditMembershipModalStack {
   display: grid;
   gap: 0.9rem;
   align-content: start;
@@ -277,12 +151,6 @@
   flex-wrap: wrap;
 }
 
-.fansubEditMembershipModalSection {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-secondary) 74%, transparent);
-  padding: 0.85rem;
-}
 
 .fansubEditInlineRoleRow {
   display: grid;
@@ -312,11 +180,6 @@
   min-height: 0;
 }
 
-.fansubEditMembershipMetaGrid {
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-}
 
 .fansubEditMembershipMetaGrid > div {
   display: grid;
@@ -336,34 +199,9 @@
   overflow-wrap: anywhere;
 }
 
-.formLayoutShell {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-width: 0;
-  overflow-x: clip;
-}
 
-.formSections {
-  display: grid;
-  gap: 32px;
-  min-width: 0;
-}
 
-.formSectionCard {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
-  padding: 24px;
-  display: grid;
-  gap: 16px;
-  min-width: 0;
-}
 
-.formSectionTitle {
-  margin: 0;
-  font-size: 1rem;
-}
 
 .responsiveFieldGrid {
   display: grid;
@@ -378,17 +216,8 @@
   }
 }
 
-.formActionRow {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 12px;
-}
 
 @media (max-width: 767px) {
-.formSectionCard {
-    padding: 16px;
-  }
 }
 
 .fansubEditHeaderCard {
@@ -667,29 +496,12 @@
   min-width: 0;
 }
 
-.fansubEditBasicIntro {
-  display: grid;
-  gap: 0.9rem;
-  grid-template-columns: minmax(0, 1.7fr) minmax(220px, 0.8fr);
-  align-items: start;
-}
 
-.fansubEditBasicTitle {
-  margin: 0 0 0.3rem;
-  font-size: 1.02rem;
-  line-height: 1.3;
-}
 
 .fansubEditBasicSurface {
   min-width: 0;
 }
 
-.fansubEditBasicSupplement {
-  display: grid;
-  gap: 0.85rem;
-  padding: 0.8rem 0 0;
-  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
-}
 
 .fansubEditBasicSupplementGrid {
   display: grid;
@@ -704,34 +516,8 @@
   }
 }
 
-.fansubEditBasicSupplementHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.8rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
-}
 
-.fansubEditBasicSupplementTitle {
-  margin: 0;
-  font-size: 0.98rem;
-  line-height: 1.35;
-}
 
-.fansubEditBasicSupplementBody {
-  display: grid;
-  gap: 0.75rem;
-  padding: 0.8rem 0.85rem;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
-  border-radius: calc(var(--radius-sm) + 4px);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 98%, #fff), color-mix(in srgb, var(--bg-secondary) 90%, transparent)),
-    color-mix(in srgb, var(--bg-card) 96%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 48%, transparent),
-    0 10px 18px -20px rgba(17, 24, 39, 0.12);
-}
 
 .fansubEditBrandingCard {
   display: grid;
@@ -830,33 +616,8 @@
   font-size: 0.82rem;
 }
 
-.fansubEditorCard {
-  display: grid;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding: 1rem;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  border-radius: calc(var(--radius-md) + 2px);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 98%, #f4efe8 2%), color-mix(in srgb, var(--bg-card) 92%, transparent)),
-    color-mix(in srgb, var(--bg-card) 92%, transparent);
-  box-shadow: 0 18px 36px -28px rgba(17, 24, 39, 0.35);
-}
 
-.fansubEditorCardHeader {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.9rem;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  padding-bottom: 0.85rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
-}
 
-.fansubEditorCardHeading {
-  display: grid;
-  gap: 0.2rem;
-}
 
 .fansubEditorEyebrow {
   margin: 0;
@@ -867,98 +628,23 @@
   color: var(--text-muted);
 }
 
-.fansubEditorTitle {
-  margin: 0;
-  font-size: 1.1rem;
-  line-height: 1.3;
-}
 
-.fansubEditorBadgeRow {
-  display: flex;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
 
-.fansubEditorBadge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0.3rem 0.72rem;
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 22%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-card));
-  color: color-mix(in srgb, var(--accent-primary) 46%, var(--text-primary));
-  font-size: 0.82rem;
-  font-weight: 600;
-}
 
-.fansubEditorMain {
-  display: grid;
-  gap: 1rem;
-}
 
-.fansubEditorSurface {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
-  border-radius: calc(var(--radius-md) + 1px);
-  background: color-mix(in srgb, var(--bg-secondary) 94%, #f8fafc 6%);
-  padding: 0.45rem;
-}
 
-.fansubEditorMetaCard {
-  display: grid;
-  gap: 0.75rem;
-  padding: 0.95rem;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--bg-secondary) 78%, transparent);
-}
 
-.fansubEditorMetaHeader {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
 
 .fansubEditorMetaTitle {
   margin: 0.1rem 0 0;
   font-size: 0.98rem;
 }
 
-.fansubEditorMetaGrid {
-  display: grid;
-  gap: 0.85rem;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-}
 
-.fansubEditorActionBar {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  align-items: center;
-  padding-top: 0.25rem;
-}
 
-.fansubEditorGhostButton {
-  color: color-mix(in srgb, var(--color-error) 70%, var(--text-primary));
-}
 
-.fansubEditorPreviewText {
-  margin: 0;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
 
 @media (max-width: 767px) {
-.fansubEditorCard {
-    padding: 0.85rem;
-  }
-.fansubEditorActionBar {
-    justify-content: stretch;
-  }
 .fansubEditorActionBar > button {
     width: 100%;
   }
@@ -1024,7 +710,6 @@
   }
 .fansubEditReleaseEpisodeBadge { grid-area: badge; }
 .fansubEditReleaseCardTitle { grid-area: title; }
-.fansubEditReleaseCardChips { grid-area: chips; justify-content: flex-start; }
 .fansubEditReleaseCardDisclosure { grid-area: disclosure; }
 .fansubEditReleaseHeaderActions {
     justify-content: stretch;
@@ -1069,38 +754,12 @@
   }
 }
 
-.fansubEditMediaCard {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
-  border-radius: calc(var(--radius-sm) + 3px);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-secondary) 90%, #fff), color-mix(in srgb, var(--bg-card) 96%, transparent));
-  padding: 0.7rem;
-  display: grid;
-  gap: 0.55rem;
-  box-shadow: inset 0 1px 0 color-mix(in srgb, white 44%, transparent);
-}
 
 .fansubEditMediaCard h3 {
   margin: 0;
 }
 
-.fansubEditDropzone {
-  border: 1px dashed color-mix(in srgb, var(--text-secondary) 30%, transparent);
-  border-radius: var(--radius-sm);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 94%, #fff), color-mix(in srgb, var(--bg-secondary) 88%, transparent));
-  min-height: 110px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem;
-}
 
-.fansubEditMediaActions {
-  display: flex;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-}
 
 .fansubEditLinkInput {
   border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
@@ -1195,18 +854,7 @@
   gap: 0.75rem;
 }
 
-.fansubEditAnimeReleaseActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.5rem;
-}
 
-.fansubEditAnimeContributorsButton {
-  justify-self: end;
-  white-space: nowrap;
-}
 
 .fansubEditProjectInsightPanel,
 .fansubEditProjectTeamPanel {
@@ -1337,12 +985,6 @@
     0 12px 24px -26px rgba(56, 45, 36, 0.22);
 }
 
-.fansubEditReleaseRow {
-  display: grid;
-  grid-template-columns: minmax(3rem, 0.45fr) minmax(15rem, 2.4fr) minmax(4rem, 0.45fr) minmax(5rem, 0.55fr) minmax(12rem, auto) 1.75rem;
-  gap: 0.55rem;
-  align-items: center;
-}
 
 .fansubEditReleaseItem {
   display: grid;
@@ -1361,11 +1003,6 @@
   background: rgba(255, 252, 248, 0.9);
 }
 
-.fansubEditReleaseRow {
-  padding: 0.7rem 0.82rem;
-  cursor: pointer;
-  transition: background 160ms ease, box-shadow 160ms ease;
-}
 
 .fansubEditReleaseRow:hover {
   background: color-mix(in srgb, #82122c 3%, #fff9f4);
@@ -1378,9 +1015,6 @@
 }
 
 @media (min-width: 900px) {
-.fansubEditReleaseRow {
-    min-height: 3.6rem;
-  }
 }
 
 @media (max-width: 720px) {
@@ -1388,19 +1022,8 @@
     margin-right: 0.65rem;
     margin-left: 0.65rem;
   }
-.fansubEditReleaseRow {
-    grid-template-columns: 3.5rem minmax(13rem, 1.5fr) 4.5rem 5.5rem minmax(18rem, auto) 2rem;
-  }
-.fansubEditReleaseActions {
-    justify-content: flex-start;
-  }
 }
 
-.fansubEditReleaseTitleCell {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-}
 
 .fansubEditReleaseTitleCell span {
   color: var(--text-primary);
@@ -1408,28 +1031,7 @@
   font-weight: 600;
 }
 
-.fansubEditReleaseTitleButton {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 8px;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  color: inherit;
-  max-width: 100%;
-}
 
-.fansubEditReleaseTitleDisclosure {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #7c3c4f;
-  flex: 0 0 auto;
-  margin-top: 0.05rem;
-}
 
 .fansubEditReleaseExpandButton {
   border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
@@ -1447,22 +1049,7 @@
     0 8px 18px -18px rgba(17, 24, 39, 0.3);
 }
 
-.fansubEditReleaseRowDisclosure {
-  width: 40px;
-  height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  justify-self: end;
-  color: #7c3c4f;
-}
 
-.fansubEditReleaseActions {
-  display: flex;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
 
 .fansubEditReleaseExpanded {
   border-top: 1px solid rgba(45, 41, 38, 0.08);
@@ -1476,21 +1063,7 @@
   gap: 0;
 }
 
-.fansubEditReleaseAssignmentPanel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 0.82rem;
-  border-bottom: 1px solid rgba(72, 58, 48, 0.08);
-  background: color-mix(in srgb, #ffffff 74%, #f7efe5);
-}
 
-.fansubEditReleaseAssignmentCopy {
-  display: grid;
-  gap: 0.14rem;
-  min-width: 0;
-}
 
 .fansubEditReleaseAssignmentCopy strong {
   color: var(--text-primary);
@@ -1504,53 +1077,9 @@
   line-height: 1.35;
 }
 
-.fansubEditReleaseIconButton {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
-  color: var(--text-primary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2rem;
-  height: 2rem;
-  padding: 0 0.45rem;
-  text-decoration: none;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
 
-.fansubEditReleaseEditButton {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 3.25rem;
-  height: 2rem;
-  padding: 0 0.7rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
 
-.fansubEditThemeMissingMark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #82122c;
-}
 
-.fansubEditReleaseExpandedHeader {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  padding: 0.72rem 0.5rem 0.42rem;
-  border: 1px solid rgba(72, 58, 48, 0.06);
-  border-bottom: 0;
-  border-radius: 4px 4px 0 0;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.98), rgba(248, 244, 239, 0.94));
-}
 
 .fansubEditReleaseExpandedHeader h4 {
   margin: 0;
@@ -1699,13 +1228,6 @@
   color: var(--text-secondary);
 }
 
-.fansubEditReleaseCardChips {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
 
 .fansubEditReleaseCardDisclosure {
   display: inline-flex;
@@ -1862,90 +1384,15 @@
   }
 }
 
-.fansubEditReleaseScopeBadge {
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent);
-  border-radius: 999px;
-  color: var(--accent-primary);
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  padding: 0.2rem 0.55rem;
-  font-size: 0.76rem;
-  font-weight: 700;
-}
 
-.fansubEditTimeline {
-  border: 1px solid rgba(72, 58, 48, 0.06);
-  border-top: 0;
-  border-radius: 0 0 4px 4px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.98), rgba(248, 244, 239, 0.94));
-  padding: 0 0 0.58rem;
-  display: grid;
-  gap: 0.58rem;
-  box-shadow: none;
-}
 
-.fansubEditTimelineLegend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.42rem 0.7rem;
-  align-items: center;
-  padding-inline: 0.5rem;
-}
 
-.fansubEditTimelineLegendItem {
-  display: inline-flex;
-  align-items: center;
-}
 
-.fansubEditTimelineLegendBadge {
-  min-height: 23px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.16rem 0.58rem;
-  border-radius: 999px;
-  border: 1px solid rgba(124, 132, 148, 0.22);
-  font-size: 0.76rem;
-  font-weight: 700;
-  line-height: 1;
-}
 
-.fansubEditTimelineLegendBadgeGlobal {
-  border-color: rgba(130, 18, 44, 0.26);
-  background: linear-gradient(to bottom, rgba(255, 247, 250, 0.99), rgba(246, 229, 236, 0.97));
-  color: #7a3046;
-}
 
-.fansubEditTimelineLegendBadgeRelease {
-  border-color: rgba(71, 145, 126, 0.26);
-  background: linear-gradient(to bottom, rgba(246, 254, 249, 0.99), rgba(228, 245, 236, 0.97));
-  color: #427866;
-}
 
-.fansubEditTimelineLegendBadgeMissing {
-  border-color: rgba(218, 183, 104, 0.3);
-  background: linear-gradient(to bottom, rgba(255, 252, 234, 0.99), rgba(249, 239, 197, 0.97));
-  color: #7c6632;
-}
 
-.fansubEditTimelineScale {
-  display: flex;
-  justify-content: flex-start;
-  color: #7a8395;
-  font-size: 0.84rem;
-  font-weight: 700;
-  padding-inline: 0.5rem;
-}
 
-.fansubEditTimelineTrack {
-  position: relative;
-  height: 30px;
-  border: 1px solid rgba(72, 58, 48, 0.08);
-  border-radius: 4px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.98), rgba(239, 240, 245, 0.94));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
-  overflow: visible;
-  margin-inline: 0.5rem;
-}
 
 .fansubEditTimelineTrack::before {
   content: "";
@@ -1956,104 +1403,14 @@
   pointer-events: none;
 }
 
-.fansubEditTimelineMainContent {
-  position: absolute;
-  top: 3px;
-  left: 0;
-  width: 100%;
-  height: calc(100% - 6px);
-  border-radius: 4px;
-  background:
-    radial-gradient(circle at top right, rgba(122, 160, 240, 0.18), transparent 42%),
-    linear-gradient(180deg, rgba(244, 247, 251, 0.98), rgba(230, 235, 243, 0.96));
-  border: 1px solid rgba(92, 105, 131, 0.12);
-  color: rgba(77, 100, 145, 0.8);
-  font-size: 0.8rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: 0.02em;
-  z-index: 1;
-  pointer-events: none;
-}
 
-.fansubEditTimelineSegment {
-  position: absolute;
-  z-index: 2;
-  top: -5px;
-  height: calc(100% + 10px);
-  border: 1px solid rgba(124, 132, 148, 0.22);
-  border-radius: 4px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.98), rgba(241, 244, 249, 0.96));
-  color: #536688;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  min-width: 2.1rem;
-  overflow: hidden;
-  padding: 0 0.35rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  box-shadow:
-    0 2px 4px rgba(33, 45, 72, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78);
-}
 
-.fansubEditTimelineSegmentglobal {
-  border-color: color-mix(in srgb, #82122c 36%, #d8d8df);
-  background: linear-gradient(180deg, color-mix(in srgb, #82122c 12%, #fff), color-mix(in srgb, #82122c 5%, #fff));
-  color: #6d1835;
-}
 
-.fansubEditTimelineSegmentrelease {
-  border-color: color-mix(in srgb, var(--color-success) 45%, #d8d8df);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--color-success) 16%, #fff), color-mix(in srgb, var(--color-success) 6%, #fff));
-  color: color-mix(in srgb, var(--color-success) 84%, var(--text-primary));
-}
 
-.fansubEditTimelineSegmentmissing {
-  border-color: color-mix(in srgb, var(--color-warning) 48%, #d8d8df);
-  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 22%, #fff) 0 7px, #fff 7px 14px);
-  color: color-mix(in srgb, var(--color-warning) 76%, var(--text-primary));
-}
 
-.fansubEditTimelineSegmentActive {
-  z-index: 2;
-  border-color: var(--accent-primary);
-  box-shadow:
-    0 2px 4px rgba(33, 45, 72, 0.12),
-    0 0 0 2px rgba(122, 160, 240, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78);
-}
 
-.fansubEditTimelineSegmentOp {
-  border-color: rgba(130, 18, 44, 0.3);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 26%, rgba(255, 255, 255, 0) 28%),
-    linear-gradient(to bottom, rgba(130, 18, 44, 0.18), rgba(58, 14, 35, 0.26));
-  color: #6f1f36;
-}
 
-.fansubEditTimelineSegmentEd {
-  border-color: rgba(47, 155, 121, 0.28);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.08) 26%, rgba(255, 255, 255, 0) 28%),
-    linear-gradient(to bottom, rgba(121, 224, 181, 0.2), rgba(47, 155, 121, 0.24));
-  color: #2f7460;
-}
 
-.fansubEditTimelineSegmentIn {
-  border-color: rgba(67, 99, 180, 0.28);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 26%, rgba(255, 255, 255, 0) 28%),
-    linear-gradient(to bottom, rgba(122, 160, 240, 0.22), rgba(67, 99, 180, 0.26));
-  color: #3f5f9d;
-}
 
 .fansubEditReleaseDrawerOverlay {
   position: fixed;
@@ -2170,7 +1527,6 @@
   align-items: start;
 }
 
-.fansubEditReleaseDrawerFieldGrid,
 .fansubEditReleaseDrawerDetailGrid {
   display: grid;
   gap: 0.75rem;
@@ -2195,8 +1551,7 @@
   overflow-wrap: anywhere;
 }
 
-.fansubEditReleaseDrawerFieldGrid label,
-.fansubEditReleaseDrawerTextarea {
+.fansubEditReleaseDrawerFieldGrid label {
   display: grid;
   gap: 0.35rem;
 }
@@ -2219,8 +1574,7 @@
   padding: 0.55rem 0.65rem;
 }
 
-.fansubEditReleaseDrawerFieldGrid input[readonly],
-.fansubEditReleaseDrawerReadOnly {
+.fansubEditReleaseDrawerFieldGrid input[readonly] {
   border-color: color-mix(in srgb, var(--text-secondary) 12%, transparent);
   background: linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 98%, #fff), color-mix(in srgb, var(--bg-secondary) 88%, transparent));
   box-shadow:
@@ -2237,11 +1591,6 @@
   resize: vertical;
 }
 
-.fansubEditReleaseDrawerContextGrid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
 
 .fansubEditReleaseDrawerAssetBox {
   display: grid;
@@ -2290,17 +1639,6 @@
   font-weight: 700;
 }
 
-.fansubEditThemeUploadInput {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
 
 .fansubEditThemeUploadPicker {
   display: flex;
@@ -2326,11 +1664,6 @@
   min-width: 0;
 }
 
-.fansubEditReleaseDrawerAssetTypes {
-  display: flex;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-}
 
 .fansubEditReleaseDrawerAssetTypes button {
   border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
@@ -2349,13 +1682,6 @@
   color: var(--accent-primary);
 }
 
-.fansubEditReleaseDrawerMediaHeader {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
 
 .fansubEditReleaseDrawerMediaHeader > div {
   display: flex;
@@ -2381,26 +1707,7 @@
   background: #000;
 }
 
-.fansubEditReleaseDrawerMediaGrid {
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-}
 
-.fansubEditReleaseDrawerMediaCard {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
-  border-radius: calc(var(--radius-sm) + 3px);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 98%, #fff), color-mix(in srgb, var(--bg-secondary) 88%, transparent));
-  color: var(--text-primary);
-  display: grid;
-  gap: 0.35rem;
-  min-height: 9rem;
-  padding: 0.65rem;
-  text-decoration: none;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 44%, transparent),
-    0 12px 22px -22px rgba(17, 24, 39, 0.26);
-}
 
 .fansubEditReleaseDrawerMediaCard span {
   color: var(--text-muted);
@@ -2409,14 +1716,6 @@
   text-transform: uppercase;
 }
 
-.fansubEditReleaseDrawerMediaThumb {
-  min-height: 5.4rem;
-  border-radius: calc(var(--radius-sm) - 2px);
-  background: color-mix(in srgb, var(--text-secondary) 10%, transparent);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-}
 
 .fansubEditReleaseDrawerMediaThumb img {
   width: 100%;
@@ -2440,14 +1739,6 @@
     gap: 0.55rem;
     padding-bottom: 0.65rem;
   }
-.fansubEditAnimeContributorsButton {
-    justify-self: start;
-    margin-left: 0.65rem;
-  }
-.fansubEditAnimeReleaseActions {
-    justify-content: flex-start;
-    margin-left: 0.65rem;
-  }
 .fansubEditAnimeReleaseActions .fansubEditAnimeContributorsButton {
     margin-left: 0;
   }
@@ -2464,67 +1755,14 @@
   }
 }
 
-.fansubEditSegmentGrid {
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
 
-.fansubEditSegmentCard {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
-  color: var(--text-primary);
-  cursor: pointer;
-  display: grid;
-  gap: 0.3rem;
-  min-height: 130px;
-  padding: 0.65rem;
-  text-align: left;
-}
 
-.fansubEditSegmentCardActive {
-  border-color: color-mix(in srgb, var(--accent-primary) 52%, transparent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 12%, transparent);
-}
 
-.fansubEditSegmentStatus {
-  justify-self: start;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  border-radius: 999px;
-  padding: 0.18rem 0.5rem;
-  font-size: 0.74rem;
-  font-weight: 700;
-}
 
-.fansubEditSegmentStatusglobal {
-  border-color: color-mix(in srgb, var(--accent-primary) 38%, transparent);
-  color: var(--accent-primary);
-}
 
-.fansubEditSegmentStatusrelease {
-  border-color: color-mix(in srgb, var(--color-success) 44%, transparent);
-  color: color-mix(in srgb, var(--color-success) 78%, var(--text-primary));
-}
 
-.fansubEditSegmentStatusmissing {
-  border-color: color-mix(in srgb, var(--color-warning) 50%, transparent);
-  color: color-mix(in srgb, var(--color-warning) 74%, var(--text-primary));
-}
 
-.fansubEditSegmentAssetHint {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-}
 
-.fansubEditSegmentEditor {
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 24%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
-  padding: 0.75rem;
-  display: grid;
-  gap: 0.7rem;
-}
 
 .fansubEditSegmentEditor h4 {
   margin: 0;
@@ -2567,24 +1805,8 @@
   background: linear-gradient(to top, var(--bg-card), color-mix(in srgb, var(--bg-card) 0%, transparent));
 }
 
-.fansubEditAnimeProjectNoteForm {
-  display: grid;
-  gap: 0.75rem;
-}
 
-.fansubEditAnimeProjectNoteActions {
-  display: flex;
-  gap: 0.5rem;
-}
 
-.fansubEditSaveSuccess {
-  border: 1px solid color-mix(in srgb, var(--color-success, #22c55e) 32%, transparent);
-  border-radius: var(--radius-sm);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--color-success, #22c55e) 10%, white), color-mix(in srgb, var(--color-success, #22c55e) 6%, transparent));
-  color: var(--color-success, #16a34a);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
-}
 
 .fansubEditAnimeProjectNotesCard :global(.admin-module__4WpgRW__field) label {
   font-size: 0.86rem;
@@ -2630,9 +1852,6 @@
 .fansubEditBannerShell,
 .fansubEditBannerPlaceholder {
     min-height: 0;
-  }
-.fansubEditBasicIntro {
-    grid-template-columns: 1fr;
   }
 .fansubEditBasicGrid {
     grid-template-columns: 1fr;
@@ -2761,14 +1980,6 @@
   box-shadow: 0 1px 2px rgba(42, 30, 21, 0.08);
 }
 
-.fansubEditMediaPermissionSummary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
 
 .fansubEditMediaPermissionSummary span {
   overflow-wrap: anywhere;
@@ -2875,32 +2086,8 @@
   padding-left: 50px;
 }
 
-.fansubEditHistoricalMemberBody {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-  padding-left: 50px;
-}
 
-.fansubEditHistoricalMemberRoleChips {
-  display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-width: 0;
-}
 
-.fansubEditHistoricalRoleChip {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 4px 8px;
-  min-width: min(100%, 220px);
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 14%, transparent);
-  border-radius: 6px;
-  background: color-mix(in srgb, #fff 88%, var(--bg-secondary));
-  padding: 8px 9px;
-}
 
 .fansubEditHistoricalRoleChip strong,
 .fansubEditHistoricalRoleChip span {
@@ -2915,11 +2102,6 @@
   line-height: 1.25;
 }
 
-.fansubEditHistoricalRoleActions {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
 
 .fansubEditHistoricalRoleActions > button {
   min-width: 34px;
@@ -2928,15 +2110,6 @@
   height: 34px;
 }
 
-.fansubEditHistoricalMemberMetaRow,
-.fansubEditHistoricalMemberActions,
-.fansubEditHistoricalClaimActions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-width: 0;
-}
 
 .fansubEditHistoricalMemberActions > button,
 .fansubEditHistoricalClaimActions button {
@@ -2964,12 +2137,8 @@
 .fansubEditMemberCompactCard {
     padding: 10px;
   }
-.fansubEditMemberCompactBody,
-.fansubEditHistoricalMemberBody {
+.fansubEditMemberCompactBody {
     padding-left: 0;
-  }
-.fansubEditHistoricalRoleChip {
-    width: 100%;
   }
 }
 
@@ -3032,36 +2201,13 @@
   }
 }
 
-.fansubEditClaimCell,
-.fansubEditClaimList,
-.fansubEditClaimItem,
-.fansubEditClaimInvite {
-  display: grid;
-  gap: 0.45rem;
-  min-width: 0;
-}
 
-.fansubEditClaimItem {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
-  padding: 0.55rem;
-}
 
 .fansubEditClaimItem span {
   overflow-wrap: anywhere;
 }
 
-.fansubEditClaimActions {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
 
-.contributionDrawerToolbar {
-  margin-bottom: 0;
-}
 
 .contributionToolbarMeta {
   display: flex;
@@ -3073,12 +2219,6 @@
   line-height: 1.45;
 }
 
-.contributionDrawerHint {
-  margin: calc(var(--space-2) * -1) 0 var(--space-1);
-  color: var(--text-secondary);
-  font-size: 0.86rem;
-  line-height: 1.45;
-}
 
 .contributionSheetIntro {
   display: flex;
@@ -3263,10 +2403,6 @@
 }
 
 @media (max-width: 760px) {
-.fansubEditReleaseAssignmentPanel {
-    align-items: stretch;
-    flex-direction: column;
-  }
 .contributionRows {
     margin-bottom: var(--space-3);
   }
