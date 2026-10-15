@@ -1,111 +1,111 @@
-# Team4s Implementation Contract
+# Team4s Implementation-Vertrag
 
-## Purpose
+## Zweck
 
-This document prevents three recurring drift problems:
+Dieses Dokument verhindert drei wiederkehrende Drift-Probleme:
 
-- UI is reinterpreted per page instead of following the global UI system.
-- API request/response behavior drifts between backend, frontend helpers, DTOs, and shared contracts.
-- Similar code is rebuilt in multiple places instead of using or extending an existing seam.
+- Die UI wird pro Seite neu interpretiert, statt dem globalen UI-System zu folgen.
+- API-Request-/Response-Verhalten driftet zwischen Backend, Frontend-Helfern, DTOs und geteilten Contracts.
+- Ähnlicher Code wird an mehreren Stellen neu gebaut, statt eine bestehende Nahtstelle zu nutzen oder zu erweitern.
 
-Use this document before planning or coding implementation work.
+Dieses Dokument vor der Planung oder Umsetzung von Implementierungsarbeiten verwenden.
 
-## Disposable Test Data Contract
+## Vertrag zu nicht dauerhaften Testdaten
 
-Team4s currently operates with disposable test data. Existing database rows have no preservation requirement.
+Team4s arbeitet aktuell mit nicht dauerhaften Testdaten. Bestehende Datenbankzeilen unterliegen keiner Aufbewahrungspflicht.
 
-- Do not add plans or implementation work for data migration, backfill, reconciliation, compatibility, or carry-forward unless the user explicitly requests that work for the current task.
-- New schema migrations remain the standard mechanism for schema changes; this rule does not prohibit migrations that create or alter the schema.
-- Prefer resetting and reseeding the test database over preserving old row data or adding transitional compatibility code.
-- Historical people, memberships, releases, and contributions are entered through the current canonical product flow. Their real-world history does not make pre-existing test rows durable.
-- Roadmap language such as "historical import", "backfill", or "existing data" does not override this contract. Confirm with the user before treating persisted data as production-like or durable.
+- Keine Pläne oder Implementierungsarbeiten für Datenmigration, Backfill, Abgleich oder Kompatibilität/Weiterführung anlegen, außer der Nutzer fordert diese Arbeit für die aktuelle Aufgabe ausdrücklich an.
+- Neue Schema-Migrationen bleiben der Standardmechanismus für Schemaänderungen; diese Regel verbietet keine Migrationen, die das Schema erzeugen oder ändern.
+- Zurücksetzen und erneutes Befüllen der Testdatenbank wird dem Erhalt alter Zeilendaten oder dem Hinzufügen von Übergangs-Kompatibilitätscode vorgezogen.
+- Historische Personen, Mitgliedschaften, Releases und Beiträge werden über den aktuellen kanonischen Produktablauf erfasst. Ihre reale Historie macht bestehende Testzeilen nicht dauerhaft.
+- Roadmap-Formulierungen wie „historischer Import", „Backfill" oder „bestehende Daten" setzen diesen Vertrag nicht außer Kraft. Vor der Behandlung persistierter Daten als produktionsähnlich oder dauerhaft ist die Rücksprache mit dem Nutzer erforderlich.
 
-## Mandatory Search-First Gate
+## Verbindliches Search-First-Gate
 
-Before adding new implementation code, search for existing equivalents:
+Vor dem Hinzufügen neuen Implementierungscodes nach bestehenden Entsprechungen suchen:
 
-- UI components: `frontend/src/components/ui`, nearby page components, domain components.
-- API helpers and DTOs: `frontend/src/lib/api.ts`, `frontend/src/lib/api/*`, `frontend/src/types/*`.
-- Backend handlers/services/repositories: `backend/internal/handlers`, `backend/internal/services`, `backend/internal/repository`.
+- UI-Komponenten: `frontend/src/components/ui`, benachbarte Seitenkomponenten, Domänenkomponenten.
+- API-Helfer und DTOs: `frontend/src/lib/api.ts`, `frontend/src/lib/api/*`, `frontend/src/types/*`.
+- Backend-Handler/-Services/-Repositories: `backend/internal/handlers`, `backend/internal/services`, `backend/internal/repository`.
 - Contracts: `shared/contracts/openapi.yaml`, `shared/contracts/admin-content.yaml`.
-- Domain docs: `docs/architecture/db-schema-fansub-domain.md`, `docs/architecture/db-runtime-authority-map.md`.
+- Domänen-Dokumentation: `docs/archiv/db-schema-fansub-domain.md`, `docs/archiv/db-runtime-authority-map.md`.
 
-If an existing seam fits, use or extend it. If it does not fit, record why before creating a parallel seam.
+Passt eine bestehende Nahtstelle, wird sie genutzt oder erweitert. Passt sie nicht, ist vor der Erstellung einer parallelen Nahtstelle zu begründen, warum.
 
-## Reuse Decision Rules
+## Regeln für Wiederverwendungsentscheidungen
 
-Prefer reuse when:
+Wiederverwendung bevorzugen, wenn:
 
-- The existing code owns the same domain entity.
-- The existing code already handles auth, validation, transport, media ownership, or error behavior.
-- The new behavior is a variant of an existing pattern.
-- A shared primitive would remove repeated control/progress/error/formatting logic.
+- der bestehende Code dieselbe Domänenentität besitzt.
+- der bestehende Code bereits Auth, Validierung, Transport, Medien-Eigentümerschaft oder Fehlerverhalten übernimmt.
+- das neue Verhalten eine Variante eines bestehenden Musters ist.
+- ein geteiltes Primitiv wiederholte Steuerungs-/Fortschritts-/Fehler-/Formatierungslogik entfernen würde.
 
-Do not reuse when:
+Keine Wiederverwendung, wenn:
 
-- Reuse would attach data to the wrong domain entity.
-- Reuse would merge release-level, release-version-level, group-level, or anime-level media ownership.
-- The existing code is a compatibility seam and the task is explicitly building a newer canonical seam.
-- The abstraction would hide important domain decisions.
+- die Wiederverwendung Daten an die falsche Domänenentität anhängen würde.
+- die Wiederverwendung Medien-Eigentümerschaft auf Release-Ebene, Release-Versions-Ebene, Gruppen-Ebene oder Anime-Ebene vermischen würde.
+- der bestehende Code eine Kompatibilitäts-Nahtstelle ist und die Aufgabe ausdrücklich eine neuere kanonische Nahtstelle aufbaut.
+- die Abstraktion wichtige Domänenentscheidungen verdecken würde.
 
-## Duplication Gate
+## Duplikations-Gate
 
-New code should not introduce a second copy of:
+Neuer Code sollte keine zweite Kopie von Folgendem einführen:
 
-- API request construction or response parsing.
-- Auth token or bearer handling.
-- Upload transport, progress, retry, or media ownership logic.
-- DTO mapping between backend and frontend shapes.
-- Release/fansub/anime ownership lookup logic.
-- UI controls for the same persisted data type.
-- Loading/error/empty-state patterns for the same UI surface type.
+- API-Request-Konstruktion oder Response-Parsing.
+- Auth-Token- oder Bearer-Handling.
+- Upload-Transport, Fortschritt, Retry oder Medien-Eigentümerschaftslogik.
+- DTO-Mapping zwischen Backend- und Frontend-Formen.
+- Nachschlagelogik für Release-/Fansub-/Anime-Eigentümerschaft.
+- UI-Steuerelemente für denselben persistierten Datentyp.
+- Lade-/Fehler-/Leer-Zustandsmuster für denselben UI-Oberflächentyp.
 
-If the same logic would appear in two or more places, extract a focused helper or component unless doing so would cross a domain boundary.
+Würde dieselbe Logik an zwei oder mehr Stellen auftreten, ist ein fokussierter Helfer oder eine Komponente zu extrahieren, außer dies würde eine Domänengrenze überschreiten.
 
-## UI Contract Pointer
+## Verweis auf den UI-Vertrag
 
-For UI work, follow:
+Für UI-Arbeiten gilt:
 
 - `docs/frontend/ui-system.md`
 - `docs/agent-guidelines-ui.md`
 
-Persisted or API-backed fields must be mapped to semantic controls before coding. Do not use placeholder text inputs for years, enums, booleans, relations, media, or constrained numeric values.
+Persistierte oder API-gestützte Felder müssen vor dem Codieren auf semantische Steuerelemente abgebildet werden. Keine Platzhalter-Texteingaben für Jahre, Enums, Booleans, Relationen, Medien oder beschränkte numerische Werte verwenden.
 
-## API Contract Pointer
+## Verweis auf den API-Vertrag
 
-For API work, follow:
+Für API-Arbeiten gilt:
 
 - `docs/api/api-contracts.md`
 - `shared/contracts/openapi.yaml`
 - `shared/contracts/admin-content.yaml`
 - `docs/frontend/auth-api-client.md`
 
-Endpoint behavior, DTOs, frontend helpers, status branches, and shared contracts must move together.
+Endpoint-Verhalten, DTOs, Frontend-Helfer, Status-Zweige und geteilte Contracts müssen gemeinsam fortgeschrieben werden.
 
-## GSD Planning Requirements
+## GSD-Planungsanforderungen
 
-Plans must include in `read_first`:
+Pläne müssen in `read_first` enthalten:
 
-- The files being edited.
-- Existing analog files found by the search-first gate.
-- Relevant docs from this file, UI contract docs, API contract docs, or domain docs.
+- die zu bearbeitenden Dateien.
+- bestehende Analog-Dateien, die durch das Search-First-Gate gefunden wurden.
+- relevante Dokumente aus dieser Datei, aus der UI-Vertrags-Dokumentation, der API-Vertrags-Dokumentation oder der Domänen-Dokumentation.
 
-Plan actions must name exact files, helpers, components, endpoint paths, DTO names, and controls. Avoid vague instructions such as "make this consistent" without specifying the target pattern.
+Plan-Aktionen müssen exakte Dateien, Helfer, Komponenten, Endpoint-Pfade, DTO-Namen und Steuerelemente benennen. Vage Anweisungen wie „das konsistent machen" ohne Angabe des Zielmusters sind zu vermeiden.
 
-Acceptance criteria should include at least one reuse/contract check when relevant, for example:
+Abnahmekriterien sollten, wo relevant, mindestens eine Wiederverwendungs-/Vertragsprüfung enthalten, zum Beispiel:
 
-- No new ad hoc `fetch` is introduced for a protected API call.
-- Existing upload wrapper remains the only bearer-owning upload transport.
-- The field `year` is rendered through a constrained year control, not a free text input.
-- The shared contract YAML and frontend DTO both contain the new response field.
+- Für einen geschützten API-Aufruf wird kein neuer Ad-hoc-`fetch` eingeführt.
+- Der bestehende Upload-Wrapper bleibt der einzige bearer-besitzende Upload-Transport.
+- Das Feld `year` wird über ein beschränktes Jahres-Steuerelement dargestellt, nicht über eine freie Texteingabe.
+- Das geteilte Contract-YAML und das Frontend-DTO enthalten beide das neue Response-Feld.
 
-## Execution Requirements
+## Ausführungsanforderungen
 
-Executors must stop or document a deviation if implementation requires:
+Ausführende müssen stoppen oder eine Abweichung dokumentieren, wenn die Implementierung Folgendes erfordert:
 
-- A new duplicate seam where an existing seam appeared usable.
-- A new API contract not covered by the plan.
-- A new UI control for a persisted field where the global UI system already has a matching primitive.
-- A domain ownership decision that is unclear.
+- eine neue doppelte Nahtstelle, obwohl eine bestehende Nahtstelle nutzbar erschien.
+- einen neuen API-Vertrag, der vom Plan nicht abgedeckt ist.
+- ein neues UI-Steuerelement für ein persistiertes Feld, obwohl das globale UI-System bereits ein passendes Primitiv besitzt.
+- eine unklare Domänen-Eigentümerschaftsentscheidung.
 
-Small shared helpers are encouraged when they reduce real duplication and keep ownership clear.
+Kleine geteilte Helfer werden ermutigt, wenn sie echte Duplikation reduzieren und die Eigentümerschaft klar halten.
