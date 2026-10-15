@@ -194,12 +194,12 @@ func (h *MediaUploadHandler) processImage(
 		}
 	default:
 		displayRelPath, displayExt, displayWidth, displayHeight, err := h.generateStaticDisplayVariant(
-			req, mediaID, storagePath, img, originalWidth, originalHeight,
+			req, mediaID, storagePath, originalPath, img, originalWidth, originalHeight,
 		)
 		if err != nil {
 			return nil, err
 		}
-		displayPath := filepath.Join(storagePath, "display."+displayExt)
+		displayPath := filepath.Join(storagePath, services.DisplayVariantFileName(originalPath, displayExt))
 		displaySize, _ = h.getFileSize(displayPath)
 		files = append(files, models.UploadFileInfo{
 			Variant: "display",
@@ -292,6 +292,7 @@ func (h *MediaUploadHandler) generateStaticDisplayVariant(
 	req models.UploadRequest,
 	mediaID string,
 	storagePath string,
+	originalPath string,
 	img image.Image,
 	originalWidth, originalHeight int,
 ) (relPath string, ext string, width int, height int, err error) {
@@ -300,7 +301,7 @@ func (h *MediaUploadHandler) generateStaticDisplayVariant(
 		return "", "", 0, 0, fmt.Errorf("display speichern: %w", encErr)
 	}
 
-	displayFilename := "display." + encExt
+	displayFilename := services.DisplayVariantFileName(originalPath, encExt)
 	displayPath := filepath.Join(storagePath, displayFilename)
 	displayRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, displayFilename)
 
