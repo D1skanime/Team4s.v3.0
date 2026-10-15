@@ -4,7 +4,6 @@ import type { ReactNode } from 'react'
 import { UserPlus } from 'lucide-react'
 
 import {
-  Badge,
   Button,
   Card,
   ErrorState,
