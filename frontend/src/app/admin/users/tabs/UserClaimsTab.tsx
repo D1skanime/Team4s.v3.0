@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui'
 import { ApiError, getAdminUserMemberClaims } from '@/lib/api'
+import { claimStatusLabel, claimStatusVariant } from '@/lib/claimStatusLabels'
 import type {
   AdminClaimSummary,
   AdminMemberProfileSummary,
@@ -35,38 +36,6 @@ function formatDate(iso: string): string {
     })
   } catch {
     return iso
-  }
-}
-
-function claimStatusLabel(status: string): string {
-  switch (status) {
-    case 'active':
-    case 'verified':
-      return 'Verifiziert'
-    case 'open':
-    case 'pending':
-      return 'Offen'
-    case 'rejected':
-    case 'denied':
-      return 'Abgelehnt'
-    default:
-      return status
-  }
-}
-
-function claimStatusVariant(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
-  switch (status) {
-    case 'active':
-    case 'verified':
-      return 'success'
-    case 'open':
-    case 'pending':
-      return 'warning'
-    case 'rejected':
-    case 'denied':
-      return 'danger'
-    default:
-      return 'neutral'
   }
 }
 

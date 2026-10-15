@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui'
 import { ApiError, listClaims } from '@/lib/api'
+import { claimStatusLabel, claimStatusVariant } from '@/lib/claimStatusLabels'
 import type { AdminClaimListRow } from '@/types/admin-users'
 
 import { ClaimDecisionImpactPanel } from './ClaimDecisionImpactPanel'
@@ -51,33 +52,6 @@ function useIsMobile(): boolean {
   }, [])
 
   return isMobile
-}
-
-/** D-23: reale Status-Vokabeln, keine erfundenen Status. */
-function claimStatusLabel(status: string): string {
-  switch (status) {
-    case 'verified':
-      return 'Genehmigt'
-    case 'rejected':
-      return 'Abgelehnt'
-    case 'pending':
-      return 'Offen'
-    default:
-      return status
-  }
-}
-
-function claimStatusVariant(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
-  switch (status) {
-    case 'verified':
-      return 'success'
-    case 'rejected':
-      return 'danger'
-    case 'pending':
-      return 'warning'
-    default:
-      return 'neutral'
-  }
 }
 
 function formatDate(iso: string): string {
