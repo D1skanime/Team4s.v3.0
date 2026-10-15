@@ -19,6 +19,19 @@ Out-of-scope issues discovered during execution, not fixed per Scope Boundary ru
   In Isolation und im finalen sauberen vollständigen Lauf grün. Kein Code in diesem Plan
   berührt diese Datei. Nicht gefixt, da nicht reproduzierbar und außerhalb des Scopes.
 
+## 184-09
+
+- Voller `npx vitest run` nach Task 1 zeigt 3 vorbestehende Fehlschläge, keiner davon berührt
+  die von diesem Plan geänderten Dateien: `src/components/profile/badgeArtwork.test.ts`
+  (Suite-Fehler, benötigt `API_INTERNAL_URL` im Linux-Frontend-Compose-Service, hier nicht
+  gesetzt), `src/components/ui/ResponsiveImage.config.test.ts` (Assertion zu erlaubten
+  Remote-Hosts, unabhängig von CSS-Modul-Merges), `src/types/__tests__/anime-detail-contract.test.ts`
+  (derselbe bereits unter 184-02 dokumentierte vorbestehende OpenAPI-Schema-Mismatch),
+  `src/app/admin/roles/RoleCapabilityDetail.membershipBaselineDrift.test.ts` (ENOENT beim Lesen
+  von `/backend/internal/permissions/permissions.go` — Pfad nur im Docker-Container vorhanden,
+  nicht in dieser Shell-Umgebung). Nicht gefixt, außerhalb des Scopes (ReleaseVersionNotesTab-Split
+  + mergeCssModules-Migration berührt keine dieser Dateien).
+
 ## 184-05
 
 - Voller `npx vitest run` nach Task 2 zeigte erneut den bereits oben dokumentierten
