@@ -140,6 +140,13 @@ None - keine externe Service-Konfiguration nötig.
 - Bereit für 184-03 (F-12, Spread-Merge-Helfer) und 184-04 (F-20, tote CSS-Klassen) gemäß Plan-Reihenfolge in CONTEXT.md.
 - `docker restart team4sv30-frontend` wurde nach allen Frontend-Edits dieses Plans einmalig ausgeführt; Container läuft fehlerfrei neu hoch (verifiziert per `docker compose logs`).
 
+## Self-Check: PASSED
+
+Alle 6 erstellten/relevanten Dateien (`pagination.ts`, `pagination.test.ts`, `formatDate.ts`,
+`formatDate.test.ts`, diese SUMMARY, `deferred-items.md`) und alle 7 referenzierten Commit-Hashes
+(`eb71a7eda`, `6f43068b2`, `2b5d32afd`, `9f054f147`, `e0c9e1f80`, `c8ddc672d`, `c5d0708af`) wurden
+per `git log --oneline --all | grep` bzw. Dateisystem-Check verifiziert — keine fehlenden Einträge.
+
 ---
 *Phase: 184-aufr-umpunkte-aus-phase-174-abschlie-en-tote-css-klassen-in-*
 *Completed: 2026-10-15*
