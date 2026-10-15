@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 184-03-PLAN.md
-last_updated: "2026-10-15T15:47:27.409Z"
+stopped_at: Completed 184-04-PLAN.md
+last_updated: "2026-10-15T16:11:19.820Z"
 last_activity: 2026-10-15
 progress:
   total_phases: 49
   completed_phases: 43
   total_plans: 446
-  completed_plans: 436
+  completed_plans: 437
   percent: 88
 ---
 
@@ -370,7 +370,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 184
-Plan: 3 of 10 (184-01, 184-02 complete, 184-03..184-10 offen)
+Plan: 4 of 10 (184-01, 184-02 complete, 184-03..184-10 offen)
 Status: Ready to execute
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
@@ -1217,6 +1217,7 @@ Last activity: 2026-10-15
 - [Phase 184]: 184-01 (D-04/F-23-Nachzieh) ausgeführt: alle 4 Literal-Duplikate der display-Namensregel im Release-Version- und generischen Media-Upload-Pfad auf services.DisplayVariantFileName umgestellt — keine Verhaltensänderung, bestehende Display-Variant-Tests weiterhin grün, siehe 184-01-SUMMARY.md
 - [Phase 184]: D-02 befolgt: zwei getrennte formatDate-Helfer (Cluster A ISO-Fallback, Cluster B Leerstring-Fallback) statt Vereinheitlichung
 - [Phase 184]: mergeCssModules kapselt exakt das Select.tsx-Proxy-Muster, nestable für 3er-Merge via mergeCssModules(a, mergeCssModules(b, c)) — Grundstein für alle 38 Konsumenten-Dateien der Pläne 184-04..184-09
+- [Phase 184]: 184-04: Historische-Rollen-Entwuerfe in eigenen dritten Hook useFansubAppMemberHistoricalRoleDrafts.ts ausgelagert, damit useFansubAppMembersSection.ts unter 450 Zeilen bleibt (D-05).
 
 ### Pending Todos
 
@@ -1882,11 +1883,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 184 P01 | ~10min | 2 tasks | 2 files |
 | Phase 184 P02 | 22min | 3 tasks | 13 files |
 | Phase 184 P03 | 10min | 2 tasks | 2 files |
+| Phase 184 P04 | 25min | 2 tasks | 18 files |
 
 ## Session Continuity
 
-Last session: 2026-10-15T15:47:27.376Z
-Stopped at: Completed 184-03-PLAN.md
+Last session: 2026-10-15T16:11:19.794Z
+Stopped at: Completed 184-04-PLAN.md
 Last activity: 2026-10-15 - Completed quick task 261015-gm3: README neu schreiben (F-11)
 Resume file: 
 None

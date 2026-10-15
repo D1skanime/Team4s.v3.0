@@ -2766,13 +2766,13 @@ Plans:
 **Goal:** Die vier aus Phase 174 übernommenen Wartbarkeits-Altlasten (F-07 doppelte formatDate-/Pagination-Hilfsfunktionen, F-12 latenter CSS-Modul-Merge-Fehler, F-20 tote CSS-Klassen, F-23 original→display-Regel-Nachzieh) sind geschlossen, ohne dass sich für Nutzer:innen etwas sichtbar ändert.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung — D-01 bis D-05 aus 184-CONTEXT.md sind die verbindlichen Entscheidungen dieser Phase.
 **Depends on:** Phase 183
-**Plans:** 3/10 plans executed
+**Plans:** 4/10 plans executed
 
 Plans:
 - [x] 184-01-PLAN.md — F-23-Nachzieh (D-04): 4 Literal-Duplikate im Release-Version- und generischen Media-Upload-Pfad auf services.DisplayVariantFileName umstellen.
 - [x] 184-02-PLAN.md — F-07 (D-02): computePageWindow-Helfer (beide Pagination-Komponenten) + zwei formatDate-Helfer (Cluster A/B, 7 Konsumenten) mit Logik-Tests.
 - [x] 184-03-PLAN.md — F-12-Grundstein (D-01): Zentraler Helfer frontend/src/lib/mergeCssModules.ts (Proxy-basiert) + Logik-Tests (2er/3er-Merge).
-- [ ] 184-04-PLAN.md — F-12 (D-01/D-05): FansubAppMembersSection.tsx aufteilen (657→≤450 Zeilen), danach 16 bereits reparierte inline-Proxy-Dateien in admin/fansubs/[id]/edit/ auf mergeCssModules umstellen.
+- [x] 184-04-PLAN.md — F-12 (D-01/D-05): FansubAppMembersSection.tsx aufteilen (657→≤450 Zeilen), danach 16 bereits reparierte inline-Proxy-Dateien in admin/fansubs/[id]/edit/ auf mergeCssModules umstellen.
 - [ ] 184-05-PLAN.md — D-05-Vorlauf: admin/fansubs/page.tsx (760) und admin/fansubs/merge/page.tsx (954) auf ≤450 Zeilen aufteilen (reiner Umbau, keine Proxy-Änderung).
 - [ ] 184-06-PLAN.md — F-12 (D-01): 7 Fansub-Umfeld-Dateien (Liste, Create-Flow, Merge-Wizard) vom kaputten Spread-Muster auf mergeCssModules umstellen.
 - [ ] 184-07-PLAN.md — F-12 (D-01/D-05): admin/episodes/page.tsx aufteilen (637→≤450), danach AnimeBrowser-Cluster (4 Dateien) auf mergeCssModules umstellen.
