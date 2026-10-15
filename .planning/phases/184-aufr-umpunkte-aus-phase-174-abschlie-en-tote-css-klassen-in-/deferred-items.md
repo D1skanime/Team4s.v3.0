@@ -18,3 +18,13 @@ Out-of-scope issues discovered during execution, not fixed per Scope Boundary ru
   parallel/nacheinander gestartete Testläufe während der Fehlersuche bei Hintergrundprozessen).
   In Isolation und im finalen sauberen vollständigen Lauf grün. Kein Code in diesem Plan
   berührt diese Datei. Nicht gefixt, da nicht reproduzierbar und außerhalb des Scopes.
+
+## 184-05
+
+- Voller `npx vitest run` nach Task 2 zeigte erneut den bereits oben dokumentierten
+  vorbestehenden Fehler in `anime-detail-contract.test.ts` (unverändert, kein Code dieses Plans
+  berührt `shared/contracts/openapi.yaml` oder die Testdatei) sowie einen einmaligen Timeout-Flake
+  in `AchievementBadgeShowcase.test.tsx` (`renders every ordinary non-role badge as its current
+  real production family stage`, 5000ms-Timeout unter Last des vollen Laufs) — in Isolation
+  (`npx vitest run src/app/dev/ui-system/showcase/AchievementBadgeShowcase.test.tsx`) grün. Kein
+  Code dieses Plans berührt diese Datei. Beide außerhalb des Scopes, nicht gefixt.
