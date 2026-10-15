@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+import { computePageWindow } from '@/lib/pagination'
+
 import styles from './Pagination.module.css'
 
 interface PaginationProps {
@@ -32,13 +34,7 @@ export function Pagination({ currentPage, totalPages, letter, perPage, contentTy
     return null
   }
 
-  const from = Math.max(1, currentPage - 2)
-  const to = Math.min(totalPages, currentPage + 2)
-  const pages: number[] = []
-
-  for (let page = from; page <= to; page += 1) {
-    pages.push(page)
-  }
+  const pages = computePageWindow(currentPage, totalPages)
 
   return (
     <nav className={styles.nav} aria-label="Seitennavigation">

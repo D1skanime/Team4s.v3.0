@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react'
 
+import { computePageWindow } from '@/lib/pagination'
+
 import { Button } from './Button'
 import { classNames } from './classNames'
 import styles from './Pagination.module.css'
@@ -13,15 +15,7 @@ export interface PaginationProps {
 }
 
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  const pages = useMemo(() => {
-    const from = Math.max(1, currentPage - 2)
-    const to = Math.min(totalPages, currentPage + 2)
-    const values: number[] = []
-    for (let page = from; page <= to; page += 1) {
-      values.push(page)
-    }
-    return values
-  }, [currentPage, totalPages])
+  const pages = useMemo(() => computePageWindow(currentPage, totalPages), [currentPage, totalPages])
 
   if (totalPages <= 1) {
     return null
