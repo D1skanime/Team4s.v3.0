@@ -46,3 +46,6 @@ tmp-*
 # Codex-Tooling + Playwright-Artefakte (regenerierbar)
 .codex/
 frontend/tmp-playwright-phase4/
+
+# Lokale Datenbank-/Datensicherungen aus Debug- und Migrationsläufen (enthalten Nutzerdaten)
+.planning/debug/backups/
