@@ -11,6 +11,7 @@ import {
   FansubMediaVisibility,
   resolveApiUrl,
 } from '@/lib/api'
+import { getFansubMediaCategoryLabel } from '@/lib/fansub-labels'
 
 import styles from './GroupMediaReviewSection.module.css'
 import { isInteractiveDragTarget } from './useGroupMediaReviewReorder.helpers'
@@ -24,17 +25,6 @@ interface MediaDraft {
   category: FansubGroupMediaCategory
   sort_order: number
 }
-
-const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }> = [
-  { value: 'gallery', label: 'Galerie' },
-  { value: 'history_screenshot', label: 'Historische Screenshots' },
-  { value: 'old_website', label: 'Alte Webseite' },
-  { value: 'forum', label: 'Forum' },
-  { value: 'irc_chat', label: 'IRC / Chat' },
-  { value: 'event_meeting', label: 'Event / Treffen' },
-  { value: 'artwork_fanart', label: 'Artwork / Fanart' },
-  { value: 'other', label: 'Sonstiges' },
-]
 
 const REVIEW_STATUS_OPTIONS: Array<{ value: FansubMediaReviewStatus; label: string; variant: 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted' }> = [
   { value: 'in_pruefung', label: 'In Prüfung', variant: 'warning' },
@@ -59,10 +49,6 @@ function itemToDraft(item: FansubGroupMediaItem): MediaDraft {
     category: item.category ?? 'other',
     sort_order: item.sort_order ?? 0,
   }
-}
-
-function getCategoryLabel(value: FansubGroupMediaCategory): string {
-  return CATEGORY_OPTIONS.find((option) => option.value === value)?.label ?? 'Sonstiges'
 }
 
 function getReviewStatusOption(value: FansubMediaReviewStatus) {
@@ -310,7 +296,7 @@ export function GroupMediaReviewGrid({
                   <div className={styles.mediaSummary}>
                     <div className={styles.mediaTitleRow}>
                       <h3>{displayTitle}</h3>
-                      <Badge variant="neutral">{getCategoryLabel(persisted.category)}</Badge>
+                      <Badge variant="neutral">{getFansubMediaCategoryLabel(persisted.category)}</Badge>
                     </div>
                     <div className={styles.badgeRow}>
                       <Badge variant={reviewStatus.variant}>{reviewStatus.label}</Badge>
