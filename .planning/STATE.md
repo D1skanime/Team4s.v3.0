@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 184-07-PLAN.md
-last_updated: "2026-10-15T16:57:15.358Z"
+stopped_at: Completed 184-09-PLAN.md
+last_updated: "2026-10-15T17:15:05.005Z"
 last_activity: 2026-10-15
 progress:
   total_phases: 49
   completed_phases: 43
   total_plans: 446
-  completed_plans: 440
+  completed_plans: 441
   percent: 88
 ---
 
@@ -370,7 +370,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 184
-Plan: 8 of 10 (184-01, 184-02 complete, 184-03..184-10 offen)
+Plan: 9 of 10 (184-01, 184-02 complete, 184-03..184-10 offen)
 Status: Ready to execute
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
@@ -1221,6 +1221,7 @@ Last activity: 2026-10-15
 - [Phase ?]: Reine Hook-Extraktion allein reichte nicht fuer die 450-Zeilen-Grenze; zusaetzliche Render-Ausgliederungen (FansubListRows.tsx, MergeWizardPreviewStep.tsx, MergeWizardProgress.tsx) ergaenzt (184-05)
 - [Phase 184]: 184-07: admin/episodes/page.tsx (637 Zeilen) vor der mergeCssModules-Umstellung in Render + useAdminEpisodesPage-Hook aufgeteilt (D-05-Reihenfolge: Split-Commit vor inhaltlichem Commit).
 - [Phase 184]: 184-08: AnimeContext/EpisodeManager-Cluster (11 Dateien) auf mergeCssModules umgestellt, kein D-05-Split nötig (alle Dateien unter 450 Zeilen) — F-12/D-01 weiterer Baustein
+- [Phase 184]: ReleaseVersionNotesTab exportiert die mergeCssModules-styles-Konstante; EditorParts importiert sie statt den Merge-Aufruf zu duplizieren — D-01: genau ein mergeCssModules-Aufruf pro Komponentenfamilie, keine zweite Kopie durch den Datei-Split
 
 ### Pending Todos
 
@@ -1890,11 +1891,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 184 P05 | 55min | 2 tasks | 10 files |
 | Phase 184 P07 | 15min | 2 tasks | 5 files |
 | Phase 184 P08 | 20min | 2 tasks | 11 files |
+| Phase 184 P09 | 20min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-15T16:56:36.572Z
-Stopped at: Completed 184-07-PLAN.md
+Last session: 2026-10-15T17:15:04.973Z
+Stopped at: Completed 184-09-PLAN.md
 Last activity: 2026-10-15 - Completed quick task 261015-gm3: README neu schreiben (F-11)
 Resume file: 
 None
