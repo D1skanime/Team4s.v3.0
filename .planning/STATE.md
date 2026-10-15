@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 184-06-PLAN.md
-last_updated: "2026-10-15T17:25:40.570Z"
+stopped_at: 184-10 Tasks 1-3 complete (commit ab02cfce8); Task 4 (blockierender Live-Checkpoint) wartet auf Nutzerfreigabe - PLAN NICHT ABGESCHLOSSEN
+last_updated: "2026-10-15T18:01:49.476Z"
 last_activity: 2026-10-15
 progress:
   total_phases: 49
-  completed_phases: 43
+  completed_phases: 44
   total_plans: 446
-  completed_plans: 442
-  percent: 88
+  completed_plans: 443
+  percent: 90
 ---
 
 # Phase 184 Plan 01 — F-23-Nachzieh (D-04) — PLAN COMPLETE (2026-10-15)
@@ -370,8 +370,11 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 184
-Plan: 10 of 10 (184-01, 184-02 complete, 184-03..184-10 offen)
-Status: Ready to execute
+Plan: 10 of 10 (184-01..184-09 complete, 184-10 Tasks 1-3 code-complete/committet [`ab02cfce8`],
+Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
+Status: 184-10 Task 4 (Live-Visuelle Freigabe D-03) steht aus — siehe 184-10-SUMMARY.md fuer
+die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
+Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
 182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
 Legacy-Zweige in anime_assets.go, anime_assets_cover.go, anime_assets_background.go,
@@ -1223,6 +1226,7 @@ Last activity: 2026-10-15
 - [Phase 184]: 184-08: AnimeContext/EpisodeManager-Cluster (11 Dateien) auf mergeCssModules umgestellt, kein D-05-Split nötig (alle Dateien unter 450 Zeilen) — F-12/D-01 weiterer Baustein
 - [Phase 184]: ReleaseVersionNotesTab exportiert die mergeCssModules-styles-Konstante; EditorParts importiert sie statt den Merge-Aufruf zu duplizieren — D-01: genau ein mergeCssModules-Aufruf pro Komponentenfamilie, keine zweite Kopie durch den Datei-Split
 - [Phase 184]: 184-06: Kein weiterer Datei-Split noetig, da 184-05 page.tsx/merge/page.tsx bereits auf <=450 Zeilen gebracht hatte; 7 Fansub-Umfeld-Dateien (Liste, Create-Flow, Merge-Wizard) auf mergeCssModules(X, sharedStyles) umgestellt, F-12/D-01 damit fuer den gesamten 38-Dateien-Umfang abgeschlossen.
+- [Phase 184]: 184-10: Konsumenten-Scope-Korrektur fuer FansubEdit.module.css-Dead-Code-Audit - 35 tatsaechliche Konsumenten (26 Importer + 9 Prop-Drill-Kinder via styles-Prop) statt der im Plan angenommenen 25-26, dadurch nur 120 statt der geschaetzten ~206 Klassen tatsaechlich tot
 
 ### Pending Todos
 
@@ -1897,8 +1901,8 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-10-15T17:25:33.132Z
-Stopped at: Completed 184-06-PLAN.md
+Last session: 2026-10-15T18:01:49.451Z
+Stopped at: 184-10 Tasks 1-3 complete (commit ab02cfce8); Task 4 (blockierender Live-Checkpoint) wartet auf Nutzerfreigabe - PLAN NICHT ABGESCHLOSSEN
 Last activity: 2026-10-15 - Completed quick task 261015-gm3: README neu schreiben (F-11)
 Resume file: 
-None
+.planning/phases/184-aufr-umpunkte-aus-phase-174-abschlie-en-tote-css-klassen-in-/184-10-PLAN.md
