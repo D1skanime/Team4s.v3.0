@@ -82,6 +82,14 @@ Core rules:
 - Shared upload UI work may extract small primitives such as dropzone, progress, error, or preview components, but must not merge domain flows or bypass the canonical media tables.
 - Do not silently introduce new tables or API contracts without documenting the reason and marking the decision.
 
+### Übergroße Dateien beim Anfassen aufteilen
+
+- **Bestand:** Rund 80 Produktionsdateien liegen über dem 450-Zeilen-Limit (Stand 2026-10-15, u. a. `backend/internal/services/anisearch_client.go`, `frontend/src/types/admin.ts`, `frontend/src/lib/api/client.ts`, `frontend/src/app/admin/anime/create/internal/useAdminAnimeCreateControllerImpl.ts`, `frontend/src/lib/api/history.ts`, `frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx`, `ReleaseVersionNotesTab.tsx`). Aktuelle Liste: `wc -l` über alle Nicht-Test-Dateien in `frontend/src` und `backend/`.
+- **Kein eigenes Großprojekt:** Diese Dateien werden NICHT vorsorglich in einer separaten Aufräum-Phase zerlegt.
+- **Regel beim Arbeiten:** Muss ein Agent eine Produktionsdatei mit mehr als 450 Zeilen inhaltlich ändern, teilt er sie im selben Auftrag auf — in fachlich sinnvolle, kleinere Module (Ziel: jede Datei ≤ 450 Zeilen).
+- **Ablauf:** Aufteilen zuerst als eigener, reiner Umbau-Commit ohne Verhaltensänderung (Tests/typecheck grün), danach die eigentliche Änderung als separater Commit. Öffentliche Schnittstellen/Importe bleiben stabil oder werden im selben Commit vollständig nachgezogen.
+- **Grenzen:** Nur die Dateien aufteilen, die der Auftrag ohnehin berührt — keine Nachbardateien „mitnehmen“. Höhere Zeilenlimits bleiben eine eng begründete Einzelfall-Ausnahme.
+
 ## Implementation Reuse And Contract Rules
 Use `docs/engineering/implementation-contract.md` as the general implementation workflow guide when it is present.
 
