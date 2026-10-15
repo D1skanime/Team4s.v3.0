@@ -68,7 +68,7 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
 - Backend config is centralized in `backend/internal/config/config.go`.
 - Notable env areas:
 ## Deployment Shape
-- Frontend is exposed on host `3002` and proxies to backend `8092` through environment-aware base URL handling in `frontend/src/lib/api.ts`.
+- Frontend is exposed on host `3000` (browser UAT via the Windows SSH tunnel `127.0.0.1:3300`) and talks to the backend container port `8092` (published on host `18092`) through environment-aware base URL handling in `frontend/src/lib/api.ts`.
 - Backend exposes `/health`, `/api/v1/*`, and static `/media` serving from the configured storage directory.
 <!-- GSD:stack-end -->
 
