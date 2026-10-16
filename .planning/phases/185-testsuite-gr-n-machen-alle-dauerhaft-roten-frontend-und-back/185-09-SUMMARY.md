@@ -128,3 +128,7 @@ None - no external service configuration required. The new `team4s_relations_tes
 ---
 *Phase: 185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back*
 *Completed: 2026-10-16*
+
+## Self-Check: PASSED
+
+All 5 modified source/test files and the SUMMARY.md itself exist on disk; all 4 referenced commit hashes (`6545dd93e`, `2372c1ac4`, `d504966e8`, `b35a6a0af`) are present in `git log --oneline --all`.
