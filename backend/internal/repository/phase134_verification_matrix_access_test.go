@@ -27,15 +27,29 @@ import (
 // mutate shared seeded state.
 
 const (
-	phase134MatrixBaseURL = "http://192.168.235.196:18093"
-	phase134MatrixKCBase  = "http://192.168.235.196:18081"
-
 	phase134MatrixAdminUsername = "csubs-leader@team4s.local"
 	phase134MatrixAdminPassword = "123"
 	phase134MatrixShepUsername  = "sheppert@team4s.local"
 	phase134MatrixShepPassword  = "123"
 
 	phase134MatrixMissingSlug = "phase134-does-not-exist"
+)
+
+// envOrDefault returns the value of the given environment variable, falling
+// back to the provided default when the env var is unset or empty. Used so
+// the matrix base URLs below can be pointed at a Docker-network-internal
+// address from inside a containerized test runner (D-03b) while keeping
+// today's host-IP values as the default for existing manual/local runs.
+func envOrDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+var (
+	phase134MatrixBaseURL = envOrDefault("TEAM4S_PHASE134_MATRIX_BASE_URL", "http://192.168.235.196:18093")
+	phase134MatrixKCBase  = envOrDefault("TEAM4S_PHASE134_MATRIX_KC_BASE", "http://192.168.235.196:18081")
 )
 
 // ---- Manifest (single source of truth, CONTEXT.md D-02) -------------------
