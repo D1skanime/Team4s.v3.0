@@ -52,10 +52,19 @@ func validatePhase167SchemaName(name string) error {
 // minimal `fansub_groups`/`fansub_group_aliases` pair mirroring the real migrations'
 // columns/constraints exactly, plus a schema-local `f_unaccent` wrapper whose body is
 // byte-identical to database/migrations/0152_f_unaccent_search_path_fix.up.sql's
-// production wrapper. The `unaccent` extension itself is created once per-database
-// already by prior migrations -- this does NOT re-run CREATE EXTENSION.
+// production wrapper. This fixture's isolated search_path deliberately excludes
+// "public" (see openPhasePostgres's safety check), so the local f_unaccent wrapper's
+// public.unaccent dictionary lookup would otherwise fail. For the same reason as
+// Phase-139's fixture, this fixture now creates the unaccent extension itself,
+// schema-qualified, before the f_unaccent wrapper is created.
 func createPhase167Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 	t.Helper()
+	// Create public.unaccent explicitly before the local f_unaccent wrapper (below)
+	// and the rest of the fixture tables, since the wrapper's dictionary lookup
+	// resolves public.unaccent regardless of search_path.
+	if _, err := pool.Exec(context.Background(), "CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA public"); err != nil {
+		t.Fatalf("create public.unaccent extension for Phase-167 fixture: %v", err)
+	}
 	const sql = `
 CREATE TABLE fansub_groups (
 	id BIGSERIAL PRIMARY KEY,
