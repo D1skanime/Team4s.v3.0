@@ -86,6 +86,41 @@ go run ./cmd/migrate up
 go run ./cmd/migrate down -steps 1
 ```
 
+## Backend-Testsuite vollständig ausführen
+
+`scripts/test-backend.sh` reproduziert die volle, unscoped Backend-Testsuite
+(`go test ./...`) reproduzierbar in einem isolierten Container, ohne dass
+`.env`-Variablen oder Wegwerf-Datenbanken manuell angelegt werden müssen.
+Hintergrund: ein früherer manueller Lauf scheiterte, weil nur `backend/`
+statt des gesamten Repos gemountet war — dadurch konnten
+`database/migrations/` und `shared/contracts/` nicht gefunden werden, was
+fast die gesamte Suite fälschlich rot färbte. Das Skript mountet deshalb
+immer den **gesamten** Projektordner und setzt `WORKDIR` auf `backend/`
+innerhalb des Containers.
+
+Als Test-Runner-Image dient `golang:1.25-alpine` — dasselbe Alpine-Basisimage
+wie `backend/Dockerfile`s Produktions-Build, damit dieselben, bereits
+bewährten `apk`-Paketnamen (`vips vips-tools ffmpeg fontconfig font-dejavu
+font-noto font-noto-cjk` zur Laufzeit, `build-base pkgconfig vips-dev` für
+den CGO/govips-Build) ohne Raten auf ein Debian/`apt-get`-Äquivalent
+installiert werden können.
+
+Jede im Backend referenzierte `*_TEST_DSN`-Umgebungsvariable wird automatisch
+aus `backend/internal` ermittelt (nicht händisch gepflegt) und auf eine
+frisch angelegte, eindeutig benannte Wegwerf-Datenbank auf `team4sv30-db`
+umgelenkt — `team4s_v2` wird dabei nie beschrieben, höchstens einmalig
+lesend per `pg_dump --schema-only` gespiegelt (für die zehn Fixtures, die das
+volle Schema statt handgerollter Stand-in-Tabellen benötigen). Der
+9-Test-Cluster der Phase-134-Verifikationsmatrix bekommt zusätzlich einen
+temporären, über `scripts/provision-phase134-matrix-db.sh` migrierten und
+befüllten Backend-Container im Docker-Netzwerk gestartet. Alle angelegten
+Datenbanken und der temporäre Backend-Container werden am Ende wieder
+entfernt — unabhängig davon, ob der Testlauf selbst grün oder rot war.
+
+```bash
+bash scripts/test-backend.sh
+```
+
 ## API-Contracts
 
 - Quelle der Wahrheit: `shared/contracts/openapi.yaml`
