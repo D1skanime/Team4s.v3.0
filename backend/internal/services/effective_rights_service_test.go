@@ -126,7 +126,12 @@ type effectiveRightsPostgresFixture struct {
 // the ad-hoc local table this function used to create here was removed to
 // avoid a "relation already exists" collision with that shared table) and
 // one fixed actor/target topology every test in this file and
-// effective_rights_concurrency_test.go reuses:
+// effective_rights_concurrency_test.go reuses. member_claims is, as of Plan
+// 185-08, provided the same way: testsupport.OpenPhase137Postgres (Plan
+// 138-05) already creates the real migration-0081-shaped member_claims
+// table, so the local CREATE TABLE member_claims this function used to carry
+// was removed to avoid the same "relation already exists" collision class,
+// following the fansub_group_member_roles precedent above:
 //
 //   - app_user 11 / member 101: fansub_lead in group 21 -- holds
 //     ActionEffectiveRightsOverrideManage and is used both as the authorizing actor and
@@ -142,17 +147,11 @@ func openPhase137EffectiveRightsPostgres(t *testing.T) *effectiveRightsPostgresF
 	pool := testsupport.OpenPhase137Postgres(t)
 	ctx := context.Background()
 	if _, err := pool.Exec(ctx, `
-		-- Minimal stand-ins so permissions.ResolveGroupRights' unconditional Review
+		-- Minimal stand-in so permissions.ResolveGroupRights' unconditional Review
 		-- Delegation SpecializedGrantProvider lookup (ResolveActorReviewGrantContext)
-		-- has real, empty tables to query against instead of erroring; no row is ever
-		-- seeded here, so it always contributes zero specialized grants.
-		CREATE TABLE member_claims (
-			id BIGSERIAL PRIMARY KEY,
-			member_id BIGINT NOT NULL,
-			app_user_id BIGINT NOT NULL,
-			claim_status TEXT NOT NULL,
-			verified_at TIMESTAMPTZ
-		);
+		-- has a real, empty table to query against instead of erroring; no row is ever
+		-- seeded here, so it always contributes zero specialized grants. member_claims
+		-- itself is already provided by testsupport.OpenPhase137Postgres above.
 		CREATE TABLE fansub_group_member_review_capabilities (
 			fansub_group_member_id BIGINT NOT NULL REFERENCES fansub_group_members(id) ON DELETE CASCADE,
 			action_code TEXT NOT NULL REFERENCES action_definitions(code),
