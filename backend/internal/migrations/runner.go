@@ -5,17 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
-	"regexp"
-	"sort"
-	"strconv"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-var migrationFilePattern = regexp.MustCompile(`^(\d+)_([a-zA-Z0-9_]+)\.(up|down)\.sql$`)
 
 type Migration struct {
 	Version  int64
@@ -47,32 +41,6 @@ func NewRunner(db *pgxpool.Pool, migrationsDir string) *Runner {
 		db:            db,
 		migrationsDir: migrationsDir,
 	}
-}
-
-func ResolveMigrationsDir(customDir string) (string, error) {
-	if customDir != "" {
-		return validateMigrationDir(customDir)
-	}
-
-	candidates := []string{
-		filepath.Join("database", "migrations"),
-		filepath.Join("..", "database", "migrations"),
-		filepath.Join("..", "..", "database", "migrations"),
-		filepath.Join("..", "..", "..", "database", "migrations"),
-	}
-
-	for _, candidate := range candidates {
-		absPath, err := filepath.Abs(candidate)
-		if err != nil {
-			continue
-		}
-
-		if isDir(absPath) {
-			return absPath, nil
-		}
-	}
-
-	return "", errors.New("could not locate migrations directory; pass -dir explicitly")
 }
 
 func (r *Runner) EnsureTrackingTable(ctx context.Context) error {
@@ -371,94 +339,6 @@ func (r *Runner) getAppliedVersionsDesc(ctx context.Context) ([]int64, error) {
 	}
 
 	return versions, nil
-}
-
-func loadMigrations(migrationsDir string) ([]Migration, error) {
-	entries, err := os.ReadDir(migrationsDir)
-	if err != nil {
-		return nil, fmt.Errorf("read migrations dir %s: %w", migrationsDir, err)
-	}
-
-	byVersion := make(map[int64]Migration)
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-
-		version, name, direction, ok := parseMigrationFilename(entry.Name())
-		if !ok {
-			continue
-		}
-
-		fullPath := filepath.Join(migrationsDir, entry.Name())
-		existing := byVersion[version]
-		if existing.Version == 0 {
-			existing.Version = version
-			existing.Name = name
-		}
-
-		if existing.Name != name {
-			return nil, fmt.Errorf("conflicting names for version %d: %s and %s", version, existing.Name, name)
-		}
-
-		if direction == "up" {
-			existing.UpPath = fullPath
-		} else {
-			existing.DownPath = fullPath
-		}
-
-		byVersion[version] = existing
-	}
-
-	migrations := make([]Migration, 0, len(byVersion))
-	for _, migration := range byVersion {
-		migrations = append(migrations, migration)
-	}
-
-	sort.Slice(migrations, func(i, j int) bool {
-		return migrations[i].Version < migrations[j].Version
-	})
-
-	return migrations, nil
-}
-
-func parseMigrationFilename(fileName string) (int64, string, string, bool) {
-	matches := migrationFilePattern.FindStringSubmatch(fileName)
-	if len(matches) != 4 {
-		return 0, "", "", false
-	}
-
-	version, err := strconv.ParseInt(matches[1], 10, 64)
-	if err != nil || version <= 0 {
-		return 0, "", "", false
-	}
-
-	name := matches[2]
-	direction := matches[3]
-
-	return version, name, direction, true
-}
-
-func validateMigrationDir(path string) (string, error) {
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		return "", fmt.Errorf("resolve migrations dir path %s: %w", path, err)
-	}
-
-	if !isDir(absPath) {
-		return "", fmt.Errorf("migrations dir not found: %s", absPath)
-	}
-
-	return absPath, nil
-}
-
-func isDir(path string) bool {
-	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-
-	return info.IsDir()
 }
 
 func (r *Runner) trackingTableExists(ctx context.Context) (bool, error) {
