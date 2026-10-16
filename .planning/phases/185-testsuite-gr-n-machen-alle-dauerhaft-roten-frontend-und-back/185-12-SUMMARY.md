@@ -391,3 +391,13 @@ runs of each suite.** The Phase-137 cluster (row 19) is counted once in the 93/9
 ---
 *Phase: 185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back*
 *Completed: 2026-10-16*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/services/tiptap_service.go
+- FOUND: backend/internal/services/tiptap_service_test.go
+- FOUND: backend/internal/handlers/app_profile_story_image_test.go
+- FOUND: .planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-12-SUMMARY.md
+- FOUND: commit a91731bfe (fix: sanitizer src-regex)
+- FOUND: commit 0c9f2e588 (docs: this SUMMARY)
+- FOUND: all 12 plan SUMMARY.md files (185-01 through 185-12) present in the phase directory
