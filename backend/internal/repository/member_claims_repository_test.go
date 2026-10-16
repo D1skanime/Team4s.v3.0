@@ -6,9 +6,30 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// ensureMemberClaimsBehaviorColumns adds the members.profile_status,
+// members.user_id, members.noindex, and members.profile_visibility columns the
+// real SubmitClaim/SearchHistoricalMembers/VerifyClaim queries read and write,
+// which the Phase-137 fixture does not create by default (it only creates the
+// bare members(id) stand-in). All are nullable/defaulted, FK-free additive
+// ALTERs scoped to this test file's own fixture setup, matching the
+// additive-ALTER precedent used throughout this phase.
+func ensureMemberClaimsBehaviorColumns(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		ALTER TABLE members ADD COLUMN IF NOT EXISTS profile_status VARCHAR(20) NOT NULL DEFAULT 'active';
+		ALTER TABLE members ADD COLUMN IF NOT EXISTS user_id BIGINT;
+		ALTER TABLE members ADD COLUMN IF NOT EXISTS noindex BOOLEAN NOT NULL DEFAULT true;
+		ALTER TABLE members ADD COLUMN IF NOT EXISTS profile_visibility VARCHAR(20) NOT NULL DEFAULT 'private';
+		ALTER TABLE members ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+	`)
+	require.NoError(t, err)
+}
 
 func TestMemberClaimsRepositorySearchHistoricalMembers(t *testing.T) {
 	t.Skip("stub")
@@ -53,21 +74,53 @@ func TestMemberClaimsRepositoryVerifyLinksUserID(t *testing.T) {
 		"linking must not overwrite an existing (legacy) members.user_id")
 }
 
+// TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers was originally red because
+// SubmitClaim moved to member_claims_submit_repository.go, so the old
+// os.ReadFile(".go")+strings.Index search for "func (r *MemberClaimsRepository)
+// SubmitClaim" in member_claims_repository.go returned -1. Rewritten (185-10, D-02)
+// to a real-Postgres behavior test calling SearchHistoricalMembers and SubmitClaim
+// directly: a member with a verified claim is excluded from search and blocks a new
+// claim submission (409 member_already_assigned), while a member with only a
+// pending claim remains searchable and claimable.
 func TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers(t *testing.T) {
-	repoSrc, err := os.ReadFile("member_claims_repository.go")
+	pool := openPhase138ClaimsListPool(t)
+	ensureMemberClaimsBehaviorColumns(t, pool)
+	ctx := context.Background()
+	repo := NewMemberClaimsRepository(pool)
+
+	// Member A already has a VERIFIED claim -- must be excluded from search and
+	// must block a new SubmitClaim attempt.
+	seedPhase138Claim(t, pool, 631, 731, 831, 931, "Already Verified Person", "Chocolate Subs", "verified")
+	// Member B is the positive control: only a PENDING claim, no verified claim,
+	// no linked user -- proves the guard is scoped, not a blanket exclusion.
+	seedPhase138Claim(t, pool, 632, 732, 831, 0, "Still Available Person", "Chocolate Subs", "pending")
+
+	_, err := pool.Exec(ctx, `
+		INSERT INTO app_users (id, status, email, display_name) VALUES
+			(933, 'active', 'blocker-submitter@example.test', 'Blocker Submitter'),
+			(934, 'active', 'allowed-submitter@example.test', 'Allowed Submitter')
+	`)
 	require.NoError(t, err)
-	content := string(repoSrc)
 
-	searchStart := strings.Index(content, "func (r *MemberClaimsRepository) SearchHistoricalMembers")
-	submitStart := strings.Index(content, "func (r *MemberClaimsRepository) SubmitClaim")
-	require.NotEqual(t, -1, searchStart)
-	require.NotEqual(t, -1, submitStart)
+	results, err := repo.SearchHistoricalMembers(ctx, "Person")
+	require.NoError(t, err)
+	var nicknames []string
+	for _, result := range results {
+		nicknames = append(nicknames, result.Nickname)
+	}
+	assert.NotContains(t, nicknames, "Already Verified Person", "a member with a verified claim must not appear in search results")
+	assert.Contains(t, nicknames, "Still Available Person", "a member with only a pending claim must still be searchable")
 
-	searchBody := content[searchStart:submitStart]
-	submitBody := content[submitStart:]
-	assert.Contains(t, searchBody, "AND m.user_id IS NULL")
-	assert.Contains(t, submitBody, "Code:       \"member_already_assigned\"")
-	assert.Contains(t, submitBody, "AND mc.claim_status = 'verified'")
+	_, err = repo.SubmitClaim(ctx, SubmitClaimInput{MemberID: 731, AppUserID: 933})
+	require.Error(t, err)
+	mutationErr, ok := AsClaimMutationError(err)
+	require.True(t, ok, "expected a *ClaimMutationError, got %T: %v", err, err)
+	assert.Equal(t, "member_already_assigned", mutationErr.Code)
+	assert.Equal(t, 409, mutationErr.HTTPStatus)
+
+	claim, err := repo.SubmitClaim(ctx, SubmitClaimInput{MemberID: 732, AppUserID: 934})
+	require.NoError(t, err)
+	assert.Equal(t, "pending", claim.ClaimStatus)
 }
 
 // TestMemberClaimsRepositoryListPendingClaimAttentionCandidates is the first-ever test for
