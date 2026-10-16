@@ -2,8 +2,7 @@ package repository
 
 import (
 	"context"
-	"os"
-	"strings"
+	"database/sql"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -52,26 +51,50 @@ func TestMemberClaimsRepositoryRejectClaim(t *testing.T) {
 // legacy_user_id (via member_claims.app_user_id), inside the verify transaction,
 // only when the member is not already linked. Without this, newly claimed members
 // keep members.user_id = NULL and the domain projection can never resolve their
-// public profile link, slug, or membership count.
+// public profile link, slug, or membership count. Rewritten (185-10, D-02) from an
+// os.ReadFile(".go")+strings.Contains source-substring check to a real-Postgres
+// behavior test calling VerifyClaim directly and reading members.user_id back.
 func TestMemberClaimsRepositoryVerifyLinksUserID(t *testing.T) {
-	repoSrc, err := os.ReadFile("member_claims_repository.go")
+	pool := openPhase138ClaimsListPool(t)
+	ensureMemberClaimsBehaviorColumns(t, pool)
+	ctx := context.Background()
+	repo := NewMemberClaimsRepository(pool)
+
+	_, err := pool.Exec(ctx, `ALTER TABLE app_users ADD COLUMN IF NOT EXISTS legacy_user_id BIGINT;`)
 	require.NoError(t, err)
-	content := string(repoSrc)
 
-	verifyIdx := strings.Index(content, "func (r *MemberClaimsRepository) VerifyClaim(")
-	require.NotEqual(t, -1, verifyIdx, "VerifyClaim must exist")
-	rejectIdx := strings.Index(content, "func (r *MemberClaimsRepository) RejectClaim(")
-	require.NotEqual(t, -1, rejectIdx, "RejectClaim must exist")
-	verifyBody := content[verifyIdx:rejectIdx]
+	// Claiming app user (owns the claim being verified) -- its legacy_user_id is
+	// what VerifyClaim must copy onto members.user_id.
+	seedPhase138Claim(t, pool, 6410, 641, 831, 941, "Newly Claimed Member", "Verify Group", "pending")
+	_, err = pool.Exec(ctx, `UPDATE app_users SET legacy_user_id = 5001 WHERE id = 941`)
+	require.NoError(t, err)
+	// Verifying app user (the admin confirming the claim) -- distinct from the
+	// claiming app user, only referenced via member_claims.verified_by's FK.
+	_, err = pool.Exec(ctx, `INSERT INTO app_users (id, status, email, display_name) VALUES (942, 'active', 'verifier@example.test', 'Verifier')`)
+	require.NoError(t, err)
 
-	assert.True(t, strings.Contains(verifyBody, "UPDATE members m"),
-		"VerifyClaim must update the members row to establish the app-user link")
-	assert.True(t, strings.Contains(verifyBody, "SET user_id = au.legacy_user_id"),
-		"VerifyClaim must set members.user_id from the app user's legacy_user_id")
-	assert.True(t, strings.Contains(verifyBody, "JOIN app_users au ON au.id = mc.app_user_id"),
-		"the link must use the CLAIMING app user (member_claims.app_user_id), not the verifier")
-	assert.True(t, strings.Contains(verifyBody, "m.user_id IS NULL"),
-		"linking must not overwrite an existing (legacy) members.user_id")
+	err = repo.VerifyClaim(ctx, 831, 6410, 942)
+	require.NoError(t, err)
+
+	var linkedUserID sql.NullInt64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT user_id FROM members WHERE id = 641`).Scan(&linkedUserID))
+	require.True(t, linkedUserID.Valid, "members.user_id must be set after verifying a claim from a claiming app user with a legacy_user_id")
+	assert.EqualValues(t, 5001, linkedUserID.Int64)
+
+	// Second member: already linked to a (legacy) user_id BEFORE verification --
+	// VerifyClaim must not overwrite it, even though the claim itself still has a
+	// claiming app user whose legacy_user_id could otherwise be copied in.
+	seedPhase138Claim(t, pool, 6420, 642, 831, 941, "Already Linked Member", "Verify Group", "pending")
+	_, err = pool.Exec(ctx, `UPDATE members SET user_id = 9999 WHERE id = 642`)
+	require.NoError(t, err)
+
+	err = repo.VerifyClaim(ctx, 831, 6420, 942)
+	require.NoError(t, err)
+
+	var preservedUserID sql.NullInt64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT user_id FROM members WHERE id = 642`).Scan(&preservedUserID))
+	require.True(t, preservedUserID.Valid)
+	assert.EqualValues(t, 9999, preservedUserID.Int64, "linking must not overwrite an existing (legacy) members.user_id")
 }
 
 // TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers was originally red because
