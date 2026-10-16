@@ -31,6 +31,8 @@ func TestGetPublicGroupBase_PrefersDisplayVariant(t *testing.T) {
 	`, logoAssetID, bannerAssetID, logoAssetID, bannerAssetID, groupID))
 
 	mustExecPhase152(t, pool, fmt.Sprintf(`
+		INSERT INTO visibilities (id, name) VALUES (1, 'public') ON CONFLICT (id) DO NOTHING;
+		INSERT INTO review_statuses (id, code, label_de) VALUES (2, 'approved', 'Phase152 Approved') ON CONFLICT (id) DO NOTHING;
 		INSERT INTO media_assets (id, file_path, mime_type, status, visibility_id, review_status_id)
 			VALUES
 				(%d, '/phase152/group-logo-%d-original.jpg', 'image/jpeg', 'ready', 1, 2),
@@ -87,6 +89,8 @@ func TestGetPublicGroupBase_SVGLogoKeepsStoredURL(t *testing.T) {
 	`, logoAssetID, logoAssetID, groupID))
 
 	mustExecPhase152(t, pool, fmt.Sprintf(`
+		INSERT INTO visibilities (id, name) VALUES (1, 'public') ON CONFLICT (id) DO NOTHING;
+		INSERT INTO review_statuses (id, code, label_de) VALUES (2, 'approved', 'Phase152 Approved') ON CONFLICT (id) DO NOTHING;
 		INSERT INTO media_assets (id, file_path, mime_type, status, visibility_id, review_status_id)
 			VALUES (%d, '/phase152/group-logo-%d.svg', 'image/svg+xml', 'ready', 1, 2);
 		INSERT INTO media_files (media_id, variant, path, status) VALUES
