@@ -117,3 +117,13 @@ None - no external service configuration required.
 ---
 *Phase: 185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back*
 *Completed: 2026-10-16*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/repository/member_claims_repository_test.go
+- FOUND: backend/internal/testquality/source_substring_guard_test.go
+- FOUND: .planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-10-SUMMARY.md
+- FOUND commit: 30abdfcb4 (Task 1)
+- FOUND commit: 8a3c4ab09 (Task 2)
+- FOUND commit: 8836adc6a (Task 3)
+- FOUND commit: 6e9daadc7 (SUMMARY)
