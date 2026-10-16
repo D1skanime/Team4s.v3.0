@@ -636,6 +636,71 @@ func TestMediaUploadHandler_AnimatedDisplayDegradesGracefullyWithoutFFmpeg(t *te
 	assert.False(t, hasDisplay, "ohne ffmpeg darf keine display-zeile entstehen")
 }
 
+// TestMediaUploadHandler_AnimatedGIFDisplayUsesDisplayVariantFileName beweist (184-REVIEW-FIX,
+// Befund 1): die "display"-Variante fuer ein animiertes GIF entsteht ueber
+// services.DisplayVariantFileName statt eines hartcodierten "display.webp"-Literals -- der
+// zurueckgegebene Dateiname MUSS exakt dem Ergebnis des Helfers fuer den tatsaechlichen
+// originalPath ("original.gif") entsprechen, nicht nur zufaellig denselben String ergeben.
+func TestMediaUploadHandler_AnimatedGIFDisplayUsesDisplayVariantFileName(t *testing.T) {
+	ffmpegBinary := requireFFmpegForDisplayTests(t)
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", ffmpegBinary)
+
+	req := newMediaUploadRequestWithFile(t, "anime", "123", "poster", "anim.gif", newAnimatedGIFBytes(t, 320, 240))
+	w := performAuthorizedUpload(t, handler, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	display, ok := findUploadFile(payload.Files, "display")
+	if !assert.True(t, ok, "display-variante fehlt fuer animiertes gif") {
+		return
+	}
+
+	expectedFilename := services.DisplayVariantFileName(filepath.Join(tmpDir, "original.gif"), "webp")
+	assert.Equal(t, expectedFilename, filepath.Base(display.Path))
+
+	diskPath := diskPathForRelPath(tmpDir, display.Path)
+	onDisk, err := os.ReadFile(diskPath)
+	assert.NoError(t, err)
+	assert.True(t, isAnimatedWebP(onDisk), "ueber DisplayVariantFileName benannte display-datei muss weiterhin ein animiertes webp sein")
+}
+
+// TestMediaUploadHandler_AnimatedWebPUploadDisplayUsesDisplayVariantFileName beweist
+// (184-REVIEW-FIX, Befund 1): derselbe Helfer-Aufruf greift auch fuer animierte WebP-Uploads
+// (isAnimatedWebPUpload-Zweig, generateAnimatedWebPDisplayVariant) -- vorher ebenfalls ein
+// hartcodiertes "display.webp"-Literal.
+func TestMediaUploadHandler_AnimatedWebPUploadDisplayUsesDisplayVariantFileName(t *testing.T) {
+	ffmpegBinary := requireFFmpegForDisplayTests(t)
+	vipsThumbnailBinary := requireVipsThumbnailForDisplayTests(t)
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := newAdminMediaUploadHandlerWithVips(repo, tmpDir, "http://localhost", ffmpegBinary, vipsThumbnailBinary)
+
+	animatedWebP := newAnimatedWebPBytes(t, ffmpegBinary, 320, 240)
+	req := newMediaUploadRequestWithFile(t, "anime", "123", "poster", "anim.webp", animatedWebP)
+	w := performAuthorizedUpload(t, handler, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	display, ok := findUploadFile(payload.Files, "display")
+	if !assert.True(t, ok, "display-variante fehlt fuer animierten webp-upload") {
+		return
+	}
+
+	expectedFilename := services.DisplayVariantFileName(filepath.Join(tmpDir, "original.webp"), "webp")
+	assert.Equal(t, expectedFilename, filepath.Base(display.Path))
+
+	diskPath := diskPathForRelPath(tmpDir, display.Path)
+	onDisk, err := os.ReadFile(diskPath)
+	assert.NoError(t, err)
+	assert.True(t, isAnimatedWebP(onDisk), "ueber DisplayVariantFileName benannte display-datei muss weiterhin ein animiertes webp sein")
+}
+
 type mockAssetLifecycleStore struct {
 	subjects map[int64]bool
 	audit    []models.AssetLifecycleAuditEntry

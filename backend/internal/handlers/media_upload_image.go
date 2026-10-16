@@ -165,11 +165,10 @@ func (h *MediaUploadHandler) processImage(
 	var displaySize int64
 	switch {
 	case isAnimatedGIF:
-		displayRelPath, displayWidth, displayHeight, ok := h.generateAnimatedDisplayVariant(
-			req, mediaID, storagePath, data,
+		displayRelPath, displayPath, displayWidth, displayHeight, ok := h.generateAnimatedDisplayVariant(
+			req, mediaID, storagePath, originalPath, data,
 		)
 		if ok {
-			displayPath := filepath.Join(storagePath, "display.webp")
 			displaySize, _ = h.getFileSize(displayPath)
 			files = append(files, models.UploadFileInfo{
 				Variant: "display",
@@ -179,11 +178,10 @@ func (h *MediaUploadHandler) processImage(
 			})
 		}
 	case isAnimatedWebPUpload:
-		displayRelPath, displayWidth, displayHeight, ok := h.generateAnimatedWebPDisplayVariant(
-			req, mediaID, storagePath, data,
+		displayRelPath, displayPath, displayWidth, displayHeight, ok := h.generateAnimatedWebPDisplayVariant(
+			req, mediaID, storagePath, originalPath, data,
 		)
 		if ok {
-			displayPath := filepath.Join(storagePath, "display.webp")
 			displaySize, _ = h.getFileSize(displayPath)
 			files = append(files, models.UploadFileInfo{
 				Variant: "display",
@@ -316,25 +314,28 @@ func (h *MediaUploadHandler) generateStaticDisplayVariant(
 // WebP, lange Kante <= services.DisplayAnimatedMaxEdge). Schlaegt die Erzeugung fehl (kein
 // ffmpeg konfiguriert, Konvertierung schlaegt fehl), wird das nicht-fatal behandelt -- der
 // Upload liefert weiterhin original + thumb, nur ohne zusaetzliche "display"-Zeile (ok=false).
+// Der Dateiname kommt seit 184-REVIEW-FIX ueber services.DisplayVariantFileName statt eines
+// hartcodierten "display.webp"-Literals (dieselbe Regel wie generateStaticDisplayVariant).
 func (h *MediaUploadHandler) generateAnimatedDisplayVariant(
 	req models.UploadRequest,
 	mediaID string,
 	storagePath string,
+	originalPath string,
 	originalGIFData []byte,
-) (relPath string, width int, height int, ok bool) {
-	displayFilename := "display.webp"
+) (relPath string, diskPath string, width int, height int, ok bool) {
+	displayFilename := services.DisplayVariantFileName(originalPath, "webp")
 	displayPath := filepath.Join(storagePath, displayFilename)
 	displayRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, displayFilename)
 
 	webpData, w, hgt, err := services.GenerateAnimatedWebPDisplayFromBytes(h.ffmpegPath, originalGIFData)
 	if err != nil {
-		return "", 0, 0, false
+		return "", "", 0, 0, false
 	}
 	if err := h.writeBytes(webpData, displayPath); err != nil {
-		return "", 0, 0, false
+		return "", "", 0, 0, false
 	}
 
-	return displayRelPath, w, hgt, true
+	return displayRelPath, displayPath, w, hgt, true
 }
 
 // generateAnimatedWebPDisplayVariant erzeugt die "display"-Variante fuer animierte WebP-Uploads
@@ -342,24 +343,26 @@ func (h *MediaUploadHandler) generateAnimatedDisplayVariant(
 // (ffmpeg kann animiertes WebP laut 173-RESEARCH.md nicht dekodieren). Schlaegt die Erzeugung
 // fehl (vipsthumbnail nicht konfiguriert/fehlgeschlagen), wird das nicht-fatal behandelt -- der
 // Upload liefert weiterhin original + thumb, nur ohne zusaetzliche "display"-Zeile (ok=false),
-// identisch zum Nicht-Fatal-Muster von generateAnimatedDisplayVariant.
+// identisch zum Nicht-Fatal-Muster von generateAnimatedDisplayVariant. Der Dateiname kommt seit
+// 184-REVIEW-FIX ueber services.DisplayVariantFileName statt eines hartcodierten Literals.
 func (h *MediaUploadHandler) generateAnimatedWebPDisplayVariant(
 	req models.UploadRequest,
 	mediaID string,
 	storagePath string,
+	originalPath string,
 	originalWebPData []byte,
-) (relPath string, width int, height int, ok bool) {
-	displayFilename := "display.webp"
+) (relPath string, diskPath string, width int, height int, ok bool) {
+	displayFilename := services.DisplayVariantFileName(originalPath, "webp")
 	displayPath := filepath.Join(storagePath, displayFilename)
 	displayRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, displayFilename)
 
 	webpData, w, hgt, err := services.GenerateAnimatedDisplayViaVips(h.vipsThumbnailPath, originalWebPData, ".webp", services.DisplayAnimatedMaxEdge)
 	if err != nil {
-		return "", 0, 0, false
+		return "", "", 0, 0, false
 	}
 	if err := h.writeBytes(webpData, displayPath); err != nil {
-		return "", 0, 0, false
+		return "", "", 0, 0, false
 	}
 
-	return displayRelPath, w, hgt, true
+	return displayRelPath, displayPath, w, hgt, true
 }
