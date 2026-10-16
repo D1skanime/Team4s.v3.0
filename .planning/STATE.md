@@ -1277,6 +1277,7 @@ Last activity: 2026-10-15
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 261016-ccw | useDebouncedSearch.ts (4. Debounce-Kopie) auf gemeinsamen useDebouncedValue-Hook umgestellt; Grep-Beweis für Rest-Implementierungen dokumentiert | 2026-10-16 | 9ec04f89c | [261016-ccw-usedebouncedsearch-ts-auf-gemeinsamen-ho](./quick/261016-ccw-usedebouncedsearch-ts-auf-gemeinsamen-ho/) |
 | 261015-gm3 | README neu schreiben (F-11): nicht-technisches deutsches README, technischer Altinhalt wandert nach docs/ENTWICKLUNG.md | 2026-10-15 | fd3a08144 | [261015-gm3-readme-neu-schreiben-f-11-nicht-technisc](./quick/261015-gm3-readme-neu-schreiben-f-11-nicht-technisc/) |
 | 261015-gav | Review and correct docs/operations/mail-delivery.md: verify factual claims about Mailpit/Mailjet SMTP against mailer.go and config.go, fix ASCII-substitution umlauts if present | 2026-10-15 | 5e2d7fc6d | [261015-gav-review-and-correct-docs-operations-mail-](./quick/261015-gav-review-and-correct-docs-operations-mail-/) |
 | 261001-trj | Segment-Bearbeitungspanel auf globale UI-Primitives umstellen (Drawer, Button/Input/Select/Textarea, Token-Farben) | 2026-10-01 | 56b10ebb | [261001-trj-segment-bearbeitungspanel-auf-globale-ui](./quick/261001-trj-segment-bearbeitungspanel-auf-globale-ui/) |
@@ -1934,6 +1935,6 @@ untruncated list lives in `.planning/todos/pending/`.
 
 Last session: 2026-10-15T18:01:49.451Z
 Stopped at: 184-10 Tasks 1-3 complete (commit ab02cfce8); Task 4 (blockierender Live-Checkpoint) wartet auf Nutzerfreigabe - PLAN NICHT ABGESCHLOSSEN
-Last activity: 2026-10-15 - Completed quick task 261015-gm3: README neu schreiben (F-11)
+Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
 Resume file: 
 .planning/phases/184-aufr-umpunkte-aus-phase-174-abschlie-en-tote-css-klassen-in-/184-10-PLAN.md
