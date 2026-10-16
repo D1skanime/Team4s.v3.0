@@ -43,14 +43,6 @@ export function resolveAnimeStatusClass(status: AnimeStatus): string {
   }
 }
 
-export function handleCoverImgError(event: React.SyntheticEvent<HTMLImageElement>) {
-  const img = event.currentTarget;
-  if (img.dataset.fallbackApplied === "true") return;
-  img.dataset.fallbackApplied = "true";
-  img.alt = "";
-  img.src = "/covers/placeholder.jpg";
-}
-
 export function useAdminEpisodesPage() {
   const { hasAccessToken, isClientInitialized } = useAuthSession();
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);

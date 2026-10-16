@@ -6,10 +6,10 @@ import Link from "next/link";
 import { EpisodeStatus } from "@/types/anime";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { getCoverUrl } from "@/lib/utils";
+import { handleCoverImgError } from "@/app/admin/anime/utils/anime-helpers";
 
 import {
   EPISODE_STATUSES,
-  handleCoverImgError,
   parsePositiveInt,
   resolveAnimeStatusClass,
   useAdminEpisodesPage,
