@@ -548,6 +548,14 @@ Last activity: 2026-10-15
 
 ### Roadmap Evolution
 
+- Phase 185 added (2026-10-16): Testsuite grün machen — alle dauerhaft roten Frontend- und
+  Backend-Tests analysieren und beheben (Ursache je Test: veraltete Erwartung,
+  Test-Fixture-Schema-Drift, Umgebungsabhängigkeit, echter Produktfehler), danach ist die volle
+  Suite ohne bekannte Fehlschläge grün. Auf Nutzerwunsch additiv zu Milestone v1.4 hinzugefügt,
+  Milestone-Status `milestone_complete` bleibt unverändert (nicht zurückgesetzt/neu
+  angelegt/archiviert) — gleiches Vorgehen wie bei Phase 182/183/184. Nur add-phase — noch nicht
+  geplant.
+
 - Phase 184 added (2026-10-15): Aufräumpunkte aus Phase 174 abschließen — tote CSS-Klassen in
   FansubEdit.module.css entfernen (F-20), doppelte Hilfsfunktionen zusammenführen (formatDate,
   Pagination-Fenster; F-07), latenten CSS-Modul-Merge-Fehler beheben (F-12), doppelte

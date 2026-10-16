@@ -2779,3 +2779,13 @@ Plans:
 - [x] 184-08-PLAN.md — F-12 (D-01): AnimeContext-Cluster (3) + EpisodeManager-Cluster (8, inkl. 3er-Merge-Sonderfall EpisodeEditForm.tsx) auf mergeCssModules umstellen.
 - [x] 184-09-PLAN.md — F-12 (D-01/D-05): ReleaseVersionNotesTab.tsx aufteilen (743→≤450), danach auf mergeCssModules umstellen.
 - [x] 184-10-PLAN.md — F-20 (D-03): Grep-belegte Nutzungsprüfung (inkl. dynamischer Zugriffe) über FansubEdit.module.css, tote Klassen löschen (nicht verschieben), Vorher/Nachher-Screenshot-Vergleich, blockierender Live-Checkpoint — vom Nutzer approved.
+
+### Phase 185: Testsuite grün machen: alle dauerhaft roten Frontend- und Backend-Tests analysieren und beheben (Ursache je Test: veraltete Erwartung, Test-Fixture-Schema-Drift, Umgebungsabhängigkeit, echter Produktfehler), danach ist die volle Suite ohne bekannte Fehlschläge grün
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 184
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 185 to break down)
