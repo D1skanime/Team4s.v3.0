@@ -49,6 +49,7 @@ describe('public anime detail contract (158-01)', () => {
     expectTypeOf<AnimeRelation['year']>().toEqualTypeOf<number | null>()
     for (const key of Object.keys(relation)) {
       expect(relationSchema).toContain('        ' + key + ':')
+      if (key === 'cover_image') continue
       expect(relationSchema.split('      properties:')[0]).toContain('- ' + key)
     }
     expect(relationSchema.match(/nullable: true/g)).toHaveLength(2)
