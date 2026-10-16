@@ -14,6 +14,20 @@
 # Safe to re-run: every step is idempotent (T-134-07/T-134-10 do not apply
 # here — this script never touches team4s_v2).
 #
+# D-03b: this script's own HEALTH_URL probe below runs directly on the host
+# (outside any container), so it correctly keeps using the host-reachable
+# 192.168.235.196 address and is unaffected by this note. If you are instead
+# running the 9-test Phase-134 verification matrix (go test) from INSIDE a
+# container attached to the Compose network (e.g. scripts/test-backend.sh's
+# containerized test runner), that container cannot reach the host IP. Point
+# the Go tests at the container-internal addresses on the `team4s_default`
+# network instead by setting:
+#   TEAM4S_PHASE134_MATRIX_BASE_URL=http://team4s-phase134-backend:8092
+#   TEAM4S_PHASE134_MATRIX_KC_BASE=http://team4sv30-keycloak:8080
+# (container-internal ports, not the published host ports 18093/18081). Both
+# env vars fall back to the current host-IP defaults when unset, so existing
+# manual/local `go test` invocations on the host are unaffected.
+#
 # Usage: bash scripts/provision-phase134-matrix-db.sh
 set -euo pipefail
 
