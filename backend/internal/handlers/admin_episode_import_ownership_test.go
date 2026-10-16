@@ -165,6 +165,15 @@ func TestPreviewEpisodeImport_MultiFolderRequestedSeriesIDPassesGuard(t *testing
 			episodesRequests++
 			_, _ = w.Write([]byte(`{"Items":[]}`))
 		case "/Items":
+			if ids := r.URL.Query().Get("Ids"); ids == "series-401,series-402" {
+				// hydrateJellyfinFolderDisplayNames (jellyfin_folder_display_names.go)
+				// unconditionally batch-fetches display names for ALL connected
+				// folders whenever a preview context has 2+ folders -- independent
+				// of, and in addition to, the GAP-07 folder-filter-path lookup
+				// asserted below via itemsRequests.
+				_, _ = w.Write([]byte(`{"Items":[{"Id":"series-401","Path":"/data/anime/FixtureFallback"},{"Id":"series-402","Path":"/media/Anime/series-402"}]}`))
+				return
+			}
 			itemsRequests++
 			require.Equal(t, "series-402", r.URL.Query().Get("Ids"))
 			_, _ = w.Write([]byte(`{"Items":[{"Id":"series-402","Path":"/media/Anime/series-402"}]}`))

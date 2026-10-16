@@ -41,6 +41,18 @@ func TestPreviewEpisodeImport_ExplicitAdditionalFolderReturnsThatFoldersEpisodes
 				"MediaSources":[{"Id":"ep-B-1","Path":"/media/Anime/FolderB/Folder B - 01.mkv","Container":"mkv"}]
 			}],"TotalRecordCount":1}`))
 		case "/Items":
+			if ids := r.URL.Query().Get("Ids"); ids == "series-401,series-402" {
+				// hydrateJellyfinFolderDisplayNames (jellyfin_folder_display_names.go)
+				// unconditionally batch-fetches display names for ALL connected
+				// folders whenever a preview context has 2+ folders -- independent
+				// of, and in addition to, the GAP-07 folder-filter-path lookup
+				// asserted below via itemsRequests. Answer it so the hydration
+				// call does not fail-open into a noisy log line, but do not count
+				// it toward the "exactly once" assertion, which is scoped to the
+				// single-series lookup only.
+				_, _ = w.Write([]byte(`{"Items":[{"Id":"series-401","Path":"/data/anime/FixtureFallback"},{"Id":"series-402","Path":"/media/Anime/FolderB"}]}`))
+				return
+			}
 			itemsRequests++
 			require.Equal(t, "series-402", r.URL.Query().Get("Ids"))
 			_, _ = w.Write([]byte(`{"Items":[{"Id":"series-402","Path":"/media/Anime/FolderB"}]}`))
@@ -93,6 +105,15 @@ func TestPreviewEpisodeImport_MainFolderRegressionStaysUnchanged(t *testing.T) {
 				"MediaSources":[{"Id":"ep-A-1","Path":"/data/anime/FixtureFallback/Folder A - 01.mkv","Container":"mkv"}]
 			}],"TotalRecordCount":1}`))
 		case "/Items":
+			if ids := r.URL.Query().Get("Ids"); ids == "series-401,series-402" {
+				// hydrateJellyfinFolderDisplayNames's unconditional multi-folder
+				// batch lookup (see the sibling test above) -- fires once
+				// regardless of which folder is auto-resolved, and is NOT the
+				// GAP-07 folder-filter-path lookup this test's itemsRequests
+				// assertion is scoped to.
+				_, _ = w.Write([]byte(`{"Items":[{"Id":"series-401","Path":"/data/anime/FixtureFallback"},{"Id":"series-402","Path":"/media/Anime/FolderB"}]}`))
+				return
+			}
 			itemsRequests++
 			_, _ = w.Write([]byte(`{"Items":[]}`))
 		default:
@@ -107,7 +128,7 @@ func TestPreviewEpisodeImport_MainFolderRegressionStaysUnchanged(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
 	require.Equal(t, 1, episodesRequests, "expected exactly one /Shows/series-401/Episodes fetch")
-	require.Zero(t, itemsRequests, "main-folder path must not trigger any extra /Items lookup (no new upstream traffic)")
+	require.Zero(t, itemsRequests, "main-folder path must not trigger any extra GAP-07 folder-filter-path lookup (no new upstream traffic beyond the existing display-name hydration)")
 
 	var response struct {
 		Data models.EpisodeImportPreviewResult `json:"data"`
