@@ -6,10 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const getSearchMock = vi.hoisted(() => vi.fn())
 const getSearchSuggestionsMock = vi.hoisted(() => vi.fn())
 const routerReplaceMock = vi.hoisted(() => vi.fn())
+// Next.js' echter useRouter() liefert eine über Re-Renders stabile Referenz (keine neue
+// Objektidentität pro Aufruf). Ein inline erzeugtes Objekt pro Call würde das verletzen und
+// den Debounce-Effekt (abhängig von `router`) bei jedem fremden Re-Render erneut feuern lassen.
+const routerMock = vi.hoisted(() => ({ replace: (...args: unknown[]) => routerReplaceMock(...args) }))
 const searchParamsRef = vi.hoisted(() => ({ current: new URLSearchParams('') }))
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: routerReplaceMock }),
+  useRouter: () => routerMock,
   usePathname: () => '/suche',
   useSearchParams: () => searchParamsRef.current,
 }))
@@ -59,14 +63,35 @@ describe('useDebouncedSearch', () => {
     expect(getSearchMock).not.toHaveBeenCalled()
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS)
+      await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS - 1)
     })
 
+    // Exakt an der Zeitgrenze: 249ms seit der letzten Änderung -> weiterhin kein Aufruf.
+    expect(getSearchMock).not.toHaveBeenCalled()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1)
+    })
+
+    // 250ms seit der letzten Änderung -> genau ein Aufruf.
     expect(getSearchMock).toHaveBeenCalledTimes(1)
     expect(getSearchMock.mock.calls[0][0].q).toBe('naruto')
     // Vorschläge werden ab >= 2 Zeichen ebenfalls einmal geladen.
     expect(getSearchSuggestionsMock).toHaveBeenCalledTimes(1)
     expect(getSearchSuggestionsMock.mock.calls[0][0]).toBe('naruto')
+  })
+
+  it('verzögert die allererste Ausführung nach dem Mount nicht mehr künstlich um 250ms — akzeptierte Verhaltensänderung', async () => {
+    searchParamsRef.current = new URLSearchParams('q=naruto')
+
+    await act(async () => {
+      renderHook(() => useDebouncedSearch())
+    })
+
+    // Keine Zeitvorspulung notwendig: der Initialwert von useDebouncedValue wird
+    // unverzögert zurückgegeben, daher feuert der Effekt bereits nach dem Mount-Flush.
+    expect(getSearchMock).toHaveBeenCalledTimes(1)
+    expect(getSearchMock.mock.calls[0][0].q).toBe('naruto')
   })
 
   it('bricht den vorherigen laufenden Request via AbortController ab', async () => {
@@ -116,13 +141,18 @@ describe('useDebouncedSearch', () => {
     expect(lastCall).toContain('type=anime')
   })
 
-  it('stellt den Zustand aus vorhandenen URL-Parametern wieder her (Reload)', () => {
+  it('stellt den Zustand aus vorhandenen URL-Parametern wieder her (Reload)', async () => {
     searchParamsRef.current = new URLSearchParams('q=naruto&type=anime&page=3')
     const { result } = renderHook(() => useDebouncedSearch())
 
     expect(result.current.q).toBe('naruto')
     expect(result.current.type).toBe('anime')
     expect(result.current.page).toBe(3)
+
+    // q hat bereits beim Mount gültige Länge -> der Effekt feuert sofort (akzeptierte
+    // Mount-Timing-Abweichung). Mikrotask-Flush, damit das Promise nicht erst nach dem
+    // Test (außerhalb von act) aufgelöst wird.
+    await act(async () => {})
   })
 
   it('löst bei q-Länge < 2 keinen Such- oder Vorschlags-Request aus', async () => {

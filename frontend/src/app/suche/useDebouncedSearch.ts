@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReadonlyURLSearchParams } from 'next/navigation'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { getSearch, getSearchSuggestions } from '@/lib/api'
 import type { PaginationMeta } from '@/types/anime'
 import type {
@@ -176,6 +177,8 @@ export function useDebouncedSearch(
     setState((prev) => (buildStateQuery(prev) === urlQuery ? prev : urlState))
   }
 
+  const debouncedState = useDebouncedValue(state, SEARCH_DEBOUNCE_MS)
+
   const [results, setResults] = useState<SearchResult | null>(null)
   const [meta, setMeta] = useState<PaginationMeta | null>(null)
   const [suggestions, setSuggestions] = useState<SearchResult | null>(null)
@@ -202,76 +205,73 @@ export function useDebouncedSearch(
   }, [])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // URL = Source of Truth: Zustand teilbar/reload-fest spiegeln.
-      const query = buildStateQuery(state)
-      router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
+    // URL = Source of Truth: Zustand teilbar/reload-fest spiegeln.
+    const query = buildStateQuery(debouncedState)
+    router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
 
-      const trimmed = state.q.trim()
-      // Eine wirklich abwesende q (leer nach trim) umgeht die Mindestlänge, sobald
-      // mindestens ein Filter gesetzt ist. Ein vorhandenes, aber zu kurzes q bleibt
-      // weiterhin blockiert.
-      const bypassMinLength =
-        trimmed.length === 0 && Object.values(state.filters).some((value) => value !== undefined && value !== '')
-      if (trimmed.length < MIN_QUERY_LENGTH && !bypassMinLength) {
-        // Zu kurz: laufende Requests abbrechen, Ergebnisse räumen, nichts anfragen.
-        searchAbortRef.current?.abort()
-        suggestAbortRef.current?.abort()
-        setResults(null)
-        setMeta(null)
-        setSuggestions(null)
-        setIsLoading(false)
-        setError(null)
-        return
-      }
+    const trimmed = debouncedState.q.trim()
+    // Eine wirklich abwesende q (leer nach trim) umgeht die Mindestlänge, sobald
+    // mindestens ein Filter gesetzt ist. Ein vorhandenes, aber zu kurzes q bleibt
+    // weiterhin blockiert.
+    const bypassMinLength =
+      trimmed.length === 0 &&
+      Object.values(debouncedState.filters).some((value) => value !== undefined && value !== '')
+    if (trimmed.length < MIN_QUERY_LENGTH && !bypassMinLength) {
+      // Zu kurz: laufende Requests abbrechen, Ergebnisse räumen, nichts anfragen.
+      searchAbortRef.current?.abort()
+      suggestAbortRef.current?.abort()
+      setResults(null)
+      setMeta(null)
+      setSuggestions(null)
+      setIsLoading(false)
+      setError(null)
+      return
+    }
 
-      // Hauptsuche (nur in der Ergebnis-/Voll-Rolle): vorherigen Request abbrechen.
-      if (fetchResults) {
-        searchAbortRef.current?.abort()
-        const searchController = new AbortController()
-        searchAbortRef.current = searchController
-        setIsLoading(true)
-        setError(null)
-        getSearch(stateToSearchParams(state), searchController.signal)
-          .then((response) => {
-            if (searchController.signal.aborted) return
-            setResults(response.data)
-            setMeta(response.meta)
-            setIsLoading(false)
-          })
-          .catch((err) => {
-            if (searchController.signal.aborted || isAbortError(err)) return
-            setError(err)
-            setIsLoading(false)
-          })
-      }
+    // Hauptsuche (nur in der Ergebnis-/Voll-Rolle): vorherigen Request abbrechen.
+    if (fetchResults) {
+      searchAbortRef.current?.abort()
+      const searchController = new AbortController()
+      searchAbortRef.current = searchController
+      setIsLoading(true)
+      setError(null)
+      getSearch(stateToSearchParams(debouncedState), searchController.signal)
+        .then((response) => {
+          if (searchController.signal.aborted) return
+          setResults(response.data)
+          setMeta(response.meta)
+          setIsLoading(false)
+        })
+        .catch((err) => {
+          if (searchController.signal.aborted || isAbortError(err)) return
+          setError(err)
+          setIsLoading(false)
+        })
+    }
 
-      // Vorschläge (nur in der Eingabe-/Voll-Rolle): abbrechbar, Fehler nicht fatal.
-      // D-08 gilt NICHT für /search/suggestions — der tag/genre-Bypass oben betrifft
-      // ausschließlich die Ergebnissuche; Vorschläge bleiben strikt an MIN_QUERY_LENGTH
-      // gebunden, auch wenn der äußere Guard wegen tag/genre umgangen wurde.
-      if (fetchSuggestions && trimmed.length >= MIN_QUERY_LENGTH) {
-        suggestAbortRef.current?.abort()
-        const suggestController = new AbortController()
-        suggestAbortRef.current = suggestController
-        // In der reinen Eingabe-Rolle trägt der Vorschlags-Request den Ladezustand.
-        if (!fetchResults) setIsLoading(true)
-        getSearchSuggestions(trimmed, suggestController.signal)
-          .then((response) => {
-            if (suggestController.signal.aborted) return
-            setSuggestions(response.data)
-            if (!fetchResults) setIsLoading(false)
-          })
-          .catch((err) => {
-            if (suggestController.signal.aborted || isAbortError(err)) return
-            // Vorschlagsfehler bleibt still — die Hauptsuche trägt den Fehlerzustand.
-            if (!fetchResults) setIsLoading(false)
-          })
-      }
-    }, SEARCH_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [state, pathname, router, fetchResults, fetchSuggestions])
+    // Vorschläge (nur in der Eingabe-/Voll-Rolle): abbrechbar, Fehler nicht fatal.
+    // D-08 gilt NICHT für /search/suggestions — der tag/genre-Bypass oben betrifft
+    // ausschließlich die Ergebnissuche; Vorschläge bleiben strikt an MIN_QUERY_LENGTH
+    // gebunden, auch wenn der äußere Guard wegen tag/genre umgangen wurde.
+    if (fetchSuggestions && trimmed.length >= MIN_QUERY_LENGTH) {
+      suggestAbortRef.current?.abort()
+      const suggestController = new AbortController()
+      suggestAbortRef.current = suggestController
+      // In der reinen Eingabe-Rolle trägt der Vorschlags-Request den Ladezustand.
+      if (!fetchResults) setIsLoading(true)
+      getSearchSuggestions(trimmed, suggestController.signal)
+        .then((response) => {
+          if (suggestController.signal.aborted) return
+          setSuggestions(response.data)
+          if (!fetchResults) setIsLoading(false)
+        })
+        .catch((err) => {
+          if (suggestController.signal.aborted || isAbortError(err)) return
+          // Vorschlagsfehler bleibt still — die Hauptsuche trägt den Fehlerzustand.
+          if (!fetchResults) setIsLoading(false)
+        })
+    }
+  }, [debouncedState, pathname, router, fetchResults, fetchSuggestions])
 
   useEffect(
     () => () => {
