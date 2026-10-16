@@ -11,6 +11,7 @@ import {
 } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { useConfirmDialog } from "@/components/ui";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FansubGroup, FansubStatus } from "@/types/fansub";
 import {
   compareFansubListItems,
@@ -53,7 +54,8 @@ export function useAdminFansubsList() {
     Record<number, number | null>
   >({});
   const [queryInput, setQueryInput] = useState("");
-  const [query, setQuery] = useState("");
+  const debouncedQueryInput = useDebouncedValue(queryInput, SEARCH_DEBOUNCE_MS);
+  const query = useMemo(() => debouncedQueryInput.trim().toLowerCase(), [debouncedQueryInput]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -91,13 +93,6 @@ export function useAdminFansubsList() {
   useEffect(() => {
     void loadList();
   }, [loadList]);
-
-  useEffect(() => {
-    const timeoutID = window.setTimeout(() => {
-      setQuery(queryInput.trim().toLowerCase());
-    }, SEARCH_DEBOUNCE_MS);
-    return () => window.clearTimeout(timeoutID);
-  }, [queryInput]);
 
   const filteredItems = useMemo(
     () => filterFansubPageItems(items, { statusFilter, query }),

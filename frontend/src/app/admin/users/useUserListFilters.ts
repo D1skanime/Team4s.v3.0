@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import type { AdminUserListParams } from '@/types/admin-users'
 
 const DEBOUNCE_MS = 300
@@ -35,7 +36,6 @@ export function useUserListFilters(limit = DEFAULT_LIMIT): UseUserListFiltersRes
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const q = searchParams.get('q') ?? ''
   const status = searchParams.get('status') ?? ''
@@ -49,6 +49,14 @@ export function useUserListFilters(limit = DEFAULT_LIMIT): UseUserListFiltersRes
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchValue((current) => (current === q ? current : q))
   }, [q])
+
+  // Entkoppelt vom obigen URL-Sync (D-01/184-REVIEW-FIX): pendingSearch wird NUR von
+  // handleSearchChange gesetzt, nie vom q-Sync-Effekt -- sonst wuerde ein externer
+  // URL-Wechsel (z. B. Browser-Zurueck) nach Ablauf des Debounce writeParams erneut
+  // ausloesen und offset faelschlich auf 0 zuruecksetzen.
+  const [pendingSearch, setPendingSearch] = useState<string | null>(null)
+  const debouncedPendingSearch = useDebouncedValue(pendingSearch, DEBOUNCE_MS)
+  const appliedSearchRef = useRef<string | null>(null)
 
   const writeParams = useCallback(
     (patch: FilterPatch, resetOffset = true) => {
@@ -77,16 +85,17 @@ export function useUserListFilters(limit = DEFAULT_LIMIT): UseUserListFiltersRes
     [offset, pathname, q, role, router, searchParams, status],
   )
 
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      setSearchValue(value)
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(() => {
-        writeParams({ q: value })
-      }, DEBOUNCE_MS)
-    },
-    [writeParams],
-  )
+  useEffect(() => {
+    if (debouncedPendingSearch === null) return
+    if (appliedSearchRef.current === debouncedPendingSearch) return
+    appliedSearchRef.current = debouncedPendingSearch
+    writeParams({ q: debouncedPendingSearch })
+  }, [debouncedPendingSearch, writeParams])
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchValue(value)
+    setPendingSearch(value)
+  }, [])
 
   const handleStatusChange = useCallback(
     (value: string) => {
