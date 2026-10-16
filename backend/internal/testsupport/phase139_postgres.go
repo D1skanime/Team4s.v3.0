@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"team4s.v3/backend/internal/migrations"
@@ -50,11 +51,65 @@ func OpenPhase139Postgres(t *testing.T) *pgxpool.Pool {
 // schema_migrations tracking table) directly in that isolated schema.
 func createPhase139Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 	t.Helper()
+	// Migration 0152 (f_unaccent_search_path_fix) hard-codes a public.unaccent
+	// dictionary lookup, but this fixture's isolated search_path deliberately
+	// excludes "public" (see openPhasePostgres's safety check). The unaccent
+	// extension can only live in one schema per database, so both migration
+	// 0140 (search_foundation, which creates f_unaccent with an UNQUALIFIED
+	// "unaccent(...)" call plus a functional GIN-trigram index over it) and
+	// migration 0152 need to resolve it successfully from inside the same
+	// isolated schema's connection -- 0140 via an unqualified lookup, 0152 via
+	// an explicit public.unaccent lookup.
+	//
+	// Fix: create the extension schema-qualified in public (so 0152's
+	// explicit public.unaccent reference resolves), then temporarily widen
+	// this connection's search_path to [isolated schema, public] for the
+	// duration of the migration run only -- unqualified CREATE TABLE/INDEX/
+	// FUNCTION statements still target the isolated schema (it stays first
+	// in the list), while unqualified name lookups like 0140's "unaccent(...)"
+	// now also resolve via public. The search_path is narrowed back to the
+	// isolated schema only immediately afterward, before this pool is handed
+	// back to the caller, preserving the invariant for every query the test
+	// itself issues afterward.
+	ctx := context.Background()
+	isolatedSchema := currentPhase139Schema(t, pool)
+
+	if _, err := pool.Exec(ctx, "CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA public"); err != nil {
+		t.Fatalf("create public.unaccent extension for Phase-139 fixture: %v", err)
+	}
+
+	widenedSearchPath := pgx.Identifier{isolatedSchema}.Sanitize() + ", public"
+	if _, err := pool.Exec(ctx, "SET search_path TO "+widenedSearchPath); err != nil {
+		t.Fatalf("widen search_path for Phase-139 migration run: %v", err)
+	}
+
 	migrationsDir := phase139MigrationsDir(t)
 	runner := migrations.NewRunner(pool, migrationsDir)
-	if _, err := runner.Up(context.Background()); err != nil {
-		t.Fatalf("apply full migration chain for Phase-139 fixture: %v", err)
+	_, migrateErr := runner.Up(ctx)
+
+	narrowedSearchPath := pgx.Identifier{isolatedSchema}.Sanitize()
+	if _, err := pool.Exec(ctx, "SET search_path TO "+narrowedSearchPath); err != nil {
+		t.Fatalf("restore isolated search_path after Phase-139 migration run: %v", err)
 	}
+
+	if migrateErr != nil {
+		t.Fatalf("apply full migration chain for Phase-139 fixture: %v", migrateErr)
+	}
+}
+
+// currentPhase139Schema reads back the single isolated schema that
+// openPhasePostgres already set as this pool's search_path (and already
+// verified excludes "public") before calling createPhase139Prerequisites.
+func currentPhase139Schema(t testing.TB, pool *pgxpool.Pool) string {
+	t.Helper()
+	var schemas []string
+	if err := pool.QueryRow(context.Background(), "SELECT current_schemas(false)").Scan(&schemas); err != nil {
+		t.Fatalf("read current schema for Phase-139 fixture: %v", err)
+	}
+	if len(schemas) != 1 || !phase139SchemaPattern.MatchString(schemas[0]) {
+		t.Fatalf("unexpected isolated schema %v for Phase-139 fixture", schemas)
+	}
+	return schemas[0]
 }
 
 // phase139MigrationsDir resolves database/migrations relative to this

@@ -110,9 +110,30 @@ func openPhase139PostgresWithCounter(t *testing.T) (*pgxpool.Pool, *queryCounter
 	require.Truef(t, len(schemas) == 1 && schemas[0] == schema && !containsPhase139BudgetSchema(schemas, "public"),
 		"unsafe search_path schemas: %v", schemas)
 
+	// Migration 0152 (f_unaccent_search_path_fix) hard-codes a public.unaccent dictionary
+	// lookup, while migration 0140 (search_foundation) creates f_unaccent with an UNQUALIFIED
+	// "unaccent(...)" call plus a functional GIN-trigram index over it -- both need to resolve
+	// from inside this isolated schema's search_path, which deliberately excludes "public".
+	// Same fix as testsupport.createPhase139Prerequisites (185-02, D-02): create the extension
+	// schema-qualified in public (so 0152's explicit reference resolves), widen this connection's
+	// search_path to [isolated schema, public] only for the migration run (unqualified CREATE
+	// statements still target the isolated schema since it stays first; unqualified lookups like
+	// 0140's "unaccent(...)" now also resolve via public), then narrow back immediately after.
+	_, err = scopedPool.Exec(context.Background(), "CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA public")
+	require.NoErrorf(t, err, "create public.unaccent extension for Phase-139 query-budget fixture")
+
+	widenedSearchPath := pgx.Identifier{schema}.Sanitize() + ", public"
+	_, err = scopedPool.Exec(context.Background(), "SET search_path TO "+widenedSearchPath)
+	require.NoErrorf(t, err, "widen search_path for Phase-139 query-budget migration run")
+
 	runner := migrations.NewRunner(scopedPool, phase139BudgetMigrationsDir(t))
-	_, err = runner.Up(context.Background())
-	require.NoErrorf(t, err, "apply full migration chain for Phase-139 query-budget fixture")
+	_, migrateErr := runner.Up(context.Background())
+
+	narrowedSearchPath := pgx.Identifier{schema}.Sanitize()
+	_, err = scopedPool.Exec(context.Background(), "SET search_path TO "+narrowedSearchPath)
+	require.NoErrorf(t, err, "restore isolated search_path after Phase-139 query-budget migration run")
+
+	require.NoErrorf(t, migrateErr, "apply full migration chain for Phase-139 query-budget fixture")
 
 	counter.reset() // exclude migration-chain traffic from the first measured call
 	return scopedPool, counter
