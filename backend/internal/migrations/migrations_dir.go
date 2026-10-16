@@ -13,10 +13,10 @@ func ResolveMigrationsDir(customDir string) (string, error) {
 	}
 
 	candidates := []string{
-		filepath.Join("database", "migrations"),
-		filepath.Join("..", "database", "migrations"),
-		filepath.Join("..", "..", "database", "migrations"),
 		filepath.Join("..", "..", "..", "database", "migrations"),
+		filepath.Join("..", "..", "database", "migrations"),
+		filepath.Join("..", "database", "migrations"),
+		filepath.Join("database", "migrations"),
 	}
 
 	for _, candidate := range candidates {
