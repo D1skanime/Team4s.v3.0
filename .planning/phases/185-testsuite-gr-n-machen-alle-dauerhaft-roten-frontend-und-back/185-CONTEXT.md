@@ -1,15 +1,14 @@
-# Phase 185: Testsuite grün machen — alle dauerhaft roten Frontend- und Backend-Tests analysieren und beheben — CONTEXT (Entwurf)
+# Phase 185: Testsuite grün machen — alle dauerhaft roten Frontend- und Backend-Tests analysieren und beheben — CONTEXT
 
 ## Ziel
 
-"Grün" bedeutet hier: die volle Testsuite (Frontend-Vitest + Backend-Go-Tests) läuft ohne
-**bekannte** Fehlschläge durch — jeder aktuell dauerhaft rote Test ist entweder durch einen
-Code-/Testfixture-Fix behoben, oder (nur bei echter Umgebungsabhängigkeit) bewusst mit einer
-dokumentierten Skip-Begründung versehen. Kein Test wird nur gelöscht oder stillschweigend
-übersprungen, um die Zahl grün zu färben — jede Abweichung von "fixen" braucht eine explizite,
-nachvollziehbare Begründung (siehe "Offene Fragen" unten). Diese Phase selbst liefert nur die
-Ist-Stand-Analyse und einen Vorschlag; die eigentlichen Fixes sind Gegenstand der nachfolgenden
-Planung.
+"Grün" bedeutet hier: die volle Testsuite (Frontend-Vitest + Backend-Go-Tests) läuft **zweimal
+hintereinander ohne roten Test** durch — jeder in der Ist-Stand-Analyse gefundene dauerhaft rote
+Test wird durch einen Code-/Testfixture-Fix behoben (siehe Nutzerentscheidungen D-01 bis D-07
+unten; Klasse C wird repariert, nicht übersprungen). Kein Test wird gelöscht oder stillschweigend
+übersprungen, um die Zahl grün zu färben. Abgeschlossene Migrationen (z. B. 0152) werden dabei
+nicht verändert — Fixes für migrationsbedingte Fixture-Konflikte landen in der Fixture, nicht in
+der Migration.
 
 ## Ist-Zustand
 
@@ -165,8 +164,8 @@ ergänzt, die der produktive Code inzwischen voraussetzt. Der mit Abstand größ
 der „public.unaccent"-Konflikt zwischen schema-isolierten Migrations-Fixtures (Phase 139/167) und
 Migration 0152 — hier lohnt sich EIN gemeinsamer Fix statt 44 Einzelreparaturen.
 
-**Klasse C (Umgebungsabhängigkeit):** Siehe „Offene Fragen" unten — hier sind echte
-Nutzerentscheidungen nötig (Testumgebung reparieren vs. bewusst skippen vs. Test löschen).
+**Klasse C (Umgebungsabhängigkeit):** Siehe D-03 unten — wird repariert (Debian-Image-Probe bzw.
+Docker-Netzwerk-Adressierung statt Host-IP), nicht übersprungen oder gelöscht.
 
 **Klasse D (wackelig/Timing):** Im Frontend über die zwei Läufe kein Fall gefunden. Im Backend
 wurde das Vorgehen (zwei bereinigte Läufe, Lauf 2 vs. 3) genutzt, um Kontaminations-Artefakte von
@@ -216,59 +215,65 @@ risikoarm ist — keine Abspaltung in eine Folge-Phase nötig.
 - Keine Überarbeitung der Testinfrastruktur (`testsupport`-Pakete) als Selbstzweck — nur die
   Fixture-Lücken, die hier konkret benannte Tests rot färben, werden geschlossen.
 - Die 34-Datei-Altlast-Liste (`LegacyAllowedSubstringTestFiles`) wird NICHT pauschal in dieser
-  Phase auf echte Verhaltenstests umgestellt — nur die eine Datei, die ohnehin wegen eines echten
-  Rotbefunds angefasst werden muss (`member_claims_repository_test.go`), bekommt dabei den
-  vollständigeren Fix.
+  Phase auf echte Verhaltenstests umgestellt (D-06) — nur die eine Datei, die ohnehin wegen eines
+  echten Rotbefunds angefasst werden muss (`member_claims_repository_test.go`, D-02), bekommt
+  dabei den vollständigeren Fix.
 - Keine Migration der Produktionslogik hinter den Klasse-E-Befunden über die reine
-  Verzeichnis-/Reihenfolge-Korrektur hinaus.
+  Verzeichnis-/Reihenfolge-Korrektur hinaus (D-04).
+- Keine generelle Vereinheitlichung aller Backend-Testfixture-Strategien über das für D-02/D-07
+  konkret nötige Maß hinaus (z. B. keine Zusammenführung der "volles Schema"- und der
+  handgerollten Fixture-Familien).
 
-## Offene Fragen an den Nutzer
+## Nutzerentscheidungen (final, verbindlich)
 
-**Frage 1 — Jellyfin-Preview-EOF-Cluster (3 Tests, Klasse C, `internal/handlers`):**
-Der `httptest`-Mock-Jellyfin-Server liefert im Alpine-Testcontainer wiederholt `EOF` statt eine
-Antwort, was Call-Count-Assertions verfälscht.
-- (a) Testumgebung reparieren: denselben Lauf einmal mit einem Debian-basierten
-  `golang:1.25`-Image wiederholen, um zu klären, ob das Problem alpine-spezifisch ist; falls ja,
-  den offiziellen CI/Dev-Testlauf dauerhaft auf ein Debian-Image umstellen.
-- (b) Mit klarer Begründung im Code überspringen, falls sich die Umgebungsabhängigkeit bestätigt
-  und ein Debian-Image im bestehenden Workflow nicht vorgesehen ist.
-- (c) Löschen — nicht empfohlen, die Tests prüfen reales Verhalten (Batch-Abruf statt Pro-Episode-
-  Abruf), kein Hinweis auf fehlenden Wert.
-- **Empfehlung:** (a) zuerst, weil schnell und eindeutig — klärt, ob es sich überhaupt um einen
-  Umgebungsfall handelt, bevor irgendetwas übersprungen wird.
+- **D-01 (Frontend, Klasse A):** `anime-detail-contract.test.ts` wird an den aktuellen, korrekten
+  Contract angepasst — `cover_image` bleibt `nullable: true`, wird aber aus der
+  Pflicht-Teilprüfung (`required`) der Schleife ausgenommen. Kein Produktcode/Contract wird
+  zurückgedreht.
 
-**Frage 2 — Phase-134-Matrix-Cluster (9 Tests, Klasse C, `internal/repository`):**
-Die Tests rufen fest verdrahtet `http://192.168.235.196:18093/...` auf (Host-LAN-IP), was im
-isolierten Testcontainer nicht erreichbar ist.
-- (a) Testumgebung reparieren: Im Testlauf zusätzlich den echten `team4sv30-backend`-Container
-  (oder einen dafür gestarteten Instanz-Container) im selben Docker-Netzwerk bereitstellen und die
-  Tests über den Docker-DNS-Namen statt der Host-IP ansprechen lassen (sauberste Lösung, macht die
-  Tests portabel).
-- (b) Mit klarer Begründung skippen, falls der Live-Server im CI/Testkontext grundsätzlich nicht
-  vorgesehen ist.
-- (c) Löschen — nicht empfohlen, die Matrix-Tests prüfen echtes Zugriffsverhalten (öffentlich vs.
-  versteckt vs. Owner-Preview), substanzieller Wert.
-- **Empfehlung:** (a) — die feste Host-IP ist ohnehin fragil (bricht z. B. bei IP-Wechsel des
-  Hosts); eine Docker-netzwerk-interne Lösung ist robuster und behebt das Problem dauerhaft statt
-  es nur zu verstecken.
+- **D-02 (Backend, Klasse A/B inkl. 44er-`unaccent`-Cluster Phase-139/167):** Alle Klasse-A- und
+  Klasse-B-Fälle werden wie im Abschnitt „Vorschlag je Klasse" und in der Cluster-Tabelle oben
+  vorgeschlagen durch Fixture-/Testcode-Reparatur behoben (fehlende Spalten/Tabellen/Stub-Einträge
+  ergänzen, Methodenverschiebungen nachziehen). Abgeschlossene Migrationen (insbesondere 0152)
+  werden dabei NICHT verändert — der `public.unaccent`-Konflikt wird in der Fixture gelöst
+  (`search_path` vor dem Migrationslauf um `public` ergänzen bzw. `CREATE EXTENSION unaccent
+  SCHEMA public` erzwingen), nicht in der Migration selbst. Der rote Quelltext-Inspektionstest in
+  `member_claims_repository_test.go` wird dabei zusätzlich auf einen echten `httptest`-basierten
+  Verhaltenstest umgestellt (nicht nur den Suchstring korrigiert) und aus
+  `LegacyAllowedSubstringTestFiles` entfernt.
 
-**Frage 3 — `ResolveMigrationsDir`-Landmine (1 Test, Klasse E, `internal/migrations` +
-`cmd/migrate`):**
-- (a) Produktcode fixen (bevorzugt): `backend/database/migrations/` löschen (nur 2 alte Dateien +
-  README, durch `database/migrations/` am Repo-Root längst abgelöst) und/oder
-  `ResolveMigrationsDir`s Kandidatenreihenfolge korrigieren.
-- (b) Als eigene Folge-Phase abspalten, falls sich beim Entfernen von `backend/database/migrations/`
-  unerwartete Abhängigkeiten zeigen (z. B. andere Tools, die genau diesen Pfad erwarten).
-- **Empfehlung:** (a) — der Fix ist klein, lokal und durch den Test selbst sofort verifizierbar;
-  eine Abspaltung lohnt sich nur, falls die Recherche vor dem Fix tatsächlich weitere Nutzer dieses
-  Pfades findet.
+- **D-03 (Backend, Klasse C — reparieren, nicht überspringen):**
+  - (a) Jellyfin-Preview-EOF-Cluster (3 Tests): zuerst denselben Lauf mit einem
+    Debian-basierten `golang:1.25`-Image wiederholen. Bestätigt sich Alpine-Spezifität, wird der
+    dokumentierte Backend-Testlauf (siehe D-07) dauerhaft auf das Debian-Image umgestellt. Zeigt
+    sich stattdessen ein echter Fehler, werden Test bzw. Produktcode korrigiert.
+  - (b) Phase-134-Matrix-Cluster (9 Tests): keine fest verdrahtete Host-IP mehr. Die Tests sprechen
+    den Backend-Server über das Docker-Netzwerk (Service-Name) bzw. eine über ENV konfigurierbare
+    URL an, statt `192.168.235.196:18093` hart zu kodieren.
 
-**Frage 4 — `TestGetPublicGroupBase_*` nur in einem Lauf beobachtet (2 Tests, Klasse B):**
-- (a) Vor der Behebung einen weiteren bereinigten Kontroll-Lauf fahren, um zu bestätigen, dass es
-  sich um einen echten, dauerhaften Fixture-Mangel handelt (nicht nur eine Lauf-3-Besonderheit).
-- (b) Den Fix (fehlender `review_status`-Seed-Datensatz) direkt umsetzen, ohne weiteren Kontroll-
-  Lauf, weil die Fehlermeldung (FK-Verletzung) für sich genommen eindeutig ist, unabhängig davon,
-  ob sie in jedem Lauf sichtbar wird.
-- **Empfehlung:** (b) — die FK-Verletzung ist technisch eindeutig und der Fix (Seed-Zeile ergänzen)
-  ist unabhängig von der Beobachtungs-Häufigkeit richtig; ein weiterer Lauf kostet Zeit ohne
-  zusätzliche Erkenntnis.
+- **D-04 (Backend, Klasse E — jetzt beheben):** `backend/database/migrations/` wird nach einer
+  Nutzungsprüfung (grep über Code, Dockerfiles, Skripte, `docker-compose.yml`) entfernt, sofern
+  keine anderen Konsumenten diesen Pfad erwarten. Zusätzlich wird `ResolveMigrationsDir` so
+  korrigiert, dass das Repo-Root-Verzeichnis `database/migrations/` Vorrang vor einem
+  `backend/`-lokalen Treffer hat. `TestPhase143RoleCapabilityDefaultsResetIdempotentAndReversible`
+  belegt den Fix.
+
+- **D-05 (Backend, Klasse B — `TestGetPublicGroupBase_*`):** Direkt fixen (fehlenden
+  `review_statuses`-Seed-Datensatz in der Phase-152-Fixture ergänzen), ohne weiteren
+  Kontroll-Lauf vorab.
+
+- **D-06 (Backend, Quelltext-Inspektionstests):** Die übrigen 34 Dateien in
+  `LegacyAllowedSubstringTestFiles` (minus der einen Datei aus D-02) bleiben unverändert — keine
+  pauschale Umstellung in dieser Phase, nur beim nächsten inhaltlichen Anfassen dieser Dateien.
+
+- **D-07 (Reproduzierbarkeit):** Der vollständige Backend-Testlauf (Image-Wahl gemäß D-03a,
+  Mounts, benötigte ENV-Variablen/DSNs für alle `*_TEST_DSN`-Fälle, Anlage und Abbau der
+  Wegwerf-Datenbanken) wird als Skript unter `scripts/` abgelegt (z. B. `scripts/test-backend.sh`)
+  und in `docs/ENTWICKLUNG.md` auf Deutsch beschrieben, damit künftige Agenten nicht erneut an
+  Mounts/DSNs scheitern. Abschluss-Kriterium der Phase: volle Frontend- (`vitest run`) und
+  Backend-Suite (`scripts/test-backend.sh`) laufen je zweimal hintereinander mit 0 roten Tests.
+
+Übergreifend gilt die CLAUDE.md-Regel „Übergroße Dateien beim Anfassen aufteilen" für
+Produktionsdateien (Testdateien nur, wenn im Einzelfall sinnvoll), und es wird zu keinem Zeitpunkt
+`team4s_v2` für Testläufe verwendet — ausschließlich selbst angelegte und wieder entfernte
+Wegwerf-Datenbanken.
