@@ -105,3 +105,7 @@ None - no external service configuration required. All verification used throwaw
 ---
 *Phase: 185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back*
 *Completed: 2026-10-16*
+
+## Self-Check: PASSED
+
+All 3 modified files found on disk; all 4 commit hashes (`6a45323ca`, `f7e68d821`, `56d79be40`, `c6fab99a1`) found in `git log --oneline --all`.

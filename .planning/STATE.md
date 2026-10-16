@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 185-06-PLAN.md
-last_updated: "2026-10-16T20:46:49.960Z"
+last_updated: "2026-10-16T20:54:19.149Z"
 last_activity: 2026-10-16
 progress:
   total_phases: 50
   completed_phases: 44
   total_plans: 458
-  completed_plans: 449
+  completed_plans: 450
   percent: 88
 ---
 
@@ -401,7 +401,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 185 (testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back) — EXECUTING
-Plan: 7 of 12
+Plan: 8 of 12
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1273,6 +1273,7 @@ Last activity: 2026-10-16
 - [Phase 185-04]: D-03a resolved: Jellyfin-Preview-EOF-Cluster reproduziert deterministisch auf Debian UND Alpine -> echter Testfixture-Bug (hydrateJellyfinFolderDisplayNames-Batchcall), nicht Alpine-spezifisch. — Beide Images liefen je zweimal identisch rot vor dem Fix und identisch gruen nach dem Fix; 185-11s Image-Wahl wird dadurch nicht erzwungen.
 - [Phase 185]: D-03b: phase134MatrixBaseURL/phase134MatrixKCBase wurden zu vars (envOrDefault aus TEAM4S_PHASE134_MATRIX_BASE_URL/TEAM4S_PHASE134_MATRIX_KC_BASE), mit den bisherigen Host-IP-Werten als Fallback — ermoeglicht Ausfuehrung der 9-Test-Matrix in containerisierten Test-Runnern ohne Host-Netzwerkzugriff, ohne manuelle/lokale Laeufe zu brechen
 - [Phase 185]: searchQueryBypassAllowed auf die vom Auftraggeber-Mandat Punkt 3 mandatierte enge tag/genre-only q-Bypass-Lesart zurückgesetzt (Rule-1-Fix, Commit c02aa7d66-Regression)
+- [Phase 185]: Mirrored migrations 0146 (role_definitions.color_key/icon_key) and 0160 (role_definitions.reserved) as additive ALTER TABLE columns in the Phase-135 fixture instead of applying either migration file in full, because 0146 needs action_definitions/app_users/fansub_groups rows and 0160's INSERT needs a UNIQUE constraint the minimal role_capabilities stand-in deliberately omits.
 
 ### Pending Todos
 
@@ -1951,10 +1952,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 185 P04 | 25min | 2 tasks | 2 files |
 | Phase 185 P05 | 4min | 2 tasks | 2 files |
 | Phase 185 P06 | 55min | 3 tasks | 5 files |
+| Phase 185 P07 | 25min | 3 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-16T20:46:49.939Z
+Last session: 2026-10-16T20:53:37.463Z
 Stopped at: Completed 185-06-PLAN.md
 Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
 Resume file: 
