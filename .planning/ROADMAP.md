@@ -2782,10 +2782,27 @@ Plans:
 
 ### Phase 185: Testsuite grün machen: alle dauerhaft roten Frontend- und Backend-Tests analysieren und beheben (Ursache je Test: veraltete Erwartung, Test-Fixture-Schema-Drift, Umgebungsabhängigkeit, echter Produktfehler), danach ist die volle Suite ohne bekannte Fehlschläge grün
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Die volle Testsuite (Frontend-Vitest + Backend-Go-Tests) läuft zweimal hintereinander ohne roten Test durch — jeder in der Ist-Stand-Analyse gefundene dauerhaft rote Test (1 Frontend, 93 Backend über 18 Ursachen-Cluster) ist durch einen echten Code-/Testfixture-Fix behoben, kein Test wurde gelöscht oder stillschweigend übersprungen.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung — D-01 bis D-07 aus 185-CONTEXT.md sind die verbindlichen Entscheidungen dieser Phase.
 **Depends on:** Phase 184
-**Plans:** 0 plans
+**Plans:** 12 plans across 3 waves
+
+  - Wave 1: 185-01 (Frontend D-01 Contract-Fix), 185-02 (D-02 geteilter public.unaccent-Fix, 44 Tests), 185-03 (D-04 ResolveMigrationsDir + Pflicht-Dateiaufteilung runner.go), 185-04 (D-03a Jellyfin-EOF-Debian-Probe), 185-05 (D-03b Phase-134-Matrix env-konfigurierbare URL), 185-06 (D-05 + Phase-155-ID-Kollision + search_bypass-Fixture-Lücke), 185-07 (Episode-Spalten-Lücken + Phase-135 role_capabilities), 185-08 (Permission-Stub-Lücke + Phase-137-Doppelanlage), 185-09 (Repository-Trio: anime_relations/release_version_media/cross_package), 185-10 (member_claims_repository_test.go echter Verhaltenstest + Ratchet-Liste)
+  - Wave 2: 185-11 (D-07 scripts/test-backend.sh + docs/ENTWICKLUNG.md, abhängig von 185-04s Image-Entscheidung)
+  - Wave 3: 185-12 (Abschluss-Verifikation: volle Suite zweimal grün, alle 94 Tests namentlich bestätigt)
+
+**Plan-time read first**: `.planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-CONTEXT.md` (vollständige Ist-Zustand-Cluster-Tabelle und Nutzerentscheidungen D-01 bis D-07), `.planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-PATTERNS.md` (Pattern-Map je Cluster).
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 185 to break down)
+- [ ] 185-01-PLAN.md — Frontend D-01: anime-detail-contract.test.ts an den korrigierten AnimeRelation-Contract anpassen.
+- [ ] 185-02-PLAN.md — D-02: geteilter public.unaccent-Fix in den Phase-139/167-Testsupport-Fixtures (44 Tests).
+- [ ] 185-03-PLAN.md — D-04: ResolveMigrationsDir-Reihenfolge korrigieren, backend/database/migrations/ entfernen, runner.go pflichtgemäß aufgeteilt (471→≤450 Zeilen).
+- [ ] 185-04-PLAN.md — D-03a: Jellyfin-Preview-EOF-Cluster unter Debian-Image reproduzieren und branchen.
+- [ ] 185-05-PLAN.md — D-03b: Phase-134-Matrix-URLs env-konfigurierbar statt hart kodierter Host-IP.
+- [ ] 185-06-PLAN.md — D-05 + D-02: Phase-152-Seed-Lücke, Phase-155-ID-Kollision, search_bypass-Fixture-Lücke.
+- [ ] 185-07-PLAN.md — D-02: episode_type_source/filler_source-Spaltenlücken + Phase-135 role_capabilities-Stand-in.
+- [ ] 185-08-PLAN.md — D-02: ActionReleaseVersionMediaReorder in 3 Permission-Stub-Listen + Phase-137-Doppelanlage entfernen.
+- [ ] 185-09-PLAN.md — D-02: anime_relations-Cover-Resolver, release_version_media-Spalten, audit-log-Fake statt nil.
+- [ ] 185-10-PLAN.md — D-02/D-06: member_claims_repository_test.go auf echten Verhaltenstest umstellen, aus Ratchet-Liste entfernt.
+- [ ] 185-11-PLAN.md — D-07: scripts/test-backend.sh + docs/ENTWICKLUNG.md-Dokumentation.
+- [ ] 185-12-PLAN.md — Abschluss-Verifikation: volle Frontend- und Backend-Suite je zweimal grün, alle 94 Tests namentlich bestätigt.
