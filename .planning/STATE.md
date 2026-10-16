@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "185-01 abgeschlossen: anime-detail-contract.test.ts 4/4 gruen, voller Frontend-Suite-Lauf 390/391 Dateien bestanden"
-last_updated: "2026-10-16T20:02:23.716Z"
+stopped_at: "185-02 abgeschlossen: Phase-139/167 public.unaccent-Fixture-Fix (D-02), 44-Test-Cluster gruen"
+last_updated: "2026-10-16T20:15:26.649Z"
 last_activity: 2026-10-16
 progress:
   total_phases: 50
   completed_phases: 44
   total_plans: 458
-  completed_plans: 444
+  completed_plans: 445
   percent: 88
 ---
 
@@ -401,7 +401,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 185 (testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1267,6 +1267,7 @@ Last activity: 2026-10-16
 - [Phase 184]: 184-06: Kein weiterer Datei-Split noetig, da 184-05 page.tsx/merge/page.tsx bereits auf <=450 Zeilen gebracht hatte; 7 Fansub-Umfeld-Dateien (Liste, Create-Flow, Merge-Wizard) auf mergeCssModules(X, sharedStyles) umgestellt, F-12/D-01 damit fuer den gesamten 38-Dateien-Umfang abgeschlossen.
 - [Phase 184]: 184-10: Konsumenten-Scope-Korrektur fuer FansubEdit.module.css-Dead-Code-Audit - 35 tatsaechliche Konsumenten (26 Importer + 9 Prop-Drill-Kinder via styles-Prop) statt der im Plan angenommenen 25-26, dadurch nur 120 statt der geschaetzten ~206 Klassen tatsaechlich tot
 - [Phase ?]: 185-01: openapi.yaml blieb unveraendert (D-01) - nur die veraltete Testerwartung für cover_image's required-Status wurde korrigiert, da der Contract seit 182-03 bereits korrekt ist
+- [Phase 185]: 185-02: Widen-then-narrow search_path (isolated schema, public) around the Phase-139 migration-chain run instead of relaxing the openPhasePostgres safety guard, since creating public.unaccent only in public breaks migration 0140's own unqualified call.
 
 ### Pending Todos
 
@@ -1940,11 +1941,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 184 P09 | 20min | 2 tasks | 3 files |
 | Phase 184 P06 | 20min | 2 tasks | 7 files |
 | Phase 185 P01 | 8min | 1 tasks | 1 files |
+| Phase 185 P02 | 25min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-16T20:02:23.685Z
-Stopped at: 185-01 abgeschlossen: anime-detail-contract.test.ts 4/4 gruen, voller Frontend-Suite-Lauf 390/391 Dateien bestanden
+Last session: 2026-10-16T20:15:26.624Z
+Stopped at: 185-02 abgeschlossen: Phase-139/167 public.unaccent-Fixture-Fix (D-02), 44-Test-Cluster gruen
 Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
 Resume file: 
 None
