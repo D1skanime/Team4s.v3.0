@@ -50,6 +50,7 @@ CREATE TABLE anime (
 	type TEXT NOT NULL DEFAULT 'tv', status TEXT NOT NULL DEFAULT 'ongoing',
 	year SMALLINT, cover_image TEXT, view_count INT NOT NULL DEFAULT 0
 );
+ALTER TABLE anime ADD COLUMN cover_resolved_url TEXT, ADD COLUMN source TEXT;
 CREATE TABLE anime_titles (anime_id BIGINT, language_id BIGINT, title_type_id BIGINT, title TEXT);
 CREATE TABLE genres (id BIGINT PRIMARY KEY, name TEXT);
 CREATE TABLE genre_names (id BIGINT PRIMARY KEY, genre_id BIGINT, language_id BIGINT, name TEXT);
@@ -67,6 +68,16 @@ ALTER TABLE fansub_groups ADD COLUMN group_type TEXT;
 ALTER TABLE fansub_groups ADD COLUMN founded_year SMALLINT;
 
 CREATE TABLE fansub_group_aliases (fansub_group_id BIGINT, normalized_alias TEXT);
+
+-- Stand-in tables for searchAnime's unconditional cover-resolution LEFT JOIN
+-- LATERAL against anime_media/media_assets/media_types. No rows are ever
+-- inserted into any of the three -- their only purpose is to let the LATERAL
+-- join and the anime.cover_resolved_url/anime.source COALESCE resolve without
+-- erroring; media_type_id must exist so ma.media_type_id resolves even
+-- though media_assets stays empty.
+CREATE TABLE media_types (id BIGINT PRIMARY KEY, name TEXT);
+CREATE TABLE media_assets (id BIGINT PRIMARY KEY, file_path TEXT, media_type_id BIGINT);
+CREATE TABLE anime_media (anime_id BIGINT, media_id BIGINT, sort_order INT);
 
 INSERT INTO languages (id, code) VALUES (1, 'ja'), (2, 'de');
 INSERT INTO title_types (id, name) VALUES (1, 'main');

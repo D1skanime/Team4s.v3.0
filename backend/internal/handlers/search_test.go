@@ -57,9 +57,9 @@ func TestSearchQueryBypassAllowed(t *testing.T) {
 		{name: "weder q noch filter", q: "", want: false},
 		{name: "q leer, genre gesetzt", q: "", genre: &action, want: true},
 		{name: "q leer, tag gesetzt", q: "", tag: &amnesia, want: true},
-		{name: "q leer, format gesetzt", q: "", format: &tv, want: true},
-		{name: "q leer, fansubgruppe gesetzt", q: "", fansubGroupQuery: &newSubs, want: true},
-		{name: "q leer, jahr gesetzt", q: "", yearFrom: &year, want: true},
+		{name: "q leer, nur format gesetzt, kein Bypass (Mandat Punkt 3)", q: "", format: &tv, want: false},
+		{name: "q leer, nur fansubgruppe gesetzt, kein Bypass", q: "", fansubGroupQuery: &newSubs, want: false},
+		{name: "q leer, nur jahr gesetzt, kein Bypass", q: "", yearFrom: &year, want: false},
 		{name: "q vorhanden aber zu kurz, tag gesetzt → kein Bypass", q: "a", tag: &amnesia, want: false},
 	}
 	for _, tc := range cases {
