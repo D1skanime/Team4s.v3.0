@@ -190,3 +190,9 @@ None - keine externe Service-Konfiguration nötig.
 ---
 *Phase: 185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back*
 *Completed: 2026-10-16*
+
+## Self-Check: PASSED
+
+All created/modified files confirmed present (`migrations_dir.go`, `migration_file_loader.go`,
+`runner.go`, this SUMMARY.md); stray `backend/database/migrations/` confirmed absent; all 4
+commits (`e1774a6da`, `33941b424`, `0a7ed6eb0`, `72da7369b`) confirmed present in git log.
