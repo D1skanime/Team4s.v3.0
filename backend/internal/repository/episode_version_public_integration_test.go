@@ -111,7 +111,8 @@ INSERT INTO theme_segment_assignments (theme_segment_id,release_version_id) VALU
 -- prerequisites, so publicEpisodeQuery's new LEFT JOINs need them added here.
 -- Episode 11 gets an explicit classification (filler/ova); episode 14 stays
 -- unclassified (NULL/NULL) to exercise the COALESCE('unknown')/('episode') fallback.
-ALTER TABLE episodes ADD COLUMN filler_type_id BIGINT, ADD COLUMN episode_type_id BIGINT;
+ALTER TABLE episodes ADD COLUMN filler_type_id BIGINT, ADD COLUMN episode_type_id BIGINT,
+    ADD COLUMN filler_source TEXT, ADD COLUMN episode_type_source TEXT;
 -- 164-10 GAP-11: label column mirrors migration 0169's backfill exactly, so the
 -- new eft.label/et.label SELECT columns resolve to real values in this fixture too.
 CREATE TABLE episode_filler_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL, label TEXT);
