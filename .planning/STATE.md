@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Phase 184 complete (184-10 Task 4 vom Nutzer approved, 184-VERIFICATION.md 5/5 bestanden) - additive Aufräumphase nach Milestone v1.4 abgeschlossen
-last_updated: "2026-10-15T23:20:00.000Z"
-last_activity: 2026-10-15
+status: executing
+stopped_at: "185-01 abgeschlossen: anime-detail-contract.test.ts 4/4 gruen, voller Frontend-Suite-Lauf 390/391 Dateien bestanden"
+last_updated: "2026-10-16T20:02:23.716Z"
+last_activity: 2026-10-16
 progress:
-  total_phases: 49
+  total_phases: 50
   completed_phases: 44
-  total_plans: 446
-  completed_plans: 443
-  percent: 90
+  total_plans: 458
+  completed_plans: 444
+  percent: 88
 ---
 
 # Phase 184 — Aufräumpunkte aus Phase 174 abschließen (F-07/F-12/F-20/F-23) — COMPLETE (2026-10-15)
@@ -394,16 +394,16 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 185 — testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 184
-Plan: 10 of 10 (184-01..184-09 complete, 184-10 Tasks 1-3 code-complete/committet [`ab02cfce8`],
+Phase: 185 (testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back) — EXECUTING
+Plan: 2 of 12
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
-Status: 184-10 Task 4 (Live-Visuelle Freigabe D-03) steht aus — siehe 184-10-SUMMARY.md fuer
+Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -542,7 +542,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-15
+Last activity: 2026-10-16
 
 ## Accumulated Context
 
@@ -1266,6 +1266,7 @@ Last activity: 2026-10-15
 - [Phase 184]: ReleaseVersionNotesTab exportiert die mergeCssModules-styles-Konstante; EditorParts importiert sie statt den Merge-Aufruf zu duplizieren — D-01: genau ein mergeCssModules-Aufruf pro Komponentenfamilie, keine zweite Kopie durch den Datei-Split
 - [Phase 184]: 184-06: Kein weiterer Datei-Split noetig, da 184-05 page.tsx/merge/page.tsx bereits auf <=450 Zeilen gebracht hatte; 7 Fansub-Umfeld-Dateien (Liste, Create-Flow, Merge-Wizard) auf mergeCssModules(X, sharedStyles) umgestellt, F-12/D-01 damit fuer den gesamten 38-Dateien-Umfang abgeschlossen.
 - [Phase 184]: 184-10: Konsumenten-Scope-Korrektur fuer FansubEdit.module.css-Dead-Code-Audit - 35 tatsaechliche Konsumenten (26 Importer + 9 Prop-Drill-Kinder via styles-Prop) statt der im Plan angenommenen 25-26, dadurch nur 120 statt der geschaetzten ~206 Klassen tatsaechlich tot
+- [Phase ?]: 185-01: openapi.yaml blieb unveraendert (D-01) - nur die veraltete Testerwartung für cover_image's required-Status wurde korrigiert, da der Contract seit 182-03 bereits korrekt ist
 
 ### Pending Todos
 
@@ -1938,11 +1939,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 184 P08 | 20min | 2 tasks | 11 files |
 | Phase 184 P09 | 20min | 2 tasks | 3 files |
 | Phase 184 P06 | 20min | 2 tasks | 7 files |
+| Phase 185 P01 | 8min | 1 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-10-15T18:01:49.451Z
-Stopped at: 184-10 Tasks 1-3 complete (commit ab02cfce8); Task 4 (blockierender Live-Checkpoint) wartet auf Nutzerfreigabe - PLAN NICHT ABGESCHLOSSEN
+Last session: 2026-10-16T20:02:23.685Z
+Stopped at: 185-01 abgeschlossen: anime-detail-contract.test.ts 4/4 gruen, voller Frontend-Suite-Lauf 390/391 Dateien bestanden
 Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
 Resume file: 
-.planning/phases/184-aufr-umpunkte-aus-phase-174-abschlie-en-tote-css-klassen-in-/184-10-PLAN.md
+None

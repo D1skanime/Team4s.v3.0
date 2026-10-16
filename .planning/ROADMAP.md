@@ -2785,7 +2785,7 @@ Plans:
 **Goal:** Die volle Testsuite (Frontend-Vitest + Backend-Go-Tests) läuft zweimal hintereinander ohne roten Test durch — jeder in der Ist-Stand-Analyse gefundene dauerhaft rote Test (1 Frontend, 93 Backend über 18 Ursachen-Cluster) ist durch einen echten Code-/Testfixture-Fix behoben, kein Test wurde gelöscht oder stillschweigend übersprungen.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung — D-01 bis D-07 aus 185-CONTEXT.md sind die verbindlichen Entscheidungen dieser Phase.
 **Depends on:** Phase 184
-**Plans:** 12 plans across 3 waves
+**Plans:** 1/12 plans executed
 
   - Wave 1: 185-01 (Frontend D-01 Contract-Fix), 185-02 (D-02 geteilter public.unaccent-Fix, 44 Tests), 185-03 (D-04 ResolveMigrationsDir + Pflicht-Dateiaufteilung runner.go), 185-04 (D-03a Jellyfin-EOF-Debian-Probe), 185-05 (D-03b Phase-134-Matrix env-konfigurierbare URL), 185-06 (D-05 + Phase-155-ID-Kollision + search_bypass-Fixture-Lücke), 185-07 (Episode-Spalten-Lücken + Phase-135 role_capabilities), 185-08 (Permission-Stub-Lücke + Phase-137-Doppelanlage), 185-09 (Repository-Trio: anime_relations/release_version_media/cross_package), 185-10 (member_claims_repository_test.go echter Verhaltenstest + Ratchet-Liste)
   - Wave 2: 185-11 (D-07 scripts/test-backend.sh + docs/ENTWICKLUNG.md, abhängig von 185-04s Image-Entscheidung)
@@ -2794,7 +2794,7 @@ Plans:
 **Plan-time read first**: `.planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-CONTEXT.md` (vollständige Ist-Zustand-Cluster-Tabelle und Nutzerentscheidungen D-01 bis D-07), `.planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-PATTERNS.md` (Pattern-Map je Cluster).
 
 Plans:
-- [ ] 185-01-PLAN.md — Frontend D-01: anime-detail-contract.test.ts an den korrigierten AnimeRelation-Contract anpassen.
+- [x] 185-01-PLAN.md — Frontend D-01: anime-detail-contract.test.ts an den korrigierten AnimeRelation-Contract anpassen.
 - [ ] 185-02-PLAN.md — D-02: geteilter public.unaccent-Fix in den Phase-139/167-Testsupport-Fixtures (44 Tests).
 - [ ] 185-03-PLAN.md — D-04: ResolveMigrationsDir-Reihenfolge korrigieren, backend/database/migrations/ entfernen, runner.go pflichtgemäß aufgeteilt (471→≤450 Zeilen).
 - [ ] 185-04-PLAN.md — D-03a: Jellyfin-Preview-EOF-Cluster unter Debian-Image reproduzieren und branchen.
