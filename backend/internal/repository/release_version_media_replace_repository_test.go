@@ -41,8 +41,10 @@ func openReleaseVersionMediaReplaceFixture(t *testing.T) *pgxpool.Pool {
 		CREATE TABLE users (
 			id BIGINT PRIMARY KEY
 		);
+		ALTER TABLE users ADD COLUMN username TEXT;
 		ALTER TABLE app_users
-			ADD COLUMN legacy_user_id BIGINT NULL REFERENCES users(id);
+			ADD COLUMN legacy_user_id BIGINT NULL REFERENCES users(id),
+			ADD COLUMN display_name TEXT, ADD COLUMN preferred_username TEXT;
 		CREATE UNIQUE INDEX uq_rvm_replace_app_users_legacy
 			ON app_users(legacy_user_id) WHERE legacy_user_id IS NOT NULL;
 		CREATE TABLE fansub_group_member_roles (
