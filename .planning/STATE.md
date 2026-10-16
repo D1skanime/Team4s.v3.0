@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 185-04-PLAN.md
-last_updated: "2026-10-16T20:32:27.294Z"
+last_updated: "2026-10-16T20:35:40.076Z"
 last_activity: 2026-10-16
 progress:
   total_phases: 50
   completed_phases: 44
   total_plans: 458
-  completed_plans: 447
+  completed_plans: 448
   percent: 88
 ---
 
@@ -401,7 +401,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 185 (testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back) — EXECUTING
-Plan: 5 of 12
+Plan: 6 of 12
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1271,6 +1271,7 @@ Last activity: 2026-10-16
 - [Phase 185]: D-04: candidates-Liste in ResolveMigrationsDir nur umgekehrt (deepest-first), nicht neu konstruiert
 - [Phase 185]: runner.go-Split per automatisiertem Funktionskoerper-Diff verifiziert statt nur Testlauf
 - [Phase 185-04]: D-03a resolved: Jellyfin-Preview-EOF-Cluster reproduziert deterministisch auf Debian UND Alpine -> echter Testfixture-Bug (hydrateJellyfinFolderDisplayNames-Batchcall), nicht Alpine-spezifisch. — Beide Images liefen je zweimal identisch rot vor dem Fix und identisch gruen nach dem Fix; 185-11s Image-Wahl wird dadurch nicht erzwungen.
+- [Phase 185]: D-03b: phase134MatrixBaseURL/phase134MatrixKCBase wurden zu vars (envOrDefault aus TEAM4S_PHASE134_MATRIX_BASE_URL/TEAM4S_PHASE134_MATRIX_KC_BASE), mit den bisherigen Host-IP-Werten als Fallback — ermoeglicht Ausfuehrung der 9-Test-Matrix in containerisierten Test-Runnern ohne Host-Netzwerkzugriff, ohne manuelle/lokale Laeufe zu brechen
 
 ### Pending Todos
 
@@ -1947,10 +1948,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 185 P02 | 25min | 2 tasks | 3 files |
 | Phase 185 P03 | 8min | 2 tasks | 6 files |
 | Phase 185 P04 | 25min | 2 tasks | 2 files |
+| Phase 185 P05 | 4min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-10-16T20:32:27.267Z
+Last session: 2026-10-16T20:34:59.540Z
 Stopped at: Completed 185-04-PLAN.md
 Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
 Resume file: 
