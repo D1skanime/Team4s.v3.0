@@ -53,7 +53,14 @@ func createPhase135Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 	// Minimal FK stand-in required before migration 0085's Step 4 ALTER TABLE
 	// hist_group_member_roles ADD CONSTRAINT fk_hist_group_member_roles_role_code
 	// FOREIGN KEY (role_code) REFERENCES role_definitions(code).
-	const sql = `CREATE TABLE hist_group_member_roles (role_code TEXT);`
+	//
+	// role_capabilities is a second minimal empty FK-free stand-in, for
+	// ListFansubGroupRoleDefinitions's LEFT JOIN role_capabilities rc ON
+	// rc.role_code = rd.code; the table is kept empty so
+	// COUNT(rc.action_code) resolves to 0 per role instead of erroring on a
+	// missing relation.
+	const sql = `CREATE TABLE hist_group_member_roles (role_code TEXT);
+CREATE TABLE role_capabilities (role_code TEXT, action_code TEXT);`
 	if err := validatePhase106SQL(sql); err != nil {
 		t.Fatal(err)
 	}
@@ -67,6 +74,28 @@ func createPhase135Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 		"0112_role_model_cleanup.up.sql",
 	} {
 		ApplySQLFile(t, pool, phase135MigrationPath(t, migration))
+	}
+	// 185-07 deviation: ListFansubGroupRoleDefinitions (added after this
+	// fixture's 0112 cutoff) also selects rd.color_key/rd.icon_key (migration
+	// 0146) and filters WHERE NOT rd.reserved (migration 0160). Applying
+	// either migration file in full would require action_definitions.
+	// user_overridable/app_users/fansub_groups (0146) or an ON CONFLICT
+	// (role_code, action_code) target on role_capabilities that this minimal,
+	// constraint-free stand-in deliberately omits (0160's INSERT), so only
+	// the three additive columns are mirrored here with each migration's own
+	// defaults. No row is inserted for 0160's reserved-pseudo-role
+	// ('group_member'): TestListFansubGroupRoleDefinitionsGroupContextRoles
+	// never expects it in its result set regardless of presence, since the
+	// production query excludes every reserved=true row.
+	const colorIconReservedSQL = `ALTER TABLE role_definitions
+    ADD COLUMN color_key TEXT NOT NULL DEFAULT 'other',
+    ADD COLUMN icon_key TEXT NOT NULL DEFAULT 'other',
+    ADD COLUMN reserved BOOLEAN NOT NULL DEFAULT false;`
+	if err := validatePhase106SQL(colorIconReservedSQL); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(context.Background(), colorIconReservedSQL); err != nil {
+		t.Fatalf("add Phase-135 role_definitions color/icon/reserved columns: %v", err)
 	}
 }
 
