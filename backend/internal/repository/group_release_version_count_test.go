@@ -101,7 +101,7 @@ func TestGetGroupReleaseVersionCount_MatchesLegacyRowCountForMultiVersionEpisode
 	pool, _ := openPhase155Postgres(t)
 	ctx := context.Background()
 
-	const groupID int64 = 1550400
+	const groupID int64 = 1550600
 	slug := "phase155-release-count-multi-version"
 	animeID := seedPhase155ReleaseCountFixture(t, pool, groupID, slug)
 
@@ -151,7 +151,7 @@ func TestGetGroupReleaseVersionCount_MatchesSingleVersionCase(t *testing.T) {
 	pool, _ := openPhase155Postgres(t)
 	ctx := context.Background()
 
-	const groupID int64 = 1550500
+	const groupID int64 = 1550700
 	slug := "phase155-release-count-single-version"
 	animeID := seedPhase155ReleaseCountFixture(t, pool, groupID, slug)
 
