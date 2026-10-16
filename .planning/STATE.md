@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 185-09-PLAN.md
-last_updated: "2026-10-16T21:12:19.180Z"
+stopped_at: Completed 185-10-PLAN.md
+last_updated: "2026-10-16T21:21:05.031Z"
 last_activity: 2026-10-16
 progress:
   total_phases: 50
   completed_phases: 44
   total_plans: 458
-  completed_plans: 452
+  completed_plans: 453
   percent: 88
 ---
 
@@ -401,7 +401,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 185 (testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back) — EXECUTING
-Plan: 10 of 12
+Plan: 11 of 12
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1278,6 +1278,8 @@ Last activity: 2026-10-16
 - [Phase 185]: Provisioned team4s_relations_test via pg_dump --schema-only of team4s_v2 + restore (no database matching the fixture's required name pattern existed); never touched team4s_v2
 - [Phase 185]: ListReleaseVersionMedia's uploader_identity join also needed users.username beyond the plan's named app_users columns (Rule 3 completion of the sibling fixture pattern)
 - [Phase 185]: Fixed a self-introduced sibling regression in release_version_media_title_test.go and release_detail_public_repository_cursor_display_url_test.go, which redundantly re-added columns the shared fixture now provides (Rule 1 bugfix)
+- [Phase 185-10]: SubmitClaim/SearchHistoricalMembers/VerifyClaim read/write members.profile_status/user_id/noindex/profile_visibility/updated_at and app_users.legacy_user_id, none created by the shared Phase-137 fixture by default -- added via a local, FK-free ensureMemberClaimsBehaviorColumns helper scoped to member_claims_repository_test.go.
+- [Phase 185-10]: member_claims_repository_test.go removed from LegacyAllowedSubstringTestFiles (34 -> 33 entries); TestNoNewSourceSubstringTests stays green; the other 33 files (D-06) left untouched.
 
 ### Pending Todos
 
@@ -1959,11 +1961,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 185 P07 | 25min | 3 tasks | 3 files |
 | Phase 185 P08 | 20min | 2 tasks | 4 files |
 | Phase 185 P09 | 45min | 3 tasks | 5 files |
+| Phase 185 P10 | 20min | 3 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-10-16T21:12:19.157Z
-Stopped at: Completed 185-09-PLAN.md
+Last session: 2026-10-16T21:21:05.007Z
+Stopped at: Completed 185-10-PLAN.md
 Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
 Resume file: 
 None
