@@ -220,11 +220,17 @@ export function useDebouncedSearch(
       // Zu kurz: laufende Requests abbrechen, Ergebnisse räumen, nichts anfragen.
       searchAbortRef.current?.abort()
       suggestAbortRef.current?.abort()
-      setResults(null)
-      setMeta(null)
-      setSuggestions(null)
-      setIsLoading(false)
-      setError(null)
+      // setState erfolgt in einem Mikrotask-Callback statt direkt im Effekt-Body (wie bei den
+      // Fetch-Zweigen unten über .then()), um kaskadierende Synchron-Renders im selben Commit
+      // zu vermeiden (react-hooks/set-state-in-effect). Beobachtbares Timing bleibt faktisch
+      // unverändert (laeuft vor dem naechsten Paint ab).
+      Promise.resolve().then(() => {
+        setResults(null)
+        setMeta(null)
+        setSuggestions(null)
+        setIsLoading(false)
+        setError(null)
+      })
       return
     }
 
@@ -233,8 +239,13 @@ export function useDebouncedSearch(
       searchAbortRef.current?.abort()
       const searchController = new AbortController()
       searchAbortRef.current = searchController
-      setIsLoading(true)
-      setError(null)
+      // setState erfolgt im Mikrotask-Callback statt direkt im Effekt-Body (wie bei den
+      // .then()-Zweigen unten), um kaskadierende Synchron-Renders im selben Commit zu
+      // vermeiden (react-hooks/set-state-in-effect).
+      Promise.resolve().then(() => {
+        setIsLoading(true)
+        setError(null)
+      })
       getSearch(stateToSearchParams(debouncedState), searchController.signal)
         .then((response) => {
           if (searchController.signal.aborted) return
@@ -257,8 +268,9 @@ export function useDebouncedSearch(
       suggestAbortRef.current?.abort()
       const suggestController = new AbortController()
       suggestAbortRef.current = suggestController
-      // In der reinen Eingabe-Rolle trägt der Vorschlags-Request den Ladezustand.
-      if (!fetchResults) setIsLoading(true)
+      // In der reinen Eingabe-Rolle trägt der Vorschlags-Request den Ladezustand. setState
+      // läuft im Mikrotask-Callback statt direkt im Effekt-Body (react-hooks/set-state-in-effect).
+      if (!fetchResults) Promise.resolve().then(() => setIsLoading(true))
       getSearchSuggestions(trimmed, suggestController.signal)
         .then((response) => {
           if (suggestController.signal.aborted) return

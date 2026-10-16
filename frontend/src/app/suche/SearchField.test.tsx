@@ -7,10 +7,18 @@ const getSearchMock = vi.hoisted(() => vi.fn())
 const getSearchSuggestionsMock = vi.hoisted(() => vi.fn())
 const routerReplaceMock = vi.hoisted(() => vi.fn())
 const routerPushMock = vi.hoisted(() => vi.fn())
+// Next.js' echter useRouter() liefert eine über Re-Renders stabile Referenz (keine neue
+// Objektidentität pro Aufruf). Ein inline erzeugtes Objekt pro Call würde das verletzen und
+// den Debounce-Effekt in useDebouncedSearch (abhängig von `router`) bei jedem fremden
+// Re-Render erneut feuern lassen.
+const routerMock = vi.hoisted(() => ({
+  replace: (...args: unknown[]) => routerReplaceMock(...args),
+  push: (...args: unknown[]) => routerPushMock(...args),
+}))
 const searchParamsRef = vi.hoisted(() => ({ current: new URLSearchParams('') }))
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: routerReplaceMock, push: routerPushMock }),
+  useRouter: () => routerMock,
   usePathname: () => '/suche',
   useSearchParams: () => searchParamsRef.current,
 }))
