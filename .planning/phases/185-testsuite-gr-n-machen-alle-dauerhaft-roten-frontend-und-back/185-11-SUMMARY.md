@@ -306,3 +306,11 @@ self-contained and provisioned entirely by the script.
   should be flagged to the phase orchestrator/user as a distinct, external action item.
 
 ## Self-Check: PASSED
+
+- FOUND: scripts/test-backend.sh
+- FOUND: docs/ENTWICKLUNG.md section ("Backend-Testsuite vollständig ausführen")
+- FOUND: scripts/test-backend.sh passes `bash -n`
+- FOUND: commit cfc8b5b25 (feat: scripts/test-backend.sh created)
+- FOUND: commit 0853112b3 (fix: 5 bugs found by 3 live dry runs)
+- FOUND: commit c7bbd12fd (docs: ENTWICKLUNG.md section)
+- FOUND: commit 5d1f5549c (docs: this SUMMARY.md)

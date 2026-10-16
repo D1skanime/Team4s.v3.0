@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 185-10-PLAN.md
-last_updated: "2026-10-16T21:21:05.031Z"
+stopped_at: Completed 185-11-PLAN.md
+last_updated: "2026-10-16T21:44:40.982Z"
 last_activity: 2026-10-16
 progress:
   total_phases: 50
   completed_phases: 44
   total_plans: 458
-  completed_plans: 453
+  completed_plans: 454
   percent: 88
 ---
 
@@ -401,7 +401,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 185 (testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back) — EXECUTING
-Plan: 11 of 12
+Plan: 12 of 12
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1280,6 +1280,9 @@ Last activity: 2026-10-16
 - [Phase 185]: Fixed a self-introduced sibling regression in release_version_media_title_test.go and release_detail_public_repository_cursor_display_url_test.go, which redundantly re-added columns the shared fixture now provides (Rule 1 bugfix)
 - [Phase 185-10]: SubmitClaim/SearchHistoricalMembers/VerifyClaim read/write members.profile_status/user_id/noindex/profile_visibility/updated_at and app_users.legacy_user_id, none created by the shared Phase-137 fixture by default -- added via a local, FK-free ensureMemberClaimsBehaviorColumns helper scoped to member_claims_repository_test.go.
 - [Phase 185-10]: member_claims_repository_test.go removed from LegacyAllowedSubstringTestFiles (34 -> 33 entries); TestNoNewSourceSubstringTests stays green; the other 33 files (D-06) left untouched.
+- [Phase 185]: 185-11: test-backend.sh database naming -- always append a random run-scoped suffix to every throwaway DB name except TEAM4S_PHASE134_TEST_DSN (exact-match-only) and TEAM4S_PHASE150_04_TEST_DSN (shares PHASE150's base name), discovered empirically via 3 live dry runs
+- [Phase 185]: 185-11: 10 of 23 throwaway databases need a read-only pg_dump --schema-only clone of team4s_v2 (volles-Schema fixtures), per CONTEXT.md's Risiken section -- missing from the plan's action text, added as Rule-2 fix
+- [Phase 185]: 185-11: Phase-134-Matrix cluster (9 tests) wired up via scripts/provision-phase134-matrix-db.sh + container-network env vars; remaining red result traced to a pre-existing external Keycloak dev-account credential issue, out of scope for this plan
 
 ### Pending Todos
 
@@ -1294,6 +1297,7 @@ Last activity: 2026-10-16
 - Before any migration, inspect the current migration chain and stop if multiple untracked migrations exist.
 - internal/handlers package tests: ~20 tests across ~10 files (admin_content_anime_project_notes_test.go and siblings) depend on permissions.roleAllows/RoleAllowsAction but never call permissions.Service.LoadCache, so they always observe a nil cache and deny/return false regardless of real role_capabilities data. Pre-existing, verified not caused by Phase 137; see .planning/phases/137-central-effective-rights-resolver-overrides/deferred-items.md.
 - 164-07: Task 1 (automated gate + docs/audits/164-performance-gates.md) done, committed 9d4b4951. Task 3's dev harness route built/committed (3cba39a1), zero-backend-request verified. Tasks 2 (live Naruto browser UAT) and 3's live DOM-node-count/mobile-performance measurement (checkpoint:human-verify, gate=blocking) are UNRESOLVED -- require a human with real browser + Chrome DevTools. Phase 164 and plan 164-07 are NOT complete until both are approved. See 164-07-SUMMARY.md for verbatim how-to-verify steps.
+- 185-11: Phase-134-Matrix test cluster (9 tests, internal/repository/phase134_verification_matrix_*test.go) cannot pass until Keycloak dev-account credentials for csubs-leader@team4s.local and sheppert@team4s.local are verified/reset in the live Keycloak realm -- password grant returns invalid_grant. Out of scope for 185-11 (no file it touches can fix this); needs Keycloak admin action before the phase's 0-red-tests acceptance criterion can be met.
 
 ### Quick Tasks Completed
 
@@ -1962,11 +1966,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 185 P08 | 20min | 2 tasks | 4 files |
 | Phase 185 P09 | 45min | 3 tasks | 5 files |
 | Phase 185 P10 | 20min | 3 tasks | 2 files |
+| Phase 185 P11 | 50min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-10-16T21:21:05.007Z
-Stopped at: Completed 185-10-PLAN.md
+Last session: 2026-10-16T21:44:40.960Z
+Stopped at: Completed 185-11-PLAN.md
 Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
 Resume file: 
 None

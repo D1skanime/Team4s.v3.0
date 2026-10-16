@@ -2785,7 +2785,7 @@ Plans:
 **Goal:** Die volle Testsuite (Frontend-Vitest + Backend-Go-Tests) läuft zweimal hintereinander ohne roten Test durch — jeder in der Ist-Stand-Analyse gefundene dauerhaft rote Test (1 Frontend, 93 Backend über 18 Ursachen-Cluster) ist durch einen echten Code-/Testfixture-Fix behoben, kein Test wurde gelöscht oder stillschweigend übersprungen.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung — D-01 bis D-07 aus 185-CONTEXT.md sind die verbindlichen Entscheidungen dieser Phase.
 **Depends on:** Phase 184
-**Plans:** 10/12 plans executed
+**Plans:** 11/12 plans executed
 
   - Wave 1: 185-01 (Frontend D-01 Contract-Fix), 185-02 (D-02 geteilter public.unaccent-Fix, 44 Tests), 185-03 (D-04 ResolveMigrationsDir + Pflicht-Dateiaufteilung runner.go), 185-04 (D-03a Jellyfin-EOF-Debian-Probe), 185-05 (D-03b Phase-134-Matrix env-konfigurierbare URL), 185-06 (D-05 + Phase-155-ID-Kollision + search_bypass-Fixture-Lücke), 185-07 (Episode-Spalten-Lücken + Phase-135 role_capabilities), 185-08 (Permission-Stub-Lücke + Phase-137-Doppelanlage), 185-09 (Repository-Trio: anime_relations/release_version_media/cross_package), 185-10 (member_claims_repository_test.go echter Verhaltenstest + Ratchet-Liste)
   - Wave 2: 185-11 (D-07 scripts/test-backend.sh + docs/ENTWICKLUNG.md, abhängig von 185-04s Image-Entscheidung)
@@ -2804,5 +2804,5 @@ Plans:
 - [x] 185-08-PLAN.md — D-02: ActionReleaseVersionMediaReorder in 3 Permission-Stub-Listen + Phase-137-Doppelanlage entfernen.
 - [x] 185-09-PLAN.md — D-02: anime_relations-Cover-Resolver, release_version_media-Spalten, audit-log-Fake statt nil.
 - [x] 185-10-PLAN.md — D-02/D-06: member_claims_repository_test.go auf echten Verhaltenstest umstellen, aus Ratchet-Liste entfernt.
-- [ ] 185-11-PLAN.md — D-07: scripts/test-backend.sh + docs/ENTWICKLUNG.md-Dokumentation.
+- [x] 185-11-PLAN.md — D-07: scripts/test-backend.sh + docs/ENTWICKLUNG.md-Dokumentation.
 - [ ] 185-12-PLAN.md — Abschluss-Verifikation: volle Frontend- und Backend-Suite je zweimal grün, alle 94 Tests namentlich bestätigt.
