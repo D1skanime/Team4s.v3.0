@@ -23,11 +23,11 @@ import (
 // list (all 11 confirmed, by direct re-read during Plan 146-13, to contain ONLY the
 // CLAUDE.md Teststil exception-1 sanctioned absence check — "an identifier must never
 // appear" — never a presence-style claim standing in for behavior; the other 9 of the 20
-// were fully remediated to zero remaining os.ReadFile(".go") calls). The 34 files below are
+// were fully remediated to zero remaining os.ReadFile(".go") calls). The 33 files below are
 // the exact remainder: every non-security-relevant test file the script still finds reading
 // a .go source file for some assertion. This is Criterion 8's documented, named debt — see
 // 146-SUBSTRING-TEST-REMAINDER.md in this phase's directory for the per-file/per-group
-// reason. 34 <= 36 satisfies Criterion 6.
+// reason. 33 <= 36 satisfies Criterion 6.
 //
 // This is a FROZEN EXPLICIT FILE LIST, not a glob — a directory glob would silently exempt
 // tomorrow's new files in the same packages, defeating the ratchet. RATCHET — this list may
@@ -63,7 +63,6 @@ var LegacyAllowedSubstringTestFiles = []string{
 	"internal/repository/group_repository_test.go",
 	"internal/repository/group_themes_repository_test.go",
 	"internal/repository/media_repository_path_test.go",
-	"internal/repository/member_claims_repository_test.go",
 	"internal/repository/member_profile_repository_test.go",
 	"internal/repository/release_detail_cursor_test.go",
 	"internal/repository/release_version_notes_repository_test.go",
