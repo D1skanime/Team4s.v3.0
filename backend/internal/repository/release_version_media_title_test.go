@@ -75,8 +75,6 @@ func TestReleaseVersionMediaTitlePublicProjections(t *testing.T) {
 	pool := openReleaseVersionMediaReplaceFixture(t)
 	ctx := context.Background()
 	_, err := pool.Exec(ctx, `
- ALTER TABLE users ADD COLUMN username TEXT;
- ALTER TABLE app_users ADD COLUMN display_name TEXT, ADD COLUMN preferred_username TEXT;
  ALTER TABLE members ADD COLUMN display_name TEXT, ADD COLUMN nickname TEXT, ADD COLUMN user_id BIGINT;
  CREATE TABLE anime (id BIGINT PRIMARY KEY, title TEXT, title_de TEXT, title_en TEXT);
  CREATE TABLE episodes (id BIGINT PRIMARY KEY, anime_id BIGINT, episode_number TEXT, sort_index INT);
@@ -148,8 +146,6 @@ func TestDisplayURLFallback_LoadImagesAndGroupReleaseMedia(t *testing.T) {
 	pool := openReleaseVersionMediaReplaceFixture(t)
 	ctx := context.Background()
 	_, err := pool.Exec(ctx, `
- ALTER TABLE users ADD COLUMN username TEXT;
- ALTER TABLE app_users ADD COLUMN display_name TEXT, ADD COLUMN preferred_username TEXT;
  ALTER TABLE members ADD COLUMN display_name TEXT, ADD COLUMN nickname TEXT, ADD COLUMN user_id BIGINT;
  CREATE TABLE anime (id BIGINT PRIMARY KEY, title TEXT, title_de TEXT, title_en TEXT);
  CREATE TABLE episodes (id BIGINT PRIMARY KEY, anime_id BIGINT, episode_number TEXT, sort_index INT);

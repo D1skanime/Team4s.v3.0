@@ -19,8 +19,6 @@ func TestListReleaseVersionImagesCursorDisplayURLFallback(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := pool.Exec(ctx, `
-		ALTER TABLE users ADD COLUMN username TEXT;
-		ALTER TABLE app_users ADD COLUMN display_name TEXT, ADD COLUMN preferred_username TEXT;
 		ALTER TABLE members ADD COLUMN display_name TEXT, ADD COLUMN nickname TEXT;
 		ALTER TABLE media_assets ADD COLUMN file_path TEXT;
 		ALTER TABLE release_versions ADD COLUMN release_id BIGINT;

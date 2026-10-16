@@ -232,6 +232,19 @@ func (noopPermissionResolver) ListActorContributionRolesForVersion(context.Conte
 	return nil, nil
 }
 
+// rvmCrossPackageAuditLogFake is a local no-op stand-in for handlers'
+// unexported auditLogWriter interface (Write(context.Context,
+// repository.AuditLogEntry) error) -- Go interface satisfaction is implicit,
+// so this file never needs to import that interface type directly.
+// admin_capability_handler_test.go's captureAuditLogRepo has the right shape
+// but lives in package handlers' own _test.go file and cannot be imported
+// from this external repository_test package.
+type rvmCrossPackageAuditLogFake struct{}
+
+func (r *rvmCrossPackageAuditLogFake) Write(_ context.Context, _ repository.AuditLogEntry) error {
+	return nil
+}
+
 // TestReleaseVersionMedia_CleanupServicePassesExist proves against real
 // Postgres that services.RVMCleanupService.RunOnce
 // (release_version_media_cleanup.go) actually invokes
@@ -341,7 +354,7 @@ func TestRVMHandler_ProzessmedienDefaults(t *testing.T) {
 		handlers.AdminContentJellyfinConfig{},
 		handlers.AdminContentAssetSearchConfig{},
 	).WithMediaDeps(mediaRepo, mediaService).
-		WithPermissionDeps(permissions.NewService(noopPermissionResolver{}), nil)
+		WithPermissionDeps(permissions.NewService(noopPermissionResolver{}), &rvmCrossPackageAuditLogFake{})
 
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
