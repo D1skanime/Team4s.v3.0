@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "185-03 abgeschlossen: D-04 ResolveMigrationsDir-Fix + runner.go-Split, TestPhase143RoleCapabilityDefaultsResetIdempotentAndReversible gruen"
-last_updated: "2026-10-16T20:23:37.777Z"
+stopped_at: Completed 185-04-PLAN.md
+last_updated: "2026-10-16T20:32:27.294Z"
 last_activity: 2026-10-16
 progress:
   total_phases: 50
   completed_phases: 44
   total_plans: 458
-  completed_plans: 446
+  completed_plans: 447
   percent: 88
 ---
 
@@ -401,7 +401,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 185 (testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back) — EXECUTING
-Plan: 4 of 12
+Plan: 5 of 12
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1270,6 +1270,7 @@ Last activity: 2026-10-16
 - [Phase 185]: 185-02: Widen-then-narrow search_path (isolated schema, public) around the Phase-139 migration-chain run instead of relaxing the openPhasePostgres safety guard, since creating public.unaccent only in public breaks migration 0140's own unqualified call.
 - [Phase 185]: D-04: candidates-Liste in ResolveMigrationsDir nur umgekehrt (deepest-first), nicht neu konstruiert
 - [Phase 185]: runner.go-Split per automatisiertem Funktionskoerper-Diff verifiziert statt nur Testlauf
+- [Phase 185-04]: D-03a resolved: Jellyfin-Preview-EOF-Cluster reproduziert deterministisch auf Debian UND Alpine -> echter Testfixture-Bug (hydrateJellyfinFolderDisplayNames-Batchcall), nicht Alpine-spezifisch. — Beide Images liefen je zweimal identisch rot vor dem Fix und identisch gruen nach dem Fix; 185-11s Image-Wahl wird dadurch nicht erzwungen.
 
 ### Pending Todos
 
@@ -1945,11 +1946,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 185 P01 | 8min | 1 tasks | 1 files |
 | Phase 185 P02 | 25min | 2 tasks | 3 files |
 | Phase 185 P03 | 8min | 2 tasks | 6 files |
+| Phase 185 P04 | 25min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-10-16T20:23:37.755Z
-Stopped at: 185-03 abgeschlossen: D-04 ResolveMigrationsDir-Fix + runner.go-Split, TestPhase143RoleCapabilityDefaultsResetIdempotentAndReversible gruen
+Last session: 2026-10-16T20:32:27.267Z
+Stopped at: Completed 185-04-PLAN.md
 Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
 Resume file: 
 None
