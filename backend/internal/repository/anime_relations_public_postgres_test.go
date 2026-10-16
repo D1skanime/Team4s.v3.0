@@ -34,7 +34,20 @@ func TestGetAnimeRelations_PerspectiveAndPosterCover(t *testing.T) {
 		INSERT INTO anime_media (anime_id, media_id, sort_order) VALUES ($1, $2, 0);
 		`, relationsTestMainAnimeID, mediaID)
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `UPDATE anime SET cover_image = '/media/anime/ova/cover.jpg' WHERE id = $1`, relationsTestOVAAnimeID)
+	const ovaCoverPath = "/media/anime/ova/cover.jpg"
+	var ovaMediaID int64
+	require.NoError(t, pool.QueryRow(ctx, `
+		INSERT INTO media_assets (media_type_id, file_path, mime_type)
+		SELECT id, $1, 'image/jpeg' FROM media_types WHERE name = 'poster'
+		RETURNING id
+	`, ovaCoverPath).Scan(&ovaMediaID))
+	t.Cleanup(func() {
+		_, _ = pool.Exec(context.Background(), `DELETE FROM anime_media WHERE media_id = $1`, ovaMediaID)
+		_, _ = pool.Exec(context.Background(), `DELETE FROM media_assets WHERE id = $1`, ovaMediaID)
+	})
+	_, err = pool.Exec(ctx, `
+		INSERT INTO anime_media (anime_id, media_id, sort_order) VALUES ($1, $2, 0);
+		`, relationsTestOVAAnimeID, ovaMediaID)
 	require.NoError(t, err)
 
 	adminRepo := NewAdminContentRepository(pool)
