@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 185-11-PLAN.md
-last_updated: "2026-10-16T21:44:40.982Z"
+status: verifying
+stopped_at: Completed 185-12-PLAN.md (final plan, phase ready_for_verification)
+last_updated: "2026-10-16T22:13:49.859Z"
 last_activity: 2026-10-16
 progress:
   total_phases: 50
-  completed_phases: 44
+  completed_phases: 45
   total_plans: 458
-  completed_plans: 454
-  percent: 88
+  completed_plans: 455
+  percent: 90
 ---
 
 # Phase 184 — Aufräumpunkte aus Phase 174 abschließen (F-07/F-12/F-20/F-23) — COMPLETE (2026-10-15)
@@ -403,7 +403,7 @@ Abschluss" entry below for the full closing record.
 Phase: 185 (testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back) — EXECUTING
 Plan: 12 of 12
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
-Status: Ready to execute
+Status: Phase complete — ready for verification
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -1283,6 +1283,7 @@ Last activity: 2026-10-16
 - [Phase 185]: 185-11: test-backend.sh database naming -- always append a random run-scoped suffix to every throwaway DB name except TEAM4S_PHASE134_TEST_DSN (exact-match-only) and TEAM4S_PHASE150_04_TEST_DSN (shares PHASE150's base name), discovered empirically via 3 live dry runs
 - [Phase 185]: 185-11: 10 of 23 throwaway databases need a read-only pg_dump --schema-only clone of team4s_v2 (volles-Schema fixtures), per CONTEXT.md's Risiken section -- missing from the plan's action text, added as Rule-2 fix
 - [Phase 185]: 185-11: Phase-134-Matrix cluster (9 tests) wired up via scripts/provision-phase134-matrix-db.sh + container-network env vars; remaining red result traced to a pre-existing external Keycloak dev-account credential issue, out of scope for this plan
+- [Phase 185]: 185-12: Behoben wurden drei reale Blocker (fehlende Keycloak-Dev-Accounts, veraltetes Docker-Image, veraltete Sanitizer-src-Regex), um beide Testsuiten zweimal hintereinander gruen zu bekommen und D-07s Abschlusskriterium zu erfuellen
 
 ### Pending Todos
 
@@ -1967,11 +1968,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 185 P09 | 45min | 3 tasks | 5 files |
 | Phase 185 P10 | 20min | 3 tasks | 2 files |
 | Phase 185 P11 | 50min | 2 tasks | 2 files |
+| Phase 185 P12 | 25min | 3 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-16T21:44:40.960Z
-Stopped at: Completed 185-11-PLAN.md
+Last session: 2026-10-16T22:13:49.837Z
+Stopped at: Completed 185-12-PLAN.md (final plan, phase ready_for_verification)
 Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
 Resume file: 
 None
