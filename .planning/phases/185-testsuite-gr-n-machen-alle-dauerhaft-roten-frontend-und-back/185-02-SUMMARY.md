@@ -116,3 +116,12 @@ None - no external service configuration required. All verification ran against 
 ---
 *Phase: 185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back*
 *Completed: 2026-10-16*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/testsupport/phase139_postgres.go
+- FOUND: backend/internal/testsupport/phase167_postgres.go
+- FOUND: backend/internal/repository/admin_users_query_budget_test.go
+- FOUND: commit 632915494
+- FOUND: commit 39f86c9c1
+- FOUND: commit 24e31bc61
