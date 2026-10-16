@@ -362,14 +362,14 @@ func TestTipTapRenderHTMLImageNode_WithResolver(t *testing.T) {
 	input := `{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":42,"width_percent":60,"alignment":"center"}}]}`
 	resolver := func(assetID int64) (string, bool) {
 		if assetID == 42 {
-			return "/media/profile/1/story/abc/original.jpg", true
+			return "/media/profile/1/story/abc/display.jpg", true
 		}
 		return "", false
 	}
 	html, err := svc.RenderHTMLWithResolver(input, resolver)
 	require.NoError(t, err)
 	assert.Contains(t, html, `<img`)
-	assert.Contains(t, html, `src="/media/profile/1/story/abc/original.jpg"`)
+	assert.Contains(t, html, `src="/media/profile/1/story/abc/display.jpg"`)
 	assert.Contains(t, html, `style="width:60%"`)
 	assert.Contains(t, html, `class="story-img-align-center"`)
 }
@@ -404,11 +404,11 @@ func TestTipTapSanitizeImage_AllowsValidImg(t *testing.T) {
 	// Direkt Policy-Zugang via RenderHTMLWithResolver mit bekanntem Resolver
 	input := `{"type":"doc","content":[{"type":"image","attrs":{"media_asset_id":1,"width_percent":60,"alignment":"center"}}]}`
 	resolver := func(assetID int64) (string, bool) {
-		return "/media/profile/1/story/abc/original.jpg", true
+		return "/media/profile/1/story/abc/display.jpg", true
 	}
 	html, err := svc.RenderHTMLWithResolver(input, resolver)
 	require.NoError(t, err)
-	assert.Contains(t, html, `src="/media/profile/1/story/abc/original.jpg"`, "internes /media-src muss erlaubt bleiben")
+	assert.Contains(t, html, `src="/media/profile/1/story/abc/display.jpg"`, "internes /media-src muss erlaubt bleiben")
 	assert.Contains(t, html, `style="width:60%"`, "width-%-style muss erlaubt bleiben")
 	assert.Contains(t, html, `class="story-img-align-center"`, "erlaubte Ausrichtungsklasse muss bleiben")
 }
@@ -426,7 +426,7 @@ func TestTipTapSanitizeImage_BlocksExternalSrc(t *testing.T) {
 // TestTipTapSanitizeImage_BlocksScript prueft, dass <script>-Tags durch Sanitizing entfernt werden.
 func TestTipTapSanitizeImage_BlocksScript(t *testing.T) {
 	p := newTipTapSanitizerPolicyForTest()
-	raw := `<img src="/media/profile/1/story/abc/original.jpg"><script>alert(1)</script>`
+	raw := `<img src="/media/profile/1/story/abc/display.jpg"><script>alert(1)</script>`
 	sanitized := string(p.SanitizeBytes([]byte(raw)))
 	assert.NotContains(t, sanitized, "<script", "script-Tags muessen durch Sanitizing entfernt werden")
 }
@@ -435,7 +435,7 @@ func TestTipTapSanitizeImage_BlocksScript(t *testing.T) {
 // nicht aber andere CSS-Properties (D-20).
 func TestTipTapSanitizeImage_BlocksStyleBeyondWidth(t *testing.T) {
 	p := newTipTapSanitizerPolicyForTest()
-	raw := `<img src="/media/profile/1/story/abc/original.jpg" style="color:red;width:60%" class="story-img-align-center">`
+	raw := `<img src="/media/profile/1/story/abc/display.jpg" style="color:red;width:60%" class="story-img-align-center">`
 	sanitized := string(p.SanitizeBytes([]byte(raw)))
 	// color:red muss entfernt sein — entweder style komplett leer oder nur width:60% verbleibend
 	assert.NotContains(t, sanitized, "color:red", "color:red darf nicht im sanitisierten HTML verbleiben (D-20)")

@@ -442,9 +442,14 @@ func newTipTapSanitizerPolicy() *bluemonday.Policy {
 	p.AllowAttrs("colspan", "rowspan").OnElements("td", "th")
 	p.AllowAttrs("data-color-token").OnElements("span")
 	// Phase 70 — img-Attribute mit enger Regex-Bindung (T-70-03-01, T-70-03-02, D-20, D-23)
-	// src: nur eigener /media/profile/.../story/... Pfad
+	// src: nur eigener /media/profile/.../story/... Pfad. Seit Plan 173-06 zeigt
+	// media_assets.file_path auf die Anzeige-Datei ("display.jpg", immer dieser
+	// feste Dateiname/diese feste Endung — siehe app_profile_story_image.go), nicht
+	// mehr auf "original.<ext>"; die Regex muss das embedded <img src> dieser
+	// tatsaechlich gespeicherten Datei erlauben, sonst wird jedes Story-Bild
+	// stillschweigend ohne src gerendert (185-12-Fund).
 	p.AllowAttrs("src").Matching(
-		regexp.MustCompile(`^/media/profile/\d+/story/[a-z0-9-]+/original\.(jpg|jpeg|png|webp)$`),
+		regexp.MustCompile(`^/media/profile/\d+/story/[a-z0-9-]+/display\.jpg$`),
 	).OnElements("img")
 	// style: nur width in %
 	p.AllowAttrs("style").Matching(

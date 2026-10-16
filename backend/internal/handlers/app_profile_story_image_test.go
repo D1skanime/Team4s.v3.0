@@ -474,7 +474,7 @@ func TestStoryImageRoundTrip(t *testing.T) {
 			updateResp: &models.MemberProfile{MemberID: 5, AppUserID: 10},
 		},
 		storyAssets: []models.StoryImageAssetRef{
-			{ID: 42, FilePath: "/media/profile/5/story/abc/original.jpg", OwnerMemberID: 5},
+			{ID: 42, FilePath: "/media/profile/5/story/abc/display.jpg", OwnerMemberID: 5},
 		},
 	}
 	handler := &AppAuthHandler{
@@ -505,7 +505,7 @@ func TestStoryImageRoundTrip(t *testing.T) {
 	if assert.NotNil(t, repoStub.lastUpdateArg.MemberStoryHTML.Value,
 		"member_story_html muss serverseitig gerendert gesetzt sein") {
 		assert.Contains(t, *repoStub.lastUpdateArg.MemberStoryHTML.Value,
-			`src="/media/profile/5/story/abc/original.jpg"`,
+			`src="/media/profile/5/story/abc/display.jpg"`,
 			"member_story_html muss relativen img-src enthalten (D-21/D-23) — bluemonday darf src nicht strippen")
 	}
 }
