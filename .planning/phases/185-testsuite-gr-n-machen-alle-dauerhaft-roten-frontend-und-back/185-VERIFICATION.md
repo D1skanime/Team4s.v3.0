@@ -6,7 +6,7 @@ status: passed
 score: 7/7 D-IDs verified with live evidence; the one prior real gap is RESOLVED; 1 re-verification finding was corrected on review (misattribution, not a phase-185 defect)
 overrides_applied: 0
 re_verification:
-  previous_status: gaps_found
+  previous_status: "gaps_found"
   previous_score: "9/10 sub-truths (1 explicit gap: search.go/useDebouncedSearch.ts bypass mismatch)"
   gaps_closed:
     - "Frontend/backend search-bypass contract mismatch: backend's searchQueryBypassAllowed is reverted back to its wide form (any of genre/tag/format/status/year_from/year_to/fansub_group(_query) unlocks a q-less search), matching the frontend's useDebouncedSearch.ts bypassMinLength exactly, per an explicit user product decision (2026-10-17) that supersedes the older Plan-160-04 'Auftraggeber-Mandat Punkt 3' narrow reading. Both layers independently re-verified consistent."
@@ -43,7 +43,7 @@ Code-/Testfixture-Fix behoben, kein Test wurde gelöscht oder stillschweigend ü
 **Verified:** 2026-10-17T06:30:00Z
 **Status:** passed (corrected 2026-10-17T07:10:00Z — see "Korrektur" section below; this
 re-verification pass itself originally concluded gaps_found over a misattributed finding)
-**Re-verification:** Yes — after gap closure (prior VERIFICATION.md, 2026-10-16, status: gaps_found)
+**Re-verification:** Yes — after gap closure (prior VERIFICATION.md, 2026-10-16, previous status was "gaps_found")
 
 ## Re-Verification Summary
 
