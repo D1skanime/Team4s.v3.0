@@ -2780,7 +2780,7 @@ Plans:
 - [x] 184-09-PLAN.md — F-12 (D-01/D-05): ReleaseVersionNotesTab.tsx aufteilen (743→≤450), danach auf mergeCssModules umstellen.
 - [x] 184-10-PLAN.md — F-20 (D-03): Grep-belegte Nutzungsprüfung (inkl. dynamischer Zugriffe) über FansubEdit.module.css, tote Klassen löschen (nicht verschieben), Vorher/Nachher-Screenshot-Vergleich, blockierender Live-Checkpoint — vom Nutzer approved.
 
-### Phase 185: Testsuite grün machen: alle dauerhaft roten Frontend- und Backend-Tests analysieren und beheben (Ursache je Test: veraltete Erwartung, Test-Fixture-Schema-Drift, Umgebungsabhängigkeit, echter Produktfehler), danach ist die volle Suite ohne bekannte Fehlschläge grün
+### Phase 185: Testsuite grün machen: alle dauerhaft roten Frontend- und Backend-Tests analysieren und beheben (Ursache je Test: veraltete Erwartung, Test-Fixture-Schema-Drift, Umgebungsabhängigkeit, echter Produktfehler), danach ist die volle Suite ohne bekannte Fehlschläge grün — **COMPLETE (2026-10-17)**
 
 **Goal:** Die volle Testsuite (Frontend-Vitest + Backend-Go-Tests) läuft zweimal hintereinander ohne roten Test durch — jeder in der Ist-Stand-Analyse gefundene dauerhaft rote Test (1 Frontend, 93 Backend über 18 Ursachen-Cluster) ist durch einen echten Code-/Testfixture-Fix behoben, kein Test wurde gelöscht oder stillschweigend übersprungen.
 **Requirements**: Keine REQUIREMENTS.md-Zuordnung — D-01 bis D-07 aus 185-CONTEXT.md sind die verbindlichen Entscheidungen dieser Phase.

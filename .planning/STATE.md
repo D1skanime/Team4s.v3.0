@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 185-12-PLAN.md (final plan, phase ready_for_verification)
-last_updated: "2026-10-16T22:13:49.859Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 185 was final phase)
+last_updated: 2026-10-17T06:32:09.820Z
 last_activity: 2026-10-16
 progress:
   total_phases: 50
   completed_phases: 45
   total_plans: 458
-  completed_plans: 455
+  completed_plans: 509
   percent: 90
 ---
 
@@ -394,16 +394,16 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 185 — testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back
+**Current focus:** Milestone complete
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 185 (testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back) — EXECUTING
-Plan: 12 of 12
+Phase: 185
+Plan: Not started
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
-Status: Phase complete — ready for verification
+Status: Milestone complete
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -542,7 +542,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-16
+Last activity: 2026-10-17
 
 ## Accumulated Context
 
