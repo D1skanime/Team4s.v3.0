@@ -1,5 +1,7 @@
 # Live-UAT UX-Findings (laufende Liste)
 
+> Abgeglichen am 2026-10-17 → siehe `2026-10-17-ux-findings-abgleich.md`.
+
 Kleine UX-/UI-Verbesserungen, die beim Live-Testen der Admin-Flächen auffallen
 (2026-08-17+). Backlog-Kandidaten. Größere Einzelfunde haben eigene Notizen
 (z. B. `finding-asset-search-robustness.md`).
