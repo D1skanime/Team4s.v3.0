@@ -223,17 +223,18 @@ func parseSearchQueryTerm(c *gin.Context) (string, bool) {
 	return q, true
 }
 
-// searchQueryBypassAllowed implementiert die additive D-08-Ausnahme (Plan
-// 160-04, Auftraggeber-Mandat Punkt 3): die Suchbegriff-Pflicht entfällt NUR,
-// wenn q komplett fehlt/leer ist UND mindestens einer von tag/genre gesetzt
-// ist. format/status/year_from/year_to/fansub_group(_query) lösen den Bypass
-// bewusst NICHT aus — ein q-loser Request mit nur diesen Filtern bleibt 400
-// ("Regressionsschutz gegen Aufblähen", explizit mandatiert und im Frontend
-// (useDebouncedSearch.ts bypassMinLength) gespiegelt). Diese Funktion nahm die
-// breiteren Parameter zwischenzeitlich (Commit c02aa7d66) in den Bypass auf;
-// das widersprach dem Mandat und wurde hier als Bug zurückgenommen.
+// searchQueryBypassAllowed erlaubt eine filterbasierte Anime-Suche ohne Titel:
+// die Suchbegriff-Pflicht entfällt, wenn q komplett fehlt/leer ist UND
+// mindestens einer der Filter (genre/tag/format/status/year_from/year_to/
+// fansub_group(_query)) gesetzt ist. Ein bereits eingegebenes, aber zu kurzes
+// q bleibt weiterhin ungültig. Dies ist das seit Commit c02aa7d66 ("feat:
+// improve global search filters and results") gewollte, produktive Verhalten
+// (Nutzerentscheidung 2026-10-17, siehe 185-06-SUMMARY.md): die ältere,
+// engere Plan-160-04-Lesart (nur tag/genre, "Auftraggeber-Mandat Punkt 3")
+// ist damit überholt. Eine zwischenzeitliche Rücknahme auf die enge Form
+// (Commit 457a40f03) wurde als Fehlentscheidung korrigiert.
 func searchQueryBypassAllowed(q string, genre, tag, format, status, fansubGroupQuery *string, yearFrom, yearTo *int16, fansubGroup *int64) bool {
-	return q == "" && (genre != nil || tag != nil)
+	return q == "" && (genre != nil || tag != nil || format != nil || status != nil || yearFrom != nil || yearTo != nil || fansubGroupQuery != nil || fansubGroup != nil)
 }
 
 // buildSearchMeta baut den Pagination-Envelope aus dem strukturierten Suchergebnis.

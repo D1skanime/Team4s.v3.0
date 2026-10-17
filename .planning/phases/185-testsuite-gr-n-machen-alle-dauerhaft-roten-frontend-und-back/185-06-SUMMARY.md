@@ -129,6 +129,25 @@ Note: `group_release_version_count_test.go` and `fansub_project_resolver_query_b
 - Commit `36215894c` — FOUND in git log
 - Commit `457a40f03` — FOUND in git log
 
+## Korrektur (2026-10-17, Nutzerentscheidung) — Revert des Reverts
+
+**Die obige "Deviation 2" / "Decisions Made"-Begründung für den Revert von `searchQueryBypassAllowed` (Commit `457a40f03`) war fachlich falsch und wurde vom Nutzer aufgehoben.**
+
+Der unabhängige Verifizierer (`185-VERIFICATION.md`) deckte auf, dass die damalige Begründung ("das Frontend prüft weiterhin nur tag/genre") nicht zutraf: Commit `c02aa7d66` hatte die Bypass-Erweiterung gleichzeitig im Backend UND im Frontend (`useDebouncedSearch.ts`s `bypassMinLength`) eingeführt; das Frontend wurde seither nie zurückgesetzt und löst bis heute für JEDEN gesetzten Filter (nicht nur tag/genre) eine Suche ohne `q` aus. Der einseitige Backend-Revert erzeugte dadurch eine echte, nutzersichtbare Regression: eine Filter-only-Suche (z. B. nur `format` oder `status`, ohne Text/Tag/Genre) feuerte weiterhin vom Frontend, wurde aber vom zurückgesetzten Backend mit 400 abgelehnt — eine vor Phase 185 funktionierende Suche war damit kaputt.
+
+**Nutzerentscheidung (2026-10-17):** Die Filtersuche ohne Suchbegriff aus Commit `c02aa7d66` ("feat: improve global search filters and results", 28.09.) ist GEWOLLT und bleibt bestehen — `format`/`status`/`year_from`/`year_to`/`fansub_group(_query)` dürfen weiterhin ohne `q` suchen. Die ältere Plan-160-04-Vorgabe ("Auftraggeber-Mandat Punkt 3", nur Tag/Genre) ist damit überholt.
+
+**Umgesetzt (neuer Commit, keine History-Rewrite):**
+- `backend/internal/handlers/search.go`: `searchQueryBypassAllowed` wieder auf die breite Form (`q == "" && (genre != nil || tag != nil || format != nil || status != nil || yearFrom != nil || yearTo != nil || fansubGroupQuery != nil || fansubGroup != nil)`) zurückgesetzt; Doc-Kommentar beschreibt jetzt die Nutzerentscheidung von 2026-10-17 als verbindlich und verweist auf die überholte Mandat-Lesart.
+- `backend/internal/handlers/search_test.go`: `TestSearchQueryBypassAllowed`s `format`/`fansubGroupQuery`/`yearFrom`-Fälle wieder auf `want: true`.
+- `backend/internal/handlers/search_bypass_integration_test.go`: `TestSearchBypassRejectsMissingQueryWithNonTagGenreFilterEndToEnd` umbenannt/umformuliert zu `TestSearchBypassNonTagGenreFilterFindsAnimeEndToEnd` — erwartet jetzt 200 mit dem erwarteten Anime-Treffer (`format=tv` matcht die geseedete `type='tv'`-Anime) statt 400; prüft weiterhin, dass die Fansub-Seite leer bleibt (Pitfall-1-Guard, unverändert und unabhängig vom gewählten Filter). Die Fixture-Ergänzungen (Cover-Stand-in-Tabellen `media_types`/`media_assets`/`anime_media`) blieben unverändert, da sie unabhängig von dieser Frage nötig sind.
+- `TestSearchBypassRejectsMissingQueryNoFilters` (komplett filterloser, q-loser Request bleibt 400) ist unverändert gültig geblieben — mit der breiten Bypass-Form ist das OR aller Filter-Prüfungen bei keinem gesetzten Filter weiterhin `false`.
+- Frontend (`useDebouncedSearch.ts`) **nicht geändert** — `bypassMinLength` löst bereits heute für jeden gesetzten Filter aus; es war der Backend-Revert, der aus der Reihe fiel, nicht das Frontend.
+- Verifiziert gegen eine frische Wegwerf-Datenbank (`team4s_phase106_test_185fixcheck`, danach gelöscht, `team4s_v2` nie berührt): alle 7 `search_bypass_integration_test.go`-Tests und alle 7 `TestSearchQueryBypassAllowed`-Subtests grün; `go build`/`go vet` über das gesamte Backend-Modul clean.
+
+**Generelle Regel ab hier für den Rest der Phase (Nutzervorgabe):** Produktverhalten wird NIE geändert, nur um einen Test grün zu bekommen. Bei einem Widerspruch zwischen Testerwartung und tatsächlich gewolltem Produktverhalten wird angehalten und als Entscheidungsfrage an den Nutzer gemeldet statt autonom entschieden.
+
 ---
 *Phase: 185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back*
 *Completed: 2026-10-16*
+*Korrigiert: 2026-10-17*

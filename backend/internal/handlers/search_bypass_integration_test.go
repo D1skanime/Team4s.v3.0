@@ -227,18 +227,37 @@ func TestSearchBypassRejectsPresentButShortQueryWithTag(t *testing.T) {
 	}
 }
 
-// TestSearchBypassRejectsMissingQueryWithNonTagGenreFilterEndToEnd is
-// Auftraggeber-Mandat Punkt 3, item 3, proven through the REAL repository-backed
-// handler (not just the nil-repo unit test in search_test.go): a non-tag/genre
-// filter alone must never unlock the q-required bypass either.
-func TestSearchBypassRejectsMissingQueryWithNonTagGenreFilterEndToEnd(t *testing.T) {
+// TestSearchBypassNonTagGenreFilterFindsAnimeEndToEnd proves the restored,
+// intended D-08 bypass end-to-end through the REAL repository-backed handler
+// (not just the nil-repo unit test in search_test.go): a q-less request with
+// only a non-tag/genre filter (format/status/year_from/year_to/
+// fansub_group(_query)) also unlocks the filter-only search. This is the
+// behavior shipped by commit c02aa7d66 ("feat: improve global search filters
+// and results") and confirmed as the permanent, intended product behavior by
+// the Nutzerentscheidung of 2026-10-17 (see 185-06-SUMMARY.md), superseding
+// the narrower Plan-160-04 "Auftraggeber-Mandat Punkt 3" reading that an
+// earlier commit (457a40f03) had mistakenly restored. The fansub side still
+// stays empty (Pitfall 1, search_repository.go's unconditional q=="" guard)
+// since format/status are anime-only filters, not a fansub query.
+func TestSearchBypassNonTagGenreFilterFindsAnimeEndToEnd(t *testing.T) {
 	pool := openSearchBypassFixture(t)
 	router := searchBypassRouter(pool)
 
 	response := httptest.NewRecorder()
 	router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/v1/search?type=alle&format=tv", nil))
-	if response.Code != http.StatusBadRequest {
-		t.Fatalf("status = %d, want 400 for format-only (no q, no tag/genre), even against a real repository: %s", response.Code, response.Body.String())
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200 for format-only (no q, no tag/genre), against a real repository: %s", response.Code, response.Body.String())
+	}
+
+	var body searchBypassEnvelope
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body.Data.Anime.Total != 1 || len(body.Data.Anime.Items) != 1 {
+		t.Fatalf("expected the seeded type=tv anime to match format=tv with no q, got: %#v", body.Data.Anime)
+	}
+	if body.Data.Fansub.Total != 0 || len(body.Data.Fansub.Items) != 0 {
+		t.Fatalf("format-only (no q): fansub side must stay empty (Pitfall 1), got: %#v", body.Data.Fansub)
 	}
 }
 
