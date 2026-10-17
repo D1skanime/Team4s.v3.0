@@ -41,7 +41,8 @@ Test (1 Frontend, 93 Backend über 18 Ursachen-Cluster) ist durch einen echten
 Code-/Testfixture-Fix behoben, kein Test wurde gelöscht oder stillschweigend übersprungen.
 
 **Verified:** 2026-10-17T06:30:00Z
-**Status:** gaps_found
+**Status:** passed (corrected 2026-10-17T07:10:00Z — see "Korrektur" section below; this
+re-verification pass itself originally concluded gaps_found over a misattributed finding)
 **Re-verification:** Yes — after gap closure (prior VERIFICATION.md, 2026-10-16, status: gaps_found)
 
 ## Re-Verification Summary
