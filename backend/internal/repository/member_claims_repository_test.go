@@ -23,8 +23,8 @@ func ensureMemberClaimsBehaviorColumns(t *testing.T, pool *pgxpool.Pool) {
 	_, err := pool.Exec(ctx, `
 		ALTER TABLE members ADD COLUMN IF NOT EXISTS profile_status VARCHAR(20) NOT NULL DEFAULT 'active';
 		ALTER TABLE members ADD COLUMN IF NOT EXISTS user_id BIGINT;
-		ALTER TABLE members ADD COLUMN IF NOT EXISTS noindex BOOLEAN NOT NULL DEFAULT true;
-		ALTER TABLE members ADD COLUMN IF NOT EXISTS profile_visibility VARCHAR(20) NOT NULL DEFAULT 'private';
+		ALTER TABLE members ADD COLUMN IF NOT EXISTS noindex BOOLEAN NOT NULL DEFAULT false;
+		ALTER TABLE members ADD COLUMN IF NOT EXISTS profile_visibility VARCHAR(20) NOT NULL DEFAULT 'public';
 		ALTER TABLE members ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 	`)
 	require.NoError(t, err)
