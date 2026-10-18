@@ -46,6 +46,11 @@ const SECTION_COPY: Record<
     sourceSub: '',
     assetsSub: '',
     stepSourceLabel: 'Quelle & Kontext',
+    // quick-261018-l5r Task 3: dieses Label war von 2026-04-24 bis zu diesem Plan irrefuehrend --
+    // es versprach eine AniSearch-Funktion, die der Edit-Modus damals gar nicht hatte (siehe
+    // .planning/debug/anisearch-link-missing-on-create.md). Seit der neuen "AniSearch
+    // verknuepfen"-Karte in AnimeEditSourceSection (Task 3) stimmt das Label wieder -- bewusst
+    // UNVERAENDERT gelassen, keine Textaenderung noetig.
     stepSourceSub: 'AniSearch & Jellyfin',
     stepReviewLabel: 'Prüfen & Speichern',
     stepReviewSub: 'Änderungen sichern',

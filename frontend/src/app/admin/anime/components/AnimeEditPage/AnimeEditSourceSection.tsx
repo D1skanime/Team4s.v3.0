@@ -1,19 +1,29 @@
 'use client'
 
+import { useState } from 'react'
+
 import { Button } from '@/components/ui'
+import { FormField } from '@/components/ui/FormField'
+import { Input } from '@/components/ui/Input'
+import type { AnimeDetail } from '@/types/anime'
 
 import styles from '../../../admin.module.css'
 import createStyles from '../../create/page.module.css'
 import workspaceStyles from '../ManualCreate/ManualCreateWorkspace.module.css'
 import { CreateJellyfinCard } from '../../create/CreateJellyfinCard'
+import { useAnimeEditAniSearchLink } from '../../hooks/useAnimeEditAniSearchLink'
 import { useJellyfinIntake } from '../../hooks/useJellyfinIntake'
-import type { AnimeDetail } from '@/types/anime'
+import { buildAniSearchAnimeURL } from '../../utils/anime-helpers'
 
 /**
  * Task 2 (quick-261018-l5r), reiner Umbau ohne Verhaltensänderung: ausgelagerte "Quelle"-Sektion
  * der Anime-Bearbeitung (Identität-Karte + Jellyfin-Such-/Verbinden-Karte), extrahiert aus
- * AnimeEditWorkspace.tsx (CLAUDE.md 450-Zeilen-Regel). Task 3 ergänzt hier die neue
- * AniSearch-Verknüpfungs-Karte, ohne diese Datei erneut aufteilen zu müssen.
+ * AnimeEditWorkspace.tsx (CLAUDE.md 450-Zeilen-Regel). Task 3 ergänzt die neue
+ * AniSearch-Verknüpfungs-Karte (fehlendes Gegenstück zu CreateJellyfinCard, siehe
+ * .planning/debug/anisearch-link-missing-on-create.md) -- nutzt ausschließlich
+ * @/components/ui-Primitives für den NEUEN Code (CLAUDE.md Frontend-UI-Regel); die
+ * bestehende Identitäts-Karte oben nutzt weiterhin natives Markup (Task-2-Altbestand, hier nicht
+ * nachgezogen).
  */
 
 export function hasProviderSource(
@@ -57,6 +67,18 @@ export function AnimeEditSourceSection({
   onJellyfinAdopt,
   onDiscardJellyfinSelection,
 }: AnimeEditSourceSectionProps) {
+  // Task 3: ueberschreibt die angezeigte AniSearch-ID/URL sofort nach einem erfolgreichen
+  // Verknuepfen-Request, bis `anime` beim naechsten Laden den neuen Wert selbst mitbringt (Plan-
+  // Vorgabe: "lokaler State, der die Response ueberschreibt").
+  const [linkedOverride, setLinkedOverride] = useState<{ anisearchID: string; source: string } | null>(null)
+  const aniSearchLink = useAnimeEditAniSearchLink({
+    animeID: anime.id,
+    onLinked: (result) => setLinkedOverride(result),
+  })
+
+  const displayedAniSearchID = linkedOverride?.anisearchID || effectiveAniSearchID
+  const displayedAniSearchURL = linkedOverride ? buildAniSearchAnimeURL(linkedOverride.anisearchID) : aniSearchURL
+
   return (
     <div className={createStyles.providerGrid}>
       <section className={workspaceStyles.sectionCard}>
@@ -73,14 +95,14 @@ export function AnimeEditSourceSection({
           <div className={`${workspaceStyles.infoField} ${workspaceStyles.infoFieldWithAction}`}>
             <span>AniSearch ID</span>
             <div className={workspaceStyles.infoAction}>
-              <strong className={workspaceStyles.infoValue}>{effectiveAniSearchID || '—'}</strong>
+              <strong className={workspaceStyles.infoValue}>{displayedAniSearchID || '—'}</strong>
               <Button
-                href={aniSearchURL || '#'}
+                href={displayedAniSearchURL || '#'}
                 target="_blank"
                 rel="noreferrer"
                 variant="secondary"
                 size="sm"
-                disabled={!aniSearchURL}
+                disabled={!displayedAniSearchURL}
               >
                 AniSearch öffnen
               </Button>
@@ -99,6 +121,104 @@ export function AnimeEditSourceSection({
             <code className={workspaceStyles.infoValue}>{effectiveFolderPath || '—'}</code>
           </div>
         </div>
+      </section>
+
+      <section className={workspaceStyles.sectionCard}>
+        <div className={workspaceStyles.sectionHeader}>
+          <p className={workspaceStyles.sectionEyebrow}>AniSearch</p>
+          <h2 className={workspaceStyles.sectionTitle}>AniSearch verknüpfen</h2>
+        </div>
+
+        <FormField label="AniSearch-Titel suchen" htmlFor="edit-anisearch-title-search">
+          <div className={styles.gridTwo}>
+            <Input
+              id="edit-anisearch-title-search"
+              value={aniSearchLink.titleQuery}
+              placeholder="z. B. Freezing"
+              onChange={(event) => aniSearchLink.setTitleQuery(event.target.value)}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              loading={aniSearchLink.isSearching}
+              disabled={aniSearchLink.isSearching || !aniSearchLink.titleQuery.trim()}
+              onClick={() => {
+                void aniSearchLink.handleTitleSearch()
+              }}
+            >
+              Suchen
+            </Button>
+          </div>
+        </FormField>
+
+        {aniSearchLink.candidates.length > 0 ? (
+          <ul className={workspaceStyles.infoField} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {aniSearchLink.candidates.map((candidate) => (
+              <li key={candidate.anisearch_id} className={`${workspaceStyles.infoField} ${workspaceStyles.infoFieldWithAction}`}>
+                <span>
+                  {candidate.title}
+                  {candidate.year ? ` (${candidate.year})` : ''} — AniSearch-ID {candidate.anisearch_id}
+                  {candidate.existing_anime_id ? ` — gehört bereits zu „${candidate.existing_title}“ (#${candidate.existing_anime_id})` : ''}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => aniSearchLink.handleSelectCandidate(candidate)}
+                >
+                  Übernehmen
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        <FormField label="AniSearch-ID oder -URL" htmlFor="edit-anisearch-id-input">
+          <div className={styles.gridTwo}>
+            <Input
+              id="edit-anisearch-id-input"
+              value={aniSearchLink.idOrUrlInput}
+              placeholder="z. B. 6465 oder https://www.anisearch.de/anime/6465,freezing"
+              onChange={(event) => aniSearchLink.setIdOrUrlInput(event.target.value)}
+            />
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              loading={aniSearchLink.isLinking}
+              disabled={aniSearchLink.isLinking || !aniSearchLink.idOrUrlInput.trim()}
+              onClick={() => {
+                void aniSearchLink.handleLink()
+              }}
+            >
+              Verknüpfen
+            </Button>
+          </div>
+        </FormField>
+
+        {aniSearchLink.linkConflict ? (
+          <div className={styles.errorBox} role="alert">
+            <p>
+              Diese AniSearch-ID ist bereits mit „{aniSearchLink.linkConflict.existingTitle}“ verknüpft.
+            </p>
+            <Button href={aniSearchLink.linkConflict.redirectPath} variant="ghost" size="sm">
+              Zum anderen Anime wechseln
+            </Button>
+          </div>
+        ) : null}
+
+        {!aniSearchLink.linkConflict && aniSearchLink.linkErrorMessage ? (
+          <div className={styles.errorBox} role="alert">
+            <p>{aniSearchLink.linkErrorMessage}</p>
+          </div>
+        ) : null}
+
+        {aniSearchLink.linkSuccessMessage ? (
+          <p className={styles.hint} role="status">
+            {aniSearchLink.linkSuccessMessage}
+          </p>
+        ) : null}
       </section>
 
       <section className={workspaceStyles.sectionCard}>

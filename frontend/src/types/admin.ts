@@ -165,6 +165,23 @@ export interface AdminAnimeAniSearchEditConflictResult {
   redirect_path: string;
 }
 
+/**
+ * Request fuer den additiven "nur verknuepfen"-Endpunkt
+ * (POST /admin/anime/:id/anisearch/link, quick-261018-l5r Task 1) -- bewusst schmal, da dieser
+ * Endpunkt nur eine AniSearch-ID verknuepft, nie Felder uebernimmt (anders als
+ * AdminAnimeAniSearchEditRequest/-Result oben).
+ */
+export interface AdminAnimeAniSearchLinkRequest {
+  anisearch_id: string;
+}
+
+/** Erfolgs-Ergebnis des additiven "nur verknuepfen"-Endpunkts. */
+export interface AdminAnimeAniSearchLinkResult {
+  mode: "linked";
+  anisearch_id: string;
+  source: string;
+}
+
 /** Request zum Erstellen eines neuen Anime-Eintrags auf Basis von AniSearch-Daten. */
 export interface AdminAnimeAniSearchCreateRequest {
   anisearch_id: string;

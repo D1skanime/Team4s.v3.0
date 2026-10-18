@@ -3,6 +3,8 @@ import type {
   AdminAnimeAniSearchEditResult,
   AdminAnimeAniSearchEditConflictResult,
   AdminAnimeAniSearchCreateConflictResult,
+  AdminAnimeAniSearchLinkRequest,
+  AdminAnimeAniSearchLinkResult,
   AdminAnimeCreateRequest,
   AdminAnimeDeleteResponse,
   AdminAnimePatchRequest,
@@ -215,6 +217,55 @@ export async function loadAdminAnimeEditAniSearchEnrichment(
   }
 
   return response.json() as Promise<{ data: AdminAnimeAniSearchEditResult }>;
+}
+
+/**
+ * Verknuepft additiv eine AniSearch-ID mit einem bestehenden Anime
+ * (POST /api/v1/admin/anime/:id/anisearch/link, quick-261018-l5r Task 1) -- anders als
+ * loadAdminAnimeEditAniSearchEnrichment oben persistiert dieser Endpunkt SOFORT (kein Draft), nie
+ * eine Feldbuernahme, nie anime.source. Wiederverwendet exakt dasselbe 409-Konfliktpayload-Parsing
+ * (parseAniSearchEditConflictPayload), da das Backend bei Fremdbesitz dieselbe
+ * AdminAnimeAniSearchEditConflictResult-Form liefert.
+ */
+export async function linkAdminAnimeAniSearchSource(
+  animeID: number,
+  payload: AdminAnimeAniSearchLinkRequest,
+  authToken?: string,
+): Promise<{ data: AdminAnimeAniSearchLinkResult }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/anisearch/link`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as unknown;
+    const parsed = parsePayloadApiError(
+      body,
+      `API request failed: ${response.status}`,
+    );
+    const conflict =
+      response.status === 409 ? parseAniSearchEditConflictPayload(body) : null;
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+      conflict,
+    );
+  }
+
+  return response.json() as Promise<{ data: AdminAnimeAniSearchLinkResult }>;
 }
 
 export async function deleteAdminAnime(
