@@ -175,11 +175,41 @@ export interface AdminAnimeAniSearchLinkRequest {
   anisearch_id: string;
 }
 
-/** Erfolgs-Ergebnis des additiven "nur verknuepfen"-Endpunkts. */
+/**
+ * Entscheidung fuer EIN Uebernahme-Feld, das NICHT uebernommen wurde ("keep"),
+ * inkl. der fuer die Admin-UI lesbaren Begruendung
+ * (quick-261018-l5r Teil B, mirrors AdminAnimeAniSearchFieldOutcome in Go).
+ */
+export interface AdminAnimeAniSearchFieldOutcome {
+  field: string;
+  action: "keep";
+  reason: string;
+}
+
+/**
+ * Vollstaendige Zusammenfassung der Fill/Replace/Keep-Entscheidung ueber alle 8
+ * Uebernahme-Felder (title_de, title_en, year, max_episodes, genre, tags,
+ * description, type) fuer einen additiven AniSearch-Link
+ * (quick-261018-l5r Teil B, mirrors AdminAnimeAniSearchTakeoverResult in Go).
+ */
+export interface AdminAnimeAniSearchTakeoverResult {
+  filled: string[];
+  replaced: string[];
+  kept: AdminAnimeAniSearchFieldOutcome[];
+  jellyfin_unreachable: boolean;
+}
+
+/**
+ * Erfolgs-Ergebnis des additiven "nur verknuepfen"-Endpunkts. `takeover` ist
+ * optional/abwesend, wenn die Uebernahme-Pruefung gar nicht erst versucht wurde
+ * (z. B. AniSearch-Fetch fehlgeschlagen) -- in diesem Fall gibt es nichts
+ * anzuzeigen (quick-261018-l5r Teil B).
+ */
 export interface AdminAnimeAniSearchLinkResult {
   mode: "linked";
   anisearch_id: string;
   source: string;
+  takeover?: AdminAnimeAniSearchTakeoverResult;
 }
 
 /** Request zum Erstellen eines neuen Anime-Eintrags auf Basis von AniSearch-Daten. */

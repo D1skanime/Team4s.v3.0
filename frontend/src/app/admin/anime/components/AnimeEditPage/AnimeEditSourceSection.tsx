@@ -25,6 +25,29 @@ import { buildAniSearchAnimeURL } from '../../utils/anime-helpers'
  * nachgezogen).
  */
 
+/**
+ * Teil B (quick-261018-l5r): deutsche Kurzbeschriftungen fuer die 8
+ * Uebernahme-Felder der additiven AniSearch-Verknuepfung -- es gibt an keiner
+ * anderen Stelle im Code eine wiederverwendbare Beschriftung fuer genau diese
+ * rohen Backend-Feldnamen (createAniSearchSummary.ts zeigt die rohen Keys
+ * unverändert an), daher hier bewusst eine kleine, lokale Map statt einer
+ * verwaisten/irrefuehrenden Wiederverwendung.
+ */
+const ANISEARCH_TAKEOVER_FIELD_LABELS: Record<string, string> = {
+  title_de: 'Titel (DE)',
+  title_en: 'Titel (EN)',
+  year: 'Jahr',
+  max_episodes: 'Max. Episoden',
+  genre: 'Genres',
+  tags: 'Tags',
+  description: 'Beschreibung',
+  type: 'Format/Typ',
+}
+
+function labelForAniSearchTakeoverField(field: string): string {
+  return ANISEARCH_TAKEOVER_FIELD_LABELS[field] ?? field
+}
+
 export function hasProviderSource(
   prefix: 'anisearch:' | 'jellyfin:',
   source?: string | null,
@@ -77,6 +100,14 @@ export function AnimeEditSourceSection({
 
   const displayedAniSearchID = linkedOverride?.anisearchID || effectiveAniSearchID
   const displayedAniSearchURL = linkedOverride ? buildAniSearchAnimeURL(linkedOverride.anisearchID) : aniSearchURL
+
+  // Teil B (quick-261018-l5r): "Übernommen" fasst gefüllte und ersetzte Felder zusammen (dem
+  // Admin ist nur wichtig, WAS sich geändert hat, nicht ob das Feld vorher leer oder befüllt war).
+  const takeover = aniSearchLink.linkTakeover
+  const takeoverAppliedFieldLabels = takeover
+    ? [...takeover.filled, ...takeover.replaced].map(labelForAniSearchTakeoverField)
+    : []
+  const takeoverKeptFields = takeover?.kept ?? []
 
   return (
     <div className={createStyles.providerGrid}>
@@ -174,6 +205,29 @@ export function AnimeEditSourceSection({
         {aniSearchLink.linkSuccessMessage ? (
           <p className={styles.hint} role="status">
             {aniSearchLink.linkSuccessMessage}
+          </p>
+        ) : null}
+
+        {takeover?.jellyfin_unreachable ? (
+          <div className={styles.warningBox} role="status">
+            Jellyfin nicht erreichbar – nur leere Felder gefüllt.
+          </div>
+        ) : null}
+
+        {takeoverAppliedFieldLabels.length > 0 ? (
+          <p className={styles.hint} role="status">
+            Übernommen: {takeoverAppliedFieldLabels.join(', ')}
+          </p>
+        ) : null}
+
+        {takeoverKeptFields.length > 0 ? (
+          <p
+            className={styles.hint}
+            role="status"
+            title={takeoverKeptFields.map((entry) => entry.reason).join(' / ')}
+          >
+            Behalten (manuell geändert):{' '}
+            {takeoverKeptFields.map((entry) => labelForAniSearchTakeoverField(entry.field)).join(', ')}
           </p>
         ) : null}
       </section>

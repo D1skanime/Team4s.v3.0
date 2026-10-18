@@ -155,4 +155,71 @@ describe('AnimeEditSourceSection — AniSearch verknuepfen (Task 3)', () => {
 
     expect((screen.getByLabelText('AniSearch-ID oder -URL') as HTMLInputElement).value).toBe('6465')
   })
+
+  it('shows the takeover summary with German field labels split into "Übernommen" and "Behalten" after a successful link (Teil B)', async () => {
+    linkMock.mockResolvedValue({
+      data: {
+        mode: 'linked',
+        anisearch_id: '6465',
+        source: 'anisearch:6465',
+        takeover: {
+          filled: ['title_de', 'year'],
+          replaced: ['description'],
+          kept: [
+            { field: 'genre', action: 'keep', reason: 'Weicht von Jellyfin ab, gilt als manuell gepflegt' },
+            { field: 'tags', action: 'keep', reason: 'Kein Jellyfin-Vergleichswert verfügbar, Feld bleibt geschützt' },
+          ],
+          jellyfin_unreachable: false,
+        },
+      },
+    })
+    render(<Harness />)
+
+    fireEvent.change(screen.getByLabelText('AniSearch-ID oder -URL'), { target: { value: '6465' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Verknüpfen' }))
+
+    await waitFor(() =>
+      expect(screen.getByText('Übernommen: Titel (DE), Jahr, Beschreibung')).not.toBeNull(),
+    )
+    expect(screen.getByText('Behalten (manuell geändert): Genres, Tags')).not.toBeNull()
+    expect(screen.queryByText('Jellyfin nicht erreichbar – nur leere Felder gefüllt.')).toBeNull()
+  })
+
+  it('shows the Jellyfin-unreachable notice when the takeover could only fill empty fields', async () => {
+    linkMock.mockResolvedValue({
+      data: {
+        mode: 'linked',
+        anisearch_id: '6465',
+        source: 'anisearch:6465',
+        takeover: {
+          filled: ['title_de'],
+          replaced: [],
+          kept: [],
+          jellyfin_unreachable: true,
+        },
+      },
+    })
+    render(<Harness />)
+
+    fireEvent.change(screen.getByLabelText('AniSearch-ID oder -URL'), { target: { value: '6465' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Verknüpfen' }))
+
+    await waitFor(() =>
+      expect(screen.getByText('Jellyfin nicht erreichbar – nur leere Felder gefüllt.')).not.toBeNull(),
+    )
+    expect(screen.getByText('Übernommen: Titel (DE)')).not.toBeNull()
+  })
+
+  it('renders no takeover summary when the backend response has no takeover key at all', async () => {
+    linkMock.mockResolvedValue({ data: { mode: 'linked', anisearch_id: '6465', source: 'anisearch:6465' } })
+    render(<Harness />)
+
+    fireEvent.change(screen.getByLabelText('AniSearch-ID oder -URL'), { target: { value: '6465' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Verknüpfen' }))
+
+    await waitFor(() => expect(screen.getByText('AniSearch-ID 6465 wurde verknüpft.')).not.toBeNull())
+    expect(screen.queryByText(/Übernommen:/)).toBeNull()
+    expect(screen.queryByText(/Behalten/)).toBeNull()
+    expect(screen.queryByText(/Jellyfin nicht erreichbar/)).toBeNull()
+  })
 })

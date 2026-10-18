@@ -5,7 +5,10 @@ import { useState } from 'react'
 import { ApiError } from '@/lib/api'
 import { linkAdminAnimeAniSearchSource } from '@/lib/api/admin/anime-core'
 import { searchAdminAnimeCreateAniSearchCandidates } from '@/lib/api/admin-anime-intake'
-import type { AdminAnimeAniSearchSearchCandidate } from '@/types/admin'
+import type {
+  AdminAnimeAniSearchSearchCandidate,
+  AdminAnimeAniSearchTakeoverResult,
+} from '@/types/admin'
 
 import { formatAdminError } from '../utils/studio-helpers'
 import { extractAniSearchIDFromLinkInput } from '../utils/anime-helpers'
@@ -35,6 +38,7 @@ export function useAnimeEditAniSearchLink({ animeID, onLinked }: UseAnimeEditAni
   const [linkErrorMessage, setLinkErrorMessage] = useState<string | null>(null)
   const [linkConflict, setLinkConflict] = useState<AnimeEditAniSearchLinkConflict | null>(null)
   const [linkSuccessMessage, setLinkSuccessMessage] = useState<string | null>(null)
+  const [linkTakeover, setLinkTakeover] = useState<AdminAnimeAniSearchTakeoverResult | null>(null)
 
   async function handleTitleSearch() {
     const query = titleQuery.trim()
@@ -73,8 +77,10 @@ export function useAnimeEditAniSearchLink({ animeID, onLinked }: UseAnimeEditAni
       setLinkErrorMessage(null)
       setLinkConflict(null)
       setLinkSuccessMessage(null)
+      setLinkTakeover(null)
       const response = await linkAdminAnimeAniSearchSource(animeID, { anisearch_id: extractedID })
       setLinkSuccessMessage(`AniSearch-ID ${response.data.anisearch_id} wurde verknüpft.`)
+      setLinkTakeover(response.data.takeover ?? null)
       onLinked({ anisearchID: response.data.anisearch_id, source: response.data.source })
     } catch (error) {
       if (error instanceof ApiError && error.status === 409 && error.conflict) {
@@ -101,6 +107,7 @@ export function useAnimeEditAniSearchLink({ animeID, onLinked }: UseAnimeEditAni
     linkErrorMessage,
     linkConflict,
     linkSuccessMessage,
+    linkTakeover,
     handleTitleSearch,
     handleSelectCandidate,
     handleLink,
