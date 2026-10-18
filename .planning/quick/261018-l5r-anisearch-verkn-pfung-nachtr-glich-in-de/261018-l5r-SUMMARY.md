@@ -358,3 +358,71 @@ den 180-04/184-05-Mustern), nicht Option (b) (dauerhafte Ausnahme).
 
 5. `<siehe git log, Commit dieses Nachtrags>` (refactor) — `admin.ts` Split in drei
    Thementeile + Barrel, keine Verhaltensänderung
+
+---
+
+## Addendum (2026-10-18): Teil B — Uebernahme-Feedback im Frontend verdrahtet
+
+Frontend-only-Nachtrag: verdrahtet die bereits ausgelieferte `takeover`-Antwort des Backend-
+Endpunkts `POST /api/v1/admin/anime/:id/anisearch/link` (separates Backend-Teil-B-Vorhaben, hier
+nicht wiederholt) in die "AniSearch verknüpfen"-Karte, damit der Admin nach einer Verknüpfung
+sieht, welche Felder übernommen/ersetzt wurden, welche wegen manueller Pflege behalten wurden,
+und ob Jellyfin beim Vergleich unerreichbar war. **Kein neues Feature über den vom Nutzer
+spezifizierten Umfang hinaus**, Task 4/5 des Original-Plans bleiben unverändert unausgeführt.
+
+### Status: COMPLETE
+
+### Commit
+
+6. `9697b8e65` (feat) — `AniSearch-Uebernahme-Feedback in der Anime-Bearbeitung`
+
+### Umsetzung
+
+- `frontend/src/types/admin-anime-core.ts`: `AdminAnimeAniSearchLinkResult` um optionales
+  `takeover`-Feld erweitert, plus zwei neue Typen `AdminAnimeAniSearchFieldOutcome` und
+  `AdminAnimeAniSearchTakeoverResult` — 1:1 gespiegelt aus den Go-Typen in
+  `backend/internal/models/admin_content_anisearch.go` (frisch gelesen vor dem Schreiben).
+- `frontend/src/app/admin/anime/hooks/useAnimeEditAniSearchLink.ts`: neuer `linkTakeover`-State,
+  nach einem erfolgreichen `handleLink()` auf `response.data.takeover ?? null` gesetzt (fehlendes
+  `takeover`-Feld wird wie "nichts anzuzeigen" behandelt, kein Fehler).
+- `frontend/src/app/admin/anime/components/AnimeEditPage/AnimeEditSourceSection.tsx`: lokale
+  deutsche Beschriftungs-Map für die 8 Übernahme-Felder (`title_de`→"Titel (DE)" usw. — an keiner
+  anderen Stelle im Code existiert eine wiederverwendbare Map für genau diese rohen
+  Backend-Feldnamen, `createAniSearchSummary.ts` zeigt rohe Keys unverändert an). Drei neue
+  Zeilen NACH der geteilten `AniSearchSearchCard` (bewusst nicht in der Shared-Komponente, da
+  "Übernahme" ein reines Edit-Konzept ist, das der Create-Flow nicht kennt):
+  - Jellyfin-nicht-erreichbar-Hinweis (`styles.warningBox`, exakter Wortlaut
+    "Jellyfin nicht erreichbar – nur leere Felder gefüllt.")
+  - "Übernommen: …" (`filled`+`replaced` zusammengefasst in EINER Zeile, wie vom Nutzer
+    vorgegeben — "was sich geändert hat", nicht aufgeteilt nach gefüllt/ersetzt)
+  - "Behalten (manuell geändert): …" (`kept`-Feldnamen, Begründungen der Felder als
+    kombiniertes `title`-Tooltip-Attribut auf der Zeile, nicht als separate Textknoten, um die
+    Tests einfach und robust zu halten)
+  - Keine Zeile wird gerendert, wenn alle drei Listen leer sind (nur die normale
+    Erfolgsmeldung bleibt stehen).
+- Tests (`AnimeEditSourceSection.test.tsx`, Teststil-konform — echte Klick-Interaktion über die
+  bestehende Harness, kein Quelltext-`strings.Contains`): 3 neue Fälle — Übernahme-Mix
+  (gefüllt+ersetzt+behalten in korrekten deutschen Labels), `jellyfin_unreachable: true`
+  (exakter Hinweistext), fehlender `takeover`-Key (kein Crash, keine Übernahme-Zeile).
+
+### Verifikation
+
+- `npm run typecheck`: grün, keine Fehler.
+- `npm run lint`: dieselben 4 vorbestehenden Fehler wie in Addendum "Item 5" oben
+  (`capture-responsive.cjs` × 2, `useReleaseVersionMedia.ts`/React-Compiler-Memoization,
+  `CapabilityDetailRow.tsx`), keiner in den vier geänderten Dateien dieses Nachtrags.
+- `npm test -- --run src/app/admin/anime`: 56 Testdateien, 547 Tests, alle grün (davon 8 in
+  `AnimeEditSourceSection.test.tsx`, 3 davon neu).
+- Backend neu gebaut (`docker compose build team4sv30-backend && docker compose up -d
+  team4sv30-backend`) und neu gestartet, `/health` → `{"status":"ok"}` (HTTP 200). Frontend-
+  Dev-Server neu gestartet (`docker restart team4sv30-frontend`, kein `npm run build` im laufenden
+  Container, wie vom Auftrag vorgegeben) — läuft wieder fehlerfrei, `GET /` → 200.
+- Anime 12/13 wurden in diesem Lauf nicht verändert — der Live-Test (Freezing → AniSearch-ID 6465
+  verknüpfen) bleibt dem Nutzer selbst vorbehalten.
+
+### Dateien (dieser Nachtrag)
+
+- Geändert: `frontend/src/types/admin-anime-core.ts`,
+  `frontend/src/app/admin/anime/hooks/useAnimeEditAniSearchLink.ts`,
+  `frontend/src/app/admin/anime/components/AnimeEditPage/AnimeEditSourceSection.tsx`,
+  `frontend/src/app/admin/anime/components/AnimeEditPage/AnimeEditSourceSection.test.tsx`
