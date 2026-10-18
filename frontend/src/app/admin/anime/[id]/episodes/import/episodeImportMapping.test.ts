@@ -9,6 +9,7 @@ import {
   removeMappingFansubGroup,
   applyFansubGroupFromEpisodeDown,
   applyFansubGroupToEpisodeRows,
+  applyGroupFromHere,
   confirmEpisodeMappingRows,
   confirmMapping,
   detectMappingConflicts,
@@ -583,50 +584,117 @@ describe('episodeImportMapping', () => {
     ])
   })
 
-  it('applyFansubGroupFromEpisodeDown patches only the current episode and later groups', () => {
-    const rows: EpisodeImportMappingRow[] = [
-      {
-        media_item_id: 'ep-099-a', media_source_id: 'source-ep-099-a',
-        target_episode_numbers: [99],
-        suggested_episode_numbers: [99],
-        status: 'confirmed',
-        fansub_groups: [{ name: 'AnimeOwnage' }],
-      },
-      {
-        media_item_id: 'ep-100-a', media_source_id: 'source-ep-100-a',
-        target_episode_numbers: [100],
-        suggested_episode_numbers: [100],
-        status: 'confirmed',
-        fansub_groups: [{ name: 'AnimeOwnage' }],
-      },
-      {
-        media_item_id: 'ep-101-a', media_source_id: 'source-ep-101-a',
-        target_episode_numbers: [101],
-        suggested_episode_numbers: [101],
-        status: 'confirmed',
-        fansub_groups: [{ name: 'Broken' }],
-      },
-      {
-        media_item_id: 'ep-102-a', media_source_id: 'source-ep-102-a',
-        target_episode_numbers: [102],
-        suggested_episode_numbers: [102],
-        status: 'confirmed',
-        fansub_groups: [{ name: 'Broken' }],
-      },
-    ]
+  describe('applyGroupFromHere (D-01 low-level pure function, 186-CONTEXT.md mandatory cases)', () => {
+    it('case 1: replaces the old value and leaves a different, already-set value alone, rows before startIndex untouched', () => {
+      const result = applyGroupFromHere(['F1', 'F2', 'F3', 'F3', 'F2', 'F3'], 2, 'F3', 'F4')
+      expect(result).toEqual(['F1', 'F2', 'F4', 'F4', 'F2', 'F4'])
+    })
 
-    const result = applyFansubGroupFromEpisodeDown(rows, 101, [
-      { id: 7, name: 'NeoTokyoFansub', slug: 'neo-tokyo-fansub' },
-      { name: 'LateNight' },
-    ])
+    it('case 2: replaces the old value and fills empty rows simultaneously, while a different value stays untouched', () => {
+      const result = applyGroupFromHere(['F5', '', 'F3', '', 'F2'], 0, 'F5', 'F4')
+      expect(result).toEqual(['F4', 'F4', 'F3', 'F4', 'F2'])
+    })
 
-    expect(result[0].fansub_groups).toEqual([{ name: 'AnimeOwnage' }])
-    expect(result[1].fansub_groups).toEqual([{ name: 'AnimeOwnage' }])
-    expect(result[2].fansub_groups).toEqual([
-      { id: 7, name: 'NeoTokyoFansub', slug: 'neo-tokyo-fansub' },
-      { name: 'LateNight', slug: null },
-    ])
-    expect(result[3].fansub_groups).toEqual(result[2].fansub_groups)
+    it('case 3: an already-set, different value is left alone even though it comes after the edited row', () => {
+      const result = applyGroupFromHere(['F1', 'F2', 'F3'], 1, 'F2', 'F2b')
+      expect(result).toEqual(['F1', 'F2b', 'F3'])
+    })
+
+    it('case 4 (Sonderfall): origin row itself was empty -- only empty rows get filled, already-set groups stay', () => {
+      const result = applyGroupFromHere(['', 'F2', '', 'F3', ''], 0, '', 'F4')
+      expect(result).toEqual(['F4', 'F2', 'F4', 'F3', 'F4'])
+    })
+  })
+
+  describe('applyFansubGroupFromEpisodeDown (adapter over applyGroupFromHere)', () => {
+    it('replaces rows matching the origin row old group, starting at startIndex', () => {
+      const rows: EpisodeImportMappingRow[] = [
+        {
+          media_item_id: 'ep-099-a', media_source_id: 'source-ep-099-a',
+          target_episode_numbers: [99],
+          suggested_episode_numbers: [99],
+          status: 'confirmed',
+          fansub_groups: [{ name: 'AnimeOwnage' }],
+        },
+        {
+          media_item_id: 'ep-101-a', media_source_id: 'source-ep-101-a',
+          target_episode_numbers: [101],
+          suggested_episode_numbers: [101],
+          status: 'confirmed',
+          fansub_groups: [{ name: 'AnimeOwnage' }],
+        },
+      ]
+
+      const result = applyFansubGroupFromEpisodeDown(
+        rows,
+        1,
+        [{ name: 'AnimeOwnage' }],
+        [{ id: 7, name: 'NeoTokyoFansub', slug: 'neo-tokyo-fansub' }],
+      )
+
+      expect(result[0].fansub_groups).toEqual([{ name: 'AnimeOwnage' }])
+      expect(result[1].fansub_groups).toEqual([
+        { id: 7, name: 'NeoTokyoFansub', slug: 'neo-tokyo-fansub' },
+      ])
+    })
+
+    it('leaves a row with a different, deliberately-set group untouched', () => {
+      const rows: EpisodeImportMappingRow[] = [
+        {
+          media_item_id: 'ep-101-a', media_source_id: 'source-ep-101-a',
+          target_episode_numbers: [101],
+          suggested_episode_numbers: [101],
+          status: 'confirmed',
+          fansub_groups: [{ name: 'AnimeOwnage' }],
+        },
+        {
+          media_item_id: 'ep-102-a', media_source_id: 'source-ep-102-a',
+          target_episode_numbers: [102],
+          suggested_episode_numbers: [102],
+          status: 'confirmed',
+          fansub_groups: [{ name: 'Broken' }],
+        },
+      ]
+
+      const result = applyFansubGroupFromEpisodeDown(
+        rows,
+        0,
+        [{ name: 'AnimeOwnage' }],
+        [{ name: 'LateNight' }],
+      )
+
+      expect(result[0].fansub_groups).toEqual([{ name: 'LateNight', slug: null }])
+      expect(result[1].fansub_groups).toEqual([{ name: 'Broken' }])
+    })
+
+    it('fills an empty-group row regardless of the origin old value', () => {
+      const rows: EpisodeImportMappingRow[] = [
+        {
+          media_item_id: 'ep-101-a', media_source_id: 'source-ep-101-a',
+          target_episode_numbers: [101],
+          suggested_episode_numbers: [101],
+          status: 'confirmed',
+          fansub_groups: [{ name: 'AnimeOwnage' }],
+        },
+        {
+          media_item_id: 'ep-102-a', media_source_id: 'source-ep-102-a',
+          target_episode_numbers: [102],
+          suggested_episode_numbers: [102],
+          status: 'confirmed',
+          fansub_groups: [],
+        },
+      ]
+
+      const result = applyFansubGroupFromEpisodeDown(
+        rows,
+        0,
+        [{ name: 'AnimeOwnage' }],
+        [{ name: 'LateNight' }],
+      )
+
+      expect(result[0].fansub_groups).toEqual([{ name: 'LateNight', slug: null }])
+      expect(result[1].fansub_groups).toEqual([{ name: 'LateNight', slug: null }])
+    })
   })
 
   it('buildEpisodeImportApplyInput keeps free-text chips after row edits', () => {

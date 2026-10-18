@@ -264,18 +264,61 @@ export function applyFansubGroupToEpisodeRows(
   )
 }
 
+/**
+ * Low-level pure D-01 rule (186-CONTEXT.md): starting at `startIndex` (inclusive,
+ * downward), a value gets replaced by `newValue` if it equals `oldValue` (the
+ * origin row's pre-edit baseline) OR is empty; any other, deliberately-different
+ * value is left untouched. Rows before `startIndex` are never touched. This is
+ * the exact index + single-string-value specification from CONTEXT.md D-01,
+ * independently unit-tested against its 4 mandatory table cases (including the
+ * all-empty-origin Sonderfall). `applyFansubGroupFromEpisodeDown` below is the
+ * adapter that maps the real multi-group-array row shape onto this function.
+ */
+export function applyGroupFromHere(
+  values: string[],
+  startIndex: number,
+  oldValue: string,
+  newValue: string,
+): string[] {
+  return values.map((value, index) => {
+    if (index < startIndex) return value
+    return value === oldValue || value === '' ? newValue : value
+  })
+}
+
+/**
+ * Reduce a row's fansub-group array to a single deterministic string key so the
+ * multi-group-array shape can be compared/replaced via `applyGroupFromHere`.
+ */
+export function fansubGroupsValueKey(
+  fansubGroups: EpisodeImportSelectedFansubGroup[] | null | undefined,
+): string {
+  return normalizeFansubGroups(fansubGroups).map((group) => getFansubGroupKey(group)).sort().join('|')
+}
+
+/**
+ * D-01 ("Ab hier"): targeted replacement instead of a blanket overwrite. Rows
+ * whose current group matches the origin row's OLD (pre-edit/baseline) group
+ * get the new group; rows with no group get filled regardless of the old
+ * value; rows with a different, deliberately-set group are left unchanged.
+ * `startIndex` is the clicked row's array index (inclusive, downward) --
+ * episode-number-threshold matching is intentionally gone, since the old
+ * behavior patched by suggested-episode-number comparison, not by position.
+ */
 export function applyFansubGroupFromEpisodeDown(
   rows: EpisodeImportMappingRow[],
-  episodeNumber: number,
-  fansubGroups: EpisodeImportSelectedFansubGroup[],
+  startIndex: number,
+  oldFansubGroups: EpisodeImportSelectedFansubGroup[],
+  newFansubGroups: EpisodeImportSelectedFansubGroup[],
 ): EpisodeImportMappingRow[] {
-  const normalized = normalizeFansubGroups(fansubGroups)
-  return rows.map((row) => {
-    const suggestedEpisode = row.suggested_episode_numbers?.[0]
-    return suggestedEpisode != null && suggestedEpisode >= episodeNumber
-      ? applyFansubGroupsToRow(row, normalized)
-      : row
-  })
+  const oldValueKey = fansubGroupsValueKey(oldFansubGroups)
+  const newValueKey = fansubGroupsValueKey(newFansubGroups)
+  const currentValueKeys = rows.map((row) => fansubGroupsValueKey(row.fansub_groups))
+  const nextValueKeys = applyGroupFromHere(currentValueKeys, startIndex, oldValueKey, newValueKey)
+  const normalizedNew = normalizeFansubGroups(newFansubGroups)
+  return rows.map((row, index) =>
+    nextValueKeys[index] === currentValueKeys[index] ? row : applyFansubGroupsToRow(row, normalizedNew),
+  )
 }
 
 export function normalizeFansubGroups(
