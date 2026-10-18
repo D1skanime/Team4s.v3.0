@@ -123,6 +123,12 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   // Bewusste, dokumentierte Ergaenzung (184-05-SUMMARY.md), gleiches Muster
   // wie die 174-14-/156-14-/180-04-Ergaenzungen oben.
   'src/app/admin/fansubs/FansubListRows.tsx',
+  // quick-261018-l5r Task 2: reine Code-Verschiebung aus dem bereits gelisteten
+  // AnimeEditWorkspace.tsx (Datei-Split zur Einhaltung der 450-Zeilen-Grenze vor der neuen
+  // AniSearch-Verknuepfungs-Karte in Task 3) -- keine neuen nativen Elemente, nur relokierte
+  // Altlast (Basisdaten-Inputs/-Selects). Bewusste, dokumentierte Ergaenzung
+  // (261018-l5r-SUMMARY.md), gleiches Muster wie die 180-04-/184-05-Ergaenzungen oben.
+  'src/app/admin/anime/components/AnimeEditPage/AnimeEditDetailsSection.tsx',
   'src/app/anime/\\[id\\]/group/\\[groupId\\]/releases/page.tsx',
   'src/app/archiv/page.tsx',
   'src/app/me/profile/components/AchievementBadgesCard.tsx',

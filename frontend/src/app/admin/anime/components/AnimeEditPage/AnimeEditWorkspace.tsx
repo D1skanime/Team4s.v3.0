@@ -1,42 +1,24 @@
 'use client'
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
 
 import {
   applyAdminAnimeMetadataFromJellyfin,
-  deleteAdminAnimeBackgroundAsset,
-  deleteAdminAnimeBackgroundVideoAsset,
-  deleteAdminAnimeBannerAsset,
-  deleteAdminAnimeCoverAsset,
-  deleteAdminAnimeLogoAsset,
   getAdminAnimeJellyfinContext,
 } from '@/lib/api'
-import { Button } from '@/components/ui'
-import { FormField } from '@/components/ui/FormField'
-import { Textarea } from '@/components/ui/Textarea'
-import { searchAdminAnimeCreateAssetCandidates } from '@/lib/api/admin-anime-intake'
 import type {
   AdminAnimeAssetKind,
   AdminAnimeJellyfinContext,
   AdminAnimePersistedAssets,
-  AnimeType,
 } from '@/types/admin'
-import type { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
+import type { AnimeDetail } from '@/types/anime'
 
-import styles from '../../../admin.module.css'
-import studioStyles from '../../AdminStudio.module.css'
-import createStyles from '../../create/page.module.css'
-import workspaceStyles from '../ManualCreate/ManualCreateWorkspace.module.css'
-import { AnimeCreateGenreField } from '../CreatePage/AnimeCreateGenreField'
-import { AnimeCreateTagField } from '../CreatePage/AnimeCreateTagField'
 import { CreateAssetSearchDialog } from '../../create/CreateAssetSearchDialog'
-import { CreateJellyfinCard } from '../../create/CreateJellyfinCard'
 import { CreateReviewSection } from '../../create/CreateReviewSection'
-import { stageRemoteCreateAssetCandidate } from '../../create/createAssetUploadPlan'
 import { useAnimePatch } from '../../hooks/useAnimePatch'
 import { useAnimeEditAssetCropFlow } from '../../hooks/useAnimeEditAssetCropFlow'
+import { useAnimeEditAssetRemoval } from '../../hooks/useAnimeEditAssetRemoval'
+import { useAnimeEditAssetSearch } from '../../hooks/useAnimeEditAssetSearch'
 import { useAnimeEditor } from '../../hooks/useAnimeEditor'
 import { useJellyfinIntake } from '../../hooks/useJellyfinIntake'
 import {
@@ -45,18 +27,15 @@ import {
   removeJellyfinDraftAsset,
   type JellyfinDraftAssetTarget,
 } from '../../hooks/useManualAnimeDraft'
-import { buildAniSearchAnimeURL, resolveAniSearchID, resolveCoverUrl } from '../../utils/anime-helpers'
+import { buildAniSearchAnimeURL, resolveAniSearchID } from '../../utils/anime-helpers'
 import { planAnimeAssetFileSelection } from '../../utils/animeAssetUploadSelection'
 import { formatAdminError } from '../../utils/studio-helpers'
 import { AnimeEditAssetSection } from './AnimeEditAssetSection'
+import { AnimeEditDetailsSection } from './AnimeEditDetailsSection'
+import { AnimeEditHeaderBanner } from './AnimeEditHeaderBanner'
+import { AnimeEditSourceSection, hasProviderSource } from './AnimeEditSourceSection'
 import { SharedAnimeEditorWorkspace } from './SharedAnimeEditorWorkspace'
 import { AnimeEditorShell } from '../shared/AnimeEditorShell'
-
-const ANIME_TYPES: AnimeType[] = ['tv', 'film', 'ova', 'ona', 'special', 'bonus']
-const CONTENT_TYPES: ContentType[] = ['anime', 'hentai']
-const ANIME_STATUSES: AnimeStatus[] = ['disabled', 'ongoing', 'done', 'aborted', 'licensed']
-
-type SearchableAssetKind = Extract<AdminAnimeAssetKind, 'cover' | 'banner' | 'logo' | 'background'>
 
 interface AnimeEditWorkspaceProps {
   anime: AnimeDetail & {
@@ -73,16 +52,6 @@ function emptyPersistedAssets(): AdminAnimePersistedAssets {
   return {
     backgrounds: [],
   }
-}
-
-function hasProviderSource(
-  prefix: 'anisearch:' | 'jellyfin:',
-  source?: string | null,
-  sourceLinks?: string[] | null,
-): boolean {
-  const normalizedPrefix = prefix.toLowerCase()
-  if ((source || '').trim().toLowerCase().startsWith(normalizedPrefix)) return true
-  return (sourceLinks ?? []).some((value) => value.trim().toLowerCase().startsWith(normalizedPrefix))
 }
 
 export function AnimeEditWorkspace({
@@ -128,19 +97,7 @@ export function AnimeEditWorkspace({
   const [visibleJellyfinAssetSlots, setVisibleJellyfinAssetSlots] = useState<AdminAnimeJellyfinContext['asset_slots'] | null>(null)
   const [hasAdoptedJellyfinSelection, setHasAdoptedJellyfinSelection] = useState(false)
   const [isRefreshingAssets, setIsRefreshingAssets] = useState(false)
-  const [activeAssetSearchKind, setActiveAssetSearchKind] = useState<SearchableAssetKind | null>(null)
-  const [assetSearchQuery, setAssetSearchQuery] = useState('')
-  const [assetSearchCandidates, setAssetSearchCandidates] = useState<
-    Awaited<ReturnType<typeof searchAdminAnimeCreateAssetCandidates>>['data']
-  >([])
-  const [assetSearchSelectedIDs, setAssetSearchSelectedIDs] = useState<string[]>([])
-  const [assetSearchErrorMessage, setAssetSearchErrorMessage] = useState<string | null>(null)
-  const [assetSearchHasMore, setAssetSearchHasMore] = useState(false)
-  const [assetSearchPage, setAssetSearchPage] = useState(1)
-  const [isSearchingAssetCandidates, setIsSearchingAssetCandidates] = useState(false)
-  const [isApplyingAssetCandidates, setIsApplyingAssetCandidates] = useState(false)
   const jellyfinIntake = useJellyfinIntake()
-
 
   const editor = useAnimeEditor('edit', {
     isDirty: patch.isDirty,
@@ -173,6 +130,13 @@ export function AnimeEditWorkspace({
       setIsRefreshingAssets(false)
     }
   }, [anime.id, onError])
+
+  const assetSearch = useAnimeEditAssetSearch({
+    patch,
+    animeID: anime.id,
+    onError,
+    refreshAssetContext,
+  })
 
   const { resetFromAnime } = patch
   const { candidates: jellyfinCandidates, reviewCandidate } = jellyfinIntake
@@ -240,15 +204,6 @@ export function AnimeEditWorkspace({
     }
   }, [adoptedJellyfinPreview, anime.id, jellyfinIntake, onError, onRequest, onResponse, patch, refreshAssetContext])
 
-  function closeAssetSearch() {
-    setActiveAssetSearchKind(null)
-    setAssetSearchCandidates([])
-    setAssetSearchSelectedIDs([])
-    setAssetSearchErrorMessage(null)
-    setAssetSearchHasMore(false)
-    setAssetSearchPage(1)
-  }
-
   async function handleAssetFilesSelected(kind: AdminAnimeAssetKind, files: File[]) {
     const plan = planAnimeAssetFileSelection(kind, files)
     if (plan.action === 'noop') return
@@ -271,132 +226,12 @@ export function AnimeEditWorkspace({
     onError,
   })
 
-  async function handleRemoveSingularAsset(kind: 'cover' | 'banner' | 'logo' | 'background_video') {
-    try {
-      switch (kind) {
-        case 'cover':
-          await deleteAdminAnimeCoverAsset(anime.id)
-          patch.setClearFlag('coverImage', true)
-          patch.setField('coverImage', '')
-          break
-        case 'banner':
-          await deleteAdminAnimeBannerAsset(anime.id)
-          break
-        case 'logo':
-          await deleteAdminAnimeLogoAsset(anime.id)
-          break
-        case 'background_video':
-          await deleteAdminAnimeBackgroundVideoAsset(anime.id)
-          break
-      }
-      await refreshAssetContext()
-    } catch (error) {
-      onError(formatAdminError(error, 'Asset konnte nicht entfernt werden.'))
-    }
-  }
-
-  async function handleRemoveBackground(backgroundID: number) {
-    try {
-      await deleteAdminAnimeBackgroundAsset(anime.id, backgroundID)
-      await refreshAssetContext()
-    } catch (error) {
-      onError(formatAdminError(error, 'Background konnte nicht entfernt werden.'))
-    }
-  }
-
-  async function handleAssetCandidateSearch() {
-    if (!activeAssetSearchKind) {
-      setAssetSearchErrorMessage('Bitte zuerst einen Asset-Slot wählen.')
-      return
-    }
-    if (!assetSearchQuery.trim()) {
-      setAssetSearchErrorMessage('Bitte zuerst einen Suchbegriff eingeben.')
-      return
-    }
-
-    try {
-      setIsSearchingAssetCandidates(true)
-      setAssetSearchErrorMessage(null)
-      const response = await searchAdminAnimeCreateAssetCandidates(
-        {
-          asset_kind: activeAssetSearchKind,
-          query: assetSearchQuery.trim(),
-          limit: activeAssetSearchKind === 'background' ? 12 : 8,
-          page: 1,
-        },
-      )
-      setAssetSearchPage(1)
-      setAssetSearchCandidates(response.data)
-      setAssetSearchSelectedIDs([])
-      setAssetSearchHasMore(response.data.length >= (activeAssetSearchKind === 'background' ? 12 : 8))
-    } catch (error) {
-      onError(formatAdminError(error, 'Asset-Suche fehlgeschlagen.'))
-    } finally {
-      setIsSearchingAssetCandidates(false)
-    }
-  }
-
-  async function handleLoadMoreAssets() {
-    if (!activeAssetSearchKind || isSearchingAssetCandidates) return
-
-    try {
-      setIsSearchingAssetCandidates(true)
-      const nextPage = assetSearchPage + 1
-      const limit = activeAssetSearchKind === 'background' ? 12 : 8
-      const response = await searchAdminAnimeCreateAssetCandidates(
-        {
-          asset_kind: activeAssetSearchKind,
-          query: assetSearchQuery.trim(),
-          limit,
-          page: nextPage,
-        },
-      )
-      setAssetSearchPage(nextPage)
-      setAssetSearchCandidates((current) => [...current, ...response.data])
-      setAssetSearchHasMore(response.data.length >= limit)
-    } catch (error) {
-      onError(formatAdminError(error, 'Weitere Assets konnten nicht geladen werden.'))
-    } finally {
-      setIsSearchingAssetCandidates(false)
-    }
-  }
-
-  function toggleAssetCandidateSelection(candidateID: string) {
-    if (activeAssetSearchKind === 'background') {
-      setAssetSearchSelectedIDs((current) =>
-        current.includes(candidateID)
-          ? current.filter((id) => id !== candidateID)
-          : [...current, candidateID],
-      )
-      return
-    }
-    setAssetSearchSelectedIDs((current) => (current[0] === candidateID ? [] : [candidateID]))
-  }
-
-  async function handleAssetCandidateAdoption() {
-    if (!activeAssetSearchKind) return
-    const selected = assetSearchCandidates.filter((candidate) =>
-      assetSearchSelectedIDs.includes(candidate.id),
-    )
-    if (selected.length === 0) {
-      setAssetSearchErrorMessage('Bitte zuerst mindestens ein Asset auswählen.')
-      return
-    }
-
-    try {
-      setIsApplyingAssetCandidates(true)
-      for (const candidate of selected) {
-        const staged = await stageRemoteCreateAssetCandidate(candidate)
-        await patch.uploadAndLinkAsset(staged.file, activeAssetSearchKind, anime.id)
-      }
-      await refreshAssetContext()
-      closeAssetSearch()
-    } catch (error) {
-      onError(formatAdminError(error, 'Ausgewählte Assets konnten nicht übernommen werden.'))
-    } finally {
-      setIsApplyingAssetCandidates(false)
-    }
-  }
+  const { handleRemoveSingularAsset, handleRemoveBackground } = useAnimeEditAssetRemoval({
+    patch,
+    animeID: anime.id,
+    onError,
+    refreshAssetContext,
+  })
 
   const effectiveSource = adoptedJellyfinPreview
     ? `jellyfin:${adoptedJellyfinPreview.jellyfin_series_id}`
@@ -471,82 +306,34 @@ export function AnimeEditWorkspace({
   }
 
   const sourceSection = (
-    <div className={createStyles.providerGrid}>
-      <section className={workspaceStyles.sectionCard}>
-        <div className={workspaceStyles.sectionHeader}>
-          <p className={workspaceStyles.sectionEyebrow}>Identität</p>
-          <h2 className={workspaceStyles.sectionTitle}>Bestehender Anime</h2>
-        </div>
-
-        <div className={styles.gridTwo}>
-          <div className={workspaceStyles.infoField}>
-            <span>Anime ID</span>
-            <strong className={workspaceStyles.infoValue}>{anime.id}</strong>
-          </div>
-          <div className={`${workspaceStyles.infoField} ${workspaceStyles.infoFieldWithAction}`}>
-            <span>AniSearch ID</span>
-            <div className={workspaceStyles.infoAction}>
-              <strong className={workspaceStyles.infoValue}>{effectiveAniSearchID || '—'}</strong>
-              <Button
-                href={aniSearchURL || '#'}
-                target="_blank"
-                rel="noreferrer"
-                variant="secondary"
-                size="sm"
-                disabled={!aniSearchURL}
-              >
-                AniSearch öffnen
-              </Button>
-            </div>
-          </div>
-          <div className={workspaceStyles.infoField}>
-            <span>Jellyfin Item ID</span>
-            <strong className={`${workspaceStyles.infoValue} ${workspaceStyles.infoValueMono}`}>{effectiveJellyfinSeriesID || '—'}</strong>
-          </div>
-          <div className={workspaceStyles.infoField}>
-            <span>Quelle</span>
-            <strong className={workspaceStyles.infoValue}>{hasJellyfinSource ? 'Jellyfin' : 'Manuell'}</strong>
-          </div>
-          <div className={`${workspaceStyles.infoField} ${workspaceStyles.infoFieldWide}`}>
-            <span>Ordnerpfad</span>
-            <code className={workspaceStyles.infoValue}>{effectiveFolderPath || '—'}</code>
-          </div>
-        </div>
-      </section>
-
-      <section className={workspaceStyles.sectionCard}>
-        <CreateJellyfinCard
-          query={jellyfinIntake.query}
-          candidates={jellyfinIntake.candidates}
-          currentAnimeID={anime.id}
-          selectedCandidateID={jellyfinIntake.reviewState.selectedCandidate?.jellyfin_series_id}
-          hasAdoptedAssets={hasAdoptedJellyfinSelection}
-          isSearching={jellyfinIntake.isSearching}
-          isLoadingPreview={jellyfinIntake.isLoadingPreview}
-          canSearch={jellyfinIntake.query.trim().length >= 2}
-          isSubmitting={patch.isSubmitting}
-          showResults={jellyfinIntake.candidates.length > 0 || jellyfinIntake.reviewState.mode !== 'idle'}
-          onQueryChange={jellyfinIntake.setQuery}
-          onSearch={() => {
-            void handleEditJellyfinSearch()
-          }}
-          onSelectCandidate={handleEditJellyfinSelect}
-          onAdoptCandidate={(id) => {
-            void handleEditJellyfinAdopt(id)
-          }}
-          onDiscard={handleDiscardEditJellyfinSelection}
-        />
-      </section>
-    </div>
+    <AnimeEditSourceSection
+      anime={anime}
+      effectiveAniSearchID={effectiveAniSearchID}
+      aniSearchURL={aniSearchURL}
+      effectiveJellyfinSeriesID={effectiveJellyfinSeriesID}
+      effectiveFolderPath={effectiveFolderPath}
+      hasJellyfinSource={hasJellyfinSource}
+      jellyfinIntake={jellyfinIntake}
+      hasAdoptedJellyfinSelection={hasAdoptedJellyfinSelection}
+      isSubmitting={patch.isSubmitting}
+      onJellyfinSearch={() => {
+        void handleEditJellyfinSearch()
+      }}
+      onJellyfinSelect={handleEditJellyfinSelect}
+      onJellyfinAdopt={(id) => {
+        void handleEditJellyfinAdopt(id)
+      }}
+      onDiscardJellyfinSelection={handleDiscardEditJellyfinSelection}
+    />
   )
 
   const assetsSection = (
     <AnimeEditAssetSection
       persistedAssets={persistedAssets}
       jellyfinAssetSlots={visibleJellyfinAssetSlots ?? jellyfinContext?.asset_slots ?? null}
-      isBusy={patch.isUploadingCover || isRefreshingAssets || isApplyingAssetCandidates}
+      isBusy={patch.isUploadingCover || isRefreshingAssets || assetSearch.isApplyingAssetCandidates}
       onAssetFilesSelected={assetCropFlow.handleAssetFilesSelected}
-      onOpenAssetSearch={(kind) => setActiveAssetSearchKind(kind)}
+      onOpenAssetSearch={(kind) => assetSearch.setActiveAssetSearchKind(kind)}
       onOpenAssetCrop={(kind) => void assetCropFlow.openAssetCrop(kind)}
       canOpenAssetCrop={assetCropFlow.canOpenAssetCrop}
       isFetchingCropSourceFor={assetCropFlow.isFetchingCropSourceFor}
@@ -560,156 +347,7 @@ export function AnimeEditWorkspace({
   )
 
   const detailsSection = (
-    <div className={createStyles.detailsStack}>
-      <section className={workspaceStyles.sectionCard}>
-        <div className={workspaceStyles.sectionHeader}>
-          <p className={workspaceStyles.sectionEyebrow}>Pflichtangaben</p>
-          <h2 className={workspaceStyles.sectionTitle}>Basisdaten</h2>
-        </div>
-
-        <div className={workspaceStyles.basicDataGrid}>
-          <div className={`${styles.field} ${workspaceStyles.titleField}`}>
-            <label htmlFor="edit-title">Titel *</label>
-            <div className={workspaceStyles.fieldMeta}>
-              <input
-                id="edit-title"
-                className={`${workspaceStyles.titleFieldInput} ${
-                  reviewMissingFields.includes('Titel') ? workspaceStyles.inputInvalid : ''
-                }`}
-                value={patch.values.title}
-                onChange={(event) => patch.setField('title', event.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className={workspaceStyles.basicDataRow}>
-            <div className={styles.field}>
-              <label htmlFor="edit-type">Typ *</label>
-              <select id="edit-type" value={patch.values.type} onChange={(event) => patch.setField('type', event.target.value)}>
-                {ANIME_TYPES.map((value) => (
-                  <option key={value} value={value}>{value}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="edit-content-type">Inhaltstyp *</label>
-              <select
-                id="edit-content-type"
-                value={patch.values.contentType}
-                onChange={(event) => patch.setField('contentType', event.target.value)}
-              >
-                {CONTENT_TYPES.map((value) => (
-                  <option key={value} value={value}>{value}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="edit-status">Status *</label>
-              <select id="edit-status" value={patch.values.status} onChange={(event) => patch.setField('status', event.target.value)}>
-                {ANIME_STATUSES.map((value) => (
-                  <option key={value} value={value}>{value}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className={`${workspaceStyles.basicDataRow} ${workspaceStyles.basicDataRowTwo}`}>
-            <div className={styles.field}>
-              <label htmlFor="edit-year">Jahr</label>
-              <input id="edit-year" value={patch.values.year} onChange={(event) => patch.setField('year', event.target.value)} />
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="edit-max-episodes">Maximale Episoden</label>
-              <input
-                id="edit-max-episodes"
-                value={patch.values.maxEpisodes}
-                onChange={(event) => patch.setField('maxEpisodes', event.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className={`${workspaceStyles.basicDataRow} ${workspaceStyles.basicDataRowTwo}`}>
-            <div className={styles.field}>
-              <label htmlFor="edit-title-de">Titel DE</label>
-              <input id="edit-title-de" value={patch.values.titleDE} onChange={(event) => patch.setField('titleDE', event.target.value)} />
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="edit-title-en">Titel EN</label>
-              <input id="edit-title-en" value={patch.values.titleEN} onChange={(event) => patch.setField('titleEN', event.target.value)} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={workspaceStyles.sectionCard}>
-        <div className={workspaceStyles.sectionHeader}>
-          <p className={workspaceStyles.sectionEyebrow}>Metadaten</p>
-          <h2 className={workspaceStyles.sectionTitle}>Genre, Tags und Beschreibung</h2>
-        </div>
-
-        <div className={styles.grid}>
-          <AnimeCreateGenreField
-            draft={patch.values.genreDraft}
-            selectedTokens={patch.values.genreTokens}
-            suggestions={patch.genreSuggestions}
-            suggestionsTotal={patch.genreSuggestionsTotal}
-            loadedTokenCount={patch.genreTokens.length}
-            isLoading={patch.isLoadingGenreTokens}
-            error={patch.genreTokensError}
-            isSubmitting={patch.isSubmitting}
-            canLoadMore={patch.genreSuggestionLimit < 1000}
-            canResetLimit={patch.genreSuggestionLimit > 40}
-            onDraftChange={(value) => patch.setField('genreDraft', value)}
-            onAddDraft={() => {
-              patch.addGenreToken(patch.values.genreDraft)
-              patch.setField('genreDraft', '')
-            }}
-            onRemoveToken={patch.removeGenreToken}
-            onAddSuggestion={patch.addGenreToken}
-            onIncreaseLimit={() => patch.setGenreSuggestionLimit(patch.genreSuggestionLimit + 40)}
-            onResetLimit={() => patch.setGenreSuggestionLimit(40)}
-          />
-
-          <AnimeCreateTagField
-            draft={patch.values.tagDraft}
-            selectedTokens={patch.values.tagTokens}
-            suggestions={patch.tagSuggestions}
-            suggestionsTotal={patch.tagSuggestionsTotal}
-            loadedTokenCount={patch.tagTokens.length}
-            isLoading={patch.isLoadingTagTokens}
-            error={patch.tagTokensError}
-            isSubmitting={patch.isSubmitting}
-            canLoadMore={patch.tagSuggestionLimit < 1000}
-            canResetLimit={patch.tagSuggestionLimit > 40}
-            onDraftChange={(value) => patch.setField('tagDraft', value)}
-            onAddDraft={() => {
-              patch.addTagToken(patch.values.tagDraft)
-              patch.setField('tagDraft', '')
-            }}
-            onRemoveToken={patch.removeTagToken}
-            onAddSuggestion={patch.addTagToken}
-            onIncreaseLimit={() => patch.setTagSuggestionLimit(patch.tagSuggestionLimit + 40)}
-            onResetLimit={() => patch.setTagSuggestionLimit(40)}
-          />
-
-          <FormField
-            label="Beschreibung"
-            htmlFor="edit-description"
-          >
-            <Textarea
-              id="edit-description"
-              className={workspaceStyles.descriptionArea}
-              value={patch.values.description}
-              onChange={(event) => patch.setField('description', event.target.value)}
-            />
-          </FormField>
-        </div>
-      </section>
-    </div>
+    <AnimeEditDetailsSection patch={patch} reviewMissingFields={reviewMissingFields} />
   )
 
   const reviewSection = (
@@ -739,32 +377,7 @@ export function AnimeEditWorkspace({
   )
 
   const headerContent = (
-    <div className={studioStyles.editHeaderContent}>
-      <div className={studioStyles.headerTop}>
-        <div>
-          <h1 className={studioStyles.pageTitle}>Anime bearbeiten</h1>
-          <p className={studioStyles.itemTitle}>{anime.title}</p>
-          <div className={studioStyles.headerActions}>
-            <Link href={`/admin/anime/${anime.id}/episodes`} className={`${studioStyles.button} ${studioStyles.buttonPrimary}`}>
-              Zu Episoden wechseln
-            </Link>
-            <Link href={`/anime/${anime.id}`} className={`${studioStyles.button} ${studioStyles.buttonSecondary}`} target="_blank" rel="noreferrer">
-              Public ansehen
-            </Link>
-          </div>
-        </div>
-        <Link href={`/anime/${anime.id}`} target="_blank" rel="noreferrer" aria-label={`${anime.title} öffentlich ansehen`}>
-          <Image
-            className={studioStyles.cover}
-            src={resolveCoverUrl(anime.cover_image)}
-            alt=""
-            width={96}
-            height={136}
-            unoptimized
-          />
-        </Link>
-      </div>
-    </div>
+    <AnimeEditHeaderBanner animeID={anime.id} animeTitle={anime.title} coverImage={anime.cover_image} />
   )
 
   return (
@@ -783,26 +396,26 @@ export function AnimeEditWorkspace({
       </form>
 
       <CreateAssetSearchDialog
-        activeKind={activeAssetSearchKind}
-        query={assetSearchQuery}
-        candidates={assetSearchCandidates}
-        selectedCandidateIDs={assetSearchSelectedIDs}
-        errorMessage={assetSearchErrorMessage}
-        hasMore={assetSearchHasMore}
-        isOpen={activeAssetSearchKind !== null}
-        isSearching={isSearchingAssetCandidates}
-        isAdopting={isApplyingAssetCandidates}
-        onClose={closeAssetSearch}
-        onQueryChange={setAssetSearchQuery}
+        activeKind={assetSearch.activeAssetSearchKind}
+        query={assetSearch.assetSearchQuery}
+        candidates={assetSearch.assetSearchCandidates}
+        selectedCandidateIDs={assetSearch.assetSearchSelectedIDs}
+        errorMessage={assetSearch.assetSearchErrorMessage}
+        hasMore={assetSearch.assetSearchHasMore}
+        isOpen={assetSearch.activeAssetSearchKind !== null}
+        isSearching={assetSearch.isSearchingAssetCandidates}
+        isAdopting={assetSearch.isApplyingAssetCandidates}
+        onClose={assetSearch.closeAssetSearch}
+        onQueryChange={assetSearch.setAssetSearchQuery}
         onSearch={() => {
-          void handleAssetCandidateSearch()
+          void assetSearch.handleAssetCandidateSearch()
         }}
         onLoadMore={() => {
-          void handleLoadMoreAssets()
+          void assetSearch.handleLoadMoreAssets()
         }}
-        onToggleCandidate={toggleAssetCandidateSelection}
+        onToggleCandidate={assetSearch.toggleAssetCandidateSelection}
         onAdoptSelection={() => {
-          void handleAssetCandidateAdoption()
+          void assetSearch.handleAssetCandidateAdoption()
         }}
       />
       {assetCropFlow.cropDialog}
