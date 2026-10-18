@@ -257,6 +257,15 @@ type AdminAnimeAniSearchEditConflictResult struct {
 	RedirectPath    string `json:"redirect_path"`
 }
 
+// AdminAnimeAniSearchLinkResult (quick-261018-l5r Task 1) ist die Erfolgsantwort des additiven
+// AniSearch-Verknüpfungs-Endpunkts (POST /admin/anime/:id/anisearch/link) -- bewusst schmal, da
+// dieser Endpunkt nur verknüpft, nie Felder übernimmt (anders als AdminAnimeAniSearchEditSuccessResult).
+type AdminAnimeAniSearchLinkResult struct {
+	Mode        string `json:"mode"` // "linked"
+	AniSearchID string `json:"anisearch_id"`
+	Source      string `json:"source"` // "anisearch:<id>"
+}
+
 type AdminAnimeSourceMatch struct {
 	Source  string
 	AnimeID int64

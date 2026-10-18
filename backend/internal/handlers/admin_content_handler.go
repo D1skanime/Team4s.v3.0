@@ -144,6 +144,14 @@ type adminAniSearchRepository interface {
 	ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error)
 }
 
+// adminAniSearchLinkRepository (quick-261018-l5r Task 1) definiert den schmalen Schreibzugriff für
+// den additiven "nur verknüpfen"-Endpunkt (POST /admin/anime/:id/anisearch/link) -- bewusst
+// getrennt vom breiteren adminAniSearchRepository-Lookup-Interface, damit Handler-Tests beide
+// unabhängig faken können, analog zu adminAnimeCreateRepository.
+type adminAniSearchLinkRepository interface {
+	LinkAniSearchSource(ctx context.Context, animeID int64, aniSearchID string) error
+}
+
 // adminAnimeCreateRepository definiert den minimalen Lese-/Schreibzugriff, den CreateAnime für den
 // Save-Time-AniSearch-Duplicate-Guard (165-03/D-20, re-check unmittelbar vor dem Insert) und den
 // eigentlichen Insert benötigt. Bewusst getrennt von der deutlich breiteren
@@ -263,6 +271,9 @@ type AdminContentHandler struct {
 	// folderManagementRepo (165-07): schmale Repo-Oberflaeche fuer die additive
 	// Jellyfin-Mehrfach-Ordner-Verwaltung (D-05/D-18), siehe jellyfin_source_folder_management.go.
 	folderManagementRepo jellyfinFolderManagementRepository
+	// animeAniSearchLinkRepo (quick-261018-l5r Task 1): schmale Repo-Oberflaeche fuer den additiven
+	// "nur verknüpfen"-Endpunkt, siehe admin_content_anime_anisearch_link.go.
+	animeAniSearchLinkRepo adminAniSearchLinkRepository
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -333,6 +344,7 @@ func NewAdminContentHandler(
 	handler.animeCreateRepo = repo
 	handler.discoveryExistingMatchRepo = repo
 	handler.folderManagementRepo = repo
+	handler.animeAniSearchLinkRepo = repo
 
 	return handler
 }

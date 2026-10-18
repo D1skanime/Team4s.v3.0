@@ -78,6 +78,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/anime/enrichment/anisearch", auth, deps.adminContentHandler.LoadAnimeCreateAniSearchEnrichment)
 	v1.GET("/admin/anime/enrichment/anisearch/search", auth, deps.adminContentHandler.SearchAnimeCreateAniSearchCandidates)
 	v1.POST("/admin/anime/:id/enrichment/anisearch", auth, deps.adminContentHandler.LoadAnimeAniSearchEnrichment)
+	v1.POST("/admin/anime/:id/anisearch/link", auth, deps.adminContentHandler.LinkAnimeAniSearchSource)
 	v1.GET("/admin/anime/:id/jellyfin/context", auth, deps.adminContentHandler.GetAnimeJellyfinContext)
 	v1.POST("/admin/anime/:id/jellyfin/metadata/preview", auth, deps.adminContentHandler.PreviewAnimeMetadataFromJellyfin)
 	v1.POST("/admin/anime/:id/jellyfin/metadata/apply", auth, deps.adminContentHandler.ApplyAnimeMetadataFromJellyfin)
