@@ -51,6 +51,16 @@ export interface EpisodeGroup {
   /** Filler classification for the canonical episode, e.g. "filler", "canon", "mixed", "recap". */
   fillerType: string | null
   fillerNote: string | null
+  /**
+   * Full multilingual title map for this episode (e.g. { de: "...", en: "...", ja: "..." }),
+   * as parsed/persisted by the backend. Null when the canonical episode has no
+   * titles at all. Used to drive the per-episode language dropdown in
+   * EpisodeImportEpisodeGroup -- the dropdown itself only shows languages that
+   * are actually present here, never a hardcoded list.
+   */
+  titlesByLanguage: Record<string, string> | null
+  /** Language codes with a non-empty title for this episode, in de/en/ja preference order. */
+  availableLanguages: string[]
   coveredEpisodes: Array<{
     episodeNumber: number
     title: string | null
@@ -58,6 +68,21 @@ export interface EpisodeGroup {
   }>
   lastCoveredEpisodeNumber: number
   rows: EpisodeImportMappingRow[]
+}
+
+/** Preference order used both for the default-selected language and for ordering the dropdown. */
+const EPISODE_TITLE_LANGUAGE_ORDER = ['de', 'en', 'ja']
+
+function resolveAvailableLanguages(titlesByLanguage: Record<string, string> | null | undefined): string[] {
+  if (!titlesByLanguage) return []
+  const present = new Set(
+    Object.entries(titlesByLanguage)
+      .filter(([, title]) => title.trim() !== '')
+      .map(([lang]) => lang),
+  )
+  const ordered = EPISODE_TITLE_LANGUAGE_ORDER.filter((lang) => present.has(lang))
+  const remaining = [...present].filter((lang) => !EPISODE_TITLE_LANGUAGE_ORDER.includes(lang)).sort()
+  return [...ordered, ...remaining]
 }
 
 interface UseEpisodeImportBuilderState {
@@ -90,7 +115,14 @@ interface UseEpisodeImportBuilderState {
   removeSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   applyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   applyFansubGroupFromEpisode: (sourceKey: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
-  setEpisodeTitle: (episodeNumber: number, title: string) => void
+  /**
+   * `language` is the currently-selected language slot in the per-episode
+   * dropdown (EpisodeImportEpisodeGroup). Defaults to "de" for callers that
+   * don't track a selection (e.g. the covered-episodes list, which has no
+   * dropdown of its own and always edits the German slot, matching prior
+   * behavior).
+   */
+  setEpisodeTitle: (episodeNumber: number, title: string, language?: string) => void
   confirmMapping: (sourceKey: string) => void
   skipMapping: (sourceKey: string) => void
   skipAllSuggested: () => void
@@ -224,12 +256,15 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       .sort(([a], [b]) => a - b)
       .map(([episodeNumber, rows]) => {
         const ep = canonicalMap.get(episodeNumber)
+        const titlesByLanguage = ep?.titles_by_language ?? null
         return {
           episodeNumber,
           title: ep ? resolveEpisodeDisplayTitle(ep) : null,
           existingEpisodeId: ep?.existing_episode_id ?? null,
           fillerType: ep?.filler_type ?? null,
           fillerNote: ep?.filler_note ?? null,
+          titlesByLanguage,
+          availableLanguages: resolveAvailableLanguages(titlesByLanguage),
           coveredEpisodes: Array.from(
             new Set(
               rows.flatMap((row) => row.target_episode_numbers ?? []),
@@ -364,7 +399,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
             : liveGroups
         return applyFansubGroupFromEpisodeDown(current, startIndex, oldFansubGroups, newFansubGroups)
       }),
-    setEpisodeTitle: (episodeNumber, title) =>
+    setEpisodeTitle: (episodeNumber, title, language = 'de') =>
       setPreview((current) => {
         if (!current) return current
         const trimmed = title.trim()
@@ -376,15 +411,21 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
             }
             const nextTitlesByLanguage = { ...(episode.titles_by_language ?? {}) }
             if (trimmed) {
-              nextTitlesByLanguage.de = trimmed
+              nextTitlesByLanguage[language] = trimmed
             } else {
-              delete nextTitlesByLanguage.de
+              delete nextTitlesByLanguage[language]
             }
             return {
               ...episode,
               titles_by_language:
                 Object.keys(nextTitlesByLanguage).length > 0 ? nextTitlesByLanguage : null,
-              title: trimmed || episode.title || episode.existing_title || null,
+              // Only the German slot feeds the legacy single-string `title`
+              // fallback (resolveEpisodeDisplayTitle prefers titles_by_language.de
+              // over this field anyway; edits to en/ja must not clobber it).
+              title:
+                language === 'de'
+                  ? trimmed || episode.title || episode.existing_title || null
+                  : episode.title,
             }
           }),
         }

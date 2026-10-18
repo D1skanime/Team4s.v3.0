@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { EpisodeImportMappingRow } from '@/types/episodeImport'
@@ -34,6 +34,8 @@ function makeGroup(overrides: Partial<EpisodeGroupProps['group']> = {}): Episode
     existingEpisodeId: null,
     fillerType: null,
     fillerNote: null,
+    titlesByLanguage: null,
+    availableLanguages: [],
     coveredEpisodes: [],
     lastCoveredEpisodeNumber: 1,
     rows: [makeRow()],
@@ -41,7 +43,10 @@ function makeGroup(overrides: Partial<EpisodeGroupProps['group']> = {}): Episode
   }
 }
 
-function renderGroup(group: EpisodeGroupProps['group']) {
+function renderGroup(
+  group: EpisodeGroupProps['group'],
+  onSetEpisodeTitle: EpisodeGroupProps['onSetEpisodeTitle'] = vi.fn(),
+) {
   return render(
     <EpisodeGroup
       group={group}
@@ -53,7 +58,7 @@ function renderGroup(group: EpisodeGroupProps['group']) {
       onRemoveSelectedFansubGroup={vi.fn()}
       onApplyFansubGroupToEpisode={vi.fn()}
       onApplyFansubGroupFromEpisode={vi.fn()}
-      onSetEpisodeTitle={vi.fn()}
+      onSetEpisodeTitle={onSetEpisodeTitle}
       onSkip={vi.fn()}
       onApplyRow={vi.fn()}
       applyingRowId={null}
@@ -117,5 +122,99 @@ describe('EpisodeGroup (GAP-13)', () => {
     expect(screen.getAllByText('Anime.TV.Sub/GhostFile')).toHaveLength(1)
     expect(screen.getAllByText('GhostFile.S01E01-OtherGroup.mkv')).toHaveLength(1)
     expect(screen.getAllByText('Anime.TV.Sub2/GhostFile')).toHaveLength(1)
+  })
+
+  it('language dropdown only offers the languages actually present for the episode, defaulting to German', () => {
+    const group = makeGroup({
+      titlesByLanguage: { de: 'Unantastbare Königin', en: 'Untouchable Queen', ja: 'Untouchable Queen' },
+      availableLanguages: ['de', 'en', 'ja'],
+    })
+
+    renderGroup(group)
+
+    const select = screen.getByRole('combobox', {
+      name: 'Sprache für Episodentitel 1',
+    }) as HTMLSelectElement
+    const optionLabels = Array.from(select.options).map((option) => option.text)
+    expect(optionLabels).toEqual(['Deutsch', 'Englisch', 'Japanisch'])
+    expect(select.value).toBe('de')
+
+    const titleInput = screen.getByRole('textbox', {
+      name: 'Episodentitel für Episode 1',
+    }) as HTMLInputElement
+    expect(titleInput.value).toBe('Unantastbare Königin')
+  })
+
+  it('switching the language dropdown updates the displayed title to that language', () => {
+    const group = makeGroup({
+      titlesByLanguage: { de: 'Unantastbare Königin', en: 'Untouchable Queen' },
+      availableLanguages: ['de', 'en'],
+    })
+
+    renderGroup(group)
+
+    const select = screen.getByRole('combobox', {
+      name: 'Sprache für Episodentitel 1',
+    }) as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'en' } })
+
+    const titleInput = screen.getByRole('textbox', {
+      name: 'Episodentitel für Episode 1',
+    }) as HTMLInputElement
+    expect(titleInput.value).toBe('Untouchable Queen')
+  })
+
+  it('a language with no title for this episode shows an empty input, not a silent German fallback', () => {
+    const group = makeGroup({
+      titlesByLanguage: { de: 'Unantastbare Königin' },
+      availableLanguages: ['de', 'en'],
+    })
+
+    renderGroup(group)
+
+    const select = screen.getByRole('combobox', {
+      name: 'Sprache für Episodentitel 1',
+    }) as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'en' } })
+
+    const titleInput = screen.getByRole('textbox', {
+      name: 'Episodentitel für Episode 1',
+    }) as HTMLInputElement
+    expect(titleInput.value).toBe('')
+  })
+
+  it('editing the title while a non-German language is selected writes back to that language, not German', () => {
+    const onSetEpisodeTitle = vi.fn()
+    const group = makeGroup({
+      titlesByLanguage: { de: 'Unantastbare Königin', en: 'Untouchable Queen' },
+      availableLanguages: ['de', 'en'],
+    })
+
+    renderGroup(group, onSetEpisodeTitle)
+
+    const select = screen.getByRole('combobox', {
+      name: 'Sprache für Episodentitel 1',
+    }) as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'en' } })
+
+    const titleInput = screen.getByRole('textbox', {
+      name: 'Episodentitel für Episode 1',
+    }) as HTMLInputElement
+    fireEvent.change(titleInput, { target: { value: 'Edited English Title' } })
+
+    expect(onSetEpisodeTitle).toHaveBeenCalledWith(1, 'Edited English Title', 'en')
+  })
+
+  it('falls back to Deutsch-only dropdown when no languages are available at all', () => {
+    const group = makeGroup({ titlesByLanguage: null, availableLanguages: [] })
+
+    renderGroup(group)
+
+    const select = screen.getByRole('combobox', {
+      name: 'Sprache für Episodentitel 1',
+    }) as HTMLSelectElement
+    const optionLabels = Array.from(select.options).map((option) => option.text)
+    expect(optionLabels).toEqual(['Deutsch'])
+    expect(select.value).toBe('de')
   })
 })

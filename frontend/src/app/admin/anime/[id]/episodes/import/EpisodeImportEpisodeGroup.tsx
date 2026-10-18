@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import type {
   EpisodeImportMappingRow,
   EpisodeImportSelectedFansubGroup,
@@ -14,6 +16,23 @@ import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
 import { fillerLabel } from "./episodeImportMapping";
 import styles from "./page.module.css";
 
+/** German label per language code. Extend if the backend parser ever extracts more than de/en/ja. */
+const EPISODE_TITLE_LANGUAGE_LABELS: Record<string, string> = {
+  de: "Deutsch",
+  en: "Englisch",
+  ja: "Japanisch",
+};
+
+function episodeTitleLanguageLabel(language: string): string {
+  return EPISODE_TITLE_LANGUAGE_LABELS[language] ?? language;
+}
+
+/** "de" if present, else the first available language, else "de" (matches the pre-fix default). */
+function defaultEpisodeTitleLanguage(availableLanguages: string[]): string {
+  if (availableLanguages.includes("de")) return "de";
+  return availableLanguages[0] ?? "de";
+}
+
 export interface EpisodeGroupProps {
   group: {
     episodeNumber: number;
@@ -21,6 +40,8 @@ export interface EpisodeGroupProps {
     existingEpisodeId: number | null;
     fillerType: string | null;
     fillerNote: string | null;
+    titlesByLanguage: Record<string, string> | null;
+    availableLanguages: string[];
     coveredEpisodes: Array<{
       episodeNumber: number;
       title: string | null;
@@ -56,7 +77,11 @@ export interface EpisodeGroupProps {
     sourceKey: string,
     fansubGroups: EpisodeImportSelectedFansubGroup[],
   ) => void;
-  onSetEpisodeTitle: (episodeNumber: number, title: string) => void;
+  onSetEpisodeTitle: (
+    episodeNumber: number,
+    title: string,
+    language?: string,
+  ) => void;
   onConfirm?: (sourceKey: string) => void;
   onSkip: (sourceKey: string) => void;
   onApplyRow: (sourceKey: string) => void;
@@ -92,6 +117,19 @@ export function EpisodeGroup({
   const hasActionable = group.rows.some(
     (row) => row.status === "suggested" || row.status === "conflict",
   );
+  // Per-episode "currently selected language" for the title editor/dropdown.
+  // This component is keyed by group.episodeNumber in page.tsx, so React
+  // keeps a separate state slot per episode rather than one shared value.
+  const [selectedLanguage, setSelectedLanguage] = useState(() =>
+    defaultEpisodeTitleLanguage(group.availableLanguages),
+  );
+  const languageOptions =
+    group.availableLanguages.length > 0 ? group.availableLanguages : ["de"];
+  const effectiveLanguage = languageOptions.includes(selectedLanguage)
+    ? selectedLanguage
+    : defaultEpisodeTitleLanguage(group.availableLanguages);
+  const titleForSelectedLanguage =
+    group.titlesByLanguage?.[effectiveLanguage] ?? "";
   return (
     <div className={styles.episodeGroup}>
       <div
@@ -109,11 +147,15 @@ export function EpisodeGroup({
                 <span className={styles.episodeTitleLabel}>Episoden Titel</span>
                 <Input
                   className={styles.episodeTitleInput}
-                  value={group.title ?? ""}
+                  value={titleForSelectedLanguage}
                   placeholder={`Episode ${group.episodeNumber}`}
                   aria-label={`Episodentitel für Episode ${group.episodeNumber}`}
                   onChange={(event) =>
-                    onSetEpisodeTitle(group.episodeNumber, event.target.value)
+                    onSetEpisodeTitle(
+                      group.episodeNumber,
+                      event.target.value,
+                      effectiveLanguage,
+                    )
                   }
                 />
               </label>
@@ -121,11 +163,15 @@ export function EpisodeGroup({
                 <span className={styles.episodeTitleLabel}>Sprache</span>
                 <Select
                   className={styles.episodeTitleLanguageSelect}
-                  value="de"
+                  value={effectiveLanguage}
                   aria-label={`Sprache für Episodentitel ${group.episodeNumber}`}
-                  onChange={() => undefined}
+                  onChange={(event) => setSelectedLanguage(event.target.value)}
                 >
-                  <option value="de">Deutsch</option>
+                  {languageOptions.map((language) => (
+                    <option key={language} value={language}>
+                      {episodeTitleLanguageLabel(language)}
+                    </option>
+                  ))}
                 </Select>
               </label>
             </div>
