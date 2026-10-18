@@ -426,3 +426,65 @@ spezifizierten Umfang hinaus**, Task 4/5 des Original-Plans bleiben unverändert
   `frontend/src/app/admin/anime/hooks/useAnimeEditAniSearchLink.ts`,
   `frontend/src/app/admin/anime/components/AnimeEditPage/AnimeEditSourceSection.tsx`,
   `frontend/src/app/admin/anime/components/AnimeEditPage/AnimeEditSourceSection.test.tsx`
+
+---
+
+## Addendum (2026-10-18): Teil B — Backend-Übernahmelogik ("Jellyfin-Vergleich"), Live-Freigabe, Nacharbeiten
+
+**Task 4 (Checkpoint) ist hiermit AUFGELÖST — Nutzerentscheidung: "Jellyfin-Vergleich" statt
+Reaktivierung des toten Codes.** Task 5 (Backend-Rebuild, Frontend-Neustart, Live-Test) ist
+VOLLSTÄNDIG und vom Nutzer live am Beispiel Freezing/AniSearch-ID 6465 **freigegeben**. Der Plan
+ist damit insgesamt abgeschlossen.
+
+### Teil-B-Entscheidung und Umsetzung
+
+Statt die tote `AniSearchEnrichmentSection`-Logik zu reaktivieren, hat der Nutzer die Variante
+"Jellyfin-Vergleich" gewählt: Beim Verknüpfen werden serverseitig, in derselben Transaktion wie
+der additive Link-Schreibvorgang, 8 Felder (title_de, title_en, year, max_episodes, genre, tags,
+description, type) nach der Regel leer→füllen / stammt-von-Jellyfin→ersetzen /
+weicht-ab→manuell-behalten übernommen (title/content_type/status bewusst ausgeschlossen —
+title wegen der bestehenden Anlege-Flow-Sperre, content_type/status weil AniSearch dafür nie
+einen echten Wert liefert). Commits:
+
+4. `43afcfa31` (feat) — reine Fill/Replace/Keep-Entscheidungsfunktion
+5. `03fa65068` (feat) — `LinkAniSearchSource` um den transaktionalen Übernahme-Patch erweitert
+6. `28ad60103` (feat) — Handler-seitige Orchestrierung (AniSearch-Fetch + Jellyfin-Vergleich + Audit)
+7. `7d7b9eea7` (refactor) — 450-Zeilen-Split der durch die Übernahme berührten Dateien
+8. `9697b8e65` (feat) — Übernahme-Feedback im Frontend (siehe Addendum oben)
+9. `32be98fe1` (docs) — Dokumentations-Nachtrag
+
+Genre/Tags laufen über die bereits gehärtete Autoritäts-Synchronisation
+(`syncAuthoritativeAnimeMetadata`/`anime_genres`/`anime_tags`), keine Parallel-Logik. Ein
+Audit-Eintrag listet die geänderten Felder. Details siehe Git-Historie der genannten Commits.
+
+### Während der Live-Freigabe gefundene und behobene Defekte
+
+Die Live-Prüfung (Freezing → AniSearch-ID 6465 verknüpfen → Episoden-Import prüfen) deckte zwei
+weitere, von diesem Plan unabhängige, aber dadurch erst sichtbar gewordene Defekte auf — beide
+untersucht und behoben, jeweils mit eigenem Debug-Dossier:
+
+- **AniSearch-Episodentitel falsch + Sprach-Dropdown war Stub**
+  (`.planning/debug/anisearch-episode-titles-wrong-and-no-language-select.md`): eine
+  Bonus-/Crossover-Episode ("B1") in AniSearchs echtem HTML überschrieb die echte Episode 1;
+  das Sprach-Dropdown im Episoden-Import war fest auf Deutsch verdrahtet. Fixes: `67cb7936b`,
+  `5f8979bb1`. Betrifft denselben AniSearch-Episoden-Parser (`anisearch_episode_import.go`),
+  NICHT die Teil-B-Übernahmelogik (die nimmt nie Episodentitel).
+- **"Ab hier" Zwei-Schritt-Chip-Wechsel-Regression**
+  (`.planning/debug/ab-hier-two-step-chip-change-regression.md`): eine Regression in Phase 186s
+  eigenem D-01-Review-Fix (389bd52a2, nicht Teil dieses Quick-Tasks), erst durch den Live-Test auf
+  Freezing sichtbar geworden (Chip "M-L" → "MelonSubs" wechseln, "Ab hier" klicken). Fix:
+  `06b39a2f5`. Wird als Phase-186-Nacharbeit in `186-05-SUMMARY.md`/`186-VERIFICATION.md`
+  dokumentiert, hier nur zur Vollständigkeit referenziert.
+
+Keine dieser beiden Reparaturen hat Anime 12/13 oder sonstige Bestandsdaten verändert.
+
+### Live-Freigabe
+
+Nutzer hat den gesamten Flow (Verknüpfen, Datenübernahme, Episodentitel/Sprach-Dropdown-Fix) live
+auf `/admin/anime/13/edit` und `/admin/anime/13/episodes/import` geprüft und **freigegeben**.
+
+### Status: Quick-Task 261018-l5r VOLLSTÄNDIG ABGESCHLOSSEN
+
+---
+*Plan status: COMPLETE (Tasks 1-5, inkl. Task-4-Entscheidung "Jellyfin-Vergleich")*
+*Abgeschlossen: 2026-10-18*
