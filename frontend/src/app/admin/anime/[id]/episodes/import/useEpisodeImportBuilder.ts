@@ -9,8 +9,6 @@ import {
   previewEpisodeImport,
 } from '@/lib/api'
 import type {
-  EpisodeImportApplyInput,
-  EpisodeImportApplyMappingRow,
   EpisodeImportApplyResult,
   EpisodeImportCanonicalEpisode,
   EpisodeImportContextResult,
@@ -26,12 +24,10 @@ import {
   confirmMapping,
   confirmEpisodeMappingRows,
   detectMappingConflicts,
-  hasReviewedMediaSource,
   markAllSuggestedConfirmed,
   markAllSuggestedSkipped,
   resolveEpisodeDisplayTitle,
   removeMappingFansubGroup,
-  serializeEpisodeImportMappingRow,
   setMappingReleaseMeta,
   setMappingFansubGroups,
   setMappingTargets,
@@ -40,7 +36,13 @@ import {
   resolveMappingGroupEpisodeNumber,
   toggleMappingSkipped,
 } from './episodeImportMapping'
-import { applyEinteilerTitlePrefill } from './episodeImportEinteilerTitle'
+import {
+  buildEpisodeImportApplyInput,
+  formatEpisodeImportError,
+  normalizePreviewResult,
+} from './episodeImportBuilderHelpers'
+
+export { buildEpisodeImportApplyInput, normalizePreviewResult } from './episodeImportBuilderHelpers'
 
 export interface EpisodeGroup {
   episodeNumber: number
@@ -400,66 +402,4 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     skipEpisodeRows: (episodeNumber) =>
       setMappings((current) => skipEpisodeMappingRows(current, episodeNumber)),
   }
-}
-
-export function buildEpisodeImportApplyInput(
-  animeID: number,
-  preview: EpisodeImportPreviewResult,
-  mappings: EpisodeImportMappingRow[],
-): EpisodeImportApplyInput {
-  const reviewedMappings: EpisodeImportApplyMappingRow[] = []
-  for (const row of detectMappingConflicts(mappings, preview.media_candidates ?? [])) {
-    if (row.status === 'skipped') {
-      reviewedMappings.push({ ...serializeEpisodeImportMappingRow(row), status: 'skipped' })
-      continue
-    }
-    if (row.status !== 'confirmed' || !row.media_source_id?.trim() ||
-      !hasReviewedMediaSource(row, preview.media_candidates ?? [])) {
-      throw new Error('Die geprüfte Quelle fehlt oder wurde geändert. Bitte die Vorschau erneut laden.')
-    }
-    reviewedMappings.push({ ...serializeEpisodeImportMappingRow(row), status: 'confirmed', media_source_id: row.media_source_id })
-  }
-  return {
-    anime_id: animeID,
-    canonical_episodes: preview.canonical_episodes,
-    media_candidates: preview.media_candidates ?? [],
-    mappings: reviewedMappings,
-  }
-}
-
-export function normalizePreviewResult(preview: EpisodeImportPreviewResult): EpisodeImportPreviewResult {
-  return {
-    ...preview,
-    canonical_episodes: applyEinteilerTitlePrefill(
-      preview.canonical_episodes ?? [],
-      preview.is_einteiler ?? false,
-      preview.anime_title,
-    ),
-    media_candidates: preview.media_candidates ?? [],
-    mappings: detectMappingConflicts((preview.mappings ?? []).map((row) => {
-      const candidates = (preview.media_candidates ?? []).filter(
-        (candidate) => candidate.media_item_id === row.media_item_id,
-      )
-      // Seed only at the preview boundary. Apply must never repair a lost selector.
-      const reviewedRow = {
-        ...row,
-        media_source_id: row.media_source_id ?? (candidates.length === 1 ? candidates[0].media_source_id : null),
-      }
-      const detectedGroupName = row.fansub_group_name?.trim()
-      if ((row.fansub_groups?.length ?? 0) > 0 || !detectedGroupName) return reviewedRow
-      return serializeEpisodeImportMappingRow({
-        ...reviewedRow,
-        fansub_groups: [{ name: detectedGroupName }],
-      })
-    }), preview.media_candidates ?? []),
-    unmapped_episodes: preview.unmapped_episodes ?? [],
-    unmapped_media_item_ids: preview.unmapped_media_item_ids ?? [],
-  }
-}
-
-function formatEpisodeImportError(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message
-  }
-  return fallback
 }
