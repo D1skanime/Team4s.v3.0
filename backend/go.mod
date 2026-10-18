@@ -19,6 +19,8 @@ require (
 	golang.org/x/text v0.35.0
 )
 
+require github.com/nssteinbrenner/anitogo v1.0.0
+
 require (
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
