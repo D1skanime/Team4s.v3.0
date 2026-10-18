@@ -105,6 +105,10 @@ None - no external service configuration required.
 - A full-suite `npx vitest run` shows 3 pre-existing, environment-dependent failures unrelated to this plan's scope (missing `API_INTERNAL_URL` for a badge-artwork catalog gate, an unrelated `ResponsiveImage` config assertion, and a backend-source anti-drift test requiring an absolute `/backend/...` path only resolvable inside the Docker container) — not caused by and not touched by this plan's changes.
 - D-02 (button label/primitive migration) and D-03 (anitogo filename parser) remain open for other plans in Phase 186.
 
+## Self-Check: PASSED
+
+All created files and all task/summary commit hashes verified present (`episodeImportFansubGroupHelpers.ts`, `episodeImportMapping.ts`, this SUMMARY.md, commits `e48a7a942`, `629857e8d`, `d186f068e`, `802071cc9`).
+
 ---
 *Phase: 186-episoden-import-nachsch-rfen-paket-a-aus-ux-abgleich-dateina*
 *Completed: 2026-10-18*

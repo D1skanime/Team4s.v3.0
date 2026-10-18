@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 186-01-PLAN.md (admin_episode_import.go file split, D-04)
-last_updated: "2026-10-18T12:20:21.002Z"
+stopped_at: Completed 186-03-PLAN.md ("Ab hier" targeted fansub-group replacement, D-01 + episodeImportMapping.ts split)
+last_updated: "2026-10-18T12:28:01.160Z"
 last_activity: 2026-10-18
 progress:
   total_phases: 51
   completed_phases: 45
   total_plans: 463
-  completed_plans: 456
+  completed_plans: 457
   percent: 88
 ---
 
@@ -1306,6 +1306,8 @@ Last activity: 2026-10-18
 - [Phase 185]: 185-11: Phase-134-Matrix cluster (9 tests) wired up via scripts/provision-phase134-matrix-db.sh + container-network env vars; remaining red result traced to a pre-existing external Keycloak dev-account credential issue, out of scope for this plan
 - [Phase 185]: 185-12: Behoben wurden drei reale Blocker (fehlende Keycloak-Dev-Accounts, veraltetes Docker-Image, veraltete Sanitizer-src-Regex), um beide Testsuiten zweimal hintereinander gruen zu bekommen und D-07s Abschlusskriterium zu erfuellen
 - [Phase 186]: 186-01: Split admin_episode_import.go into 4 files (<=450 lines each) as one standalone pure-refactor commit per plan's Task 3 instruction, mirroring commit e1774a6da
+- [Phase 186]: 186-03: applyGroupFromHere implemented as the exact CONTEXT.md D-01 low-level pure function (index + single-value), with applyFansubGroupFromEpisodeDown as the adapter via fansubGroupsValueKey; "old value" baseline is read from the pristine preview.mappings, not live-edited state, documented inline
+- [Phase 186]: 186-03: episodeImportMapping.ts crossed 450 lines (485) after the D-01 rewrite; split normalizeFansubGroups/normalizeFansubGroup/getFansubGroupKey/normalizeOptionalText verbatim into a new episodeImportFansubGroupHelpers.ts sibling (D-04), per the plan's own anticipated seam
 
 ### Pending Todos
 
@@ -1992,11 +1994,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 185 P11 | 50min | 2 tasks | 2 files |
 | Phase 185 P12 | 25min | 3 tasks | 3 files |
 | Phase 186 P01 | 25min | 3 tasks | 4 files |
+| Phase 186 P03 | 6min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-18T12:20:20.987Z
-Stopped at: Completed 186-01-PLAN.md (admin_episode_import.go file split, D-04)
-Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
+Last session: 2026-10-18T12:28:01.160Z
+Stopped at: Completed 186-03-PLAN.md ("Ab hier" targeted fansub-group replacement, D-01 + episodeImportMapping.ts split)
+Last activity: 2026-10-18 - Completed 186-03-PLAN.md
 Resume file: 
 None
