@@ -163,3 +163,25 @@ Freitext), mehrere Folgezeilen mit gemischten Gruppen, und beide Regressionswäc
 
 Vom Nutzer live auf Anime 13 "Freezing" (Chip "M-L" → "MelonSubs", "Ab hier") nachgeprüft und
 freigegeben.
+
+### Zweiter Split: `useEpisodeImportBuilder.ts` erneut über 450-Zeilen-Limit (2026-10-18)
+
+Der Zwei-Schritt-Chip-Fix (`06b39a2f5`, Ref-Bookkeeping für `rowGroupsBeforeLastEditRef`) hat
+`useEpisodeImportBuilder.ts` ohne erneute Zeilenkontrolle von 405 wieder auf 462 Zeilen
+gebracht — 12 über dem CLAUDE.md-Limit. Reiner Umbau-Commit, keine Verhaltensänderung: die fünf
+Fansubgruppen-Mutator-Callbacks (`setSelectedFansubGroups`, `addSelectedFansubGroup`,
+`removeSelectedFansubGroup`, `applyFansubGroupToEpisode`, `applyFansubGroupFromEpisode`) plus der
+dazugehörige `rowGroupsBeforeLastEditRef` wurden in einen zweiten Helfer-Hook
+`useEpisodeImportFansubGroupActions.ts` ausgelagert (nimmt den `setMappings`-State-Setter als
+Parameter, gibt die fünf Callbacks zurück) — analog zum bestehenden Muster
+`useAnimeEditAssetRemoval`/`useAnimeEditAssetSearch` (Split aus `AnimeEditWorkspace.tsx`).
+`useEpisodeImportBuilder.ts` spread't das Ergebnis (`...fansubGroupActions`) direkt ins
+Rückgabeobjekt — öffentliche Hook-Signatur unverändert.
+
+**Ergebnis:** `useEpisodeImportBuilder.ts` 404 Zeilen, neue Datei
+`useEpisodeImportFansubGroupActions.ts` 110 Zeilen. `npm run typecheck` clean für beide Dateien
+(einziger verbleibender Fehler ist ein vorbestehender, unabhängiger `.next/dev/types`-Cache-Fehler
+zu einer anderen Route). Alle 123 Tests im `episodes/import`-Verzeichnis bleiben unverändert grün.
+
+**Commit:** `refactor(186-review): useEpisodeImportBuilder.ts erneut unter 450-Zeilen-Limit
+splitten` (siehe Commit-Historie).
