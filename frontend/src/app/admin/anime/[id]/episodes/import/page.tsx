@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { EpisodeImportApplyErrorAlert } from "./EpisodeImportApplyErrorAlert";
 import { EpisodeImportFolderSelector } from "./EpisodeImportFolderSelector";
@@ -184,30 +185,33 @@ function AdminAnimeEpisodeImportContent() {
               </p>
             </div>
             <div className={styles.workbenchActions}>
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 className={styles.secondaryButton}
-                type="button"
                 onClick={() => builder.skipAllSuggested()}
                 disabled={!builder.hasSuggestedRows}
               >
                 Alle Vorschläge überspringen
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 className={styles.secondaryButton}
-                type="button"
                 onClick={() => builder.confirmAllSuggested()}
                 disabled={!builder.hasSuggestedRows}
               >
                 Alle Vorschläge bestätigen
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
                 className={styles.primaryButton}
-                type="button"
                 disabled={!builder.canApply || builder.isApplying}
                 onClick={() => void builder.applyMappings()}
               >
-                {builder.isApplying ? "Wendet an..." : "Mapping anwenden"}
-              </button>
+                {builder.isApplying ? "Wendet an..." : "Alle bestätigten übernehmen"}
+              </Button>
             </div>
             <EpisodeImportApplyErrorAlert message={builder.applyErrorMessage} />
           </div>
