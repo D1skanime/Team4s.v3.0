@@ -10,6 +10,7 @@ import {
   formatCreatePageError,
   resolveCreateAniSearchDraftMergeInputs,
 } from "../../createPageHelpers";
+import { extractAniSearchIDFromLinkInput } from "../../../utils/anime-helpers";
 import {
   applyCreateAniSearchControllerResult,
   type CreateAniSearchConflictState,
@@ -108,11 +109,16 @@ export function useAniSearchIntakeActions({
   applyManualDraftValues,
 }: UseAniSearchIntakeActionsParams) {
   const loadAniSearchDraftByID = useCallback(
-    async (anisearchID: string) => {
+    async (rawAniSearchID: string) => {
       clearMessages();
       clearAniSearchState();
       setLastRequest(null);
       setLastResponse(null);
+
+      // Item 2 (quick-261018-l5r Dedupe-Nachtrag): erlaubt auch das Einfuegen einer vollen
+      // AniSearch-URL in dieses Feld, nicht nur die rohe ID -- dieselbe Extraktion wie in der
+      // Anime-Bearbeitung (Task 3).
+      const anisearchID = extractAniSearchIDFromLinkInput(rawAniSearchID);
 
       if (!anisearchID) {
         setAniSearchErrorMessage("Bitte zuerst eine AniSearch-ID eingeben.");

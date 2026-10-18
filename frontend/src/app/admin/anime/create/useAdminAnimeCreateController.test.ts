@@ -791,6 +791,24 @@ describe('useAdminAnimeCreateController (hook execution)', () => {
     expect(requestPayload).not.toHaveProperty(removedBypassKey)
   })
 
+  it('Item 2 (quick-261018-l5r Dedupe-Nachtrag): a pasted AniSearch URL in the ID field resolves to the same submitted ID as typing the bare number', async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce(
+      aniSearchDraftResponseFixture,
+    )
+    act(() =>
+      result.current.handlers.setAniSearchID('https://www.anisearch.de/anime/2788,naruto'),
+    )
+    await act(async () => {
+      await result.current.handlers.handleAniSearchDraftLoad()
+    })
+
+    expect(intakeMocks.loadAdminAnimeCreateAniSearchDraft).toHaveBeenCalledTimes(1)
+    const requestPayload = intakeMocks.loadAdminAnimeCreateAniSearchDraft.mock.calls[0][0]
+    expect(requestPayload.anisearch_id).toBe('2788')
+  })
+
   it("D-30 (165-18): submitCreate's request payload never carries the removed second-confirmation key", async () => {
     const { result } = renderHook(() => useAdminAnimeCreateController())
 

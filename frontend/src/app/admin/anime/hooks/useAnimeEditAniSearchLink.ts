@@ -8,24 +8,7 @@ import { searchAdminAnimeCreateAniSearchCandidates } from '@/lib/api/admin-anime
 import type { AdminAnimeAniSearchSearchCandidate } from '@/types/admin'
 
 import { formatAdminError } from '../utils/studio-helpers'
-
-/**
- * Task 3 (quick-261018-l5r): extrahiert eine reine AniSearch-ID aus entweder einer direkten
- * Zahleneingabe oder einer vollen AniSearch-URL (z. B. `https://www.anisearch.de/anime/
- * 6465,freezing`). Einfacher Regex/Split statt einer vollen URL-Parser-Abhängigkeit -- reicht für
- * das bekannte AniSearch-URL-Schema `/anime/<id>[,<slug>][/...]`. Gibt den getrimmten Rohwert
- * unverändert zurück, wenn kein bekanntes Muster greift (das Backend validiert ohnehin erneut).
- */
-export function extractAniSearchIDFromLinkInput(raw: string): string {
-  const trimmed = raw.trim()
-  if (!trimmed) return ''
-  if (/^\d+$/.test(trimmed)) return trimmed
-
-  const urlMatch = trimmed.match(/anisearch\.[a-z.]+\/anime\/(\d+)/i)
-  if (urlMatch) return urlMatch[1]
-
-  return trimmed
-}
+import { extractAniSearchIDFromLinkInput } from '../utils/anime-helpers'
 
 export interface AnimeEditAniSearchLinkConflict {
   existingTitle: string

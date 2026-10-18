@@ -73,6 +73,26 @@ export function buildAniSearchAnimeURL(anisearchID: string): string {
 }
 
 /**
+ * Item 2 (quick-261018-l5r Dedupe-Nachtrag): extrahiert eine reine AniSearch-ID aus entweder
+ * einer direkten Zahleneingabe oder einer vollen AniSearch-URL (z. B. `https://www.anisearch.de/
+ * anime/6465,freezing`). Verschoben aus `useAnimeEditAniSearchLink.ts` (Task 3) hierher, damit
+ * sowohl die Anime-Bearbeitung als auch der Create-Flow dieselbe Extraktion wiederverwenden
+ * koennen. Einfacher Regex/Split statt einer vollen URL-Parser-Abhaengigkeit -- reicht fuer das
+ * bekannte AniSearch-URL-Schema `/anime/<id>[,<slug>][/...]`. Gibt den getrimmten Rohwert
+ * unveraendert zurueck, wenn kein bekanntes Muster greift (das Backend validiert ohnehin erneut).
+ */
+export function extractAniSearchIDFromLinkInput(raw: string): string {
+  const trimmed = raw.trim()
+  if (!trimmed) return ''
+  if (/^\d+$/.test(trimmed)) return trimmed
+
+  const urlMatch = trimmed.match(/anisearch\.[a-z.]+\/anime\/(\d+)/i)
+  if (urlMatch) return urlMatch[1]
+
+  return trimmed
+}
+
+/**
  * Resolves anime cover image URLs to their canonical format.
  *
  * Supports multiple formats:

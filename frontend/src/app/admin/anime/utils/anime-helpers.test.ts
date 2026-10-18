@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildAniSearchAnimeURL,
+  extractAniSearchIDFromLinkInput,
   formatEpisodeStatusLabel,
   normalizeGenreToken,
   normalizeOptionalString,
@@ -165,6 +166,35 @@ describe('resolveAniSearchID', () => {
 describe('buildAniSearchAnimeURL', () => {
   it('builds the canonical AniSearch anime URL', () => {
     expect(buildAniSearchAnimeURL(' 12345 ')).toBe('https://www.anisearch.de/anime/12345')
+  })
+})
+
+describe('extractAniSearchIDFromLinkInput', () => {
+  it('passes a plain numeric ID through unchanged', () => {
+    expect(extractAniSearchIDFromLinkInput('6465')).toBe('6465')
+  })
+
+  it('extracts the numeric ID from a full AniSearch URL with a slug', () => {
+    expect(extractAniSearchIDFromLinkInput('https://www.anisearch.de/anime/6465,freezing')).toBe(
+      '6465',
+    )
+  })
+
+  it('extracts the numeric ID from a full AniSearch URL without a slug', () => {
+    expect(extractAniSearchIDFromLinkInput('https://www.anisearch.de/anime/6465')).toBe('6465')
+  })
+
+  it('trims whitespace around a plain numeric ID', () => {
+    expect(extractAniSearchIDFromLinkInput('  6465  ')).toBe('6465')
+  })
+
+  it('returns an empty string for an empty input', () => {
+    expect(extractAniSearchIDFromLinkInput('')).toBe('')
+    expect(extractAniSearchIDFromLinkInput('   ')).toBe('')
+  })
+
+  it('passes through unrecognized input unchanged (trimmed)', () => {
+    expect(extractAniSearchIDFromLinkInput('  not-a-known-pattern  ')).toBe('not-a-known-pattern')
   })
 })
 
