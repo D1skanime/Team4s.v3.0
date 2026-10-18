@@ -150,8 +150,14 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
   const [applyErrorMessage, setApplyErrorMessage] = useState<string | null>(null)
   const autoPreviewAnimeID = useRef<number | null>(null)
   // D-01: one-step-back memory of each row's fansub groups immediately BEFORE
-  // its last chip edit, so "Ab hier" can derive the correct oldFansubGroups
-  // baseline instead of reading a stale page-load snapshot. See fix_1.
+  // the current edit SEQUENCE started, so "Ab hier" can derive the correct
+  // oldFansubGroups baseline instead of reading a stale page-load snapshot.
+  // See fix_1. A chip change on an existing chip is structurally always TWO
+  // mutator calls in this UI (remove old chip, then add/set the new one) --
+  // so the FIRST mutator call since the last consumption wins (sets the ref
+  // only if absent), not the last. applyFansubGroupFromEpisode deletes the
+  // entry once consumed so the next independent edit sequence starts fresh.
+  // See ab-hier-two-step-chip-change-regression.md.
   const rowGroupsBeforeLastEditRef = useRef<Map<string, EpisodeImportSelectedFansubGroup[]>>(new Map())
 
   const loadPreviewWithSettings = useCallback(async (
@@ -366,19 +372,25 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     setSelectedFansubGroups: (sourceKey, fansubGroups) =>
       setMappings((current) => {
         const existing = current.find((row) => jellyfinSourceKey(row) === sourceKey)
-        if (existing) rowGroupsBeforeLastEditRef.current.set(sourceKey, existing.fansub_groups ?? [])
+        if (existing && !rowGroupsBeforeLastEditRef.current.has(sourceKey)) {
+          rowGroupsBeforeLastEditRef.current.set(sourceKey, existing.fansub_groups ?? [])
+        }
         return setMappingFansubGroups(current, sourceKey, fansubGroups)
       }),
     addSelectedFansubGroup: (sourceKey, fansubGroup) =>
       setMappings((current) => {
         const existing = current.find((row) => jellyfinSourceKey(row) === sourceKey)
-        if (existing) rowGroupsBeforeLastEditRef.current.set(sourceKey, existing.fansub_groups ?? [])
+        if (existing && !rowGroupsBeforeLastEditRef.current.has(sourceKey)) {
+          rowGroupsBeforeLastEditRef.current.set(sourceKey, existing.fansub_groups ?? [])
+        }
         return addMappingFansubGroup(current, sourceKey, fansubGroup)
       }),
     removeSelectedFansubGroup: (sourceKey, fansubGroup) =>
       setMappings((current) => {
         const existing = current.find((row) => jellyfinSourceKey(row) === sourceKey)
-        if (existing) rowGroupsBeforeLastEditRef.current.set(sourceKey, existing.fansub_groups ?? [])
+        if (existing && !rowGroupsBeforeLastEditRef.current.has(sourceKey)) {
+          rowGroupsBeforeLastEditRef.current.set(sourceKey, existing.fansub_groups ?? [])
+        }
         return removeMappingFansubGroup(current, sourceKey, fansubGroup)
       }),
     applyFansubGroupToEpisode: (episodeNumber, fansubGroups) =>
@@ -397,6 +409,10 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
           newFansubGroups.length > 0
             ? rowGroupsBeforeLastEditRef.current.get(sourceKey) ?? liveGroups
             : liveGroups
+        // Consume + clear the baseline now that it has been read, regardless of which
+        // branch ("Ab hier" or "Ab hier entfernen") was taken -- the next independent
+        // edit sequence on this row must start fresh from its then-current value.
+        rowGroupsBeforeLastEditRef.current.delete(sourceKey)
         return applyFansubGroupFromEpisodeDown(current, startIndex, oldFansubGroups, newFansubGroups)
       }),
     setEpisodeTitle: (episodeNumber, title, language = 'de') =>
