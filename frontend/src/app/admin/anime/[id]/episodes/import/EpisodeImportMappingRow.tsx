@@ -147,7 +147,7 @@ export function EpisodeImportMappingRowCard({
             disabled={isApplyingRow}
             onClick={() => onApplyRow(sourceKey)}
           >
-            {isApplyingRow ? 'Wird angewendet...' : 'Übernehmen'}
+            {isApplyingRow ? 'Wird angewendet...' : 'Nur diese Version übernehmen'}
           </Button>
         ) : null}
       </div>

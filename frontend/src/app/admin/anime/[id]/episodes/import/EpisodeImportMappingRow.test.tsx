@@ -115,7 +115,7 @@ it('dispatches every row action with the exact reviewed source pair', () => {
   fireEvent.blur(screen.getByLabelText('Ziel-Episoden für Vipers Creed. S01E01-CSubs.mkv'), { target: { value: '2' } })
   fireEvent.change(screen.getByLabelText('Release-Version für Vipers Creed. S01E01-CSubs.mkv'), { target: { value: 'v2' } })
   fireEvent.click(screen.getByRole('button', { name: /^(Ueberspringen|Überspringen)$/ }))
-  fireEvent.click(screen.getByRole('button', { name: /^(Ubernehmen|Übernehmen)$/ }))
+  fireEvent.click(screen.getByRole('button', { name: /^(Nur diese Version ubernehmen|Nur diese Version übernehmen)$/ }))
   expect(onSetTargets).toHaveBeenCalledWith(key, '2')
   expect(onSetRelease).toHaveBeenCalledWith(key, { releaseVersion: 'v2' })
   expect(onSkip).toHaveBeenCalledWith(key)
