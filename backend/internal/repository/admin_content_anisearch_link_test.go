@@ -46,7 +46,7 @@ func TestAniSearchLink_AdditiveInsertLeavesAnimeSourceUnchanged(t *testing.T) {
 	require.NoError(t, err)
 
 	r := &AdminContentRepository{db: pool}
-	require.NoError(t, r.LinkAniSearchSource(ctx, animeID, "6465"))
+	require.NoError(t, r.LinkAniSearchSource(ctx, animeID, "6465", nil, 0))
 
 	var source string
 	var anisearchID *string
@@ -69,8 +69,8 @@ func TestAniSearchLink_IsIdempotentOnRelinkSameAnime(t *testing.T) {
 	ctx := context.Background()
 
 	r := &AdminContentRepository{db: pool}
-	require.NoError(t, r.LinkAniSearchSource(ctx, animeID, "6465"))
-	require.NoError(t, r.LinkAniSearchSource(ctx, animeID, "6465"), "re-linking the same anisearch id to the same anime must not error")
+	require.NoError(t, r.LinkAniSearchSource(ctx, animeID, "6465", nil, 0))
+	require.NoError(t, r.LinkAniSearchSource(ctx, animeID, "6465", nil, 0), "re-linking the same anisearch id to the same anime must not error")
 
 	var rowCount int
 	require.NoError(t, pool.QueryRow(ctx,
@@ -86,9 +86,9 @@ func TestAniSearchLink_ReturnsErrConflictWhenAnotherAnimeOwnsTheID(t *testing.T)
 	ctx := context.Background()
 
 	r := &AdminContentRepository{db: pool}
-	require.NoError(t, r.LinkAniSearchSource(ctx, firstAnimeID, "6465"))
+	require.NoError(t, r.LinkAniSearchSource(ctx, firstAnimeID, "6465", nil, 0))
 
-	err := r.LinkAniSearchSource(ctx, secondAnimeID, "6465")
+	err := r.LinkAniSearchSource(ctx, secondAnimeID, "6465", nil, 0)
 	require.ErrorIs(t, err, ErrConflict)
 
 	var rowCount int
@@ -104,7 +104,7 @@ func TestAniSearchLink_RejectsEmptyID(t *testing.T) {
 	ctx := context.Background()
 
 	r := &AdminContentRepository{db: pool}
-	err := r.LinkAniSearchSource(ctx, animeID, "   ")
+	err := r.LinkAniSearchSource(ctx, animeID, "   ", nil, 0)
 	require.Error(t, err, "an empty/whitespace-only anisearch id must be rejected before any insert attempt")
 
 	var rowCount int

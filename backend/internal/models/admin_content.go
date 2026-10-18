@@ -258,12 +258,52 @@ type AdminAnimeAniSearchEditConflictResult struct {
 }
 
 // AdminAnimeAniSearchLinkResult (quick-261018-l5r Task 1) ist die Erfolgsantwort des additiven
-// AniSearch-Verknüpfungs-Endpunkts (POST /admin/anime/:id/anisearch/link) -- bewusst schmal, da
-// dieser Endpunkt nur verknüpft, nie Felder übernimmt (anders als AdminAnimeAniSearchEditSuccessResult).
+// AniSearch-Verknüpfungs-Endpunkts (POST /admin/anime/:id/anisearch/link). Seit Task 2 übernimmt
+// derselbe Endpunkt zusätzlich, in der GLEICHEN Transaktion wie der Link-Schreibvorgang, einen
+// definierten Satz an Feldern von AniSearch (siehe Takeover) -- Takeover ist nil, wenn die
+// Übernahme-Prüfung gar nicht erst versucht wurde (z. B. AniSearch-Fetch fehlgeschlagen).
 type AdminAnimeAniSearchLinkResult struct {
-	Mode        string `json:"mode"` // "linked"
-	AniSearchID string `json:"anisearch_id"`
-	Source      string `json:"source"` // "anisearch:<id>"
+	Mode        string                              `json:"mode"` // "linked"
+	AniSearchID string                              `json:"anisearch_id"`
+	Source      string                              `json:"source"` // "anisearch:<id>"
+	Takeover    *AdminAnimeAniSearchTakeoverResult `json:"takeover,omitempty"`
+}
+
+// AdminAnimeAniSearchFieldOutcome (quick-261018-l5r Task 2) beschreibt die Entscheidung für EIN
+// Übernahme-Feld, das NICHT übernommen wurde ("keep") -- inklusive der für die Admin-UI lesbaren
+// Begründung (z. B. "Weicht von Jellyfin ab, gilt als manuell gepflegt").
+type AdminAnimeAniSearchFieldOutcome struct {
+	Field  string `json:"field"`
+	Action string `json:"action"` // "keep"
+	Reason string `json:"reason"`
+}
+
+// AdminAnimeAniSearchTakeoverResult (quick-261018-l5r Task 2) ist die vollständige Zusammenfassung
+// der Fill/Replace/Keep-Entscheidung über alle 8 Übernahme-Felder (title_de, title_en, year,
+// max_episodes, genre, tags, description, type) für einen additiven AniSearch-Link.
+// JellyfinUnreachable ist true, wenn der Anime keinen Jellyfin-Link hat oder der Live-Lookup
+// fehlgeschlagen ist -- in diesem Fall lief für JEDES Feld nur die Fill-wenn-leer/Keep-sonst-Regel,
+// nie der Jellyfin-Vergleichszweig.
+type AdminAnimeAniSearchTakeoverResult struct {
+	Filled              []string                           `json:"filled"`
+	Replaced            []string                           `json:"replaced"`
+	Kept                []AdminAnimeAniSearchFieldOutcome `json:"kept"`
+	JellyfinUnreachable bool                                `json:"jellyfin_unreachable"`
+}
+
+// AdminAnimeAniSearchTakeoverSnapshot (quick-261018-l5r Task 2) sind die aktuellen Werte der 8
+// Übernahme-Felder eines BESTEHENDEN Anime, gelesen VOR dem additiven Link-Schreibvorgang (siehe
+// AdminContentRepository.GetAnimeAniSearchTakeoverSnapshot). Title/ContentType/Status sind bewusst
+// NICHT Teil dieses Snapshots -- sie sind laut PLAN.md explizit von der Übernahme ausgeschlossen.
+type AdminAnimeAniSearchTakeoverSnapshot struct {
+	TitleDE     *string
+	TitleEN     *string
+	Year        *int16
+	MaxEpisodes *int16
+	Description *string
+	Genres      []string
+	Tags        []string
+	Type        string
 }
 
 type AdminAnimeSourceMatch struct {
