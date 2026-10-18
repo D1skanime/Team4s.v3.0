@@ -101,6 +101,7 @@ func (h *AdminContentHandler) PreviewEpisodeImport(c *gin.Context) {
 		canonicalEpisodes,
 		mediaCandidates,
 		req.SeasonOffset,
+		h.releaseFilenameParser,
 	)
 	preview.Mappings = enrichEpisodeImportPreviewFansubData(c.Request.Context(), h.episodeImportRepo, preview.Mappings)
 	if h.episodeImportRepo != nil {

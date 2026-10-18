@@ -218,6 +218,10 @@ type AdminContentHandler struct {
 	httpClient                      *http.Client
 	enrichmentService               adminAniSearchDraftLoader
 	aniSearchEpisodes               adminAniSearchEpisodeFetcher
+	// releaseFilenameParser (186-02, D-03): anitogo-gestützte Episoden-/Checksum-
+	// Erkennung für den Episoden-Import-Dateinamen-Fallback, siehe
+	// services.ReleaseFilenameParser und admin_episode_import_filename_parser.go.
+	releaseFilenameParser services.ReleaseFilenameParser
 	assetSearchService              adminAnimeAssetSearchService
 	mediaService                    *services.MediaService
 	generatedImageStore             generatedAnimeImageStore
@@ -311,6 +315,7 @@ func NewAdminContentHandler(
 
 	aniSearchClient := services.NewAniSearchClient("https://www.anisearch.de/anime", handler.httpClient)
 	handler.aniSearchEpisodes = aniSearchClient
+	handler.releaseFilenameParser = services.NewAnitogoReleaseFilenameParser()
 	handler.enrichmentService = services.NewAnimeCreateEnrichmentService(
 		aniSearchClient,
 		adminAnimeCreateEnrichmentRepo{repo: repo},

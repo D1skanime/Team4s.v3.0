@@ -17,8 +17,14 @@ import (
 	"team4s.v3/backend/internal/importutil"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 )
 
+// buildEpisodeImportPreview nimmt den ReleaseFilenameParser als letztes,
+// variadisches Argument entgegen (mirror des bestehenden
+// `resolveSeries ...bool`-Musters in loadEpisodeImportContext). Dadurch
+// bleiben alle bestehenden Testaufrufstellen ohne Parser-Argument
+// unverändert kompilierbar (186-02, D-03).
 func buildEpisodeImportPreview(
 	animeID int64,
 	animeTitle string,
@@ -28,6 +34,7 @@ func buildEpisodeImportPreview(
 	canonicalEpisodes []models.EpisodeImportCanonicalEpisode,
 	mediaCandidates []models.EpisodeImportMediaCandidate,
 	seasonOffset int32,
+	parser ...services.ReleaseFilenameParser,
 ) models.EpisodeImportPreviewResult {
 	if canonicalEpisodes == nil {
 		canonicalEpisodes = []models.EpisodeImportCanonicalEpisode{}
@@ -35,7 +42,11 @@ func buildEpisodeImportPreview(
 	if mediaCandidates == nil {
 		mediaCandidates = []models.EpisodeImportMediaCandidate{}
 	}
-	seasonBaseOffsets := buildEpisodeImportSeasonBaseOffsets(mediaCandidates)
+	var activeParser services.ReleaseFilenameParser
+	if len(parser) > 0 {
+		activeParser = parser[0]
+	}
+	seasonBaseOffsets := buildEpisodeImportSeasonBaseOffsets(mediaCandidates, activeParser)
 
 	canonicalSet := make(map[int32]struct{}, len(canonicalEpisodes))
 	for _, episode := range canonicalEpisodes {
@@ -48,7 +59,7 @@ func buildEpisodeImportPreview(
 	mappings := make([]models.EpisodeImportMappingRow, 0, len(mediaCandidates))
 	unmappedMedia := make([]string, 0)
 	for _, media := range mediaCandidates {
-		targets := resolveEpisodeImportSuggestedTargets(media, seasonOffset, seasonBaseOffsets)
+		targets := resolveEpisodeImportSuggestedTargets(media, seasonOffset, seasonBaseOffsets, activeParser)
 		row := models.EpisodeImportMappingRow{
 			MediaItemID:   media.MediaItemID,
 			MediaSourceID: media.MediaSourceID,
@@ -100,8 +111,9 @@ func resolveEpisodeImportSuggestedTargets(
 	media models.EpisodeImportMediaCandidate,
 	seasonOffset int32,
 	seasonBaseOffsets map[int32]int32,
+	parser services.ReleaseFilenameParser,
 ) []int32 {
-	episodeNumber := episodeImportEvidenceEpisodeNumber(media)
+	episodeNumber := episodeImportEvidenceEpisodeNumber(media, parser)
 	if episodeNumber == nil || *episodeNumber <= 0 {
 		return nil
 	}
@@ -133,11 +145,12 @@ func resolveEpisodeImportSuggestedTargets(
 
 func buildEpisodeImportSeasonBaseOffsets(
 	mediaCandidates []models.EpisodeImportMediaCandidate,
+	parser services.ReleaseFilenameParser,
 ) map[int32]int32 {
 	maxBySeason := make(map[int32]int32)
 	for _, media := range mediaCandidates {
 		seasonNumber := episodeImportEvidenceSeasonNumber(media)
-		episodeNumber := episodeImportEvidenceEpisodeNumber(media)
+		episodeNumber := episodeImportEvidenceEpisodeNumber(media, parser)
 		if seasonNumber == nil || episodeNumber == nil {
 			continue
 		}

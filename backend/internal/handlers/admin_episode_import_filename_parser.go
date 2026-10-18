@@ -14,20 +14,36 @@ import (
 	"strings"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/services"
 )
 
 var episodeImportFilenameRangePattern = regexp.MustCompile(`(?i)e(\d{1,4})-(\d{1,4})`)
 var episodeImportFilenameSeasonEpisodePattern = regexp.MustCompile(`(?i)(?:^|[^a-z0-9])s(\d{1,3})e(\d{1,4})(?:[^0-9]|$)`)
 var episodeImportFilenameEpisodePattern = regexp.MustCompile(`(?i)(?:^|[^a-z0-9])e(\d{1,4})(?:[^0-9]|$)`)
 
-func episodeImportEvidenceEpisodeNumber(media models.EpisodeImportMediaCandidate) *int32 {
+// episodeImportEvidenceEpisodeNumber ermittelt die wahrscheinlichste
+// Episodennummer für einen Jellyfin-Media-Kandidaten. Priorität (unverändert
+// durch 186-02/D-03): Jellyfin-Metadaten -> SxxExx-Dateinamen-Pattern ->
+// Parser-Fallback. Nur der innerste Fallback-Schritt wurde von
+// parseEpisodeImportFilenameEpisode (naives Exx-Regex, Bug #15: verwechselt
+// CRC-Tags wie "[E61CA0BA]" mit Episode 61) auf den anitogo-gestützten
+// ReleaseFilenameParser umgestellt. Ist parser nil (kein Parser konfiguriert),
+// greift defensiv weiterhin das alte Exx-Regex.
+func episodeImportEvidenceEpisodeNumber(media models.EpisodeImportMediaCandidate, parser services.ReleaseFilenameParser) *int32 {
 	if media.JellyfinEpisodeNumber != nil && *media.JellyfinEpisodeNumber > 0 {
 		return media.JellyfinEpisodeNumber
 	}
 	if _, episode := parseEpisodeImportFilenameSeasonEpisode(media.FileName); episode != nil {
 		return episode
 	}
-	return parseEpisodeImportFilenameEpisode(media.FileName)
+	if parser == nil {
+		return parseEpisodeImportFilenameEpisode(media.FileName)
+	}
+	result, ok := parser.ParseFilename(media.FileName)
+	if !ok || result.EpisodeNumber == nil {
+		return nil
+	}
+	return result.EpisodeNumber
 }
 
 func episodeImportEvidenceSeasonNumber(media models.EpisodeImportMediaCandidate) *int32 {
