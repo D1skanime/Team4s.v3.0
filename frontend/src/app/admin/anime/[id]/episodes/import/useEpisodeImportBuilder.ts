@@ -115,6 +115,10 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [applyErrorMessage, setApplyErrorMessage] = useState<string | null>(null)
   const autoPreviewAnimeID = useRef<number | null>(null)
+  // D-01: one-step-back memory of each row's fansub groups immediately BEFORE
+  // its last chip edit, so "Ab hier" can derive the correct oldFansubGroups
+  // baseline instead of reading a stale page-load snapshot. See fix_1.
+  const rowGroupsBeforeLastEditRef = useRef<Map<string, EpisodeImportSelectedFansubGroup[]>>(new Map())
 
   const loadPreviewWithSettings = useCallback(async (
     anisearchIDValue: string,
@@ -323,21 +327,40 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     setReleaseMeta: (sourceKey, meta) =>
       setMappings((current) => setMappingReleaseMeta(current, sourceKey, meta)),
     setSelectedFansubGroups: (sourceKey, fansubGroups) =>
-      setMappings((current) => setMappingFansubGroups(current, sourceKey, fansubGroups)),
+      setMappings((current) => {
+        const existing = current.find((row) => jellyfinSourceKey(row) === sourceKey)
+        if (existing) rowGroupsBeforeLastEditRef.current.set(sourceKey, existing.fansub_groups ?? [])
+        return setMappingFansubGroups(current, sourceKey, fansubGroups)
+      }),
     addSelectedFansubGroup: (sourceKey, fansubGroup) =>
-      setMappings((current) => addMappingFansubGroup(current, sourceKey, fansubGroup)),
+      setMappings((current) => {
+        const existing = current.find((row) => jellyfinSourceKey(row) === sourceKey)
+        if (existing) rowGroupsBeforeLastEditRef.current.set(sourceKey, existing.fansub_groups ?? [])
+        return addMappingFansubGroup(current, sourceKey, fansubGroup)
+      }),
     removeSelectedFansubGroup: (sourceKey, fansubGroup) =>
-      setMappings((current) => removeMappingFansubGroup(current, sourceKey, fansubGroup)),
+      setMappings((current) => {
+        const existing = current.find((row) => jellyfinSourceKey(row) === sourceKey)
+        if (existing) rowGroupsBeforeLastEditRef.current.set(sourceKey, existing.fansub_groups ?? [])
+        return removeMappingFansubGroup(current, sourceKey, fansubGroup)
+      }),
     applyFansubGroupToEpisode: (episodeNumber, fansubGroups) =>
       setMappings((current) => applyFansubGroupToEpisodeRows(current, episodeNumber, fansubGroups)),
     applyFansubGroupFromEpisode: (sourceKey, newFansubGroups) =>
       setMappings((current) => {
         const startIndex = current.findIndex((row) => jellyfinSourceKey(row) === sourceKey)
         if (startIndex === -1) return current
-        // D-01: "old value" = the row's PRISTINE baseline from the original preview load, not its
-        // live-edited state (which by click time already reflects any chip edits on this row).
-        const baselineRow = preview?.mappings?.find((row) => jellyfinSourceKey(row) === sourceKey)
-        return applyFansubGroupFromEpisodeDown(current, startIndex, baselineRow?.fansub_groups ?? [], newFansubGroups)
+        // D-01: "Ab hier" (non-empty newFansubGroups) needs the one-step-back baseline
+        // captured just before this row's last chip edit -- the row's CURRENT value by
+        // click time already equals newFansubGroups, so the live value can't be used as
+        // oldFansubGroups. "Ab hier entfernen" (empty newFansubGroups) has no preceding
+        // edit, so the row's live value IS already the correct baseline.
+        const liveGroups = current[startIndex].fansub_groups ?? []
+        const oldFansubGroups =
+          newFansubGroups.length > 0
+            ? rowGroupsBeforeLastEditRef.current.get(sourceKey) ?? liveGroups
+            : liveGroups
+        return applyFansubGroupFromEpisodeDown(current, startIndex, oldFansubGroups, newFansubGroups)
       }),
     setEpisodeTitle: (episodeNumber, title) =>
       setPreview((current) => {
