@@ -53,6 +53,12 @@ func TestAnitogoReleaseFilenameParser_ParseFilename(t *testing.T) {
 			wantEpisode:  1,
 			wantChecksum: "87654321",
 		},
+		{
+			name:         "single-episode filename yields no EpisodeNumberEnd (no regression)",
+			fileName:     `[SubsPlease] Attack on Titan - 09 (1080p) [AAAA1111].mkv`,
+			wantEpisode:  9,
+			wantChecksum: "AAAA1111",
+		},
 	}
 
 	parser := NewAnitogoReleaseFilenameParser()
@@ -76,6 +82,68 @@ func TestAnitogoReleaseFilenameParser_ParseFilename(t *testing.T) {
 			// CRC-as-episode-number bug (Finding #15) resurfaced.
 			if result.Checksum == strconv.Itoa(int(*result.EpisodeNumber)) {
 				t.Fatalf("ParseFilename(%q) checksum %q collides with episode number %d", tt.fileName, result.Checksum, *result.EpisodeNumber)
+			}
+			// None of these filenames encode a multi-episode range -- EpisodeNumberEnd
+			// must stay nil (no regression from the fix_3 range extension).
+			if result.EpisodeNumberEnd != nil {
+				t.Fatalf("ParseFilename(%q) EpisodeNumberEnd = %d, want nil (single-episode filename)", tt.fileName, *result.EpisodeNumberEnd)
+			}
+		})
+	}
+}
+
+// TestAnitogoReleaseFilenameParser_ParseFilename_EpisodeRange covers fix_3
+// (186 review): anitogo's EpisodeNumber can hold BOTH bounds of a bare
+// multi-episode range (no literal "e" required) for separators "-", "~",
+// "&", and "+" (parser_number.go matchMultiEpisodePattern). Both bounds must
+// surface via EpisodeNumber/EpisodeNumberEnd so neither episode silently
+// drops out of the suggested-targets range.
+func TestAnitogoReleaseFilenameParser_ParseFilename_EpisodeRange(t *testing.T) {
+	tests := []struct {
+		name            string
+		fileName        string
+		wantEpisode     int32
+		wantEpisodeEnd  int32
+		wantChecksum    string
+	}{
+		{
+			name:           "bare hyphen range without literal e",
+			fileName:       `[Group] Show - 01-02 [ABCD1234].mkv`,
+			wantEpisode:    1,
+			wantEpisodeEnd: 2,
+			wantChecksum:   "ABCD1234",
+		},
+		{
+			name:           "bare tilde range without literal e",
+			fileName:       `[Group] Show - 01~02 [ABCD1234].mkv`,
+			wantEpisode:    1,
+			wantEpisodeEnd: 2,
+			wantChecksum:   "ABCD1234",
+		},
+		{
+			name:           "bare ampersand range without literal e",
+			fileName:       `[Group] Show - 01&02 [ABCD1234].mkv`,
+			wantEpisode:    1,
+			wantEpisodeEnd: 2,
+			wantChecksum:   "ABCD1234",
+		},
+	}
+
+	parser := NewAnitogoReleaseFilenameParser()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, ok := parser.ParseFilename(tt.fileName)
+			if !ok {
+				t.Fatalf("ParseFilename(%q) returned ok=false, want ok=true", tt.fileName)
+			}
+			if result.EpisodeNumber == nil || *result.EpisodeNumber != tt.wantEpisode {
+				t.Fatalf("ParseFilename(%q) EpisodeNumber = %v, want %d", tt.fileName, result.EpisodeNumber, tt.wantEpisode)
+			}
+			if result.EpisodeNumberEnd == nil || *result.EpisodeNumberEnd != tt.wantEpisodeEnd {
+				t.Fatalf("ParseFilename(%q) EpisodeNumberEnd = %v, want %d", tt.fileName, result.EpisodeNumberEnd, tt.wantEpisodeEnd)
+			}
+			if result.Checksum != tt.wantChecksum {
+				t.Fatalf("ParseFilename(%q) Checksum = %q, want %q", tt.fileName, result.Checksum, tt.wantChecksum)
 			}
 		})
 	}

@@ -119,7 +119,7 @@ func resolveEpisodeImportSuggestedTargets(
 	}
 
 	targets := []int32{*episodeNumber}
-	if rangeEnd := parseEpisodeImportFilenameRangeEnd(media.FileName); rangeEnd != nil && *rangeEnd > *episodeNumber {
+	if rangeEnd := episodeImportEvidenceEpisodeNumberRangeEnd(media, parser); rangeEnd != nil && *rangeEnd > *episodeNumber {
 		targets = make([]int32, 0, *rangeEnd-*episodeNumber+1)
 		for current := *episodeNumber; current <= *rangeEnd; current++ {
 			targets = append(targets, current)

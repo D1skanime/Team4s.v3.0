@@ -1,0 +1,10 @@
+# Deferred Items — Phase 186 Review-Fix
+
+## TestEpisodeImport11eyesEnumeratesEveryPhysicalSource fails in the backend container (pre-existing, out of scope)
+
+- **Found during:** Running the fix_3 verify command (`go test ./internal/services/... ./internal/handlers/... -run "ReleaseFilenameParser|EpisodeImport" -v`) for the 186-review-fix task (2026-10-18).
+- **Symptom:** `admin_episode_import_test.go:828: open ../../../docs/audits/2026-09-15-jellyfin12/fixtures/11eyes-series.json: no such file or directory` -> test fails.
+- **Root cause:** The `team4sv30-backend` container's Docker build context is `./backend` only; `docs/` at the repo root is never copied/mounted into the container (confirmed via `docker compose exec team4sv30-backend ls /app` and `docker compose config`). The fixture exists on the host at `docs/audits/2026-09-15-jellyfin12/fixtures/11eyes-series.json`, so the test only fails when run inside this container, not necessarily on a bare-metal `go test` run with the repo checked out directly.
+- **Introduced by:** commit `9cdef2b42` ("test(quick-260924-i0a): GAP-11 regression proof for second connected folder"), predates this review-fix task entirely.
+- **Why deferred:** Out of scope per the Scope Boundary rule — this task's file list (`release_filename_parser.go`/`.go test`, `admin_episode_import_filename_parser.go`, `admin_episode_import_preview_builder.go`, `admin_episode_import_filename_parser_test.go`) does not include this test or its fixture-loading mechanism, and the failure is caused by container build-context/mount configuration, not by any of the three review-fix changes. All 3 fix_1/fix_2/fix_3 verify commands pass green aside from this one unrelated, pre-existing failure.
+- **Suggested follow-up:** Either bind-mount `docs/` (or at least `docs/audits/`) into `team4sv30-backend` via `docker-compose.override.yml`, or make the test resolve its fixture path relative to a `TEAM4S_BACKEND_FIXTURES_DIR`-style env var that defaults sensibly in both environments.

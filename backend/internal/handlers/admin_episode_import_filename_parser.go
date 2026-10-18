@@ -46,6 +46,23 @@ func episodeImportEvidenceEpisodeNumber(media models.EpisodeImportMediaCandidate
 	return result.EpisodeNumber
 }
 
+// episodeImportEvidenceEpisodeNumberRangeEnd ermittelt das Ende einer
+// Multi-Episode-Range für einen Dateinamen (z. B. "01-02" oder "01~02", auch
+// OHNE literales "e"). Spiegelt exakt das Nil-Parser-Fallback-Muster von
+// episodeImportEvidenceEpisodeNumber: ohne konfigurierten Parser greift
+// weiterhin das alte, literal-"e"-pflichtige episodeImportFilenameRangePattern
+// als Fallback.
+func episodeImportEvidenceEpisodeNumberRangeEnd(media models.EpisodeImportMediaCandidate, parser services.ReleaseFilenameParser) *int32 {
+	if parser == nil {
+		return parseEpisodeImportFilenameRangeEnd(media.FileName)
+	}
+	result, ok := parser.ParseFilename(media.FileName)
+	if !ok {
+		return nil
+	}
+	return result.EpisodeNumberEnd
+}
+
 func episodeImportEvidenceSeasonNumber(media models.EpisodeImportMediaCandidate) *int32 {
 	if media.JellyfinSeasonNumber != nil && *media.JellyfinSeasonNumber > 0 {
 		return media.JellyfinSeasonNumber

@@ -13,7 +13,12 @@ import (
 // Austausch der konkreten Implementierung ohne Call-Site-Umbau.
 type ReleaseFilenameParseResult struct {
 	EpisodeNumber *int32
-	Checksum      string
+	// EpisodeNumberEnd ist nur gesetzt, wenn der Dateiname eine Multi-Episode-
+	// Range kodiert (z. B. "01-02", "01~02") -- anitogo liefert dafür BEIDE
+	// Grenzen in elements.EpisodeNumber (Index 0 = Start, letzter Index =
+	// Ende). Bei einer einzelnen Episode bleibt das Feld nil.
+	EpisodeNumberEnd *int32
+	Checksum         string
 }
 
 // ReleaseFilenameParser ist die Schnittstelle für die Episodennummer-/
@@ -59,8 +64,15 @@ func (p *AnitogoReleaseFilenameParser) ParseFilename(fileName string) (ReleaseFi
 		return ReleaseFilenameParseResult{}, false
 	}
 	episodeValue := int32(episode)
-	return ReleaseFilenameParseResult{
+	result := ReleaseFilenameParseResult{
 		EpisodeNumber: &episodeValue,
 		Checksum:      elements.FileChecksum,
-	}, true
+	}
+	if len(elements.EpisodeNumber) > 1 {
+		if rangeEnd, err := strconv.Atoi(elements.EpisodeNumber[len(elements.EpisodeNumber)-1]); err == nil && int32(rangeEnd) > episodeValue {
+			rangeEndValue := int32(rangeEnd)
+			result.EpisodeNumberEnd = &rangeEndValue
+		}
+	}
+	return result, true
 }

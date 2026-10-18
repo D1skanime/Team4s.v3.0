@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/services"
 )
 
 func TestPreviewEpisodeImport_SeparatesCanonicalEpisodesAndMediaCandidates(t *testing.T) {
@@ -254,6 +255,43 @@ func TestPreviewEpisodeImport_ExpandsFilenameEpisodeRangesAcrossSeasonOffsets(t 
 	}
 	if len(preview.UnmappedEpisodes) != 1 || preview.UnmappedEpisodes[0] != 98 {
 		t.Fatalf("expected episode 98 to stay unmapped until a separate file covers it, got %v", preview.UnmappedEpisodes)
+	}
+}
+
+// TestPreviewEpisodeImport_BareMultiEpisodeRangeWithoutLiteralEResolvesBothEpisodes
+// covers fix_3 (186 review): a filename encoding a multi-episode range with NO
+// literal "e" (e.g. "01-02") must resolve to BOTH episodes via the
+// anitogo-backed parser's EpisodeNumberEnd, not just the first one. Before the
+// fix, resolveEpisodeImportSuggestedTargets read the range end exclusively via
+// the old literal-"e"-only regex, which silently dropped the second episode.
+func TestPreviewEpisodeImport_BareMultiEpisodeRangeWithoutLiteralEResolvesBothEpisodes(t *testing.T) {
+	t.Parallel()
+
+	preview := buildEpisodeImportPreview(
+		88,
+		"Range Fixture",
+		episodeImportStringPtr("4321"),
+		episodeImportStringPtr("series-range"),
+		episodeImportStringPtr("/media/Range Fixture"),
+		[]models.EpisodeImportCanonicalEpisode{{EpisodeNumber: 1}, {EpisodeNumber: 2}},
+		[]models.EpisodeImportMediaCandidate{
+			{
+				MediaItemID: "range-bare-01-02",
+				FileName:    "[Group] Range Fixture - 01-02 [ABCD1234].mkv",
+				Path:        "/media/Range Fixture/[Group] Range Fixture - 01-02 [ABCD1234].mkv",
+			},
+		},
+		0,
+		services.NewAnitogoReleaseFilenameParser(),
+	)
+
+	if len(preview.Mappings) != 1 {
+		t.Fatalf("expected exactly one mapping row, got %d", len(preview.Mappings))
+	}
+	row := preview.Mappings[0]
+	want := []int32{1, 2}
+	if len(row.SuggestedEpisodeNumbers) != len(want) || row.SuggestedEpisodeNumbers[0] != want[0] || row.SuggestedEpisodeNumbers[1] != want[1] {
+		t.Fatalf("expected SuggestedEpisodeNumbers == %v (both episodes of the bare range), got %v", want, row.SuggestedEpisodeNumbers)
 	}
 }
 
