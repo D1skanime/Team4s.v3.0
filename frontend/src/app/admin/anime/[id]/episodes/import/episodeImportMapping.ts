@@ -7,6 +7,7 @@ import type {
   EpisodeImportPreviewResult,
   EpisodeImportPreviewSummary,
 } from '../../../../../../types/episodeImport'
+import { getFansubGroupKey, normalizeFansubGroups } from './episodeImportFansubGroupHelpers'
 
 export function parseMappingTargets(rawTargets: string): number[] {
   const targets = rawTargets
@@ -321,28 +322,6 @@ export function applyFansubGroupFromEpisodeDown(
   )
 }
 
-export function normalizeFansubGroups(
-  fansubGroups: EpisodeImportSelectedFansubGroup[] | null | undefined,
-): EpisodeImportSelectedFansubGroup[] {
-  const normalized: EpisodeImportSelectedFansubGroup[] = []
-  const seen = new Set<string>()
-
-  for (const group of fansubGroups ?? []) {
-    const normalizedGroup = normalizeFansubGroup(group)
-    if (!normalizedGroup) {
-      continue
-    }
-    const key = getFansubGroupKey(normalizedGroup)
-    if (seen.has(key)) {
-      continue
-    }
-    seen.add(key)
-    normalized.push(normalizedGroup)
-  }
-
-  return normalized
-}
-
 export function serializeEpisodeImportMappingRow(row: EpisodeImportMappingRow): EpisodeImportMappingRow {
   const fansubGroups = normalizeFansubGroups(row.fansub_groups)
   const firstGroup = fansubGroups[0]
@@ -436,11 +415,6 @@ export function fillerLabel(fillerType: string | null | undefined): string | nul
   }
 }
 
-function normalizeOptionalText(value: string): string | null {
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : null
-}
-
 function applyFansubGroupsToRow(
   row: EpisodeImportMappingRow,
   fansubGroups: EpisodeImportSelectedFansubGroup[],
@@ -453,33 +427,4 @@ function applyFansubGroupsToRow(
       ? { fansub_group_id: null, fansub_group_name: null }
       : {}),
   })
-}
-
-function normalizeFansubGroup(
-  fansubGroup: EpisodeImportSelectedFansubGroup | null | undefined,
-): EpisodeImportSelectedFansubGroup | null {
-  if (!fansubGroup) {
-    return null
-  }
-
-  const id = typeof fansubGroup.id === 'number' && Number.isFinite(fansubGroup.id) ? fansubGroup.id : null
-  const slug = normalizeOptionalText(fansubGroup.slug ?? '')
-  const name = normalizeOptionalText(fansubGroup.name ?? '')
-
-  if (id == null && !name) {
-    return null
-  }
-
-  return {
-    slug,
-    name: name ?? slug ?? null,
-    ...(id != null ? { id } : {}),
-  }
-}
-
-function getFansubGroupKey(fansubGroup: EpisodeImportSelectedFansubGroup): string {
-  if (typeof fansubGroup.id === 'number' && Number.isFinite(fansubGroup.id)) {
-    return `id:${fansubGroup.id}`
-  }
-  return `name:${(fansubGroup.name ?? fansubGroup.slug ?? '').trim().toLowerCase()}`
 }
