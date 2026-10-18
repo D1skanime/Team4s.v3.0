@@ -1,5 +1,5 @@
 ---
-status: diagnosed — fix pending
+status: fix applied, pending live re-check
 trigger: >
   Live-UAT-Befund nach Verknuepfung von Anime 13 "Freezing" mit AniSearch 6465
   (Quick-Task 261018-l5r). Im Episoden-Import (/admin/anime/13/episodes/import):
@@ -147,3 +147,44 @@ echte Auswahlmöglichkeit.
 
 Bestandsdaten (Anime 13 Freezing) werden dabei nicht verändert — der Fix betrifft
 nur den Parser/die UI, nicht vorhandene DB-Zeilen.
+
+## Resolution-Bestätigung (umgesetzt, 2026-10-18)
+
+Beide Fixes sind implementiert, getestet und committed; Backend neu gebaut und
+neu gestartet, Frontend neu gestartet (kein `npm run build` im Container).
+Bestandsdaten (Anime 13 "Freezing") wurden dabei nicht verändert.
+
+1. **Backend (`67cb7936b`)** — `parseAniSearchEpisodeNumber()` verankert jetzt
+   auf `^\d+$` (ganze getrimmte Zellenzeichenkette), statt einer unverankerten
+   `\d+`-Teilsuche. Die "B1"-Bonus-Zeile wird dadurch komplett verworfen
+   (`number <= 0`-Pfad) statt als Episode 1 interpretiert zu werden. Neue Tests:
+   ein fokussierter Inline-Fixture-Test, ein Integrationstest gegen die echte
+   Freezing-6465-Fixture (12 reguläre Episoden, Episode 1 behält
+   "Unantastbare Königin", Bonus-Titel taucht nirgends auf) und ein
+   Regressionstest gegen die echte Buddy-Complex-9251-Fixture (alle 13
+   rein-numerischen Episoden parsen unverändert). Alle 8 Tests in
+   `anisearch_episode_import_test.go` grün, `go build`/`go vet` fehlerfrei.
+
+2. **Frontend (`5f8979bb1`)** — Das Sprach-Dropdown in
+   `EpisodeImportEpisodeGroup.tsx` ist jetzt echt verdrahtet: `useEpisodeImportBuilder.ts`
+   leitet `titlesByLanguage`/`availableLanguages` pro Episode aus
+   `canonical_episodes[].titles_by_language` ab (de/en/ja-Reihenfolge); das
+   Dropdown zeigt nur tatsächlich vorhandene Sprachen, Standardauswahl Deutsch
+   falls vorhanden. Auswahlwechsel zeigt/bearbeitet die Titel-Zelle der
+   gewählten Sprache; fehlt ein Titel für eine Sprache, bleibt das Feld leer
+   (kein stiller Fallback auf Deutsch). `setEpisodeTitle` schreibt jetzt in den
+   aktuell gewählten Sprach-Slot statt immer `de` zu überschreiben (Standard
+   `"de"` für die Covered-Episodes-Liste ohne eigenes Dropdown, unverändertes
+   Altverhalten dort). Kein Eingriff in den Apply/Persist-Pfad
+   (`episode_import_repository_apply.go` unverändert) — der Übernahme-Mechanismus
+   schrieb alle Sprachen bereits korrekt. Typecheck/Lint fehlerfrei (4
+   Lint-Fehler + diverse Warnungen sind vorbestehend, in unberührten Dateien),
+   118 Tests im Import-Verzeichnis grün (davon 5 neue Verhaltenstests für das
+   Dropdown).
+
+Backend neu gebaut (`docker compose build team4sv30-backend && docker compose
+up -d team4sv30-backend`) — `/health` liefert `{"status":"ok"}`. Frontend neu
+gestartet (`docker restart team4sv30-frontend`) — `/admin/anime/13/episodes/import`
+liefert 200, kompiliert fehlerfrei. Dieses Dokument bleibt bis zur
+Live-Nachprüfung durch den Nutzer in `.planning/debug/` (nicht nach
+`resolved/` verschoben).
