@@ -1,5 +1,5 @@
 ---
-status: diagnosed — fix pending
+status: fix applied, pending live re-check
 trigger: >
   Regression nach Review-Fix 389bd52a2 ("Ab-hier-Baseline live statt eingefrorener
   Preview-Snapshot"). Live-UAT auf /admin/anime/13/episodes/import (Freezing):
@@ -114,3 +114,28 @@ von ihrem dann aktuellen Wert aus startet. Das bewahrt gleichzeitig das aus dem
 vorherigen Review-Fix bereits geforderte Verhalten bei mehreren GETRENNTEN
 "Ab hier"-Klicks mit Zwischenbearbeitung (jeder Klick konsumiert+loescht seine
 eigene Baseline, der naechste faengt sauber neu an).
+
+## Fix angewendet (2026-10-18)
+
+Commit `06b39a2f5` (`fix(episodes-import): preserve true pre-edit baseline
+across two-step chip changes`) setzt exakt den oben beschriebenen Fix um in
+`frontend/src/app/admin/anime/[id]/episodes/import/useEpisodeImportBuilder.ts`:
+Die drei Mutatoren (`setSelectedFansubGroups`, `addSelectedFansubGroup`,
+`removeSelectedFansubGroup`) setzen die Ref jetzt nur noch, wenn fuer den
+`sourceKey` noch kein Eintrag vorhanden ist; `applyFansubGroupFromEpisode`
+loescht den Eintrag nach dem Lesen in beiden Zweigen ("Ab hier" und
+"Ab hier entfernen").
+
+Fuenf neue Hook-Level-Tests in `useEpisodeImportBuilder.test.tsx` (Describe-Block
+`ab-hier-two-step-chip-change-regression`) decken ab: Zwei-Schritt-Aenderung via
+Suchergebnis-Klick, Zwei-Schritt-Aenderung via Freitext+Enter, mehrere
+Folgezeilen mit gemischten Gruppen, sowie zwei Regressionswaechter fuer das
+Verhalten des vorherigen Review-Fixes (getrennte "Ab hier"-Klicks mit
+Zwischenbearbeitung; "Ab hier entfernen" direkt nach einer Einzelschritt-
+Bearbeitung). Alle 13 Tests in der Datei (8 bestehend + 5 neu) sowie alle 123
+Tests im `episodes/import`-Verzeichnis sind gruen; `npm run typecheck` ist
+clean. Frontend-Container `team4sv30-frontend` wurde per `docker restart`
+neu gestartet (kein `npm run build` noetig). Live-Re-Check auf
+`/admin/anime/13/episodes/import` steht noch aus -> Status bleibt
+"fix applied, pending live re-check", bis das bestaetigt ist; danach Verschieben
+nach `.planning/debug/resolved/`.
