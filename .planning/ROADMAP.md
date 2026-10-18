@@ -2723,12 +2723,15 @@ REQUIREMENTS.md-Mapping vorhanden; jede Plan-Datei traegt die zutreffenden D-IDs
 
   - Wave 1: 182-01 (hasV2AssetSchema-Legacy-Zweige entfernen aus anime_assets.go/anime_assets_cover.go
     [AssignManualCover/ClearCover]/anime_assets_background*.go/anime_assets_banner_logo.go, D-03)
+
   - Wave 2: 182-02 (die 5 rohen Cover-Leser auf den V2-COALESCE-Helper umstellen +
     syncLegacyAnimeCoverImageV2/ApplyProviderCover-Fix, D-01/D-03; depends_on 182-01 wegen
     gemeinsam bearbeiteter Dateien, keine funktionale Abhaengigkeit)
+
   - Wave 3: 182-03 (reversible Migration mit Vorab-Sicherheitscheck + COALESCE-Helper kuerzen +
     Vertragsbereinigung + Migration 0184 live gegen team4s_v2 anwenden und verifizieren, D-02/D-03;
     depends_on 182-01 und 182-02)
+
   - Wave 4: 182-04 (historisches Migrationswerkzeug/Skripte entfernen + Live-Checkpoint ueber die
     5 D-04-Vergleichs-URLs, D-03/D-04; depends_on 182-03)
 
@@ -2764,6 +2767,7 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
+
 - [x] 183-01-PLAN.md — App-User-Status-Helfer (appUserStatusLabels.ts) extrahieren, vier Konsumenten (AdminUsersClient, UserDetailPageClient, UserOverviewTab, RoleHoldersTable) umstellen (D-01).
 - [x] 183-02-PLAN.md — Fansub-Gruppenmedien-Kategorie-Label im Admin-Review-Grid auf fansub-labels.ts umstellen (D-02); gemeinsamer Claim-Status-Helfer (claimStatusLabels.ts), UserClaimsTab + ClaimsClient umstellen (D-03).
 - [x] 183-03-PLAN.md — Frontend-Container neu starten, Live-Checkpoint gegen die 6 Vergleichs-URLs aus 183-CONTEXT.md (D-04).
@@ -2776,6 +2780,7 @@ Plans:
 **Plans:** 10/10 plans executed — Verifikation bestanden (184-VERIFICATION.md, 5/5 must-haves), Live-Checkpoint vom Nutzer "approved" (184-10-HUMAN-UAT.md)
 
 Plans:
+
 - [x] 184-01-PLAN.md — F-23-Nachzieh (D-04): 4 Literal-Duplikate im Release-Version- und generischen Media-Upload-Pfad auf services.DisplayVariantFileName umstellen.
 - [x] 184-02-PLAN.md — F-07 (D-02): computePageWindow-Helfer (beide Pagination-Komponenten) + zwei formatDate-Helfer (Cluster A/B, 7 Konsumenten) mit Logik-Tests.
 - [x] 184-03-PLAN.md — F-12-Grundstein (D-01): Zentraler Helfer frontend/src/lib/mergeCssModules.ts (Proxy-basiert) + Logik-Tests (2er/3er-Merge).
@@ -2801,6 +2806,7 @@ Plans:
 **Plan-time read first**: `.planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-CONTEXT.md` (vollständige Ist-Zustand-Cluster-Tabelle und Nutzerentscheidungen D-01 bis D-07), `.planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-PATTERNS.md` (Pattern-Map je Cluster).
 
 Plans:
+
 - [x] 185-01-PLAN.md — Frontend D-01: anime-detail-contract.test.ts an den korrigierten AnimeRelation-Contract anpassen.
 - [x] 185-02-PLAN.md — D-02: geteilter public.unaccent-Fix in den Phase-139/167-Testsupport-Fixtures (44 Tests).
 - [x] 185-03-PLAN.md — D-04: ResolveMigrationsDir-Reihenfolge korrigieren, backend/database/migrations/ entfernen, runner.go pflichtgemäß aufgeteilt (471→≤450 Zeilen).
@@ -2827,8 +2833,16 @@ REQUIREMENTS.md-Mapping vorhanden)
 **Plans:** 5 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 186-01-PLAN.md — Backend D-04 pure split of admin_episode_import.go into 4 files (<=450 lines each) before the D-03 content change
-- [ ] 186-02-PLAN.md — Backend D-03: anitogo-backed ReleaseFilenameParser behind a swappable interface, fixes CRC-as-episode-number bug, regression-tested against 15 real filenames
 - [ ] 186-03-PLAN.md — Frontend D-01: applyGroupFromHere pure function + rewritten "Ab hier" adapter that respects deliberately-different group assignments
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 186-02-PLAN.md — Backend D-03: anitogo-backed ReleaseFilenameParser behind a swappable interface, fixes CRC-as-episode-number bug, regression-tested against 15 real filenames
 - [ ] 186-04-PLAN.md — Frontend D-02: button label renames ("Alle bestätigten übernehmen", "Nur diese Version übernehmen") + native-button-to-Button migration in page.tsx
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 186-05-PLAN.md — Deploy (backend rebuild, frontend restart) + blocking live UAT checkpoint for all 4 decisions

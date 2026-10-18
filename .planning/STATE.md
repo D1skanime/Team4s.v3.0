@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 185 was final phase)
-last_updated: 2026-10-17T06:32:09.820Z
-last_activity: 2026-10-16
+status: executing
+stopped_at: Completed 185-12-PLAN.md (final plan, phase ready_for_verification)
+last_updated: "2026-10-18T12:08:48.000Z"
+last_activity: 2026-10-18
 progress:
-  total_phases: 50
+  total_phases: 51
   completed_phases: 45
-  total_plans: 458
-  completed_plans: 509
-  percent: 90
+  total_plans: 463
+  completed_plans: 455
+  percent: 88
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -415,7 +415,7 @@ Abschluss" entry below for the full closing record.
 Phase: 185
 Plan: Not started
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
-Status: Milestone complete
+Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -554,7 +554,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-17
+Last activity: 2026-10-18
 
 ## Accumulated Context
 
