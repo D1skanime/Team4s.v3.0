@@ -21,8 +21,9 @@ ausführen"). Eine Ergänzung von 17 Zeilen um zwei kleine, thematisch passende 
 neben den bereits bestehenden `AdminAnimeAniSearch*`-Typen ist demgegenüber eine triviale,
 risikofreie Änderung.
 
-**Status:** Nicht behoben. Zur Entscheidung an den Nutzer: entweder (a) eine eigene, dedizierte
-Phase/Aufgabe zum Aufteilen von `admin.ts` planen (ähnlich den bereits dokumentierten
-180-04/184-05-Mustern für andere Dateien), oder (b) `admin.ts` bewusst als dauerhafte,
-akzeptierte Ausnahme von der 450-Zeilen-Regel behandeln (explizite CLAUDE.md-Anpassung), da es
-sich um eine reine Typdefinitions-Sammlung ohne Verhaltenslogik handelt.
+**Status:** RESOLVED (2026-10-18). Option (a) wurde umgesetzt: `admin.ts` in drei thematische
+Dateien gesplittet (`admin-anime-core.ts`, `admin-jellyfin.ts`, `admin-theme-segment.ts`, alle
+≤450 Zeilen), `admin.ts` selbst ist jetzt ein reiner `export * from ...`-Barrel (7 Zeilen).
+Zero Import-Änderungen außerhalb von `admin.ts` nötig (verifiziert per `grep`-Diff). Details
+siehe Addendum "`frontend/src/types/admin.ts` CLAUDE.md-450-Zeilen-Split" in
+`261018-l5r-SUMMARY.md`.

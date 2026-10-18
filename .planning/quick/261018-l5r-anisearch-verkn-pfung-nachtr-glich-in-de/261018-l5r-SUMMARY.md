@@ -303,3 +303,58 @@ Repo" ist präzise gefasst falsch, und wird hiermit korrigiert statt stillschwei
 
 **Keine Code-Änderung vorgenommen** (wie vom Auftrag für diesen Fall verlangt — Diskrepanz
 melden, nichts anfassen).
+
+---
+
+## Addendum (2026-10-18): `frontend/src/types/admin.ts` CLAUDE.md-450-Zeilen-Split (löst Deferred Item 1)
+
+Reiner Umbau-Nachtrag, der den in `deferred-items.md` Punkt 1 festgehaltenen Konflikt zwischen
+der CLAUDE.md-450-Zeilen-Regel und `frontend/src/types/admin.ts` (zuletzt 1190 Zeilen) auflöst —
+**kein Verhaltensunterschied**, keine Fortsetzung von Task 4/5 des Original-Plans.
+
+### Status: Deferred Item 1 RESOLVED
+
+### Item 5 — `admin.ts` in drei Thementeile gesplittet, `admin.ts` selbst wird reiner Re-Export-Barrel
+
+`frontend/src/types/admin.ts` (1190 Zeilen) wurde in drei neue Dateien unter `frontend/src/types/`
+aufgeteilt, jede Typ-/Interface-Definition unverändert (byte-identischer Körper, nur verschoben):
+
+- `admin-anime-core.ts` (410 Zeilen) — `AnimeType`, `AdminAnimeAssetKind` (aus der alten
+  Zeilenmitte hierher vorgezogen, da es ausschließlich von Asset-Search-Typen in diesem Block
+  gebraucht wird und so ein Rückwärts-Import in dieser Datei entfällt), `AdminAnimeItem`/
+  `AdminEpisodeItem`, alle Create/Patch/Draft-Payload-Typen, sämtliche AniSearch-Edit/Link/
+  Create-Request+Result+Conflict-Typen, Asset-Search-Typen, Episode-Create/Patch,
+  Jellyfin-Sync-Request, Upsert/Delete-Responses, alle Relation-Typen.
+- `admin-jellyfin.ts` (386 Zeilen) — `GenreToken`..`AdminUpsertNameResponse`,
+  `AdminAnimeJellyfinSyncResult`..`AdminAnimeJellyfinMetadataApplyResponse` (Tags/Genres +
+  Jellyfin-Sync/Discovery/Intake/Preview/Editor-Hydration). Importiert `AnimeType` aus
+  `admin-anime-core.ts` (nur `AdminJellyfinIntakeTypeHint.suggested_type` braucht ihn).
+- `admin-theme-segment.ts` (399 Zeilen) — `AdminMediaUploadResponse` bis Dateiende: alle
+  OP/ED-Theme-, Release-Theme-Asset- und `AdminThemeSegment*`/`AdminSegmentLibrary*`-Typen.
+  Importiert `AnimeType` (für `AdminFansubAnimeEntry.type`) aus `admin-anime-core.ts` und
+  `AdminAnimePersistedBackgroundState` (für `AdminAnimeBackgroundAssetResponse.data`) aus
+  `admin-jellyfin.ts`.
+- `admin.ts` (7 Zeilen) — nur noch drei `export * from './admin-...'`-Zeilen plus ein
+  Kommentar-Header, der auf die drei Zieldateien für künftige neue Typen verweist.
+
+**Keine andere Datei im Repo musste geändert werden:** `grep -rn "from '@/types/admin'"
+frontend/src` liefert vor und nach dem Split exakt dieselben 62 Zeilen (per `diff` auf
+sortierten Listen bestätigt) — jede bestehende `import { X } from '@/types/admin'`-Stelle
+kompiliert unverändert gegen den neuen Re-Export-Barrel.
+
+**Verifikation:** `npm run typecheck` grün (keine Fehler). `npm run lint` zeigt 4 vorbestehende
+Fehler in unveränderten Dateien (`capture-responsive.cjs` × 2 `no-require-imports`,
+`useReleaseVersionMedia.ts` React-Compiler-Memoization-Warnung als Error konfiguriert,
+`CapabilityDetailRow.tsx` `no-unescaped-entities`) — keiner davon in den vier
+`types/admin*.ts`-Dateien, bestätigt als bereits vor diesem Commit bestehende Baseline-Last
+(außerhalb des Auftragsumfangs, nicht angefasst). Volle Frontend-Testsuite: 391 bestandene
+Testdateien + 1 übersprungen (392 gesamt), 3572 bestandene Tests, 0 Fehlschläge.
+
+**Deferred Item 1 (`deferred-items.md`) ist damit erledigt** — Option (a) aus dem dort
+dokumentierten Entscheidungsvorschlag wurde umgesetzt (eigene, dedizierte Aufteilung analog zu
+den 180-04/184-05-Mustern), nicht Option (b) (dauerhafte Ausnahme).
+
+### Commit
+
+5. `<siehe git log, Commit dieses Nachtrags>` (refactor) — `admin.ts` Split in drei
+   Thementeile + Barrel, keine Verhaltensänderung
