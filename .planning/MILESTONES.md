@@ -67,3 +67,22 @@
 - visibility-safe identity and public data contracts
 - database/query/API/OpenAPI/frontend alignment
 - simpler reusable profile code and mobile-first CSS
+
+---
+
+## v1.4 Capability-, Review- und Benutzerverwaltung — "Coverage" (Shipped: 2026-10-17)
+
+**Goal:** Make effective group rights explainable and safely editable, turn review delegation into a usable product seam, reduce user-admin projections to meaningful grouped data, and show reviewers only work they can actually decide — then keep extending the same milestone additively instead of opening a new one.
+
+**Phases completed:** 49 phases (136-185; original audited scope was Phases 136-144, 41/41 requirements, see `.planning/v1.4-MILESTONE-AUDIT.md`, passed 2026-09-01). The milestone kept growing additively well beyond that original scope under the same `v1.4`/"Coverage" label through Phase 185; no full re-audit across all 49 phases was performed at close — each phase carries its own phase-level verification record in `ROADMAP.md`/`STATE.md`.
+
+**Key accomplishments:**
+
+- Core scope (136-142): DB-driven capability policy/catalog/schema contract, a central effective-rights resolver with overrides, effective-rights administration UX, scalable user-admin projections, review delegation management, an actor-decidable review queue, and an integrated security/fixture/live-release gate.
+- Registry and design-system consolidation (143-151): dashboard lane for rejected notes, capability-registry self-protection and substring-test sanitation, resolving the last parallel role catalogs, reconnecting role colors to the catalog, dead-CSS-token cleanup, one authoritative badge-threshold source, and achievement-badge carousel consolidation.
+- Public-surface consolidation (152-164): public fansub group, member, and anime detail/project pages rebuilt onto shared read models, query budgets, and viewer/image-budget resolution instead of parallel ad-hoc implementations.
+- Jellyfin-assisted intake and release-media work (165-169, 171-173): library-discovery-assisted anime creation, film content flow, fansub-group detection on episode import, release-media rights/project-lead previews, karaoke-segment integration, and an additional public image display variant.
+- Modularization, legacy cleanup, and hardening sweep (174-184): a dedicated hotspot/duplication inventory followed by phases closing each found item — unified image viewer, unified search/filter, unified media-backend rights and upload UI, merged release editing, legacy image-storage removal, and status-label consolidation.
+- Full-suite stabilization (185): closed the remaining durably-red frontend and backend tests to a clean, twice-green baseline.
+
+**Closed non-destructively:** `REQUIREMENTS.md` and `ROADMAP.md` remain live and uncollapsed; a copied snapshot lives under `.planning/archive/v1.4/`. No new milestone was started — by explicit decision, work continues in additive phases (`/gsd-phase add`) until something large enough to justify a new milestone comes up. See `.planning/v1.4-MILESTONE-AUDIT.md` for the (partial-scope) closing scorecard.

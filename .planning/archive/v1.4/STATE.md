@@ -1,0 +1,1979 @@
+---
+gsd_state_version: 1.0
+milestone: v1.4
+milestone_name: Coverage
+status: milestone_complete
+stopped_at: Milestone complete (Phase 185 was final phase)
+last_updated: 2026-10-17T06:32:09.820Z
+last_activity: 2026-10-16
+progress:
+  total_phases: 50
+  completed_phases: 45
+  total_plans: 458
+  completed_plans: 509
+  percent: 90
+---
+
+# Phase 184 — Aufräumpunkte aus Phase 174 abschließen (F-07/F-12/F-20/F-23) — COMPLETE (2026-10-15)
+
+Alle 10 Pläne sind code-vollständig, committet und verifiziert (`184-VERIFICATION.md`, 5/5
+must-haves D-01 bis D-05 bestanden). Additiv zu Milestone v1.4 hinzugefügt (siehe
+Roadmap-Evolution unten), Milestone-Status bleibt `milestone_complete`. 184-01 schloss F-23
+(D-04) ab: die 4 verbliebenen Literal-Duplikate der `original→display`-Regel rufen
+`services.DisplayVariantFileName`. 184-02 (D-02) führte `computePageWindow` (beide
+Pagination-Komponenten) und zwei `formatDate`-Helfer (Cluster A/B, je eigene Fallback-Semantik,
+7 Konsumenten) ein. 184-03 schuf den zentralen `mergeCssModules`-Helfer (Proxy-basiert,
+Vorbild `components/ui/Select.tsx`). 184-04/06/07/08/09 stellten alle 38 ursprünglich
+identifizierten Spread-Merge-Stellen (F-12/D-01) auf den Helfer um, inkl. 5 vorgezogener
+Datei-Splits (D-05: FansubAppMembersSection.tsx, admin/fansubs/page.tsx,
+admin/fansubs/merge/page.tsx, admin/episodes/page.tsx, ReleaseVersionNotesTab.tsx, je als reiner
+Umbau-Commit vor der inhaltlichen Änderung). Ein nachträglicher Review-Fund deckte 4 beim
+184-05-Split neu entstandene Kinddateien auf, die das kaputte Spread-Muster unverändert
+mitgenommen hatten (`FansubListRows.tsx`, `MergeWizardCards.tsx`, `MergeWizardPreviewStep.tsx`,
+`MergeWizardProgress.tsx`) — per Commit `cfc6e01bf` nachgezogen, womit F-12 für alle 43
+tatsächlichen Konsumenten geschlossen ist. 184-10 (F-20/D-03) entfernte 120 grep-belegt tote
+Top-Level-Klassen aus `FansubEdit.module.css` (3306→2442 Zeilen) — eine Methodik-Korrektur
+während der Nutzungsprüfung (Fixpunkt-Traversierung von Prop-Drilling statt nur direkter
+Importe) bewahrte dabei 86 tatsächlich noch genutzte Klassen vor versehentlicher Löschung. Der
+blockierende Live-Checkpoint wurde vom Nutzer nach eigener Prüfung aller Tabs von
+`/admin/fansubs/1/edit`/`/create` und 18 Vorher/Nachher-Screenshot-Paaren mit "approved"
+bestätigt (`184-10-HUMAN-UAT.md`). Ein begleitender Code-Review (8 Teilagenten) fand 4 Befunde
+ohne Entscheidungsbedarf-Blocker: 2 verbliebene, nie im D-04-Scope enthaltene hartcodierte
+`display.webp`-Literale in den animierten GIF/WebP-Zweigen von `media_upload_image.go` (kein
+aktives Kollisionsrisiko, da dieser Handler pro Medien-ID isoliert speichert), 2 vorbestehende,
+durch die Datei-Splits lediglich unverändert mitverschobene Dopplungen
+(`handleCoverImgError`, Such-Debounce) und ein geringfügiger Proxy-Laufzeit-Hinweis — alle als
+Nicht-Blocker dem Nutzer zur Entscheidung vorgelegt. Keine sichtbare Änderung für Nutzer:innen.
+
+# Phase 184 Plan 01 — F-23-Nachzieh (D-04) — PLAN COMPLETE (2026-10-15)
+
+184-01 (erster von 10 Plänen der Phase 184) ist code-vollständig und committet: die vier
+verbliebenen Literal-Duplikate der `original→display`-Namensregel im Release-Version- und im
+generischen Media-Upload-Pfad (`admin_content_release_version_media_upload_process.go`,
+`media_upload_image.go`) rufen jetzt `services.DisplayVariantFileName(originalPath, ext)` statt
+`"display."+ext` literal zusammenzusetzen. `generateStaticDisplayVariant` erhielt dafür den neuen
+Parameter `originalPath`. Keine Verhaltensänderung: `go build`/`go vet` clean,
+`TestMediaUploadHandler_DisplayVariant*` (3/3) und `TestDisplayVariantFileNameIsUniquePerOriginal`
+weiterhin grün; `TestUploadReleaseVersionMediaHandlerExists` wie gewohnt ohne lokale Postgres-DSN
+übersprungen. Keine der beiden Dateien liegt über 450 Zeilen, keine Datei-Aufteilung (D-05) nötig.
+Commits `34d2d9766`, `8e9d583a4`. Details: `184-01-SUMMARY.md`. Die restlichen 9 Pläne der Phase
+(F-07/F-12/F-20 gemäß 184-CONTEXT.md D-01..D-03) sind noch offen.
+
+# Phase 182 — Alten Bildspeicher entfernen (F-01) — COMPLETE (2026-10-15)
+
+Alle 4 Pläne (182-01 bis 182-04) sind code-vollständig, committet und live abgenommen. 182-01
+entfernte die toten `hasV2AssetSchema`-Legacy-Zweige in `anime_assets*.go`. 182-02 stellte die
+vier rohen `cover_image`-Leser (`watchlist.go`, `fansub_project_resolver_repository.go`,
+`fansub_repository_public_profile.go`, `anime_relations_admin.go`) auf den gemeinsamen
+V2-bewussten `animeCoverImageSelectSQL`-Helfer um und entfernte `syncLegacyAnimeCoverImageV2`
+(D-01). 182-03 schrieb Migration 0184 (reversibel, mit `DO`-Block/`RAISE EXCEPTION`-
+Schutzabfrage) und wendete sie live auf `team4s_v2` an — `anime.cover_image` existiert nicht
+mehr; Vertragsdokumentation in `shared/contracts/*.yaml` bereinigt (D-02/D-03). 182-04 entfernte
+die historische Einmal-Tooling (`backend/cmd/migrate-covers/`,
+`scripts/report-cover-image-state.ps1`, `scripts/remediate-cover-image.ps1`, Commit `bd49ec483`)
+und schloss mit dem blockierenden Live-Checkpoint (D-04): alle 5 Vergleichs-URLs bestanden,
+einschließlich `/watchlist` (eine zunächst gemeldete Datenlücke bei diesem Punkt wurde per
+unabhängiger Live-DB-/Code-Prüfung korrigiert und bestätigt — ein echter Jellyfin-
+Merklisteneintrag, anime_id=2 "11eyes", löst nachweislich zu einer gültigen Cover-URL auf).
+Keine kritischen Code-Review-Befunde über die gesamte Phase. Details: `182-01..04-SUMMARY.md`,
+`182-04-HUMAN-UAT.md`.
+
+# Phase 181 — Release-Bearbeitung zusammenführen (F-13) — COMPLETE (2026-10-14)
+
+Beide Pläne (181-01, 181-02) waren bereits code-vollständig und der blockierende Live-UAT-
+Checkpoint vom Nutzer bestätigt, als 181-VERIFICATION.md 8/8 Must-haves (D-01..D-05) bestätigte,
+aber `status: human_needed` zurückgab: 181-REVIEW.md hatte zwei Warnungen gefunden — WR-01 (der
+`visibleActiveTab`-Fallback in `EpisodeVersionEditorPage.tsx` übersprang `informationen`, wodurch
+ein rein metadaten-berechtigter Mitwirkender über den Dashboard-Link einen leeren Editor sehen
+konnte) und WR-02 (keinem Regressionstest sicherte die Exact-Match-Eigenschaft der neuen
+`/me/dashboard`/`/me/contributions`-Allowlist-Einträge gegen einen künftigen
+`startsWith`-Refactor ab). Der Nutzer entschied, beide jetzt zu beheben statt sie als Restrisiko
+zu tracken:
+
+- **WR-01** (Commit `2be605e49`): Fallback-Kette in eine reine, exportierte
+  `resolveVisibleActiveTab`-Funktion extrahiert; `informationen` als letzter Fallback nach
+  segmente/media/notizen ergänzt. Logik-only Unit-Test deckt alle 6 Fallback-Fälle ab, inkl. des
+  WR-01-Regressionsfalls (nur `informationen` erlaubt). Keine weitere Produktionscode-Änderung
+  an der Datei.
+
+- **WR-02** (Commit `0f6881e83`): 5 Negativtests in `page.test.tsx` ergänzt
+  (`/me/dashboardX`, `/me/dashboard/evil`, `//evil.com`, `/me/contributionsX`,
+  `/me/contributions/evil`) — alle werden korrekt abgelehnt und fallen auf den bestehenden
+  Default-`backHref` zurück. Keine Produktionscode-Änderung nötig (die bestehenden
+  `===`-Checks waren bereits korrekt).
+
+Volle Gate-Läufe im Container grün: 31/31 gezielte Tests (admin-episode-versions `page.test.tsx`),
+`tsc --noEmit` clean, `npm run lint` nur mit den bereits in `deferred-items.md` dokumentierten
+4 vorbestehenden, unabhängigen Fehlern (unberührte Dateien), volle Suite 383/385 Testdateien
+grün (1 Datei mit 1 Flake in `ReviewDelegationSection.test.tsx`, isoliert erneut grün gelaufen —
+bestätigt vorbestehend/timing-bedingt, nicht durch diese Änderung verursacht). Frontend-Container
+neu gestartet und als gesund bestätigt (`curl -sI http://192.168.235.196:3000/` → 200). Kein
+`git stash`, keine `git add -A`. `181-HUMAN-UAT.md` beide Punkte jetzt `result: resolved`;
+`181-VERIFICATION.md` um eine Resolution-Ergänzung erweitert. Phase 181 ist damit vollständig
+abgeschlossen.
+
+# Phase 180 — Einheitliche Upload-Oberfläche (F-15 Teil 2) — COMPLETE (2026-10-13)
+
+Alle 12 Pläne ausgeführt. 180-01..180-11 lieferten die gemeinsamen Upload-Primitives
+(`UploadDropzone`/`UploadFileRow`/`MediaSlot`) und migrierten alle acht Upload-Wege darauf;
+180-12 lief den vollen automatisierten Gate-Durchgang und einen ausgedehnten Live-UAT-Zyklus
+(dokumentiert als Addenda 1–4 in `180-12-SUMMARY.md`), der weit über den ursprünglichen
+Plan-Umfang hinausging: Fansub-Logo/Banner- und Profil-Zuschnitt+Anzeige-Korrekturen, eine
+MediaSlot-Primitive mit Aktionsleiste unter statt über der Vorschau, Anime-Cover/-Banner-
+Zuschnitt (neu, inkl. CORS-Fix für Provider-Quellen), eine Container-Query-Lösung für
+abgeschnittene Inhalte in flachen Upload-Slots, und die Entfernung von Weg 8
+("Medien-Vorschläge") als bestätigt totem Code (Frontend UND Backend inkl. Migration 0183).
+Ein abschließender Code-Review über die volle Phase-Diff (100 Commits/179 Dateien, 4 parallele
+Review-Agenten) fand 3 BLOCKER und mehrere WARNING/INFO-Funde — alle einzeln committet behoben.
+Finaler Gate-Lauf: `tsc`/`go build`/`go vet`/`git diff --check` clean, 384 Testdateien/3521 Tests
+grün im Container. Keine Zugangsdaten verändert, kein `git stash` verwendet.
+
+# Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
+
+Die Identitätskarte der Anime-Edit-Seite nutzt kompakte Info-Kacheln statt großer read-only Formularfelder. Anime-ID, AniSearch-ID, Jellyfin Item ID und Quelle bleiben sichtbar; der Ordnerpfad nutzt die volle Breite. 15 fokussierte Tests und Typecheck sind bestanden.
+
+# Quick Task 260925-6qd — Anime-Edit-Kopfkarte kompakt (Phase 168)
+
+Die obere Edit-Kopfkarte bündelt Titel, Anime-Name, Aktionen und verlinktes Cover. Die doppelte große Edit-Überschrift im gemeinsamen Workspace entfällt nur im Edit-Modus; der Create-Flow bleibt unverändert. 15 fokussierte Tests und Typecheck sind bestanden.
+
+# Quick Task 260925-6qc — Anime-Edit-Texte und Kontext bereinigt (Phase 168)
+
+Die Edit-Route zeigt weniger Prozess- und Erklärungstexte. Die Quelle bleibt als eigenes Herkunftsfeld sichtbar, während die Jellyfin Item ID einmalig in der Identitätskarte steht. Die AniSearch-Verknüpfung öffnet in einem neuen Tab, das Cover ist oben verlinkt und der Relations-Button steht direkt beim Relationstyp. Edit-/Relations-Tests und Typecheck sind bestanden.
+
+# Quick Task 260925-6qb — Episoden-Zeit-Override beim Wiederöffnen (Phase 168)
+
+Root Cause behoben: Die Assignment-Response lieferte nur `has_override`, aber nicht die gespeicherten Override-Zeitwerte. Das Segment-Panel setzte beim Wiederöffnen deshalb wieder die Basiszeit. Die API liefert nun optionale `override_start_time`/`override_end_time`; das UI stellt die gespeicherte Startzeit wieder her. 127 fokussierte Frontend-Tests und Typecheck sind bestanden. Backend-Pakete kompilieren; der vollständige Lauf enthält bekannte unabhängige Fixture-/Berechtigungsfehler.
+
+# Quick Task 260925-6qa — Media-Karten und Kontexttitel poliert (Phase 168)
+
+Der Media-/Assets-Tab nutzt für unbenannte Medien jetzt den Editor-Kontext `Episode 001 · New-Subs v1` statt Dateiname oder generischer Asset-ID. Eigene Titel/Beschriftungen bleiben vorrangig. Karten haben gleichmäßige Höhen, kompakte Aktivitätsmetadaten und ausgerichtete Vorschauaktionen; Kategorie-Buttons behalten ihre bestehenden Namen und erhalten Tooltip sowie aktive Hervorhebung. 56 fokussierte Frontend-Tests und `git diff --check` sind bestanden; Typecheck und Push sind Teil des Abschlusses.
+
+# Quick Task 260925-kae — Bulk-Klassifizierung für Episoden (25.09.2026)
+
+Canon/Filler und Episodentyp können in der Episodenübersicht für mehrere ausgewählte Episoden gemeinsam gesetzt werden. Die Umsetzung nutzt die bestehenden Klassifizierungsoptionen, den Admin-Episode-Endpunkt und den Bestätigungsdialog. Ein Synchronisationsfehler der bereits gerenderten Felder wurde per Regressionstest behoben. Typecheck, fokussierte Tests, ESLint und `git diff --check` sind bestanden. Menschliche Live-UAT der Sammelaktion steht noch aus.
+
+# Quick Task 260925-7tb — Tab-Scrollbar im Episodenversionseditor (Phase 168)
+
+Die sichtbare Scrollbar der Editor-Tab-Leiste auf `/admin/episode-versions/66/edit` wurde lokal ausgeblendet; horizontales Scrollen auf kleinen Viewports bleibt erhalten. Dokumentation liegt unter `.planning/quick/260925-7tb-episodenversionseditor-tab-scrollbar/`. Automatisierte Diff-Prüfung ist bestanden; visuelle Live-UAT bleibt empfohlen.
+
+# Quick Task 260925-drawer — Segment-Bearbeitungsdrawer vergrößert (Phase 168)
+
+Der Segment-Drawer im Episodenversionseditor ist auf Desktop auf 760px erweitert, mobil auf 100vw begrenzt und hat sticky Header-/Aktionsbereiche erhalten. Die Segment-Suite (125 Tests) und Typecheck sind bestanden. Dokumentation liegt unter `.planning/quick/260925-drawer-segment-bearbeitungsdrawer/`; Live-UAT bleibt empfohlen.
+
+# Quick Task 260925-3cx — Neutrale Herkunftsbezeichnungen im Fansub-Editor (Phase 168)
+
+Sichtbare Provider-/Jellyfin-Bezeichnungen im Episode-Version-Editor und Segment-Drawer wurden durch neutrale UI-Texte ersetzt. Interne Quelltypen und API-Felder bleiben unverändert. Segmenttests, Seitentests und Typecheck sind bestanden. Dokumentation liegt unter `.planning/quick/260925-3cx-neutrale-herkunftsbezeichnungen/`.
+
+# Quick Task 260925-4jm — Segment-Drawer-Feldbreiten ausbalanciert (Phase 168)
+
+Erklärungstexte im Segment-Drawer nutzen die freie Breite; direkte Select-Felder sind auf 360px begrenzt und bleiben mobil responsiv. Die 125 fokussierten Segmenttests sind bestanden. Dokumentation liegt unter `.planning/quick/260925-4jm-segment-drawer-feldbreiten/`.
+
+# Quick Task 260925-5np — Media-Tab-Kontext und Status-Chips bereinigt (Phase 168)
+
+Die doppelte Fansub-/Release-Kontextkarte und Kontextzeile im Media-Tab sind entfernt. Kategorie-, Review- und Sichtbarkeits-Chips stehen gemeinsam nebeneinander und brechen responsiv um. 55 Media-/Seitentests und Typecheck sind bestanden. Dokumentation liegt unter `.planning/quick/260925-5np-media-tab-kontext-status-chips/`.
+
+# Project State
+
+## Gap-Closure-Ausführung Phase 165 (22.09.2026) — 165-14..165-19 code-complete, CR-01 Review-Fix eingespielt
+
+Alle sechs Gap-Closure-Pläne (165-14..165-19, GAP-05..GAP-16 aus `165-UAT.md`, inkl. D-30/D-31 aus
+`165-CONTEXT.md`) wurden headless ausgeführt, alle Pläne haben SUMMARY.md. Ergebnisse:
+
+- **Verifikation** (`165-GAP-CLOSURE-VERIFICATION.md`): 13/13 Must-haves bestätigt — alle 11 GAPs plus
+  D-31/GAP-08 sind im Code tatsächlich geschlossen (nicht nur laut SUMMARY behauptet), durch unabhängige
+  Nachprüfung inkl. Re-Ausführung der echten Postgres-Integrationstests.
+
+- **Code-Review** (`165-GAP-CLOSURE-REVIEW.md`): 1 BLOCKER (CR-01), 2 Warnungen, 2 Infos. CR-01: 165-17s
+  GAP-05-Refactor (`connectJellyfinFolderAdditively`) hatte `additive := connect && currentSource != ""`
+  gesetzt — das öffnete RESEARCH.md Pitfall 3 erneut für die zwei Nicht-„Verbinden"-Aufrufer
+  (routinemäßiges „Jellyfin-Metadaten anwenden" auf der Edit-Seite; „Jellyfin-Kandidat übernehmen"-Fluss):
+  beide senden nie `connect=true`, aber immer eine `jellyfin_series_id`, wodurch ein AniSearch-Anime bei
+  einer harmlosen Asset-Aktualisierung `anime.source`/`folder_name` still auf `jellyfin:<id>` überschrieben
+  bekommen hätte — ohne Audit-Eintrag. **Noch in dieser Session behoben** (Commit `96ba1190`):
+  `additive` schützt jetzt jede Nicht-Jellyfin-Quelle unabhängig vom `connect`-Flag; Regressionstest
+  wiederhergestellt (`TestConnectJellyfinFolderAdditively_UsesForceWritePathWhenNotConnecting/anisearch_source...`);
+  Unit-, Handler- und echte Postgres-Integrationstests für den betroffenen Pfad erneut grün, Backend neu
+  gebaut und verifiziert erreichbar.
+
+- **Bekannte, bestätigt vorbestehende und nicht in Scope liegende Testfehler** (nicht durch diese Runde
+  verursacht, unabhängig reproduziert): `admin_content_fansub_releases_test.go` (2 Tests, RBAC/Rollen-Fixture,
+  letzte Änderung 14.09.2026 vor jeder Phase-165-Arbeit) sowie `11eyes-*`-Fixture-Tests unter
+  `internal/handlers` (fehlende `docs/audits/2026-09-15-jellyfin12/fixtures/*.json` im Docker-Image-Build-
+  Kontext, kein Code-Fehler) und `Phase134Matrix*`-Tests unter `internal/repository` (benötigen einen
+  laufenden Server auf Port 18093, der in dieser Session nicht lief).
+
+- **Live-UAT steht noch aus** — nichts aus dieser Runde ist eigenmächtig als abgenommen markiert; siehe
+  Live-UAT-Checkliste im Abschlussbericht dieser Session.
+
+## Phase 164 Abschluss (18.09.2026) — Milestone v1.4 vollständig abgeschlossen
+
+Phase 164 (letzte Phase des Milestones v1.4 „Coverage") ist vollständig abgenommen. Der Auftraggeber
+hat am 2026-09-18 per Live-UAT über den SSH-Tunnel (`127.0.0.1:3300`) gegen drei reale Anime geprüft:
+Naruto (`/anime/4`), 11eyes: Pink Phantasmagoria (`/anime/3`), Buddy Complex (`/anime/1`). Wörtliche
+Freigabe: **„1 passt, 2 löschen“** — Punkt 1 (164-07 Task 2, Live-Naruto-Browser-UAT inkl. erneuter
+Prüfung von GAP-01..GAP-15) bestanden; Punkt 2 (164-07 Task 3, Dev-Harness-Route) Entscheidung:
+löschen.
+
+- **164-07 Task 3 abgeschlossen:** DOM-Node-Count per Playwright im Frontend-Container gemessen
+  (Mobile-Viewport 390×844, 64 Mock-Episoden): 835 Elemente gesamt, 70 `<li>`, konstant beim
+  Scrollen. Die Harness lud alle 64 Episoden als eine einzige Page (`has_more=false`) — Verdrängung/
+  Rückwärtsladen über mehrere Pages wurde dadurch live nicht gezeigt (bleibt nur durch Unit-Tests
+  belegt). Ein Mobile-Frame-/Paint-Profil (Gate 11) wurde **nicht** gemessen; der Auftraggeber hat
+  die Phase dennoch abgenommen — dokumentiert, nicht verschwiegen (`docs/audits/164-performance-gates.md`).
+  `frontend/src/app/dev/episode-windowing-preview/` wurde daraufhin vollständig gelöscht (Commit
+  `4b3cade8`).
+
+- **GAP-01..GAP-15 vollständig geschlossen:** GAP-01..GAP-12 via Gap-Closure-Plänen 164-08..164-13
+  (siehe Eintrag unten); GAP-13 via Quick-Task `260918-fmq`; GAP-14/GAP-15 via Quick-Task
+  `260918-jfs`. Alle 15 Gaps in `164-UAT.md` als `status: resolved` mit Fix-Commit-Referenz
+  dokumentiert; `164-UAT.md` frontmatter auf `status: complete` gesetzt.
+
+- **Verifikation:** `gsd-verifier` hat Phase 164 unabhängig gegen den echten Code-Stand geprüft
+  (48/48 Must-Haves, alle 13 Plan-Artefakte, alle 18 Gap-/Quick-Task-Commit-Hashes im `git log`
+  verifiziert, Backend-Query-Budget live gegen eine frische isolierte Postgres-DB reproduziert,
+  Frontend-Suite 2894/2899 grün, GAP-01/GAP-15 live gegen `/anime/4` bestätigt) — Status `passed`,
+  siehe `164-VERIFICATION.md`. Zwei nicht-blockierende Hinweise dabei aufgenommen: REQ-164-14s
+  Wortlaut wurde auf „Fansub-Release vom" aktualisiert (GAP-14-Textänderung), REQ-164-45 trägt den
+  vom Auftraggeber akzeptierten Hinweis auf das nicht gemessene Mobile-Frame-/Paint-Profil.
+
+- **Tests/Build im Container nach der Löschung:** `npm run typecheck` 0 Fehler (nach Entfernen des
+  verwaisten `.next/types`-Artefakts), `npm run lint` dieselben 3 vorbestehenden Fehler, `npm run
+  test -- --run` dieselben 2 vorbestehenden `cssCustomProperties.guard.test.ts`-Fehlschläge (ein
+  dritter, je Lauf wechselnder Fehlschlag als containerlast-bedingt flaky bestätigt), `npm run build`
+  weiterhin am bereits vorbestehenden mehrseitigen Turbopack-Prerender-Defekt (Diagnoselauf bestätigt:
+  derselbe Defekt existiert unabhängig von der gelöschten Route, nur eine andere zuerst betroffene
+  Seite). Backend `go build`/`go vet` fehlerfrei, `go test ./...` nur bereits dokumentierte
+  umgebungsabhängige Fehlschläge. `docker restart team4sv30-frontend` durchgeführt; `curl` bestätigt
+  `/dev/episode-windowing-preview` → `404`, `/anime/4` → `200`.
+
+- Kein Push, keine Datenänderung an `team4s_v2` in dieser Abschluss-Session (nur Frontend-Dateilöschung
+  + Doku/Planungsdateien).
+
+## Gap-Closure-Ausführung + Code-Review Phase 164 (18.09.2026) — 164-08..164-13 code-complete, Review-Fixes eingespielt
+
+`/gsd:execute-phase 164 --gaps-only` (headless, `main`, keine Worktrees) hat alle 6 Gap-Closure-Pläne 164-08..164-13 sequenziell ausgeführt (GAP-01..GAP-12 aus `164-UAT.md`). Migration `0169_episode_classification_labels` additiv auf `team4s_v2` angewendet und verifiziert (5 Filler-Typen + 10 Episodentypen, `episodes`-Zeilenzahl unverändert bei 246). Anschließender Pflicht-Code-Review (`164-REVIEW.md`, `gsd-code-reviewer`) fand 2 Critical + 5 Warning Findings — beide Critical-Funde betrafen die GAP-12-Logik in 164-09 (`episode_import_repository_apply.go`): (1) `mapAnimeTypeToEpisodeType` prüfte auf den nie vorkommenden String `"movie"` statt der echten `anime_type`-Enum-Ausprägung `"film"`, wodurch die GAP-12-Korrektur für Filme nie griff; (2) die pro-Anime abgeleitete `episode_type_id` brach den Bestands-Episoden-Abgleich beim Re-Import, was zu doppelten `episodes`-Zeilen und fehlzugeordneten Release-/Variant-Graphen für nicht-manuell klassifizierte Episoden führen konnte (realer Pfad für 11eyes, dem zweiten UAT-Testfall). Alle 2 Critical + 5 Warning Funde per `gsd-code-fixer` behoben und verifiziert (Commits `811bff61`..`7327c1ea`): korrekte `film`→`movie`-Zuordnung mit Realdaten-Testfixture, anime_id+number-Abgleich statt typabhängigem Abgleich (UPDATE überschreibt `episode_type_id` nur bei nicht-manueller Quelle), OpenAPI-Dokumentation für den neuen Admin-Endpoint nachgetragen, Gruppenlogo-URL-Bauweise zentralisiert und URL-escaped, Fehleranzeige bei fehlgeschlagenem Options-Ladevorgang im Admin-Editor ergänzt, Dateiname-Heuristik im Editor auf die Backend-Video-Endungsliste verengt. Backend neu gebaut (`docker compose up -d --build team4sv30-backend`), Frontend neu gestartet (`docker restart team4sv30-frontend`); beide laufen und liefern 200 auf `http://192.168.235.196:3000/`.
+
+**Noch offen:** Phase 164 ist NICHT abgenommen. Zwei Live-Abnahmen stehen aus: (1) der ursprüngliche 164-07-Checkpoint (Live-Naruto-Browser-UAT + DOM/Mobile-Performance-Messung, s. u.) und (2) eine erneute Live-UAT aller 12 Gaps GAP-01..GAP-12 gegen die jetzt live laufenden Fixes. Kein Push, keine Datenänderung an `team4s_v2` außer der autorisierten additiven Migration 0169.
+
+## Gap-Closure-Planung Phase 164 abgeschlossen (18.09.2026) — 6 neue Pläne 164-08..164-13
+
+Live-UAT durch den Auftraggeber am 18.09.2026 (Naruto /anime/4, 11eyes: Pink Phantasmagoria /anime/3) ergab 12 Gaps (`164-UAT.md`, GAP-01..GAP-12); Checkpoint 164-07 bleibt NICHT abgenommen. `/gsd:plan-phase 164 --gaps` (headless) hat 6 zusätzliche Gap-Closure-Pläne erzeugt (`gap_closure: true`, 164-08 bis 164-13, 3 Gap-Wellen) — die ursprünglichen Pläne 164-01..164-07 wurden dabei NICHT verändert. gsd-plan-checker: 0 Blocker über beide Prüfläufe; 5 Warnings in Runde 1 (2 davon echte Testkonflikt-Risiken in 164-12/164-13, per gezielter Revision behoben und in Runde 2 bestätigt; 3 als nicht-blockierend akzeptiert: Datei-Anzahl >10 in 164-08/164-10, URL-Encoding-Konvention in 164-08 Task 1, Admin-Platzhalter-Duplikation in 164-12 als bewusste Diskretion dokumentiert). Nächste freie Migration `0169` für GAP-11 bestätigt (höchste bestehende: `0168_tag_genre_language_names`).
+
+**Decision-Coverage-Gate-Override (§13a, bewusst „Proceed anyway"):** `check.decision-coverage-plan` gegen `164-CONTEXT.md` meldet 31/36 nicht abgedeckte D-IDs (D-02..D-48, außer den zufällig als Bereichsgrenzen literal zitierten). Das ist ein Altbefund der bereits **ausgeführten** Pläne 164-01..164-07 (die Original-Pläne zitieren D-IDs überwiegend als Bereiche wie „D-01 through D-20" statt einzeln, was der Gate-Prüfung mit `\bD-NN\b`/6-Wort-Soft-Match entgeht) — keine dieser 36 Entscheidungen gehört zum Scope der 12 UAT-Gaps. Explizite Auftragsvorgabe für diesen Lauf war „keine Neuplanung der ursprünglichen Pläne"; ein Re-Plan von 164-01..07 nur zur Gate-Erfüllung hätte das verletzt. Override akzeptiert, damit verify-phase den Altbefund bei Bedarf erneut aufgreifen kann.
+
+Nächster Schritt: `/gsd:execute-phase 164` für 164-08..164-13; danach erneute Live-UAT durch den Auftraggeber.
+
+## Abgeschlossen — Phase 162 „Fansub-Gruppenauswahl, Kurzgeschichte und Navigation“ (Live-UAT bestanden 17.09.2026)
+
+Alle 5 Pläne (162-01 bis 162-05) sequenziell auf `main` ausgeführt (workflow.use_worktrees=false). **Vom Auftraggeber am 17.09.2026 live abgenommen („live uat bestanden“, 162-HUMAN-UAT.md).** `GET /api/v1/anime/{id}/fansubs` liefert additiv ein rune-sicher gekürztes `story_preview`-Feld pro Gruppe (LATERAL-Join, kein N+1). Neue Komponenten `FansubGroupPicker` (Filter-Chips, `role="group"`, `aria-pressed`) und `FansubGroupContext` (gruppenspezifischer Bereich: Name, 3-Zeilen-Story, „Mehr lesen →“, „Zur Fansub-Gruppe“, „Zum Projekt“) ersetzen das alte `ActiveFansubStory`. `FansubVersionBrowser` und `page.tsx` nutzen jetzt ausschließlich URL-Zustand (`?fansub=<slug>`, `history.pushState`/`popstate`, SSR-Determinismus über `searchParams.fansub`) statt localStorage; alle bisherigen redundanten Gruppen-Chips/CTAs sind entfernt. Backend neu gebaut (`docker compose up -d --build team4sv30-backend`), Frontend neu gestartet (`docker restart team4sv30-frontend`).
+
+**Verifikation:** 0 neue Test-Regressionen (Backend: 1 vorbestehender, dokumentierter Fehlschlag `TestFansubRepository_PublicProfileSourceInvariants`; Frontend: 2 vorbestehende, dokumentierte `cssCustomProperties.guard.test.ts`-Fehlschläge — beide außerhalb des Phasenscopes). `npm run typecheck` 0 Fehler, ESLint 0 Findings in geänderten Dateien. Automatisierte Playwright-Browser-Verifikation (17/17 Prüfungen grün, Desktop 1440px + Mobile 375px, gegen `http://127.0.0.1:3000`, echter Live-Datenbestand: Anime 1/2/3/4) **ersetzt** den im Plan vorgesehenen menschlichen Sign-off-Checkpoint — bewusste, im Ausführungsauftrag autorisierte Abweichung (siehe `162-05-SUMMARY.md`). Zwei Konstellationen (0 Gruppen, Gruppe ohne Logo) existieren im aktuellen Live-Bestand nicht und sind nur per Vitest-Fixture abgedeckt. Kein Push, kein Datenbank-Schreibzugriff während der gesamten Phase.
+
+## Abgeschlossen — Phase 160 Teilschritt „Tags und Genres“ (17.09.2026)
+
+**Vom Auftraggeber am 17.09.2026 mit „approved“ abgenommen.** Migration 0168 (tag_names/genre_names), Admin-Seite /admin/tags-genres, Suche ohne Suchbegriff für tag/genre, Tags unter der Beschreibung und Genre-Links auf /anime/[id]. Gap-Fixes nach Agent-Browserprüfung: Suchseiten-Absturz bei type=anime (items:null), Linie vor Tags, Sortierung nach angezeigtem Namen (cea49488). Offen: Genres mobil ausgeblendet, Überschrift „Verwandte Anime“ mobil dunkel, Review-Warnungen WR-01..03. Gruppenbereich/Coop laut Auftraggeber eigene Phase 162 (noch nicht angelegt). Kein Push.
+
+## Phase 160 (Teilschritt „Tags und Genres“) — code-complete und verifiziert, Human-UAT ausstehend (16.09.2026)
+
+Alle 6 Pläne (160-01 bis 160-06) sequenziell ausgeführt (workflow.use_worktrees=false): Migration 0168
+(tag_names/genre_names, additiv), deutsche Namensauflösung im öffentlichen Detail-Read ohne
+Query-Mehrkosten (1 vs. 8 Tags gleiche 7 SQL-Statements, belegt), Admin-Backend+Frontend für deutsche
+Tag-/Genre-Namen, Suche akzeptiert tag/genre ohne q ohne andere Entitätstypen aufzublähen (Fansub-Leerzustand-Fix),
+Tags-Block + Genre-Links auf der öffentlichen Detailseite. Alle 5 Auftraggeber-Mandat-Punkte einzeln
+umgesetzt und in den jeweiligen SUMMARYs mit Belegen dokumentiert. Unabhängige Verifikation
+(160-VERIFICATION.md): 20/20 D-IDs bestätigt, Status `human_needed` — kein Browser-Automatisierungs-Tool
+in dieser Umgebung für die genuin visuellen/interaktiven Prüfpunkte (375px-Umbruch, Tastaturnavigation,
+Sichtkontrast, authentifizierter Admin-Durchlauf).
+
+**Noch während der Ausführung vom Auftraggeber live bestätigter Befund:** Tags-Überschrift/-Chips auf
+`/anime/3` weiß auf heller Infokarte, praktisch unsichtbar — exakt das vom Verifier vorhergesagte
+D-17-Kontrastrisiko. Sofort behoben (Commit `9233adf2`): `.tagsLabel`/`.tagChip`/`.tagChip:hover` auf
+dunkle globale Tokens umgestellt (`--text-muted`, `--text-primary`, `--surface-sunken`,
+`--border-subtle`/`-strong`), WCAG-AA-Kontrast rechnerisch nachgewiesen (5.30:1 / 14.45:1, Minimum
+4.5:1); `.genreChip` (dunkle Poster-Spalte) unverändert. Zielgerichtete Tests danach erneut grün (55/55),
+`tsc`/`eslint` sauber. Backend (`docker compose up -d --build team4sv30-backend`) und Frontend
+(`docker restart team4sv30-frontend`) neu gebaut/neu gestartet. Vollständige Regression (Backend + Frontend)
+0 neue Fehlschläge gegenüber dem dokumentierten Vor-Zustand. Code-Review (`160-REVIEW.md`): 0 Critical,
+3 Warning/2 Info (nicht blockierend). Kein Push.
+
+Offene Human-UAT-Punkte (`160-HUMAN-UAT.md`): 375px-Mobile-Umbruch, Tab/Enter-Tastaturnavigation,
+Live-Sichtbestätigung des Kontrast-Fixes, authentifizierter Admin-Durchlauf (`/admin/tags-genres` → Namen
+setzen → auf öffentlicher Seite bestätigen) — über den SSH-Tunnel `http://127.0.0.1:3300`. Teilschritt
+„Tags und Genres“ gilt erst mit Auftraggeber-Abnahme als vollständig abgeschlossen; Gruppenbuttons/Coop/
+Episodenfilter bleiben out of scope für Phase 162.
+
+## Abgeschlossener Quick 260916-rpv — Öffentliche Relationen: Sicht, Label, Cover (16.09.2026)
+
+**Vom Nutzer am 16.09.2026 mit „approved“ abgenommen.**
+
+Öffentliche Anime-Seite zeigt Relationen jetzt aus Sicht der angezeigten Seite (OVA-Seite: 11eyes = Hauptgeschichte), mit deutschen Labels (kein roher DB-Name, Überschrift „Verwandte Anime“) und Cover über denselben Resolver wie die Detailseite. Live im Browser geprüft (/anime/2, /anime/3). Details: quick/260916-rpv-oeffentliche-relationen-perspektive/260916-rpv-SUMMARY.md. Kein Push.
+
+## Abgeschlossener Quick 260916-emd — Episoden-Metadaten manuell pflegbar (16.09.2026)
+
+**Vom Nutzer am 16.09.2026 mit „approved“ abgenommen**, einschließlich der deutschen Anzeigenamen (Haupthandlung, Zusatzfolge, Teilweise Zusatzfolge, Rückblick, Unbekannt; Commit 387cee57). Eine agentenseitige Browser-Sichtprüfung fand nicht statt. Offen bleiben: Feldname „Canon/Filler“ noch englisch, 11eyes EP 01 steht aus dem Abnahmetest auf mixed (manual).
+
+Canon/Filler (`episodes.filler_type_id`) und Episodentyp (`episodes.episode_type_id`) sind in der Episoden-Übersicht und im Versionseditor (Informationen, nur Plattform-Admin) bearbeitbar; beide speichern sofort über das erweiterte `PATCH /admin/episodes/:id` in genau einen Episode-Datensatz. Neue additive Migration 0167 `episode_type_source`; `filler_source`/`episode_type_source = manual` schützt vor Reimport, Import findet manuell umtypisierte Episoden wieder (verhindert Duplikate). Ungültige Werte → 400, Unique-Konflikt → 409. Live-Abnahme 11eyes EP 01 über echte Handler: canon/special in allen drei Versionen sichtbar, danach mixed/episode in der Übersicht; EP 01 steht jetzt auf mixed/episode (manual). Tests: 5 Postgres, Handler-400, 6 Frontend inkl. Cross-View; Frontend-Prod-Build grün. Details: quick/260916-emd-episoden-metadaten-manuell/260916-emd-SUMMARY.md. Kein Push; Browser-UAT offen (kein Login im Panel).
+
+## Abgeschlossener Quick 260916-asr — aniSearch „Alternative Version“ als Nebengeschichte (16.09.2026)
+
+Ursache: Der Parser der aniSearch-Relationsseite verwarf „Alternative Version“; die vorhandene Normalisierung kam nie zum Zug. Jetzt ein zentrales Mapping (`anisearch_relation_labels.go`), „Alternative Version“ → Nebengeschichte in beiden Kantenrichtungen, unbekannte Begriffe erzeugen keine Relation, Bestandszuordnungen unverändert. DB-Seed `alternative-version` (Migration 0020) ist ungenutzter Altbestand und bleibt unverändert. Re-Import über „aniSearch laden“ ergänzt additiv und dedupliziert, manuelle Relationen bleiben. Live in team4s_v2: `11eyes (2) -> 11eyes: Pink Phantasmagoria (3)` als Nebengeschichte angelegt, zweiter Lauf ohne Duplikat, OVA-Episode 1 bleibt `unknown`. Backend neu gebaut. Details: quick/260916-asr-anisearch-alternative-version-relation/260916-asr-SUMMARY.md. Kein Push, keine Nutzer-Sichtprüfung.
+
+## Abgeschlossener Quick 260916-ejp — set-state-in-effect an 8 Fachlichkeiten (16.09.2026)
+
+**Vom Nutzer abgeschlossen am 2026-09-16.** Eine gesonderte Sichtprüfung wurde nicht zurückgemeldet und gilt nicht als bestanden. Folgeauftrag für `NotesTab.tsx` (gleiches Muster) vom Nutzer abgelehnt.
+
+Alle 8 `void (async () => {...})()`-Workarounds aus Quick 260915-rv3 sind durch echte strukturelle
+Lösungen ersetzt: die 4 Summary-Komponenten in `AdminGroupsClient.tsx` und `CapabilityHistoryPanel.tsx`
+nutzen `useCancellableSlugState` direkt (Klasse A); `GroupRolesTab.tsx` kombiniert den Hook mit einer
+expliziten 3-Zustands-Ableitung während des Renderns, die den Sticky-loadError-Sonderfall erhält
+(Klasse B); `useEpisodeNeighborNavigation.ts` und `useReleaseVersionMedia.ts` nutzen den Hook plus die
+bereits etablierte Render-Zeit-Anpassungsschicht aus `GroupMemberFormModals.tsx`, die das vorherige
+Ergebnis sichtbar hält, während ein neuer Schlüssel lädt (Klassen C/D); bei `useReleaseVersionMedia.ts`
+bleiben alle Mutations-/Upload-Callbacks (patchItem, replaceItem, deleteItem, reorderItems, runUpload,
+retryUpload, clearUploadQueue, startUpload) bytegleich unverändert. `grep -n "void (async"` liefert 0
+Treffer in allen 5 geänderten Produktionsdateien. Globales ESLint bleibt exakt bei 3 Fehlern/319
+Warnungen vor und nach dem Plan (0 neue Funde); `tsc --noEmit` bestätigt 0 Fehler. 50 neue
+Regressionstests (Anfrageparität, veraltete Antworten, StrictMode-Dev-Doppelaufruf je Standort, plus ein
+dedizierter Sticky-loadError-Test und Reload-Überlebens-/Fehlerreihenfolge-Tests für
+`useReleaseVersionMedia.ts`) plus die 2 vorbestehenden `useCancellableSlugState`-Konsumenten
+(`useMemberViewer.test.ts`/`MemberCurrentProjectsSection.test.tsx`, bytegleich unverändert) sind grün:
+75 Tests insgesamt. `useCancellableSlugState.ts` selbst wurde nicht angefasst. Container
+`team4sv30-frontend` neu gestartet; `/`, `/admin/groups`, `/admin/fansubs` liefern HTTP 200. Details:
+quick/260916-ejp-set-state-in-effect-an-8-stellen-fachlic/260916-ejp-SUMMARY.md. Codeabschluss `368bc4b9`;
+kein Push. Das manuelle Sichtprüfungs-Checklist (Gruppenverwaltung, Capability-Historie, Rollen-Tab
+inkl. Sticky-Error, Episoden-Navigation, Medien-Tab) bleibt ausdrücklich OFFEN, ebenso ein benannter
+Nachtrag: `NotesTab.tsx` trägt denselben Workaround noch und wurde bewusst nicht angefasst (außerhalb
+des Plan-Scopes).
+
+## Abgeschlossener Quick 260916-ako — Mehrere Jellyfin-MediaSources (16.09.2026)
+
+Source-Paare durch Vorschau, unabhängige Auswahl, serverseitige Revalidierung und Persistenz umgesetzt. 38 eindeutige Sources im vollständigen 11eyes-Fixture; Live-Ordner enthält 36, davon drei bereits importiert. Zwei Quellen von Folge 2 gemeinsam importiert und in DB/Editor nachgewiesen (Versionen 53/54); neue Vorschau lässt die dritte Quelle verfügbar. Migration 0166 regulär angewendet, kein Datenreset oder Jellyfin-/NAS-Eingriff. 348 relevante Backend-Prüfereignisse und 124 Frontendtests bestanden; Typecheck und Go build/vet grün, breite Baselinefehler unverändert. Details: quick/260916-ako-jellyfin-multiple-media-source-import/260916-ako-SUMMARY.md. Codeabschluss c61459bc; kein Push, kein menschlicher UAT-Sign-off. Historische Phasen- und Abnahmeeinträge bleiben unverändert. Live-UAT-Nachtrag: Lösch-500 durch versehentliche ss/rs-Sortierreferenzen in Delete korrigiert (0cda1dd7), drei echte PostgreSQL-Regressionen RED/GREEN; 351 relevante Backendtests bestanden. Fix aktiv, keine Nutzer-Release-Löschung durch den Agenten. Siehe 260916-ako-DELETE-GAP.md. Nutzerabnahme am 16.09.2026 ausdrücklich „approved“ für diesen Löschfix; weitere UAT-Punkte bleiben offen.
+
+## Abgeschlossener Quick 260915-m2h — Kapitelhilfe und Dateigröße (15.09.2026)
+
+Jellyfin-Kapitel der eindeutig zugeordneten gespeicherten Datei lassen sich bei neuen Segmenten ausdrücklich als Start/Ende übernehmen; Originalzeit mit Millisekunden, Übernahme gerundet auf ganze Sekunden. Dateigröße kommt aus der gewählten MediaSource. Admin-Editor und persönlicher Release-Workspace sind angebunden, ohne neue SQL-Abfragen oder zusätzliche Requests beim Auswählen. 228 unterschiedliche Frontendtests und 254 Go-Testfälle einschließlich Untertests bestanden; Build/Vet Go bestanden. Nur bekannte globale Typ-/Lint-/Frontend-Buildfehler bleiben. Live mit Admin-Sitzung: Editor 28/43, Workspace 28, 320/390/768/1440px ohne Rootoverflow, Auswählen und Abbrechen ohne Datenänderung. Contributor-Liveprüfung, Browserzoom und reguläre Dashboard-Navigation bleiben eingeschränkt/offen; Kapitel-Auswahl gesondert vom Nutzer abgenommen (siehe unten). Details: quick/260915-m2h-kapitelhilfe-und-dateigroesse-im-release/260915-m2h-SUMMARY.md. Codeabschluss 2cee78c9; kein Push. Bestätigter UAT-Nachtrag: ganze Kapitelabschnitte sowie einzelne Marken getrennt übernehmen; Einspiel ergibt 00:00:00–00:03:07, Auswahl bleibt sichtbar. 167 gezielte Frontend-/Auth-Tests bestanden, Live 320/390/768/1440px geprüft; keine Speicherung. Nutzerabnahme am 15.09.2026 ausdrücklich „approved“ für Kapitelmarken-/Kapitelabschnitt-Auswahl auf Stand 1f3573b0; keine Abnahme anderer offener Prüfungen.
+
+## Abgeschlossener Auftrag — Phase 161: Jellyfin 12 (Human-UAT vollständig 16.09.2026)
+
+**Vom Nutzer am 16.09.2026 mit „approved“ vollständig abgenommen**, einschließlich der zuvor offenen Live-Prüfungen Import/Relink, Library-Rescan und Kaltstart. Diese Prüfungen wurden nicht vom Agenten ausgeführt. Details: phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-HUMAN-UAT.md.
+
+**Nutzerabnahme 15.09.2026:** Release-27-Metadaten-/Anzeige-UAT ausdrücklich „uat abgenommen“. Öffentliche API zuvor gelesen: MKV, H.264, AC3/ja, deutsche ASS-Standardspur, Softsub. Teilabnahme dokumentiert in `phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-HUMAN-UAT.md`; Zusätzlich bestätigt der Nutzer „karako spielt ab“ für Release 27. Import-/Relink-, Library-Rescan- und gezielte Kaltstartprüfungen bleiben separat offen.
+
+Ausgangscommit b3b07ff0; 9/9 Plans, 25 Tasks und 6/6 Anforderungen technisch abgeschlossen. Unabhängige Verifikation: 16/16 Ziele, technical_status passed, gaps leer. Zwei echte Reviewbefunde wurden mit RED/GREEN geschlossen: Formular übernimmt bestätigte Sourcewerte ohne spätere Entwürfe zu verlieren (3e410901); öffentliche Einzelversion gibt den internen Source-Selector nicht aus (718ebf57). GSD-Status human_needed betrifft ausdrücklich nicht ausgeführte Live-Import-/Relink-/Rescan-/Wiedergabeprüfungen, keine verbleibende Implementierungslücke.
+
+Feste Gate-Stände: Backend 64340e93 mit 277 ausgeführten Top-Leveltests / 554 Passereignissen und 0 Pflicht-Skips; breite Suite exakt 50 ursprüngliche Fehlerüberschriften, Build/Vet bestanden. Frontend 3e410901 mit 2748 bestandenen Tests, nur 2 bekannten CSS-Fehlern / 3 TODOs; dieselben 2 Next-Typfehler, 13 Lintfehler / 328 Warnungen und bestehender Build-Pageexportfehler. Gezielte öffentliche DTO-Abnahme 718ebf57: 4 Top-Leveltests / 61 Passereignisse, 0 Skips. Es wird kein späterer kohärenter Gesamtlauf nach Beginn der separaten Quick-Arbeit behauptet.
+
+Read-only-Belege: 26 GETs ohne Fehler, Buddy 13 mit korrekten Seiten 5+5+3, 11eyes 27 echte Items / 38 Sources / 11 Nicht-Item-Alternativen. Beide Source-Selector liefern am selben 11eyes-Item verschiedene MKV-/MP4-Präfixe. 818 Backenddateien stimmten am 64340e93 mit dem aktiven Container überein; sechs geprüfte Anwendungstabellen behielten ihre 13 Zeilen und Inhaltsfingerprints. Keine Liveimporte, Backfills, Relinks, Rescans, Migrationen oder Medienänderungen in Phase 161. Bestehende fehlende Snapshots bleiben unverändert; Japanisch ist nur Audioanzeige.
+
+Maßgeblich: phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-09-SUMMARY.md, 161-VERIFICATION.md, 161-VALIDATION.md und docs/audits/2026-09-15-jellyfin12/RESULTS.md. Dateigröße/Kapitel gehören zum separaten Folgeauftrag; dessen Ausführung und Status werden getrennt geführt. Phase 160 wurde nicht gestartet. Die vorhandenen frischen menschlichen Abnahmen 156/157 bleiben gültig; offene Anime-UAT 158/159 bleibt unverändert. Historische Milestone-Zähler werden nicht pauschal umgeschrieben.
+
+## Abgeschlossener Zusatzauftrag — Anime 158/159 (Nutzerabnahme 16.09.2026)
+
+**Vom Nutzer am 16.09.2026 „approved so weit“ abgenommen.** Nötige Überarbeitungen der öffentlichen Anime-Detailseite werden in Phase 160 umgesetzt (Quelle 160-LIVE-UAT-BEFUNDE.md); sie sind keine offene Abnahme von 158/159 mehr.
+
+Genau zwei Phasen tragen den Auftrag. Phase 158 ist vollständig implementiert und im autorisierten Scope technisch verifiziert: 4/4 Plans, 9/9 Anforderungen, 33/33 Produktionsfixture-Prüfgruppen, unabhängiger Code-Review clean und 10/10 geplante Sicherheitsmaßnahmen belegt. Ausgangscommit: `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`; technischer Abschluss und verbindlicher Phase-159-Start: `c3bfcb23781addca1ccd3931592535416f706787`.
+
+Phase 159 ist ebenfalls vollständig implementiert und unabhängig technisch verifiziert: 5/5 Plans, 8/8 Anforderungen, ein kohärenter Produktionslauf mit 91/91 Prüffällen einschließlich aller 33 Phase-158-Regressionen. Review: 57 geänderte Dateiidentitäten, keine offenen Findings. Security: 12/12 geplante Maßnahmen belegt. Die Consumer-Matrix, begrenzte Publicprojektion, explizite Varianten-/Versionsidentität, gemeinsame Gruppenauswahl, lazy Gridnachbarn, Manifestlebensdauer und echte Bildbegrenzung sind umgesetzt. Produktstand `6ebfebf7`, abschließende reine Testkorrekturen `d22da611`/`a76d9a8e`, finaler Harness `c1bd215c`; Plan-/Evidenzdokumente bis `e7e707f2`. Ergebnis-SHA256: `22f7fc89df1933c957e31edfd1694fbb3ad429ce7936f5ad200e606023a5d7cf`.
+
+Die volle Frontendsuite endet mit 2616 bestandenen Tests, denselben zwei bestehenden CSS-Guard-Fehlern und drei todo. Typecheck und scoped Lint bestehen; globales Lint bleibt exakt bei 13 Fehlern/331 Warnungen. Der vollständige Produktionsbuild reproduziert den bekannten Admin-Page-Exportblocker, während der selektive tatsächliche Produktionsbuild aller betroffenen Routen besteht. Dies ist keine globale Build-/Lint-/Testsuitefreigabe. Frische SQL- und Browser-/HTTP-/CDP-Belege sowie bereinigte isolierte Ressourcen stehen in `docs/audits/2026-09-13-public-anime-detail/phase159/RESULTS.md` und den unabhängigen Verifikationsberichten.
+
+F-08/F-14 sind im autorisierten Public-/Vertragsscope behandelt; die volle Adminprojektion, die unbeschränkte neutrale AnimeDetail-Fallbackliste und die alte mehrdeutige Stream-Compatibility ohne Variantenselector bleiben bewusst erhalten. Weitere ausgeschlossene Produktentscheidungen werden nicht nebenbei umgesetzt. Keine Live-Daten-, Migrations-, Medienoriginal-, Env- oder Volumenänderung; kein Push. Die fremde `frontend/scripts/shot2.mjs` bleibt unangetastet.
+
+Human-UAT 156 (inkl. GAP-08/GAP-09) und 157-06 Task 4 sind am 2026-09-15 vom Auftraggeber live abgenommen. Die menschliche Anime-Abnahme für 158/159 war bis 16.09.2026 offen und ist seitdem „so weit“ erteilt (Folgearbeit Phase 160). Der implementierte Auftrag ist technisch abgeschlossen; fehlendes Human-Sign-off wird nicht durch Agentenprüfungen ersetzt. Die nachfolgenden Current-Position-/Milestoneabschnitte sowie historischen globalen Phasenzähler bleiben erhalten. Die historische GSD-Parseranzeige 129 und das ältere PROJECT-Dokument sind im Delta-Bericht eingeordnet; kein Milestone-Reset. Verbindlich für diesen Zusatzauftrag sind ROADMAP/REQUIREMENTS und die Artefakte der Phasen 158/159.
+
+## Milestone v1.3: COMPLETE (2026-08-20, tag `v1.3`)
+
+All 8 phases (128 through 135) complete, all 65 v1.3 requirements verified complete. Non-destructive
+close — see `.planning/v1.3-MILESTONE-AUDIT.md` for the scorecard and tracked debt, and
+`.planning/archive/v1.3/` for a copied snapshot of the milestone's tracking docs at close time.
+This section, `ROADMAP.md`, and `REQUIREMENTS.md` all remain live in place (not archived/removed) —
+Phase 135 and any future roadmap entries continue from here.
+
+## Project Reference
+
+See: .planning/PROJECT.md (updated 2026-08-13)
+
+**Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
+**Current focus:** Milestone complete
+2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
+Abschluss" entry below for the full closing record.
+
+## Current Position
+
+Phase: 185
+Plan: Not started
+Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
+Status: Milestone complete
+die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
+Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
+Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
+182-01 fertig (hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre
+Legacy-Zweige in anime_assets.go, anime_assets_cover.go, anime_assets_background.go,
+anime_assets_background_video.go, anime_assets_banner_logo.go entfernt — jede vormals
+gegatete Funktion delegiert jetzt unbedingt an ihre V2-Variante; toter V1-Test entfernt;
+ein durch die Entfernung kaputt gewordener Quelltext-grep-Test ersetzt durch eine echte
+Abwesenheits-Prüfung — siehe 182-01-SUMMARY.md. `go build`/`go vet` clean, die geforderte
+Verifikation (`TestGetResolvedAssetsV2`/`TestGetByIDV2`) läuft echt gegen Postgres durch;
+~40 vorbestehende, themenfremde Testfehlschläge per Baseline-Worktree-Vergleich als
+unverändert bestätigt. Commit `de2502e65`. ApplyProviderCover und die vier rohen Leser
+bleiben bewusst Plan 182-02 vorbehalten.)
+181-01 fertig (Link-Retargeting der 5 Workspace-Einstiegspunkte auf den
+Episode-Version-Editor, return_to-Allowlist erweitert, D-01/D-02/D-04 erfüllt — siehe
+181-01-SUMMARY.md; volle Frontend-Testsuite 384 Dateien/3525 Tests und `tsc --noEmit` grün).
+181-02 Tasks 1-2 sind committet (`22b2e81ca` dauerhafter 308-Redirect
+/me/releases/:versionId/workspace → /admin/episode-versions/:versionId/edit,
+`7d3b4041e` Löschung von frontend/src/app/me/releases) — siehe 181-02-SUMMARY.md;
+volle Testsuite (384 Dateien/3506 Tests) und `tsc --noEmit` grün; zwei vorbestehende,
+nachweislich unabhängige Befunde (Turbopack `/_global-error`-Prerender-Defekt,
+4 Lint-Fehler in unberührten Dateien) in deferred-items.md dokumentiert, nicht behoben.
+**181-02 Task 3 (blockierender Live-UAT-Checkpoint, D-05-Regressionswächter +
+D-02/D-03-Stichprobe) wurde vom Nutzer bestätigt** ("alle 4 Prüfungen, inkl. reiner
+Mitwirkender ohne Gruppenrolle; Punkte 1, 3, 4 zusätzlich von Claude im Browser als
+D1sk nachgeprüft") — siehe 181-02-SUMMARY.md "Approved Checkpoint". Die anschließende
+Verifizierung (`181-VERIFICATION.md`) bestätigte 8/8 Must-haves, eskalierte aber WR-01/WR-02
+aus `181-REVIEW.md` als `human_needed`. Der Nutzer entschied, beide sofort zu beheben
+(Commits `2be605e49` WR-01, `0f6881e83` WR-02 — siehe den Phase-181-Abschluss-Eintrag oben
+im Log). `181-HUMAN-UAT.md` beide Punkte jetzt `result: resolved`; `181-VERIFICATION.md`
+um eine Resolution-Ergänzung erweitert. Phase 181 ist damit vollständig abgeschlossen
+(ROADMAP.md/STATE.md entsprechend aktualisiert, `completed_phases` 40→41).
+Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
+Next: Phase 181 is closed. Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 182+ in `ROADMAP.md` zur Planung an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
+
+## Vorherige Position (Phase 153, abgeschlossen)
+
+Milestone v1.4 (Coverage) is complete: all 18 phases (136-153), 177/177 plans, 100%.
+
+## Vorherige Position (Phase 153, abgeschlossen)
+
+Phase: 153 (public-member-clientlast-und-speicherretention) — COMPLETE (7/7 plans, 14/14 must-haves
+verified, 153-VERIFICATION.md status: passed, score: 14/14)
+Plan: 7 of 7
+Status: Phase complete and independently verified. Faktenbasis ist die committete Messreihe
+`docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`): die Phase schliesst
+die drei P1-Befunde RCA-01 (native Auto-Sizes-DOM-Retention bei SPA-Navigation, 466 → 15.107 Knoten
+nach zwoelf Zyklen), RCA-02 (Editor-Barrel und private Not-found-Vollvorschau im oeffentlichen
+Importgraph, rund 1,65 MB vermeidbarer JS-Transfer) und RCA-03 (Skeletons verdecken vorhandene
+SSR-Inhalte bis zur Hydration). RCA-05/06/08 sind bewusst fuer Phase 154 zurueckgestellt, RCA-07 ist
+laut Bericht erst nach der Graphverkleinerung sinnvoll erneut messbar, und RCA-04 (gemeldeter
+Chrome-Tab-Absturz) bleibt ausdruecklich offen und unreproduziert — kein Dokument dieser Phase
+erklaert ihn als behoben.
+
+Nachmessung (153-AFTER.md, gegen den vollstaendig gemergten Sieben-Plan-Stand): Bundle Member
+`page.js` 6,845→3,359 MB roh (−50,9 %), `not-found.js` 7,045→1,258 MB roh (−82,1 %), 0
+Tiptap/ProseMirror-Bytes in beiden oeffentlichen Importgraphen. Retention (12/50 Zyklen):
+Knotenwachstum 20,6/7,2 pro Zyklus (vorher ~1.220), Listenerwachstum 15,3/14,3 pro Zyklus (vorher
+~62,75) — Knoten um Faktor 59-170, Listener nur um Faktor ~4 gefallen; der Restanstieg bei
+Listenern bleibt eine offene Beobachtung. Sichtbarkeit: timer 36,91→26,15 s (−29,2 %), kara
+34,27→23,37 s (−31,8 %), Gruppen-Kontrolle unveraendert.
+
+Der blockierende Live-Checkpoint (153-07 Task 3) wurde vom Auftraggeber mit expliziter, messbasierter
+Begruendung freigegeben (SSR-HTML-Pruefung, CSS-Vorfahrenkette, Playwright-Screenshots im Container),
+nicht als pauschale Aussage — siehe `153-AFTER.md`, Abschnitt "Live-Checkpoint (Task 3) —
+Freigabebasis". Checkpoint-Schritt 4 (Owner-Ansicht eines versteckten Profils) wurde dabei
+ausdruecklich NICHT live geprueft (keine angemeldete Sitzung verfuegbar) und bleibt als offener
+Punkt dokumentiert, nicht als bestanden. Zwei der drei unter D5 genannten vorbestehenden,
+phasenfremden Befunde liessen sich unter den fuer diesen Plan verbindlichen Kommandos
+(`npm run typecheck`, `docker compose build`) nicht reproduzieren — als Messdiskrepanz dokumentiert,
+nicht als Erfolg dieser Phase verbucht.
+
+`.planning/REQUIREMENTS.md` hat weiterhin keinen Phase-153-Abschnitt (durchgehend ueber alle sieben
+Plaene bestaetigt, `grep -c "P153"` → 0) — ein phasenuebergreifendes Tracking-Artefakt-Luecke, die
+keinem einzelnen Plan zuzurechnen ist; alle 14 P153-Anforderungen sind inhaltlich gegen den Code
+verifiziert (153-VERIFICATION.md), nur nicht in dieser Datei nachverfolgt.
+
+Milestone v1.4 (Coverage) ist mit Phase 153 vollstaendig (18/18 Phasen, 177/177 Plaene).
+
+## Vorherige Position (Phase 152, abgeschlossen)
+
+Phase: 152 (public-fansub-gruppenseite-konsolidierung-und-modernisierung) — COMPLETE (10/10 plans, 14/14 requirements)
+Plan: 10 of 10
+Status: Phase complete and independently verified (152-VERIFICATION.md status:passed, score:14/14). Code review (152-REVIEW.md) found 2 Critical findings, both fixed and re-verified (commits 9a873495, ef08af06). 5 Warnings + 2 Info remain as known non-blocking maintainability debt.
+Post-completion correction pass 1 (2026-09-08): the initial verification's "clean test suite" claim relied on a scope narrowed to phase-touched files plus an earlier (152-09) full-suite snapshot, not a fresh complete run. D1sk independently ran the full frontend suite and found FansubMediaLightbox.test.tsx failing (3 tests) — caused by 152-04's correct alt="" a11y fix, never matched with a test-selector update, and mislabeled "pre-existing" by three separate Wave 1-3 executors who each checked only their own plan's diff instead of the whole phase's. A second, same-shape failure (ResponsiveImage.config.test.ts, caused by 152-01's next.config.mjs change) was found during the correction pass itself. Both fixed (commits fcc3fe70, caaba621); full suite re-confirmed clean (293 files/2255 tests, 0 failures).
+
+Post-completion correction pass 2 (2026-09-08): D1sk ran a second, fully independent re-verification (own numbers, not accepted from documents) confirming full frontend suite (293/2255), backend build/vet, TipTap (36/36), production build (exit 0), and the live query budget (13.01→8.03). D1sk also proved TestPointServicePhase106Boundary is genuinely pre-existing by reproducing the identical failure on a worktree checked out at baseline commit 5e896cd2 (removed after use) — recorded as pre-existing/out-of-scope debt, not fixed. D1sk further required a reasoned decision on WR-02 (listProjectionContributors, dead since 152-03) rather than silent leave-behind: resolved by removing the function (commit e3a62984) while keeping the Contributors field/type, which is still part of the live API contract (confirmed via the frontend's v12-projection-contract.test.ts). Two pre-existing source-read tests that depended on the removed function's SQL text were repaired (renamed to reflect two sets instead of three; one deleted since its entire subject no longer exists in the file). 152-VERIFICATION.md and deferred-items.md updated in place with full narratives, not silently amended.
+Produktionsbuild nach den letzten drei PNGs PASS (rc=0, TypeScript ok, 25 statische Seiten), voller
+Vitest-Lauf mit einem Worker 293 Dateien / 2239 Tests PASS (1 skipped, 3 todo, exit 0), Collector-
+Browsermatrix `pass: true` ueber 16/16 Zeilen ohne Findings und ohne Browserfehler, alle 197 Zeilen
+der Artwork-Signoff-Tabelle einzeln gesichtet, nativer Touch-Check PASS, Backend-Gates (go build/vet,
+badges-Tests, guarded PostgreSQL 20/20 und Exact-once) PASS.
+
+Ein echter Defekt wurde dabei gefunden und minimal behoben: die generische Chip-Zeile
+(`BadgeChip.module.css`) klemmte den quadratischen Hero-Slot der historischen/speziellen
+Badge-Familie bei 320 px Viewport auf 190.72 x 192 px. Fix ist ein nachgebender Innenabstand
+(`padding-inline: clamp(...)`) plus zwei Regressionstests; Details in `151-VERIFICATION.md`.
+
+Vorbestehend und ausserhalb der Phase: 13 ESLint-Fehler / 332 Warnungen sowie 49 Fehler der breiten
+Backend-Repository-Diagnose (fehlende Phase-128/134-Fixtures). Backend-Quellen sind byteidentisch
+zur Baseline `052858dc`.
+
+Phase 151 preserves the Phase-150 threshold/query authority and changes presentation only. Wave 1 contains
+three file-disjoint plans: artwork/resolver, shared slot/cards/stages, and generic FocalCarousel. Wave2 consolidates family CSS after shared components; Wave3
+integrates them in a linked dev-only gallery, exhaustive Linux Playwright evidence, full regression gates,
+guarded constant-20/exact-once PostgreSQL proofs, and mandatory coordinator per-artwork signoff. No production
+backend, API, schema, auth, runtime/tool configuration, or original artwork mutation is planned.
+
+Previous completed phase: Phase 150 (badge-regeln-eine-autoritative-schwellenquelle) — COMPLETE,
+7 of 7 plans executed; passed goal-backward verification 9/9 on 2026-09-07.
+
+Phase 150 (Badge-Regeln — eine autoritative Schwellenquelle) ist additiv an v1.4 angehängt
+(gleiches Muster wie 143-149) und abgeschlossen. Alle 7 Pläne ausgeführt (150-01 bis 150-05,
+150-07 autonom; 150-06 als nicht-autonomer Checkpoint extern vom Nutzer gefahren, Regression-
+Gates + Live-UAT bestanden). Ein Go-Schwellenregistry ersetzt sechs Backend-Kopien; der
+Frontend-Threshold-Befund wuchs während Planung/Ausführung/Post-Execution-Review von 4 auf 8
+Fundstellen, alle geschlossen (150-05-SUMMARY.md mit zwei Addenda, 150-07-SUMMARY.md,
+150-06-SUMMARY.md). Der Verifier hat alle 9 Success Criteria unabhängig gegen den laufenden
+Stack nachgemessen (u. a. Live-API-Aufruf gegen Member `type`, frische Go-/Vitest-Läufe) statt
+den SUMMARYs zu vertrauen — 9/9 bestanden, keine Lücken. Ein informativer, nicht blockierender
+Fund: ein toter `int64(12)`-Default in `member_profile_role_volume_repository.go:70`, in jedem
+Codepfad nachweislich vor jeder Lesung überschrieben (kein Verhalten betroffen) — in
+150-VERIFICATION.md dokumentiert, kein neunter Fundort im Sinne der Rendering-Fundstellen 5-8.
+
+v1.4 remains complete; Phase 150 was appended additively (same pattern as 143-149), no new
+milestone was created.
+
+Phase 149 (Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen) passed goal-backward
+verification 7/7 (149-VERIFICATION.md, 2026-09-06) — all 6 plans executed, guard test proven with
+an independently-reproduced negative proof, PublicNoteCard contrast confirmed live at the
+previously-critical 4.16:1→5.01:1 case. One named, non-blocking observation carried forward: 2 of 9
+full frontend `vitest` runs during 149-06 showed a single non-reproducible failing test (isolated
+reruns of the only suspect file were green 3/3) — classified as pre-existing Docker-parallelism
+timing flakiness, not a Phase 149 regression, and not yet root-caused.
+
+v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
+remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
+with focused verification complete plus named pre-existing full-suite failures.
+Last activity: 2026-10-17
+
+## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 185 added (2026-10-16): Testsuite grün machen — alle dauerhaft roten Frontend- und
+  Backend-Tests analysieren und beheben (Ursache je Test: veraltete Erwartung,
+  Test-Fixture-Schema-Drift, Umgebungsabhängigkeit, echter Produktfehler), danach ist die volle
+  Suite ohne bekannte Fehlschläge grün. Auf Nutzerwunsch additiv zu Milestone v1.4 hinzugefügt,
+  Milestone-Status `milestone_complete` bleibt unverändert (nicht zurückgesetzt/neu
+  angelegt/archiviert) — gleiches Vorgehen wie bei Phase 182/183/184. Nur add-phase — noch nicht
+  geplant.
+
+- Phase 184 added (2026-10-15): Aufräumpunkte aus Phase 174 abschließen — tote CSS-Klassen in
+  FansubEdit.module.css entfernen (F-20), doppelte Hilfsfunktionen zusammenführen (formatDate,
+  Pagination-Fenster; F-07), latenten CSS-Modul-Merge-Fehler beheben (F-12), doppelte
+  original→display-Regel zusammenführen (F-23) — ohne sichtbare Änderung. Auf Nutzerwunsch
+  additiv zu Milestone v1.4 hinzugefügt, obwohl STATE.md status bereits `milestone_complete`
+  zeigt (Milestone wurde dafür nicht zurückgesetzt/neu angelegt/archiviert). Nur add-phase —
+  noch nicht geplant.
+
+- Phase 183 added (2026-10-15): Status-/Label-Konsolidierung (Fachaufgabe 11) — eine kanonische
+  Implementierung je identischer Status-/Label-Gruppe statt Parallel-Implementierungen (u. a.
+  App-User-Status-Labels in AdminUsersClient, UserOverviewTab, RoleHoldersTable), tote
+  Label-Pfade entfernt — gleiche Begriffe überall gleich angezeigt. Nur add-phase — noch nicht
+  geplant.
+
+- Phase 182 added (2026-10-14): Alten Bildspeicher entfernen (F-01) — Legacy-Bildpfade
+  (anime.cover_image, Legacy-Zweige in anime_assets*, hasV2AssetSchema-Abfrage,
+  syncLegacyAnimeCoverImageV2) entfallen; alle Leser nutzen nur noch den V2-Speicher
+  (anime_media + media_assets); Spalte per Migration entfernt, API-Vertrag bereinigt — ohne
+  sichtbare Änderung für Nutzer. Nur add-phase — noch nicht geplant.
+
+- Phase 181 added (2026-10-13): Release-Bearbeitung zusammenführen (F-13) — eine rechtebasierte
+  Release-Bearbeitungsseite statt Admin-Editor (/admin/episode-versions/[id]/edit) plus
+  /me-Workspace (/me/releases/[id]/workspace); alte Workspace-URL leitet weiter, alle
+  Einstiegspunkte zeigen auf die eine Seite, Plattform-Admin ohne Mitgliederprofil bekommt kein
+  404 mehr. Nur add-phase — noch nicht geplant.
+
+- Phase 180 geplant (2026-10-11): 12 Pläne (180-01 bis 180-12) über 3 Wellen. UI-SPEC.md
+  durchlief Research → Checker (APPROVED, 1 non-blocking FLAG auf Dimension 2 "Visuals",
+  per Ergänzung behoben) vor der Planung. Plan-Checker-Runde 1: 3 Blocker (180-07/180-05
+  behaupteten Komponenten-Tests, die nirgendwo erzeugt/verdrahtet waren; 180-04 Task 1/Task 2
+  widersprachen sich beim D-15-Reaktivierungs-Pfad) + 2 Warnungen — Planner-Revision behoben,
+  Runde 2: 0 Blocker, 2 kosmetische Warnungen (Tippfehler, fehlender RESOLVED-Marker in
+  180-RESEARCH.md) direkt inline gefixt statt einer dritten Planner-Runde. **Override:** der
+  automatisierte `check.decision-coverage-plan`-Gate meldete D-09 als "uncovered" (total=5 statt
+  16) — derselbe Parser-Defekt wie in Phase 178/179 dokumentiert (Grenz-Regex erkennt nur
+  `**D-NN:**` ohne Klammer-Label, D-09 hat keines, aber der Parser zählt trotzdem nur 5 von 16
+  Entscheidungen insgesamt). Manuell per `grep` widerlegt: alle 16 Entscheidungen D-01 bis D-16
+  sind in mindestens einem Plan zitiert (D-09 in vier: 180-01/02/05/07). Mit "Proceed anyway"
+  fortgefahren statt neu zu planen.
+
+- Phase 180 added (2026-10-11): Einheitliche Upload-Oberfläche (F-15 Teil 2) — ein wiederverwendbarer Upload-Baustein (Mehrfachauswahl wird ergänzt statt ersetzt, Titel/Bildunterschrift pro Datei, Retry bei Fehlern) nach Vorbild des Release-Medien-Uploads (ReleaseVersionMediaSection.tsx + uploadReleaseVersionMedia); Gruppenmedien-Upload (GroupMediaReviewUploadPanel.tsx) und Release-Medien-Upload laufen über denselben Baustein. Enger gefasst als 175-ROADMAP-PROPOSAL.md: Weg 6 (Release-Theme-Assets), obwohl dort ursprünglich für diese Phase vorgesehen und obwohl Phase 179 dafür bereits ActionReleaseThemeAssetUpload geschaffen hat, bleibt laut Zusatzauftrag wie Wege 3/4/5/7/8 außerhalb des Umbau-Umfangs — nur Konvertierbarkeits-Prüfung, keine Code-Änderung (D-01 in 180-CONTEXT.md). Depends on Phase 179. CONTEXT-Entwurf mit 8 D-NN-Entscheidungen + 5 offenen Fragen an den Nutzer angelegt, gespeist aus 175-INVENTORY.md Fachaufgabe 1 (Wege 1-8) und 179-VERIFICATION.md. Milestone-Status bewusst nicht angefasst (additive Phase, bekannte Milestone-Drift). Nur add-phase — noch nicht geplant.
+- Phase 179 geplant (2026-10-10): 6 Pläne (179-01 bis 179-06) über 3 Wellen — 179-01 Capability-Registry-
+  Fundament (Migration 0182 + `ActionReleaseThemeAssetUpload` + Reparatur 9 hartkodierter
+  Capability-Katalog-Testfixtures), 179-03 (D-10 Fallback-Entfernung + Postgres-Regression), 179-04
+  (D-14 gemeinsamer Soft-Delete-Helfer), 179-05 (D-13 Frontend-Anzeige-Flag) in Wave 1; 179-02 (D-12
+  Aktions-Swap + Persistenz-Extraktion) in Wave 2, abhängig von 179-01; 179-06 (Vollgate) in Wave 3.
+  gsd-plan-checker zweifach geprüft: 1. Pass 0 Blocker/3 Warnungen (179-02 Task 1
+  Antwort-Schreib-Mehrdeutigkeit, 179-01 12-Dateien-Hinweis nur zur Kenntnis, 179-VALIDATION.md
+  veraltet) — erste zwei direkt per gezieltem Edit behoben (inkl. `fuer`→`für`-Tippfehler in einem
+  neuen `description_de`-Migrationswert); 2. Pass 0 Blocker/2 Warnungen (beide reine
+  Dokument-Hygiene: veralteter Testname in VALIDATION.md, fehlender RESOLVED-Marker in
+  RESEARCH.md) — beide behoben. **Override:** der automatisierte `check.decision-coverage-plan`-Gate
+  meldete D-01 als "uncovered" (total=6 statt 14) — derselbe Parser-Defekt wie in Phase 178 dokumentiert
+  (Grenz-Regex erkennt nur `**D-NN:**` ohne Klammer-Label, verschluckt D-02 bis D-09 in D-01s
+  extrahiertem Text, weil deren Format `**D-NN (Label):**` ist). Manuell per `grep` widerlegt: D-01 bis
+  D-09 sind allesamt in mindestens einem Plan zitiert (D-01/03/04/07/08/09 in 179-06s
+  `requirements:`-Frontmatter, D-02/05 zusätzlich in 179-03/179-05, D-06 zusätzlich in 179-02/179-04).
+  Mit "Proceed anyway" fortgefahren statt neu zu planen. Siehe Phase 178s Eintrag für den
+  wiederholten Beleg desselben Parser-Defekts.
+
+- Phase 179 added (2026-10-10): Media-Backend & Rechte vereinheitlichen (F-15 Teil 1) — eine Rechte-Prüfung je Upload-Aktion statt paralleler Ebenen (Permission-Matrix 1.2 Gruppenmedien-Upload, 1.4 fehlende Anzeige-Capability Anime-Assets, 1.6 eigene ActionReleaseThemeAssetUpload statt fremd genutzter Release-Medien-Aktion), gemeinsamer Soft-Delete-Helfer für Medien, extrahierte Theme-Asset-Persistenz. Grundlage für das gemeinsame Upload-Frontend in Phase 180. Reiner Backend-/Rechte-Anteil aus 175-ROADMAP-PROPOSAL.md Abschnitt "Phase 2: Einheitliches Medien-Upload-System (F-15)" — der Upload-Frontend-/Workflow-Anteil bleibt laut Nutzerentscheidung vom 2026-10-07 in Phase 180. Depends on Phase 178. Rechte daten-getrieben über action_definitions + role_capabilities, kein hartkodierter Rollencheck; Plattform-Admin-Bypass bleibt; Wege 3,4,5,7,8 bleiben laut 175-INVENTORY.md getrennt (nur Rechte-Fix 1.4 bei Weg 4). CONTEXT-Entwurf mit D-NN-Entscheidungen + offenen Fragen an den Nutzer angelegt. Nur add-phase — noch nicht geplant.
+- Phase 178 added (2026-10-10): Suchen & Filtern vereinheitlichen (F-16) — ein gemeinsamer, umlaut-toleranter Filter-Helfer (Vorbild: Normalisierung der globalen Suchbibliothek `search_anime.go`) ersetzt sechs unabhängige `toLowerCase().includes()`-Filter (AdminGroupsClient.tsx, admin/fansubs/page.tsx, admin/fansubs/merge/page.tsx, GroupMediaReviewFilterBar.tsx, Genre/Tag-Autocomplete in useAnimePatchImpl.ts und useAdminAnimeCreateControllerImpl.ts); Merge-Seiten-Scoring bleibt erhalten; Umstellung der größten Listen auf Backend-Suche statt per_page:500-Vollabruf wird geprüft. Risiko niedrig bis mittel, Aufwand mittel. Depends on Phase 177 (per bestätigtem Zuschnitt aus 175-ROADMAP-PROPOSAL.md, dritte von Phasen 176-183). Faktencheck im Code bestätigt: globale Suche ist akzent-tolerant via f_unaccent/pg_trgm (ä→a/ö→o/ü→u), aber ohne bewusste ae/oe/ue/ss-Digraph-Regel. CONTEXT-Entwurf mit 14 D-NN-Entscheidungen + 5 offenen Fragen an den Nutzer angelegt. Nur add-phase — noch nicht geplant.
+- Phase 178 geplant (2026-10-10, --skip-ui --skip-research auf Zweitlauf, Erstlauf hatte bereits recherchiert): 7 Pläne (178-01 bis 178-07) über 3 Wellen, alle D-01 bis D-19 abgedeckt (gsd-plan-checker Doppelprüfung PASSED nach einer Revisionsrunde — 1 Blocker/2 Warnungen behoben, Commit `74167977`). **Override:** der automatisierte `check.decision-coverage-plan`-Gate meldete 8/11 D-NN als "uncovered" (D-01/02/03/05/06/15/17/19) — manuell per `grep` und durch den gsd-plan-checker widerlegt: alle 8 sind mehrfach in Plan-Bodies, Task-Namen und/oder `requirements:`-Frontmatter zitiert (D-15 z. B. in 6 von 7 Plänen). Der Gate-Report selbst enthält einen sichtbaren Parser-Defekt (D-06s extrahierter "text" ist eine Verkettung von Fragmenten aus D-07–D-14 statt D-06s eigenem Text) — Beleg, dass der Decision-Boundary-Parser dieses CONTEXT.md falsch zerlegt. Mit "Proceed anyway" fortgefahren statt neu zu planen oder echte, umgesetzte Entscheidungen fälschlich als `[informational]` zu markieren. Falls `/gsd:verify-work` denselben Gate erneut aufruft, diesen Eintrag als Begründung für einen erneuten Override heranziehen, nicht blind neu entscheiden.
+- Phase 177 added (2026-10-08): Einheitlicher Bild-Viewer (F-18) — ein gemeinsamer Viewer-Baustein auf Basis von FansubMediaLightbox statt sechs eigenständiger Implementierungen, erweitert um Zoom, Touch-Swipe, Display→Original-Progressive-Load, Metadaten-Overlay und Prefetch; ScreenshotGallery-Lightbox, ProjectMemberMediaViewer, GroupAssetsExperience-Bildanteil und toter ReleaseVersionMediaDetailPanel werden abgelöst. Risiko mittel, Aufwand groß. Depends on Phase 176 (per bestätigtem Zuschnitt aus 175-ROADMAP-PROPOSAL.md, zweite von Phasen 176-183). CONTEXT-Entwurf mit 16 D-NN-Entscheidungen + 3 offenen Fragen an den Nutzer angelegt. Nur add-phase — noch nicht geplant.
+- Phase 176 added (2026-10-07): Bug- und Altlasten-Sammelphase — offene 174-Followups (F-02 OUT-Kürzel aus DB, F-03 Umlaute, F-04 native Felder, F-05 doppelte anime_contributions, F-06 rote Tests/openapi-Duplikat, F-12, F-14, F-19, F-21–F-24) plus Rechte-/Sicherheitsbefunde aus Phase 175 (Claim-Invite-Accept ohne disabled-Prüfung, Notizen-Tab-Gate, Legacy-Member-Delete-Endpunkt) und Entfernung der Member-Group-Story-Altlast. Risiko mittel, intern in geblockte Pakete getrennt. Depends on Phase 175 (per bestätigtem Zuschnitt aus 175-ROADMAP-PROPOSAL.md, erste von Phasen 176-183). Nur add-phase — noch nicht geplant.
+- Phase 175 added (2026-10-06): Inventur Doppelungen nach Fachaufgaben — pro Fachaufgabe alle UI-Flächen, Endpunkte, Rechteprüfungen und Datenwege erfassen, Parallelsysteme und Rechte-Inkonsistenzen belegen, Zusammenführungs-Phasen (Bildanzeige, Suche, Uploader, Release-Bearbeitung u. a.) zuschneiden. Reine Analyse, keine Code-Änderungen. Depends on Phase 174. Nur add-phase — noch nicht geplant.
+- Phase 174 added (2026-10-04): Modularisierung & Wartbarkeits-Refactoring — Hotspot-Analyse, api.ts-Aufteilung mit kompatiblem Barrel, P1-Frontend-/Backend-/CSS-Hotspots verhaltenserhaltend modularisieren, Abschlussaudit vorher/nachher. Nur add-phase — noch nicht geplant.
+- Phase 173 added (2026-10-02): Öffentliche Bildqualität — zusätzliche Display-Variante (Backend) als Quelle für die Next.js-Bildoptimierung auf allen Public-Seiten, Original bleibt 1:1 und erscheint nur per Klick, Admin/Bearbeitung behält Thumbnails, eigener Media-Namensraum mit Musterliste und Test für Fansub-/Gruppenbilder, animierte GIFs bekommen eine animierte Display-Variante, Backfill für Bestandsbilder. Depends on Phase 172. Nur add-phase — noch nicht geplant.
+- Phase 172 added (2026-10-01): Kara-Vorschaubild pro Segment — automatisch aus dem Render (Frame bei ca. 35 %), manuell auf der Segment-Seite ersetzbar (Upload oder Übernahme eines Release-Bildes), keine Review-Prüfung, einheitliche preview_url für Admin-Media-Liste und Public-Release-Story. Depends on Phase 171. Nur add-phase — noch nicht geplant.
+- Phase 169 added: Release-Medienrechte: Projektleiter, Preview, Highlights und Bildreihenfolge.\n
+- Phase 160 angelegt (2026-09-15): Öffentliche Anime-Detailseite nachschärfen — Tags anzeigen, Gruppenlinks klar benennen, Coop sichtbar machen. Depends on Phase 159; erst planen, wenn die separate Jellyfin-Reparatur abgeschlossen ist. Befunde/Entscheidungen in `160-LIVE-UAT-BEFUNDE.md` (mehrere Punkte dort noch offen, Klärung in discuss-phase). Menschliche Abnahme 158/159 bleibt bis zur Umsetzung dieser Phase offen. Nur add-phase — kein discuss-phase, kein plan-phase, keine Codeänderung.
+
+- 2026-09-13: Genau158 (Public Anime Detail Reparatur) und159 (Konsolidierung) additiv angelegt.159 folgt erst nach dem technischen158-Gate. Human-UAT156/157 bleibt offen. Keine Produktänderung oder DBwrites durch Planung.
+
+- Phase 151 current reviewed structure: 5 plans / 3 waves. Plans 151-01/02/03 are Wave 1, CSS consolidation 151-04 is Wave 2, gallery/evidence/signoff 151-05 is Wave 3. This is the existing plan structure; no replan was performed during pause. Implementation paused by user for handoff on 2026-09-07.
+
+- Phase 146 added (2026-09-04): Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests. Zwei Blöcke in einer Phase auf Wunsch des Nutzers — erst die drei Befunde aus `145-REVIEW.md` (CR-01 Lockout-Guard-Lücke, fehlender NOT-reserved-Filter, dreifach hartkodierte Action-Codes), dann die Testsanierung. Bestand selbst gemessen 2026-09-04: 53 Testdateien lesen eine `.go`-Quelldatei per `os.ReadFile` und belegen Verhalten mit `strings.Contains` (357 Aufrufe, 302 Testfunktionen); 17 davon berühren Sicherheitszusicherungen. Die ältere Schätzung 49/236 aus der Altlasten-Notiz ist überholt. Additiv an v1.4, KEIN Milestone-Reset.
+- Phase 145 complete (2026-09-04): Alle 4 Pläne fertig; Live-UAT vom Nutzer abgenommen und deckt
+  alle 6 Prüfpunkte ab (Pseudo-Rolle als erste Zeile unter Gruppenrollen, Standardrechte-Tab als
+  Default mit reinem Erklärtext auf "Inhaber", genau 3 umschaltbare Rechte, andere Rollen ohne
+  diese 3 Rechte samt "Grundausstattung öffnen"-Deep-Link, Herkunft Grundausstattung/
+  `membership_baseline` beim aktiven Mitglied, wirksames Umschalten mit Rückweg). Post-Checkpoint-
+  DB-Zustand vom Nutzer unabhängig erhoben und von diesem Agenten read-only nachbestätigt:
+  `schema_migrations = 160`, `role_definitions` hält genau eine reservierte Zeile (`group_member`,
+  Label "Mitgliedschafts-Grundausstattung", contexts `fansub_group`, `assignable = false`,
+  `reserved = true`, `sort_order = -10`), `role_capabilities` hält exakt die 3 erwarteten Zeilen
+  für `group_member`. Backend nach Rebuild sauber gestartet (hört auf 8092), das fail-closed Gate
+  schlägt nicht an. **v1.4 bleibt ein abgeschlossener Meilenstein — dies ist additive
+  Phasen-Fertigstellung, kein Meilenstein-Reset.**
+
+- Phase 145 geplant (2026-09-03): 4 Pläne / 4 Wellen. Der Planner hat beim Grounding eine im Roadmap-Befund fehlende Stelle gefunden — die SQL-Abfrage in `LoadFansubGroupRoles` muss die reservierte Pseudo-Rolle ebenfalls ausschließen, sonst taucht sie im zuweisbaren Rollenkatalog auf. Migration erhält Nummer 0160.
+- Phase 145 added (2026-09-03): Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen. Additiv an das abgeschlossene v1.4 angehängt (KEIN Milestone-Reset). Scope = `membershipBaselineActions` (effective_rights.go:74) als reservierte, nicht zuweisbare Pseudo-Rolle in `role_definitions`/`role_capabilities` darstellen; Entscheidung zur Darstellung ist bereits vom Nutzer getroffen (siehe .planning/notes/2026-09-03-handoff-nach-phase144.md). Requirements TBD (kein v1.4-Requirement-Mapping — Decision-Coverage-Gate beim Planen beachten). Vor `plan-phase` `/gsd-ui-phase 145` laufen lassen.
+- Phase 144 added (2026-09-02): Überarbeitungs-Kreislauf für Release-Medien vervollständigen.
+- Phase 144 Live-UAT abgenommen (2026-09-03): Nutzer hat den vollständigen Ersetzen-Kreislauf (Upload -> Ablehnung -> Ersetzen -> zweite Ablehnung) im Browser durchgespielt und alle in 144-UAT.md belegten Invarianten bestätigt. Drei während der UAT gefundene, nicht zu Phase 144 gehörende Altlasten sind bereits behoben: RVM-Cleanup-Endlosschleife (448a4b02), has_own_release_work zählte abgelehnte Arbeit als erledigt (07a8c88d), Dashboard kannte Ablehnungen gar nicht (8c910c67/3f4ca6b1). Offen: Projektlisten-„Erledigt"-Grenzfall (bewusst zurückgestellt), CR-01/WR-02 aus .planning/notes/2026-09-02-altlasten-cr01-wr02.md, v1.4-MILESTONE-AUDIT.md fehlen Phasen 143/144.
+- Phase 143 added (2026-09-01): Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen.
+- Milestone v1.4 roadmap created (2026-08-20): seven sequential phases 136-142 cover Findings #29-#32 and all 41 approved requirements exactly once. Finding #33 (platform documents) and #34 (badge UI) remain deferred.
+- Phase 135 added (2026-08-17): Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten. Scope = Live-UAT-Findings #6-#10 (.planning/notes/live-uat-ux-findings.md). Additiv an v1.3 angehaengt; Requirements TBD (kein REQUIREMENTS.md-Mapping -- Decision-Coverage-Gate beim Planen beachten).
+
+### Decisions
+
+- [Milestone v1.4, 2026-08-20]: Sequence policy/schema -> central resolver -> effective-rights UX and independent user projections -> specialized review delegation -> actor-decidable queue -> integrated security/live gate. This preserves `permissions.Service`, Keycloak global-role ownership, specialized delegation, canonical media/contribution ownership, and central browser refresh.
+- [Milestone v1.4, 2026-08-20]: Findings #33 and #34 are explicitly excluded from every v1.4 phase and remain future requirements.
+- [Phase 135, 2026-08-17]: 135-05's shipped `InviteAcceptFlow` (generic Anmelden/Registrieren copy) stays as the locked contract for 135-06/135-08; the Content-Spec Addendum's dynamic group/inviter/role context line and "wrong email logged in" state (D-11) are deferred — they require a new invite-preview-by-token backend endpoint out of Phase 135's scope. Tracked at `.planning/todos/pending/2026-08-17-invite-accept-dynamic-context-preview-endpoint.md`. Not a blocker for 135-07's live UAT.
+- Milestone v1.3 hardens the existing public member profile; it does not introduce parallel member, contribution, membership, badge, media, release, auth, or UI systems.
+- Anonymous hidden profiles and missing profiles are non-distinguishable.
+- Public member slugs are stored, unique, and immutable after creation.
+- Exact public badge progress is derived only from publicly permissible facts.
+- Visibility and verified owner access are resolved before any profile-detail projection.
+- Existing test rows are disposable; schema changes use new reversible migrations followed by reset/reseed, without row-preservation, backfill, alias, or compatibility code.
+- The approved roadmap contains 65 requirements mapped exactly once across sequential Phases 128-134.
+- The drifted historical planning tree is preserved at `.planning/milestones/pre-v1.3-recovery-2026-08-13/` and is not represented as one falsely completed milestone.
+- [Phase 128]: Phase-128 PostgreSQL tests require TEAM4S_PHASE128_TEST_DSN and never fall back to DATABASE_URL.
+- [Phase 128]: Wave-0 identity gates use compilable source-inspection RED contracts until Plans 128-04 and 128-05 provide production symbols.
+- [Phase 128]: Public member access exposes only member ID, stored slug, and server-computed owner/private-preview facts before detail loading.
+- [Phase 128]: One eight-case access matrix governs profile, projects, contributions, summary, notes, media, and releases with neutral 404 denials.
+- [Phase 128]: Canonical redirects are tested as syntax-only 308 behavior independent of member existence. — Prevents existence-sensitive redirect behavior from becoming a privacy oracle.
+- [Phase 128]: Refresh-only owner coverage exercises retained member reads through the central browser client. — Keeps UI token-free while proving fresh bearer attachment and no-store inside api.ts.
+- [Phase 128]: Owner preview RED coverage rejects duplicate identity, auth, fetch, slugification, and numeric fallback seams. — The authoritative public DTO and pathname-owned canonical slug remain the only preview authority.
+- [Phase 128]: Member-path redirects normalize only safe stored-slug syntax and never consult identity, visibility, auth, API, or database state.
+- [Phase 128]: Numeric, malformed, separator-bearing, control, double-encoded, and non-ASCII member segments pass through without redirect.
+- [Phase 128]: Migration 0145 refuses non-empty members before ALTER and never mutates rows; disposable data must be reset and reseeded. — Fail-closed schema transition prevents accidental live-row rewriting or compatibility behavior.
+- [Phase 128]: Canonical public slugs are unique, constrained, and immutable in PostgreSQL. — Database invariants protect public identity across every future writer.
+- [Phase 128]: Public member DTOs expose no app-user ownership identifier; owner and private-preview facts remain server-computed. — Avoids BOLA-prone client ownership inference.
+- [Phase 128]: The entire members.public_slug namespace uses one transaction advisory lock, including literal suffix collisions. - Per-base locks cannot serialize name against literal name-2 creation.
+- [Phase 128]: All production member creation paths allocate exactly once inside their existing caller-owned transaction. - Identity is persisted atomically with creation without nested transactions or parallel allocators.
+- [Phase 128]: Outbound contribution links use stored public_slug only for public profiles; private member links remain NULL. — Stable identity survives nickname edits without disclosing private slugs.
+- [Phase 128]: The shared nickname-derived memberSlugExpr declaration remains only until Plan 128-10 removes inbound resolution and remaining consumers. — Plan 128-06 removes owned outbound consumers without crossing later cleanup ownership.
+- [Phase 128]: Group and domain projection links use stored public_slug only for public profiles; private identities remain unlinked.
+- [Phase 128]: Grouped historical and contributor projections include the joined member primary key so canonical slug selection preserves row ownership and grouping.
+- [Phase 128]: Archive and ranking projections select members.public_slug directly because their queries already enforce public visibility. — Stable public identity survives nickname changes without numeric or generated fallback.
+- [Phase 128]: Verified member_claims equality is the only private-profile grant; missing and denied identities share ErrNotFound. — Prevents legacy identity, admin role, or guessed slug from becoming an authorization oracle.
+- [Phase 128]: Public profile and project detail projections load only by a previously resolved member ID. — Keeps canonical identity and visibility decisions ahead of all detail fan-out.
+- [Phase 128]: Temporary handler-compatibility methods delegate to the shared resolver and ID loaders until Plan 128-11. — Preserves whole-backend compilation without retaining duplicate slug or access logic.
+- [Phase 128]: Contribution and project-member repositories accept only a stable member ID resolved by the shared access boundary.
+- [Phase 128]: Project summaries expose members.public_slug directly; nickname-derived aliases and numeric fallbacks are not detail-loader concerns.
+- [Phase 128]: Public profile handlers resolve canonical access before member-ID detail loading and return server-computed owner/private-preview facts.
+- [Phase 128]: Verified AppUserID is the only viewer input to public-member authorization; platform-admin and token roles grant no access.
+- [Phase 128]: Optional-auth member responses vary on Authorization, and viewer-dependent results use private, no-store.
+- [Phase 128]: All seven member-specific GET routes share one MemberProfileRepository access resolver and existing optional-auth middleware.
+- [Phase 128]: The seven public-member operations retain their backend runtime envelopes while sharing optional bearer, neutral 404, and private no-store semantics. — Preserves runtime parity while closing hidden-response and cache drift.
+- [Phase 128]: Public profile ownership is represented only by server-computed viewer facts; the public DTO exposes no app-user identifier. — Prevents client-side ownership inference and public identity leakage.
+- [Phase 128]: Member profile SSR remains anonymous and token-free; refresh-only owner recovery stays in the Plan-128-16 client seam.
+- [Phase 128]: Invalid, numeric, missing, and privacy-denied member routes converge on neutral Next notFound output.
+- [Phase 128]: The complete established profile composition remains authoritative for public and future owner-preview rendering.
+- [Phase 128]: Own-profile public actions require the stored canonical slug and disappear when it is absent. — Prevents numeric or nickname-derived fallback identity while keeping display-name edits URL-neutral.
+- [Phase 128]: Shared MemberProfileHero links use only the stored DTO slug and disappear when runtime slug data is absent. — Prevents numeric or nickname-derived public identity fallback across own and public DTO consumers.
+- [Phase 128]: Hidden-profile resolution derives the canonical slug from usePathname and keeps initialization neutral.
+- [Phase 128]: The preview passes authoritative viewer access into the shared composition and toolbar.
+- [Phase 128]: Toolbar ownership uses getMemberProfile with the stored slug and never current-user or numeric-ID authority.
+- [Phase 128]: Visibility remains in the established radio-card editor with exactly public and private values; no members-only alias or fallback label remains. — Keeps the canonical visibility contract and avoids a parallel persisted-data control.
+- [Phase 128]: The owner deep link allow-lists existing profile tabs and focuses and scrolls the visibility panel without creating a second route, form, or auth seam. — Keeps owner editing on the established refresh-capable protected surface.
+- [Phase 132]: known_for is one object (active_years, top_roles, known_groups) computed server-side over the complete approved current-project set, mirroring deriveKnownFor.ts's shape in snake_case.
+- [Phase 132]: loadKnownFor is a dedicated new query (not an extension of countCurrentProjects), reusing its exact WHERE-clause filter set; raised the locked query budget 19 -> 20.
+- [Phase 132]: getMemberProjects gained a 4th optional signal parameter mirroring getSearch/getSearchSuggestions.
+- [Phase 132]: useCancellableSlugState never mutates a ref inside a setState updater; state transitions are pure functions of previous state plus resolved value, avoiding the StrictMode double-invoke dedup bug precedent in useProjectMemberCollection.ts.
+- [Phase 132]: Progressive-disclosure components must never conditionally unmount content behind a visual toggle; only a CSS class changes -- locked as a tested contract (PMFE-06/D-09) across MemberStorySection, FocalCarousel, and MemberBadgeChain.
+- [Phase 132]: useMemberViewer's fetcher must be useCallback-memoized on slug alone; an inline arrow function fed into useCancellableSlugState's effect dependency array causes an infinite self-abort/refetch loop.
+- [Phase 132]: CorrectionReportModal no longer performs its own owner-resolution fetch; OwnProfileEditLink via useMemberViewer is the sole owner-gating authority for the members/[slug] surface (PMFE-02/D-02).
+- [Phase 132]: MemberProfileHero/MemberProfileMemorialHero read known_for from the DTO with zero client-side re-aggregation; deriveKnownFor.ts trimmed to the still-used KnownForResult type only.
+- [Phase 132]: Visible profile generateMetadata composes title/description/OpenGraph only from already-public fansub_name and known_for facts; hidden/missing metadata stays byte-identical.
+- [Phase 132]: relativeTimeLabel is a pure function of (occurredAt, referenceNow); one server- or client-useState-captured referenceNow is threaded through MemberProfileContent to eliminate the Date.now() SSR hydration-mismatch.
+- [Phase 133]: MemberBadgeChain.tsx (928 lines, ~2x CLAUDE.md's 450-line cap) is accepted pre-existing debt deferred outside Phase 133's scope — CONTEXT.md's D-04 scoped only the CSS-module split (MemberBadgeChain.module.css); the .tsx file keeps its existing per-component function boundaries and gains only import-wiring changes across Plans 133-04/07/08/09. Formally resolves RESEARCH.md's Open Question 1, mirroring the codebase's existing oversized-file deferral precedent.
+- [Phase 133]: dangerouslyAllowLocalIP is gated to process.env.NODE_ENV !== 'production' and images.qualities is an explicit [75] allow-list; localPatterns (/media/**, /member-achievement-badges/**, /covers/**) remain byte-for-byte unchanged and regression-tested.
+- [Phase 133]: The full pre-existing @media (max-width: 760px) hero block (which bundles .heroPanel/.heroAvatar with .heroCopy/.heroTitleRow/.heroBio/.heroMetaLine/.knownForBlock/.heroSpecialAwardsList overflow-safety rules) was converted as one unit to @container member-profile-hero, keeping hero-internal overflow-safety rules in sync with the panel/avatar's container-driven layout switch. — Prevents overflow-safety rules from falling out of sync with the panel layout at wide-viewport/narrow-container states, e.g. inside a future two-column .profilePair layout
+- [Phase 133]: MemberBadgeChain.tsx's shared roleArtwork classes moved to LayeredBadgeArtwork.module.css keep two role-code/anime-project override rule blocks behind in MemberBadgeChain.module.css since CSS Modules scopes selectors per file; the affected JSX sites apply both the moved and the still-local class name to preserve pixel-identical rendering (Plan 133-04, precedent for 133-07/08/09).
+- [Phase 133]: react-dom@18.3.1 does not forward a declarative boolean inert JSX prop to the DOM — FocalCarousel sets/removes the inert attribute imperatively via a ref callback instead; jsdom's inert focus-blocking is unimplemented so tab reachability is asserted via attribute presence, not userEvent.tab().
+- [Phase 133]: MemberProfileMemorialHero.tsx now mirrors MemberProfileHero.tsx's public-view heading structure exactly: p.heroEyebrow -> div.heroTitleRow > (h1.heroTitle + MemberStatusPill), no PageHeader title usage.
+- [Phase 133]: Compound CSS selectors mixing a class moving to a new stage module with a class staying in MemberBadgeChain.module.css (either direction) stay behind in the shell file with dual-class JSX application (Plan 133-04 precedent); the .group[data-badge-group]-scoped 'no card surface' twin stays listing all five stage selectors unnarrowed for the same CSS-Modules per-file scoping reason.
+- [Phase 133]: MemberBadgeChain.tsx's .familyStageButton:has(.currentChip)/.familyStageButton .currentChip stay in MemberBadgeChain.module.css since .currentChip is a chainStyles-local shared utility class used at multiple other sites (roles progression, anime-project milestones); the rendered family stage button carries both badgeFamilyCardStyles.familyStageButton and chainStyles.familyStageButton so both rule sets keep matching (Plan 133-08, extends the Plan 133-04/07 compound-selector-crosses-file-boundary pattern).
+- [Phase 133]: MemberBadgeChain.tsx's four badge-chip compound groups (.badgeWindowActive .badgeArtwork, six .group[data-badge-group=...] .badgeRow/.badgeArtwork/.badgeRowCompact rules, .badgeWindowActive .badgeStep) stay in MemberBadgeChain.module.css since .badgeWindowActive/.group are chainStyles-local while .badgeRow/.badgeArtwork/.badgeRowCompact/.badgeStep moved to BadgeChip.module.css; the generic badge-row render site applies dual classes at 4 JSX sites so the kept-behind rules keep matching (Plan 133-08).
+- [Phase 133]: FAMILY_CARD_COMPACT_QUERY is the single named JS constant reconciling FamilyCollectionCard's window.matchMedia scroll-centering breakpoint with BadgeFamilyCard.module.css's @container (max-width: 820px) layout breakpoint at exactly 820px, closing RESEARCH.md's magic-number duplication (Plan 133-08).
+- [Phase 133]: RoleBadgeCard's selector family was split by SELECTOR OWNERSHIP into three files (RoleBadgeCard.module.css/.status.module.css/.stages.module.css) rather than by breakpoint tier, since CSS Modules hashes class names per source file -- splitting one selector's base+breakpoint rules across multiple files would require the DOM element to carry a hash from every file simultaneously; grouping by which selectors a file owns guarantees each selector's complete rule set lives in exactly one file (Plan 133-09).
+- [Phase 133]: RoleBadgeCard.module.css/.status.module.css/.stages.module.css complete the MemberBadgeChain.module.css split (Plans 133-04/07/08/09): shell shrunk to exactly 450 lines, all 12 extracted CSS modules under the cap, 4 previously-duplicated selectors (.roleLabel/.roleBadgeRow/.roleHeroArtwork/.roleProgressTrack) each resolved to exactly one canonical declaration per UI-SPEC.md's locked table.
+- [Phase 133]: LOCKED_BUDGETS page-level metrics (imageWaterfall) must be excluded from evaluateBudget()'s generic api[endpoint] budget loop; checked separately alongside the Web-Vitals pageCheck (rendered pages only).
+- [Phase 133]: A CSS comment's embedded */ (used as informal glob/wildcard shorthand, e.g. .roleBadgeRow*/.roleLabel) prematurely closes the enclosing /* ... */ comment block and crashes the entire page with a dev-server syntax error; avoid asterisk-immediately-followed-by-slash sequences inside open CSS comments (found/fixed in Plan 133-10, MemberBadgeChain.module.css and RoleBadgeCard.module.css).
+- [Phase 133]: capturePageMetrics() now captures pageOverflow/bodyOverflow (previously only existed in the separate phase120-mode snapshotDOM()); evaluateBudget() hard-gates on both deltas being <=0 (PMUI-01/06), completing the phase's automated overflow gate.
+- [Phase 133]: Plan 133-11's full unscoped npm test sweep (first in this phase) confirmed 11 pre-existing failures across files never touched by any Phase 133 plan are out of scope; only the MemberBadgeChain.test.tsx containe typo and missing type cast (a file already owned by earlier Phase 133 plans) were fixed. See deferred-items.md for full triage.
+- [Phase 134]: seed-member-profile-fixtures.mjs's story-image assertion and manifest field use /media/profile/ as the expected member_story_html src substring, not /media/story-images/ (the sanitizer-allowed pattern is /media/profile/{memberID}/story/{uuid}/original.ext; /media/story-images/:id is a separate resolve-by-ID endpoint used only for editor-side preview).
+- [Phase 134]: TestPhase134MigrationFreshUpDownProof registers maintPool.Close() via t.Cleanup (not a bare defer), ordered before the final teardown-drop cleanup, since t.Cleanup callbacks run after the test function's own defers return.
+- [Phase 134]: Migration 0037_add_release_decomposition_tables.down.sql was rewritten from an intentional no-op into a full reverse of its up.sql; its release_streams FK to release_variants(id) blocked migration 0035's DROP TABLE release_variants the first time the full Down chain ever ran end-to-end (PMQA-03 fresh/up/down proof).
+- [Phase 134]: A genuinely fresh migration-only database has no member to self-claim and no platform_admin to grant the first platform_admin -- scripts/provision-phase134-matrix-db.sh bootstraps both via scoped direct SQL before invoking the real seed script, which retains 100% ownership of scenario/business fixture data.
+- [Phase 134]: The verification matrix mounts ./scripts:/scripts:ro into team4sv30-backend (docker-compose.override.yml), mirroring the existing ./database/migrations mount, since the container's /app root corresponds to backend/ only, not the repo root.
+- [Phase 134]: parseBoundedProjectPageValue never returns an error status for invalid limit/offset query params -- it silently clamps to the documented safe default/bound and returns 200; this IS its fail-closed contract, not a bug.
+- [Phase 129]: Canonical public projections and data correctness are executed and automated-gate GREEN (11/11 plans) -- every year-only precision, current-vs-historical, role code/label, dedupe, public-facts-progress, media-filter, and dead-legacy-removal defect found in 129-RESEARCH.md is corrected and locked by a passing PostgreSQL contract test, per .planning/phases/129-canonical-public-projections-data-correctness/129-VERIFICATION.md.
+- [Phase 130]: The public DTO/OpenAPI/TypeScript/api.ts contract alignment is executed (7/7 plans) -- shared/contracts/openapi.yaml carries dedicated allow-listed public-member schemas (PublicMemberBadge, etc.); no separate 130-VERIFICATION.md/SUMMARY.md file exists, a real doc-completeness gap noted by 134-RESEARCH.md's Ground Truth findings, not a code gap.
+- [Phase 131]: Set-based delivery, pagination, and performance budgets are executed and locked (8/8 plans) -- profile-load SQL query count is capped at 19, and API payload/latency/Web-Vitals budgets for both sheppert and csubs-leader are captured in .planning/phases/131-set-based-delivery-pagination-performance-budgets/evidence/BUDGETS.md.
+- [Phase 134]: reset-member-profile-fixture.sh clears members.member_story_json/html/text (UPDATE, not DELETE) for the two reference members before deleting their story-image media_assets rows — that JSONB reference is invisible to Postgres FK enforcement; a stale reference would trip applyStoryImageLifecycle's IDOR check on the reseed's next PUT /me/profile
+- [Phase 134]: The three tracked badge asset directories are sha256-verified byte-identical before and after the shared team4s_v2 database reset+reseed cycle (PMQA-06), and the seed re-run prints RESULT: PASS (15/15) twice in a row afterward, proving PMQA-01's idempotent-from-clean-state claim genuinely holds
+- [Phase 134]: Plan 134-06 resumed 2026-08-20: the shared team4s_v2/Keycloak stack had been fully reset out-of-band (both `team4s_postgres_data` and `team4s_keycloak_db_data` volumes recreated 2026-08-17), so sheppert/csubs-leader existed nowhere (no Keycloak accounts, no members rows) -- bootstrapped both via the exact identity/authz pattern already established in provision-phase134-matrix-db.sh Step 4.5 (kcadm user create + platform_admin realm role + member/member_claims/app_user_global_roles bootstrap SQL), then re-ran the Plan-134-01 seed script (15/15 checks pass). Task 1's automated capture then found a real, pre-existing bug: `--focus-ring` (a box-shadow token) was misused as an outline color in profile.module.css/FocalCarousel.module.css/AnimeProjectStage.module.css, silently collapsing keyboard focus rings to invisible on the live member-profile page; fixed all three to use the dedicated `--focus-outline` color token (GroupMediaReviewSection.module.css has the same bug but is admin-only, out of this plan's blast radius -- logged to deferred-items.md). Both evidence harnesses now pass 0-breach/exit-0, and all 6 profile x viewport keyboard-focus captures report keyboardPass: true.
+- [Phase 134]: Plan 134-06 Task 3 (PMQA-05 live sign-off) closed 2026-08-20 after two live-UAT gap-closure rounds, each fixed and re-evidenced before the next round: (1) a mobile hero container-query self-query bug (dead cqi units in LockedStageArtwork.module.css) freezing the 390x844 layout, plus badge-chain connector-line misalignment (roles progression + anime-project milestones, AnimeProjectStage.module.css/RoleBadgeCard.stages.module.css) and badge-label mid-word wrapping -- all fixed and evidence refreshed (commit 96b8bbeb); (2) a tablet/desktop hero-avatar top-alignment fix, evidence refreshed a second time (commit c285414d). User then performed the full live browser walkthrough over the canonical SSH-tunnel path across all 3 required viewports (390x844/768x1024/1440x900) plus real 400% browser zoom, confirmed the seeded story image renders and keyboard Tab focus is visible, and explicitly typed "approved" for both sheppert and csubs-leader -- both Sign-off checkboxes in uat-checklist.md checked (commit 9c8ac464). PMQA-05 complete; all 6 Phase 134 plans now done. Phase 134's own phase-level closure (code review/regression gates, ROADMAP/STATE phase-complete marking) and milestone v1.3 completion remain the orchestrator's next step.
+- [Phase 135]: Plan 135-01 executed (D-01, D-04) -- keycloakAuth.ts gained a validated one-shot consumeStoredReturnPath() (mirrors registrationCompletion.ts's marker pattern) plus BeginKeycloakLoginOptions.loginHint/.returnPath; login/page.tsx's completeCallback() destination priority is now persistedReturnPath ?? (registration-completion default) ?? next-param. This is the shared foundation Plans 135-05/06 must persist a returnPath through via beginKeycloakLogin({ returnPath }) rather than inventing a second mechanism. 12/12 login/page.test.tsx cases pass; tsc --noEmit clean for both touched files (pre-existing unrelated Next.js route-type errors elsewhere ignored).
+- [Phase 135]: Plan 135-02 executed (D-06) -- ListFansubGroupRoleDefinitions's SQL predicate simplified to WHERE assignable = true only, closing Finding #7 / Pitfall 2 (admin/other anime_contribution roles leaking into the group-role picker). New testsupport.OpenPhase135Postgres harness (SKIP-not-FAIL convention) plus TestListFansubGroupRoleDefinitionsAssignableOnly prove the exact 6-code assignable set against a real 0085/0100/0103/0112 migration chain. — Closes the one-line SQL defect identified in 135-RESEARCH.md Pitfall 2 with a live-DB regression proof rather than source inspection alone.
+- [Phase 135]: Plan 135-03 executed (D-03, D-01, D-08) -- CreateFansubGroupInvitation's mail now names the real fansub group (via a new fansubGroupNameStore threading of FansubRepository.GetGroupByID, fail-open to a generic phrase) and the inviting admin (identity.DisplayName), replacing the old blind "Du wurdest zu einer Fansub-Gruppe eingeladen" text with the phase's locked Content-Spec Addendum copy. The mail CTA link now carries &email=<url-escaped invitee email> for D-08's mediated Keycloak login_hint prefill fallback (server-side match enforcement in Accept() unchanged). Two new tests prove the enriched context and the nil-fansubRepo fallback; go build/vet/test all clean.
+- [Phase 135]: Plan 135-04 executed (D-05, D-07) -- HistoricalMemberCard now destructures the 8 already-declared claim-invite props (generatedInvites, memberInvitations, copyStates, canCreateClaimInvitation, onGenerateInvitation, onCancelInvitation, onCopyLink, normalizeInviteLink) and renders the generate/copy/cancel block gated on canCreateClaimInvitation && !member.app_username, using the hist-claim-invite-link- id prefix required by useGroupMembersClaimActions.ts's markVisibleInviteLink DOM fallback (not ClaimManagementPanel's claim-invite-link- prefix). ClaimManagementPanel.tsx is documented in-code as an intentionally unmounted future-admin-view reference rather than deleted, resolving 135-RESEARCH.md Open Question 2. 4/4 new component tests pass; tsc --noEmit clean for both touched files. — Closes the "generate + display" gap for the claim flow that unlocks historical members -- pure JSX wiring against an existing, tested, audit-logged backend/hook; no backend change and no new authorization surface.
+- [Phase 135]: Plan 135-05 executed (D-01, D-04, D-07, D-08, D-09) -- new frontend/src/components/auth/InviteAcceptFlow.tsx is the one shared dual Anmelden/Registrieren + returnPath + auto-accept + friendly-error onboarding component (Button-only, zero raw <button>), and frontend/src/app/invitations/accept/page.tsx is rewritten on top of it, closing Finding #10's BLOCKER cold-invite dead end. A useRef guard fires the auto-accept effect at most once per mount; handleLogin/handleRegister persist returnPath via 135-01's beginKeycloakLogin({returnPath}) and forward loginHintEmail as login_hint. 9/9 new frontend tests pass (5+4), re-run alongside login/page.test.tsx's 12 cases with zero regressions (21/21). — DEVIATION FLAGGED: the plan file's own appended "Content-Spec Addendum" (D-11/D-12, dynamic group/inviter copy + a fourth "wrong email logged in" state + "Konto erstellen und beitreten"-style button labels) was NOT implemented; the plan's literal <tasks> section (simpler generic copy, matching 135-06-PLAN.md's already-written expectations) was followed instead. See 135-05-SUMMARY.md's "Deviations from Plan" for full rationale -- this addendum content is an open gap that needs a follow-up plan/task or an explicit CONTEXT.md rescoping before 135-07's live UAT (which requires "correct German copy... throughout").
+- [Phase 135]: Plan 135-06 executed (D-09, D-07) -- claim-invitations/accept/page.tsx rewritten as a thin InviteAcceptFlow composition, closing D-09 (both invite types now share one shared onboarding flow) and Pitfall 1/5's return_to dead end for this page. No loginHintEmail prop (claim invitations are generic shareable links with no target email); afterAcceptRedirect=/me/profile preserves the page's prior immediate-redirect-on-success behavior. 3/3 new page tests pass, re-run alongside login/page.test.tsx (12), invitations/accept/page.test.tsx (4), and InviteAcceptFlow.test.tsx (5) with zero regressions (24/24 green); tsc --noEmit clean for touched files (pre-existing unrelated Next.js route-type errors elsewhere ignored). — Followed 135-06-PLAN.md's <tasks> section literally against 135-05's locked InviteAcceptFlowProps contract, per the user-confirmed scope ruling (STATE.md 2026-08-17 entry) that the Content-Spec Addendum's dynamic group/inviter/role copy stays deferred and out of scope.
+- [Phase 135]: Plan 135-08 executed (D-12, D-13, D-07) -- infra/keycloak/themes/team4s/login/register.ftl is now a real theme override (previously the theme shipped zero .ftl overrides and inherited register.ftl byte-for-byte from keycloak.v2). Empirically confirmed against the live Keycloak 26.0.8 realm (curling /realms/team4s/protocol/openid-connect/registrations with login_hint set) that login_hint prefills only the "username" registration attribute, never "email" -- register.ftl reuses that prefilled username value as `invitedEmail` whenever it looks like an email address, and renders the "email" attribute with custom inlined markup carrying a real HTML `readonly` attribute (value still submitted, unlike Keycloak's own attribute.readOnly path which emits `disabled` and drops the value) plus a generic invite-context line (team4sInviteContext message key; Keycloak does not forward group/inviter/role to the registration template, matching 135-05-SUMMARY.md's prior Content-Spec Addendum scope ruling). Full live proof: registered a real test account through the locked path via curl (PKCE authorization_code flow), exchanged the code, and confirmed via /userinfo that the created account's email claim exactly matched the invited address; test account deleted via the Keycloak admin API afterward. Open (non-invite) registration verified unaffected. — This is a scope evolution of D-08 (135-CONTEXT.md's original text says "kein KC-Theme-Umbau"/no KC theme rework): D-12/D-13 were added later, during live-UAT review, specifically because D-08's mediated query-param-only approach (135-03) could prefill but not lock the email or show invite context; 135-08 layers a theme change on top of, not instead of, that mediated fallback.
+- [Phase 135]: [Phase 135, 2026-08-19]: Plan 135-07 executed (D-01..D-04, D-08, D-09) -- scripts/phase135-green-gate.sh (already built/committed 7afd2774) re-run after 3 intervening commits confirmed zero new regressions; the 4 non-green steps (backend-test DB-integration fixtures, frontend-lint capture-responsive.cjs, frontend-test 12 stale files, frontend-build Next.js /_global-error Turbopack prerender) are all pre-existing and untouched by any Phase 135 file, per git-log cross-check. — Live UAT confirmed (user, 2026-08-19): registrationAllowed=true on the running Keycloak team4s realm (no drift); cold-invite round trip (mail context/Umlaute, Anmelden/Registrieren no jargon, auto-return, auto-accept) and claim-invite round trip (lands on /me/profile) both confirmed end-to-end with zero deviations. Closes Finding #10 BLOCKER.
+- [Phase 135]: [Phase 135, 2026-08-19]: Plan 135-10 executed (D-15, D-16) -- case-preserved fansubName KC attribute (register.ftl hidden-username derivation + token claim + backend display-identity priority) closes D-15; Task 4's self-claim approval render pre-existed this plan (ca189d99, prior non-GSD session) and was sanity-checked, not re-implemented. Live UAT surfaced 5 deviations, all fixed same-session: 2 backend list queries preferring lowercase preferred_username over case-preserved display_name; missing success feedback + cross-list refresh on claim-verify/member-activate; 5 window.confirm() calls replaced with the app's own Modal (design-system violation); missing claim-note render; a direct-user-requested mobile-first claim-card redesign. — Phase 135 is now complete (both previously outstanding plans, 135-07 and 135-10, done; all 10 plans have summaries). D-01 through D-16 implemented and live-verified. Commits 069b2f6b/514ec1fd/88e0d62f/1403ccd0 (Finding #28: hide active members from historical list, surface active membership + verified historical roles on public profile, linked-account card redesign) landed in the same session immediately after but are explicitly out of 135-10's D-15/D-16 scope -- recorded as an adjacent follow-up, not phase-135 work.
+- [Phase 136]: Catalog color_key values are normalized to the exact migration-0149 hex allowlist; unknown values resolve to neutral.
+- [Phase 136]: Active role chips use one data-color-key CSS seam and never derive colors from role codes.
+- [Phase 137]: Migration 0150 seeds the override-management capability only to fansub_lead (not founder/co_leader) and flips exactly seven Phase-136 group actions plus all three review.*.decide actions to user_overridable=true, giving later Phase-137 plans a real Review-Delegation-vs-User-Deny action to test against.
+- [Phase 137]: 137-02: EffectiveRightState additively extended (D04) with granting_roles[]/user_allow/user_deny/specialized_grants[]/decisive_source/reason_code; EffectiveRightProvenance gained platform_admin/specialized_grant/no_grant; CapabilityActivationStatus documented active-only for Phase 137. No competing inspector DTO introduced; Go DTO in capability_policy_contract.go deliberately deferred to a later Phase-137 plan. — Closes the Phase-136 DTO provenance gap identified in 137-RESEARCH.md Pitfall 4/Open Question 1 before any backend resolver route consumes the contract.
+- [Phase 137]: 137-03: AuthzUserOverridesRepository (backend/internal/repository/authz_user_overrides.go) gives the resolver/mutation-service layer batch-load (LoadCurrentOverrides), FOR-UPDATE membership lock (LockTargetMembership distinguishes ErrNotFound non-member from a returned inactive Status), catalog-policy read (LoadOverridePolicy), lock-then-mutate before/after state (UpsertOverride/DeleteOverride), and append-only history (AppendHistory/ListHistoryForSubject) primitives -- zero resolver precedence logic, zero N+1, one authzUserOverridesDBTX interface (embeds repository.DBTX + Query, mirrors releaseCrewDBTX) works on pool and tx alike. New backend/internal/testsupport/phase137_postgres.go harness applies the real 0085/0100/0108/0112/0146/0150 migration chain.
+- [Phase 137]: 137-04: ResolveGroupRights is the single group-wide D01 precedence engine (platform_admin > disabled > no-membership > user_deny > user_allow > role_grant > specialized_grant > no_grant), batch-loading membership/roles/overrides/specialized grants with no per-capability SQL; two new optional Resolver interfaces (GroupRightsMembershipResolver, GroupRightsOverridesResolver) exist but AuthzRepository does not implement them yet -- production falls back to inferring active membership from non-empty roles (zero regression), and real per-user override enforcement is not yet live end-to-end. Review Delegation is fully wired today via the existing ReviewContextResolver as the first SpecializedGrantProvider (review_grant_provider.go). Flagged for Plan 137-05 to close.
+- [Phase 137]: 137-05: Every production group-scoped Can* entry point (CanForFansubGroup, CanForRelease, CanForReleaseVersion, CanForReleaseVersionMedia, CanReviewForFansubGroup) now derives its decision from ResolveGroupRights, closing 137-04's Known Gap by wiring AuthzRepository into GroupRightsMembershipResolver/GroupRightsOverridesResolver against real Postgres. — 137-04 flagged that ResolveGroupRights was logically correct but unreachable from production traffic and had zero repository wiring; 137-05 is the plan that first routes legacy enforcement through it, so closing the gap here (rather than deferring) was required for the plan's own must_haves to be true in production, not just in Go fixtures.
+- [Phase 137]: 137-06: EffectiveRightsService.MutateOverride requires a reason for every real change uniformly (including platform admins), and validates active target membership in the exact target group for every mutation kind including REMOVE -- stricter than migration 0146's own DB CHECK constraint, matching the plan's must_haves literally. Fixed a real gap: permissions.allKnownActions was missing ActionUserGroupCapabilityOverrideManage entirely, so ResolveGroupRights could never grant D07's management capability at all until this plan added it (mirrors 137-05's identical allKnownActions-completeness precedent).
+- [Phase 137]: 137-07: effective-rights inspection/mutation/history HTTP boundary wired into cmd/server (admin_routes.go + main.go, not internal/router which does not exist); three group-scoped routes under /admin/fansubs/:id/app-members/:appUserId/, all authorized via ActionUserGroupCapabilityOverrideManage, delegating entirely to ResolveGroupRights/EffectiveRightsService.MutateOverride. — Closes CAP-01/02/05/06/07 and QUAL-03 at the API boundary; also closed 137-02's deferred Go EffectiveRightState DTO gap since this plan is the first to serialize it over HTTP.
+- [Phase 137]: 137-08 closed the phase with a full backend suite gate (real Postgres, TEAM4S_PHASE137_TEST_DSN supplied): internal/permissions and internal/services fully green including real-Postgres/concurrency tests; two genuine D01-D10 negative-matrix gaps (self-mutation without capability, platform-admin bypass at the mutation boundary) closed with new subtests; all 65 remaining backend failures triaged into six pre-existing, Phase-137-unrelated buckets and none live in any of Phase 137's own 31 touched files. See 137-VALIDATION.md.
+- [Phase 137]: 137-09: Closed GAP-01 (post-commit response safety) and GAP-02 (unconditional success + reject-path audit coverage, including the BOLA/IDOR body/path-mismatch guard) in AdminEffectiveRightsHandler.MutateOverride; CapabilityActivationStatus docs (both YAML contracts + TS type) now document the real, reachable pending-on-enrichment-failure behavior instead of the stale active-only claim.
+- [Phase 137]: 137-10 closed GAP-03: both shared/contracts/admin-capabilities.yaml and shared/contracts/openapi.yaml now document a 400 response on GET .../effective-rights and GET .../capability-overrides/history, matching parseGroupAndTarget's real badRequest behavior for a malformed id or appUserId path parameter. No other endpoint or schema changed; contract parity and tsc --noEmit both confirmed green.
+- [Phase 137]: 137-11 executed (GAP-04, GAP-05): effective_rights.go's file-level doc comment corrected to state production wiring (Plan 137-05) and DTO/HTTP projection (Plan 137-02/137-07) are both closed; effective_rights_service.go's error-sentinel var block is now gofmt-clean. Comment-only and whitespace-only changes; go build/test confirm zero behavioral change.
+- [Phase 137]: [Phase 137, 2026-08-21]: 137-12 dispositioned GAP-06 (contribution-role vs user_deny) as Fall C -- 137-CONTEXT.md's D01/Section 2 never name contribution roles as a resolver source category at all, so no runtime change was made to CanForReleaseVersion's Step 3 fallback; a new regression test (TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny) locks today's actual behavior (a stored user_deny does not block the contribution-role fallback), and the ambiguity is explicitly flagged in 137-12-SUMMARY.md as DECISION REQUIRED for a human decision-maker rather than resolved unilaterally.
+- [Phase 137]: 137-13 closed GAP-07 (UAT-137-01) with additive migration 0151 (co_leader/founder/gfxler/techadmin gain fansub_group_media.view); zero change to fansubEditAccess.ts -- the existing case "media": return capabilities.can_view_group_media gate already produces the correct result once the capability flag is true post-migration.
+- [Phase 137-14]: GAP-08 closed: canEditFansubBranding mirrors backend fansub_group.edit exactly (can_edit_group only, no can_update_group_media fallback); Logo/Banner section fully hidden (not disabled) for co_leader/founder/gfxler/techadmin-shaped capability sets
+- [Phase 138]: 138-01: AuthzRepository.ListRoleHolders answers D-07's "who holds fansub-group role X" with one non-N+1 join (fansub_group_member_roles -> fansub_group_members -> fansub_groups -> app_users, plus an EXISTS override-presence check); AdminRoleHoldersHandler gates it platform-admin-only and rejects unknown/non-fansub-group role codes with 400 before querying.
+- [Phase 138]: 138-01: testsupport.OpenPhase137Postgres was extended (post-migration-loop, additive/nullable columns only) with fansub_group_member_roles and app_users/fansub_groups display columns, since the real production tables were never part of the applied 0085/0100/0108/0112/0146/0150 migration chain despite the plan's premise; effective_rights_service_test.go's own ad-hoc fansub_group_member_roles table was removed to avoid the resulting collision.
+- [Phase 138]: 138-02: GrantCapability/RevokeCapability keep HTTP 200 regardless of cache-reload outcome; a new RoleCapabilityMutationResult.cache_reload_succeeded field closes the CAP-10/D-21 honesty gap end to end (Go DTO -> OpenAPI -> TS -> api.ts). — A cache-reload failure is not a mutation failure per R-05/Pitfall 3, so the domain write stays a 200; the response body now honestly signals whether the in-process cache actually reloaded.
+- [Phase 138]: 138-02: new shared @/components/ui/ActivationStatusIndicator renders the role_matrix vs override capability-mutation paths via a discriminated 'path' prop rather than one shared enum. — The two paths have genuinely different honest vocabularies (no async window exists on role_matrix, so 'wird aktiviert' is never legitimate there; override can legitimately report a post-commit-enrichment 'pending' state per Phase 137's MutateOverride) — conflating them into one enum would misrepresent one path's state space as the other's.
+- [Phase 138]: 138-03: EpisodeNumber is *string/string|null (not *int/number) because episodes.episode_number is a TEXT column (migration 0002); ListUserContributions extended with additive LEFT JOINs to release_versions/fansub_releases/episodes so UserContributionsTab never renders a raw release_versions.id as a fake version number (D-29). 2 pre-existing UserContributionsTab.test.tsx failures (Phase-136 hex-only color_key normalization vs stale semantic fixture values) confirmed present at HEAD, out of scope, logged to deferred-items.md.
+- [Phase 138]: 138-04: loadGroupRightsSources returns (groupRightsSources, bool, error) exactly per the plan's literal interface; pre-condition guards (nil resolver, invalid actor/group) intentionally stay in ResolveGroupRights since they resolve to a denyAllGroupRights reason code distinct from the platform-admin/disabled fast path. PreviewGroupRightsWithRoleChange reuses evaluateGroupRights twice against a synthetically modified role list (add=dedup-append, remove=filter) -- zero new decision logic (D-20 binding). New GET .../role-assignment-impact endpoint mirrors setFansubGroupMemberRole's exact authorization (ActionFansubGroupMembersManage) and role validation (IsKnownFansubGroupRole); target-actor resolution extracted into shared loadEffectiveRightsTargetActorState reused by AdminEffectiveRightsHandler and the new handler. Full D-35 contract chain (Go DTO/YAML/TS/api.ts) closed.
+- [Phase 138]: [Phase 138] 138-05: MemberClaimsRepository.ListClaims and AuditLogRepository.ListChanges close D-23/D-25's backend list-endpoint gap -- cross-group, platform-admin-gated, dynamic-parameterized filters, COUNT(*) OVER() totals, and a new shared ClampAdminListPage clamp helper; testsupport.OpenPhase137Postgres extended additively with member_claims/hist_fansub_group_members/audit_logs/members.nickname (real production shapes were never previously in the fixture's migration chain); full D-35 contract chain (OpenAPI/TS/api.ts) closed for GET /admin/claims and GET /admin/changes.
+- [Phase 138]: 138-06: getEffectiveRights/mutateCapabilityOverride/listOverrideHistory wired into api.ts; UserGroupRightsTab.tsx re-pointed at the real Phase-137 resolver -- multi-group, category-grouped (7 real registry categories), provenance-capable D-13 inspection surface, zero new client-side precedence logic (D-14). Matrix (listRoleCapabilities) fetch folded into the same load as memberships/rights to avoid a category-grouping render race, since it is now load-bearing not just a cross-nav optional enhancement. Mutation half (CAP-08 guided grant/revoke) deferred to Plan 138-08.
+- [Phase 138]: 138-07: PreviewGroupRightsCapabilityChange (permissions package) batch-computes a role-to-capability grant/revoke's before/after diff for every real role holder, reusing loadGroupRightsSources/evaluateGroupRights via a new evaluateGroupRightsWithHypotheticalGrant variant scoped to exactly one (role, action) pair; GET /admin/role-capabilities/:roleCode/:actionCode/impact-preview mirrors GrantCapability/RevokeCapability's exact platform-admin gate. Closes CAP-09's backend engine.
+- [Phase 138]: 138-08: GuidedRevokeFlow/GuidedGrantFlow each detect their own 'Abweichung entfernen' reversion mode from state.user_deny/state.user_allow; UserGroupRightsTab wires all three locked business-verb actions plus an inline CapabilityHistoryPanel (D-13b) into the row-expansion area, refreshing on every confirmed mutation while the flow's own modal independently stays open showing the real activation_status (CAP-10/D-21). CAP-08 fully wired end to end; UADM-01's editing half is complete.
+- [Phase 138]: 138-09: RoleAssignmentImpactModal closes D-22's role-assignment half; reused the existing, already-live updateFansubAppMemberRole mutation instead of adding a duplicate setFansubGroupMemberRole function to api.ts (Task 1's stated gap was factually incorrect -- FansubAppMembersSection.tsx and RoleAssignmentAfterClaim.tsx already call this exact PUT .../roles endpoint). Confirmed the endpoint's real semantics are additive/removable multi-role via {role, enabled}, not a single-active-role replace.
+- [Phase 138]: [Phase 138] 138-10: /admin/claims ships as a real top-level route (page.tsx wraps ClaimsClient in PlatformAdminGate); useClaimsListFilters mirrors useUserListFilters.ts's exact URL-synced/stable-useMemo shape. Gruppe/Benutzer filters use plain numeric ID Input fields (onBlur-committed), not a search-select, since listClaims's params contract only specifies IDs and other central admin lists (Aenderungen) already use plain numeric benutzer/gruppe/akteur IDs. Aktion column intentionally omitted (no dead button) -- Plan 138-14 wires in the real verify/activate actions. D-32 responsive collapse reuses RoleCapabilityClient.tsx's exact useIsMobile/759px matchMedia breakpoint (Table on desktop, Card rows below 760px).
+- [Phase 138]: 138-11: translateChangeEntry (frontend/src/app/admin/changes/ChangeEntryTranslator.ts) is the single centralized German audit-sentence translator; role_capability.granted/revoked and effective_rights.override.mutated both honestly omit Vorher/Nachher since their real Go audit payloads carry no resolved before/after snapshot (R-07). /admin/changes ships as a Card variant="flat" per-entry list (D-32) with only user_group_capability_override/user_group_capability_override_history/effective_rights/app_user target_types rendered as Benutzer-navigation links.
+- [Phase 138]: 138-12: /admin/roles top-level route ships D-07's role-holders view; Benutzer/Gruppe cells navigate via useRouter().push (ClaimsClient.tsx pattern), status badge reuses UserDetailPageClient.tsx's statusVariant/statusLabel verbatim, and 'letzte Aktivitaet' renders '-' since RoleHolderEntry does not carry that field yet.
+- [Phase 138]: 138-13: RoleCapabilityImpactPreviewModal self-fetches getRoleCapabilityImpactPreview + listRoleHolders (not passed as a prop) since RoleCapabilityClient.tsx, unlike RolesClient.tsx (Plan 138-12), does not already hold a loaded holder list -- matches Task 2's literal action text over the interfaces block's prop-passing suggestion.
+- [Phase 138]: 138-13: preview items are joined to role holders by array INDEX (backend iteration order), not a target_user_id map, since the wire DTO carries no group id and a multi-group-membership holder produces multiple same-target_user_id items.
+- [Phase 138]: 138-13: RoleCapabilityClient.tsx's handleGrant/handleRevoke/capabilityError/isMutating were deleted rather than left dead -- all capability mutation now lives inside RoleCapabilityImpactPreviewModal, closing CAP-09's direct-mutate D-18 violation found this session.
+- [Phase 138-14]: PreviewClaimActivationImpact reuses ResolveGroupRights (before) + loadGroupRightsSources/evaluateGroupRights (after), overriding ActiveMembership/Roles only -- zero second decision engine; PreviewActivatableRoles is a zero-write twin of ActivateClaimedMember's steps 1-2; VerifyClaim/RejectClaim never fetch or fabricate a rights diff, closing D-24 in the central Claims workspace.
+- [Phase 138]: 138-15 (D-01..D-05/D-25/D-30): AdminMainNav is the one persistent D-01 admin nav (Button-row + shared admin/layout.tsx, since Tabs has no Link-based nav mode); AdminUsersClient reduced to D-04's exact 9-field column set; UserDetailPageClient rewritten from a 9-item Accordion to D-03's real 6-tab structure with ?tab= URL sync, requiring Tabs (@/components/ui) to gain optional controlled activeId/onActiveIdChange + keepMountedIds (backward compatible with its 4 pre-existing consumers) to preserve lazy-load-once without a refetch-on-reopen regression; UserOverviewTab's D-05-violating bare stat-tile grid replaced with a compact per-group summary. UserGroupMembershipsTab.tsx left in place, unimported/orphaned, rather than deleted.
+- [Phase 138]: 138-16 closed D-06's Gruppenansicht: GroupRolesTab regroups already-fetched listFansubAppMembers client-side by role (no new backend endpoint); GroupChangesTab reuses listChanges (real filter param is gruppe, not fansub_group_id as the plan sketched) plus 138-11's translateChangeEntry; FansubAppMembersOverview.tsx (the plan named a non-existent GroupMembersTable.tsx) gained a Rechteabweichungen indicator and user navigation; a platform-admin-gated Claims link-out replaces a second claims editor per D-09/D-34.
+- [Phase Quick 260823-wrz]: UAT-138-G fixed: EmptyState gained a real chrome-free variant="inline" (single <p>, no icon/card); UserGlobalRolesTab.tsx dropped its standalone 'Aktive Rollen' SectionHeader block; GroupSection.tsx dropped its <Card> wrapper for a plain <section> (data-group-section preserved). New height to first real rights row estimated ~519px (engineering estimate, not live-measured) - above the 400px soft target but all three named causes are fully closed; UAT-138-A grid-template-columns fix confirmed untouched; live UAT spot-check at 1280x900 recommended as follow-up.
+- [Phase 138]: 138-17: GAP-01 formatRelativeDate clamps its ms diff to >= 0 before computing days, so a last_activity_at at or after Date.now() (clock skew or exact-now) always resolves to 'Heute'; GAP-03's WR-01 branch order (isNonDeniable && !isRemoveMode) was already correct in production code -- a new 7th regression test pins non_deniable+user_deny reaching the confirm step, closing 138-VERIFICATION.md's sole human_needed gap with automated coverage, no production code change needed.
+- [Phase 138]: 138-18 closed GAP-02: RoleCapabilityImpactPreviewModal's metrics row column-stacks (.metricsRow, <=759px) so all 5 D-19 metrics stay visible, per-user vorher/nachher/Grund renders as a Card list below 759px (mirrors RoleHoldersTable.tsx's useIsMobile()/matchMedia precedent, D-32), and a new opt-in Modal panelClassName prop lets only this modal override the shared mobile 100dvh height rule (.narrowHeightFix, doubled-selector specificity) -- ui.module.css and all 30 other <Modal> call sites remain byte-unchanged. Phase 138 (18/18 plans) is now complete.
+- [Phase Quick 260824-ike]: Task 1's handler unit test used fansub_lead/founder instead of the plan's co_leader/encoder example pair because the internal/handlers package's shared TestMain catalog stub predates migration 0112's assignable=true promotion of co_leader; verified the real running app's DB-loaded catalog has co_leader assignable=true with fansub_group context, so production behavior matches the plan's intent -- pure test-selection fix, zero production logic change.
+- [Phase 139]: 139-01: Phase-139 DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) added additively to admin_users.go alongside untouched existing AdminUserContributionsResult/AdminUserMediaResult/AdminContributionItem/AdminMediaItemSummary; testsupport.OpenPhase139Postgres(t) applies the full real 151-pair migration chain (not hand-assembled stand-in tables) inside an isolated per-test schema. — Fixed two dormant bugs this exposed: migrations 0057/0071 hardcoded public.-qualified references (only 2 of 151 pairs, now schema-portable via current_schemas(false)), and a genuine import cycle from testsupport now importing migrations (resolved by moving 14 internal migrations-package test files to the external migrations_test package, mechanical rename, go test FAIL count unchanged at 65).
+- [Phase 139]: 139-02: New Phase-139 TS DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) verified field-for-field against 139-01's Go structs; two new URL-synced filter hooks (useUserContributionsFilters/useUserMediaFilters) mirror useClaimsListFilters.ts exactly, only_deviations encoded as '1'/absent per the has_conflicts convention. Zero file overlap with sibling plan 139-01.
+- [Phase 139]: 139-03: ListUserContributions is fully rewritten to return server-side grouped/paginated AdminUserContributionsPage (anime+project grouping, sort_index range-collapse, semantic override-diff never trusting release_crew_snapshots.snapshot_mode alone); fixed a real ARRAY_AGG(array_col)[1]-typed-as-scalar cardinality(text) SQL bug found via the 9-test D02-D10 integration suite, corrected to MIN() aggregates over the invariant per-range-group role arrays.
+- [Phase 139]: 139-04: GetUserMedia is fully rewritten to return server-side grouped/paginated AdminUserMediaPage (anime+project+release/episode grouping, real PublicURL/FileSizeBytes derivation via a ported buildRVMPublicURL convention + media_files join); AdminUsersRepository's constructor now threads cfg.MediaStorageDir (mirrors NewFansubRepository/NewMediaRepository), requiring 4 call-site updates outside the plan's stated file list.
+- [Phase 139]: Plan 139-05: GroupRightsSourcesInput.Roles is []string (role codes) not []Action as the plan text stated; AuthzRepository implements the three new batch-resolver interfaces (membership/overrides/review-grant) via a new authz_permissions_batch.go file, not by growing the already-over-450-line authz_permissions.go.
+- [Phase 139]: Plan 139-06: pinned constant query-budget gates (contributions=3, media=2, rights-summary=5) against a real disposable Postgres fixture, and closed F-03's live-UAT gap with a real, idempotent seed script producing independent-identical and independent-different release_crew_snapshots rows in team4s_v2 (0 to 2 independent rows).
+- [Phase 139]: Plan 139-07 closed both F-01 rights fan-out locations -- UserGroupRightsTab.tsx now lazily fetches exactly one group's rights on selection (D22, bounded selector, deep-link/auto-select preserved), and UserOverviewTab.tsx calls the new batched rights-summary endpoint exactly once instead of 1+N. api.ts wired to 139-03/139-04/139-05's paginated backend shapes; unplanned but required Rule-3 fix: UserContributionsTab.tsx/UserMediaTab.tsx (owned by 139-08/139-09) had to be minimally adapted to the new grouped shapes since the api.ts signature change otherwise broke npm run build -- explicitly a disposable placeholder, not a locked contract, since the full UI-SPEC rewrite remains those plans' scope.
+- [Phase 139]: 139-08: UserContributionsTab.tsx rewritten as grouped-card projection (UI-SPEC-locked); a thin file-local URL-reset wrapper deletes only the seven filter-owned query keys instead of calling each per-field setter in sequence (stale-closure race) or blanket-clearing the pathname (would drop ?tab=); rewrote pre-existing role-catalog test fixtures to use real hex color_key/icon_key values, closing a genuine Phase-136 fixture bug rather than reproducing it.
+- [Phase 139]: 139-09 closed UADM-05: UserMediaTab.tsx fully rewritten as the grouped release/episode-block projection (Card variant=nestedFlat, ResponsiveImage lazy thumbnails, five server-side filters via useUserMediaFilters), deleting hasScopePermission() and groupByReleaseVersion() outright with no replacement. — ResponsiveImage is imported from its real @/components/ui/ResponsiveImage module path (not the barrel index, which does not re-export it), matching every other production consumer in the codebase; mediaTab.module.css mirrors 139-08's container-query convention exactly plus the 96px->64px thumbnail breakpoint.
+- [Phase 139]: 139-10 closed the phase with a full backend+frontend regression triage against the confirmed 139-RESEARCH.md baseline (zero Phase-139 regressions, 139-VALIDATION.md's Per-Task Verification Map fully filled in, nyquist_compliant: true) and human-verified live UAT (all six checks PASSED, see 139-HUMAN-UAT.md). The check-4 (Rights-tab lazy fetch) live verification carries a documented residual scope note -- the D1sk test account has only one group membership so lazy-vs-eager-of-one-group cannot be visually distinguished; the multi-group property is separately proven by 139-07's UserGroupRightsTab.test.tsx/UserOverviewTab.test.tsx regression tests -- this is a scope note, not a failed or skipped check. Phase 139 (10/10 plans) is complete; all of UADM-02 through UADM-08 and QUAL-06 are fully verified.
+- [Phase 141-01]: ResolveReviewGroupAuthorization replicates CanReviewForFansubGroup's guard chain exactly (including the ReviewContextResolver verified-membership gate) rather than substituting ResolveGroupRights' looser ActiveMembership signal, preventing an elevation-of-privilege regression.
+- [Phase 141-01]: review_service.go's own Decide authorization call is left untouched per 141-CONTEXT.md D11; only the handler-layer read path was consolidated onto the new single-resolution entry point.
+- [Phase 141]: 141-02: A nil ActorMemberIDs slice encodes as SQL NULL via pgx and must be normalized to an empty slice before binding, or the self-exclusion clause silently excludes every row instead of no-op'ing for unset call sites.
+- [Phase 141]: 141-02: The view=own D10 capability bypass lives entirely in the handler (queueOptions), never the repository -- releaseReviewQueuePredicates always honors whatever AllowedKinds it is given literally.
+- [Phase 141]: Next's internal r.List(...) call must thread ActorAppUserID/ActorMemberIDs, not just check the current item's identity, so the resolved 'next' item itself is guaranteed excluded from the actor's own submissions — D05 requires the resolved next item to never be the actor's own submission; the pre-existing code only checked the current item, letting an adjacent own-item leak through as next
+- [Phase 141]: useReleaseReviewLane's loadMore is a synchronous void function wrapping its async body in an internal IIFE, matching UseReleaseReviewLaneResult's documented () => void contract
+- [Phase 141]: reload() re-exposes loadInitial for the retry button and future re-derive-after-decision use (D08), backing later plans without new fetch logic
+- [Phase 141]: OwnPendingReviewsSection renders 5 always-visible table columns (no desktop/tablet duplicate-column split), keeping colSpan=5 unambiguous and matching the plan's literal 5-column requirement.
+- [Phase 141]: ?lane= URL param uses short values queue/own (per 141-UI-SPEC's locked contract) while Tabs item ids stay queue/own-pending; readLane()/setLane() map between the two.
+- [Phase 141]: PruefungenTabs's URL-sync effect rebuilds the querystring from scratch (tab + optional lane only) rather than merging into live searchParams, avoiding a render loop from a fresh-identity searchParams dependency.
+- [Phase 141-06]: SectionHeader description locked copy mixes „ opening guillemet with ASCII closing quote; used single-quote JSX attribute delimiters instead of escaping or paraphrasing the locked string. — Preserves the verbatim locked copy while staying syntactically valid JSX.
+- [Phase 141-06]: Typ FormField gating uses allowed_types.length > 1 (not === 0) as the omission predicate, per plan's exact rule that a single-entry allowed_types must also omit the whole FormField. — A one-option dropdown would still leak which single kind the actor can review via its shape.
+- [Phase 141]: Plan 141-07: NextReviewControl shares post-decision/standalone Next states so the 'Next' affordance never silently disappears; 403 loads render a distinct locked ErrorState instead of the generic 404/network message — Closes RQUE-02/D04 and RQUE-05/D05 without new 409 branching, since the backend already maps both already-decided and not-pending outcomes to REVIEW_ALREADY_DECIDED
+- [Phase 143]: Plan 143-01: Split app_auth_group_members.go into two files (app_auth_group_members.go + app_auth_group_member_roles.go) instead of the plan's mandated single file — The plan's own exact function assignment for that bucket produces ~500 lines, exceeding the 450-line CLAUDE.md cap the plan itself sets as an acceptance criterion. No identifier renamed; zero behavior change.
+- [Phase 143]: Plan 143-02: SubmitClaimInput moved alongside SubmitClaim into member_claims_submit_repository.go rather than staying behind, since it is used nowhere else in production code except as SubmitClaim's own parameter type — Same-package visibility means the one external caller (handlers/member_claims_handler.go, referencing repository.SubmitClaimInput) is unaffected by which file in the repository package declares the type
+- [Phase 143]: Split anime_contributions_proposal_repository.go and member_profile_projects_repository.go by responsibility (pure relocation, zero SQL/logic change) — Completes the Phase 143 450-line-cap remediation for the two files not covered by the dashboard/claims plans; fixed 3 pre-existing source-inspection tests broken by the file move
+- [Phase 143]: Plan 143-04: kept the plan's literal workspaceHelpers.ts import list verbatim (incl. AdjacentReleases), accepting a harmless ESLint no-unused-vars warning rather than pruning it — AdjacentReleases is only referenced transitively inside NavigationState's type in workspaceHelpers.ts, not directly in page.tsx; ESLint still exits 0 (warning, not error), so no auto-fix was required
+- [Phase 143]: Plan 05: PublicMemberBadge.next_tier enum stays [bronze, silver, gold, platinum] in openapi.yaml (already correct); stale test assertions were updated instead of the contract. — The contract side was already correct; only the test was stale.
+- [Phase 143]: Plan 05: fixed 5 of 17 Kriterium-1 red frontend test files via RoleCatalogProvider mocks plus 6 chained phase-142 test-drift fixes (stale visibility default, renamed DatePicker label, missing api mock exports, missing form fixture field) that surfaced only once the provider crash stopped masking them. — Each secondary fix was verified via git show/git log -p to be genuine phase-142 app-code drift, not unrelated pre-existing defects; full unscoped test run confirms zero regressions against CONTEXT.md's documented 17-file inventory.
+- [Phase 143]: 143-06: added roleCatalog.ts's categoryForRole(rows, code) as the dedicated semantic-category data-role-code helper, decoupled from presentationForRole()'s bounded-hex-swatch contract (Phase 136-30); migrated ContributionCard.tsx/ProjectMemberReleaseCard.tsx/ProjectMemberHero.tsx (undocumented sixth call site, same regression)/me-projects-group-page.tsx/MemberCurrentProjectsSection.tsx to it, and reverted roleColorCode (roleColors.ts) and roleLabelForCode (useGroupMembersTab.ts) to their git-proven pre-regression label-lookup implementations -- FANSUB_GROUP_ROLE_OPTIONS no longer exists (removed in fa98ce8d, Phase 136-08), so roleColorCode's label->code map was rebuilt as a local Map instead of an import.
+- [Phase ?]: [Phase 143, 2026-09-01]: 143-07 closed Kriterium 1's last 6 red frontend test files. MemberBadgeChain.tsx itself needed zero production changes -- members/[slug]/page.test.tsx's missing Rollenfortschritt heading was a stale RoleCatalogProvider mock fixture (catalogRoles lacked a 'timer' entry despite the profile fixture earning role_entry_timer), tripping Phase 136 CR-02's intentional catalog-trust gate as designed; MemberBadgeChain.test.tsx's other 4 failures were pre-existing Phase-119-era test debt (file unchanged since 2026-08-20, before Phase 142's commit range) superseded by currently-passing Phase 125/126/127 tests, corrected to match adopted behavior.
+- [Phase ?]: [Phase 143, 2026-09-01]: 143-07 narrowed next.config.mjs images.localPatterns from a blanket /media/** wildcard to /media/anime/**, /media/profile/**, /media/release-version/** -- the three namespaces a repo-wide grep of backend PublicURL construction proved real; no /media/group/** namespace exists (group logos route through the already-allow-listed /api/v1/media/image proxy) and /media/admin/** is deliberately never allow-listed (T-143-07-01). Full unscoped npx vitest run at 0 unexpected red files (288 files / 2146 tests) closes CONTEXT.md Kriterium 1 across the whole 143-05/06/07 wave.
+- [Phase 143]: Plan 143-08 executed: migration 0159 supersedes 0154's role_capabilities reset pattern (unconditional DELETE, no-op down.sql) with an idempotent (ON CONFLICT DO NOTHING) up.sql and a techadmin-preserving down.sql; new ephemeral-DB test forces a real second execution of 0159's raw SQL by deleting only its own schema_migrations tracking row (a bare second Runner.Up() call is always a no-op regardless of SQL content) and proves the 12 migration-0153 techadmin rows survive Down(ctx, 1).
+- [Phase 143]: 143-09 executed (Criterion 3): PendingGroupMediaReviewAttention/PendingReleaseReviewAttention moved into ReleaseReviewQueryRepository reusing the existing OwnDashboardPendingGroupMediaReview/OwnDashboardPendingReleaseReview row types; dashboard_me_handler.go has zero inline h.db.Query SQL left; group-media review now gates on permissions.ActionReviewImageDecide (was the too-broad ActionFansubGroupEdit); both moved handler loops are per-group memoized. — This is the explicit prerequisite ROADMAP Criterion 7 (rejected-note dashboard lane) depends on -- no later plan may add a new h.db.Query call to dashboard_me_handler.go. release_review_query_repository.go was split (scan/URL helpers + SQL constants moved to release_review_query_scan_helpers.go) to stay under CLAUDE.md's 450-line cap after the two new methods.
+- [Phase 143]: Plan 143-10 executed: first-ever tests for ReleaseMetadataCreditService.AwardIfCompleted (documenting that its ambiguous rv.id/rev.id lookup can silently credit the wrong release version on a real ID collision) and for UpdateAnimeFansubProjectTimeline's end-before-completed-release date rule; fixed the stale /project-timeline route string in the one pre-existing handler test. — Closes ROADMAP Success Criterion 4 (untested new logic). No code change to release_metadata_credit_service.go was made -- the query's ambiguity is documented in the test and SUMMARY per VALIDATION.md's explicit test-only phase scoping, left for a future phase/quick-task to decide whether to fix.
+- [Phase 143]: 143-11 fixed has_own_notes to exclude rejected release_version_notes via a LEFT JOIN to release_version_note_review_lifecycle (review_state IS NULL OR <> 'rejected'); no tombstoned special-casing needed since deleted_at IS NULL already excludes tombstoned notes. testsupport.OpenPhase139Postgres's full migration chain was found unusable for this test (migration 0152 hardcodes public.unaccent, unresolvable inside the harness's isolated non-public per-test schema) -- used testsupport.OpenPhase107Postgres + hand-assembled schema instead, matching release_review_query_repository_test.go's precedent.
+- [Phase 143]: 143-12's Task 3 checkpoint (2026-09-01, Option A user decision): no-restricted-syntax's base severity is 'error' with a new LEGACY_NO_RESTRICTED_SYNTAX_FILES frozen, explicit, shrink-only exemption list in frontend/eslint.config.mjs (264 violations, 67 files measured 2026-09-01, not the ~17 the plan's stale premise assumed) -- migration of remaining files tracked at .planning/todos/pending/2026-09-01-no-restricted-syntax-legacy-datei-migration.md. ESLint's --rule CLI flag cannot validate scoped overrides (bypasses files-scoped config); use plain 'npx eslint .' for verification going forward.
+- [Phase 143]: 143-13 closed Criterion-7's backend half -- ReleaseReviewQueryRepository.PendingOwnNoteRevisionAttention is the inverse of the review-queue self-exclusion predicate (explicitly returns the actor's own rejected release-version notes); OwnDashboardData.PendingOwnNoteRevisions groups the flat rows by anime+fansub-group via a single linear pass relying on the query's own ORDER BY; dashboard_me_handler.go stays at zero raw h.db.Query calls.
+- [Phase 143]: Phase 143 Plan 14 executed: rejected own release notes now render as a fifth Attention-lane in AttentionSection.tsx, grouped per anime-project + fansub-group, closing Criterion-7 end to end (backend half shipped in 143-13).
+- [Phase 143]: Plan 143-15 closed UAT-03/UAT-04: noteRevisionListSingle append-only CSS override reduces single-item rejected-notes card spacing without touching multi-item rendering — All 6 raw hex color fallbacks (var(--color-primary, #2f5fe3)/var(--text-soft, #6b6b70), 4 pre-existing + 2 from plan 143-14) removed from AttentionSection.module.css in favor of bare design tokens, per CLAUDE.md's token-only convention
+- [Phase 143]: Plan 143-16 patched detail.status client-side via setDetail's functional updater inside submitDecision's success branch (using the decision parameter, not response.data.decision), closing UAT-01's stale header status Badge without adding a refetch that would re-hide the just-shown decision message and NextReviewControl success actions.
+- [Phase 143]: Plan 143-17 closed UAT-02's backend/contract half: has_own_rejected_notes uses an INNER JOIN (not LEFT JOIN like has_own_notes) to release_version_note_review_lifecycle, since a rejected state can only be represented when a lifecycle row exists.
+- [Phase 143]: 143-18 executed: needsRework = !releaseDone && has_own_rejected_notes gates only Badge variant/text and button prominence; isDone()/counters/filters stay byte-identical (Kriterium 5 locked). Reused Badge variant=danger for consistency with AttentionSection.tsx's rejected-notes semantics. — UAT-02 is now fully closed (backend half in 143-17, frontend half here); Phase 143 (last plan 4 of 4) is complete.
+- [Phase 143]: 143-19 closed UAT-05: has_own_media's EXISTS subquery now excludes rejected media via a LEFT JOIN to release_version_media_review_lifecycle (mirroring has_own_notes); a new has_own_rejected_media boolean (INNER JOIN) flows through openapi.yaml/contributions.ts; page.tsx's hasOwnArtifacts/needsRework unify has_own_rejected_notes and has_own_rejected_media via a single OR so either or both rejected-artifact types render exactly one 'Überarbeitung nötig' badge, never a precedence puzzle.
+- [Phase 144]: [Phase 144, Plan 01]: PatchReleaseVersionMedia's category hard-block is removed; category is now validated via parseRVMCategoryPatchField (new sibling file admin_content_release_version_media_category.go, keeps the 1148-line handler file at 1146) and persisted via ReleaseVersionMediaPatchInput.Category; rvmCategoryAllowsPreview checks the effective post-patch category so a category change cannot bypass PREVIEW_NOT_ALLOWED_FOR_CATEGORY.
+- [Phase 144]: 144-02 executed (Zielbild 1, Zielbild 4, Points invariant) -- new backend/internal/repository/release_version_media_replace_repository.go gives *MediaRepository.ReplaceReleaseVersionMediaFile (swaps media_asset_id under FOR UPDATE, never touches the row's own id) and .EnqueueReleaseVersionMediaFileDeleteJob (mirrors scrubExpiredReleaseReviewMedia's INSERT into release_review_file_delete_jobs, ON CONFLICT (media_file_id) DO NOTHING). Neither method reimplements the revision-bump/pending-reset -- callers compose both with the existing ReleaseReviewLifecycleRepository.SubmitMedia, proven by 4 real-Postgres tests (identity preservation, exact +1 revision, pending reset, safe double-enqueue, zero point_ledger_entries rows, unchanged archivist badge count against a non-trivial control row). Test fixture lives in package repository (not services) specifically to reach the unexported MemberProfileRepository.loadContribArchivistCount. Resolves CONTEXT.md's 'Alte Datei behalten oder verwerfen?' as verwerfen (discard via the existing outbox), matching 144-PATTERNS.md.
+- [Phase 144]: 144-03 executed (Zielbild 3, backend half): ReleaseReviewDetail.PriorRejection is populated via a LEFT JOIN LATERAL against review_decisions/review_reason_texts/members scoped by exact source_type/source_key match and source_revision - 1; OpenAPI and frontend types mirror it field-for-field. — Fixture rows needing extra data must be inserted test-locally, not appended to the shared openReleaseReviewQueryFixture, since a pending row added there silently inflates other tests' List/Counts pending-row-count assertions.
+- [Phase 144]: Plan 144-04 executed (Zielbild 1 HTTP surface): PUT /admin/release-versions/:versionId/media/:relationId/file composes 144-02's ReplaceReleaseVersionMediaFile/EnqueueReleaseVersionMediaFileDeleteJob repository methods with the existing SubmitMedia lifecycle call inside one transaction. — Permission reuse (ActionReleaseVersionMediaUpdate + canMutateReleaseVersionMediaRelation) proven by source-inspection test, no new permission action introduced. Preview-candidate guard reordered ahead of file I/O (vs the plan's literal step numbering) to avoid orphaned-file cleanup on an unrelated-to-the-file rejection.
+- [Phase 144]: [Phase 144] Plan 144-05 executed: added replaceReleaseVersionMediaFile() (PUT client for 144-04's replace-file endpoint) and RELEASE_REVIEW_REJECTION_CATEGORY_LABELS/releaseReviewResubmissionBadge() to releaseReviewPresentation.ts, giving Wave-5 plans (144-06, 144-07) one shared API/label surface instead of inventing duplicates. No UI changes in this plan.
+- [Phase 144]: Plan 144-06 executed (Zielbild 1/2, UI-SPEC file-replace contract) -- useReleaseVersionMedia.ts gained replaceItem/replaceError mirroring patchItem's revision-binding shape (buildReplaceMediaFileRequest extracted to helpers.tsx to stay under the 450-line cap); new ReleaseVersionMediaReplaceControls.tsx hosts the category Select (global primitives only); the file-replace drop-zone's native input stays inline in ReleaseVersionMediaSection.tsx per the ESLint LEGACY_NO_RESTRICTED_SYNTAX_FILES ratchet, since a brand-new file can never join that exemption. The primary submit button now reflects three UI-SPEC states and is disabled for a rejected item until a real change is staged, closing the no-op-resubmit gap. 20/20 tests pass in the touched test file, full suite 289/289 files green, tsc clean, 0 new eslint violation categories.
+- [Phase 144]: [Phase 144, 2026-09-02]: Plan 144-07 executed — resolvePriorRejectionContextLine() in releaseReviewPresentation.ts owns own-rejection vs other-reviewer resubmission copy branching (no rejection_category label interpolated, per UI-SPEC's locked Copywriting Contract); page.tsx's badge+context-line JSX uses single-line ternaries to stay at exactly 450 lines, the CLAUDE.md cap. Closes Phase 144's Zielbild 3 frontend half; all 4 Zielbild goals now have both backend and frontend halves shipped across the phase's 7 plans.
+- [Phase 144-08]: rvmPreviewGuardBlocked falls back to the row's real current is_preview_candidate only when the request omits the field; an explicit request value (true or false) always wins — Closes 144-VERIFICATION.md's omitted-field guard bypass without making the guard stricter than an explicit request
+- [Phase 145]: group_member pseudo-role uses sort_order -10 (below the live minimum of 0) so it sorts first under Gruppenrollen, per 145-UI-SPEC.md's Interaction Contract — Locked UI ordering requirement for Phase 145
+- [Phase 145]: validateMembershipBaselineRegistryPresence is a distinct check from validateCapabilityCatalog because the 3 baseline actions are already granted to other roles -- the existing catalog-wide check cannot detect the pseudo-role's own rows being absent — Closes Success Criterion 6 fail-closed gap validateCapabilityCatalog alone cannot catch
+- [Phase 145]: LoadCapabilityRoles is intentionally left untouched -- its contexts-only predicate already correctly includes the reserved pseudo-role for capability-matrix editing; only LoadFansubGroupRoles needed the NOT reserved guard — Keeps the pseudo-role capability-editable while excluding it from the assignable catalog (Success Criterion 5)
+- [Phase 145]: 145-02: OpenPhase145Postgres's post-migration stand-in replicates only the exact columns/rows real migrations 0109/0146 contribute (fansub_group_media.view/.upload action rows, role_definitions.color_key/icon_key, action_definitions.description_de/help_text_de/user_overridable) rather than replaying those migrations' full SQL, which would pull in unrelated production tables.
+- [Phase 145]: 145-02: found and fixed a Plan-145-01 regression -- validateMembershipBaselineRegistryPresence's fail-closed gate broke 5 independent local permissions.CacheLoader test stubs across internal/handlers/internal/services/internal/repository that Plan 145-01 did not update; full go test ./... now shows zero group_member-related failures.
+- [Phase 145]: Plan 145-03 executed (SC-3, SC-5) -- roleKindLabel/RolesClient/RoleCapabilityDetail/RoleDetailPanel now present the reserved group_member pseudo-role as a normal, editable role: correctly labeled and first in Gruppenrollen, defaulting to Standardrechte with no holder fetch, its 3 baseline actions editable through the unmodified accordion/Switch machinery, and every other role deep-links to it via a new Button. holderCountText() bug-fix prevents a stale holder count from leaking into the pseudo-role's subject header.
+- [Phase 146]: MembershipBaselineActionCodes lives directly above validateMembershipBaselineRegistryPresence in permissions.go, matching Plan 146-03's later admin_capability_handler.go guards contract
+- [Phase 146]: permissions.go's pre-existing 928-line size stays out of scope for this additive plan, carried forward as debt
+- [Phase 146]: RoleCapabilityDetail.tsx's configurableActions filter now scopes the reserved pseudo-role's rendered rows to exactly its 3 intended membershipBaselineCodes actions (D-15), fixing a defect where all 38 catalog actions rendered unfiltered; the 3 rows carry a non-color-only Badge/Lock/aria-describedby protected-state contract (Criterion 2) while staying fully interactive per 146-UI-SPEC.md's attempt-then-reject interaction shape.
+- [Phase 146]: Plan 146-03: membership-baseline mutation guards reuse one error.code (membership_baseline_guard) for both grant and revoke, and the test-fixture LoadCapabilityRoles now includes group_member so guards are actually reachable in tests
+- [Phase 146]: 146-04 lockte die 20-Datei-Definition 'sicherheitsrelevant' (D-08, SecurityRelevantTestFiles) und sanierte die ersten 3 der 20 gesperrten Testdateien (role_catalog_router_integration_test.go, role_catalog_repository_test.go, role_definitions_context_test.go) von os.ReadFile+strings.Contains-Quelltext-Substring-Behauptungen auf echte httptest/Postgres-Ausfuehrung.
+- [Phase 146]: Plan 05 reused testsupport.OpenPhase137Postgres for ResolvePendingRolesToActive's real-Postgres proof (member_claims + hist_fansub_group_members + fansub_group_member_roles + role_definitions already assembled there); picked already-migrated production role codes (founder/translator, techadmin/translator) as the eligible/ineligible catalog pair instead of inventing synthetic fixture rows.
+- [Phase 146]: member_archive_repository_test.go and member_point_totals_repository_test.go's 'uses canonical stored slug' claims are now proven via real Postgres SearchMembers/ListRanking calls against a seeded nickname-divergent member row instead of grepping the repository's own SQL text; the sanctioned static-authority absence loops stay unchanged (D-10).
+- [Phase 146]: Reused phase136LinkResolver + a repository.DBTX-implementing captured-args fake DB to prove the fansub alias group-edit guard's real 403 and exact audit event, since FansubHandler.auditLogRepo is a concrete type not an interface
+- [Phase 146]: 146-08: fansubNotesRepo/mediaRepo are concrete repository types, not interfaces -- real schema-isolated Postgres fixtures replaced os.ReadFile/strings.Contains source-substring proofs in 3 Block-2 handler test files (fansub notes, theme assets, RVM file-replace) instead of the plan's assumed fake-repo pattern. — themeRepo/permissionSvc/projectNoteCreditSvc are interfaces and were faked as planned; fansubNotesRepo and mediaRepo cannot be, so real Postgres was used per CLAUDE.md Teststil's closest-analog precedent already established by dashboard_me_handler_test.go.
+- [Phase 146]: dashboard_me_handler_test.go's 4 source-substring functions now prove D-08 IDOR resistance and D-09 graceful-empty-state via real httptest + real-Postgres calls against the already-established testsupport.OpenPhase107Postgres fixture, closing Criteria 5/6 for this file. — Plan 146-09, CLAUDE.md Teststil rule
+- [Phase 146-10]: Proved public_member_access_matrix_test.go's Vary/resolver/route claims by wiring real-interface fakes into the real AppPublicProfileHandler/ProjectMemberPublicHandler behind the real middleware.CommentAuthOptionalMiddlewareWithState constructor, instead of source-substring grep.
+- [Phase 146]: [Plan 146-11]: repository<->services/handlers import cycle blocks real handler/service execution from internal package-repository test files; use an external repository_test package file in the same directory as the sanctioned workaround (still discovered by go test ./internal/repository/...).
+- [Phase 146]: [Plan 146-11]: openReleaseVersionMediaReplaceFixture (shared test fixture) extended with caption/sort_order on release_version_media, path/status on media_files, and BIGSERIAL id -- pre-existing schema gaps only surfaced because this plan first exercised ListReleaseVersionMedia/UpdateMediaFileStatusRVMTx/CreateReleaseVersionMediaAsset against it.
+- [Phase ?]: 146-12: All 17 os.ReadFile-based functions in admin_content_release_version_media_test.go remediated via real httptest calls against a new shared Postgres fixture (openRVMExecFixture); platform-admin identity used for ALLOW-path proofs and a genuine no-membership outsider identity for DENY-path proofs, avoiding permissions.loadedCache's fail-closed test-env constraint per 146-11's documented precedent.
+- [Phase 146]: Plan 146-13 (final plan) closed Criteria 6/7/8 -- a go-test-executed ratchet guard (backend/internal/testquality/source_substring_guard_test.go) locks the post-remediation state at 34/53 remaining source-substring test files, zero of the 20 locked security-relevant files among them; the 34-file remainder is named and reasoned per-file in 146-SUBSTRING-TEST-REMAINDER.md, including a carried-forward IsHistoricalMemberRoleCode open item from 145-REVIEW.md WR-01. Phase 146 (Block 1 registry-selbstschutz + Block 2 testsanierung) is now complete.
+- [Phase 147]: role_code Go field is a plain non-pointer string mirroring RoleLabel's COALESCE(..., '') non-null contract at all three public-note query sites; only the OpenAPI schema marks it non-required.
+- [Phase 147-03]: useGroupMembersTab.ts's roleSummary now resolves labels via labelForRole(historyRoleOptions, code), converging onto the catalog path GroupMembersTab.tsx already used for GroupHistRoleDialog/GroupMembersHistTable/GroupMemberFormModals. — Closes HC-02; the removed ROLE_LABELS map had 5 codes never present in role_definitions and no karaoke_fx entry.
+- [Phase 147]: models.AppGlobalRoles ist die einzige exportierte Go-Quelle der drei globalen App-Rollen; alle vier bisherigen Literal-Kopien (admin_capability_handler.go, admin_users_handler.go, admin_users_repository.go, admin_users_mutations_handler.go) leiten jetzt daraus ab, gesichert durch einen Source-Contract-Test gegen Migration 0072s CHECK-Constraint.
+- [Phase 147]: HC-09 closed -- RoleTranslator/RoleTypesetter/RoleTechadmin/RoleGfxler removed from permissions.go; four package-internal test fixtures now use raw string literals; remaining role-constant block carries a non-authoritative clarifying comment (role_definitions remains sole catalog).
+- [Phase 147]: data-role-code now renders raw role_definitions.code values for techadmin/gfxler directly (no longer remapped to 'admin'/'designer' as roleColorCode's old label-driven map did) — Explicit, tested Phase 147 contract closing HC-01, not a regression
+- [Phase 148]: presentationForRole only returns full neutral when the role itself is missing from the catalog; an unrecognized icon_key alone falls back to iconKey 'user' while colorKey still resolves via boundedColorKey()
+- [Phase 148]: data-role-code carries the raw fallback value for a role unmatched in the catalog (e.g. 'future_role'), not a synthesized category string, since there is no real role_definitions.code to report
+- [Phase 148]: ContributionCard's role Badge adopts the shared .role-catalog-chip 14%-mix formula per the UI-SPEC Restoration Rule exception (it previously had no color formula at all)
+- [Phase 148]: [Plan 02] --role-accent is derived in globals.css via two new rules (:root default + [data-color-key] rule) placed after the existing neutral seam line; PublicNoteCard/ProjectMemberPage/ProjectMemberReleasesSection now read var(--role-accent) with zero dead --role-accent-default fallback, formulas byte-for-byte unchanged.
+- [Phase 148]: [Plan 02] roleCatalog.accessibility.test.ts extended to prove real WCAG contrast (regex-extracted percentages, never hand-copied) for every restored role-accent formula across the phase; discovered several locked, pre-existing ratios (PublicNoteCard .head/.role, the three role-chip border formulas, all 5 RoleBadgeCard.stages/MemberBadgeChain border mixes, plus a few single-hex misses) fail their WCAG threshold - each is asserted via its exact measured failing-hex set rather than silently forced to pass, generalizing UI-SPEC's FansubEdit-specific failure-reporting rule; needs a follow-up remediation decision, tracked in deferred-items.md.
+- [Phase 148]: [Phase 148, Plan 05] The shared Phase-117 Postgres test harness lacked a color_key column on its stub role_definitions table; added color_key TEXT NOT NULL DEFAULT 'other' directly to the stub, mirroring phase145_postgres.go's already-established minimal-stand-in-for-migration-0146 precedent.
+- [Phase 148]: HC-09 audit correction: 'zero references repo-wide' claim replaced with 'zero production references'; qualified-grep counting-method gap explained; Phase 147's prior remediation confirmed as already resolving the underlying finding
+- [Phase 148]: The role-progress badge card (RoleBadgeCard.module.css/MemberBadgeChain.tsx) now derives --role-accent via data-color-key from the same catalog seam every other restored surface uses; test fixture uses catalog_hex_role instead of fansub_lead to avoid colliding with an unrelated existing negative assertion, and the neutral-fallback proof targets timer's unmatched color_key rather than a catalog-absent role code, since the latter is structurally unreachable through MemberBadgeChain's render path.
+- [Phase 148]: [Phase 148, Plan 04] FansubAppMembersOverview.tsx's third broken color mapping (getRoleClassName/colorClassMap, category-name-keyed) removed; role badges now use ROLE_CATALOG_CHIP_CLASS + data-color-key, matching the working admin precedent. — Closes the plan's objective; the map always fell through to fansubEditRoleDefault since presentationForRole().colorKey stopped returning category strings.
+- [Phase 148]: [Phase 148, Plan 04] FansubEdit.module.css's role-toggle no longer self-assigns --role-accent from the dead --role-accent-default token; --role-accent now resolves via the [data-color-key] seam FansubAppMemberEditorPanel.tsx already sets. — Single-source-swap restoration per the Restoration Rule; every other declaration in the toggle rule stays byte-for-byte unchanged.
+- [Phase 149]: Plan 149-01: used sed with explicit line-number anchors for CSS token renames to avoid corrupting the fallback-protected var(--color-surface, #f9f9f9) occurrences sharing the same base token name
+- [Phase 149]: Plan 149-02: sed mit exakten Zeilenankern für alle CSS-Ersetzungen verwendet, um sicherzustellen, dass nur die im Plan zitierten Zeilen geändert werden — GroupMediaReviewSection.module.css enthielt bereits eine vorbestehende, korrekte var(--surface-card-muted)-Verwendung (Zeile 361), die denselben Zielnamen wie die 5 zu behebenden Zeilen teilt
+- [Phase 149]: Phase 149, 2026-09-06: --radius at RoleCapabilityDetail.tsx resolves to --radius-sm (6px) per 149-UI-SPEC.md's sibling-alert-box comparison, overriding ROADMAP's tentative --radius-md guess.
+- [Phase 149]: [Phase 149-04]: PublicNoteCard .head band mix lowered from 55% to 45% (role-accent), closing the .role text WCAG AA 4.5:1 contrast gap for all 15 ROLE_COLOR_KEYS while .role's 38% text mix stays unchanged -- the one deliberate exception to Phase 148's frozen Restoration Rule.
+- [Phase 149-05]: Guard test's nested var() fallback detection uses two explicit regex alternatives (nested-shape tried first, plain/literal-fallback second) instead of one generic non-greedy fallback capture, which cannot correctly balance one level of nested var() parens — a single '.+?' capture stops at the first upcoming close-paren, which for a nested var() fallback is the inner call's own closing paren, one character too early. Guard-test self-referential-scan hygiene established: exclude the guard test's own fixture file by basename, avoid literal var(--x) syntax in the scanner's own comments, and use a documented, size-locked allow-list for pre-existing locked-file false positives (e.g. roleCatalog.accessibility.test.ts:284, out of 149-UI-SPEC.md's editable scope).
+- [Phase 150]: Phase 150-01: member 'type' (id 5, type@team4s.de) used for both before-evidence captures instead of sheppert/csubs-leader, which no longer exist in this environment's database. — type has real non-trivial activity (points, role_volume, all three contribution families) and is already the plan's public-profile ground-truth member.
+- [Phase 150]: Phase 150-01: evidence baseline files force-added past the .planning/**/evidence/** .gitignore rule. — These are point-in-time 'before' snapshots Plan 150-06's Live-UAT must diff against after production code changes land -- unlike other generated evidence artifacts, this snapshot cannot be regenerated later.
+- [Phase 150]: OwnDashboardRoleVolumeEntry gained current_threshold as a companion addition for Plan 150-05's role-volume badge label ('Bronze · 12+'); PublicMemberBadgeProgress.stages (Plan 150-03) cannot supply it since it lives on a different response than /me/dashboard.
+- [Phase 150]: member_profile_dashboard_repository.go's contribFamilyAscendingThresholds/contribFamilyTierFuncs maps removed (150-02); Test-DB fixture drift (nickname/public_slug NOT NULL, duplicate member_claims table, missing PMDA-06 media_assets join) in member_profile_contribution_badges_repository_test.go was pre-existing and unrelated to this plan, fixed since the file was in-scope and its own verify command required these tests green.
+- [Phase 150]: 150-04: role_entry_<code> now sourced exclusively by loadRoleVolumeBadges (D-10 fix); dedicated single-use Postgres fixture used since point_ledger_entries' append-only guard is incompatible with the shared openPhase129Postgres DELETE-reset
+- [Phase 150]: Fixed two pre-existing role_volume Postgres boundary tests that had never actually run against a real DSN (nil award/reversal entry IDs violated chk_release_role_credit_lifecycle_shape) — 150-03 Task 1
+- [Phase 150]: loadBadgeProgress role_volume integration tests use a new openBadgeProgressPostgres fixture extending 150-02's schema-isolated openContributionBadgesPostgres, not openPhase129Postgres (unsafe for point_ledger_entries per 150-04's finding) — 150-03 Task 2
+- [Phase 150]: 150-05: resolveRoleVolumePresentation now returns bare tier label; buildRoleVolumeRow reconstructs the suffixed string from server current_threshold (D-29). resolveMemberBadgeFamilies/resolveRoleProgressPresentation read badge_progress[].stages instead of FAMILY_DEFINITIONS/ROLE_PROGRESS_STAGES (D-24/D-25).
+- [Phase 150]: 150-05: Tasks 1-3's own <verify> commands were mutually interdependent per the plan's own design (Task 1 needs Task 3's label fix; Task 2/3 share files); implemented all three tasks' code together and split git history into 3 commits by final file ownership instead of forcing artificial per-task isolation.
+- [Phase 150-07]: GET /me/badges gains registry-derived current_threshold; AchievementBadgesCard.tsx reconstructs role-volume label from it (D-30 seventh site closed). — Field is currently always null in production -- no writer persists role_volume_-prefixed badge codes into member_badges; closes the contract gap defensively per D-30's no-exception instruction.
+- [Phase 152]: Plan 152-01 unblocks the Next.js image optimizer for /history-event-badges-transparent/** via a single additive images.localPatterns entry — Hard precondition for Plan 152-07's AchievementArtwork migration of FansubHistorySection (D09) — next/image on an unmatched path throws E426 and crashes the page
+- [Phase 152]: Fixed the Tiptap link-mark drift (D1) on the frontend (StarterKit link: false) rather than adding link to the backend allowlist — Backend was already correct per the interface contract; group-history/story rich text does not support links as a product decision
+- [Phase 152]: Sanitizer hardening (D2): span/td/th class attribute constrained to ^color-token-[a-z]+$ and h1 removed from AllowElements — Closes an open path for arbitrary class values and prevents rich text from authoring a second h1 alongside the page's group-name h1
+- [Phase 152]: getPublicGroupBase/attachPublicReleaseVersionsCount added as new additive private FansubRepository methods rather than modifying GetGroupBySlug/hydrateFansubGroup, preserving those functions byte-for-byte for their other callers (fansub_groups.go, fansub_merge.go, app_auth_invitations.go).
+- [Phase 152]: listProjectionContributors left defined-but-uncalled after removing its call from GetFansubGroupDomainProjection (D02 additive-only scope lock); response JSON still defaults contributors to [].
+- [Phase 152]: FansubGroupMediaBlock.test.tsx already existed from Phase 99 (contrary to plan's description of it as new) — updated in place rather than recreated — Preserved all 6 pre-existing tests and fixed the 2 that queried getByAltText(title), which broke once the inner image became alt=""
+- [Phase 152]: 152-05: Hero banner/logo swapped from unoptimized next/image to ResponsiveImage after live-verifying logo_url/banner_url shape against next.config.mjs's existing remotePattern
+- [Phase 152]: 152-05: buildInitials's divergence from getMemberInitials is documented via German code comment, not consolidated (C3), since consolidation would visibly change the Hero's fallback avatar rendering and needs explicit sign-off
+- [Phase 152]: 152-05: FansubProjectBannerCard.tsx (E3) left unchanged -- sizes/lazy already adequate, and live banner_url is a dynamic Jellyfin-proxy endpoint, not a static file, matching the user's 'schwierig' carve-out
+- [Phase 152]: Domain-projection load uses a plain try/catch (not Promise.allSettled) with an explicit empty-projection fallback, matching RESEARCH.md's C5 example
+- [Phase 152]: Fixed mocked ApiError constructor arg order (status, message) in page.test.tsx to match the real @/lib/api.ApiError signature, surfaced while writing the new 404-branch composition test
+- [Phase ?]: [Phase 152, 2026-09-08]: History-badge geometry fixed at AchievementArtwork's 240px hero step everywhere (grid track + min-height), no family-specific breakpoint logic reintroduced for group-history badges.
+- [Phase ?]: [Phase 152, 2026-09-08]: projects_500/releases_10000 legendary glow collapsed into one shared .historyTimelineEmphasisLegendary token-driven treatment; the two-palette-to-one visual delta is intentional, flagged for Visual QA sign-off.
+- [Phase 152]: Pinned public-profile query budget at measured 8 (not plan-estimated 7) after tracing ListGroupLinks's extra fansubGroupExists round-trip
+- [Phase 152]: Split 152-08 Task 1/2 into two atomic commits despite both targeting the same test file, by writing intermediate Task-1-only content first
+- [Phase 152]: Plan 152-09's full regression gate confirms zero new backend/frontend failures across all of Waves 1-2 — the 49 repository + 6 migrations backend failures and 2 frontend test files are exact repeats of already-documented pre-existing baseline items (deferred-items.md), not new regressions.
+- [Phase 152]: P152-06 image-delivery evidence measured live: History badges -95% to -97% (raw PNG to WebP via next/image), Hero logo/banner -96% to -98%. WebP figures require an explicit Accept: image/webp header on curl — bare curl falls back to unreduced image/png.
+- [Phase 152]: Plan 152-09 seeded a temporary 7-row fansub_group_history fixture (IDs 2-8, group new-subs) for Plan 152-10's visual QA — covers all 3 categories and both legendary-emphasis badges; Plan 152-10 must delete rows 2-8 only (not the pre-existing row 1) after its screenshot pass.
+- [Phase 152]: Task 2's checkpoint sign-off was backed by an independent Playwright DOM-geometry re-measurement of every [data-achievement-slot] across all 8 viewports, not visual review alone.
+- [Phase 152]: Public-profile query budget is pinned at 8 (not the originally planned 7) because ListGroupLinks issues an internal fansubGroupExists existence-check round-trip; domain-projection is pinned at 2. Recorded as the phase-closing binding value for 152-VERIFICATION.md.
+- [Phase 153]: Plan 153-01 removed the native sizes="auto," prefix from AchievementArtwork.tsx (RCA-01's sole confirmed source); both lazy and priority achievement images now use the deterministic HERO_SIZES/STAGE_SIZES strings. Live retention audits at 12 and 50 SPA navigation cycles confirm bounded, non-linear growth vs the original 466->15,107 node / 347->1,100 listener defect (post-fix: 1187->1434 nodes / 634->818 listeners at 12 cycles; 1187->1548 nodes / 634->1350 listeners at 50 cycles).
+- [Phase 153]: 153-02: RichTextRenderer split out of editor/index.ts barrel (B3, locked); four renderer-only consumers (MemberStorySection, MemberGroupsHistorySection, PublicNoteCard, AnimeProjectNotesSection) and three dual-symbol consumers (ProfileStoryCard, AnimeProjectNoteWorkspace, NotesTab.helpers) now import it directly from '@/components/editor/RichTextRenderer'; barrel keeps only RichTextEditor/ColorTokenExtension/COLOR_TOKENS. — Converts a future accidental barrel-wide RichTextRenderer import from a silent runtime bundle-size regression into a compile-time TypeScript error; combined with Plan 03 this is what the audit measured as 1.653 MB / 26.1% public JS transfer savings.
+- [Phase ?]: [Phase 153-03]: not-found.tsx is marked 'use client' and wraps OwnHiddenProfilePreview in next/dynamic({ ssr: false }) — the segment already renders exclusively a client component, so no server-rendered content is lost; closes the second half of RCA-02.
+- [Phase ?]: [Phase 153-03]: next/dynamic's ssr:false resolved cleanly under this project's Vitest + Testing Library + jsdom setup with zero mocking shim required, establishing this repo's first verified next/dynamic code-split loading-boundary pattern.
+- [Phase 153]: 153-04: MemberCurrentProjectsSection's empty-state early return branches on totalCount === 0 (props-level structural signal), not visibleProjects.length === 0; the initial-mount skeleton overlay is deleted entirely, leaving the pagination continuation fetch as the only legitimate loading substate (RCA-03).
+- [Phase 153]: Plan 05 removed LatestContributionsSection's and PreviousContributionsSection's skeletonLayer overlays (RCA-03), reusing Plan 04's fix shape for sibling consistency (UI-SPEC §6); both components' zero-content early returns are unchanged and interactionEnabled still gates only interactive affordances.
+- [Phase 153]: Plan 153-06: MemberBadgeChain's locked/gesperrte badge ladder content and element count (kara: 606 DOM elements) stay deliberately unchanged; only carouselSkeleton visibility timing was fixed. — Binding Auftraggeber decision quoted in the plan objective: the RCA-03 defect is a visibility-timing problem, not a content-scope problem.
+- [Phase 153]: Plan 153-06: MemberBadgeChain.test.tsx's auto-prefixed sizes-string assertions were already corrected by Plan 01 as a Rule-1 side-effect before this plan started. — Verified via grep (zero 'auto, ' matches) before editing rather than trusting the plan's cited line numbers, per binding run-context instruction; only the skeleton-presence assertions needed updating.
+- [Phase 153]: Plan 07: Tasks 1 (publicImportGraph regression guard + full green gate: 295/296 files, 2263/2266 tests, tsc clean, lint 13 errors/331 warnings matching D5, docker compose build exit 0) and 2 (153-AFTER.md before/after audit with real measured RCA-01/02/03 numbers, REPORT.md verified byte-unchanged) are complete and committed (eb20fc76, 7f29897a). — Task 3 (checkpoint:human-verify, gate=blocking, live sanity check of /members/timer and /members/kara over the SSH tunnel) is NOT yet performed -- it requires the actual user's live browser confirmation and cannot be self-approved by an executor agent; Plan 153-07 is intentionally left incomplete pending that human checkpoint
+- [Phase 154]: Hoisted the four raw-count loaders (role-volume, contribution-projects/chronicle/archivist) to run exactly once per GetPublicMemberProfileByID request; GetOwnDashboard's independent calls to the same loaders are untouched. — RCA-05/P154-01..04 removed a documented duplicate-query pattern; regression-guard constant lowered 20->16, empirically re-measured against pre-change code on the same fixture DB.
+- [Phase 154]: 154-02: Followed sibling currentCode gate pattern verbatim for AnimeProjectAchievementStage hero; left Badge chip variant untouched per plan's explicit hero-artwork-slot-only scope
+- [Phase ?]: 154-03: ResponsiveImage optimizer-error fallback removed the unoptimized-original escape hatch entirely (no smaller same-origin derivative exists, and the audit-blocked /_next/image route fails identically on retry) -- measured 13.8MB->4.8MB for timer under AUDIT_FAIL_BADGES=1.
+- [Phase ?]: 154-03: MemberProfileHero animated-avatar detection extended to WebP via a client-side RIFF/ANIM byte-range probe, folded into the SAME existing unoptimized branch GIFs use -- documented as NOT reducing transferred bytes (confirmed both optimizer route and raw original return the identical 411,828 bytes for timer's avatar), since no backend derivative service exists in scope.
+- [Phase 154]: New GET /members/:slug/viewer endpoint reuses resolvePublicMemberAccess verbatim, no new resolver seam; PMFE-10 guard extracted into one shared deriveViewerStatus<T> used by both useMemberViewer and the new useMemberViewerAccess hook — Closes RCA-08 without duplicating the fail-closed viewer guard or the access resolver
+- [Phase 154-05]: RCA-07 (empty React-root commits) is closed -- leading changed=0 commits dropped from 1,664 (timer) / 257 (kara) to 0 in two independent re-runs after Phase 153's graph reduction; no further investigation warranted
+- [Phase 154-05]: Phase-153 listener remainder (~14-15/cycle) is unchanged after Phase 154 Wave 1 (14.24/cycle vs 14.3/cycle baseline); no second listener source found -- zero addEventListener matches across all 8 files touched by Plans 154-01..04 -- documented negative outcome for D2
+- [Phase 154]: 154-06: full verification gate green; resolved two genuine 154-03-introduced regressions (test-boundary allowlist gap, lint-warning delta) via git-log-traced E4 checks instead of mislabeling pre-existing; 154-AFTER.md documents before/after numbers, RCA-04 stays open
+- [Phase 154]: P154-15/E6 closed with precise, non-blanket operator confirmation: owner-view of a temporarily-toggled hidden profile (d1sk) confirmed correct; dataset held zero private profiles beforehand, requiring an ad-hoc toggle-and-revert; edit-link visibility not separately confirmed and is not claimed as verified.
+- [Phase 155]: FansubHandler.projectResolverRepo is typed as a narrow fansubProjectResolverRepo interface (not the concrete repository pointer) so httptest fakes can execute ResolveFansubProject directly — Satisfies CLAUDE.md Teststil (must actually run the checked code); WithProjectResolverRepo's public signature is unchanged
+- [Phase 155]: Reused Plan-155-01's DSN-gated team4s_phase155_test Postgres scaffold for the release-count parity test instead of group_repository_test.go's perpetually-skipping setupTestRepo helper
+- [Phase ?]: [Phase 155, Plan 03] GetProjectContributors constant-query-budget (2) locked in by a real Postgres test at 30-50 contributor scale; no repository SQL change made per CONTEXT.md's negative-finding allowance
+- [Phase 155, Plan 04]: ReleasesSection's dead episodes prop/gate removed (data.hasReleases in ProjectPage.tsx is now sole authority) rather than fed a placeholder empty array, which would have silently hidden the required Neuestes-Fansub-Release block.
+- [Phase 155, Plan 04]: HeroSection.tsx intentionally left unwired to releaseVersionCount/GroupEpisodeAssets in this plan (still receives releaseEpisodes=[]) per the plan's explicit instruction; documented as a Known Stub for Plan 155-05 to resolve.
+- [Phase 155-05]: Task 3 (ReleasesSection.tsx episodes->hasReleases rewrite) reconciled as an already-satisfied no-op: Plan 155-04 already removed ReleasesSection's episodes prop entirely and moved gating to ProjectPage.tsx's outer data.hasReleases ternary, making a new inner hasReleases prop redundant duplication.
+- [Phase 155]: fansubProjectNavigation.ts's projects input narrowed to FansubProjectNavigationEntry[]; PublicFansubProject structurally satisfies it, so the numeric legacy route needed zero changes
+- [Phase 155]: Release-detail's mismatched-slug test mocks a 404 rejection, not a wrong-anime_slug resolution, matching the resolver's real WHERE groupSlug AND animeSlug SQL contract
+- [Phase 155]: Closed the phase-crossing REQUIREMENTS.md gap flagged by five of the six prior 155-0X plans by adding a Phase 155 additive-scope section (all 15 P155-* requirements) as the phase's closing plan, mirroring Phase 152's format. — Five of six prior plan SUMMARY.md files explicitly deferred this to the phase-level verifier/closeout rather than inventing a section format mid-phase; the closing plan is the correct place to resolve it once all evidence exists.
+- [Phase 156]: 156-01: origin_release_version_id uses ON DELETE SET NULL (not CASCADE) -- origin is correctable, never destructive
+- [Phase 156]: 156-01: SegmentCreditRoleCodes lives in backend/internal/permissions, not repository/handler/frontend -- single central definition
+- [Phase 156]: AssignThemeSegmentToEpisodeRange ist jetzt eine Soll-Ist-Synchronisation (insert-missing/delete-excess), nicht mehr additiv — Bereichsverkuerzung muss veraltete Zuweisungen entfernen koennen; der Guard gegen unvollstaendige Bereiche bleibt verbatim und hat einen eigenen dedizierten Postgres-Test
+- [Phase 156]: Reverse-direction auto-assign hooked directly into upsertReleaseVersionGroup's existing per-group loop (Plan 156-03); episode/version resolved once per release version, byte-identical join fragments reused from theme_segment_assignments.go
+- [Phase 156]: Split attachReleaseTimelineSegments into group_repository_cursor_timeline.go (CLAUDE.md 450-line cap); is_karaoke now derives from CanonicalSegmentType output instead of a second SQL LIKE heuristic.
+- [Phase 156]: 156-04: SetThemeSegmentOrigin checks segment existence before assignment membership — A non-existent segment can never have a theme_segment_assignments row (FK-enforced); checking membership first would always yield ErrConflict, making ErrNotFound unreachable
+- [Phase 156]: 156-05: loadPublicEffectiveContributors tests stay unit-level (no new Postgres harness) — Function had zero DB-gated tests before this plan and the plan's own verify step only requires go build/go vet; the SQL change is exercised indirectly by existing production consumers
+- [Phase 156]: 156-07: Release detail page stops suppressing already-visible segments (supersedes Phase 117 D-02 for the release-detail surface only) -- documented in DECISIONS.md 2026-09-11
+- [Phase 156]: 156-07: Segment credits now project dynamically from each segment's ORIGIN release version's current contributors, filtered by permissions.SegmentCreditRoleCodes -- replacing the strings.Contains(label, kara) heuristic
+- [Phase 156]: ThemeTimeline.tsx split into a new sibling ThemeTimelineSegmentDetails.tsx; own OP/ED/INSERT/KARA classification (TYPE_LABELS/TYPE_STYLE_KEYS) deleted in favor of rendering backend-canonical segment.type via a small presentational CSS-class/label lookup — P156-15 requires the frontend to stop holding its own type world; keeps both files under the 450-line cap
+- [Phase 156]: Segment participants with a member_slug now render as a Link to the project-context member route via buildPublicFansubProjectMemberPath's suffix shape ('/mitwirkende/'), the first production consumer of that Phase-155 helper — P156-14: segment-related member clicks land on the project member route instead of plain text
+- [Phase ?]: Constant-query-budget test for loadReleaseSegments opens a second traced pgxpool.Pool on the same schema as testsupport.OpenPhase117Postgres rather than modifying the shared fixture — Keeps the diff scoped to test files only, no risk to 12+ other tests sharing the fixture
+- [Phase ?]: hasAnySegmentRelevantRole (Plan 156-07) already existed as a directly-testable unexported function — No extraction needed for the table-driven role-filter unit test; calls real production logic
+- [Phase ?]: idx_theme_segments_origin_release_version index-plan evidence recorded honestly: live team4s_v2 theme_segments has only 3 rows, Postgres naturally chooses Seq Scan; SET enable_seqscan=off proves the index is well-formed via Index Only Scan — Both plans recorded, not just the favorable one, per no-speculation-index constraint
+- [Phase 156]: 156-10: Phase 156 wird als funktional/automatisiert abgeschlossen behandelt, NICHT als vollstaendig abgenommen -- Plan 156-11 Task 2s Live-UAT (Admin-Segment-Origin-Select) bleibt offen, siehe deferred-items.md
+- [Phase 157]: P157-01: countEpisodes hoists projectMemberUserIDsCTE to a single leading WITH above both UNION branches (note + media), reusing countNotes/countMedia predicates verbatim -- no parallel business-logic path.
+- [Phase 157]: P157-01: New episodes-count integration test lives in its own package-repository file, kept separate from the legacy os.ReadFile+strings.Contains-style project_member_public_repository_test.go.
+- [Phase 157]: Plan 04 keeps the icon-import alias convention (Image as ImageIcon) established in PublicReleaseBlock.tsx; grid-column breakpoints for the media gallery left unchanged, deferred to Live-UAT (157-06)
+- [Phase 157]: EmptyState gained additive icon/className props (nullish-coalescing fallback keeps all 77 existing call sites byte-identical); Releases 0-count now reuses EmptyState (compact, Package icon, dashed .releasesEmpty override) instead of a bespoke box.
+- [Phase 157]: 157-02: Beitragszusammenfassung als ein Text-Knoten (kein Bold/Regular-Split), damit exakte screen.getByText-Assertions gegen den ganzen Satz halten; lucide-react LucideIcon-Typ statt handgerolltem ComponentType<{size}> fuer die Statistikleisten-Icons.
+- [Phase 157]: P157-13 Nachtrag 2 (mixed-role list) proven via a dedicated regression test in ProjectMemberNotesSection.test.tsx: distinct data-color-key per note's own role_color_key, both role-name chips, no large role header
+- [Phase ?]: Plan 157-10: CSS-only stretched-link pattern resolves nested-interactive markup without preventDefault/stopPropagation
+- [Phase 156]: ensureThemeSegmentOriginTx is the single central origin-validity rule reused by all three write call sites and migration 0164 — Prevents the GAP-04/GAP-05 root cause (origin only validated at explicit set-time) from recurring at any future write path
+- [Phase 156]: Relocated SegmentCreditRoleCodes verbatim into new segment_credit_roles.go (permissions.go 950->933 lines) instead of duplicating it, keeping the segment-relevant role list and its display-label map paired in one file
+- [Phase 156]: SegmentRoleLabel is computed inline inside applySegmentOriginCredits's existing filter loop (one call site) instead of a separate pass, keeping the two-condition filter and label derivation co-located
+- [Phase 156]: loadContributors (normal release contributor list) deliberately never calls SegmentCreditLabelForRoles, proven by a dedicated Postgres test asserting SegmentRoleLabel stays the Go zero value on every entry
+- [Phase 157]: 157-11: Kept 200%-zoom overflow check scoped to shot-projectmember.mjs only — gap-closure operator constraint restricted changes to one file; trimmed comments to land at the 450-line cap instead of extracting a helper module
+- [Phase 157-12]: shot-projectmember.mjs kept at 449 lines by compacting the new sectionHeaderUnderlines diagnostic + collapsing two unrelated pre-existing multi-line evaluate() calls into one-liners
+- [Phase 157-12]: Dropped aria-labelledby + local heading id on the notes/media sections in favor of aria-label, since SectionHeader has no id/className prop and no test referenced the removed ids
+- [Phase 157]: Per-entry timeline line colored via var(--role-accent) (Entscheid 2026-09-14 zu V4) — Replaces the single shared neutral-gray line; each entry now owns its own colored line segment reaching to the next entry's dot, using the same data-color-key seam the dot already used
+- [Phase 157]: 157-14: Routed the new hero jump-metric interaction through the global Button primitive (variant="text") per CLAUDE.md's Frontend-UI rule — Extends Button/HeroMetrics additively instead of bypassing them for a shape mismatch; all 6 other HeroMetrics call sites and Button's 6 existing variants stay byte-identical
+- [Phase 157]: 157-14: 'Folgen' stays plain, non-interactive text in the hero — It has no matching page section, so it is intentionally not wired to scrollToSection
+- [Phase ?]: 157-15: Matched .sectionHeaderCounter's line-height to .sectionTitle's (1.15) to fix a live ~2.8px vertical misalignment against the section header heading
+- [Phase ?]: 157-15: Live focus-ring verification waits 200ms after a real Tab keypress before reading getComputedStyle to avoid a mid-CSS-transition box-shadow read
+- [Phase ?]: Phase 157 P157-02/P157-04/P157-09 sind durch Nutzerentscheid ersetzt/entfallen, nicht stillschweigend erfuellt
+- [Phase ?]: DECISIONS.md 2026-09-14 Eintrag ist auch die erste durable Aufzeichnung der 2026-09-13 Releases-Sektion-Entfernung (zuvor nur zitiert, nie geschrieben)
+- [Phase ?]: GAP-07 preselection composed via ensureThemeSegmentOriginAndContributorsTx, keeping ensureThemeSegmentOriginTx byte-identical
+- [Phase ?]: testsupport/phase117_postgres.go gained one ADD COLUMN IF NOT EXISTS line (Rule 3) to avoid breaking every Phase-117 test after the five call-site swaps
+- [Phase ?]: GAP-08: SegmentContributorsField-Gate auf origin_release_version_id != null verengt (isSharedSegment-Bedingung entfernt)
+- [Phase ?]: 156-22: pure text-only edits (GAP-09 editor hint + Karaoke-Typesetting fixture), no UI-SPEC gate per explicit run instruction
+- [Phase 156-21]: GAP-09 preselection filter repointed to permissions.SegmentCreditPreselectionRoleCodes; public projection proven live to show encoder/designer only when explicitly selected, raw_provider never
+- [Phase 156-21]: Fixed two undocumented subset-matrix test regressions (F, K_inherited_default_overridden_to_irrelevant_role) that used encoder as a non-segment-relevant example, retargeted to raw_provider
+- [Phase 160]: Tag/genre language-name storage mirrors anime_titles (tag_names/genre_names, UNIQUE(entity_id, language_id)) — Honors D-02/D-03; German-name resolution extends existing genre/tag SELECTs via LEFT JOIN+COALESCE instead of a new query, preserving the locked 7-statement SQL budget
+- [Phase 160]: PATCH /admin/{tags,genres}/:id/names/de (single-language, upsert-or-clear) statt Bulk-Replace-Endpunkt — Einfachste zu D-04/D-06 passende Option, spaeter nicht-brechend erweiterbar
+- [Phase 160]: PATCH antwortet immer 200 mit name_de als getrimmtem String (leerer String statt null beim Loeschen) — Einfacher, symmetrischer Client-Vertrag fuer die 160-03-Admin-Seite
+- [Phase 160]: D-08 bypass ist eng: nur ein wirklich fehlendes q (leer nach Trim) uebergeht die Laengenpruefung; ein vorhandenes, zu kurzes q (z.B. ?tag=Amnesia&q=a) bleibt weiterhin 400. — Loest RESEARCH.md Open Question 1 wie empfohlen; verhindert, dass Nutzer versehentlich einen ungueltigen q-Wert stillschweigend uebergehen.
+- [Phase 160]: Pitfall-1-Fix (leere Fansub-Liste ohne q) auf Search()-Dispatch-Ebene, nicht in buildSearchFansubQuery — search_fansub.go bleibt unveraendert. — Haelt den Fix eng auf den q-losen Fall begrenzt und vermeidet Seiteneffekte auf den bestehenden, funktionierenden q-vorhandenen Fansub-Suchpfad.
+- [Phase 160]: Persist admin German tag/genre names on Input onBlur; NameTable's local drafts/saveErrors state is the source of truth after save, not the parent's fetched list — Simplest reliable per-row-save trigger, keeps each row's save cycle isolated from the list fetch lifecycle
+- [Phase 160]: 160-05: Frontend D-08-Bypass ist schmal (nur wirklich leeres q, nicht nur zu kurz) gelesen, spiegelt Plan 160-04 exakt — Konsistenz mit dem Backend-Gegenstück, keine abweichende Semantik zwischen Frontend-UX-Gate und Backend-Autoritativgate
+- [Phase 160]: 160-05: Vorschlags-Fetch bekam eine eigene, explizite MIN_QUERY_LENGTH-Bedingung im Debounce-Effekt — Verhindert, dass der tag/genre-Bypass fuer die Ergebnissuche versehentlich auch /search/suggestions erreicht (D-08 gilt nicht fuer Vorschlaege)
+- [Phase 160]: Tags-Block ARIA-Bindung ueber h2 id + ul aria-labelledby statt section aria-label — Haelt die sichtbare Ueberschrift als alleinige Quelle des barrierefreien Namens
+- [Phase 160]: Tag-Reihenfolge wird vom Backend uebernommen, kein Re-Sort im Frontend — Vermeidet Divergenz zwischen Backend- und Frontend-Sortierung (D-18)
+- [Phase 162]: story_preview additiv, optional (omitempty/nullable) in Go/OpenAPI/TS — nicht in required, da FansubGroupSummary auch von Endpunkten genutzt wird, die es nie befuellen
+- [Phase 162]: Truncation-Limit fest auf 500 Runes (fansubStoryPreviewRuneLimit)
+- [Phase 162]: Nur-Whitespace-Text gilt als keine Geschichte (nil), analog D-05/Paragraph 7
+- [Phase 162]: Chip-Primitive: Button mit aria-pressed statt neuem Chip-Primitive (closest-analog, 4 bestehende Repo-Vorbilder) — FansubGroupPicker.tsx, UI-SPEC-Vorgabe
+- [Phase 162]: FansubVersionBrowser.tsx minimal umverdrahtet: activeStoryGroup aus storyGroups abgeleitet, FansubGroupContext statt geloeschtem ActiveFansubStory gerendert — Rule-3-Fix nach Loeschen von ActiveFansubStory.tsx; volle Chip/CTA-Wiring bleibt 162-03 vorbehalten
+- [Phase 162]: 162-03: activeGroup fuer FansubGroupContext wird direkt aus fansubOptions abgeleitet statt aus dem separaten storyGroups-Prop. — Beide liefern strukturell dieselben fansub_group-Objekte; storyGroups bleibt Teil der Props-Signatur, wird aber intern nicht mehr gelesen.
+- [Phase 162]: 162-03: der bisherige is_primary-Fallback aus der localStorage-Aera entfaellt ersatzlos. — D-02 legt fest, dass Alle Standard ist bei 2+ Gruppen ohne URL-Parameter.
+- [Phase 162]: 162-04: rawFansubParam wird 1:1 ohne serverseitige Validierung als initialActiveSlug durchgereicht -- Allowlist-Pruefung passiert bereits client-seitig in FansubVersionBrowser (T-162-06)
+- [Phase ?]: Pflichtfall F pagination-scope test uses a dedicated anime (id=8) instead of reusing anime 7 to avoid an ambiguous first-match under limit=1
+- [Phase ?]: RESEARCH.md's claim that an unrecognized fansub query param is 400-rejected is inaccurate; parseStrictNamedQuery silently ignores unknown keys, but all Plan 163-01 RED tests still fail today for a documented, legitimate reason
+- [Phase 163]: 163-02: Cursor scope uses the raw unresolved fansub slug (not the resolved group id), and the handler validates cursor scope before resolving the slug, so a cross-filter cursor is rejected with zero DB round trips.
+- [Phase 163]: 163-03: page.performance.test.ts (out of plan scope) needed episode_count:0 added to 2 mock literals broken by the new required type field (Rule 3, test-only, no assertions changed). — Required type field addition (episode_count) cascaded to an out-of-scope file; fixed minimally rather than leaving typecheck broken.
+- [Phase 163]: 163-04: page.tsx's D-16 fallback uses literal JSX text instead of the ErrorState primitive, because page.test.tsx's shallow props.children tree-walker cannot see text passed through a child component's props. — FansubVersionBrowser.tsx's own ErrorState/EmptyState usage is unaffected since it is exercised via real RTL rendering.
+- [Phase 163]: 163-04: kept a defensive per-episode groupMatchedVersions filter in FansubVersionBrowser.tsx (not fully removed) so Testfall G's un-refetched initial render still isolates the active group's version. — D-15's mandatory removal is only the 'Keine Version dieser Gruppe verfuegbar.' hint block/branch, which is fully gone; the underlying filter predicate is a locked-test requirement, not a D-15 violation.
+- [Phase 163]: Plan 163-05 dokumentiert Task 1/2 (Container-Rebuild, Live-Curl-Evidenz, menschliches UAT-Approval) als bereits vor dieser Ausführung abgeschlossen und fasst in Task 3 den vollstaendigen 13-Punkte-Abschlussbericht aus 163-USER-REQUEST.md zusammen, ohne Produktionscode anzufassen.
+- [Phase 164]: publicEpisodeQuery group/logo JSON aligned to loadReleaseGroups' COALESCE(logo.file_path, fg.logo_url) read — prevents two independently-maintained logo reads from silently diverging (164-RESEARCH.md Pitfall 3)
+- [Phase 164]: resolvePublicEpisodeFlags skips its EXISTS query entirely when a page has zero release_version_ids — avoids a wasteful zero-length ANY($1) round trip; required assertPublicBudgetEmptyResult as a separate assertion helper instead of a blanket 2->3 rewrite
+- [Phase 164]: 164-02: OpenAPI/TS public episode contract extended with container, video_codec, has_images, has_notes, has_karaoke, filler_type, episode_type — Reused EpisodeClassification's existing enum lists rather than inventing new ones; kept backend/frontend contract in lockstep with plan 164-01's Go DTOs
+- [Phase 164]: Reused existing team4s_phase117_test_164 isolated test database from plan 164-01 for the new 52-episode scale fixture instead of provisioning a new one
+- [Phase 164]: 164-04: resolveReleaseName's output kept visible in ReleasePreviewRow's identity block (D-08 label requirement + groupSwitch.test.tsx text dependency, out of this plan's files_modified list) — preserves D-08's mandated release-label visibility while keeping the untouched sibling test file passing unchanged
+- [Phase 164]: useWindowedEpisodePages owns a single shared AbortController internally for forward/backward/reset loads; FansubVersionBrowser no longer holds its own request ref for episode data. — Keeps single-flight discipline consistent with the pre-existing switchTo/loadMore pattern from Phase 163, avoiding a second independent abort-coordination owner.
+- [Phase 164]: Added a render-time boundary-merge step for episodes whose variant rows legitimately span two adjacent cursor pages, since the bounded DOM window removed the old client-side mergeEpisodes across the full fetch history. — Phase 163 paginates cursor rows at (episode_number, episode_id, variant_id) granularity, so one episode's variants can span a page boundary; the merge is scoped to only the currently-windowed pages so it never violates the bounded-cache invariant.
+- [Phase 164]: resetForFilter now resets forwardLoading/backwardLoading (not just error flags), fixing a stuck compact loader after a filter switch discards an in-flight forward/backward page load
+- [Phase 164]: resolveCoopLinkGroupId defensively re-sorts fansub_groups by name/id instead of trusting array order, matching the backend's ORDER BY fg.name, fg.id tie-break
+- [Phase 164]: Back/forward scroll restoration uses a single throttled sessionStorage entry keyed by pathname+search, restoring only approximate scroll position (not the multi-page DOM window) on a genuine back_forward navigation
+- [Phase 164]: 164-08: release_name computed once in the backend (public_release_name.go), additive alongside title; frontend switch to release_name deferred to 164-12
+- [Phase 164]: GAP-12: neue Import-Episoden erhalten episode_type aus anime.type (mapAnimeTypeToEpisodeType), markiert mit episode_type_source='import'; manuelle Überschreibungen bleiben durch bestehenden COALESCE-Schutz unverändert.
+- [Phase 164]: GAP-04..GAP-10 (FansubGroupPicker/FansubGroupContext/tag-chip contrast) fixed via feature-local glass tokens and var(--accent-dark), matching computed AA contrast per plan 164-11
+- [Phase 164]: 164-10: GAP-11 backend half closed — migration 0169 adds episode_filler_types.label/episode_types.label (additive, backfilled with the 2026-09-18 Auftraggeber-approved strings); publicEpisodeQuery emits filler_type_label/episode_type_label via the existing eft/et LEFT JOINs (zero new queries); new GET /admin/episode-classification-options lists both lookup tables for the wave-3 frontend consumption plan (164-13)
+- [Phase 164]: 164-12: classificationAndTypeLine now takes the resolved episode object and reads filler_type_label/episode_type_label from the API (164-10 DB labels), not a hardcoded frontend map; unknown-suppression stays keyed on the filler_type code
+- [Phase 164]: 164-12: defaultReleaseTitle (admin placeholder) mirrors the public GAP-02 default-name format, coop-capable across all selected_groups sorted name-then-id, matching resolveCoopLinkGroupId's convention
+- [Phase 164]: 164-12: fixed FansubVersionBrowser.test.tsx's D-48 catalog (direct runtime regression from the classificationAndTypeLine signature change); deferred 5 other tsc-only PublicGroupedEpisode fixture gaps (no runtime failures) to 164-13 per 164-10's own handoff note
+- [Phase 164]: 164-13: Admin Canon/Filler und Episodentyp lesen Optionen ueber einen modul-weiten memoized Fetch aus GET /api/v1/admin/episode-classification-options statt aus hartcodierten Arrays; letzter Plan des 164-08..164-13 Gap-Closure-Batches, GAP-11 damit vollstaendig geschlossen.
+- [Phase 165]: buildJellyfinDiscoverySnapshot mirrors both searchJellyfinSeries branches (D-27 global fallback for the empty-allowlist live-production default, plus per-library ParentId loop)
+- [Phase 165]: SeekDiscoverySnapshot is generic over DiscoverySortKeyed so 165-06's richer Discovery item type can reuse the seek without a second implementation
+- [Phase 165]: 165-02: LibraryDiscoveryIgnoreRepository implemented as its own domain-split struct; Insert signature is (ctx, itemID, actorAppUserID) -- plan text's 'animeRepo interface' param treated as an artifact unused anywhere in the plan's own behavior spec.
+- [Phase 165]: 165-02: created disposable team4s_library_discovery_test Postgres DB with full migration chain applied, mirroring team4s_episode_metadata_test's persistent-DB convention.
+- [Phase 165-03]: Added a narrow adminAnimeCreateRepository interface + animeCreateRepo field (not in plan's files_modified) instead of widening h.repo's concrete type, so CreateAnime's save-time AniSearch duplicate guard and insert path are unit-testable via a fake without touching ~16 unrelated methods h.repo exposes elsewhere in the package. — h.repo is *repository.AdminContentRepository, used concretely across 5 other admin_content_*.go handler files; mirrors the existing aniSearchRepo interface pattern already in the same struct.
+- [Phase 165]: JellyfinFolderOption type placed in models package (not handlers) to avoid an import cycle with EpisodeImportContextResult — models cannot import handlers; handlers already imports models
+- [Phase 165]: EpisodeImportContextResult.JellyfinFolders only populated when an anime has >1 connected folder — Satisfies D-14 no-visible-new-field-in-regular-case while keeping the ownership guard fail-closed for single-folder animes
+- [Phase ?]: DiscoveryEntryCard reuses page.module.css eyebrow/title/text classes instead of a new CSS module for visual consistency with CreateJellyfinResultsPanel
+- [Phase ?]: DiscoveryEntryCard uses Card's header ReactNode prop (not title/description strings) since Card has no eyebrow slot
+- [Phase ?]: 165-06: status-filter (offen/bereits_vorhanden/ignoriert/alle) applied AFTER paging per the D-07 per-page query budget, not before -- q-search stays in-memory pre-page
+- [Phase ?]: 165-06: added jellyfinDiscoveryExistingMatchRepository/libraryDiscoveryIgnoreRepository narrow interfaces on AdminContentHandler (wired to the same repo instances in production) so the plan's own fake-repo test strategy is executable without a live Postgres instance
+- [Phase ?]: 165-06: deferred wiring a live Redis adapter for discoveryCache in main.go -- buildJellyfinDiscoverySnapshot degrades gracefully without it; tracked as a non-blocking follow-up for 165-09 or later
+- [Phase 165-08]: submitCreate({confirmDuplicate}) split lets the D-20 confirmed retry and the regular submit share one payload-building/validation path
+- [Phase 165-08]: AniSearchDuplicateDecision exposes one onCreateAsNew prop; CreateAniSearchIntakeCard picks handleAniSearchCreateAsNew vs handleConfirmedDuplicateCreate based on conflict.viaSaveTimeRecheck
+- [Phase 165-08]: useAdminAnimeCreateController takes a new optional {isDiscoveryFlow, returnURL} hook argument instead of threading the discovery flag through handleCreateSubmit
+- [Phase 165]: edit/page.test.tsx's new DiscoveryReturnLink cases use real render()+testing-library assertions instead of extending the file's pre-existing readFileSync/strings.Contains pattern, per CLAUDE.md's Teststil rule.
+- [Phase 165]: Used a partial vi.mock (importOriginal + override) for '@/lib/api' in edit/page.test.tsx rather than a full module mock, since AnimeEditWorkspace's dependency tree eagerly imports other real named exports at load time.
+- [Phase 165]: 165-07: reused models.JellyfinFolderOption for AdminAnimeJellyfinProvenanceContext.Folders instead of a duplicate type
+- [Phase 165]: 165-07: connectJellyfinFolderAdditively takes an AuthIdentity param for real audit attribution (D-21), beyond the plan's literal interface text
+- [Phase 165]: 165-07: LinkAdditionalJellyfinSource/RemoveAnimeSourceLink are exported self-transacting wrappers around private tx-scoped anime_source_links.go functions, resolving a plan-internal signature inconsistency
+- [Phase 165]: Discovery-Karte status-mapping laeuft ueber die echte englische Backend-Vokabular (open/existing/partial/ignored), nicht ueber die deutsche filter-Query-Parameter-Vokabular — AdminJellyfinDiscoveryItem.status liefert die DiscoveryStatus*-Konstanten aus 165-06, nicht die filter-Werte offen/bereits_vorhanden/ignoriert/alle - eine woertliche Umsetzung des Plan-Beispieltexts haette das Status-Badge gegen echte API-Antworten stumm auf den Default-Zustand zurueckfallen lassen.
+- [Phase ?]: Plan 165-10: component-local localFolders state for instant row removal on the Jellyfin folder-list, instead of waiting on the parent's async refreshContext() round-trip — onFolderRemoved still fires so the parent section refetches context for the rest of the page
+- [Phase 165]: Plan 165-10: created AnimeJellyfinMetadataSection.test.tsx from scratch (Rule 3 deviation) since the plan referenced a pre-existing test file that did not exist — Needed to make the plan's own Task 2 verify command and acceptance criteria executable
+- [Phase 165]: 165-11: D-15 (Jellyfin Mehrstaffel→Anime-Zuordnung) zurückgestellt per Auftraggeber-Entscheidung 2026-09-21, Option C von drei am 165-11-Checkpoint vorgelegten Schema-Optionen — keine Tabelle, keine Migration, keine Semantikänderung an anime_source_links, kein Staffel-Batch-Fetch. Begründung: nur 27 von 2111 Serien betroffen, Staffel-Fetch würde jedes Neuladen um ~28s verlängern. Das bereits gebaute, getestete "teilweise"-Gerüst (165-01 resolveDiscoveryItemStatus-Truth-Table, 165-09 Frontend-Badge/Caption) bleibt als inertes, dokumentiertes Gerüst erhalten statt entfernt zu werden — partial bleibt im Handler hart auf false. Wiederaufnahme in einer künftigen eigenständigen Phase "Mehrstaffel-Ordner".
+- [Phase 165]: 165-14 (GAP-07): PreviewEpisodeImport now resolves the folder-filter path via a single getJellyfinSeriesByID lookup, only for explicit non-main jellyfin_series_id selections; extracted to sibling file admin_episode_import_folder_filter.go to avoid growing the already-oversized admin_episode_import.go
+- [Phase 165]: 165-15: Discovery-Suche filtert nur Titel/Ordnername (GAP-14); gleichzeitige Snapshot-Rebuilds per singleflight.Group gebuendelt (GAP-15); GAP-09-Backend-Fix bestaetigt intakt
+- [Phase 165]: GAP-11 hist URL param decode uses strict raw===null check (not falsy) to distinguish absent param from present-but-empty (single-entry history)
+- [Phase 165]: DiscoveryLibraryPanel.test.tsx next/navigation mock rewritten to useSyncExternalStore-backed reactive store after GAP-11 removed the hook's local cursorHistory state (Rule 1 test-infra fix)
+- [Phase 165]: 165-17: connect-flag replaces anisearch-prefix sniffing for additive-vs-force-write and audit gating (GAP-05/GAP-13); linkAdditionalJellyfinSource distinguishes idempotent re-link from ownership conflict via repository.ErrConflict -> HTTP 409 (GAP-10); AniSearchDuplicateDecision sends connect:true and navigates away after a successful Verbinden, preserving a validated ?return= link (GAP-12).
+- [Phase 165]: 165-18: syncAnimeSourceLinks konvertiert die globale UNIQUE(source)-Verletzung in repository.ErrConflict; CreateAnime mappt das auf denselben 409-Redirect wie der Save-Time-Pre-Check (D-30/GAP-06).
+- [Phase 165]: 165-18: 'Trotzdem als neuen Anime anlegen' ist an beiden Ausloesepunkten (Enrich() force_new, CreateAnime confirm_duplicate) ersatzlos entfernt, nicht nur deaktiviert (D-30).
+- [Phase 165]: 165-19 (D-31): SearchAniSearchCandidates annotates already-existing AniSearch candidates with ExistingAnimeID/ExistingTitle instead of filtering them out; the connect-decision dead-end (GAP-08) is closed with zero new frontend branching since the existing Enrich() redirect chain already handles selection of a matched candidate. — Reuses the same batched ResolveAdminAnimeRelationTargetsBySources lookup already used for D-03, keeping the fix at exactly one query per search request (no N+1).
+- [Phase 167]: D-05/D-06/D-07 implemented as a uniform technical-token denylist and filename-only evidence selection in DeriveFansubGroupName — 167-01-SUMMARY.md
+- [Phase 167]: D-04 implemented as a single anchored regex v([2-9])$ handling both glued and separated release-version suffixes uniformly — 167-01-SUMMARY.md
+- [Phase 167]: Batch fansub-group matching adapted from buildSearchFansubQuery: single unnest($1::text[]) query resolves any candidate count in exactly one round trip (D-08), with ambiguity handled via per-tier COUNT(*) OVER windowing rather than an error path — Reuses the existing normalized-name/slug/alias OR-chain and byte-exact functional-index expression instead of a second bespoke matching implementation; keeps the exact-match path index-friendly by never folding trigram suggestions into it
+- [Phase 167]: 167-03: Dual permission check reuses requireFansubAliasWriteAccess twice (source, then destination) rather than a new combined helper — keeps the T-167-IDOR mitigation directly greppable in ReassignFansubAlias
+- [Phase 167]: 167-03: Task 3 tests leave h.auditLogRepo nil — repository.AuditLogRepository.Write is nil-receiver-safe, avoiding a fake DBTX while still exercising the real success/audit code path
+- [Phase 167]: 167-04: fansub_group_match_origin trägt group_id + optionalen alias_id statt eines separaten Konfliktfelds — Konfliktzustand wird client-seitig in Plan 07 aus dem Vergleich von group_id mit der aktuellen Admin-Auswahl abgeleitet, nicht serverseitig geführt (Plan 05)
+- [Phase 167]: Reused pre-existing package-level stringPtr helper instead of adding a duplicate local one — group_assets_jellyfin.go already declares an identical stringPtr(value string) *string; a local redeclaration in the same package is a compile error
+- [Phase 167]: Followed Plan 05's explicit Task2/Task3 split literally despite Task 2's tdd=true tag, since the plan's own behavior block deferred all tests to Task 3 — git log shows feat commits before the test commit for this plan, reverse of canonical TDD gate order; documented under TDD Gate Compliance in 167-05-SUMMARY.md, all 7 required test cases present and passing
+- [Phase 167]: 167-07: FansubGroupOriginHint gates the alias reassign action to alias-tier matches only (matched_via==='alias' && alias_id present); name/slug-tier conflicts show the warning without a reassign button, since there is no alias row to move. — Reassigning only makes sense for an alias-tier match per the plan's explicit sub-test requirement
+- [Phase 167]: 167-08: FansubAliasSection accepts isPlatformAdmin prop but only gates on hasAuthSession, matching sibling components (mutation endpoints already capability-checked server-side)
+- [Phase 167]: 167-08: Reassign-target Select defaults per-row state to the alias's current fansub_group_id (excluded from options) so the Umhaengen button starts disabled without a separate flag
+- [Phase 167]: 167-06: writeLearnedFansubAliasAudit derives identity from gin.Context internally (middleware.CommentAuthIdentityFromContext) instead of a captured handler variable — Keeps ApplyEpisodeImport's net growth to exactly the one mandated audit call-site line under the operator's tight admin_episode_import.go line-count ceiling (776 -> 777, matching Plan 05's cumulative +2 acceptance criterion).
+- [Phase 169]: Highlights use a separate release_version_media_highlights relation; preview remains is_preview_candidate and no existing rows are backfilled. — This preserves independent preview/highlight state and permits multiple same-category highlights.
+- [Phase 169]: Reorder and highlight use separate user-overridable actions resolved through CanForReleaseVersion. — Existing project/group membership and user override precedence remains the single rights authority.
+- [Phase 169]: Highlight writes validate release-version media ownership inside the transaction. — Prevents foreign or deleted release-version media IDs from being mutated.
+- [Phase 169]: Release-version media preview remains independent from multiple ordered highlights; both mutations use dedicated project-scoped actions. — Preserves canonical release_version_media ownership and prevents generic media-update rights from granting curation.
+- [Phase 169]: Release-version curation uses existing highlight endpoints with independent preview and highlight state.
+- [Phase 169]: Public release image projections expose independent gated highlights while PreviewImage and group thumbnails remain is_preview_candidate-only.
+- [Phase 169]: The current public ReleaseGallery seam is extended; no parallel ReleaseDetailClient seam is introduced.
+- [Phase 172]: Plan 172-01: zwei nullable FK-Spalten (preview_media_asset_id/auto_preview_media_asset_id) auf theme_segments statt einer Spalte + Source-Enum (CONTEXT.md-Praeferenz, D-08: manuelle Wahl darf beim Render nie verloren gehen)
+- [Phase 172]: Plan 172-01: resolveThemeSegmentPreviewAsset nimmt die Fallback-Release-Version als Parameter statt sie intern zu berechnen, da sie je Aufrufstelle unterschiedlich ist
+- [Phase 172]: Batched preview resolution (resolveThemeSegmentPreviewAssetsBatch) instead of per-segment calls, to keep loadReleaseSegments' query count constant — A literal per-row resolveThemeSegmentPreviewAsset call would have reintroduced N+1 and broken the pre-existing Plan 156-09 constant-query-budget test
+- [Phase 172]: Split new segment-preview write methods into a new theme_segment_preview_writes.go file instead of growing theme_segment_preview.go past the CLAUDE.md 450-line limit
+- [Phase 172]: 172-04: registerSegmentAutoPreview shared helper creates an independent media_assets image row and writes only auto_preview_media_asset_id; manual preview_media_asset_id is never touched — Keeps auto-write path and manual-write path (172-03) structurally separate, matching D-08
+- [Phase 172]: 172-04: split media_service.go (pre-existing 565 lines, grew past 450 with Task 1) into media_service.go + new media_service_segment.go — CLAUDE.md 450-line production-file ceiling; pure file-organization split, no behavior change
+- [Phase 172]: Preview-Backfill verwendet die echten Server-Env-Var-Namen (MEDIA_STORAGE_DIR/SEGMENT_RENDER_DIR) statt migrate-covers' MEDIA_TARGET_DIR-Konvention, damit der Live-Lauf gegen den echten Container ohne Anpassung funktioniert. — Verifiziert durch echten Lauf gegen team4s_v2: Segmente 3-9 (inkl. Release 27/7-8-9) haben jetzt echte automatische Vorschaubilder.
+- [Phase ?]: 172-07: Reused AdminAnimeSegmentResponse for all 4 preview-image endpoint responses in openapi.yaml (verified real Go handlers return {data: updated}, no range_sync)
+- [Phase 172]: 172-07: Added &id009 404 anchor for the attach endpoint's distinct foreign-asset rejection (vs existing segment-not-found anchor)
+- [Phase 173]: Display variant for static images is always JPEG quality 88 regardless of source mimetype (D-01 discretion, no new encoder dependency)
+- [Phase 173]: WebP thumb/display encoding re-encodes to JPEG since imaging cannot encode WebP; only the original variant preserves raw WebP bytes
+- [Phase 173]: Animated-GIF display generation failure (missing/misconfigured ffmpeg) is treated as non-fatal, matching saveSegmentVideoPreview's posture
+- [Phase 173]: Display variant is always re-encoded as JPEG (quality 88) regardless of source mimetype, no new encoder dependency
+- [Phase 173]: GIF and WebP originals share one raw-bytes EXIF-strip branch since both hit the same imaging encode limitation
+- [Phase 173]: Site 2 keeps its existing thumb-first thumbnail_path COALESCE untouched; display_url is a separate COALESCE column — Preserves admin-adjacent thumb-first semantics per plan instruction
+- [Phase ?]: 173-09: Fix-in-place display priority (no new field) for four non-split read sites -- Kara fallback, anime cover/banner/logo, fansub project banner
+- [Phase ?]: qualities: [75, 85] keeps 75 for existing consumers while adding 85 as the D-02 quality floor the 173-13/173-14/173-15 display-sourced public components will pass explicitly.
+- [Phase ?]: Used a dedicated /media/fansub/** localPatterns entry (not a widened /media/** wildcard) to preserve the narrow-allowlist discipline already established for anime/profile/release-version namespaces.
+- [Phase 173]: Replace-handler display-variant wiring mirrors upload-handler (173-02) exactly; DisplayURL not added to replace response since it returns ReleaseVersionMediaItem, not rvmFileResult
+- [Phase 173]: SaveUpload gained groupID namespacing and display-variant generation together (173-04); shared services.EncodeStaticDisplayVariant/StripWebPMetadata/animated-GIF helpers now back every write path (global uploader, RVM upload/replace, fansub media)
+- [Phase 173]: D-20/D-21 implemented in 173-05 Task 0: vips-tools added, animated WebP accepted outside Kara preview with vipsthumbnail-based display generation; legacy anime.cover_image reverted to original-first to avoid misclassifying it as orphaned
+- [Phase 173]: 173-05 Task 1: avatar/background display variant generation stays animated for animated GIF/WebP sources per orchestrator D-19/D-20/D-22 addendum; non-cropped animated background uploads still lose animation (documented limitation, deferred)
+- [Phase 173-11]: Corrected PublicReleaseMediaItem frontend location from plan-listed groupAsset.ts to the actual groupContributors.ts
+- [Phase 173]: Story-image uploads now store a true 1:1 original (media_files variant=original) separately from the 1920px-capped display file (media_assets.file_path), via 173-05's capLongEdgeAndSaveJPEG; pre-existing rows left untouched for 173-07's backfill — D-15/D-06 contradiction: the old 1600px-capped file was mislabeled 'original' with no true original ever stored
+- [Phase 173]: ResponsiveImage imported directly from @/components/ui/ResponsiveImage (not the barrel) in ReleaseGallery/PublicReleaseBlock/HeroSection — index.ts barrel does not re-export ResponsiveImage; matches every other existing consumer in the codebase
+- [Phase 173]: 173-07: display backfill derives the display filename from the original's own basename (not a fixed display.<ext>), since pre-existing flat-stored assets share one directory and a fixed name would collide
+- [Phase 173]: 173-07: generic backfill's race-safe write uses a per-call-unique temp file renamed into place only after winning the INSERT race, so a losing concurrent racer never clobbers the winner's file
+- [Phase 173]: Reused the free function publicMediaURLForPath (already in fansub_repository.go) for the fansub-group display-preference site instead of inventing a plan-named r.publicURLForPath method that does not exist on FansubRepository.
+- [Phase 173]: Patched the disposable team4s_phase152_test fixture DB in-place (ADD COLUMN release_version_media.title) rather than editing a migration, since the fixture is throwaway test data per CLAUDE.md's reset/reseed convention.
+- [Phase 173]: 173-14: fansub public media/banner components switched from raw next/image unoptimized to ResponsiveImage (quality 85), FansubGroupMediaBlock additionally prefers display_url — Imported ResponsiveImage via its direct file path (matches existing codebase convention, not re-exported from @/components/ui barrel); fixed a pre-existing test assertion that expected the raw unoptimized path now that the optimizer is correctly engaged
+- [Phase 173-15]: Shared MemberProfileHero.tsx gains optional avatarDisplayURL/backgroundDisplayURL props, defaulting to the existing avatarURL/backgroundImageURL -- default-safe for the untouched /me/profile caller — Keeps D-07's animated-avatar detection (reads avatarURL, never the new display-preferring prop) safe by construction rather than convention
+- [Phase 173]: 173-16 Task 2 (structural review: no new route/endpoint/dropzone, admin/me untouched) approved by the human user via the orchestrator session on 2026-10-02. Task 3 (backup + DRY_RUN backfill + real backfill + full live D-13 UAT) explicitly deferred to joint execution between the orchestrator and the human user, not run autonomously by the executor.
+- [Phase 174]: P1 hotspot lock for Phase 174 matches CONTEXT.md's named candidates plus RESEARCH.md's one justified extension (admin_content_release_version_media.go, already partially split into 6 sibling files)
+- [Phase 174]: 174-01: TestFansubRepository_PublicProfileSourceInvariants verdict is safe-to-fix-test, not a real regression (Phase 173's intentional display-variant SQL rewrite made the fragment assertion stale)
+- [Phase 174]: 174-01 D-07 analysis found 2 genuine merge-candidates (Pagination page-window math, byte-identical formatDate cluster) and 1 real behavioral-drift bug in getTypeBadgeLabel's OUTRO case, flagged not silently merged
+- [Phase 174]: Barrel layout locked: api.ts stays the permanent barrel file re-exporting ./api/client, verified empirically via tsc --noEmit byte-identical to pre-change baseline
+- [Phase 174]: 174-02 Task 2 scope expanded after tracing authorizedFetch's real dependency graph: full self-contained auth/session closure moved to client.ts ahead of 174-05's planned auth.ts split (follow-up note left for 174-05)
+- [Phase 174]: 174-03: admin-anime bucket sub-split into 6 files (core/jellyfin/relations/themes/taxonomy/release-assets) per D-24; fansub-members.ts kept single-file per plan artifact lock (~750 lines, D-24 exception) — 42-function anime bucket would exceed 450 lines in one file; fansub-members plan locked it as one artifact
+- [Phase 174]: 174-03: parsePayloadApiError and authorizedUploadXhr relocated to client.ts (not named in plan interfaces) to avoid api.ts<->admin/* import cycle — both needed by moving admin/anime-core.ts and admin/anime-release-assets.ts functions AND by functions staying in api.ts
+- [Phase 174-04]: D-24 sub-split: when a bucket exceeds 450 lines, split by sub-concern and re-export all sub-files from the api.ts barrel — Applied to fansubs/groups (39 fns -> 4 files) and contributions (21 fns -> 2 files), following the 174-03 admin/anime precedent
+- [Phase 174-04]: Cross-bucket same-wave dependencies resolve via direct sibling import (e.g. contributions-me.ts imports getAnimeList from ./fansubs-core), never through the api.ts barrel itself — Importing from the barrel inside a module the barrel re-exports would create a self-import cycle (D-11)
+- [Phase ?]: 174-05: Did not re-move 5 auth/session functions already relocated to client.ts by 174-02 (plan interface list was stale against a pre-174-02 commit)
+- [Phase ?]: 174-05: permissions.ts (~620 lines) and history.ts (~1030 lines) kept as single D-24 cohesion-exception files per the plan's locked artifact-path lock, matching 174-03's fansub-members.ts precedent
+- [Phase 174-06]: Media/asset bucket triaged by real grep evidence; getGroupReleaseMedia and uploadMediaSuggestion placed in existing sibling files (fansubs-groups.ts/contributions-me.ts) rather than the plan's abbreviated 4-destination menu — Sibling-function grouping is stronger evidence than the plan's illustrative destination list; only 1/46 functions was genuinely shared, confirming the god-module risk was avoided
+- [Phase 174]: Split members-me.ts from members.ts to keep self-service /me functions under the 450-line budget instead of invoking a D-24 cohesion exception — 174-07
+- [Phase 174]: createAnimeComment has zero production consumers; placed in new comments.ts by endpoint-domain reasoning and documented as known-unused rather than dropped or force-fit — 174-07
+- [Phase 174]: client.ts tightened: 4 module-private helpers (ParsedApiErrorPayload, writeBrowserCookie, isAuthRelatedError, ensureFreshRuntimeSession) un-exported to close an unintended barrel surface leak found by the Welle-2 export-parity audit — Welle-2 export-diff against the pre-split baseline found 0 dropped names, 18 legitimate D-09 shared-infra additions, and 4 additions with zero cross-file consumers anywhere in frontend/src; un-exporting the 4 restores closer parity with the none-added must-have without breaking any real import
+- [Phase 174]: 174-10: moved resolveAniSearchCandidateSearchFeedback into useAniSearchIntakeActions.ts alongside its only caller, re-exported one-directionally from the impl file to avoid an impl<->sub-hook import cycle while keeping the facade's public re-export path unchanged
+- [Phase ?]: 174-11: extractAniSearchCreateConflict moved into useCreateSubmitAction.ts alongside its only caller, re-exported from the impl file to avoid a circular import while keeping the facade's re-export list unchanged
+- [Phase ?]: 174-11: toggleAssetCandidateSelection stayed in the impl file (pure sync state setter, not a named async-handler cluster in this plan's scope)
+- [Phase 174-13]: Kept reorder-error/hint paragraphs in the orchestrator rather than folding into GroupMediaReviewGrid.tsx to avoid artificial fragmentation of single-line conditionals (D-02)
+- [Phase 174-13]: GroupMediaReviewGrid.tsx owns the full empty-state/grid/load-more region as one cohesive List unit instead of a 6th file
+- [Phase 174-13]: GroupMediaReviewDetailDrawer.tsx bundles the Drawer and delete-confirm Modal in one file since the Modal is the direct consequence of the Drawer's danger-zone action
+- [Phase ?]: 174-14: Reordered execution so pure-helper/types extraction happens before hook/section extraction (both need a shared importable module); added 3 new section files to the eslint native-element ratchet list (pure relocation, same precedent as 156-14)
+- [Phase 174]: 174-15: reused the existing Phase-117 real-Postgres fixture and repository_test package convention for admin_content_anime_themes characterization tests instead of building a new harness; scoped Segment-cluster coverage to the 4 required core CRUD methods plus GetAnimeSegmentByID and the two library-read fallback methods
+- [Phase 174]: 174-16: shared helpers (populateCountMap, applyLegacyLinkProjection) between a moved Groups-cluster method and the unmoved public-profile cluster stay in the first-created sibling file (fansub_repository_groups.go); the unmoved cluster calls them via same-package reference
+- [Phase 174]: 174-16: the D-17 ANY($1) alias-normalization batch pattern belongs to GetMergePreview's populateAliasMergePreview (Merge cluster), not the 7-method Alias CRUD cluster -- left untouched in fansub_repository.go for 174-17
+- [Phase 174]: 174-19: anime_assets.go split by asset type (cover/banner+logo/background/background_video), legacy+V2 pairs co-located per RESEARCH.md Pitfall 4; generic V2 dispatch helpers shared across 3+ asset types moved to anime_assets_provider.go; CLAUDE.md's 450-line ceiling forced a further 3-way background split and a resolve-helpers extraction beyond the plan's literal 5-file list — Keeps hotspot modular without merging legacy/V2 schema-migration logic; respects project file-size constraint
+- [Phase 174]: 174-20: split upload cluster into upload.go + upload_process.go to satisfy CLAUDE.md's 450-line modularity ceiling — Literal plan instruction to move the upload cluster verbatim into one file would have produced a 557-line file, exceeding the project's hard file-size constraint
+- [Phase 174]: 174-17: resolved TestFansubRepository_PublicProfileSourceInvariants (stale fragments from a pre-Phase-173 SQL shape) and fixed the fragment list to match the current media_files/variant='display' LATERAL-join pattern — 174-01's documented verdict in 174-HOTSPOTS.md: safe-to-fix-test, not a real regression
+- [Phase 174]: 174-17: completed the D-15 split of fansub_repository.go (2657 lines pre-174-16 to 37 lines) across 8 sibling files; merge cluster sub-split into core+duplicates files per D-24 — File's single largest cluster (~900 lines) needed a budget-driven sub-split to stay well under the 450-line project ceiling
+- [Phase 174]: 174-18: admin_content_anime_themes.go deleted outright (0 methods/types remained) rather than kept as an empty stub after the 5-file D-15 split (themes_core/segments_crud/segments_library/segments_playback/release_theme_assets)
+- [Phase 174]: 174-18: 4 pre-existing source-string-assertion tests repointed to the new sibling filenames under the D-03 import-path exception; one test now concatenates segments_library.go+segments_playback.go because its assertion spans the plan's own cluster boundary (loadStableSegmentAnimeSource)
+- [Phase 174]: 174-22: Konsumenten-Audit fuer FansubEdit.module.css auf den gesamten frontend/src-Baum erweitert (Prop-Drilling + admin/fansubs/create/-Route), nicht nur auf die 22 im Plan genannten Dateien — Textmatch des Importstatements allein haette mehrere echt genutzte Klassen faelschlich als tot/single-owner klassifiziert
+- [Phase 174]: 174-22: 5 grep-bestaetigte Single-Owner-Klassen bleiben wegen Compound-Selector-Verzahnung mit geteilten Klassen bewusst in FansubEdit.module.css — CSS Modules haeschen Klassennamen pro Datei; ein Split haette den Selector lautlos wirkungslos gemacht
+- [Phase 174]: Proxy-basierter CSS-Modul-Merge statt Objekt-Spread fuer kombinierte styles-Objekte — {...sharedStyles, ...ownStyles} verliert unter Vitest alle Klassen (CSS-Modul-Mock hat keine enumerable Keys); ein echter Proxy mit get-Trap funktioniert in Vitest und im Produktions-Build korrekt
+- [Phase 174]: 174-25 closing report identified 7 D-24 exceptions not previously flagged by their originating plan's own SUMMARY (admin/fansubs/create/page.tsx, GroupMediaReviewSection.tsx, fansub_repository_groups.go) — closing a real gap in the phase's own self-reporting discipline
+- [Phase 174]: 174-25 corrected 174-FOLLOWUPS.md's stale Gegenprobe-offen note for BUG-174-02/BUG-174-05 against 174-UAT-CHECKLIST.md's 2026-10-06 user approval, and folded all 18 F-01..F-18 items plus all 5 BUG-174-xx items into the closing report's Recommendations section with F-01 (remove legacy image store) recommended first, per the user's 2026-10-05 PFLICHT instruction
+- [Phase 174]: Final combined gate (174-26) re-confirmed zero regressions vs. 174-25's baseline; live human UAT approved across all 7 Phase 174 flows, closing the phase. — Checkpoint gate="blocking" honored exactly (stopped, returned 7-step verification to orchestrator) rather than fabricating approval; resumed only once the user's real, explicit 2026-10-06 sign-off was relayed.
+- [Phase 175]: Release-Medien ist Vorbild (Queue sammelt statt ersetzt, Titel/Caption pro Datei), Gruppenmedien-Upload wird Altlast — 174-FOLLOWUPS F-15, verifiziert anhand Quelltext
+- [Phase 175]: FansubMediaLightbox ist Vorbild fuer den kuenftigen gemeinsamen Bild-Viewer; ReleaseGallery/FansubGroupMediaBlock nutzen es bereits, ReleaseVersionMediaDetailPanel.tsx ist toter Code — 174-FOLLOWUPS F-18, verifiziert anhand Quelltext statt uebernommen
+- [Phase 175-02]: Admin-Editor-Rahmen (not /me workspace) is Vorbild for the future single release-editing page -- it needs no member profile to function — F-13's 404 symptom is located precisely in GetMyProjectDetail, not GetOwnProfile; the admin frame avoids this dependency structurally
+- [Phase 175-02]: F-16's claimed 7 individual browser filters corrected to 6 -- projectPageData.ts has no search-input filter, only an unrelated image-title lookup
+- [Phase 175-03]: BUG-174-02/BUG-174-04 re-verified against current code: both rights-consistency fixes confirmed still correct and propagated to all consumers — Fachaufgabe 4 inventory
+- [Phase 175-03]: Rechte-Resolver (permissions.Service) bleibt einziger Resolver — 9-Aktionen-Stichprobe fand 0 Anzeige/Durchsetzung-String-Abweichungen, bestätigt 174-HOTSPOTS D-07 — Fachaufgabe 10 inventory
+- [Phase 175]: member_claims table reused for Claims (link existing historical member) and Mitgliedsanfragen (request new member creation) under two independent rights models — documented, not merged in this read-only phase
+- [Phase 175]: member_group_stories is a fully-built, zero-UI-consumer dead feature; classified as orphaned rather than duplicate — candidate for 175-ROADMAP-PROPOSAL to either build its UI or remove it
+- [Phase 175]: Löschen/Aufräumen (Fachaufgabe 8): 3 fachlich unterschiedliche Daten-Semantiken dokumentiert (Hard-Delete, Soft-Delete via deleted_at, Status-Tombstone ohne Soft-Delete) statt eines generischen Löschen-Begriffs — Bei einer künftigen Zusammenführung der Lösch-Mechanismen müssen die drei Semantiken unterschiedlich behandelt werden
+- [Phase 175]: Legacy-Lösch-Endpunkt DELETE /fansubs/:id/members/:memberId als Entfernungs-Kandidat markiert (toter Code, kein Frontend-Aufrufer, abweichende strengere Rechte-Logik als aktiver Pfad) — Verhindert, dass der tote Pfad bei einer Zusammenführung versehentlich als zweite Wahrheit erhalten bleibt
+- [Phase 175]: Anime anlegen/importieren (Fachaufgabe 9): 174-REPORT.md-Verdikt bestätigt — manuell/Jellyfin/AniSearch teilen sich EINEN POST /admin/anime-Endpunkt über 4 komponierte Sub-Hooks, kein Duplikat — Eigene Fundstellen-Nachverfolgung bis zur identischen POST-URL statt unbelegter Übernahme des Vorgänger-Reports
+- [Phase 175]: F-02 OUTRO-Bug durch eigenen Code-Vergleich bestätigt, plus 2 neue same-input-different-output-Label-Funde (Fansub-Medien-Kategorie, Claim-Status) und 3 tote Parallel-Implementierungen (segmenteTabUtils.ts, ReleaseVersionMediaGallery.tsx, MessageToast.tsx) entdeckt
+- [Phase 175]: Dashboard-Attention: alle 4 attachPending*-Funktionen re-verifiziert, 0 neue Rechte-Abweichungen; kein zentrales Toast-System existiert (48 Ad-hoc errorBox/successBox-Implementierungen); genau 1 Mail-Typ im Backend, bereits gehärtet
+- [Phase 175-07]: Keine zusätzliche (13.) Fachaufgabe ergänzt — fünf quergeprüfte Kandidaten (Fansub-Gruppen-CRUD, Episoden-Anlegen, Rollenmatrix, Mail/Toast, searchArchive) sind bereits Teil einer der 12 D-02-Fachaufgaben, kein eigenständiger Parallel-Build-Fund.
+- [Phase 175-08]: 175-PERMISSION-MATRIX.md: Fachaufgaben 7/11 ohne Rechte-Aktionspaare bewusst ohne Tabellenzeile geführt (bestätigter Negativbefund statt fabrizierter Zeile); Fachaufgabe-10-Stichprobe auf Doppelzählung geprüft, nur 2 nicht anderswo belegte Aktionen eigenständig aufgenommen
+- [Phase 175-09]: Nutzer bestaetigte Phasenzuschnitt mit Aenderungen: Bugfix-Sammelphase=Phase 176 (Risiko mittel, 5 intern geblockte Pakete), F-15 gesplittet in Phase 179 (Media-Backend/Rechte) + Phase 180 (Upload-Frontend/-Workflow, abhaengig von 179), Phase 181 (Release-Bearbeitung) laeuft sequenziell zu 179/180, neue Phase 182 (Bildspeicher F-01) ergaenzt, finale bestaetigte Reihenfolge 176-183.
+- [Phase 175-09]: Phase 175 legt selbst keine ROADMAP.md-Phasen an (D-09) - Anlage der Phasen 176-183 erfolgt in einem separaten, nachgelagerten Schritt ausserhalb dieser Phase.
+- [Phase 176]: 0178 adds a new forward-only DROP migration instead of deleting historical 0062/0068 migrations — preserves append-only migration-history immutability per CLAUDE.md while still achieving D-16's goal of a permanently removed table
+- [Phase 176-02]: Outro erhaelt beim Speichern einen eigenen exklusiven Release-Version-Slot (wie OP/ED) statt den ED-Slot zu teilen; Backend-Klassifizierung laeuft jetzt durchgaengig ueber theme_types.kuerzel statt Namens-Raten. — Live-UAT-Fund am 2026-10-07: ein neues Outro-Segment wurde faelschlich als ED-Konflikt abgelehnt, weil CanonicalSegmentType per Namens-Substring 'outro' auf den ED-Slot gemappt hat. Per bindender Nutzer-Entscheidung 2026-10-07 bekommt OUT einen eigenen Slot; IN bleibt unbeschraenkt. Fix per CanonicalSegmentTypeFromKuerzel, Live-UAT 2026-10-07 abgenommen.
+- [Phase ?]: 176-03: F-05 'duplication' finding confirmed as a release_version_id-grouping miscount, not a bug; no code defect, hardening-only (doc comment + idempotency regression test).
+- [Phase ?]: 176-03: open question flagged for 176-04 -- whether 'project_lead' should be excluded from release-version crew-snapshot inheritance (not decided, scoped out).
+- [Phase 176]: D-23 geschlossen als no-cleanup-needed: Live-DB-Dry-Run fand 0 Duplikat-Kandidaten (strikt + breit); 176-03s Zaehlfehler-Befund bestaetigt. Keine anime_contributions-Zeile geloescht.
+- [Phase 176]: Nutzer-Freigabe (2026-10-07) Option 1 'Projektleiter nur aufs Projekt' als Scope-Erweiterung von 176-04 Task 3: project_lead wird nicht mehr in release-scoped anime_contributions gespiegelt (projectScopeOnlyRoleCodes), totes getProjectLeadRolesForVersion entfernt statt eingebunden, 12 Bestandsdaten-Rollenzeilen fuer timer/anime1/group1 bereinigt (nur project_lead-Rolle entfernt, Zeilen/timer-Rolle unveraendert).
+- [Phase 176-05]: Narrowed MemberClaimInvitationsHandler.invitationsRepo to a memberClaimInvitationStore interface so the D-17 disabled-user-check fix could be proven with a real httptest + fake-repo test (CLAUDE.md Teststil), matching the existing fansubGroupInvitationStore convention — Enables real test execution instead of source-fragment assertions; no caller changes needed since the concrete repository already satisfies the interface
+- [Phase 176-05]: checkMemorialNotClaimable takes an already-queried profileStatus string rather than a DBTX handle; each call site keeps its own pool/tx handle for the SELECT, only the decide-and-audit logic is shared — AuditLogRepository.Write always uses its own internal handle, so a DBTX parameter in the shared guard would have been unused
+- [Phase 176-06]: D-18 Permission-Matrix rows 6.1/6.2 geschlossen -- NotesTab canEditNotes gating live-UAT abgenommen (2026-10-08): Admin-CRUD unveraendert, founding-history-only Konto sieht Notizen read-only ohne Hinzufuegen/Bearbeiten/Loeschen, Gruendungsgeschichte bleibt bearbeitbar.
+- [Phase 176-08]: openapi.yaml duplicate description merged via YAML block-scalar (|-) preserving both sentences, not dropping either
+- [Phase 176-08]: EpisodeImportEpisodeGroup GAP-13: removed only the stale header-consolidation assertion (test-only); display_path render restored in production code as a genuine regression fix
+- [Phase 176]: 176-09: phase107_postgres.go now runs the real 0085/0100/0108/0112/0146/0150 migration chain (mirroring phase137) instead of hand-rolled stubs; added a read-only revision-conflict guard for non-uploader release-media metadata edits, preserving BUG-174-04's no-re-review decision
+- [Phase 176-10]: D-07 geschlossen -- Sticky-Speichern-Balken-Ueberlapp auf /admin/fansubs/[id]/edit per 80px Bottom-Padding-Reservierung im existierenden @media (max-width: 900px)-Block behoben; Desktop/Tablet-Layout unveraendert. Live-UAT abgenommen 2026-10-08 (Nutzer, Fansub-Admin-Rolle, /admin/fansubs/[id]/edit?tab=basic).
+- [Phase 176]: 176-11: kept barrel-exported anime-taxonomy.ts getAdminTagTokens as canonical over admin-anime-intake.ts duplicate (barrel-export + sibling usage) — Confirmed apiClientFetch is a thin wrapper around authorizedFetch, so no behavioral difference affects the caller
+- [Phase 176]: 176-12: D-09 closed via real behavior tests for the 4 named source-grep tests; preview-exclusivity test proven at repository-orchestration level to avoid a services->handlers import cycle. — Plan's own acceptance criteria run the test from package services, and calling the Gin handler would require services to import handlers, which already imports services.
+- [Phase 176-13]: D-10: displayVariantFileName in services exportiert statt neuer Wrapper; D-20: Migration 0180 entfernt review_status_id/FK/Index von anime_contributions reversibel
+- [Phase 176]: D-12/D-11 (176-14): Alle 16 admin/fansubs/[id]/edit-Dateien nutzen jetzt den Proxy-Style-Merge statt Objekt-Spread; getAdminFansubAnime-Assertion in AnimeProjectNotesSection.test.tsx ans Testende verschoben, um suite-load-Flackern deterministisch zu beheben.
+- [Phase 176]: Measured a fresh baseline (not just the plan's pre-recorded numbers) for the D-13 before/after regression gate, surfacing one additional pre-existing frontend test failure beyond the documented 6 -- also confirmed fixed by HEAD. — D-13's own threat-model mitigation (T-176-15-01) requires fresh evidence, not reuse of self-reported plan results.
+- [Phase 176-15]: Skip-Delta 672->701 (+29) aufgeklaert: alle 30 neuen Skips (netto +29, 1 Test strukturell in 2 Subtests gesplittet) stammen aus 176-02/176-04/176-07/176-09/176-12/176-13s eigenen neuen, auf Phase-DSN-Fixtures (TEAM4S_PHASE107/117/145/167_TEST_DSN) gateten Integrationstests -- keine stille neue Luecke. Gegen frische Disposable-DBs liefen alle 30 real und gruen. — Nutzer-Hinweis zur Verifikation vor Phasenabschluss: Backend-Skips stiegen von 672 auf 701, Aufschluesselung mit echten Testlaeufen gegen verfuegbare Test-DB verlangt statt theoretischer Erklaerung.
+- [Phase 177]: Combined RED+GREEN into a single test(...) commit for 177-01 since the plan's frontmatter type is execute, not tdd
+- [Phase ?]: Stage variant deliberately ignores the footer prop (UI-SPEC: Stage-Variante ignoriert footer bewusst) — Keeps the chrome-suppressing dark viewer stage from rendering any footer chrome, per Sketch 010's 'only X closes' requirement
+- [Phase ?]: No :disabled override added for Button's floating variant — Viewer navigation is always wrap-around, never disabled, per UI-SPEC states table
+- [Phase 177]: MediaViewerMetadataPanel suppresses the title row when it equals the resolved category label — Avoids a 3x text duplication across Modal's hidden aria title, panel h3, and category badge for consumers whose title falls back to the category label
+- [Phase 177]: ProjectMemberMediaGallery migriert auf FansubMediaLightbox; ProjectMemberMediaViewer entfernt (D-02/D-10) — Bestaetigt, dass die reichste Datenform im Cluster (Projekt-Mitglied-Medien) sauber auf den gemeinsamen Viewer-Vertrag abbildet; validiert die Vereinheitlichung vor Plan 177-07
+- [Phase 177]: GroupAssetsExperience lightbox migrated to FansubMediaLightbox using array-index synthetic id and per-episode { images, index } open-state
+- [Phase 177]: D-25: Modal variant="stage" fills the viewport edge-to-edge with --surface-stage; D-26: carousel/viewer arrows use the new NavArrow global primitive instead of Button variant="floating", fixing the Live-UAT hover-jump
+- [Phase 177]: ThumbnailStrip (D-28) omits nearestOwnedItemIndex reuse: activeIndex is always caller-controlled, no scroll-position-to-index inference needed
+- [Phase 177]: ThumbnailStrip not barrel-exported from components/ui/index.ts, following ResponsiveImage.tsx precedent, to avoid same-wave index.ts conflict with Plan 177-09
+- [Phase 177]: 177-11: MediaViewerCaption's non-render gate stays narrower than literal UI-SPEC wording (!caption && !hasReleaseHref) to preserve the already-tested CTA-without-caption case — Keeps ProjectMemberMediaGallery.test.tsx's existing Release-öffnen assertion green without weakening graceful omission for the genuinely-empty case
+- [Phase 177]: 177-11: captionPanelOpen lifted into FansubMediaLightbox rather than local to MediaViewerCaption — Modal's onEscapeKeyDown and MediaViewerStage's wheel/swipe gating both need to read the same panel-open state as the caption component itself
+- [Phase ?]: D-33: translucent blurred veil (Modal's .modalPanelStage only) replaces the flat opaque --surface-stage fill across viewer chrome, with an @supports fallback
+- [Phase ?]: D-34: header/caption/thumbnail-strip share one centered horizontal axis; caption capped at 70ch with left-aligned inner text
+- [Phase ?]: D-35: viewer title activates the already-documented Display typography role (32px/700/1.2)
+- [Phase ?]: D-36: NavArrow size=large darkened to match the veil tone; icon recolored to white (contrast-computed, --ui-arrow fails 3:1 against the new dark background)
+- [Phase 177]: resolveEscapeTarget signature extended in place (leading zoomed boolean) rather than wrapped, preserving D-31 behavior exactly when zoomed=false — Escape has exactly one decision point; a new wrapping function would duplicate logic (177-13)
+- [Phase 177]: D-37/D-38: real multi-level zoom/pan viewer shell wired end-to-end via new useMediaViewerZoomPan hook — Live-UAT Runde 2 required replacing the binary fit/100% toggle with fit->2x->4x cycle, clamped pan, cursor-anchored wheel-zoom, and a relocated top-bar magnifier button
+- [Phase 177]: Plan 177-08's Live-UAT checkpoint (D-14) was approved on the third round only, after two full gap-closure cycles implementing D-25 through D-39 (plans 177-09 through 177-14) plus several live-found hotfixes between rounds — Each round's gaps were genuine, user-confirmed interaction/visual issues against the UI-SPEC, resolved via proper decision records and dedicated plans rather than ad-hoc patching; commit 94039e70's malformed '--message ' subject line is a known, intentionally-not-rewritten git history blemish
+- [Phase 178]: textFilter.ts: NFD-strip-only normalization (no ae/oe/ue/ss digraph expansion), ß never matches ss
+- [Phase 178]: EmptyState 'info' variant reuses the existing .stateInfo CSS tone already proven by LoadingState.tsx — no new CSS
+- [Phase 178]: fansubPageFilter spreads item.aliases directly into matchesSearch haystack (per-alias matching, consistent with 178-03's filterAdminGroups) — Keeps alias search semantics identical across both filter sites without pre-joining to a string
+- [Phase 178]: fetchLimitReached compares first page's meta.total to final accumulated length inside loadList's single pagination loop — Matches the existing single-status loop shape of this site while staying consistent with the D-16 hint pattern established in 178-03
+- [Phase 178]: D-18 Kuerzel/Alias merge-scoring tiers placed strictly below equivalent-specificity name/slug tiers (178-05)
+- [Phase 178]: D-11 Live-UAT performed directly by the project owner over the tunnel address rather than simulated by the executor -- human reported itemized confirmation of all 6 how-to-verify checklist items (Kuerzel/Alias search, umlaut tolerance on Genre/Tag, Create/Edit autocomplete parity, media review, no layout regression, no highlighting), closing the phase
+- [Phase 179]: ActionReleaseThemeAssetUpload (D-12) registered with the exact 11-role list release_version_media.upload already had — No rights change for existing users; replaces a fremd reused action with its own data-driven capability
+- [Phase 179]: 179-03: Collapse UploadFansubMedia to a single rights layer (CanForFansubGroup), removing the upload-side custom-permission fallback — D-10 requires removing the dual rights-check path for upload while keeping the structurally identical delete-side fallback untouched; a new real-Postgres regression test proves a seeded can_upload=true row no longer grants access
+- [Phase 179]: 179-05: Scoped isPlatformAdmin gating in AnimeJellyfinAssetUploadControls to only the upload-trigger inputs/buttons (not remove buttons or preview chrome) — D-13 is a narrow UI-visibility-only fix, not a rights expansion
+- [Phase 179]: 179-05: Self-fetch is_platform_admin via getCurrentUser() inside AnimeJellyfinAssetUploadControls instead of threading a new prop through both call sites — Lower blast radius per 179-RESEARCH.md Pitfall 4; matches FansubEditAccessGate.tsx precedent
+- [Phase 179]: D-12: UploadReleaseThemeAsset/UploadReleaseThemeAssetForRelease now check permissions.ActionReleaseThemeAssetUpload exclusively — Stops reusing the foreign release_version_media.upload action; same 11-role list, no rights change for existing users
+- [Phase 179]: D-06: shared theme-asset persistence tail extracted into a new 80-line file — Collapses two ~45-line duplicate blocks into one AdminContentHandler.persistReleaseThemeAsset method, shrinking the handler file 559 -> 492 lines
+- [Phase 179]: 179-06: Applied pending migration 0182 to live team4s_v2 DB via cmd/migrate to fix a dev-backend crash loop caused by the combined 179-01..05 diff
+- [Phase 179]: 179-06: Classified every observed go test ./... and npm run lint failure against deferred-items.md's already-triaged categories; zero new regressions found across the combined phase diff
+- [Phase 180]: allowDrop keeps its false branch and test coverage in 180-01 per D-17's note — no caller sets it false yet; 180-12 decides removal once every way's final props are visible
+- [Phase 180]: UploadFileRow's onRemove renders unconditionally whenever provided (not gated by status), per 180-01's explicit action/acceptance-criteria text rather than 180-UI-SPEC's general note
+- [Phase 180]: startUpload(adapter, config?) reads the queue to upload from the hook's own items state rather than a drafts argument, matching the plan's literal exported signature — Confirmed by acceptance-criteria test shapes: selectFiles is always called before startUpload, no drafts parameter in the public signature
+- [Phase 180]: useUploadQueue uses an itemsRef synced via useEffect instead of a setState-updater read-trick for synchronous queue reads inside startUpload/retryUpload — React 18 batches the updater call past the point where the surrounding async function already reads the captured variable, mirrored from useReleaseVersionMedia.ts's own itemsRef precedent
+- [Phase 180]: 180-03: fansub_group_media_id now returned end-to-end from upload (D-14), closing the one allowed backend gap for 180-02/180-07's relation-ID-addressable retry/patch pipeline
+- [Phase 180]: Delete ReleaseVersionMediaGallery.tsx outright (D-15) instead of adapting it — no kara-segment branch, incompatible reorder payload shape — Fresh build from live JSX is structurally safer than retrofitting a component already proven incompatible with the current ReleaseVersionAdminStoryItem data model
+- [Phase 180-06]: isFilterOpen stays parent-owned UI state; resetFilters wraps the hook's value-reset with the panel-close side effect — Keeps the extracted filter hook free of UI-only panel-open state while preserving identical click behavior
+- [Phase 180]: Weg-1-only preview-candidate selection is applied via a dedicated follow-up patchReleaseVersionMediaItem call issued by the drawer itself after startUpload/retryUpload resolves, not folded into the adapter's patchMetadata — useUploadQueue skips patchMetadata entirely when title+caption are both empty, so a file with no metadata would never get its preview flag set otherwise
+- [Phase 180]: Dropped the pre-180-05 behavior of disabling sibling category buttons while the open category's upload is busy — upload state now lives entirely inside the per-open drawer instance, not surfaced to the parent
+- [Phase 180]: 180-07: useGroupMediaReviewReorder.ts extraction axis added beyond plan text to reach the 450-line budget for GroupMediaReviewSection.tsx
+- [Phase 180-08]: Weg 7's inputRef is also triggered externally by EditableProfileHeader (avatarInputRef/backgroundInputRef .click()); kept the existing Button+input intact and added UploadDropzone alongside it instead of replacing the pair — UploadDropzone has no forwarded ref/open API, so replacing the input would have silently broken the profile-hero edit trigger
+- [Phase 180]: ReportFormMedia handleFileChange refactored to File|null parameter since UploadDropzone is its sole caller — Cleaner than casting a File into a synthetic ChangeEvent shape; no other call site existed
+- [Phase 180]: FormField wrapping UploadDropzone omits htmlFor (no id prop exists on the primitive) — Matches the established FormField+UploadDropzone pattern already used in GroupMediaReviewUploadPanel.tsx
+- [Phase 180]: 180-10: handleThemeUploadInputChange's signature changed from () => void (reading DOM ref) to (file: File | null) => void, since UploadDropzone owns its own internal file input and cannot be pointed at themeUploadInputRef; themeUploadInputRef removed as dead code from the hook/parent/test.
+- [Phase 180]: 180-10: Weg-6 (Release-Theme-Assets) corrected 180-UI-SPEC.md row-6's multiple=true guess to multiple=false for both entry points, based on live-code verification; both gain real drag&drop (allowDrop=true, D-17) for the first time.
+- [Phase 180]: Kept the pre-existing shared banner/logo/background_video render branch instead of duplicating UploadDropzone markup to hit a literal grep count — Avoids violating Task 1's own instruction to not change gating structure and avoids slot-specific duplication the project's modularity goals discourage
+- [Phase 181]: D-05 behoben: GetMemberProjectDetail LEFT JOIN own_roles + Handler-Sentinel memberID=0 statt 404 bei fehlendem member_claims-Eintrag — Zwei-teiliger Fix noetig (Pattern 4/Pitfall 2, 181-RESEARCH.md) -- ein Handler-only-Fix haette den 404 nur eine Ebene tiefer verschoben
+- [Phase 181]: buildReleaseEditorRedirects() framework-frei gehalten (kein next-Import); next.config.mjs-Verdrahtung bewusst auf Plan 09/Wave 5 verschoben
+- [Phase 181]: resolveNavigationContext() faellt ohne jeglichen Kontext konservativ auf 'project' zurueck (RESEARCH.md Assumption A1), jetzt als expliziter Regressionstest abgesichert
+- [Phase ?]: [Phase 181]: 181-03: ReleaseVersionMediaEditDrawer.tsx's relativer Cross-Folder-Import (RELEASE_REVIEW_REJECTION_CATEGORY_LABELS aus ../../../fansubs/releaseReviewPresentation) auf absoluten Pfad @/app/admin/fansubs/releaseReviewPresentation umgestellt -- Plan-Annahme 'Familie importiert nur sich selbst + @/...' hatte diesen Ausbruch nicht erfasst
+- [Phase ?]: [Phase 181]: 181-03: 2 Testdateien ausserhalb der Plan-files_modified-Liste (admin editor page.test.tsx, workspace page.test.tsx) hatten vi.mock()-Pfade/relative Imports auf die alte Familie-Adresse -- beide korrigiert, sonst waeren Mocks nach dem Verschieben stillschweigend wirkungslos geworden
+- [Phase 181-04]: ReleaseVersionNotesTab's einzige relative Import-Tiefe auf '../editor/...' angepasst, Rest der 743-Zeilen-Datei unveraendert verschoben
+- [Phase 181-04]: 2 vi.mock()-Pfad-Strings in page.test.tsx (Admin) und workspace/page.test.tsx nach Segmente/Notizen-Verschiebung korrigiert (nicht im Plan gelistet)
+- [Phase 181]: useReleaseEditorNavigation ergaenzt activeTab/projectReturnHref zum Href-Bauen (D-03 Facade), formatProjectReleaseLabel bleibt lokal statt releaseEditorRouting.ts zu erweitern
+- [Phase 181]: ReleaseEditorMetadataTab: expliziter Null-Guard fuer editor.contextData ergaenzt (Typsicherheit, Plan 07 mountet den Tab erst nach geladenem Context)
+- [Phase 181]: 181-07: ReleaseEditorPage uebernimmt keinen zweiten useAuthSession()-Gate -- useReleaseEditorData() traegt hasAuthSession bereits intern — Vermeidet redundante Auth-Pruefung; Fehlerzustand kommt bereits ueber editor.errorMessage
+- [Phase 181]: 181-07: activeTab ist einseitig state->URL (router.replace bei Klick), nicht laufend URL->state resynchronisiert — Vermeidet react-hooks/set-state-in-effect-Lint-Fehler und einen Flacker-Bug zurueck zum alten Tab direkt nach Klick
+- [Phase 181]: 181-08: fansubEditAccess.ts's releaseVersionToolsTarget retired the "notizen" tab id in favor of the unified "notes" vocabulary; releaseEditorRedirects.ts was deliberately left untouched since it is Plan 02's redirect-source config consumed by Plan 09
+- [Phase 181]: Plan 181-09: releaseEditorRedirects.ts zu .mjs umbenannt (Rule 1), da next.config.mjs .ts-Importe unter Node 20 nicht laedt (ERR_UNKNOWN_FILE_EXTENSION); begleitende .d.mts nach publicImagePatterns.mjs/.d.ts-Vorbild ergaenzt — Node 20 im Frontend-Container laedt next.config.mjs direkt ohne TS-/Bundler-Schritt; der Import schlug fehl und liess den Container in eine Neustart-Schleife laufen
+- [Phase 181 NEUSTART, 181-02]: buildReleaseEditorRedirects() liegt von Anfang an als .mjs vor (kein Rename noetig wie im ersten, verworfenen Versuch oben). releaseEditorRedirects.d.mts (nicht nur .d.ts) wurde ergaenzt, weil tsc unter moduleResolution:"bundler" fuer einen .mjs-Import aus einer .ts-Datei (hier: releaseEditorRedirects.test.ts) nur eine .d.mts-Deklaration aufloest, keine .d.ts-Deklaration -- empirisch durch Ein-/Ausblenden der Datei verifiziert. Bestaetigt denselben Befund wie der erste, verworfene Versuch (Zeile oben), diesmal unabhaengig in der Neustart-Ausfuehrung wiedergefunden.
+- [Phase 181 NEUSTART, 181-02]: `npm run build`s vorbestehender `/_global-error`-Turbopack-Prerender-Defekt (TypeError: Cannot read properties of null (reading 'useContext'), digest 53468840) wurde NICHT als von 181-02 verursacht behandelt -- Nachweis per throwaway `git worktree` auf Commit 50c0961b1 (Stand unmittelbar vor 181-02) + Einweg-`docker run` gegen dasselbe Image/Volume: identischer Fehler, identischer Digest, identische erstbetroffene Seite. Deckt sich mit dem bereits in diesem Dokument (Phase-164-Abschnitt) dokumentierten Befund, dass der Defekt unabhaengig von der geloeschten Route existiert. Nicht behoben, in deferred-items.md dokumentiert.
+- [Phase 181]: 181-02 Task 3 Live-UAT-Checkpoint vom Nutzer bestaetigt (alle 4 Pruefungen inkl. reiner Mitwirkender ohne Gruppenrolle; Punkte 1,3,4 zusaetzlich von Claude im Browser als D1sk nachgeprueft) -- Phase 181 ist 2/2 Plaene vollstaendig, Phasen-Review/Verifizierung durch den Orchestrator steht noch aus
+- [Phase 182]: 182-01: hasV2AssetSchema/hasAnimeMediaTable/ensureAnimeMediaAsset und ihre Legacy-Zweige in anime_assets*.go entfernt — anime_media existiert live immer; der false-Zweig war tot. ApplyProviderCover und die vier rohen Leser bleiben bewusst Plan 182-02 vorbehalten.
+- [Phase 182-02]: Throwaway-DB-Schema (OpenPhase182Postgres) wird per live psql \d verifiziert statt aus CONTEXT.md kopiert — languages/title_types mussten nachtraeglich ergaenzt werden, weil primaryNormalizedTitleSQL sie referenziert -- bestaetigt die projektweite Lehre zu Schema-Drift in Testfixtures
+- [Phase 182]: shared/contracts: cover_image-Beschreibungen nur in openapi.yaml ergaenzt (dort existiert type:+description: bereits durchgaengig); die 4 kompakten feld:typ-Contract-Dateien ohne jedes description-Sibling blieben im Format unangetastet, nur Beispielwerte korrigiert
+- [Phase 182]: Go-SQL-Aenderungen (loadCurrentProjects GROUP BY, ListFansubAnime) vor dem Live-Apply zusaetzlich per direkter psql-Ausfuehrung gegen disposable Postgres bewiesen, nicht nur per go build/vet
+- [Phase 183]: Task 1 (tdd=true) in 183-01 als kombinierter Commit umgesetzt (Helfer + Tests zusammen) — Zielwerte/Fallback verbatim aus bestehendem, verifiziertem Produktionscode (UserDetailPageClient.tsx) übernommen, kein echtes RED/GREEN-Risiko
+- [Phase 183]: Lock claim-status wording to 'Genehmigt' (not 'Verifiziert') for verified/active in the new shared claimStatusLabels.ts helper, closing the ClaimsClient.tsx alias gap for active/open/denied
+- [Phase 184]: 184-01 (D-04/F-23-Nachzieh) ausgeführt: alle 4 Literal-Duplikate der display-Namensregel im Release-Version- und generischen Media-Upload-Pfad auf services.DisplayVariantFileName umgestellt — keine Verhaltensänderung, bestehende Display-Variant-Tests weiterhin grün, siehe 184-01-SUMMARY.md
+- [Phase 184]: D-02 befolgt: zwei getrennte formatDate-Helfer (Cluster A ISO-Fallback, Cluster B Leerstring-Fallback) statt Vereinheitlichung
+- [Phase 184]: mergeCssModules kapselt exakt das Select.tsx-Proxy-Muster, nestable für 3er-Merge via mergeCssModules(a, mergeCssModules(b, c)) — Grundstein für alle 38 Konsumenten-Dateien der Pläne 184-04..184-09
+- [Phase 184]: 184-04: Historische-Rollen-Entwuerfe in eigenen dritten Hook useFansubAppMemberHistoricalRoleDrafts.ts ausgelagert, damit useFansubAppMembersSection.ts unter 450 Zeilen bleibt (D-05).
+- [Phase ?]: Reine Hook-Extraktion allein reichte nicht fuer die 450-Zeilen-Grenze; zusaetzliche Render-Ausgliederungen (FansubListRows.tsx, MergeWizardPreviewStep.tsx, MergeWizardProgress.tsx) ergaenzt (184-05)
+- [Phase 184]: 184-07: admin/episodes/page.tsx (637 Zeilen) vor der mergeCssModules-Umstellung in Render + useAdminEpisodesPage-Hook aufgeteilt (D-05-Reihenfolge: Split-Commit vor inhaltlichem Commit).
+- [Phase 184]: 184-08: AnimeContext/EpisodeManager-Cluster (11 Dateien) auf mergeCssModules umgestellt, kein D-05-Split nötig (alle Dateien unter 450 Zeilen) — F-12/D-01 weiterer Baustein
+- [Phase 184]: ReleaseVersionNotesTab exportiert die mergeCssModules-styles-Konstante; EditorParts importiert sie statt den Merge-Aufruf zu duplizieren — D-01: genau ein mergeCssModules-Aufruf pro Komponentenfamilie, keine zweite Kopie durch den Datei-Split
+- [Phase 184]: 184-06: Kein weiterer Datei-Split noetig, da 184-05 page.tsx/merge/page.tsx bereits auf <=450 Zeilen gebracht hatte; 7 Fansub-Umfeld-Dateien (Liste, Create-Flow, Merge-Wizard) auf mergeCssModules(X, sharedStyles) umgestellt, F-12/D-01 damit fuer den gesamten 38-Dateien-Umfang abgeschlossen.
+- [Phase 184]: 184-10: Konsumenten-Scope-Korrektur fuer FansubEdit.module.css-Dead-Code-Audit - 35 tatsaechliche Konsumenten (26 Importer + 9 Prop-Drill-Kinder via styles-Prop) statt der im Plan angenommenen 25-26, dadurch nur 120 statt der geschaetzten ~206 Klassen tatsaechlich tot
+- [Phase ?]: 185-01: openapi.yaml blieb unveraendert (D-01) - nur die veraltete Testerwartung für cover_image's required-Status wurde korrigiert, da der Contract seit 182-03 bereits korrekt ist
+- [Phase 185]: 185-02: Widen-then-narrow search_path (isolated schema, public) around the Phase-139 migration-chain run instead of relaxing the openPhasePostgres safety guard, since creating public.unaccent only in public breaks migration 0140's own unqualified call.
+- [Phase 185]: D-04: candidates-Liste in ResolveMigrationsDir nur umgekehrt (deepest-first), nicht neu konstruiert
+- [Phase 185]: runner.go-Split per automatisiertem Funktionskoerper-Diff verifiziert statt nur Testlauf
+- [Phase 185-04]: D-03a resolved: Jellyfin-Preview-EOF-Cluster reproduziert deterministisch auf Debian UND Alpine -> echter Testfixture-Bug (hydrateJellyfinFolderDisplayNames-Batchcall), nicht Alpine-spezifisch. — Beide Images liefen je zweimal identisch rot vor dem Fix und identisch gruen nach dem Fix; 185-11s Image-Wahl wird dadurch nicht erzwungen.
+- [Phase 185]: D-03b: phase134MatrixBaseURL/phase134MatrixKCBase wurden zu vars (envOrDefault aus TEAM4S_PHASE134_MATRIX_BASE_URL/TEAM4S_PHASE134_MATRIX_KC_BASE), mit den bisherigen Host-IP-Werten als Fallback — ermoeglicht Ausfuehrung der 9-Test-Matrix in containerisierten Test-Runnern ohne Host-Netzwerkzugriff, ohne manuelle/lokale Laeufe zu brechen
+- [Phase 185]: searchQueryBypassAllowed auf die vom Auftraggeber-Mandat Punkt 3 mandatierte enge tag/genre-only q-Bypass-Lesart zurückgesetzt (Rule-1-Fix, Commit c02aa7d66-Regression)
+- [Phase 185]: Mirrored migrations 0146 (role_definitions.color_key/icon_key) and 0160 (role_definitions.reserved) as additive ALTER TABLE columns in the Phase-135 fixture instead of applying either migration file in full, because 0146 needs action_definitions/app_users/fansub_groups rows and 0160's INSERT needs a UNIQUE constraint the minimal role_capabilities stand-in deliberately omits.
+- [Phase 185]: 185-08: fixed two additional same-class CacheLoader stub gaps (ActionReleaseVersionMediaHighlight, ActionReleaseVersionNotesViewAll) beyond the plan's named Reorder fix, under deviation Rule 1
+- [Phase 185]: Provisioned team4s_relations_test via pg_dump --schema-only of team4s_v2 + restore (no database matching the fixture's required name pattern existed); never touched team4s_v2
+- [Phase 185]: ListReleaseVersionMedia's uploader_identity join also needed users.username beyond the plan's named app_users columns (Rule 3 completion of the sibling fixture pattern)
+- [Phase 185]: Fixed a self-introduced sibling regression in release_version_media_title_test.go and release_detail_public_repository_cursor_display_url_test.go, which redundantly re-added columns the shared fixture now provides (Rule 1 bugfix)
+- [Phase 185-10]: SubmitClaim/SearchHistoricalMembers/VerifyClaim read/write members.profile_status/user_id/noindex/profile_visibility/updated_at and app_users.legacy_user_id, none created by the shared Phase-137 fixture by default -- added via a local, FK-free ensureMemberClaimsBehaviorColumns helper scoped to member_claims_repository_test.go.
+- [Phase 185-10]: member_claims_repository_test.go removed from LegacyAllowedSubstringTestFiles (34 -> 33 entries); TestNoNewSourceSubstringTests stays green; the other 33 files (D-06) left untouched.
+- [Phase 185]: 185-11: test-backend.sh database naming -- always append a random run-scoped suffix to every throwaway DB name except TEAM4S_PHASE134_TEST_DSN (exact-match-only) and TEAM4S_PHASE150_04_TEST_DSN (shares PHASE150's base name), discovered empirically via 3 live dry runs
+- [Phase 185]: 185-11: 10 of 23 throwaway databases need a read-only pg_dump --schema-only clone of team4s_v2 (volles-Schema fixtures), per CONTEXT.md's Risiken section -- missing from the plan's action text, added as Rule-2 fix
+- [Phase 185]: 185-11: Phase-134-Matrix cluster (9 tests) wired up via scripts/provision-phase134-matrix-db.sh + container-network env vars; remaining red result traced to a pre-existing external Keycloak dev-account credential issue, out of scope for this plan
+- [Phase 185]: 185-12: Behoben wurden drei reale Blocker (fehlende Keycloak-Dev-Accounts, veraltetes Docker-Image, veraltete Sanitizer-src-Regex), um beide Testsuiten zweimal hintereinander gruen zu bekommen und D-07s Abschlusskriterium zu erfuellen
+
+### Pending Todos
+
+- Eleven pending todo files include the future project-wide member media gallery; it is explicitly outside Phase 142.
+- The public-member params/UI todo spans contract and visual work and must be reconsidered during Phase 130 and Phase 133 planning rather than tagged misleadingly to one phase.
+
+### Blockers/Concerns
+
+- No blocker prevents discussion or planning of Phase 128.
+- Existing staged/unstaged frontend work and untracked recovery evidence belong to the user and must remain untouched.
+- Health warnings for repository-local `DECISIONS.md` and `RETROSPECTIVE.md` conflict with local Team4s documentation policy and are not deletion candidates.
+- Before any migration, inspect the current migration chain and stop if multiple untracked migrations exist.
+- internal/handlers package tests: ~20 tests across ~10 files (admin_content_anime_project_notes_test.go and siblings) depend on permissions.roleAllows/RoleAllowsAction but never call permissions.Service.LoadCache, so they always observe a nil cache and deny/return false regardless of real role_capabilities data. Pre-existing, verified not caused by Phase 137; see .planning/phases/137-central-effective-rights-resolver-overrides/deferred-items.md.
+- 164-07: Task 1 (automated gate + docs/audits/164-performance-gates.md) done, committed 9d4b4951. Task 3's dev harness route built/committed (3cba39a1), zero-backend-request verified. Tasks 2 (live Naruto browser UAT) and 3's live DOM-node-count/mobile-performance measurement (checkpoint:human-verify, gate=blocking) are UNRESOLVED -- require a human with real browser + Chrome DevTools. Phase 164 and plan 164-07 are NOT complete until both are approved. See 164-07-SUMMARY.md for verbatim how-to-verify steps.
+- 185-11: Phase-134-Matrix test cluster (9 tests, internal/repository/phase134_verification_matrix_*test.go) cannot pass until Keycloak dev-account credentials for csubs-leader@team4s.local and sheppert@team4s.local are verified/reset in the live Keycloak realm -- password grant returns invalid_grant. Out of scope for 185-11 (no file it touches can fix this); needs Keycloak admin action before the phase's 0-red-tests acceptance criterion can be met.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 261016-ccw | useDebouncedSearch.ts (4. Debounce-Kopie) auf gemeinsamen useDebouncedValue-Hook umgestellt; Grep-Beweis für Rest-Implementierungen dokumentiert | 2026-10-16 | 9ec04f89c | [261016-ccw-usedebouncedsearch-ts-auf-gemeinsamen-ho](./quick/261016-ccw-usedebouncedsearch-ts-auf-gemeinsamen-ho/) |
+| 261015-gm3 | README neu schreiben (F-11): nicht-technisches deutsches README, technischer Altinhalt wandert nach docs/ENTWICKLUNG.md | 2026-10-15 | fd3a08144 | [261015-gm3-readme-neu-schreiben-f-11-nicht-technisc](./quick/261015-gm3-readme-neu-schreiben-f-11-nicht-technisc/) |
+| 261015-gav | Review and correct docs/operations/mail-delivery.md: verify factual claims about Mailpit/Mailjet SMTP against mailer.go and config.go, fix ASCII-substitution umlauts if present | 2026-10-15 | 5e2d7fc6d | [261015-gav-review-and-correct-docs-operations-mail-](./quick/261015-gav-review-and-correct-docs-operations-mail-/) |
+| 261001-trj | Segment-Bearbeitungspanel auf globale UI-Primitives umstellen (Drawer, Button/Input/Select/Textarea, Token-Farben) | 2026-10-01 | 56b10ebb | [261001-trj-segment-bearbeitungspanel-auf-globale-ui](./quick/261001-trj-segment-bearbeitungspanel-auf-globale-ui/) |
+| 260928-6qr | Gruppen-Media-Upload an globales Upload-UI angeglichen, mit sichtbarem Drag-and-drop und Mehrfachauswahl | 2026-09-28 | pending | [260928-6qr-group-media-upload-ui](./quick/260928-6qr-group-media-upload-ui/) |
+| 260928-6qs | Release-Kopfaktionen und kompakte OP-/ED-Karaoke-Karten | 2026-09-28 | pending | [260928-6qs-release-kopf-und-karaoke-karten](./quick/260928-6qs-release-kopf-und-karaoke-karten/) |
+| 260928-6qt | OP-/ED-Theme-Karten im Release-Detail zweispaltig kompakt | 2026-09-28 | pending | [260928-6qt-theme-karten-zweispaltig](./quick/260928-6qt-theme-karten-zweispaltig/) |
+| 260928-6qu | Release-Metadaten als kompakte Inline-Info mit Icons | 2026-09-28 | pending | [260928-6qu-release-metadaten-inline](./quick/260928-6qu-release-metadaten-inline/) |
+| 260926-6qo | Anime-Create-Quellenlayout mit rechtsbündiger Bibliotheksaktion und gleich hohen Providerkarten | 2026-09-26 | pending | [260926-6qo-anime-create-quellenlayout](./quick/260926-6qo-anime-create-quellenlayout/) |
+| 260926-6qn | Bibliothek-suchen-Button als Einzelaktion wiederhergestellt, redundante Discovery-Karte bleibt entfernt | 2026-09-26 | pending | [260926-6qn-anime-create-bibliothek-button](./quick/260926-6qn-anime-create-bibliothek-button/) |
+| 260926-6qm | Weitere redundante Anime-Create-Quelltexte entfernt, Bibliotheks-Button und funktionale Suche behalten | 2026-09-26 | pending | [260926-6qm-anime-create-source-copy](./quick/260926-6qm-anime-create-source-copy/) |
+| 260926-6ql | Bibliothekskarte entfernt und Anime-Create-Basisdaten an das Edit-Layout angeglichen | 2026-09-26 | pending | [260926-6ql-anime-create-wie-edit-layout](./quick/260926-6ql-anime-create-wie-edit-layout/) |
+| 260926-6qk | Redundante Prozess- und Erklärungstexte auf Anime erstellen entfernt, funktionale Beschriftungen behalten | 2026-09-26 | pending | [260926-6qk-anime-create-copy-aufräumen](./quick/260926-6qk-anime-create-copy-aufräumen/) |
+| 260925-6qj | Relationsbereich auf eine klare Karte ohne verschachtelten Doppelrahmen reduziert | 2026-09-25 | pending | [260925-6qj-relationenkarte-vereinfachen](./quick/260925-6qj-relationenkarte-vereinfachen/) |
+| 260925-6qi | Anime-Basisdaten in logische Feldgruppen für Titel, Klassifikation, Episodenmetadaten und Sprachtitel gegliedert | 2026-09-25 | pending | [260925-6qi-anime-basisdaten-logisch-gruppiert](./quick/260925-6qi-anime-basisdaten-logisch-gruppiert/) |
+| 260925-6qh | Cover- und Banner-Vorschau auf gemeinsame Höhe ausgerichtet | 2026-09-25 | pending | [260925-6qh-asset-vorschau-gleichhoehe](./quick/260925-6qh-asset-vorschau-gleichhoehe/) |
+| 260925-6qg | Doppelte schwarze Jellyfin-Überschrift aus der gemeinsamen Suchkarte entfernt | 2026-09-25 | pending | [260925-6qg-jellyfin-doppelte-ueberschrift](./quick/260925-6qg-jellyfin-doppelte-ueberschrift/) |
+| 260925-6qf | Anime-Edit: Identitätskarte visuell repariert und Kopfbereich mit Schritt-Navigator als eine gemeinsame Karte umgesetzt | 2026-09-25 | b1ca1de6 | [260925-6qf-anime-edit-kopfkarte-und-identitaet](./quick/260925-6qf-anime-edit-kopfkarte-und-identitaet/) |
+| 260924-ksv | GAP-13: EpisodeGroup aus page.tsx in eigene Datei EpisodeImportEpisodeGroup.tsx ausgelagert (page.tsx 599->406 Zeilen); bei Episoden mit genau einer Datei erscheinen Dateiname (fett/klein) und Ordnerpfad (gedaempft) jetzt rechts neben dem Titelfeld in der Headerzeile statt dupliziert in der Datei-Zeile darunter (neuer hideFileInfo-Prop auf EpisodeImportMappingRowCard); Mehrdatei-Episoden unveraendert; 167-UAT.md GAP-13 auf resolved gesetzt | 2026-09-24 | 7cb385a3 | [260924-ksv-gap-13-dateiname-und-ordner-rechts-neben](./quick/260924-ksv-gap-13-dateiname-und-ordner-rechts-neben/) |
+| 260925-cyu | Episode-Import-Vorschau automatisch laden, redundante Quellenkarte entfernen und Quellenanzeige auf relevante IDs reduzieren | 2026-09-25 | pending-human-uat | [260925-cyu-episode-import-vorschau-automatisch-lade](./quick/260925-cyu-episode-import-vorschau-automatisch-lade/) |
+| 260925-d8v | Episode-Import-Kopfbereich mit Anime-Titel und Import-Kontext als gemeinsame Karte zusammengeführt | 2026-09-25 | pending-human-uat | [260925-d8v-episode-import-kopfbereich-als-eine-geme](./quick/260925-d8v-episode-import-kopfbereich-als-eine-geme/) |
+| 260925-dg5 | Mapping-Workbench: Aktionen rechtsbündig, Episodentitel als normales Feld mit vorbereiteter Sprach-Auswahl, Dateiname/Pfad zurück in die Mapping-Zeile | 2026-09-25 | pending-human-uat | [260925-dg5-episode-mapping-workbench-titel-und-akti](./quick/260925-dg5-episode-mapping-workbench-titel-und-akti/) |
+| 260925-g7s | Mapping-Zeile bereinigt: doppelten Ordnerpfad und Vorschlagslabel entfernt, direkte Bestätigen/Überspringen-Aktionen ergänzt | 2026-09-25 | pending-human-uat | [260925-g7s-episode-mapping-zeile-pfad-und-vorschlag](./quick/260925-g7s-episode-mapping-zeile-pfad-und-vorschlag/) |
+| 260925-gvn | Echte fünfspaltige Überschriftenzeile für Dateiname, Gruppe, Episode, Version und Aktionen ergänzt | 2026-09-25 | pending-human-uat | [260925-gvn-episode-mapping-spaltenueberschriften-er](./quick/260925-gvn-episode-mapping-spaltenueberschriften-er/) |
+| 260925-gyd | Versionsspalte der Mapping-Zeile auf kompakte 100px für Werte wie v1 bis v10 reduziert | 2026-09-25 | pending-human-uat | [260925-gyd-episode-mapping-version-spalte-kompakt-m](./quick/260925-gyd-episode-mapping-version-spalte-kompakt-m/) |
+| 260925-gzu | Gruppenaktionen reduziert: Buttons „Leeren“ und „Episode“ entfernt, Chip-x sowie Bereichsaktionen behalten | 2026-09-25 | pending-human-uat | [260925-gzu-episode-mapping-gruppenaktionen-reduzier](./quick/260925-gzu-episode-mapping-gruppenaktionen-reduzier/) |
+| 260925-hya | Gruppenspalte näher an Dateiname gerückt und Suchfeld, Als Chip, Ab hier sowie Ab hier entfernen in einer Bedienzeile zusammengeführt | 2026-09-25 | pending-human-uat | [260925-hya-episode-mapping-gruppenaktionen-in-einer](./quick/260925-hya-episode-mapping-gruppenaktionen-in-einer/) |
+| 260925-i0w | Workbench-Hinweistext entfernt, Episodentitel linksbündig und Episode/Version gleich breit gemacht | 2026-09-25 | pending-human-uat | [260925-i0w-episode-mapping-workbench-text-und-feldg](./quick/260925-i0w-episode-mapping-workbench-text-und-feldg/) |
+| 260924-i0a | GAP-11 (Blocker): Mapping-Apply akzeptiert jetzt Dateien aus JEDEM verbundenen Jellyfin-Ordner (nicht nur dem Haupt-Ordner) an allen drei Stellen (Import-Apply, Editor-Relink, Editor-Datei-Voransicht) ueber eine neue geteilte Mehrfach-Ordner-Besitzpruefung, Fail-closed fuer fremde Ordner/Serien unveraendert; GAP-12: Fehlschlag von "Mapping anwenden" zeigt jetzt zusaetzlich einen role="alert"-Hinweis direkt beim Button mit Scroll/Fokus; 167-UAT.md GAP-11/GAP-12 auf resolved gesetzt | 2026-09-24 | 80a47973 | [260924-i0a-gap-11-gap-12-mapping-apply-schlaegt-feh](./quick/260924-i0a-gap-11-gap-12-mapping-apply-schlaegt-feh/) |
+| 260924-b7s | Phase-167-Live-UAT-Fixes: Ordnerauswahl mit lesbaren Namen/Pfaden statt roher Jellyfin-IDs (GAP-01), sichtbarer Hinweis bei erkanntem aber unzugeordnetem Fansub-Kuerzel (GAP-02), Einteiler-Vorschlag fuer einzige nummernlose Datei bei genau einer kanonischen Episode (GAP-03); 167-UAT.md GAP-01..GAP-03 auf resolved gesetzt | 2026-09-24 | 8b8b6e28 | [260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03](./quick/260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03/) |
+| 260924-fec | Fansub-Gruppen-Chip zeigt aufgeloesten Namen statt roher ID (GAP-08), Mapping-Zeile im Episoden-Import in Drei-Spalten-Layout (Info/Felder/Aktionen) mit @/components/ui-Primitives umgebaut, stapelt auf schmalen Bildschirmen vertikal (GAP-09), Einteiler-Vorschau befuellt Platzhaltertitel mit dem Anime-Titel vor (GAP-10); 167-UAT.md GAP-08..GAP-10 auf resolved gesetzt | 2026-09-24 | 00b5fff7 | [260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru](./quick/260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru/) |
+| 260924-cgg | Verschachteltes form-Element im Alias-Bereich der Fansub-Gruppen-Bearbeitung entfernt (GAP-04, Hydration-Fehler in FansubAliasSection.tsx behoben, Enter-Verhalten via onKeyDown erhalten); 167-UAT.md GAP-04 auf resolved gesetzt | 2026-09-24 | 2d345fad | [260924-cgg-gap-04-verschachteltes-form-element-im-a](./quick/260924-cgg-gap-04-verschachteltes-form-element-im-a/) |
+| 260819-ipu | Duplikat-Guard beim historischen Mitglied hinzufuegen (Phase-135-Nachtrag, Findings #27/#28) | 2026-08-19 | df1033bf | [260819-ipu-duplikat-guard-beim-historischen-mitglie](./quick/260819-ipu-duplikat-guard-beim-historischen-mitglie/) |
+| 260819-lm5 | Phase-117-Nachtrag: geteilte Karaoke-Segmente ueber Folgen zuweisen + Per-Folge-Startzeit-Verschiebung im UI erreichbar machen, inkl. Bereich-Auto-Zuweisung + Korrektheits-Fix am Pro-Folge-"verschoben"-Marker (5 Live-UAT-Runden, siehe 117-10-POST-HOC-CLOSURE.md) | 2026-08-19 | 4c30cb7c | [260819-lm5-phase-117-geteilte-karaoke-segmente-uebe](./quick/260819-lm5-phase-117-geteilte-karaoke-segmente-uebe/) |
+| 260820-600 | Phase-117-Nachtrag: Folgen-Navigation im Contributor-Editor (Segment-Pillen-Pager Vorherige/Naechste Folge, aktiver Tab bleibt per ?tab= erhalten), inkl. Redesign Variante A -> Variante B nach Live-UAT-Feedback vor Freigabe | 2026-08-20 | 7f5815b4 | [260820-600-folgen-navigation-im-contributor-editor-](./quick/260820-600-folgen-navigation-im-contributor-editor-/) |
+| 260823-j4n | Phase-137-Nachtrag: GAP-06 abschliessen - Contribution Roles bleiben override-blind (Fall B), Dokumentation in permissions.go, 137-CONTEXT.md, 137-UAT.md, 137-12-SUMMARY.md und DECISIONS.md aktualisiert, keine Verhaltensaenderung | 2026-08-23 | cba0de3e | [260823-j4n-gap-06-dokumentation-contribution-roles-](./quick/260823-j4n-gap-06-dokumentation-contribution-roles-/) |
+| 260823-mt8 | Fix PlatformAdminGate: children unmount on token refresh | 2026-08-23 | 37859778 | [260823-mt8-fix-platformadmingate-children-unmount-o](./quick/260823-mt8-fix-platformadmingate-children-unmount-o/) |
+| 260823-s7v | Split UserGroupRightsTab.tsx (716 -> 269 Zeilen) in 5 Geschwisterdateien - reine Struktur-Refaktorierung ohne Verhaltensaenderung, 450-Zeilen-Limit aus CLAUDE.md eingehalten | 2026-08-23 | 7039195b | [260823-s7v-split-frontend-src-app-admin-users-tabs-](./quick/260823-s7v-split-frontend-src-app-admin-users-tabs-/) |
+| 260823-u1j | Fix UAT-138-A horizontaler Seitenueberlauf (394px, Rollen & Rechte-Tab): grid-template-columns: minmax(0, 1fr) auf .card/.tabs in ui.module.css ergaenzt, damit implizite Grid-Spalte nicht mehr auf Breite eines breiten Kind-Elements (Rechte-Tabelle) waechst | 2026-08-23 | dc4f5726 | [260823-u1j-fix-uat-138-a-horizontaler-seitenueberla](./quick/260823-u1j-fix-uat-138-a-horizontaler-seitenueberla/) |
+| 260823-ucl | Nachtrag UAT-138-A: verbleibender Seitenueberlauf (394px) durch .accordionRoot in ui.module.css - gleiche implizite Grid-Track-Falle wie .card, grid-template-columns: minmax(0, 1fr) ergaenzt; alle uebrigen display:grid-Regeln erneut evidenzbasiert auditiert | 2026-08-23 | 59f7173f | [260823-ucl-nachtrag-uat-138-a-accordionroot-in-ui-m](./quick/260823-ucl-nachtrag-uat-138-a-accordionroot-in-ui-m/) |
+| 260823-w9y | Fix UAT-138-C: rohe technische Codes (Rollencodes, Capability-Actioncodes, "Benutzer #<id>") durch bestehende deutsche Labels aus RoleCapabilityMatrix/app_users.display_name ersetzt - Rechteeditor, Entzug-Dialog, Aenderungen-Uebersetzung, plus additive actor_display_name/target_display_name-Vertragserweiterung fuer GET /admin/changes (D-33) | 2026-08-23 | 66164839 | [260823-w9y-fix-uat-138-c-rohe-technische-codes-in-u](./quick/260823-w9y-fix-uat-138-c-rohe-technische-codes-in-u/) |
+| 260823-wrz | Fix UAT-138-G: Informationsdichte im Benutzer-Rechte-Tab - EmptyState bekam echte chrome-freie variant="inline"; UserGlobalRolesTab.tsx verlor den separaten "Aktive Rollen"-Block; GroupSection.tsx verlor die Card-Chrome (jetzt <section>, data-group-section erhalten); neue Hoehe bis zur ersten Rechtezeile auf ~519px geschaetzt (Engineering-Schaetzung, kein Live-Messwert); UAT-138-A-Fix quellcode-bestaetigt unangetastet | 2026-08-23 | e33de150 | [260823-wrz-informationsdichte-im-benutzer-rechte-ta](./quick/260823-wrz-informationsdichte-im-benutzer-rechte-ta/) |
+| 260824-ek3 | GAP-04/GAP-05 (138-HUMAN-UAT.md): Rollen und Capabilities zu einem Rollen-Arbeitsbereich unter /admin/roles zusammengefuehrt (Sketch 005, Nutzerentscheidung) - RoleRail.tsx (vollflaechig klickbare, registry-getriebene Liste, aria-current), RolesClient.tsx/RoleDetailPanel.tsx (Tabs Inhaber/Standardrechte, Deep-Link-Scroll), /admin/role-capabilities als serverseitige Weiterleitung, AdminMainNav/admin-page/resolveRoleLink umgestellt, D-01/D-08-Nachtrag datiert in 138-CONTEXT.md/138-HUMAN-UAT.md dokumentiert | 2026-08-24 | ec512897 | [260824-ek3-rollen-und-capabilities-zu-einem-rollen-](./quick/260824-ek3-rollen-und-capabilities-zu-einem-rollen-/) |
+| 260824-ike | Drei Live-Defekte im Rollen-Arbeitsbereich (Nachtrag zu 260824-ek3) behoben: RoleRail.tsx verlor das redundante Pro-Zeile-roleKindLabel-Badge (Ellipse bei 6/18 Namen); neue CountGroupRoleHolders-Bulk-Query + additives group_holder_count-Feld (Go/YAML/TS) beheben den Rail-vs-Detail-Panel-Widerspruch bei Gruppenrollen-Inhaberzahlen; resolveRoleLink()/GroupRolesSection.tsx/RolesClient.tsx/role-capabilities-Weiterleitung wurden um einen optionalen tab-Parameter erweitert, damit "Was darf diese Rolle?" immer den Standardrechte-Tab oeffnet statt des rollenart-abhaengigen Defaults | 2026-08-24 | 787df9f3 | [260824-ike-drei-live-defekte-im-rollen-arbeitsberei](./quick/260824-ike-drei-live-defekte-im-rollen-arbeitsberei/) |
+| 260824-nmt | Veraltete Rollen-Fixture in MemberCurrentProjectsSection.test.tsx repariert (Registry-Umstellung Altlast): color_key nutzte erfundene Kategorienamen ('technical'/'creative'/'language') statt echter ROLE_COLOR_KEYS-Hexwerte aus roleCatalog.ts; roleCatalog.ts unveraendert. Befund-Korrektur: von den 6 urspruenglich gemeldeten Testfehlern hatte nur 1 diese Ursache - die uebrigen 5 (MemberBadgeChain.test.tsx x4, MembershipsSection.test.tsx x1) sind unrelated (Badge-Special-Gruppe, CSS-Grid) und bleiben bewusst unangetastet | 2026-08-24 | 848f4bb8 | [260824-nmt-veraltete-rollen-fixtures-in-den-profil-](./quick/260824-nmt-veraltete-rollen-fixtures-in-den-profil-/) |
+| 260914-ddc | Profil: Avatar-/Banner-Cropper direkt aus jedem Tab sichtbar; Portal und Fokus-Rückgabe, 81 Tests und 24 Browserfälle grün | 2026-09-14 | 8dc5c8fe | [260914-ddc-profile-image-dialogs](./quick/260914-ddc-profile-image-dialogs/) |
+| 260914-dov | Release-Medien: Kategorie öffnet Upload direkt; doppelte Uploadbuttons und leere Card entfernt; 63 Tests und 36 Browserfälle grün | 2026-09-14 | b819698f | [260914-dov-release-category-upload](./quick/260914-dov-release-category-upload/) |
+| 260914-dzk | Release-Mehrfachupload: Titel/Text pro Bild, eine Vorschau, gezielter Retry;128 Frontendtests, fokussierte PostgreSQL-/Browserchecks grün; additive Migration0163, Human-UAT abgenommen 2026-09-15 | 2026-09-14 | 2f2d964f | [260914-dzk-release-media-per-file-metadata](./quick/260914-dzk-release-media-per-file-metadata/) |
+| 260914-f3k | Release-Medien: gemeinsame Galerie aller Kategorien mit Kategorie je Bild;93 Tests/36 Browserfälle grün | 2026-09-14 | d86083bd | [260914-f3k-release-media-all-images-gallery](./quick/260914-f3k-release-media-all-images-gallery/) |
+| 260914-fc1 | Segment-UAT: unabhängige OP-/ED-Plätze, atomischer Konfliktschutz und tatsächliche Zuordnungen; 76 Backend-/138 Frontendprüfungen, Human-UAT abgenommen 2026-09-15 | 2026-09-14 | 646433be | [260914-fc1-segment-assignment-slot-conflicts](./quick/260914-fc1-segment-assignment-slot-conflicts/) |
+| 260914-gif | Release-Datumsvalidierung und nicht blockierende Folgehinweise; responsive Mediengalerie mit 2/3/4 Spalten; 103 Frontend-/84 Backendprüffälle und 15 Browserfälle bestanden; Altfehler offen, Human-UAT abgenommen 2026-09-15 | 2026-09-14 | b62e777e | [260914-gif-release-dates-and-media-gallery](./quick/260914-gif-release-dates-and-media-gallery/)|
+
+| 260825-jc0 | Admin start page navigation cleanup | 2026-08-25 | pending | [260825-jc0-admin-startseite-von-redundanten-benutze](./quick/260825-jc0-admin-startseite-von-redundanten-benutze/) |
+| 260825-svs | Regression aus Phase 140 beheben: fehlende getReviewDelegations Export im api-Mock von UserGroupRightsTab.test.tsx nachgeruestet (test-only, keine Verhaltensaenderung) | 2026-08-25 | 6cddcb75 | [260825-svs-regression-aus-phase-140-beheben-fehlend](./quick/260825-svs-regression-aus-phase-140-beheben-fehlend/) |
+| 260826-6vu | Phase-140-Nachtrag: drei Testluecken aus 140-VERIFICATION.md geschlossen (AdminReviewDelegationHandler HTTP-Tests, LoadDelegationSnapshot-Repository-Tests, CapabilityDetailRow-Regressionstest fuer die Option-(d)-Grant/Deny-Asymmetrie) - reine Testarbeit, kein Produktionscode geaendert; Re-Verifikation: 0/3 Luecken offen, Status human_needed (ein vorbestehender manueller UX-Check aus 140-VALIDATION.md) | 2026-08-26 | 5545e05d | [260826-6vu-die-drei-testluecken-aus-140-verificatio](./quick/260826-6vu-die-drei-testluecken-aus-140-verificatio/) |
+| 260826-k66 | Redundanten "Capabilities"-Nav-Eintrag aus AdminMainNav.tsx entfernt (Phase-138-Nachtrag, Sketch 005 D-01/D-08): /admin/role-capabilities ist seit 2026-08-24 nur noch serverseitige Weiterleitung auf /admin/roles (Standardrechte-Tab), Hauptnav zeigte zwei Eintraege auf dasselbe Ziel; Redirect-Route unangetastet, Test aktualisiert (Abwesenheit statt Anwesenheit) | 2026-08-26 | 615365b2 | [260826-k66-entferne-den-ueberfluessigen-nav-eintrag](./quick/260826-k66-entferne-den-ueberfluessigen-nav-eintrag/) |
+| 260826-l5l | Restore-Defekt in f_unaccent behoben (Befund 1, 2026-08-26-keycloak-upgrade-und-voll-reset.md): Migration 0152 qualifiziert Funktionsaufruf+Dictionary mit public., ohne SET search_path (Planner-Inlining bleibt erhalten); reales pg_dump/pg_restore-Roundtrip von team4s_v2 lief mit 0 Fehlern (vorher 89), alle 5 unaccent_trgm-Indizes weiterhin gueltig, kein Rebuild noetig | 2026-08-26 | 7990f19d | [260826-l5l-behebe-den-restore-defekt-in-f-unaccent-](./quick/260826-l5l-behebe-den-restore-defekt-in-f-unaccent-/) |
+| 260827-de4 | Visible bulk fansub-group assignment verified; refresh-only episode actions now proceed through the central API refresh seam. | 2026-08-27 | 735d35cd | [260827-de4-visible-bulk-fansub-group-assignment](./quick/260827-de4-visible-bulk-fansub-group-assignment/) |
+| 260827-bhp | Additive Bulk-Fansub-Gruppenzuweisung fuer vorhandene Release-Versionen ausgewaehlter Folgen; Folgen ohne Release-Version werden uebersprungen und gemeldet. | 2026-08-27 | d3bd1c2b | [260827-bhp-add-bulk-fansub-group-assignment-for-sel](./quick/260827-bhp-add-bulk-fansub-group-assignment-for-sel/) |
+
+| 260901-historical-role-catalog | Historische Rollen-Auswahl vervollständigt: Technik-Admin, GFX, Karaoke-FX und Administration werden über den zentralen `group_history`-Katalog dokumentiert; reversible Migration und Regressionstests ergänzt. | 2026-09-01 | pending | [260901-historical-role-catalog](./quick/260901-historical-role-catalog/) |
+| 260901-jk5 | Hygiene-Nacharbeit zu Phase 142 (mechanisch, keine Verhaltensaenderung): gofmt fuer 15 im Bereich 4891109a..HEAD verdriftete Go-Dateien, zwei React-Compiler set-state-in-effect-Fehler per queueMicrotask entschaerft (FansubEditClient.tsx, EpisodeVersionEditorPage.tsx), Contract-Permission-Korrektur (admin-fansub-anime-project-timeline-update: anime_fansub_project.timeline.update statt fansub_group.notes.write), Leerzeile in admin-fansub-anime-contributions-create entfernt, v1.4-MILESTONE-AUDIT.md korrigiert (11 statt 13 Lint-Fehler, 2 davon aus Commit 0481b671 Phase-142-implicated, vitest-Suite nie am Gate ausgefuehrt - 16 failed Testdateien/58 failed Tests, als Phase-143-Schuld dokumentiert) | 2026-09-01 | 77d767ab | [260901-jk5-hygiene-nacharbeit-zu-phase-142-gofmt-fo](./quick/260901-jk5-hygiene-nacharbeit-zu-phase-142-gofmt-fo/) |
+| 260901-la2 | Fix phase136 test repo-root helper and correct stale STATE.md frontmatter: phase136RepositoryRoot in phase136_narrow_role_defaults_enforcement_test.go umbenannt zu phase136BackendRoot, neuer phase136RepoRoot-Helper fuer den Migrations-Read ergaenzt (TestPhase136NarrowRoleDefaultsSeedToHandlerContract war seit Phase 136 dauerhaft rot); STATE.md-Frontmatter und Current-Position/Session-Continuity-Abschnitte auf tatsaechlichen Stand (v1.4: 7/8 Phasen abgeschlossen, Phase 143 ready to plan, 84/84 Plaene) korrigiert | 2026-09-01 | fa023325 | [260901-la2-fix-phase136-test-repo-root-helper-and-c](./quick/260901-la2-fix-phase136-test-repo-root-helper-and-c/) |
+| 260903-cjk | RVM-Cleanup-Endlosschleife behoben: HardDeleteRVMAndAsset loeschte nie die release_version_media_review_lifecycle-Zeile vor dem Hard-Delete (Migration-0135-RESTRICT-FK), wodurch der periodische Cleanup seit 2026-09-02 18:55 alle 10 Minuten 83+ mal an Relation 10 scheiterte; DELETE in derselben Transaktion ergaenzt, RED/GREEN-Postgres-Test, notes-Zweig bestaetigt unbetroffen (nur UPDATE, nie DELETE), live gemessen: Relation 10 nach Redeploy in beiden Tabellen count=0, Relation 11 (live UAT) unangetastet | 2026-09-03 | 448a4b02 | [260903-cjk-endlosschleife-im-rvm-cleanup-beheben-li](./quick/260903-cjk-endlosschleife-im-rvm-cleanup-beheben-li/) |
+| 260903-czh | has_own_release_work zaehlte abgelehnte eigene Notizen/Medien faelschlich als erledigte Arbeit und warf die Folge aus dem Dashboard-Achtung-Bereich; ListByMemberIDWithProposalFields um denselben lifecycle-bewussten LEFT-JOIN-Filter (review_state <> 'rejected') ergaenzt, den listMemberProjectReleaseVersions bereits korrekt nutzt - 4 neue Postgres-Regressionstests (rejected/pending Notiz, rejected/confirmed Medium), attentionHelpers.ts unangetastet (Frontend-Tests bestaetigt unbetroffen); Live-Messung zeigt has_own_release_work=true fuer app_user 4/Release 48, weil zwischenzeitlich eine zweite, unabhaengige bestaetigte Notiz entstand - Ziel-Bugszenario isoliert nachgewiesen behoben (media-only EXISTS=false), Relation 11 (live UAT) unangetastet | 2026-09-03 | 07a8c88d | [260903-czh-has-own-release-work-abgelehnte-arbeit-d](./quick/260903-czh-has-own-release-work-abgelehnte-arbeit-d/) |
+| 260903-dth | Dashboard-Nachtrag zu 260903-czh: has_own_release_work bleibt binaer, wenn NEBEN abgelehnter Arbeit auch bestaetigte Arbeit existiert (Notiz 23 confirmed + Medium 11 rejected), verschwindet die Folge weiterhin aus dem Achtung-Bereich; zwei neue Flags has_own_rejected_notes/has_own_rejected_media (Vorlage aus anime_contributions_member_project_repository.go verbatim uebernommen), TS-Typ ergaenzt, filterAttentionContributions haelt betroffene Beitraege jetzt sichtbar, AttentionSection.tsx zeigt "Überarbeitung nötig"-Badge (echtes ö, @/components/ui Badge, Prioritaet vor "Neu"-Badge) mit Link in die Release-Arbeitsflaeche; 6 neue Backend- + 6 neue Frontend-Regressionstests; live gemessen fuer app_user 4/member 5/Release 48: has_own_release_work=true UND has_own_rejected_media=true gleichzeitig, Relation 11 vorher/nachher byte-identisch unangetastet | 2026-09-03 | 3f4ca6b1 | [260903-dth-dashboard-abgelehnte-arbeit-als-ueberarb](./quick/260903-dth-dashboard-abgelehnte-arbeit-als-ueberarb/) |
+| 260903-flw | CR-01 behoben (Altlast aus .planning/notes/2026-09-02-altlasten-cr01-wr02.md, nicht aus Phase 144): runUpload in useReleaseVersionMedia.ts fing Fehler ab ohne weiterzuwerfen, dadurch konnte startUpload nie rejecten und der Erfolgs-Toast "Upload abgeschlossen." lief bei jedem Fehlschlag (hart und bei HTTP-200-mit-status-failed) unconditional; runUpload wirft jetzt weiter (wie patchItem/replaceItem/deleteItem/reorderItems) und liefert ein lokal aufgebautes UploadRunResult { items, allSucceeded }, handleUploadClick zeigt Toast/schliesst Drawer nur noch wenn alle Dateien 'ready' sind, neuer handleRetryClick-Wrapper faengt Retry-Ablehnungen ab (keine unhandled rejection mehr); StrictMode-rein (outcomes als lokale const, keine Ref-Mutation im Updater); 8 neue Tests, volle Suite gemessen: vorher 288/1 failed/2179 Tests, nachher 289/0 failed/2187 Tests (genau +8); CR-01 im Altlasten-Dokument als behoben markiert, WR-02 dort unangetastet | 2026-09-03 | d52675a1 | [260903-flw-cr-01-fehlgeschlagene-uploads-duerfen-ni](./quick/260903-flw-cr-01-fehlgeschlagene-uploads-duerfen-ni/) |
+| 260903-gf0 | Teststil-Konvention dokumentiert (nur Doku, keine Testdatei/kein Produktionscode angefasst): neuer Abschnitt "### Teststil" in CLAUDE.md unter ## Conventions (nach Sprachqualitaet/Frontend-UI, vor dem GSD:conventions-end-Marker) verbietet os.ReadFile einer .go-Quelldatei plus strings.Contains als Verhaltensnachweis, verlangt echte Ausfuehrung per httptest+Fake-Repository, erlaubt Abwesenheitspruefungen und SQL-Migrationsdateien als Ausnahme, und stellt klar dass die closest-analog-Regel diese Regel nie ueberstimmen darf; WR-02-Abschnitt in .planning/notes/2026-09-02-altlasten-cr01-wr02.md um den nachgemessenen echten Umfang erweitert (49 Dateien, 236 Assertions, drei Pakete, Beleg fuer aktive Ausbreitung via der neuen 144er Replace-Testdatei), CR-01-Abschnitt dort byte-identisch belassen | 2026-09-03 | ec4be553 | [260903-gf0-teststil-konvention-verhalten-testen-sta](./quick/260903-gf0-teststil-konvention-verhalten-testen-sta/) |
+| 260903-gqt | Planungs-Buchhaltung nachgetragen (5 gezielte Doku-Commits, kein Code/Test angefasst): ROADMAP.md v1.4-Progress-Tabelle um Phase 143 (19/19) und 144 (8/8) ergaenzt; v1.4-MILESTONE-AUDIT.md auf 9/9 Phasen aktualisiert, Phase-142-Testschuld (16 failed/58 failed) als von Phase 143 abgetragen dokumentiert (289 Dateien/2183 Tests/0 Fehler, frisch gemessen), Phase-144-Gap-Runde plus die vier waehrend der UAT gefundenen Quick-Tasks 260903-cjk/czh/dth/flw vermerkt; STATE.md-Frontmatter last_updated korrigiert; neue Notiz .planning/notes/2026-09-03-offene-fragen-143-144.md haelt Phase 117 als geloest (Archiv unter .planning/milestones/, Luecke ueber Quick-Task 260819-lm5 geschlossen) und die M3/M5/M6/M7-Pruefbericht-Referenz als echte offene Frage fest (Quelldokument existiert nicht im Repo); DECISIONS.md-Eintrag 2026-09-03 fixiert die Projektlisten-isDone-Entscheidung (Beitragsvollstaendigkeit statt Ueberarbeitungsbedarf, ausdruecklich kein Defekt, ersetzt die "doppelt zaehlen"-Begruendung aus dem Handoff) | 2026-09-03 | 6478767a | [260903-gqt-planungs-buchhaltung-phasen-143-144-nach](./quick/260903-gqt-planungs-buchhaltung-phasen-143-144-nach/) |
+| 260904-kwf | Falsche Verlinkung im Admin-Medien-Tab behoben: Button "Release-Medien oeffnen" in UserMediaTab.tsx verlinkte auf den Mitwirkenden-Workspace (/me/releases/.../workspace), der ein verifiziertes Member-Profil voraussetzt und fuer reine Plattform-Admins (z. B. app_user_id=1, admin@team4s.de) mit 404/fehlendem Notizen-Tab scheiterte; href auf den bereits vollstaendigen Admin-Editor /admin/episode-versions/.../edit umgestellt (gleicher getEpisodeVersionEditorContext-Endpunkt, gleiche Version-ID), Test in UserMediaTab.test.tsx nachgezogen; die vier Mitwirkenden-seitigen Workspace-Links bewusst unangetastet gelassen | 2026-09-04 | f6a24225 | [260904-kwf-falsche-verlinkung-im-admin-medien-tab-p](./quick/260904-kwf-falsche-verlinkung-im-admin-medien-tab-p/) |
+| 260910-s1b | RFC 7233 Range-Unterstuetzung fuer die Medien-Route ergaenzt (schliesst T-154-F-01/deferred-items.md): parseByteRange-Helfer parst einzelne bytes=-Ranges (geschlossen/offen/Suffix), 206-Antworten streamen per fs.createReadStream+Readable.toWeb statt readFile+Slice, 416 mit Content-Range: bytes */<size> ohne Dateiinhalt bei unerfuellbaren Ranges, Accept-Ranges: bytes neu auf allen Erfolgsantworten, resolvedBase-Pfadpruefung separatoraware gehaertet; isAnimatedWebpSource liest den Body nur noch bei status===206 (WR-01, 154-REVIEW.md) statt bei jedem ok:true. Live-Beweis gegen timers echten animierten Avatar: vorher 200/411828 Bytes, nachher 206/64 Bytes mit Content-Range, plus 416 fuer eine unerfuellbare Range auf derselben Datei. Volle Vitest-Suite 296/1 uebersprungen Dateien, 2285/3 todo Tests, 0 Fehler; Produktionsbuild exit 0. | 2026-09-10 | 7ec8981f | [260910-s1b-http-range-unterst-tzung-f-r-die-medien-](./quick/260910-s1b-http-range-unterst-tzung-f-r-die-medien-/) |
+| 260915-dws | Jellyfin-Ausfall darf den Episode-Version-Editor nicht mehr blockieren: resolveEpisodeVersionFolderPath toleriert jetzt jede Art Jellyfin-Upstream-Fehler (401/403/5xx/Timeout/Netzwerk) statt sie als 500 durchzureichen (Vorbild: resolveEpisodeVersionDuration), faellt auf anime.folder_name zurueck und meldet ein additives jellyfin_enrichment_degraded (Go-Modell, openapi.yaml, TS-Typ); scanEpisodeVersionFolder degradiert bei derselben Stoerung sauber auf 502 statt 500; neues Admin-Editor-Hinweis-Panel JellyfinEnrichmentNotice.tsx zeigt deutschen Text mit echten Umlauten nur bei degraded=true. RED/GREEN je Task bewiesen (4 neue Backend-Subtests, 2 neue Frontend-Tests inkl. temporaerer Wiring-Entfernung fuer echten RED-Nachweis); volle Regression: Backend 666/0/37 (0 neu), Frontend 2714 bestanden/2 vorbestehende dokumentierte cssCustomProperties-Fehlschlaege (0 neu), tsc/ESLint ohne neue Fehler. Live-Beweis gegen die real kaputte Episode-Version 27: HTTP 200 mit jellyfin_enrichment_degraded:true, Backend-Log bestaetigt denselben Vorfall unabhaengig; das im Plan referenzierte Fixture-Konto csubs-leader existierte in diesem Keycloak-Realm nicht mehr, echtes Platform-Admin-Konto admin (app_user_id=1) stattdessen verwendet, keine neuen Credentials angelegt. Browser-Visual-UAT des Hinweis-Panels bewusst nicht durchgefuehrt (offener menschlicher Schritt).; Human-UAT abgenommen 2026-09-15 | 2026-09-15 | b0606257, 062ab76c | [260915-dws-jellyfin-ausfall-darf-episode-version-ed](./quick/260915-dws-jellyfin-ausfall-darf-episode-version-ed/) |
+| 260915-m2h | Kapitel als Start/Ende bei Segmenterstellung anbieten, tatsächliche MediaSource-Dateigröße anzeigen; beide Editoroberflächen, sichere Source-Zuordnung und schmale responsive Korrektur. Technisch und Admin-live geprüft; Kapitel-Auswahl am 15.09.2026 vom Nutzer abgenommen. Contributor-/Zoom-/Navigationsgrenzen bleiben dokumentiert. | 2026-09-15 | c7e08f1e, 9d85f8b2, 2cee78c9, 1f3573b0 | [260915-m2h-kapitelhilfe-und-dateigroesse-im-release](./quick/260915-m2h-kapitelhilfe-und-dateigroesse-im-release/) |
+| 260915-ro9 | Zwei TypeScript-Fehler im Next.js-Seitenvertrag behoben: formatEditLoadError aus dem Export der Edit-Seite in eine eigene Datei ausgelagert, PageProps-Default in der Anime-Listenseite entfernt; tsc 0 Fehler, gezielte Vitest-Suiten grün, ESLint ohne neue Befunde, /admin/anime und /admin/anime/1/edit liefern HTTP 200 nach Neustart | 2026-09-15 | 8a6d8080, 4cce9ccc | [260915-ro9-zwei-typescript-fehler-in-admin-anime-ro](./quick/260915-ro9-zwei-typescript-fehler-in-admin-anime-ro/) |
+| 260915-rv3 | Alle 9 react-hooks/set-state-in-effect-Fehler, 1 preserve-manual-memoization-Fehler und 9 exhaustive-deps-Warnungen über 13 Admin-Dateien mit echten Verhaltens-Fixes behoben (async-IIFE, Render-Zeit-Zustandsanpassung, Dependency-Array-Vervollständigung, Ref-Mirror, Destrukturierung/useCallback) - keine eslint-disable-Kommentare; globaler Lint-Stand 13→3 Fehler, Warnungen −9 (328→319); neuer Regressionstest für GroupMemberFormModals.tsx; tsc und 100/100 gezielte Tests grün, Container neu gestartet; AnimeEditWorkspace-Formular und ScreenshotGallery-Lightbox-Tastaturnavigation als offene menschliche Sichtprüfung dokumentiert, nicht als bestanden markiert | 2026-09-15 | ebdc5b14, 71391808, 81098d85, a0b9ec56, 8470ba58, 61aaf4f5, 7ef0bc1d | [260915-rv3-react-hook-lintfehler-und-exhaustive-dep](./quick/260915-rv3-react-hook-lintfehler-und-exhaustive-dep/) |
+| 260916-ako | Jellyfin-MediaSources pro echtem Item/Source-Paar importieren; 38 eindeutige Fixturequellen, zwei Geschwisterquellen gemeinsam live gespeichert; Migration 0166, Auswahl/Editor/Verträge geprüft; keine neue Phasenabnahme | 2026-09-16 | 48e31cf9, 52e34e5b, dfc548a5, c61459bc, 0cda1dd7 | [260916-ako-jellyfin-multiple-media-source-import](./quick/260916-ako-jellyfin-multiple-media-source-import/) |
+| 260918-fmq | GAP-13 (Live-UAT Phase 164, /anime/4): inaktive Fansub-Gruppen-Chips waren weiß auf weiß und unlesbar; feature-lokale Glass-Tokens (--glass-surface/--glass-surface-hover/--glass-border) analog EpisodeGlassCard.module.css ergänzt, aktiver Chip unverändert, eyebrowLabel-Kontrast erhöht; Playwright-Screenshot von /anime/4 bestätigt lesbare Chips ("AnimeOwnage", "Project Messiah"); keine Phase-164-Abnahme | 2026-09-18 | 082fb1f5 | [260918-fmq-gap-13-inaktive-fansub-gruppen-chips-auf](./quick/260918-fmq-gap-13-inaktive-fansub-gruppen-chips-auf/) |
+| 260918-jfs | GAP-14/GAP-15 (Live-UAT Phase 164, /anime/[id]): Fansub-Release-Datumszeile öffentlich auf "Fansub-Release vom TT.MM.JJJJ" umformuliert (episodePreviewFormat.ts + ReleaseDetailHero.tsx, Admin-Formulare unangetastet, Fallback bei fehlendem Datum unverändert); Kommentarbereich und "Mitwirkende Gruppen"-Bereich vollständig von /anime/[id] entfernt (10 verwaiste Dateien gelöscht, getAnimeComments/buildCommentQuery/CommentListParams aus api.ts entfernt, createAnimeComment und GroupContributionBlock.* bewusst erhalten); 120 betroffene Tests grün, tsc/ESLint sauber, Container neu gestartet, live gegen /anime/4 bestätigt (kein "Kommentare"/"Mitwirkende Gruppen"); GAP-14-Wortlaut an anime/4 mangels gesetztem release_date nur per Unit-Test bestätigt, nicht live; keine Phase-164-Abnahme | 2026-09-18 | 51c7b1fb, 903403dc, 202641aa, 21f3a79c, 798e2e5d | [260918-jfs-phase-164-live-uat-fixes-gap-14-gap-15-f](./quick/260918-jfs-phase-164-live-uat-fixes-gap-14-gap-15-f/) |
+| 260920-sad | Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing behoben (useWindowedEpisodePages.ts): loadNext() konsultierte bisher nur die global letzte orderedPageIds-Page statt die fenster-benachbarte bekannte Page, wodurch nach mehrfachem Zurückscrollen und erneutem Runterscrollen eine Scroll-Sackgasse entstand, sobald die globale Tail-Page has_more=false hatte; neue richtungsneutrale Helfer (windowedPageWindow.ts: applyWindowSlide, findAdjacentKnownPageId) unterscheiden jetzt symmetrisch die drei Page-Zustände (Cache-Hit, evicted-aber-per-eigenem-Cursor-nachladbar, wirklich unbekannt) für loadNext UND loadPrevious; next_cursor wird erst konsultiert, wenn keine bekannte Zwischen-Page mehr existiert. 7 neue Pflicht-Regressionstests (Forward→Backward→Forward, Cache-Hit ohne Request, Cache-Miss exakter Cursor-Refetch, has_more=false-Tail-Regression, Frontier-only next_cursor, Listenende ohne Loop, schneller Richtungswechsel ohne Race). Volle Frontend-Suite 0 neue Fehler (nur 2 vorbestehende dokumentierte cssCustomProperties-Fehlschläge), tsc/ESLint sauber, beide Dateien ≤450 Zeilen, Container neu gestartet; Live-Browser-Beweis mit vielen Pages an Naruto (nur 5 Releases) nicht möglich, Nachweis bewusst ausschließlich per Vitest | 2026-09-20 | b03af0fa, 916f48d4 | [260920-sad-bidirektionales-infinite-scroll-windowin](./quick/260920-sad-bidirektionales-infinite-scroll-windowin/) |
+| 260922-cew | GAP-01..GAP-04 (Live-UAT Phase 165, 2026-09-22): GAP-01 (Blocker) — loadPreview() in useJellyfinIntakeImpl.ts brach bei leerer candidates-Liste sofort mit null ab, sodass die Anime-anlegen-Übergabe aus /admin/anime/create/library nie eine Jellyfin-Vorschau anforderte (kein Cover/Ordnerpfad/Typ/AniSearch-Titel); ruft jetzt previewAdminAnimeFromJellyfinIntake immer mit der übergebenen ID auf, Direktsuche-Pfad unverändert. GAP-02 — has_more/next_cursor wurden vor dem Statusfilter aus der rohen Snapshot-Seite berechnet, wodurch "Weiter" bei engem Suchbegriff+Filter aktiv blieb ohne echte weitere Treffer; buildJellyfinDiscoveryFilteredPage sammelt jetzt filtertreu über das gesamte Restfenster bei weiterhin exakt 1 Query pro Feld pro Seite (D-07). GAP-03 — parent_context (z. B. "Anime.TV.Sub") wurde von buildAdminJellyfinDiscoveryItem verworfen, Karte zeigte nur "Serie \| media"; jetzt Ende-zu-Ende durchgereicht (Backend-Modell, Frontend-Typ, buildDiscoveryCardMetaLine) analog JellyfinCandidateCard. GAP-04 — Aktionsreihe war flexDirection:column ohne alignItems (Flex-Stretch zog Buttons auf volle Breite); jetzt row/flex-end, Ignorieren (secondary) vor Anime anlegen (primary), "Bereits importiert"-Überschrift im Statusblock ergänzt. 12 geänderte Dateien, Backend go build/vet sauber plus 12/12 TestJellyfinDiscovery*+4/4 TestDiscoveryCursor* grün, Frontend 107/107 gezielte Tests grün, tsc/ESLint sauber, Container neu gestartet, beide Routen 200; echte Browser-Live-Prüfung ohne Admin-Login nicht möglich (Cover-Laden vom echten Jellyfin, visuelle Ausrichtung, echte Pagination gegen ~2111-Item-Snapshot) — keine Phase-165-Abnahme | 2026-09-22 | 60a31669, bf6cc886, c8de6060, 0e59cece | [260922-cew-phase-165-live-uat-fixes-gap-01-gap-04-b](./quick/260922-cew-phase-165-live-uat-fixes-gap-01-gap-04-b/) |
+| 260922-ikh | GAP-17 (Live-UAT Phase 165, 2026-09-22): Online-Bildersuche fand keine Poster für Film-Format-Anime (z. B. „.hack//G.U. Trilogy“) — der Cover-Slot fragte nur Zerochan ab, TMDB/Fanart.tv durchsuchten ausschließlich TV-Serien, AniList lieferte nur Banner statt Cover. Orchestrator+Provider aus anime_create_enrichment.go (1765→1059 Zeilen) in fünf neue Dateien ausgelagert (asset_search_service.go, asset_search_tmdb_lookup.go, asset_search_tmdb.go, asset_search_fanarttv.go, asset_search_anilist.go, alle <450 Zeilen): TMDB durchsucht jetzt /search/tv UND /search/movie (Bilder über /tv/{id}/images bzw. /movie/{id}/images); Fanart.tv nutzt bei Film-Treffern den movies-Endpunkt (TMDB-Movie-ID statt TVDB-Umweg); AniList SupportsAssetKind liefert jetzt auch für "cover" true (coverImage.extraLarge/large, Banner-Pfad unverändert); Cover-Slot fragt zusätzlich AniList+TMDB ab, offizielle Poster vor Zerochan-Fanart. Fehlermeldung „pruefe“→„prüfe" korrigiert (useAdminAnimeCreateController.ts). Provider-Tests mit gefakten HTTP-Antworten für alle 5 geforderten Fälle grün, bestehende Suite unverändert grün, Backend-Container per docker compose up -d --build neu gebaut und gesund. Live-Probe gegen echte APIs für „.hack//G.U. Trilogy“: TMDB(cover) hits=4, AniList(cover) hits=2, FanartTV(logo) hits=2, Zerochan(cover) hits=0 (404, unveränderte Booru-Suche, außerhalb Scope) | 2026-09-22 | c90b148a, 183bd816, c305cb01, 45aaa13d | [260922-ikh-gap-17-online-bildersuche-findet-keine-f](./quick/260922-ikh-gap-17-online-bildersuche-findet-keine-f/) |
+| 260922-kjj | GAP-18 (Live-UAT Phase 165, 2026-09-22): AniSearch überschrieb Jellyfin-Werte nicht (Jahr/Beschreibung blieben aus Jellyfin, z. B. „.hack//G.U. Trilogy“ fälschlich als „.hack“ 2002 statt AniSearch 2007) — resolveCreateAniSearchDraftMergeInputs verglich gegen den Vor-Jellyfin-Snapshot, wodurch jedes von Jellyfin gefüllte Feld als Handänderung galt und vor AniSearch geschützt wurde. Neue Datei aniSearchJellyfinPrecedence.ts (resolveAniSearchProtectedFields) vergleicht jetzt gegen den Stand direkt NACH der Jellyfin-Hydrierung; cover_image bewusst ausgenommen (bleibt Jellyfin/Online-Wahl). Wiring in createPageHelpers.ts/createAniSearchControllerHelpers.ts/useAdminAnimeCreateController.ts (neuer jellyfinHydratedDraftSnapshot-State). 4 Pflichtszenarien als echte Controller-Tests (Jellyfin→AniSearch überschreibt; Jellyfin→Handänderung→AniSearch schützt Handänderung; AniSearch→Jellyfin füllt nur Lücken; Cover bleibt nach AniSearch erhalten), 25 Tests in create/ grün. Umlaut-Sweep: „Groesse“→„Größe“, „pruefe“→„prüfe“, „ueber“→„über“ in CreateAssetSearchDialog.tsx/CreateJellyfinResultsPanel.tsx/createAniSearchSummary.ts. Frontend-Tests/tsc/ESLint sauber (2 vorbestehende unabhängige cssCustomProperties-Fehlschläge dokumentiert), Container neu gestartet | 2026-09-22 | 0639e30f, 04cba2e0, fb8df187 | [260922-kjj-gap-18-anisearch-berschreibt-jellyfin-we](./quick/260922-kjj-gap-18-anisearch-berschreibt-jellyfin-we/) |
+| 260922-ln7 | GAP-19 (Auftraggeber-Entscheidung 2026-09-22): Jellyfins eigene Metadaten sind unzuverlässig (v. a. Bonus/Spezial/OVA) — Ordner „hack G.U Trilogy“ wurde von Jellyfin fälschlich als „.hack“ (2002) erkannt, Bibliothekskarte und AniSearch-Suchfeld übernahmen diesen falschen Namen. Neue Datei discoveryFolderName.ts (stripTrailingYearSuffix/extractFolderNameFromPath/buildDisplayFolderName, rein frontend, keine Backend-Änderung nötig — item.path bzw. preview.folder_name_title_seed lagen bereits vor) liefert den um ein angehängtes „(JJJJ)“ bereinigten Ordnernamen; DiscoveryLibraryCard.tsx zeigt jetzt den bereinigten Ordnernamen als Titel (Jahr bleibt in der Metazeile) und blendet „Jellyfin: <Name>“ nur bei Abweichung ein; useCreatePageDiscoveryHandoff.ts/page.tsx prefillen das AniSearch-Suchfeld jetzt mit dem bereinigten Ordnernamen statt preview.jellyfin_series_name (weiterhin keine Auto-Suche). Bibliotheks-Suche traf laut TestJellyfinDiscovery_SearchMatchesTitleOrFolderNameNotFullPath (GAP-14) bereits Ordnername UND Jellyfin-Name — nur verifiziert, keine Änderung nötig. Kein zusätzlicher Jellyfin-Request, folder_name/source in der DB unangetastet. 12 neue Tests (Jahres-Bereinigung inkl. Sonderzeichen/Unterordner/Backslash-Pfade, Karten-Render mit/ohne Abweichung, Handoff-Prefill), 8 bestehende DiscoveryLibraryPanel-Tests mit passendem path-Fixture repariert (Rule-1-Fix). Volle Frontend-Suite 3051/3056 grün (nur die 2 vorbestehenden unabhängigen cssCustomProperties-Fehlschläge), tsc/ESLint sauber, kein Backend-Rebuild nötig, Container neu gestartet | 2026-09-22 | 2b139d94, cfbeb4ef, 6efe17d8 | [260922-ln7-gap-19-bibliothekskarte-und-anisearch-pr](./quick/260922-ln7-gap-19-bibliothekskarte-und-anisearch-pr/) |
+| 260922-min | GAP-20/GAP-21 (Live-UAT Phase 165, 2026-09-22): GAP-20 — native window.confirm() an 23 Stellen in 17 Dateien (u. a. Anime-löschen im eingebetteten Browser-Panel wirkungslos, da das native Dialogfenster dort unterdrückt und als "Abbrechen" gewertet wird) verstießen zudem gegen die UI-Primitives-Pflicht (CLAUDE.md). Neues Promise-basiertes Primitive useConfirmDialog()/ConfirmDialog (@/components/ui, auf Modal aufgebaut: Fokus auf "Abbrechen" per Default, Esc=Abbrechen/Fokusfalle von Modal geerbt, tone="danger" für Button-Variante) ersetzt alle 23 Aufrufe bei unveränderten deutschen Texten/Folgeverhalten; zwei neue ESLint-Regeln (no-restricted-properties/no-restricted-globals) verbieten window.confirm()/confirm() repo-weit als error, unabhängig von der bestehenden select/input/textarea-Ratchet-Liste. GAP-21 — Anime-Übersicht zeigte für Film-Anime fälschlich "TV" und immer Plural "Episoden": mapAnimeTypeNameToAPI (anime_v2.go) hatte keinen case "film" (nur "movie"), obwohl anime_types (Migration 0030) die Zeile "film" seedet — fiel auf default "tv" zurück, betraf Liste UND Detail/Edit gleichermaßen; case "film" ergänzt (case "movie" defensiv belassen). AdminAnimeOverviewClient.tsx: anime.type.toUpperCase() durch ANIME_TYPE_LABELS-Map (TV/Film/OVA/ONA/Special/Bonus) ersetzt, Episoden-Singular/Plural ("1 Episode"/"N Episoden") korrigiert. Volle Frontend-Suite 3058/3061 grün (3 vorbestehende unabhängige Fehlschläge dokumentiert: cssCustomProperties-Guard, FansubVersionBrowser-Timeout), tsc/ESLint sauber, Backend per docker compose up -d --build neu gebaut und gesund, Container neu gestartet | 2026-09-22 | e789fb7b, b296cc12, 31765c48, aa7c9f7a, 9c5083d0 | [260922-min-gap-20-gap-21-gemeinsamer-bestaetigungsd](./quick/260922-min-gap-20-gap-21-gemeinsamer-bestaetigungsd/) |
+| 260923-amz | GAP-22/GAP-23 (Auftraggeber-Entscheidung 2026-09-23, Live-Test Anime #6 „.hack//G.U. Trilogy"): GAP-22 — Filme erhielten beim Anlegen/Import den literalen Fallback-Episodentitel "Episode 1"/"Folge 1" statt des Filmtitels; Fallback-Synthese jetzt auf eine einzige Stelle zentralisiert (episode_import_repository_apply.go's episodeImportDisplayTitle, kennt anime.type UND anime.title): echter gescrapter Titel > Anime-/Filmtitel (isFilm) > "Episode N" (Serien, unverändert); anisearch_episode_import.go's episodeDisplayTitle erfindet keinen Fallback mehr, liefert nil. Von Hand gesetzte Titel bleiben unangetastet; Bestandsdaten NICHT migriert. GAP-23 — der öffentliche Standard-Release-Name (public_release_name.go) und der Admin-Editor-Platzhalter (episodeVersionEditorUtils.ts) zeigten für Filme fälschlich Episodentitel/"Folge N" statt Filmtitel als ersten Namensbestandteil; neue filmEpisodeSQL/filmTitleSQL in publicReleaseNameSQL setzen jetzt immer den Anime-/Filmtitel (Beispiel live gegen team4s_v2 verifiziert: ".hack//G.U. Trilogy · (Generation: Anime Xtreme) · v1"), Gruppentitel (titleEnteredByGroupSQL) bleibt unverändert vorrangig, Serien unbetroffen; defaultReleaseTitle im Admin folgt derselben Regel (eine Regel, nicht zwei). Fallback-Anzeige-Audit durchgeführt (alle Fundstellen bereits title-first oder reine Zeilen-Identifikatoren, keine weitere Codeänderung nötig). Postgres-Integrationstest (5 Fälle: Film ohne/mit Gruppentitel, Serie mit/ohne Episodentitel, Coop-Form) plus Go-/Frontend-Unit-Tests grün. Backend go build/vet/test ./... sauber (nur vorbestehende, dokumentierte Fehlschläge), Frontend Test/Typecheck/Lint sauber (nur die 2 vorbestehenden cssCustomProperties-Fehlschläge), Backend per docker compose up -d --build neu gebaut und gesund, Frontend-Container neu gestartet, 165-UAT.md GAP-22/GAP-23 als resolved dokumentiert | 2026-09-23 | 51a9bfc2, d2a80450, 6b6bfa07, b841704c | [260923-amz-filmtitel-statt-episode-1-bei-filmen-gap](./quick/260923-amz-filmtitel-statt-episode-1-bei-filmen-gap/) |
+| 260923-ed4 | GAP-24 (Live-UAT 2026-09-23, Anime #9 „Accel World: Infinite Burst", type=film, angelegt nach dem GAP-22-Fix): AniSearch liefert für Einteiler keinen leeren Episodentitel, sondern den Platzhalter "Episode 1" — der GAP-22-Fix griff nur bei GAR KEINEM Titel, also landete "Episode 1" weiterhin in episodes.title und im Release-Namen. Neue kanonische Erkennung (episode_placeholder_title.go: isPlaceholderEpisodeTitle/isEinteilerAnimeType, regexbasiert, "Episode/Folge/Ep/Ep. <N>" case-insensitiv mit/ohne führende Nullen/Punkt, ohne Nummer ebenfalls; echte Titel wie "Parody Mode" bleiben unangetastet) für Einteiler (film immer, ova/ona/special/bonus nur bei genau einer kanonischen Episode via neuem countEffectiveCanonicalEpisodes). Import-Zeit: episodeImportDisplayTitle nutzt jetzt isEinteiler statt isFilm und verwirft Platzhalter zugunsten des Anime-Titels; von Hand gesetzte Titel bleiben unangetastet. Abfrage-Zeit: public_release_name.go's einteilerEpisodeSQL/einteilerAnimeTitleSQL (umbenannt von GAP-23s filmEpisodeSQL/filmTitleSQL) plus neues episodeTitlePlaceholderSQL greifen auch bei bereits GESPEICHERTEN Platzhaltern (Anime #6/#7/#9) ohne Datenmigration; verfeinert GAP-23s "Filme zeigen immer den Filmtitel" zu "nur bei Platzhaltertitel" — ein echter Filmtitel wie "Parody Mode" erscheint jetzt korrekt im Namen. SQL-Pattern in Go und Postgres bewusst dupliziert (zwei Regex-Engines), mit Cross-Referenz-Kommentaren und deckungsgleichen Testfällen gegen Drift abgesichert. Go-Unit-Tests der Platzhalter-Erkennung (Treffer/Nicht-Treffer inkl. "Episode 1"/"Folge 01"/"Ep. 1"/"Episode" vs. "Parody Mode"/"Episode of the Sun"), Import-Integrationstest (Film→Anime-Titel, Serie unverändert), Postgres-Integrationstest (5 Fälle: Film/OVA mit Platzhalter→Anime-Titel, Serie unverändert, Gruppentitel weiter vorrangig) grün. Backend go build/vet/test ./... sauber (nur vorbestehende, dokumentierte Fehlschläge), Frontend Test/Typecheck/Lint sauber (nur die 2 vorbestehenden cssCustomProperties-Fehlschläge), Backend per docker compose up -d --build neu gebaut und gesund, Frontend-Container neu gestartet, Live-Probe gegen /api/v1/anime/{6,9}/episodes: Anime #6 unverändert ".hack//G.U. Trilogy · (Generation: Anime Xtreme) · v1", Anime #9 jetzt "Accel World: Infinite Burst · (Dragon-Subs × Red-Panda Fansubs) · 1" (vorher "Episode 1 · ..."), 165-UAT.md GAP-24 als resolved dokumentiert | 2026-09-23 | 75b78258, da2ef68a, a85e76e3, e5c0f058 | [260923-ed4-gap-24-anisearch-platzhaltertitel-episod](./quick/260923-ed4-gap-24-anisearch-platzhaltertitel-episod/) |
+| 260924-dso | GAP-05..GAP-07 (Auftraggeber-Review von fansub.de, Live-UAT 2026-09-24): GAP-05 — Gruppenkürzel wird echtes Stammdatum (additive Migration 0171: fansub_groups.kuerzel/normalized_kuerzel, partieller UNIQUE-Index, kein Backfill), editierbar per FansubGroupKuerzelField.tsx direkt neben dem Namen, sichtbar/sortierbar als Spalte in /admin/fansubs (fansubListSort.ts/FansubSortHeaderCell.tsx, page.tsx wuchs trotz neuer Spalte nicht); owner-benannte 409-Konfliktprüfung (findFansubKuerzelOwner/findFansubKuerzelOrAliasOwner, neuer ConflictOwnerError) verhindert stilles Überschreiben in allen drei Richtungen (Kürzel-vs-Kürzel, Kürzel-vs-Alias, Alias-vs-Kürzel); Import-Erkennung buildFansubGroupBatchMatchQuery bekam neue kuerzel_hits-Top-Tier (Präzedenz kuerzel > alias > name > slug, weiterhin eine gebündelte Query), Herkunftshinweis kennt "Kürzel". GAP-06 — FansubAliasSection.tsx: Ziel-Gruppen-Dropdown ist nicht mehr dauerhaft sichtbar, klappt erst nach "Umhängen…" auf (reassigningAliasID-State), mit "Übernehmen"/"Abbrechen", kollabiert nach Erfolg/Abbruch zurück; Bestätigungsdialog/Rechteprüfung/Fehlerverhalten unverändert. GAP-07 — Original-Schreibweise war bereits durchgängig korrekt (kein .toUpperCase()/.toLowerCase() im Anzeige-Pfad gefunden), Kürzel-Feld übernimmt dieselbe Nicht-Normalisierungs-Garantie, per Test bewiesen (FansubBasicInfoTab.test.tsx Mixed-Case-Fall). Backend go build/vet/test ./... sauber (identische 125 vorbestehende, dokumentierte Fehlschläge mit/ohne TEAM4S_PHASE167_TEST_DSN per Diff verifiziert), Frontend npm run test 3107/3109 grün (nur die 2 vorbestehenden cssCustomProperties-Fehlschläge), typecheck/lint sauber in allen von diesem Plan berührten Dateien. Migration 0171 gegen team4s_v2 angewendet, 0 Bestandszeilen erhielten ein Kürzel (kein Backfill bestätigt); Backend (08:34:56Z → 10:34:53Z) und Frontend (09:08:11Z → 10:35:04Z) neu gebaut/neu gestartet, /health 200. 167-UAT.md GAP-05/GAP-06/GAP-07 als resolved dokumentiert | 2026-09-24 | 1c8a3444, 33a1e5d9, db8c4cc0, 75249868, 72bf64c9, 85c70354, 09dcc912 | [260924-dso-gap-05-gap-07-gruppen-kuerzel-als-stammd](./quick/260924-dso-gap-05-gap-07-gruppen-kuerzel-als-stammd/) |
+
+### Verification Baseline
+
+- Requirements: 65 defined, 65 uniquely mapped, 0 orphaned, 0 duplicated.
+- Roadmap: seven sequential phases numbered 128-134 with five observable success criteria each.
+- Recovery archive: 123 historical phase directories preserved.
+- Runtime: canonical Linux Docker Compose services were running when v1.3 was initialized.
+- Application validation is deferred to phase execution; milestone initialization changed planning artifacts only.
+
+## Deferred Items
+
+Items acknowledged and deferred at v1.3 milestone close on 2026-08-20 (per `gsd-sdk query audit-open`,
+102 total; 1 verification gap — Phase 132's PMFE-11 live-Postgres check — was resolved for real this
+session, not deferred, see 132-VERIFICATION.md; the remaining 101 below are pre-existing, unrelated
+backlog: Phase 103 debug sessions, historical quick-tasks spanning 2026-04 through today, and
+contributor-workspace/UI TODOs). None block v1.3. `audit-open`'s own JSON preview truncates the
+pending-todos list (5 filenames shown of an internally-flagged larger remainder) — the full,
+untruncated list lives in `.planning/todos/pending/`.
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug_session | 103-full-episode-admin-action | diagnosed |
+| debug_session | 103-karaoke-auth-visibility | root_cause_found |
+| debug_session | 103-pretty-release-route | root_cause_found |
+| debug_session | 103-public-image-description-edit | root_cause_found |
+| debug_session | 103-release-anime-logo-fallback | root_cause_found |
+| debug_session | 103-release-image-gallery | diagnosed |
+| debug_session | 103-release-preview-selection | diagnosed |
+| debug_session | 103-release-text-grid | root_cause_found |
+| debug_session | 103-release-visual-language | root_cause_found |
+| debug_session | knowledge-base | unknown |
+| debug_session | memberprofil-client-exception | awaiting_human_verify |
+| debug_session | system-wieder-langsam | awaiting_human_verify |
+| quick_task | 260405-kce-sync-phase-07-completion-across-roadmap- | missing |
+| quick_task | 260417-qtu-asset-upload-ux-leere-slots-klickbar-und | missing |
+| quick_task | 260423dxc-filter-already-imported-episode-candidates | missing |
+| quick_task | 260423mnv-per-row-apply-button | missing |
+| quick_task | 260423qpn-jellyfin-library-filter | missing |
+| quick_task | 260428-ddb-episoden-laufzeit-crawlen-und-in-timelin | missing |
+| quick_task | 260429-fnm-smart-parser-fuer-segment-zeitfelder-mm- | missing |
+| quick_task | 260507-de2-rename-theme-types-op-to-op-kara-ed-to-e | missing |
+| quick_task | 260510-t7j-upload-security-hardening-security-heade | missing |
+| quick_task | 260510-umt-beschreibungs-textarea-fix-fuer-release- | missing |
+| quick_task | 260511-hfd-releaseversionmediagallery-3-test-bugs-f | missing |
+| quick_task | 260511-jjq-umlaut-regel-in-agents-md-ergaenzen | missing |
+| quick_task | 260526-mhk-next-image-test-mock-fixen-und-den-einze | missing |
+| quick_task | 260602-k94-phase-61-bug-triage-after-live-uat-no-ph | missing |
+| quick_task | 260602-o68-phase-65-befunde-fixen | missing |
+| quick_task | 260603-l77-inventory-doc-gaps | missing |
+| quick_task | 260604-d12-ui-verbessern-auf-global-ziehen | missing |
+| quick_task | 260608-jb9-startseite-ui-regelverstoss-beheben-nati | missing |
+| quick_task | 260609-wev-releaseversionnotestab-auf-globales-ui-s | missing |
+| quick_task | 260609-x3q-episode-version-editor-navigation-zuruec | missing |
+| quick_task | 260610-f7n-fansubappmemberssection-collaboration-ta | missing |
+| quick_task | 260610-fhn-fansub-members-ux-schnitt-dokumentieren- | missing |
+| quick_task | 260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h | missing |
+| quick_task | 260610-i2j-fansub-mitglieder-und-historische-mitgli | missing |
+| quick_task | 260610-iqh-alias-verwaltung-in-fansub-edit-ins-grun | missing |
+| quick_task | 260618-cjy-release-buttons-in-meine-gruppen-auf-me- | unknown |
+| quick_task | 260619-w1n-drawer-link-zur-meine-gruppen-uebersicht | missing |
+| quick_task | 260620-eaj-member-contribution-ui-auf-globales-desi | missing |
+| quick_task | 260620-lq7-manage-groups-ui-uebersicht-detail-claim | missing |
+| quick_task | 260620-qog-bestaetigte-projektrollen-pro-anime-grup | missing |
+| quick_task | 260620-uez-workspace-ui-primitives | missing |
+| quick_task | 260621-p80p88-review-bugfixes | unknown |
+| quick_task | 260629-phase91-profile-projects | unknown |
+| quick_task | 260629-phase91-project-detail-addon | unknown |
+| quick_task | 260629-phase92-profile-tabs | unknown |
+| quick_task | 260703-8s3-fix-anisearch-and-jellyfin-anime-source- | unknown |
+| quick_task | 260703-a3r-ui-first-e2e-viper-s-creed-jellyfin-fres | missing |
+| quick_task | 260703-bc9-fix-sticky-admin-auth-logout-state-block | missing |
+| quick_task | 260703-bmp-fix-datepicker-react-hooks-set-state-in- | missing |
+| quick_task | 260703-br4-fresh-ui-first-viper-s-creed-e2e-retest- | missing |
+| quick_task | 260703-crb-fix-admin-anime-jellyfin-link-status-and | missing |
+| quick_task | 260704-neutral-role-labels | unknown |
+| quick_task | 260706-x0v-fix-400-release-variant-id-fehler-beim-l | missing |
+| quick_task | 260707-16l-fansub-cockpit-header-badge-zeigt-gruen- | missing |
+| quick_task | 260707-ehc-profil-letzte-projekte-auch-aus-anime-co | missing |
+| quick_task | 260707-f3t-profil-letzte-projekte-fortschrittsbalke | missing |
+| quick_task | 260707-g70-meine-projekte-detailseite-banner-backgr | missing |
+| quick_task | 260707-hx0-meine-projekt-detailseite-als-to-do-work | missing |
+| quick_task | 260707-jya-meine-projekte-seite-umbauen-projektlist | missing |
+| quick_task | 260707-kut-hinweis-senden-fuer-app-mitglieder-propo | missing |
+| quick_task | 260713-history-timeline-pair-alignment | missing |
+| quick_task | 260717-d7i-public-fansub-projektseite-mobile-redesi | missing |
+| quick_task | 260717-erh-public-fansub-projektseite-mobile-redesi | missing |
+| quick_task | 260717-lqt-desktop-maximalbreite-von-fansub-projekt | missing |
+| quick_task | 260718-2w4-fansub-projektseite-releases-liste-fixen | missing |
+| quick_task | 260718-e6z-anime-detailseite-request-fanout-reduzie | missing |
+| quick_task | 260718-vei-responsive-releasebereich-der-ffentliche | missing |
+| quick_task | 260721-dbz-fund-1-2-n-1-fix-release-version-media-h | missing |
+| quick_task | 260721-eo4-ssr-fetch-parallelisierung-projectpageda | missing |
+| quick_task | 260730-jre-fokussiertes-material-3-inspiriertes-kar | missing |
+| quick_task | 260731-wh7-beitrags-badges-im-ffentlichen-memberpro | missing |
+| quick_task | 260802-c5f-rollen-auszeichnungen-aus-dem-gesamtfort | missing |
+| quick_task | 260803-be5-rollenbadges-visuell-vereinheitlichen-ka | missing |
+| quick_task | 260803-jo0-ffentliche-member-profilseite-gruppenzug | missing |
+| quick_task | 260803-ozq-profilseite-responsiv-optimieren-neulade | missing |
+| quick_task | 260805-7lu-make-focalcarousel-arrow-and-keyboard-na | missing |
+| quick_task | 260811-lck-hide-locked-achievement-art | missing |
+| quick_task | 260811-obg-public-member-profile-outer-bands-transparent | missing |
+| quick_task | 260811-pqe-phase-127-public-member-profile-visuelle | missing |
+| quick_task | 260811-rms-phase-127-public-member-profile-widescre | missing |
+| quick_task | 260811-rwd-binding-responsive-ui-standard | missing |
+| quick_task | 260811-tbg-phase-127-profile-band-transparent | missing |
+| quick_task | 260812-acs-count-only-achievement-summary | missing |
+| quick_task | 260812-bqs-gesperrte-auszeichnungs-heroes-als-gross | missing |
+| quick_task | 260812-jtp-public-member-profile-vertical-spacing-r | missing |
+| quick_task | 260812-kr1-ffentliche-profilseite-gro-e-wei-e-innen | missing |
+| quick_task | 260812-lql-ffentliches-memberprofil-letzte-beitr-ge | missing |
+| quick_task | 260812-pmu-public-member-profile-duplicate-achievem | missing |
+| quick_task | 260812-ras-remove-aggregate-achievement-summary | missing |
+| quick_task | 260812-rps-public-member-profile-responsive-stabilisieren | missing |
+| quick_task | 260817-7fv-implementiere-den-idp-rollen-getriebenen | missing |
+| quick_task | 260819-ipu-duplikat-guard-beim-historischen-mitglie | missing |
+| quick_task | 260819-lm5-phase-117-geteilte-karaoke-segmente-uebe | missing |
+| quick_task | 260820-600-folgen-navigation-im-contributor-editor- | missing |
+| todo | 2026-05-28-contributor-owned-media-note-edit-delete.md | pending (contributor-workspace) |
+| todo | 2026-05-28-profile-hub-content-activity-redesign.md | pending (ui) |
+| todo | 2026-06-03-contribution-dropdown-auf-globale-ui-primitives-umstellen.md | pending (ui) |
+| todo | 2026-06-03-credits-ui-konsolidierung-und-permission-bruecke.md | pending (ui) |
+| todo | 2026-06-03-member-profil-ui-und-params-bug.md | pending (ui) |
+
+## Performance Metrics
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 128 P01 | 29m | 3 tasks | 4 files |
+| Phase 128 P02 | 15m | 2 tasks | 4 files |
+| Phase 128 P03 | 16m | 2 tasks | 5 files |
+| Phase 128 P14 | 13m | 1 task | 2 files |
+| Phase 128 P04 | 14m | 2 tasks | 6 files |
+| Phase 128 P05 | 16m | 2 tasks | 6 files |
+| Phase 128 P06 | 16m | 2 tasks | 4 files |
+| Phase 128 P07 | 9m | 2 tasks | 4 files |
+| Phase 128 P08 | 12m | 2 tasks | 4 files |
+| Phase 128 P09 | 20m | 2 tasks | 4 files |
+| Phase 128 P10 | 15min | 2 tasks | 6 files |
+| Phase 128 P11 | 13min | 2 tasks | 4 files |
+| Phase 128 P12 | 14min | 2 tasks | 6 files |
+| Phase 128 P13 | 15min | 2 tasks | 6 files |
+| Phase 128 P15 | 24m | 2 tasks | 4 files |
+| Phase 128 P17 | 9min | 1 tasks | 3 files |
+| Phase 128 P18 | 6min | 1 tasks | 2 files |
+| Phase 128 P16 | 22min | 2 tasks | 7 files |
+| Phase 128 P19 | 13min | 2 tasks | 4 files |
+| Phase 132 P01 | 25min | 2 tasks | 11 files |
+| Phase 132 P02 | 19min | 3 tasks | 9 files |
+| Phase 132 P03 | 8min | 2 tasks | 7 files |
+| Phase 132 P04 | 11min | 3 tasks | 9 files |
+| Phase 133 P02 | 4min | 2 tasks | 2 files |
+| Phase 133 P03 | 5min | 2 tasks | 2 files |
+| Phase 133 P04 | 20min | 2 tasks | 5 files |
+| Phase 133 P05 | 35min | 2 tasks | 2 files |
+| Phase 133 P06 | 15min | 2 tasks | 2 files |
+| Phase 133 P07 | 35min | 2 tasks | 7 files |
+| Phase 133 P08 | 25min | 2 tasks | 6 files |
+| Phase 133 P09 | 75min | 2 tasks | 6 files |
+| Phase 133 P10 | 20min | 2 tasks | 3 files |
+| Phase 133 P11 | ~50min | 2 tasks | 3 files |
+| Phase 133 P12 | n/a | 2 tasks DEFERRED | 0 files |
+| Phase 134 P01 | 35min | 2 tasks | 5 files |
+| Phase 134 P02 | 30min | 2 tasks | 3 files |
+| Phase 134 P03 | 20min | 3 tasks | 5 files |
+| Phase 134 P04 | 20min | 3 tasks | 4 files |
+| Phase 134 P05 | ~25min | 3 tasks | 4 files |
+| Phase 134 P06 | multi-session | 3 tasks | 8 source files + 14 evidence files |
+| Phase 135 P01 | 4min | 2 tasks | 3 files |
+| Phase 135 P02 | 12min | 2 tasks | 3 files |
+| Phase 135 P03 | 25min | 2 tasks | 3 files |
+| Phase 135 P04 | 18min | 2 tasks | 4 files |
+| Phase 135 P05 | ~25min | 2 tasks | 5 files |
+| Phase 135 P06 | ~10min | 2 tasks | 2 files |
+| Phase 135 P08 | ~50min | 3 tasks | 4 files |
+| Phase 135 P07 | multi-session | 3 tasks | 1 files |
+| Phase 135 P10 | ~2h45m | 5 tasks | 13 files |
+| Phase 136 P30 | 14min | 3 tasks | 12 files |
+| Phase 136 P31 | 22 min | 1 tasks | 2 files |
+| Phase 136 P28 | 3h39m | 1 tasks | 3 files |
+| Phase 137 P01 | 25min | 2 tasks | 3 files |
+| Phase 137 P02 | ~15min | 1 tasks | 5 files |
+| Phase 137 P03 | ~30min | 2 tasks | 3 files |
+| Phase 137 P04 | ~35min | 3 tasks | 3 files |
+| Phase 137 P05 | ~25min | 2 tasks | 7 files |
+| Phase 137 P06 | ~35min | 2 tasks | 7 files |
+| Phase 137 P07 | ~45min | 2 tasks | 9 files |
+| Phase 137 P08 | ~20min | 2 tasks | 3 files |
+| Phase 137 P09 | ~25min | 2 tasks | 6 files |
+| Phase 137 P11 | ~10min | 2 tasks | 2 files |
+| Phase 137 P12 | 10min | 2 tasks | 2 files |
+| Phase 137 P13 | ~20min | 2 tasks | 4 files |
+| Phase 137 P14 | 5min | 2 tasks | 4 files |
+| Phase 138 P01 | ~25min | 2 tasks | 11 files |
+| Phase 138 P02 | ~20min | 2 tasks | 9 files |
+| Phase 138 P03 | ~20min | 2 tasks | 6 files |
+| Phase 138 P04 | ~9min | 2 tasks | 9 files |
+| Phase 138 P05 | 45min | 2 tasks | 12 files |
+| Phase 138 P06 | 20m | 2 tasks | 3 files |
+| Phase 138 P07 | 40m | 2 tasks | 6 files |
+| Phase 138 P08 | 25m | 2 tasks | 8 files |
+| Phase 138 P09 | 25m | 3 tasks | 4 files |
+| Phase 138 P10 | 20m | 2 tasks | 4 files |
+| Phase 138 P11 | 4min | 2 tasks | 6 files |
+| Phase 138 P12 | 15min | 2 tasks | 4 files |
+| Phase 138 P13 | 42min | 2 tasks | 9 files |
+| Phase 138 P14 | 20min | 2 tasks | 14 files |
+| Phase 138 P15 | 45min | 2 tasks | 12 files |
+| Phase 138 P16 | 35min | 2 tasks | 13 files |
+| Phase 138 P17 | ~10m | 2 tasks | 3 files |
+| Phase 138 P18 | 6min | 3 tasks | 4 files |
+| Phase 139 P01 | 55min | 2 tasks | 18 files |
+| Phase 139 P02 | 35min | 2 tasks | 3 files |
+| Phase 139 P03 | 35min | 3 tasks | 7 files |
+| Phase 139 P04 | 40min | 3 tasks | 9 files |
+| Phase 139 P05 | 20min | 3 tasks | 15 files |
+| Phase 139 P06 | 55min | 3 tasks | 3 files |
+| Phase 139 P07 | 40min | 3 tasks | 10 files |
+| Phase 139 P08 | 70min | 2 tasks | 3 files |
+| Phase 139 P09 | 55min | 2 tasks | 3 files |
+| Phase 139 P10 | multi-session | 2 tasks | 3 files |
+| Phase 141 P01 | 11min | 2 tasks | 5 files |
+| Phase 141 P02 | 40min | 3 tasks | 7 files |
+| Phase 141 P03 | ~15min | 3 tasks | 7 files |
+| Phase 141 P04 | ~20min | 2 tasks | 5 files |
+| Phase 141 P05 | ~30min | 3 tasks | 3 files |
+| Phase 141 P06 | 15min | 2 tasks | 2 files |
+| Phase 141 P07 | 25min | 3 tasks | 3 files |
+| Phase 143 P01 | 7min | 2 tasks | 5 files |
+| Phase 143 P02 | 8min | 2 tasks | 3 files |
+| Phase 143 P03 | 8min | 2 tasks | 7 files |
+| Phase 143 P04 | 4min | 2 tasks | 2 files |
+| Phase 143 P05 | 15min | 3 tasks | 6 files |
+| Phase 143 P06 | 15min | 3 tasks | 9 files |
+| Phase 143 P07 | 20min | 3 tasks | 6 files |
+| Phase 143 P08 | 20min | 2 tasks | 3 files |
+| Phase 143 P09 | 55min | 3 tasks | 7 files |
+| Phase 143 P10 | 45min | 3 tasks | 3 files |
+| Phase 143 P11 | 30min | 2 tasks | 3 files |
+| Phase 143 P12 | 19min | 3 tasks | 8 files |
+| Phase 143 P13 | 50min | 3 tasks | 6 files |
+| Phase 143 P14 | 35min | 3 tasks | 8 files |
+| Phase 143 P15 | 5min | 2 tasks | 3 files |
+| Phase 143 P16 | 5min | 2 tasks | 2 files |
+| Phase 143 P17 | 15min | 2 tasks | 5 files |
+| Phase 143 P18 | 10min | 2 tasks | 2 files |
+| Phase 143 P19 | 20min | 3 tasks | 7 files |
+| Phase 144 P01 | 35min | 3 tasks | 8 files |
+| Phase 144 P02 | ~50min | 3 tasks | 2 files |
+| Phase 144 P03 | ~30min | 3 tasks | 5 files |
+| Phase 144 P04 | ~10min | 3 tasks | 4 files |
+| Phase 144 P05 | ~15min | 2 tasks | 2 files |
+| Phase 144 P06 | 45min | 3 tasks | 6 files |
+| Phase 144 P07 | 20min | 3 tasks | 4 files |
+| Phase 144 P08 | 20min | 3 tasks | 7 files |
+| Phase 145 P01 | 5min | 3 tasks | 8 files |
+| Phase 145 P02 | 10min | 3 tasks | 10 files |
+| Phase 145 P03 | ~15min | 3 tasks | 8 files |
+| Phase 146 P01 | 3min | 3 tasks | 3 files |
+| Phase 146 P02 | 12min | 2 tasks | 2 files |
+| Phase 146 P03 | 8min | 3 tasks | 3 files |
+| Phase 146 P04 | 40min | 3 tasks | 4 files |
+| Phase 146 P05 | 12min | 2 tasks | 2 files |
+| Phase 146 P06 | 24min | 2 tasks | 2 files |
+| Phase 146 P07 | 20min | 2 tasks | 2 files |
+| Phase 146 P08 | 3h | 3 tasks | 3 files |
+| Phase 146 P09 | 1h | 1 tasks | 1 files |
+| Phase 146 P10 | 25min | 1 tasks | 1 files |
+| Phase 146 P11 | 180m | 3 tasks | 4 files |
+| Phase 146 P12 | 150min | 3 tasks | 1 files |
+| Phase 146 P13 | 90min | 3 tasks | 2 files |
+| Phase 147 P01 | 35m | 3 tasks | 6 files |
+| Phase 147 P03 | 12min | 2 tasks | 3 files |
+| Phase 147 P04 | 3min | 2 tasks | 6 files |
+| Phase 147 P05 | 6min | 2 tasks | 5 files |
+| Phase 147 P02 | ~25 minutes | 3 tasks | 8 files |
+| Phase 148 P01 | 35min | 3 tasks | 12 files |
+| Phase 148 P02 | 70min | 2 tasks | 5 files |
+| Phase 148 P05 | ~30min | 2 tasks | 14 files |
+| Phase 148 P06 | 5min | 1 tasks | 1 files |
+| Phase 148 P03 | 20min | 1 tasks | 3 files |
+| Phase 148 P04 | 35min | 2 tasks | 3 files |
+| Phase 148 P07 | external | 2 tasks | 0 files |
+| Phase 148 P08 | ~40min | 2 tasks | 5 files |
+| Phase 149 P01 | 5min | 2 tasks | 5 files |
+| Phase 149 P02 | 7min | 2 tasks | 4 files |
+| Phase 149 P03 | 2min | 2 tasks | 6 files |
+| Phase 149 P04 | 3min | 2 tasks | 2 files |
+| Phase 149 P05 | 25min | 2 tasks | 2 files |
+| Phase 150 P01 | 9min | 2 tasks | 4 files |
+| Phase 150 P02 | 35min | 3 tasks | 12 files |
+| Phase 150 P04 | 26min | 1 tasks | 3 files |
+| Phase 150 P03 | 45min | 2 tasks | 9 files |
+| Phase 150 P05 | 75min | 3 tasks | 11 files |
+| Phase 150 P07 | 35min | 2 tasks | 7 files |
+| Phase 152 P01 | 10min | 1 tasks | 1 files |
+| Phase 152 P02 | 15min | 3 tasks | 4 files |
+| Phase 152 P03 | 20min | 3 tasks | 4 files |
+| Phase 152 P04 | 10min | 2 tasks | 2 files |
+| Phase 152 P05 | 35min | 3 tasks | 1 files |
+| Phase 152 P06 | 15min | 2 tasks | 2 files |
+| Phase 152 P07 | 30min | 3 tasks | 4 files |
+| Phase 152 P08 | 35min | 2 tasks | 1 files |
+| Phase 152 P09 | 50min | 3 tasks | 0 files |
+| Phase 152 P10 | 25min | 3 tasks | 0 files |
+| Phase 153 P01 | 6min | 2 tasks | 3 files |
+| Phase 153 P02 | 4min | 2 tasks | 13 files |
+| Phase 153 P03 | 4min | 2 tasks | 2 files |
+| Phase 153 P04 | 20min | 2 tasks | 3 files |
+| Phase 153 P05 | 6min | 2 tasks | 6 files |
+| Phase 153 P06 | 3min | 2 tasks | 3 files |
+| Phase 154 P01 | 7min | 3 tasks | 9 files |
+| Phase 154 P02 | 12min | 2 tasks | 2 files |
+| Phase 154 P03 | 25min | 2 tasks | 4 files |
+| Phase 154 P04 | 35min | 3 tasks | 10 files |
+| Phase 154 P05 | 20min | 2 tasks | 1 files |
+| Phase 154 P06 | 25min | 2 tasks | 3 files |
+| Phase 154 P07 | 10min | 1 tasks | 0 files |
+| Phase 155 P01 | 26min | 3 tasks | 9 files |
+| Phase 155 P02 | 24min | 3 tasks | 6 files |
+| Phase 155 P03 | 12min | 1 tasks | 1 files |
+| Phase 155 P04 | 20min | 3 tasks | 6 files |
+| Phase 155 P05 | 12min | 2 tasks | 5 files |
+| Phase 155 P06 | 22min | 3 tasks | 7 files |
+| Phase 155 P07 | 55min | 3 tasks | 6 files |
+| Phase 156 P01 | 8min | 2 tasks | 4 files |
+| Phase 156 P02 | 22min | 2 tasks | 9 files |
+| Phase 156 P03 | 14min | 1 tasks | 3 files |
+| Phase 156 P06 | 14min | 2 tasks | 6 files |
+| Phase 156 P04 | 35min | 2 tasks | 11 files |
+| Phase 156 P05 | 6min | 1 tasks | 3 files |
+| Phase 156 P07 | 46min | 2 tasks | 5 files |
+| Phase 156 P08 | 11min | 2 tasks | 6 files |
+| Phase 156 P09 | 25min | 2 tasks | 2 files |
+| Phase 156 P10 | 55min | 2 tasks | 5 files |
+| Phase 156 P156-15 | 1h 10min | 2 tasks | 3 files |
+| Phase 157 P01 | 35min | 3 tasks | 5 files |
+| Phase 157 P04 | 4min | 2 tasks | 3 files |
+| Phase 157 P05 | 12min | 3 tasks | 4 files |
+| Phase 157 P02 | 30min | 3 tasks | 11 files |
+| Phase 157 P03 | 45min | 3 tasks | 5 files |
+| Phase 157 P10 | 27min | 3 tasks | 4 files |
+| Phase 156 P16 | 35min | 3 tasks | 17 files |
+| Phase 156 P17 | 20min | 3 tasks | 9 files |
+| Phase 157 P11 | 7min | 2 tasks | 1 files |
+| Phase 157 P12 | 6min | 3 tasks | 9 files |
+| Phase 157 P13 | 11min | 3 tasks | 4 files |
+| Phase 157 P14 | 11min | 4 tasks | 13 files |
+| Phase 157 P15 | 25min | 3 tasks | 14 files |
+| Phase 157 P16 | 15min | - tasks | - files |
+| Phase 156 P18 | 50min | 3 tasks | 16 files |
+| Phase 156 P19 | 20min | 1 tasks | 2 files |
+| Phase 156 P20 | 15min | 1 tasks | 2 files |
+| Phase 156 P22 | 12min | 1 tasks | 2 files |
+| Phase 156 P21 | ~50min | 3 tasks | 9 files |
+| Phase 160 P01 | 20min | 2 tasks | 4 files |
+| Phase 160 P02 | 45min | 3 tasks | 7 files |
+| Phase 160 P04 | 45min | 2 tasks | 6 files |
+| Phase 160 P03 | 40min | 3 tasks | 6 files |
+| Phase 160 P05 | 25min | 2 tasks | 4 files |
+| Phase 160 P06 | 35min | 2 tasks | 4 files |
+| Phase 162 P01 | 35min | 3 tasks | 6 files |
+| Phase 162 P02 | 45min | 2 tasks | 8 files |
+| Phase 162 P03 | 55min | 2 tasks | 3 files |
+| Phase 162 P04 | 25min | 3 tasks | 3 files |
+| Phase 163 P01 | 55min | 3 tasks | 2 files |
+| Phase 163 P02 | 55min | 3 tasks | 6 files |
+| Phase 163 P03 | 25min | 3 tasks | 9 files |
+| Phase 163 P04 | 45min | 3 tasks | 4 files |
+| Phase 163 P05 | ~15min | 3 tasks | 1 files |
+| Phase 164 P01 | 21min | 3 tasks | 5 files |
+| Phase 164 P02 | 8min | 2 tasks | 4 files |
+| Phase 164 P03 | 10min | 1 tasks | 1 files |
+| Phase 164 P04 | ~45min | 3 tasks | 10 files |
+| Phase 164 P05 | 90min | 2 tasks | 7 files |
+| Phase 164 P06 | 55min | 2 tasks | 5 files |
+| Phase 164 P07 | ~85min | 1 of 3 tasks (Task 1 auto; Task 3 file-only half) | 2 files |
+| Phase 164 P08 | 35min | 3 tasks | 15 files |
+| Phase 164 P09 | 20min | 1 tasks | 3 files |
+| Phase 164 P11 | 20min | 3 tasks | 5 files |
+| Phase 164 P10 | 55min | 3 tasks | 15 files |
+| Phase 164 P12 | 25min | 2 tasks | 7 files |
+| Phase 164 P13 | 55min | 1 tasks | 9 files |
+| Phase 165 P01 | 35min | 3 tasks | 7 files |
+| Phase 165 P02 | 25min | 2 tasks | 4 files |
+| Phase 165 P03 | 20min | 1 tasks | 3 files |
+| Phase 165 P04 | 50min | 2 tasks | 11 files |
+| Phase 165 P05 | 35min | 2 tasks | 5 files |
+| Phase 165 P13 | 6min | 1 tasks | 3 files |
+| Phase 165 P06 | 55min | 2 tasks | 10 files |
+| Phase 165 P08 | 25min | 3 tasks | 14 files |
+| Phase 165 P12 | ~20min | 1 tasks | 4 files |
+| Phase 165 P07 | 50min | 2 tasks | 8 files |
+| Phase 165 P09 | 65min | 3 tasks | 11 files |
+| Phase 165 P10 | ~15min | 2 tasks | 6 files |
+| Phase 165 P11 | 25min | 1 tasks (checkpoint resolved to option-c; Tasks 2-4 never executed) | 6 files |
+| Phase 165 P14 | 12min | 1 tasks | 4 files |
+| Phase 165 P15 | 40min | 2 tasks | 6 files |
+| Phase 165 P16 | 25min | 3 tasks | 6 files |
+| Phase 165 P17 | 70min | 3 tasks | 11 files |
+| Phase 165 P18 | 50min | 2 tasks | 17 files |
+| Phase 165 P19 | ~40min | 2 tasks | 12 files |
+| Phase 167 P01 | 22min | 2 tasks | 4 files |
+| Phase 167 P02 | 30min | 3 tasks | 5 files |
+| Phase 167 P03 | 35min | 3 tasks | 7 files |
+| Phase 167 P04 | 9min | 2 tasks | 4 files |
+| Phase 167 P05 | ~18min | 3 tasks | 6 files |
+| Phase 167 P07 | 11min | 2 tasks | 7 files |
+| Phase 167 P08 | 20min | 2 tasks | 6 files |
+| Phase 167 P06 | 55min | 3 tasks | 9 files |
+
+| 260925-i49 | Kurzhinweis direkt hinter Mapping-Workbench platziert und Episodentitel linksbündig erzwungen | 2026-09-25 | pending-human-uat | [260925-i49-episode-mapping-kurzhinweis-wiederherste](./quick/260925-i49-episode-mapping-kurzhinweis-wiederherste/) |
+
+| 260925-ijq | Episoden-Kopfzeile als klares Grid für Nummer, Titel/Sprache und Aktionen ausgerichtet; Gruppenspalte näher an Dateiname | 2026-09-25 | pending-human-uat | [260925-ijq-episode-mapping-kopfzeile-spacings-und-h](./quick/260925-ijq-episode-mapping-kopfzeile-spacings-und-h/) |
+
+| 260925-iwr | Episode-Import-Controls kompakt und Zeilenaktionen nebeneinander | 2026-09-25 | pending-human-uat | [260925-iwr-episode-mapping-controls-kompakt-und-akt](./quick/260925-iwr-episode-mapping-controls-kompakt-und-akt/) |
+
+| 260925-j3o | Episode-Mapping-Aktionen vereinheitlicht, ausgerichtet und Spalten ausgewogen | 2026-09-25 | pending-human-uat | [260925-j3o-episode-mapping-aktionen-ausrichtung-und](./quick/260925-j3o-episode-mapping-aktionen-ausrichtung-und/) |
+
+| 260925-jqy | Episode-Import setzt fehlende Klassifizierung standardmäßig auf Haupthandlung | 2026-09-25 | pending-human-uat | [260925-jqy-episode-import-standardwert-haupthandlun](./quick/260925-jqy-episode-import-standardwert-haupthandlun/) |
+
+| 260925-jwj | Episodenübersicht zu einer kompakten gemeinsamen Kopfkarte zusammengeführt | 2026-09-25 | pending-human-uat | [260925-jwj-episodenuebersicht-kompakte-kopfkarte](./quick/260925-jwj-episodenuebersicht-kompakte-kopfkarte/) |
+
+| 260925-jx5 | Beschreibungstext entfernt und Episodenaktionen direkt unter dem Titel platziert | 2026-09-25 | pending-human-uat | [260925-jx5-episodenuebersicht-titel-und-aktionen-ko](./quick/260925-jx5-episodenuebersicht-titel-und-aktionen-ko/) |
+
+| 260925-jyd | Zurück-zum-Anime-Navigation oben rechts ergänzt | 2026-09-25 | pending-human-uat | [260925-jyd-episodenuebersicht-zurueck-button-oben-r](./quick/260925-jyd-episodenuebersicht-zurueck-button-oben-r/) |
+
+| 260925-jzr | Episodenbereichstext entfernt und Canon/Filler sowie Episodentyp auf Titelzeile verschoben | 2026-09-25 | pending-human-uat | [260925-jzr-episodenbereich-metadaten-auf-titelebene](./quick/260925-jzr-episodenbereich-metadaten-auf-titelebene/) |
+
+| 260925-k38 | Episodenauswahl als kompakte Toolbar neben der Überschrift gestaltet | 2026-09-25 | pending-human-uat | [260925-k38-episoden-auswahl-kompakte-toolbar](./quick/260925-k38-episoden-auswahl-kompakte-toolbar/) |
+| Phase 169 P01 | 9min | 2 tasks | 8 files |
+| Phase 169 P02 | 30min | 2 tasks | 8 files |
+| Phase 169 P03 | 24 | 2 tasks | 12 files |
+| Phase 169 P04 | 18min | 2 tasks | 9 files |
+| Phase 171 P03 | 35min | 3 tasks tasks | 7 files files |
+| Phase 172 P01 | 50min | 2 tasks | 10 files |
+| Phase 172 P02 | 70min | 1 tasks | 5 files |
+| Phase 172 P03 | 65min | 2 tasks | 7 files |
+| Phase 172 P04 | 110min | 2 tasks | 7 files |
+| Phase 172 P05 | 40min | 2 tasks | 3 files |
+| Phase 172 P06 | 70min | 2 tasks | 3 files |
+| Phase 172 P07 | 25min | 2 tasks | 4 files |
+| Phase 173 P01 | 40min | 2 tasks | 3 files |
+| Phase 173 P02 | 55min | 1 tasks | 3 files |
+| Phase 173 P08 | 30min | 1 tasks | 10 files |
+| Phase 173 P09 | 65min | 2 tasks | 6 files |
+| Phase 173 P12 | 6min | 1 tasks | 2 files |
+| Phase 173 P03 | 50min | 1 tasks | 3 files |
+| Phase 173 P04 | 240min | 4 tasks | 14 files |
+| Phase 173 P05 | 150min | 3 tasks | 33 files |
+| Phase 173 P11 | 8min | 1 tasks | 5 files |
+| Phase 173 P06 | 50min | 2 tasks | 7 files |
+| Phase 173 P13 | 25min | 3 tasks | 4 files |
+| Phase 173 P07 | 95min | 3 tasks | 10 files |
+| Phase 173 P10 | 55min | 2 tasks | 6 files |
+| Phase 173 P14 | 5min | 2 tasks | 5 files |
+| Phase 173 P15 | 32min | 2 tasks | 4 files |
+| Phase 174 P01 | 150min | 5 tasks | 10 files |
+| Phase 174 P02 | 90min | 3 tasks | 8 files |
+| Phase 174 P03 | 70min | 3 tasks | 12 files |
+| Phase 174 P04 | 100min | 3 tasks | 9 files |
+| Phase 174 P05 | 48min | 3 tasks | 7 files |
+| Phase 174 P06 | 95min | 3 tasks | 11 files |
+| Phase 174 P07 | 85min | 2 tasks | 12 files |
+| Phase 174 P08 | 75min | 2 tasks | 1 files |
+| Phase 174 P10 | 13min | 3 tasks | 5 files |
+| Phase 174 P12 | 9min | 3 tasks | 2 files |
+| Phase 174 P11 | 42min | 3 tasks | 4 files |
+| Phase 174 P13 | 17min | 3 tasks | 6 files |
+| Phase 174 P14 | 35min | 5 tasks | 9 files |
+| Phase 174 P15 | 30min | 2 tasks | 1 files |
+| Phase 174 P16 | 25min | 3 tasks | 5 files |
+| Phase 174 P19 | 48min | 2 tasks | 10 files |
+| Phase 174 P20 | 13min | 3 tasks | 8 files |
+| Phase 174 P17 | 12min | 3 tasks | 7 files |
+| Phase 174 P18 | 75min | 3 tasks | 9 files |
+| Phase 174 P22 | 90min | 3 tasks | 32 files |
+| Phase 174 P23 | 110min | 2 tasks tasks | 55 files files |
+| Phase 174 P25 | ~85min | 2 tasks | 1 files |
+| Phase 174 P26 | 115min | 2 tasks | 1 files |
+| Phase 175 P01 | 140min | 2 tasks | 4 files |
+| Phase 175 P02 | 110min | 2 tasks | 4 files |
+| Phase 175 P03 | 25min | 2 tasks | 4 files |
+| Phase 175 P04 | 95min | 2 tasks | 4 files |
+| Phase 175 P05 | ~45min | 2 tasks | 4 files |
+| Phase 175 P06 | ~50min | 2 tasks | 4 files |
+| Phase 175 P07 | 15min | 1 tasks | 1 files |
+| Phase 175 P08 | 45min | 1 tasks | 1 files |
+| Phase 175 P09 | 35min | 2 tasks | 2 files |
+| Phase 176 P01 | 20min | 2 tasks | 15 files |
+| Phase 176 P02 | 64min | 3 tasks | 17 files |
+| Phase 176 P03 | 95min | 2 tasks | 2 files |
+| Phase 176 P04 | 4h51min | 3 tasks | 3 files |
+| Phase 176 P05 | 35min | 3 tasks | 8 files |
+| Phase 176 P06 | ~15min | 2 tasks | 4 files |
+| Phase 176 P07 | ~40min | 3 tasks | 11 files |
+| Phase 176-08 P08 | 25min | 3 tasks | 8 files |
+| Phase 176 P09 | 95min | 2 tasks | 8 files |
+| Phase 176 P10 | ~10min | 2 tasks | 1 files |
+| Phase 176 P11 | 20min | 2 tasks | 4 files |
+| Phase 176 P12 | 95min | 2 tasks | 4 files |
+| Phase 176 P13 | 25min | 2 tasks | 7 files |
+| Phase 176 P14 | 20min | 2 tasks | 17 files |
+| Phase 176 P15 | 45min | 1 tasks | 1 files |
+| Phase 177 P01 | 12min | 1 tasks | 2 files |
+| Phase 177 P02 | 15min | 3 tasks | 6 files |
+| Phase 177 P03 | 25min | 1 tasks | 2 files |
+| Phase 177 P04 | 20min | 3 tasks | 12 files |
+| Phase 177 P05 | 25min | 2 tasks | 6 files |
+| Phase 177 P06 | ~20min | 2 tasks | 7 files |
+| Phase 177 P07 | 15min | 1 tasks | 4 files |
+| Phase 177 P09 | 15min | 2 tasks | 7 files |
+| Phase 177 P10 | 8min | 2 tasks | 6 files |
+| Phase 177 P11 | 17min | 3 tasks | 10 files |
+| Phase 177 P12 | 17min | 2 tasks | 7 files |
+| Phase 177 P13 | 2min | 2 tasks | 4 files |
+| Phase 177 P14 | 38min | 3 tasks | 7 files |
+| Phase 177 P08 | multi-session (3 Live-UAT rounds) | 2 tasks | 1 files |
+| Phase 178 P01 | 12min | 3 tasks | 6 files |
+| Phase 178 P02 | 15min | 2 tasks | 5 files |
+| Phase 178 P03 | 15min | 2 tasks | 3 files |
+| Phase 178 P04 | 6min | 2 tasks | 4 files |
+| Phase 178 P05 | 15min | 2 tasks | 3 files |
+| Phase 178 P06 | 12min | 3 tasks | 6 files |
+| Phase 178 P07 | 25min | 2 tasks | 1 files |
+| Phase 179 P01 | 45min | 3 tasks | 11 files |
+| Phase 179 P03 | 9min | 2 tasks | 2 files |
+| Phase 179 P04 | 25min | 2 tasks | 4 files |
+| Phase 179 P05 | 35min | 1 tasks | 2 files |
+| Phase 179 P02 | 50min | 2 tasks | 4 files |
+| Phase 179 P06 | 60min | 1 tasks | 0 files |
+| Phase 180 P01 | 15min | 3 tasks | 9 files |
+| Phase 180 P02 | 25min | 2 tasks | 4 files |
+| Phase 180 P03 | 55min | 3 tasks | 5 files |
+| Phase 180 P04 | 14min | 3 tasks | 7 files |
+| Phase 180 P06 | 15min | 1 tasks | 3 files |
+| Phase 180 P05 | 45min | 2 tasks | 9 files |
+| Phase 180 P07 | 47min | 2 tasks | 7 files |
+| Phase 180 P08 | 25min | 2 tasks | 6 files |
+| Phase 180 P09 | 12min | 2 tasks | 2 files |
+| Phase 180 P10 | 18min | 2 tasks | 5 files |
+| Phase 180 P11 | 25min | 2 tasks tasks | 2 files files |
+| Phase 181 P01 | 25min | 2 tasks | 6 files |
+| Phase 181 P02 | 5min | 3 tasks | 6 files |
+| Phase 181 P03 | 12min | 3 tasks | 29 files |
+| Phase 181 P04 | 8min | 3 tasks | 30 files |
+| Phase 181 P05 | ~7min | 3 tasks | 13 files |
+| Phase 181 P06 | 15min | 3 tasks | 5 files |
+| Phase 181 P07 | 55min | 2 tasks | 4 files |
+| Phase 181 P08 | ~12min | 3 tasks | 18 files |
+| Phase 181 P09 | 35min | 2 tasks | 20 files |
+| Phase 181 P01 | 12min | 3 tasks | 12 files |
+| Phase 181 P03-fix | 20min | 2 tasks | 2 files |
+| Phase 182 P01 | 25min | 1 tasks | 7 files |
+| Phase 182 P02 | 90min | 2 tasks | 15 files |
+| Phase 182 P03 | 18min | 3 tasks | 12 files |
+| Phase 183 P01 | 15min | 2 tasks | 6 files |
+| Phase 183 P02 | 6min | 3 tasks | 5 files |
+| Phase 184 P01 | ~10min | 2 tasks | 2 files |
+| Phase 184 P02 | 22min | 3 tasks | 13 files |
+| Phase 184 P03 | 10min | 2 tasks | 2 files |
+| Phase 184 P04 | 25min | 2 tasks | 18 files |
+| Phase 184 P05 | 55min | 2 tasks | 10 files |
+| Phase 184 P07 | 15min | 2 tasks | 5 files |
+| Phase 184 P08 | 20min | 2 tasks | 11 files |
+| Phase 184 P09 | 20min | 2 tasks | 3 files |
+| Phase 184 P06 | 20min | 2 tasks | 7 files |
+| Phase 185 P01 | 8min | 1 tasks | 1 files |
+| Phase 185 P02 | 25min | 2 tasks | 3 files |
+| Phase 185 P03 | 8min | 2 tasks | 6 files |
+| Phase 185 P04 | 25min | 2 tasks | 2 files |
+| Phase 185 P05 | 4min | 2 tasks | 2 files |
+| Phase 185 P06 | 55min | 3 tasks | 5 files |
+| Phase 185 P07 | 25min | 3 tasks | 3 files |
+| Phase 185 P08 | 20min | 2 tasks | 4 files |
+| Phase 185 P09 | 45min | 3 tasks | 5 files |
+| Phase 185 P10 | 20min | 3 tasks | 2 files |
+| Phase 185 P11 | 50min | 2 tasks | 2 files |
+| Phase 185 P12 | 25min | 3 tasks | 3 files |
+
+## Session Continuity
+
+Last session: 2026-10-16T22:13:49.837Z
+Stopped at: Completed 185-12-PLAN.md (final plan, phase ready_for_verification)
+Last activity: 2026-10-16 - Completed quick task 261016-ccw: useDebouncedSearch.ts auf useDebouncedValue umgestellt
+Resume file: 
+None

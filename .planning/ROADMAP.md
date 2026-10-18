@@ -1182,6 +1182,13 @@ Plans:
 
 **UI hint**: ja — die Badge-Fortschrittsanzeige auf dem öffentlichen Profil und im eigenen Dashboard wechselt ihre Datenquelle. Vor `plan-phase` `/gsd-ui-phase 150` laufen lassen.
 
+**Milestone v1.4 Status: COMPLETE (2026-10-17, tag `v1.4`)** — originally scoped as Phases 136-144
+(41/41 requirements, see `.planning/v1.4-MILESTONE-AUDIT.md`), the milestone was extended
+additively under the same `v1.4`/"Coverage" label through Phase 185 before formal close. See
+`.planning/MILESTONES.md` for the closing summary and `.planning/archive/v1.4/` for a copied
+snapshot of this file, `REQUIREMENTS.md`, `PROJECT.md`, and `STATE.md` at close time. No new
+milestone was started — this roadmap remains live in place for Phase 186 and any future phases.
+
 ## v1.4 Coverage
 
 | Phase | Requirement Count | Requirement IDs |

@@ -1,0 +1,2808 @@
+# Roadmap: Team4s v1.3 Public Member Profile Hardening
+
+**Milestone Status: COMPLETE (2026-08-20, tag `v1.3`)** — all 8 phases below (128-135) done, all 65
+v1.3 requirements verified complete (`.planning/REQUIREMENTS.md`). See
+`.planning/v1.3-MILESTONE-AUDIT.md` for the closing scorecard and tracked debt, and
+`.planning/archive/v1.3/` for a copied snapshot of this file, `REQUIREMENTS.md`, `PROJECT.md`, and
+`STATE.md` at close time. This roadmap remains live in place for any future v1.4+ phases.
+
+## Overview
+
+Milestone v1.3 hardens the existing public member profile as one privacy-sensitive vertical slice. Work proceeds from immutable public identity and deny-first access, through canonical projections and one aligned public contract, into bounded delivery, shared SSR/frontend composition, responsive and accessible presentation, and reproducible fixture-backed release evidence. The roadmap deliberately extends existing Team4s seams and does not preserve compatibility for disposable test rows.
+
+## Milestone Constraints
+
+- Resolve profile visibility and verified owner access before any membership, contribution, badge, point, media, project, or story detail read.
+- Keep protected browser reads and owner preview behind the central refresh-capable auth/API seam; a refresh-only session remains active.
+- Preserve canonical member, membership, contribution, badge, point, release-version, and media ownership; never attach release media to episodes or revive `release_version_groups.fansubgroup_id`.
+- Keep SQL projections, Go DTOs/handlers, `shared/contracts/openapi.yaml`, frontend types, and `frontend/src/lib/api.ts` in parity.
+- Search existing models, repositories, handlers, helpers, components, and styles before adding a seam; no parallel domain models or duplicated request/auth logic.
+- Add no framework, library, service, cache layer, or index without repository evidence and measured need.
+- Use only new, reversibly numbered schema migrations. Reset and reseed disposable rows; do not add backfill, row-preservation, alias, or compatibility work.
+- Reset, seed, cleanup, and verification must preserve canonical media ownership and tracked badge assets, including `frontend/public/history-event-badges-transparent/`.
+
+## Phases
+
+- [x] **Phase 128: Canonical Public Identity & Visibility Foundation** - Make stored immutable slugs and deny-first access authoritative across every public member route.
+- [x] **Phase 129: Canonical Public Projections & Data Correctness** - Make every visible membership, contribution, release, badge, point, date, role, and count come from the correct public source.
+- [x] **Phase 130: Public DTO & Cross-Layer Contract Alignment** - Establish one minimal allow-listed public profile contract across backend, OpenAPI, TypeScript, and API helpers.
+- [x] **Phase 131: Set-Based Delivery, Pagination & Performance Budgets** - Bound payloads and page reads, remove query fan-out, and prove performance against both milestone fixtures.
+- [x] **Phase 132: Shared SSR Composition & Race-Safe Frontend State** - Render public and owner views through one composition and one refresh-capable request boundary with localized state. (completed 2026-08-15)
+- [x] **Phase 133: Responsive, Accessible & Efficient Visual Delivery** - Make the final profile composition mobile-first, container-responsive, keyboard accessible, and image-budgeted. (completed 2026-08-20 — 133-12's deferred D-06/D-12 manual UAT resolved-by-134-06, see 133-12-SUMMARY.md)
+- [x] **Phase 134: Fixture-Backed Verification & Rollout** - Reproduce both reference profiles from a clean state and close the milestone with automated and live evidence. (completed 2026-08-20)
+
+## Phase Details
+
+### Phase 128: Canonical Public Identity & Visibility Foundation
+
+**Goal**: Every public member request resolves one immutable stored slug and reaches detail data only after a shared, privacy-safe visibility decision.
+**Depends on**: Nothing (first v1.3 phase; Phase 127 is the preserved historical baseline)
+**Requirements**: PMID-01, PMID-02, PMID-03, PMPR-01, PMPR-02, PMPR-03, PMPR-04, PMPR-05
+**Deliverables**: Reversible canonical-slug schema/allocator; creation and inbound-link coverage; shared public-member access resolver; profile/projects/contributions route matrix; private owner-preview cache policy.
+**Success Criteria** (what must be TRUE):
+
+  1. A public profile keeps the same canonical URL after its nickname changes, and every public member link uses that stored slug without numeric or generated fallbacks.
+  2. Anonymous users receive the same non-disclosing outcome for hidden and missing profiles, and hidden requests execute no profile-detail loaders.
+  3. Profile, project, contribution, media, and retained member subresources apply the same visibility-first decision before returning detail.
+  4. A verified owner with only a valid refresh session can open the authoritative hidden-profile preview through the central auth/API client.
+  5. Owner- or viewer-specific responses remain private and cannot be served from a shared public cache.
+
+**Plans**: 22 plans
+**Plan-time read first**: `docs/engineering/implementation-contract.md`, `docs/frontend/auth-api-client.md`, `docs/architecture/db-schema-fansub-domain.md`, the latest files in `database/migrations/`, `backend/internal/handlers/app_public_profile.go`, `backend/internal/handlers/contributions_public_handler.go`, `backend/internal/repository/member_profile_repository.go`, `backend/internal/repository/anime_contributions_public_repository.go`, relevant member-creation repositories, and `backend/cmd/server/main.go`.
+
+Plans:
+**Wave 0**
+
+- [x] 128-01-PLAN.md - Establish guarded PostgreSQL slug, migration, and allocator test contracts.
+- [x] 128-03-PLAN.md - Establish canonical-link, owner-preview, and refresh-only frontend test contracts.
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [x] 128-02-PLAN.md - Establish the visibility resolver, privacy matrix, loader-spy, and cache test contracts.
+- [x] 128-14-PLAN.md - Canonicalize public member paths at the Next.js proxy boundary.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 128-04-PLAN.md - Add the immutable canonical public-slug schema and runtime member fields.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 128-05-PLAN.md - Implement the shared transactional slug allocator across all member-creation repositories.
+- [x] 128-06-PLAN.md - Project stored member slugs through contribution data.
+- [x] 128-07-PLAN.md - Project stored member slugs through group and domain-member data.
+- [x] 128-08-PLAN.md - Replace archive and ranking member-link fallbacks with stored slugs.
+- [x] 128-09-PLAN.md - Add the deny-first public-member access repository and ID-based profile loaders.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 128-10-PLAN.md - Convert project and contribution detail loaders to resolved member identity.
+- [x] 128-11-PLAN.md - Enforce shared access resolution and cache policy in public profile handlers.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 128-12-PLAN.md - Apply the shared visibility gate to projects, contributions, and retained subresources.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 128-13-PLAN.md - Align OpenAPI, frontend types, and central API helpers with the canonical public contract.
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 128-15-PLAN.md - Render the authoritative public profile composition at its canonical route.
+- [x] 128-17-PLAN.md - Remove numeric member-link fallbacks from own-profile projections.
+- [x] 128-18-PLAN.md - Reuse the shared profile hero for stored-slug member links.
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [x] 128-16-PLAN.md - Add the private-owner contextual preface and no-flash refresh-only behavior.
+- [x] 128-19-PLAN.md - Keep visibility editing session-safe and synchronized with the canonical preview.
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [x] 128-20-PLAN.md - Obtain explicit approval for the disposable member-row reset procedure.
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [x] 128-21-PLAN.md - Reset, migrate, reseed, and run the full Phase 128 automated gate.
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [x] 128-22-PLAN.md - Capture live browser evidence across visibility, refresh, and responsive states.
+
+### Phase 129: Canonical Public Projections & Data Correctness
+
+**Goal**: Users see only correct, publicly permissible profile facts assembled from existing canonical domain and release-native ownership seams.
+**Depends on**: Phase 128
+**Requirements**: PMPR-06, PMDA-01, PMDA-02, PMDA-03, PMDA-04, PMDA-05, PMDA-06, PMDA-07, PMDA-08, PMDA-09, PMDA-10, PMDA-11
+**Deliverables**: Public source/predicate matrix; corrected status/date/membership/contribution/release projections; stable role codes and labels; authoritative badge/point progress; domain-key dedupe; matching visible totals and activity-feed continuation.
+**Success Criteria** (what must be TRUE):
+
+  1. Status, memorial state, partial dates, active periods, current membership, and historical membership are presented as distinct and trustworthy facts.
+  2. Projects, contributions, release texts, and release-version media appear only when their confirmation, profile visibility, review, readiness, and deletion rules permit them.
+  3. Memberships expose all approved public roles by stable code and label while internal memberships, permissions, source facts, and private media remain absent.
+  4. Roles, projects, contributions, and badges appear once by domain identity, and every displayed total matches the visible filtered rows.
+  5. Points, badge tiers, and exact progress remain server-authoritative and use only publicly permissible facts; activity heading, filters, count, and "Mehr anzeigen" share the same dataset.
+
+**Plans**: 11 plans across 5 waves
+
+  - Wave 1: 129-01 (reusable API seed fixture), 129-02 (RED PostgreSQL projection contracts)
+  - Wave 2: 129-03 (behavior-preserving repository split, <=450 lines/file)
+  - Wave 3: 129-04 (count/rows parity), 129-05 (public-facts progress), 129-06 (drop recent_* from public DTO), 129-07 (remove dead /contributions surface)
+  - Wave 4: 129-08 (structured role code+label pairs), 129-09 (year-only precision), 129-10 (canonical membership projection)
+  - Wave 5: 129-11 (full automated gate + seed-backed check)
+
+**Plan-time read first**: `docs/architecture/db-schema-fansub-domain.md`, `backend/internal/repository/member_profile_repository.go`, `backend/internal/repository/member_profile_progress_repository.go`, `backend/internal/repository/member_profile_contribution_badges_repository.go`, `backend/internal/repository/member_profile_role_volume_repository.go`, `backend/internal/repository/anime_contributions_public_repository.go`, and their PostgreSQL-focused tests. Reuse canonical `hist_fansub_group_members`, `hist_group_member_roles`, `anime_contributions`, `release_version_notes`, `release_version_media`, `member_badges`, and point-total/lifecycle seams; do not create parallel projections.
+
+### Phase 130: Public DTO & Cross-Layer Contract Alignment
+
+**Goal**: Every public member consumer receives one minimal, explicitly typed response whose runtime, OpenAPI, and frontend definitions agree.
+**Depends on**: Phase 129
+**Requirements**: PMCT-01, PMCT-02, PMCT-03, PMCT-04, PMCT-05, PMCT-07, PMCT-08
+**Deliverables**: Dedicated public allow-list DTO/media shapes; typed visible/hidden/missing/error branches; complete enums; OpenAPI/Go/TypeScript/`api.ts` parity; removal of unused recent fields/endpoints; forbidden-field contract tests.
+**Success Criteria** (what must be TRUE):
+
+  1. Public profile responses contain only the documented allow-listed identity, presentation, membership, project, contribution, badge, point, and public media fields.
+  2. Private IDs, permissions, storage/source-original data, internal status, and unapproved media are absent from both JSON responses and the public schema.
+  3. Visible, hidden, missing, and failure outcomes are documented and parsed identically by handlers, OpenAPI, TypeScript, and the central API helper.
+  4. Role, status, and badge-tier enums, including platinum, are complete and consistent in every contract layer.
+  5. The Next.js route, metadata, and public profile components compile against the real route and API contracts without fallback fields or duplicate recent-data paths.
+
+**Plans**: 7 plans across 4 waves
+
+  - Wave 1: 130-01 (OpenAPI canonical public contract: dedicated allow-list schemas + complete enums)
+  - Wave 2: 130-02 (fork Go public DTO structs, decoupled from edit structs), 130-04 (dedicated public TS types + enum unions)
+  - Wave 3: 130-03 (Go handler status branches + one envelope + enum-value parity), 130-05 (api.ts helper + Next.js route parse three branches)
+  - Wave 4: 130-06 (finish recent-* cleanup: sweep orphans, retain internal edit surface), 130-07 (contract-test lock: forbidden-field + OpenAPI schema parity)
+
+**Plan-time read first**: `docs/api/api-contracts.md`, `backend/internal/models/member_profile.go`, `backend/internal/handlers/app_public_profile.go`, `backend/internal/handlers/contributions_public_handler.go`, `shared/contracts/openapi.yaml`, `frontend/src/types/profile.ts`, `frontend/src/lib/api.ts`, `frontend/src/app/members/[slug]/page.tsx`, and the existing handler/helper/page contract tests.
+**UI hint**: yes
+
+### Phase 131: Set-Based Delivery, Pagination & Performance Budgets
+
+**Goal**: Public profiles and their continuation requests stay bounded, stable, and measurably efficient as project and contribution volume grows.
+**Depends on**: Phase 130
+**Requirements**: PMCT-06, PMPF-01, PMPF-02, PMPF-03, PMPF-04, PMPF-05, PMPF-07
+**Deliverables**: Constant query budget; projection-specific page loaders; bounded payloads; deterministic honest pagination; representative query/payload/latency baselines; evidence-backed indexes only; explicit cache-class decision.
+**Success Criteria** (what must be TRUE):
+
+  1. Profile query count stays constant as project count grows, with no per-project or per-card database reads.
+  2. Loading another project or contribution page fetches only that bounded page and never rebuilds the complete profile.
+  3. Initial and continuation payloads obey documented limits, stable tie-broken ordering, and truthful total/continuation semantics without unused child collections.
+  4. Both `sheppert` and `csubs-leader` have reproducible query-count, payload, latency, image-waterfall, and Web-Vitals measurements checked against fixed acceptance budgets.
+  5. Every added index has representative `EXPLAIN (ANALYZE, BUFFERS)` evidence, while viewer-specific responses stay separate and shared caching remains absent unless measurement plus complete invalidation justify it.
+
+**Plans**: 8 plans across 4 waves
+
+  - Wave 1: 131-01 (query-count tracer + characterization), 131-02 (evidence harness + both-profile baseline)
+  - Wave 2: 131-03 (batch per-card N+1 -> constant query budget), 131-04 (tie-broken ordering + honest total), 131-05 (documented enforced page bounds; LIMIT 3 + unbounded previous -> bounded pages)
+  - Wave 3: 131-06 (OpenAPI offset-pagination contract + TS/api parity), 131-07 (viewer/anonymous cache-class separation lock)
+  - Wave 4: 131-08 (re-measure + lock budgets baseline+~20% + evidence-backed indexes only)
+
+**Plan-time read first**: `backend/internal/repository/member_profile_repository.go`, its PostgreSQL tests, public project/contribution repositories and handlers, `frontend/scripts/collect-member-profile-evidence.mjs`, `shared/contracts/openapi.yaml`, and current API consumers before selecting list bounds or pagination. Inspect existing indexes and both fixture query plans before proposing a migration.
+
+### Phase 132: Shared SSR Composition & Race-Safe Frontend State
+
+**Goal**: Public and owner-preview profiles render the same authoritative composition while request, session, paging, and interaction state remain centralized and race-safe.
+**Depends on**: Phase 131
+**Requirements**: PMFE-01, PMFE-02, PMFE-03, PMFE-04, PMFE-05, PMFE-06, PMFE-07, PMFE-08, PMFE-09, PMFE-10, PMFE-11
+**Deliverables**: Shared public profile view; anonymous SSR plus central-client owner upgrade; consolidated owner/correction request path; slug-keyed cancellable local state; scoped state presentations; shared badge/formatting seams; stable metadata/date rendering; progressive disclosure.
+**Success Criteria** (what must be TRUE):
+
+  1. Anonymous public rendering and authorized owner preview use the same backend DTO and the same visible profile composition.
+  2. Profile, owner, preview, and correction actions use one central refresh-capable session/request path and fail closed without duplicate own-profile lookups.
+  3. Rapid slug changes, paging, carousel use, and expansion cannot append stale or duplicate data, and loading/error state remains scoped to the affected section.
+  4. Loading, empty, hidden, missing, and failure states remain distinct; long stories and achievement collections use progressive disclosure without losing accessible content.
+  5. Member-specific metadata and relative dates are SSR/hydration-stable, while top roles, known groups, and totals derive from the complete approved dataset rather than the first page.
+
+**Plans**: 4 plans across 3 waves
+
+  - Wave 1: 132-01 (backend known_for full-set aggregate + OpenAPI/TS contract parity), 132-02 (shared useCancellableSlugState hook + current-projects paging + progressive-disclosure lock)
+  - Wave 2: 132-03 (central useMemberViewer seam consolidating 3 owner/viewer call sites)
+  - Wave 3: 132-04 (known_for consumption in MemberProfileHero, member-specific metadata, referenceNow hydration-stable dates)
+
+**Plan-time read first**: `docs/frontend/auth-api-client.md`, `frontend/src/lib/api.ts`, `frontend/src/app/members/[slug]/page.tsx`, `OwnHiddenProfilePreview.tsx`, `OwnProfileEditLink.tsx`, `frontend/src/components/profile/MemberCurrentProjectsSection.tsx`, `MemberBadgeChain.tsx`, `memberBadgeLabels.ts`, nearby profile section components/tests, and generic primitives in `frontend/src/components/ui`. Extend existing `RichTextRenderer`, `FocalCarousel`, request, and formatting seams when ownership fits.
+**UI hint**: yes
+
+### Phase 133: Responsive, Accessible & Efficient Visual Delivery
+
+**Goal**: The final profile composition remains compact, readable, operable, and bandwidth-conscious from narrow containers through widescreen and high zoom.
+**Depends on**: Phase 132
+**Requirements**: PMPF-06, PMPF-08, PMUI-01, PMUI-02, PMUI-03, PMUI-04, PMUI-05, PMUI-06, PMUI-07, PMA11Y-01, PMA11Y-02, PMA11Y-03, PMA11Y-04
+**Deliverables**: Mobile-first page geometry; container-responsive reusable components; bounded CSS-module ownership; removal of conflicting selectors/listeners; semantic heading/interaction treatment; WCAG 2.2 evidence; optimized profile/badge image delivery and asset budgets.
+**Success Criteria** (what must be TRUE):
+
+  1. The profile has no document-level horizontal overflow or clipped controls at narrow, intermediate, transition, and wide layouts, and widescreen uses space compactly without oversized cards or empty bands.
+  2. Reusable profile, achievement, hero, and membership components respond to their container geometry, while page composition uses only purpose-based viewport transitions.
+  3. Long German content and correct umlauts remain usable at 400% zoom, with clean component-owned CSS and no contradictory patches, broad descendant rules, unnecessary resize listeners, or avoidable `!important`.
+  4. Headings, carousel, paging, preview, and disclosure controls are keyboard operable with visible focus, correct names/state/status relationships, logical DOM order, compliant targets/contrast, and reduced motion.
+  5. Avatars, badges, and profile media reserve geometry, request suitable variants with truthful `sizes` and bounded quality, meet asset/transfer budgets, and restrict local-IP optimization to development/test.
+
+**Plans**: 12 plans across 7 waves
+
+  - Wave 1: 133-01 (axe-core/jest-axe setup), 133-02 (next.config image quality/SSRF gate), 133-03 (hero container-query conversion), 133-04 (badge-chain CSS split: shared artwork + locked-stage)
+  - Wave 2: 133-05 (FocalCarousel a11y hardening), 133-06 (memorial-hero single-h1 fix), 133-07 (badge-chain CSS split: anime/points/contribution/membership stages)
+  - Wave 3: 133-08 (badge-chain CSS split: family card + badge chip + 820px constant)
+  - Wave 4: 133-09 (badge-chain CSS split: role card de-duplication + shell shrink + !important removal)
+  - Wave 5: 133-10 (image-byte budget measurement + lock)
+  - Wave 6: 133-11 (overflow hard gate + full regression suite)
+  - Wave 7: 133-12 (manual D-06/D-12 evidence checkpoints)
+
+**Plan-time read first**: `docs/frontend/ui-system.md`, `docs/agent-guidelines-ui.md`, `frontend/src/app/members/[slug]/page.module.css`, `frontend/src/components/profile/profile.module.css`, profile-owned CSS modules, `MemberBadgeChain.module.css`, `frontend/src/components/ui/FocalCarousel.tsx`, `ResponsiveImage.tsx`, their tests/styles, `frontend/next.config.mjs`, and `frontend/scripts/verify-profile-image-delivery.mjs`. Reuse or extend global primitives before adding local generic styles.
+**UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [x] 133-01-PLAN.md — Install axe-core/jest-axe and wire shared Vitest a11y setup.
+- [x] 133-02-PLAN.md — Gate next.config.mjs local-IP image optimization + explicit quality allow-list.
+- [x] 133-03-PLAN.md — Convert the profile hero's responsive rules to @container.
+- [x] 133-04-PLAN.md — Split MemberBadgeChain CSS: shared artwork + locked-stage layer.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 133-05-PLAN.md — Harden FocalCarousel keyboard/focus/inert behavior + axe coverage.
+- [x] 133-06-PLAN.md — Fix the memorial hero's duplicate heading to a single h1.
+- [x] 133-07-PLAN.md — Split MemberBadgeChain CSS: anime/points/contribution/membership stages.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 133-08-PLAN.md — Split MemberBadgeChain CSS: family card + badge chip + 820px constant.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 133-09-PLAN.md — Split MemberBadgeChain CSS: role card de-duplication + shrink shell.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 133-10-PLAN.md — Measure and lock the image-byte delivery budget.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 133-11-PLAN.md — Harden the overflow gate and green the full regression suite.
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 133-12-PLAN.md — Manual D-06/D-12 visual and keyboard/zoom evidence checkpoints. **DEFERRED** — batched into a live-UAT pass scheduled after Phase 135; not run, not approved. See `133-12-SUMMARY.md`.
+
+### Phase 134: Fixture-Backed Verification & Rollout
+
+**Goal**: A clean, repeatable environment proves the complete v1.3 profile behavior, performance, ownership, migration, and visual experience before milestone closure.
+**Depends on**: Phase 133
+**Requirements**: PMQA-01, PMQA-02, PMQA-03, PMQA-04, PMQA-05, PMQA-06, PMQA-07
+**Deliverables**: Versioned idempotent `sheppert`/`csubs-leader` fixture contract and manifest; clean reset/seed workflow; migration up/down/fresh proof; automated viewer/data/error/pagination matrix; responsive live-UAT evidence; final quality and protected-asset gates.
+**Success Criteria** (what must be TRUE):
+
+  1. One versioned idempotent reset/seed contract recreates `sheppert` and `csubs-leader` with the documented identity, visibility, roles, memberships, projects, badges, media, and content-length expectations.
+  2. The new migration chain passes fresh-database, up, and down checks without preserving synthetic rows or adding compatibility behavior.
+  3. Automated tests cover anonymous public, hidden, owner, refresh-only, missing, sparse, dense, error, and pagination cases, and typecheck, lint, focused backend/frontend tests, build, and `git diff --check` are green.
+  4. Live browser UAT proves both profiles at mobile, intermediate, and widescreen layouts, including keyboard, 400% zoom, images, loading behavior, and the actual user-visible route.
+  5. Reset, seed, and media verification leave canonical ownership and tracked badge assets unchanged while the recorded query, payload, image, overflow, and Web-Vitals evidence meets Phase 131/133 budgets.
+
+**Plans**: 6 plans across 5 waves
+
+  - Wave 1: 134-01 (fixture manifest + seed media extension), 134-02 (migration fresh/up/down proof)
+  - Wave 2: 134-03 (verification matrix: 9-case fixture-backed suite)
+  - Wave 3: 134-04 (green gate + ROADMAP/STATE doc reconciliation)
+  - Wave 4: 134-05 (protected-asset hash guard + targeted shared-DB reset)
+  - Wave 5: 134-06 (live UAT evidence + human sign-off)
+
+**Plan-time read first**: `backend/internal/migrations/runner.go`, migration tests, existing project reset/seed/Compose tooling, `frontend/scripts/collect-member-profile-evidence.mjs`, `frontend/scripts/verify-profile-image-delivery.mjs`, profile API/component tests, and prior UAT formats as read-only analogs. Record hashes/status for `frontend/public/history-event-badges-transparent/` and other protected tracked badge sources before any reset or media cleanup.
+**UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [x] 134-01-PLAN.md — Extend the seed with a media step and build the versioned fixture manifest.
+- [x] 134-02-PLAN.md — Build migration fresh/up/down proof tooling on an ephemeral database.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 134-03-PLAN.md — Build the 9-case verification matrix against the versioned fixture.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 134-04-PLAN.md — Scoped green gate + ROADMAP/STATE tracking reconciliation.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 134-05-PLAN.md — Protected-asset hash guard + targeted shared-DB reset/reseed.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 134-06-PLAN.md — Live UAT evidence capture + human sign-off checkpoint.
+
+## Coverage
+
+| Phase | Requirement Count | Requirement IDs |
+|-------|-------------------|-----------------|
+| 128. Canonical Public Identity & Visibility Foundation | 8 | PMID-01-03, PMPR-01-05 |
+| 129. Canonical Public Projections & Data Correctness | 12 | PMPR-06, PMDA-01-11 |
+| 130. Public DTO & Cross-Layer Contract Alignment | 7 | PMCT-01-05, PMCT-07-08 |
+| 131. Set-Based Delivery, Pagination & Performance Budgets | 7 | PMCT-06, PMPF-01-05, PMPF-07 |
+| 132. Shared SSR Composition & Race-Safe Frontend State | 11 | PMFE-01-11 |
+| 133. Responsive, Accessible & Efficient Visual Delivery | 13 | PMPF-06, PMPF-08, PMUI-01-07, PMA11Y-01-04 |
+| 134. Fixture-Backed Verification & Rollout | 7 | PMQA-01-07 |
+| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 9 | D-01 - D-09 (Decision-Coverage, kein REQUIREMENTS.md-Mapping) |
+| **Total** | **65 (+9 additiv)** | **65 unique v1.3 requirements; no duplicates or orphans; Phase 135 additiv per D-01..D-09** |
+
+## Progress
+
+**Execution Order:** 128 - 129 - 130 - 131 - 132 - 133 - 134 - 135
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 128. Canonical Public Identity & Visibility Foundation | 22/22 | Complete | 2026-08-14 |
+| 129. Canonical Public Projections & Data Correctness | 11/11 | Complete | 2026-08-15 |
+| 130. Public DTO & Cross-Layer Contract Alignment | 7/7 | Complete | 2026-08-15 |
+| 131. Set-Based Delivery, Pagination & Performance Budgets | 8/8 | Complete | 2026-08-15 |
+| 132. Shared SSR Composition & Race-Safe Frontend State | 4/4 | Complete | 2026-08-15 |
+| 133. Responsive, Accessible & Efficient Visual Delivery | 12/12 | Complete — 133-12 resolved-by-134-06 | 2026-08-20 |
+| 134. Fixture-Backed Verification & Rollout | 6/6 | Complete | 2026-08-20 |
+| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 10/10 | Complete | 2026-08-19 |
+
+### Phase 135: Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten
+
+**Goal:** Ein kalt eingeladener Fansubber kann eine Einladung end-to-end annehmen -- mit Kontext-Mail, Registrieren-ODER-Anmelden-Pfad auf der Accept-Seite (returnTo + E-Mail-Vorbelegung + Auto-Accept), verdrahtetem Claim-Button fuer historische Mitglieder und einem Rollen-Picker, der nur zuweisbare Gruppenrollen zeigt. Niemand landet mehr in einer Sackgasse.
+**Depends on:** Phase 134
+**Requirements**: TBD (Quelle: .planning/notes/live-uat-ux-findings.md, Findings #6-#10) -- Decision-Coverage via D-01 bis D-09 in `135-CONTEXT.md` (kein REQUIREMENTS.md-Mapping vorhanden; jede Plan-Datei traegt die zutreffenden D-IDs im `requirements`-Frontmatter-Feld).
+**Scope (aus Live-UAT-Findings #6-#10):**
+
+- #10 (BLOCKER): Cold-Invite-Registrierungspfad -- Accept-Seite bietet BEIDE Wege (Registrieren UND Anmelden), reicht die Einladung durch (returnTo + E-Mail-Vorbelegung fuer den email_match), danach Auto-Accept + Bestaetigung. Pruefen ob Keycloak Self-Registration / registrationAllowed aktiv ist.
+- #10: Einladungs-Mail mit Kontext (wer laedt ein, welche Gruppe, 1 Zeile "Team4s ist...", was Annehmen bewirkt) statt spam-artiger Blindmail.
+- #8: Accept-Seite gibt returnTo an /login mit -> Auto-Redirect zurueck + Auto-Accept nach Login.
+- #9: Accept-Text endnutzerfreundlich (keine Keycloak-/Architektur-Interna im UI).
+- #6: Claim-Generieren-Button + Invite-Link-Anzeige in HistoricalMemberCard verdrahten (Backend member_claim_invitations_handler.go + Hook useGroupMembersClaimActions.ts existieren, UI rendert ihn nie).
+- #7: Rollen-Picker (Einladung/Mitglied-hinzufuegen) auf assignable=true filtern -- Credit-/Contribution-Rollen (Administration) und platform_admin (jetzt via KC-JIT) ausblenden.
+- D-08 (Locked, 2026-08-17): Registrierung ist invite-scoped -- E-Mail auf die eingeladene Adresse vorbefuellt/gelockt (mediiert via Mail-Link-Query-Param + serverseitigem email_match, kein KC-Theme-Umbau).
+- D-09 (Locked, 2026-08-17): EIN gemeinsamer Onboarding-/Accept-Flow (`InviteAcceptFlow`-Komponente) fuer beide Invite-Typen (App-Member-Invite UND Historical-Claim-Invite).
+
+**Betroffene Bereiche:** frontend/src/app/invitations/accept/page.tsx; frontend/src/app/claim-invitations/accept/page.tsx; frontend/src/components/auth/InviteAcceptFlow.tsx (NEU); frontend/src/lib/keycloakAuth.ts; frontend/src/app/login/page.tsx; Einladungs-Mail-Template (backend services/mailer.go + app_auth.go); frontend/src/app/admin/fansubs/[id]/edit/ (GroupMembersHistTable.tsx HistoricalMemberCard, Rollen-Picker, useGroupMembersClaimActions.ts); backend/internal/repository/hist_group_member_roles_repository.go; infra/keycloak/realm-team4s.json (registrationAllowed, live-verifiziert).
+**Plans:** 10/10 plans complete
+
+  - Wave 1: 135-01 (frontend auth foundation: keycloakAuth.ts returnPath/loginHint + login page), 135-02 (backend D-06 role-picker SQL fix + live-DB test), 135-03 (backend D-03/D-01 mail context + email-hint link), 135-04 (frontend D-05 claim button wiring)
+  - Wave 2: 135-05 (shared InviteAcceptFlow component + /invitations/accept BLOCKER rewrite)
+  - Wave 3: 135-06 (claim-invitations/accept rewrite onto the shared flow, completes D-09)
+  - Wave 4: 135-07 (full automated gate + live UAT checkpoints: D-02 KC live check, cold-invite round trip + Mailpit content)
+
+**Plan-time read first**: `frontend/src/lib/keycloakAuth.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/claim-invitations/accept/page.tsx`, `frontend/src/app/invitations/accept/page.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/GroupMembersHistTable.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/ClaimManagementPanel.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersClaimActions.ts`, `backend/internal/handlers/app_auth.go`, `backend/internal/repository/hist_group_member_roles_repository.go`, `backend/internal/repository/fansub_repository.go`, `backend/cmd/server/main.go`, and `.planning/phases/135-.../135-RESEARCH.md`/`135-PATTERNS.md` as read-only analogs.
+**UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [x] 135-01-PLAN.md — keycloakAuth.ts returnPath/loginHint foundation + login page consumption (D-01, D-04).
+- [x] 135-02-PLAN.md — Backend role-picker SQL fix (assignable = true only) + live-DB regression test (D-06).
+- [x] 135-03-PLAN.md — Backend context-rich invitation mail + email-hint link (D-03, D-01, D-08).
+- [x] 135-04-PLAN.md — Wire the claim-invite generate/copy/cancel UI into HistoricalMemberCard (D-05, D-07).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 135-05-PLAN.md — Shared InviteAcceptFlow component + /invitations/accept BLOCKER rewrite (D-01, D-04, D-07, D-08, D-09).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 135-06-PLAN.md — claim-invitations/accept rewrite onto the shared InviteAcceptFlow (D-09, D-07).
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 135-07-PLAN.md — Full automated gate + live UAT checkpoints: D-02 Keycloak live check, cold-invite end-to-end round trip + Mailpit content sign-off.
+- [x] 135-08-PLAN.md — Keycloak-Theme register.ftl: E-Mail vorbefuellt+gesperrt + generischer Invite-Kontext (D-12, D-13, D-07).
+- [x] 135-09-PLAN.md — Keycloak-Registrierung auf Fansubname umbauen; First/Last optional; KC autoritativ + JIT-Sync (D-14).
+- [x] 135-10-PLAN.md — Case-preserved Fansubname (Anzeige, KC) + Historisch-Selbst-Claim Approval-Render (D-15, D-16, Finding #25).
+
+# Milestone v1.4: Capability-, Review- und Benutzerverwaltung
+
+## Overview
+
+Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights explainable and safely editable, turning existing review delegation into a usable product seam, reducing user-admin projections to meaningful grouped data, and showing reviewers only work they can actually decide. It extends the existing DB-driven capability registry, central `permissions.Service`, specialized review delegation, canonical domain ownership, Keycloak-owned global roles, and refresh-capable browser API client. Finding #33 (platform documents) and Finding #34 (badge UI) remain future work.
+
+## Milestone Constraints
+
+- Policy, scope, precedence, schema, and contracts precede resolver and UI work; authorization remains centralized in `permissions.Service`.
+- Keycloak remains authoritative for global roles; the platform-admin bypass is read-only in group tooling and cannot be negated by group overrides.
+- Review delegation remains a specialized membership seam and is not folded into generic user overrides.
+- User-admin projections group canonical contribution and media ownership without changing release, release-version, media, or contribution ownership.
+- Protected browser flows use the central refresh-capable API client; no component reads tokens or constructs bearer headers.
+- UI extends existing global components and the existing user/group admin surfaces, remains desktop-first for the back office, and degrades without overflow at narrow widths.
+- Schema work uses new reversible migrations and reproducible disposable-data fixtures; no compatibility or backfill work is introduced.
+
+## Phases
+
+- [x] **Phase 136: Capability Policy, Catalog & Schema Contract** - Lock one enforceable precedence/scope model, canonical metadata, override schema, indexes, and cross-layer contracts. (completed 2026-08-20)
+- [x] **Phase 137: Central Effective-Rights Resolver & Overrides** - Make canonical enforcement and inspection resolve the same provenance-aware effective rights and safe per-user overrides. (completed 2026-08-21)
+- [x] **Phase 138: Effective-Rights Administration & Impact UX** - Turn the existing user rights and role-capability surfaces into explainable revoke, impact, and cache-state workflows. (completed 2026-08-23)
+- [x] **Phase 139: Scalable User-Admin Projections** - Replace noisy flat contribution and media data with meaningful grouped, filtered, and stable projections. (completed 2026-08-24)
+- [x] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor. (completed 2026-08-26)
+- [x] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide. (completed 2026-08-26)
+- [x] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (completed 2026-09-01)
+- [x] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen. (completed 2026-09-01)
+- [x] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload. (completed 2026-09-02, Live-UAT abgenommen 2026-09-03, siehe 144-UAT.md)
+- [x] **Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen** - Die drei rollenunabhängigen Mitgliedsrechte kommen nicht mehr aus einem Go-Slice, sondern als reservierte, nicht zuweisbare Pseudo-Rolle aus der Datenbank-Registry. (completed 2026-09-04, Live-UAT abgenommen 2026-09-04, siehe 145-UAT.md)
+- [x] **Phase 146: Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests** - Kein Admin kann über die Capability-Matrix einen Zustand erzeugen, der den nächsten Backend-Start scheitern lässt, und sicherheitsrelevante Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche. (completed 2026-09-04)
+- [x] **Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen** - Eine neue Gruppenrolle muss nur noch in `role_definitions` ergänzt werden; die verbliebenen Frontend-/Go-Parallelregistries für Rollen sind entfernt. (completed 2026-09-05)
+- [x] **Phase 148: Rollenfarben wieder an den Katalog anschließen** - Die beim Seam-Umbau in Phase 136-30 zurückgebliebenen toten Farb-Token, Hex-in-`data-role-code`-Attribute und Kategorie-Klassenmaps sind entfernt; die Rollenfarbe kommt app-weit aus `role_definitions.color_key`. (completed 2026-09-05)
+- [x] **Phase 149: Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen** - 13 referenzierte, aber nirgends definierte Custom Properties (78 Referenzen) sind auf vorhandene Design-Tokens umgebogen, ein Guard verhindert Neuzugänge, und der Rollentext der Notizkarte erreicht WCAG AA. (completed 2026-09-06)
+- [x] **Phase 150: Badge-Regeln — eine autoritative Schwellenquelle** - Jede Badge-Schwelle hat genau eine fachlich autoritative Stelle: eine Go-Schwellenregistry ersetzt sechs Backend-Kopien und vier Frontend-Threshold-Quellen, das Frontend stellt nur noch dar. (completed 2026-09-07)
+- [x] **Phase 151: Erfolgsbadge-Karussell-Konsolidierung** - Alle Badge-Familien teilen einen gemeinsamen Artwork-Slot, gemeinsame Karten/Stufen und ein generisches Karussell; die Phase-150-Schwellenautoritaet bleibt unangetastet, geaendert wird nur die Darstellung. (completed 2026-09-08)
+- [x] **Phase 152: Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung** - Die oeffentliche Gruppenseite nutzt den gemeinsamen Artwork-Slot statt eines zweiten Badge-Systems, liefert Bilder ueber die Next-Image-Pipeline aus und laedt public-seitig nur noch benoetigte Daten mit abgesichertem Query-Budget. (completed 2026-09-08)
+- [x] **Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit** - Die drei P1-Befunde der Messreihe vom 2026-09-09 sind geschlossen: die native Auto-Sizes-DOM-Retention, der Editor-Importzweig im oeffentlichen Graph und die Skeletons, die vorhandene SSR-Inhalte bis zur Hydration verdecken. (completed 2026-09-10)
+- [x] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind. (completed 2026-09-10)
+- [x] **Phase 155: Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget** - Die oeffentliche Fansub-Projektseite laedt ueber einen gezielten Project Resolver, eine schlanke Contributor-Summary und entflochtene Release-Pfade, ohne doppelten Profil-Load und ohne Vollinventar-Abfragen; Member-Klicks fuehren kanonisch auf die Projekt-Member-Route. (completed 2026-09-11)
+- [x] **Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion** - `theme_segment_assignments` wird die kanonische Release-Segment-Wahrheit, Bereichsaenderungen und spaetere Releases halten die Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer korrigierbaren, um ein personenbezogenes Contributor-Subset (GAP-01) erweiterten Segment-Origin projiziert, und Projekt- wie Release-Seite lesen dieselbe Wahrheit. (automatisiert/funktional abgeschlossen 2026-09-12; Gap-Schliessungen GAP-03 bis GAP-09 inkl. Encoding/Design als manuelle Segment-Credits; vom Auftraggeber am 2026-09-15 live abgenommen)
+- [x] **Phase 157: Projekt-Memberseite visuell auf Referenzdesign umbauen** - Die oeffentliche Projekt-Member-Seite folgt dem Referenzdesign des Auftraggebers: kompakter Profilkopf, eine Statistikleiste statt vier Karten, Tab-Navigation mit Aktivzustand, Beitragszusammenfassung, Notizen als kompakte Timeline ohne redundanten Rollen-Header und ein kompakter Releases-Empty-State. Alle 14 Plaene (inkl. Gap-Closure 157-10 und der vierteiligen GAP-02-Schliessung 157-11..14 -- Screenshot-Beweisgrundlage, Sektions-Header-Primitive, Timeline-Punkt/-Linie-Farbe, Hero-Sprungziele statt dupliziertem ProjectMemberStickyNav) sind ausgefuehrt und automatisiert verifiziert; vom Auftraggeber am 2026-09-15 live abgenommen. (completed 2026-09-14)
+
+## Phase Details
+
+### Phase 136: Capability Policy, Catalog & Schema Contract
+
+**Goal**: Team4s has one documented, enforceable capability policy and one canonical data/contract foundation for scoped user overrides, provenance, impact, and reliable catalog behavior.
+**Depends on**: Phase 135 (completed historical baseline)
+**Requirements**: CAP-04, CAP-11, CAP-12, CAP-13, CAP-14, QUAL-01, QUAL-04
+**Success Criteria** (what must be TRUE):
+
+  1. The same documented precedence and scope matrix defines normal group decisions everywhere, while the IdP-owned platform-admin bypass is explicitly non-deniable by group controls.
+  2. Role assignability and capability category, order, label, and help text each come from one canonical catalog, including every review capability and an explicit state for roles without operative rights.
+  3. A fresh disposable database can apply and reverse the scoped-override schema with its ownership constraints and reverse-lookup indexes without editing historical migrations or requiring compatibility data.
+  4. OpenAPI, backend DTOs, frontend types, and central API-helper contracts describe the same effective-rights, override, impact, and mutation-status shapes before consumers are built.
+
+**Plans**: 31 plans
+
+Plans:
+**Wave 1**
+
+- [x] 136-01-PLAN.md — Reversible capability-policy catalog, scoped override/audit schema, confirmed role defaults and indexes
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 136-09-PLAN.md — Exact narrow media/page/history handler enforcement for confirmed role defaults
+- [x] 136-10-PLAN.md — Public presentation-only role catalog repository, handler and exact unauthenticated router contract
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 136-02-PLAN.md — Protected admin/member catalog projections and fail-closed permission cache
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 136-03-PLAN.md — Synchronized contracts and pure catalog-backed frontend role adapter
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 136-11-PLAN.md — Root-loaded role catalog provider and app-layout integration proof
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 136-04-PLAN.md — Catalog-driven group-member selectors and shared label/color compatibility
+- [x] 136-05-PLAN.md — Pure catalog-driven contribution-role transforms
+- [x] 136-06-PLAN.md — Catalog-context historical roles and archive/search filters
+- [x] 136-07-PLAN.md — Catalog-driven member profile and project/release presentation
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 136-12-PLAN.md — Catalog-driven contribution and release-credit cards
+- [x] 136-13-PLAN.md — Catalog-driven admin contribution selector and user projection
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [x] 136-08-PLAN.md — Generic role badges/points and whole-inventory hardcode gate
+
+**Gap closure — Wave 9**
+
+- [x] 136-14-PLAN.md — Event-type-aware founder history and lifecycle-safe co-leader patch authorization
+- [x] 136-15-PLAN.md — Successful-transition-only link audit ordering
+- [x] 136-16-PLAN.md — Complete capability metadata, aligned Karaoke-FX semantics and fresh migration proof
+- [x] 136-19-PLAN.md — Runtime-valid public catalog responses with compact provider errors
+
+**Gap closure — Wave 10**
+
+- [x] 136-17-PLAN.md — Complete focused/root OpenAPI and TypeScript policy contract family
+- [x] 136-20-PLAN.md — Catalog-metadata-driven role artwork registry without a role-code allowlist
+
+**Gap closure — Wave 11**
+
+- [x] 136-18-PLAN.md — Go policy DTOs and semantic cross-layer parity gate
+
+**UAT gap closure — Wave 12**
+
+- [x] 136-21-PLAN.md — Assignable work-role catalog and Karaoke-FX notes-source correction
+- [x] 136-22-PLAN.md — Catalog-ordered semantic role presentation on active project surfaces
+- [x] 136-24-PLAN.md — Contributor segment tab and project-scoped adjacent release navigation
+- [x] 136-25-PLAN.md — Narrow group-capability API and cross-layer contract projection
+
+**UAT gap closure — Wave 13**
+
+- [x] 136-23-PLAN.md — Catalog-driven release-note role presentation
+- [x] 136-26-PLAN.md — Narrow-role workspace and media-list admission
+
+**UAT gap closure — Wave 14**
+
+- [x] 136-27-PLAN.md — Founder/Co-Leader field- and event-scoped workspace controls
+
+**UAT gap closure — Wave 15**
+
+- [x] 136-28-PLAN.md — Focused live UAT and approval evidence for all repaired gaps
+
+**Residual UAT gap closure — Wave 16**
+
+- [x] 136-29-PLAN.md — Reversible canonical Typesetting label and exact catalog-backed 15-role palette
+
+**Residual UAT gap closure — Wave 17**
+
+- [x] 136-30-PLAN.md — Shared semantic presentation on the four failed active role surfaces
+
+**Residual UAT gap closure — Wave 18**
+
+- [x] 136-31-PLAN.md — Focused live role-presentation proof and resumption of the 136-28 checkpoint
+
+### Phase 137: Central Effective-Rights Resolver & Overrides
+
+**Goal**: Authorized decisions and administrative explanations use one central resolver that safely applies group-scoped user denies/allows and exposes complete provenance.
+**Depends on**: Phase 136
+**Requirements**: CAP-01, CAP-02, CAP-03, CAP-05, CAP-06, CAP-07, QUAL-03
+**Success Criteria** (what must be TRUE):
+
+  1. An authorized caller can inspect every effective capability for a real user/group pair and see all granting roles, direct allows, direct denies, and the decisive reason.
+  2. Runtime authorization and the inspector produce the same answer for role OR, deny-over-allow precedence, scoped overrides, disabled actors, and platform-admin bypass.
+  3. An authorized admin can idempotently grant or deny one allowed capability for an active member in exactly one group, while foreign memberships, invalid scopes, and unknown actions fail neutrally.
+  4. Every override mutation commits atomically with an immutable actor/target/context/before/after audit record, and forced audit or concurrency failures cannot leave partial authorization state.
+  5. Automated negative coverage proves deny precedence, cross-group BOLA/IDOR resistance, invalid capability rejection, and protected direct-access enforcement.
+
+**Plans**: 13/13 plans complete
+
+### Phase 138: Effective-Rights Administration & Impact UX
+
+**Goal**: Admins can understand and change a user's effective group rights from the existing canonical surfaces without guessing which role grants access or receiving false mutation success.
+**Depends on**: Phase 137
+**Requirements**: CAP-08, CAP-09, CAP-10, UADM-01
+**Success Criteria** (what must be TRUE):
+
+  1. The existing user-detail group-rights tab shows the complete effective capability set and its provenance, and is the canonical place for scoped user allow/deny changes.
+  2. A guided "user must not do this" flow lists every granting source and recommends a scoped user deny before offering broader membership or role-matrix changes.
+  3. Before changing a role-capability mapping, an admin sees affected role holders and which users actually gain, lose, or retain the capability through another source.
+  4. After a role-matrix mutation, the UI distinguishes persisted, cache-active, pending, and failed activation states and never reports stale enforcement as final success.
+
+**Plans**: 18 plans complete across 4 waves plus 2 post-hoc UAT gap-closure plans
+
+Plans:
+**Wave 1**
+
+- [x] 138-01-PLAN.md — Role-holder query + handler (D-07/R-03)
+- [x] 138-02-PLAN.md — CAP-10 activation-status contract extension + ActivationStatusIndicator primitive
+- [x] 138-03-PLAN.md — D-29 release-version-label display-bug fix
+- [x] 138-04-PLAN.md — D-22 role-assignment impact-preview endpoint
+- [x] 138-05-PLAN.md — Claims + Änderungen cross-group filtered list endpoints (D-23/D-25/D-28)
+- [x] 138-06-PLAN.md — UADM-01 foundation: api.ts wiring + canonical multi-group effective-rights inspection tab
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 138-07-PLAN.md — CAP-09 batch impact-preview endpoint for role-capability changes
+- [x] 138-08-PLAN.md — CAP-08 guided revoke/grant flows + inline capability history
+- [x] 138-09-PLAN.md — D-22 role-assignment impact preview UI
+- [x] 138-10-PLAN.md — Claims top-level workspace (D-23)
+- [x] 138-11-PLAN.md — Änderungen top-level workspace (D-25/D-26/D-27)
+- [x] 138-12-PLAN.md — Rollen top-level workspace (D-07)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 138-13-PLAN.md — Impact-preview-gated role-capability matrix mutation (CAP-09 frontend)
+- [x] 138-14-PLAN.md — D-24 claim-activation impact preview
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 138-15-PLAN.md — Admin main navigation (D-01/D-02) + user-detail Tabs rewrite (D-03) + user list/overview cleanup (D-04/D-05)
+- [x] 138-16-PLAN.md — Gruppenansicht Rollen/Änderungen tabs (D-06)
+
+**Post-hoc UAT gap-closure**
+
+- [x] 138-17-PLAN.md — GAP-01 (negative relative-time clamp) + GAP-03 (WR-01 non_deniable+user_deny regression test)
+- [x] 138-18-PLAN.md — GAP-02 (RoleCapabilityImpactPreviewModal narrow-viewport metrics/table/height fix, CAP-09)
+
+**UI hint**: yes
+
+### Phase 139: Scalable User-Admin Projections
+
+**Goal**: Admins can understand large user contribution and media histories as bounded domain-correct groups instead of release-version noise.
+**Depends on**: Phase 137
+**Requirements**: UADM-02, UADM-03, UADM-04, UADM-05, UADM-06, UADM-07, UADM-08, QUAL-06
+**Success Criteria** (what must be TRUE):
+
+  1. Contributions are grouped server-side by anime and project, show the project default once, and label only real release-version deviations as overrides.
+  2. Identical version assignments collapse into understandable ranges, while filters, counts, and stable pagination all describe the same server-side dataset.
+  3. User media is grouped by anime, project, and release context and each item links to its existing canonical ownership-specific workspace.
+  4. Every affected user tab explains whether it is actionable or informational and offers the relevant next action without unbounded flat lists or client-side regrouping.
+  5. The shared admin layout remains keyboard-operable and usable at narrow widths without page overflow, while query-count and high-volume gates prevent N+1 behavior and pagination drift.
+
+**Plans**: 10 plans across 7 waves
+
+Plans:
+**Wave 1**
+
+- [x] 139-01-PLAN.md — Backend DTO foundation (grouped contributions/media/rights-summary shapes) + disposable Phase-139 Postgres test harness
+- [x] 139-02-PLAN.md — Frontend TS type mirrors + URL-synced contributions/media filter hooks
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 139-03-PLAN.md — Contributions grouping/range-collapse/override-diff query (TDD, D02-D10)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 139-04-PLAN.md — Media grouping query + real PublicURL/FileSizeBytes derivation (D11-D14/D17-D19)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 139-05-PLAN.md — F-01 batched rights-summary endpoint (Overview-tab fan-out fix) + GetUserGroupMemberships pagination (D21/D22)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 139-06-PLAN.md — QUAL-06 query-budget + pagination-drift gate + F-03 live seed-data script
+- [x] 139-07-PLAN.md — api.ts wiring + Rights-tab lazy-fetch fix (D22) + Overview-tab batched-summary consumption (F-01)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 139-08-PLAN.md — Contributions tab UI rewrite: grouped-card projection + container-query CSS
+- [x] 139-09-PLAN.md — Media tab UI rewrite: grouped release/episode-block projection + container-query CSS
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 139-10-PLAN.md — Full regression gate + D01/D27 scope check + live UAT checkpoint
+
+**UI hint**: yes
+
+### Phase 140: Review Delegation Management
+
+**Goal**: Group leaders can safely manage specialized review authority for individual active members without granting a broader leadership role.
+**Depends on**: Phase 137
+**Requirements**: RDEL-01, RDEL-02, RDEL-03, RDEL-04
+**Success Criteria** (what must be TRUE):
+
+  1. An authorized group leader can read a real member's current media/image, note/text, and contribution review delegations through the documented central API contract.
+  2. The leader can independently grant or revoke each delegable review right in the existing member editor under a distinct "Prüf-/Freigabe-Rechte" section.
+  3. Delegation controls remain visibly and technically separate from roles and generic user overrides, so granting review authority does not grant broader leader capabilities.
+  4. Every mutation reuses the existing transactional review service and audit seam, is idempotent, and rejects foreign, inactive, disabled, pending, or otherwise ineligible targets server-side.
+
+**Plans**: 3 plans
+
+Plans:
+**Wave 1**
+
+- [x] 140-01-PLAN.md — Non-locking delegation-state read + AdminReviewDelegationHandler (GET/PUT), stub-tested
+- [x] 140-03-PLAN.md — ReviewDelegationSection UI + asymmetric grant-removal in the generic override view
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 140-02-PLAN.md — Route registration, main.go wiring, OpenAPI contract sync
+
+**UI hint**: yes
+
+### Phase 141: Actor-Decidable Review Queue
+
+**Goal**: Reviewers see and navigate only work they can decide, while their own submissions remain clearly separated and protected by the same server-side policy.
+**Depends on**: Phase 140
+**Requirements**: RDEL-05, RQUE-01, RQUE-02, RQUE-03, RQUE-04, RQUE-05, RQUE-06
+**Success Criteria** (what must be TRUE):
+
+  1. The actionable queue contains only review kinds the current actor may decide for the relevant group, including immediately granted or revoked specialized delegations.
+  2. A reviewer's own submissions do not appear in or increment actionable work; when shown, they occupy a separate "wartet auf Fremdprüfung" lane without decision actions.
+  3. Actionable list rows, type counts, stable cursors, detail access, and "next" navigation use the same actor, group, capability, and self-review predicates.
+  4. Manipulated URLs and stale clients cannot enumerate or decide forbidden entries, and the final transactional decision guard remains authoritative.
+  5. Contribution reviews remain in their existing canonical workflow rather than being moved into the text/image release queue.
+
+**Plans**: 7 plans
+
+Plans:
+**Wave 1**
+
+- [x] 141-01-PLAN.md — Single-resolution review authorization (Pattern 1) + decision-guard concurrency regression
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 141-02-PLAN.md — Self-exclusion predicate, own-view scope, D15 sort direction fix, allowed_types field, RDEL-05/RQUE-06 tests
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 141-03-PLAN.md — Detail/Next existence-then-authorize (D04 403, Pitfall 3 shared predicate builder)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 141-04-PLAN.md — Frontend type/hook contracts (useReleaseReviewLane extraction)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 141-05-PLAN.md — Own-pending lane + Tabs wrapper (Component Contract 1)
+- [x] 141-06-PLAN.md — Queue tab D10/D13/D06 filter, empty-state, and badge honesty
+- [x] 141-07-PLAN.md — Review-detail page 403/409/Next handling (Component Contract 3)
+
+**UI hint**: yes
+
+### Phase 142: Integrated Security, Fixtures & Live Release Gate
+
+**Goal**: The complete v1.4 capability, user-admin, delegation, and review workflows are reproducibly proven safe, contract-aligned, responsive, and ready for milestone closure.
+**Depends on**: Phase 141
+**Requirements**: QUAL-02, QUAL-05, QUAL-07, QUAL-08
+**Success Criteria** (what must be TRUE):
+
+  1. Reproducible fixtures cover two groups, multiple-role OR, allow/deny conflict, platform admin, cache failure, review grant/revoke, own/foreign submissions, and high-volume user projections from a clean disposable state.
+  2. Every protected v1.4 view and mutation proceeds through the central browser refresh seam when the access token is absent or expired but the refresh session remains valid, without showing logged-out UI.
+  3. Live UAT passes on the real user-detail, group-member, capability, and review routes at 390×844, 768×1024, and 1440×900, plus keyboard operation and 400% zoom.
+  4. The final gate proves Keycloak-owned global roles, platform-admin bypass, canonical media/contribution ownership, specialized review audit, contracts, migrations, tests, lint/typecheck/build, and protected badge assets remain intact without parallel systems.
+
+**Plans**: 1/1 complete
+**UI hint**: yes
+
+### Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen
+
+**Goal:** Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte der Phase-142-Nacharbeit sind geschlossen, und abgelehnte eigene Release-Notizen sind gruppiert im persönlichen Dashboard sichtbar.
+**Requirements**: TBD (Remediation-Phase, keine v1.4-Requirement-IDs)
+**Depends on:** Phase 142
+**Success Criteria** (what must be TRUE):
+
+  1. Alle 17 roten Frontend-Testdateien aus `npx vitest run` (59 Tests, 11 Errors) sind grün oder als benannte Schuld dokumentiert — inklusive Fix der Contract-Drift PublicMemberBadge.next_tier (openapi.yaml `[bronze, silver, gold, platinum]` vs. v12-projection-contract.test.ts `[bronze, silver, gold]`) und des fehlenden RoleCatalogProvider im Fansub-Editor-Testbaum.
+  2. Migration 0154 ist durch eine neue idempotente Migration mit funktionierendem down ersetzt (statt `DELETE FROM role_capabilities`), die Migration 0153 auflöst statt deren techadmin-Rechte sofort wieder zu löschen.
+  3. Die drei Roh-SQL-Methoden aus `dashboard_me_handler.go` sind in den Repository-Layer gezogen (bevorzugt als Methoden auf `ReleaseReviewQueryRepository`, sodass die Selbstausschluss-Regel aus Phase 141 nur einmal existiert), die Permission-Prüfung für Gruppenmedien-Review ist von `fansub_group.edit` auf eine Review-Action korrigiert, und N+1-Permission-Calls sind memoisiert. Die drei verschobenen Methoden sind durch Tests abgedeckt — heute hat keine von ihnen einen.
+  4. Fokus-Tests decken `ReleaseMetadataCreditService.AwardIfCompleted` (inkl. mehrdeutiger ID-Auflösung `WHERE rv.id = $1 OR rev.id = $1`) und die Datumsvalidierung in `FansubNotesRepository.UpdateAnimeFansubProjectTimeline` ab.
+  5. `has_own_notes` in `anime_contributions_member_project_repository.go` filtert nach Review-State, sodass eine abgelehnte Notiz nicht mehr als erledigt zählt; `isDone()` im Frontend zeigt den korrigierten Zustand.
+  6. `ReleaseVersionMetadataFields.tsx`, `AnimeProjectTimelineSection.tsx` und `workspace.module.css` nutzen Design-System-Primitives/CSS-Module/Design-Tokens statt nativer Elemente/Inline-Styles/roher Hex-Werte; ESLint `no-restricted-syntax` steht auf `error` mit einer eingefrorenen, nur schrumpfenden Legacy-Ausnahmeliste (`LEGACY_NO_RESTRICTED_SYNTAX_FILES` in `frontend/eslint.config.mjs`, gemessen 2026-09-01: 264 Verstoesse in 67 Dateien) statt einer unqualifizierten repo-weiten Durchsetzung — volle Migration dieser Altfaelle ist als Backlog-Item getrackt (`.planning/todos/pending/2026-09-01-no-restricted-syntax-legacy-datei-migration.md`).
+  7. Abgelehnte eigene Release-Notizen erscheinen unter „Braucht deine Aufmerksamkeit" im persönlichen Dashboard, gruppiert pro Anime-Projekt und Fansubgruppe (statt als Einzelkarten) mit erkennbarer Folge, Notiztitel und Direktlink auf `/me/releases/{versionId}/workspace?tab=notes` — nur `review_state = rejected` gilt als überarbeitbar, nie `tombstoned`; diese Welle nutzt die Repository-Aggregation aus Kriterium 3 ohne eigene Handler-Query, mit synchronisiertem Backend-DTO, Frontend-Type und `shared/contracts/openapi.yaml`.
+
+**Randbedingungen:** Keine parallelen Systeme, keine neuen Auth- oder Fixture-Wege, atomare Commits pro Task, Produktionsdateien bleiben bei maximal 450 Zeilen. Reihenfolge der Kriterien 1-7 ist verbindlich (Kriterium 7 baut auf der Repository-Aggregation aus Kriterium 3 auf). Vier Dateien haben die 450-Zeilen-Grenze im Phase-142-Zeitraum überschritten und werden in dieser Phase darunter zurückgeführt: `backend/internal/repository/member_claims_repository.go` (516), `frontend/src/app/me/releases/[versionId]/workspace/page.tsx` (469), `backend/internal/repository/anime_contributions_proposal_repository.go` (461), `backend/internal/repository/member_profile_projects_repository.go` (458). Kriterium 7 darf `workspace/page.tsx` nicht weiter wachsen lassen. Zusätzlich wird `backend/internal/handlers/app_auth.go` (1308 Zeilen, im Zeitraum von 1254 gewachsen) in vier Dateien desselben Pakets aufgeteilt — reine Dateiverschiebung ohne Signatur-, Routen- oder Verhaltensänderung, `app_auth_test.go` bleibt unverändert lauffähig: `app_auth.go` behält Handler-Struct, Konstruktor, Store-Interfaces, `GetCurrentUser`, `ListAppUsers` und `HandleKeycloakBackchannelLogout` (~220 Zeilen); `app_auth_invitations.go` bekommt die Invitation-Request-Typen sowie `ListFansubGroupInvitations`, `CreateFansubGroupInvitation`, `CancelFansubGroupInvitation` und `AcceptFansubInvitation` (~455); `app_auth_group_members.go` die Member-Request-Typen sowie `ListFansubGroupAppMembers`, `SearchFansubGroupAppMemberCandidates`, `CreateFansubGroupAppMember`, `SetFansubGroupMemberRole`, `SetFansubLead`, `setFansubGroupMemberRole`, `UpdateFansubGroupMemberStatus`, `SetFansubGroupMemberMediaPermissions` und `normalizeRequestedFansubRoles` (~400); `app_auth_capabilities.go` den Response-Typ und `GetFansubGroupCapabilities` (~230). Die beiden überlangen Funktionen `GetFansubGroupCapabilities` (229 Zeilen) und `CreateFansubGroupInvitation` (185) werden dabei nicht zerlegt — das ist eine eigene Entscheidung ausserhalb dieser Phase.
+
+**Plans:** 19/19 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 143-01-PLAN.md — Split backend/internal/handlers/app_auth.go into four files (450-line remediation)
+- [x] 143-02-PLAN.md — Split backend/internal/repository/member_claims_repository.go (450-line remediation)
+- [x] 143-03-PLAN.md — Split anime_contributions_proposal_repository.go + member_profile_projects_repository.go (450-line remediation)
+- [x] 143-04-PLAN.md — Extract workspace/page.tsx helpers into workspaceHelpers.ts (450-line remediation, pre-Criterion-7)
+- [x] 143-05-PLAN.md — Criterion 1: contract drift, RoleCatalogProvider mocks, episode-versions api mock fix (5 files)
+- [x] 143-06-PLAN.md — Criterion 1: role-color/role-label regression cluster (6 files)
+- [x] 143-07-PLAN.md — Criterion 1: remaining individually-triaged red test files (6 files)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 143-08-PLAN.md — Criterion 2: migration 0159 replaces 0154's reset pattern (idempotent + reversible)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 143-09-PLAN.md — Criterion 3: move raw SQL from dashboard_me_handler.go into ReleaseReviewQueryRepository
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 143-10-PLAN.md — Criterion 4: focus tests for ReleaseMetadataCreditService and project-timeline date validation
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 143-11-PLAN.md — Criterion 5: has_own_notes excludes rejected notes
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 143-12-PLAN.md — Criterion 6: design-system retrofit + no-restricted-syntax to error
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 143-13-PLAN.md — Criterion 7: backend aggregation for rejected-own-notes dashboard lane
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [x] 143-14-PLAN.md — Criterion 7: frontend AttentionSection lane + dashboard wiring
+
+**UAT gap closure — Wave 9** *(post-closure live UAT, 2026-09-02, see 143-UAT.md)*
+
+- [x] 143-15-PLAN.md — UAT-03/UAT-04: AttentionSection single-entry card height + color-token fallback cleanup
+- [x] 143-16-PLAN.md — UAT-01: fix stale review-detail status Badge after decision
+- [x] 143-17-PLAN.md — UAT-02: has_own_rejected_notes backend field + contract chain (repository/openapi.yaml/TS type)
+
+**UAT gap closure — Wave 10** *(blocked on 143-17 completion)*
+
+- [x] 143-18-PLAN.md — UAT-02: render third "Überarbeitung nötig" badge state + button prominence fix
+
+**UAT gap closure — Wave 11** *(blocked on 143-18 completion, see 143-UAT.md UAT-05)*
+
+- [x] 143-19-PLAN.md — UAT-05: has_own_media excludes rejected media + has_own_rejected_media contract chain + unified needsRework badge/button logic (notes+media)
+
+### Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen
+
+**Goal:** Ein abgelehntes Release-Medium lässt sich in derselben Zeile korrigieren — Datei ersetzen und/oder Kategorie ändern, statt neu hochzuladen — und der Prüfer sieht beim erneuten Vorlegen, dass es sich um die überarbeitete Fassung seiner eigenen Ablehnung handelt, nicht um eine fremde neue Einreichung.
+**Requirements**: TBD (UAT-06, 143-UAT.md — kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 143
+**Plans:** 8/8 plans complete
+**Live-UAT:** Abgenommen 2026-09-03 durch den Nutzer im Browser, siehe `144-UAT.md`. Drei während der UAT gefundene Altlasten (Endlosschleife im RVM-Cleanup, has_own_release_work, Dashboard-Ablehnungssignal) lagen außerhalb der Phase-144-Arbeit und sind bereits als Quick-Tasks behoben.
+
+Plans:
+**Wave 1**
+
+- [x] 144-01-PLAN.md — Kategorie im bestehenden PATCH-Endpunkt änderbar machen (Zielbild 2)
+- [x] 144-02-PLAN.md — Neues Replace-Repository: Identität erhalten, Revision springt, alte Datei in die Cleanup-Outbox (Zielbild 1, 4)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 144-03-PLAN.md — Prior-Rejection-DTO für die Prüfer-Detailseite (Zielbild 3, Backend)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 144-04-PLAN.md — Neuer PUT-Endpunkt für Datei-Ersatz inkl. Route + OpenAPI (Zielbild 1)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 144-05-PLAN.md — Frontend-Contracts: API-Client + geteilte Review-Präsentationshelfer
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 144-06-PLAN.md — Einreicher-UI: Datei-ersetzen-Kontrolle + Kategoriefeld im Bearbeiten-Formular
+- [x] 144-07-PLAN.md — Prüfer-UI: Überarbeitet-Badge + Kontextzeile auf Detail- und Listenansicht
+
+### Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen
+
+**Goal:** Die drei Rechte, die heute jedes aktive Gruppenmitglied unabhängig von seiner Rolle aus dem Go-Slice `membershipBaselineActions` erhält, stammen aus der Datenbank-Registry — dargestellt als reservierte, nicht zuweisbare Pseudo-Rolle — bei unverändertem Laufzeitverhalten und in der Capability-Matrix bearbeitbar.
+**Requirements**: TBD (Folgearbeit an der Capability-Registry, kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 144
+**Vorbedingung Planung:** `/gsd-ui-phase 145` vor `plan-phase` laufen lassen — die Capability-Matrix wird berührt, sonst blockt das UI-Gate.
+
+**Getroffene Entscheidung (nicht erneut zur Diskussion stellen):** Darstellung als reservierte Pseudo-Rolle in `role_definitions` plus `role_capabilities`-Zeilen (z. B. `group_member`). Begründung: nutzt Lade-, Cache- und Startup-Prüfmaschinerie vollständig und macht die Grundausstattung in der Capability-Matrix im Admin bearbeitbar. Alternative Darstellungen (eigene Baseline-Tabelle, Beibehaltung des Hardcodes) sind verworfen.
+
+**Ausgangsbefund** (am Code verifiziert 2026-09-03):
+
+  - `membershipBaselineActions` in `backend/internal/permissions/effective_rights.go:74` hält drei Actions: `fansub_group.members.view`, `fansub_group_media.view`, `fansub_group_media.upload`. Ausgewertet an genau einer Stelle — `IsMembershipBaselineAction` im Precedence-`switch`, `effective_rights.go:356`.
+  - `RoleCapabilityDetail.tsx:9` hält einen ZWEITEN Hardcode: `membershipBaselineCodes` filtert dieselben drei Actions aus der Capability-Matrix JEDER Rolle heraus und zeigt stattdessen einen statischen Satz (verifiziert 2026-09-03 durch den UI-Researcher). Die Überführung ist damit nicht auf eine Go-Stelle begrenzt — dieser Filter muss für normale Rollen bleiben und für die Pseudo-Rolle abgeschaltet werden, siehe `145-UI-SPEC.md`.
+  - Alle drei Actions stehen bereits in `action_definitions` und sind dort 15 Rollen über `role_capabilities` zugeordnet; in SQL ist die rollenunabhängige Baseline nirgends nachgebaut.
+  - Die Registry ist produktiv: `LoadRoleCapabilities` (`authz_permissions.go:400`), Startup bricht ab, wenn eine Action weder in `role_capabilities` steht noch standalone ist (`permissions.go:399`).
+
+**Success Criteria** (what must be TRUE):
+
+  1. `membershipBaselineActions` existiert nicht mehr als Rechte-Quelle im Go-Code; die Baseline-Entscheidung im Precedence-`switch` (`effective_rights.go:356`) speist sich aus den geladenen `role_capabilities` der reservierten Pseudo-Rolle.
+  2. Eine neue reversible Migration seedet den Ist-Zustand exakt — genau diese drei Actions, kein Recht mehr und keines weniger. Ein Test gegen echtes Postgres belegt, dass die effektiven Rechte eines aktiven Mitglieds vor und nach der Migration identisch sind.
+  3. Die Provenance-Stufe `membership_baseline` bleibt erhalten: die Baseline darf nicht als `group_role` durchschlagen. Die Precedence-Kette `no_active_membership > user_deny > user_allow > membership_baseline > role_grant > specialized_grant > no_grant` und ihre Contract-Enums (`shared/contracts/admin-capabilities.yaml`, `openapi.yaml`, `frontend/src/types/admin-capability.ts`) bleiben unverändert; `GuidedRevokeFlow.tsx` und `userGroupRightsHelpers.ts` erklären die Herkunft weiterhin als Grundausstattung.
+  4. Ein `user_deny` entzieht ein Baseline-Recht weiterhin, und die Baseline gilt weiterhin nur bei aktiver Mitgliedschaft — beides durch Tests belegt.
+  5. Die Pseudo-Rolle erscheint in keiner Rollen-Auswahlliste (nicht zuweisbar), ist aber in der Capability-Matrix im Admin sichtbar und bearbeitbar — über die bestehende Unterscheidung `fansubGroupRoleCatalog` (zuweisbar) vs. `capabilityRoleCatalog` (capability-editierbar) in `permissions.go`.
+  6. Fehlen die `role_capabilities`-Zeilen der Pseudo-Rolle, bricht der Start fail-closed ab — analog zum bestehenden Startup-Check (`permissions.go:399`) — statt Mitglieder still ihre Rechte verlieren zu lassen.
+
+**Plans**: 4 plans across 4 waves
+
+  - Wave 1: 145-01 (migration 0160 + cache-driven IsMembershipBaselineAction + fail-closed startup gate + assignable-catalog exclusion)
+  - Wave 2: 145-02 (real-Postgres proof: migration idempotency/rollback + effective-rights snapshot + role_kind emission + remaining role-picker/catalog exclusions)
+  - Wave 3: 145-03 (Capability Matrix frontend: role rail label, tab defaults, RoleCapabilityDetail hardcode-filter split, Inhaber-tab explanation)
+  - Wave 4: 145-04 (full regression gate + live UAT checkpoint)
+
+**UI hint**: yes — `145-UI-SPEC.md` liegt vor (2026-09-03, gsd-ui-checker 6/6 approved)
+
+Plans:
+**Wave 1**
+
+- [x] 145-01-PLAN.md — Migration 0160 + cache-driven IsMembershipBaselineAction + fail-closed startup gate + assignable-catalog exclusion.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 145-02-PLAN.md — Real-Postgres proof (migration idempotency/rollback + effective-rights snapshot) + role_kind emission + remaining role-picker/catalog exclusions.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 145-03-PLAN.md — Capability Matrix frontend: role rail label, tab defaults, RoleCapabilityDetail hardcode-filter split, Inhaber-tab explanation.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 145-04-PLAN.md — Full regression gate + live UAT checkpoint.
+
+### Phase 146: Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests
+
+**Goal:** Die in der Phase-145-Codeprüfung gefundenen Registry-Schwächen sind geschlossen — vor allem kann kein Admin über die ausgelieferte Capability-Matrix einen Zustand herstellen, der den nächsten Backend-Start in eine Absturzschleife schickt — und die sicherheitsrelevanten Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche.
+**Requirements**: TBD (Nacharbeit aus `145-REVIEW.md` und Altlast WR-02 aus `144-REVIEW.md`, kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 145
+**Zuschnitt:** Zwei Blöcke in einer Phase, in dieser Reihenfolge — erst der Registry-Selbstschutz (Kriterien 1–4, kleiner und dringender, betrifft live ausgelieferten Code), dann die Testsanierung (Kriterien 5–8).
+
+**Ausgangsbefund** (selbst gemessen 2026-09-04, nicht aus Berichten übernommen):
+
+  - `CountRolesWithAction` (`backend/internal/repository/authz_capability_mutations.go:334`) zählt mit `SELECT COUNT(DISTINCT role_code) ... WHERE action_code = $1` die Rollen INSGESAMT, die eine Action gewähren. Da rund 15 weitere Rollen dieselben drei Baseline-Rechte tragen, feuert der Lockout-Guard beim Entfernen an `group_member` nie.
+  - Der laufende Prozess bleibt korrekt fail-closed (`validateMembershipBaselineRegistryPresence` lässt den alten Cache stehen), aber der nächste Start bricht in `LoadCache` ab und `cmd/server/main.go:138` beendet mit `log.Fatalf` — Container-Absturzschleife, bis jemand die Zeile von Hand nachträgt. Auslösbar mit zwei Klicks in der regulären Admin-Oberfläche, ohne Datenbankzugriff.
+  - `ListGroupHistoryRoleDefinitions` fehlt der `NOT reserved`-Filter, den seine drei Geschwisterabfragen bekommen haben (derzeit folgenlos, weil der Kontext nicht passt — aber genau die Art Inkonsistenz, die später zum Fehler wird).
+  - Die drei Baseline-Action-Codes stehen an drei Stellen hartkodiert: Migration, Go-Validator, TS-Filter.
+  - Quelltext-Substring-Tests: **53 Testdateien** lesen per `os.ReadFile` eine `.go`-Quelldatei ein und belegen Verhalten mit `strings.Contains` — **357** solcher Aufrufe in 302 Testfunktionen. Verteilung: `internal/repository` 34, `internal/handlers` 15, `internal/services` 3, `cmd/server` 1. Spitzenreiter: `member_profile_repository_test.go` mit 117 Aufrufen. **17 dieser Dateien** berühren Sicherheitszusicherungen (Permission, Authz, Capability, Preview-Sperre, 403). Die ältere Schätzung aus `.planning/notes/2026-09-02-altlasten-cr01-wr02.md` (49 Dateien / 236 Behauptungen) ist damit überholt.
+
+**Success Criteria** (what must be TRUE):
+
+  1. Das Entfernen einer der drei Pflicht-Actions von der reservierten Pseudo-Rolle wird im Mutationspfad serverseitig abgelehnt — nicht nur in der Oberfläche — und ein Test spielt genau diesen Pfad durch, statt die Ablehnung aus dem Quelltext zu erschließen. Der bestehende Lockout-Guard bleibt für alle anderen Rollen unverändert.
+  2. Die Capability-Matrix weist diese drei Rechte sichtbar als geschützt aus und zeigt bei einem Versuch eine sprechende deutsche Meldung mit korrekten Umlauten — kein stiller Fehlschlag und kein roher Serverfehler.
+  3. `ListGroupHistoryRoleDefinitions` trägt denselben `NOT reserved`-Filter wie seine drei Geschwisterabfragen; ein Test belegt gegen echtes Postgres, dass die Pseudo-Rolle in keiner der vier Abfragen auftaucht.
+  4. Die drei Baseline-Action-Codes haben eine einzige autoritative Quelle; die verbleibenden Verwendungen leiten sich davon ab oder sind durch einen Test gegen Auseinanderdriften gesichert.
+  5. Alle 17 sicherheitsrelevanten Testdateien belegen ihre Verhaltensbehauptungen durch echte Aufrufe des geprüften Codes. Quelltextsuche bleibt nur für Abwesenheitsprüfungen und für Dateien, die selbst Prüfgegenstand sind — die Konvention aus `CLAUDE.md`.
+  6. Messbar am Ende: höchstens 36 Testdateien lesen noch eine `.go`-Quelldatei ein (von 53), und keine der 17 sicherheitsrelevanten ist darunter.
+  7. Ein automatischer Guard verhindert Neuzugänge — eingefrorene, nur schrumpfende Ausnahmeliste nach dem Vorbild von `LEGACY_NO_RESTRICTED_SYNTAX_FILES` in `frontend/eslint.config.mjs`. Die `CLAUDE.md`-Konvention ist damit durchgesetzt statt nur beschrieben.
+  8. Der bewusst stehen gelassene Restbestand ist als benannte Schuld dokumentiert, mit dem Grund je Datei — nicht als stillschweigende Lücke.
+
+**Plans:** 13/13 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 146-01-PLAN.md — Criterion 3+4: NOT reserved filter fix, single-source baseline action codes
+- [x] 146-02-PLAN.md — Criterion 2: capability-matrix badge/lock/aria-describedby + 38-vs-3 filter fix (D-15/D-19)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 146-03-PLAN.md — Criterion 1+D-16: unconditional revoke guard + action-specific grant guard
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 146-04-PLAN.md — Criteria 5/6/7: lock security-relevant file list (D-08) + remediate 3 files
+- [x] 146-05-PLAN.md — Criteria 5/6: remediate hist_group_member_roles_whitelist_test.go + member_claims_repository_claim_activation_test.go
+- [x] 146-06-PLAN.md — Criteria 5/6: remediate member_archive_repository_test.go + member_point_totals_repository_test.go
+- [x] 146-07-PLAN.md — Criteria 5/6: remediate fansub_test.go + point_ledger_repository_test.go
+- [x] 146-08-PLAN.md — Criteria 5/6: remediate 3 admin_content_* handler test files
+- [x] 146-09-PLAN.md — Criteria 5/6: remediate dashboard_me_handler_test.go
+- [x] 146-10-PLAN.md — Criteria 5/6: remediate public_member_access_matrix_test.go
+- [x] 146-11-PLAN.md — Criteria 5/6: remediate release_version_media_repository_test.go
+- [x] 146-12-PLAN.md — Criteria 5/6: remediate admin_content_release_version_media_test.go
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 146-13-PLAN.md — Criteria 6/7/8: ratchet guard + named remainder documentation
+
+**UI hint**: ja — Kriterium 2 berührt die Capability-Matrix; vor `plan-phase` `/gsd-ui-phase 146` laufen lassen. (erledigt, 146-UI-SPEC.md abgenommen)
+
+### Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen
+
+**Goal:** Eine neue Gruppenrolle muss künftig nur noch an der autoritativen Rollenquelle (`role_definitions`) ergänzt werden; die verbliebenen Frontend- und Go-Parallelregistries für Rollen sind verschwunden, und der globale App-Rollen-Satz hat genau eine importierbare Go-Quelle.
+**Requirements**: TBD (Nacharbeit aus `.planning/audits/2026-09-05-hardcoding-drift-audit.md`, Findings HC-01, HC-02, HC-03, HC-09; kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 146
+**Scope-Grenze:** Ausschließlich HC-01, HC-02, HC-03, HC-09. Nicht in dieser Phase: HC-04 (Membership-Baseline), HC-05 (Claim-Status), HC-06 (Visibility/Review-Status), HC-07 (Status-Unions), HC-08 (Asset-Typen), HC-10, Badge-System, Member-Profile-Performance, Carousel, sonstige Features/Refactorings. Weitere Auffälligkeiten werden nur dokumentiert.
+
+**Ausgangsbefund** (selbst gemessen 2026-09-05 auf `team4s-linux`, Commit `d8c2c983`, nicht aus dem Audit übernommen):
+
+  - `role_definitions` enthält **18 Rollen**. Die Label→Code-Map `ROLE_CODE_BY_LABEL` in `frontend/src/lib/roleColors.ts:6-19` hat 12 Einträge, von denen **5 Labels nicht mehr existieren** (`Gruppenleitung` vs. `Fansub-Leitung`, `Editing` vs. `Edit`, `Typesetting / FX` vs. `Typesetting`, `Technische Administration` vs. `Technik-Admin`, `Grafik` vs. `GFX`) und 6 weitere Codes gar nicht vorkommen (`founder`, `co_leader`, `karaoke_fx`, `admin`, `other`, `group_member`). Nur **7 von 18 Rollen** treffen; alle anderen — inklusive aller Leitungsrollen — fallen auf `'other'` zurück. Es gibt keinen Test für die Datei.
+  - Einziger Konsument: `PublicNoteCard.tsx:76` (`data-role-code={roleColorCode(roleLabel ?? '')}`), gespeist von `ReleaseNotesList.tsx:71` und `ProjectMemberNoteCard.tsx:25`.
+  - Der `role_code` ist auf dem gesamten Weg vorhanden, wird aber nicht durchgereicht: `repository.PublicReleaseNote` (`release_detail_public_repository.go:57-67`) und `repository.ProjectMemberNote` (`project_member_public_repository.go:44-54`) tragen nur `RoleLabel`. Beide SQL-Abfragen joinen bereits `role_definitions rd ON rd.code = cr.name` (`release_detail_public_repository.go:470`, `release_detail_public_repository_helpers.go:408`, `project_member_public_repository.go:257`), `rd.code` ist also ohne Query-Umbau selektierbar.
+  - Zweite Parallelregistry: `ROLE_LABELS` in `frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersTab.ts:44-65` (20 Einträge) mit fünf Codes, die es in `role_definitions` nie gab (`typesetting`, `encoding`, `project_manager`, `leader`, plus `founder` als „Gründung" statt „Gründer"), und ohne `karaoke_fx`. Einziger verbleibender Konsument ist `roleLabelForCode` in Zeile 283 (`roleSummary`, als Fallback hinter `role.role_label ??`). Der kataloggetriebene Pfad existiert daneben schon: `GroupMembersTab.tsx:170,239` reicht `labelForRole(historyRoleOptions, code)` durch, die Optionen kommen aus `listGroupHistoryRoleDefinitions(fansubId)`.
+  - Globale App-Rollen: `models/app_auth.go:10-12` definiert die drei Einzelkonstanten, exportiert aber **keinen Satz**. Deshalb existieren vier unabhängige Literal-Kopien — `handlers/admin_capability_handler.go:40` (`globalAppRoleCodes`), `handlers/admin_users_handler.go:91-95` (`validGlobalRoles`), `repository/admin_users_repository.go:196` (`AssignableRoles`), `handlers/admin_users_mutations_handler.go:29,71` (Wertebereich im Fehlertext) — plus die autoritative DB-CHECK-Constraint `chk_app_user_global_roles_role` aus `database/migrations/0072_keycloak_app_users_foundation.up.sql`. Der Kommentar in `admin_capability_handler.go:39` erklärt die Kopplung per Prosa („Kanonische Quelle … admin_users_repository.go"), ohne Import und ohne Test. `models.KeycloakManagedGlobalRoles` (`app_auth.go:33-37`) listet dieselben drei Werte bereits als Slice, referenziert aber die Einzelkonstanten und deckt einen anderen Zweck ab.
+  - Rollenkonstanten in `permissions.go:66-83`: **Korrektur zum Audit** — die dort als „null Referenzen im gesamten Repo" geführten vier Konstanten sind nicht referenzlos. `RoleTranslator` (3 Testdateien), `RoleTypesetter`, `RoleTechadmin`, `RoleGfxler` (je `capability_registry_test.go`) werden paketintern unqualifiziert in Testfixtures benutzt; das Audit hat nur qualifizierte `permissions.X`-Treffer gezählt. Richtig ist: **keine** dieser vier hat eine Produktionsreferenz. Produktionsreferenzen außerhalb der Definition haben nur `RoleFansubLead` (4), `RoleProjectLead` (2) und `RolePlatformAdmin` (1 extern + 1 paketintern).
+  - Nebenbefund (außerhalb des Scopes, nur zu dokumentieren): die CSS-Tokens `--role-accent-<code>` und `--role-accent-default`, auf die `PublicNoteCard.module.css:13,25,33,56` und fünf weitere Module verweisen, sind **nirgends im Repo definiert** — weder in `frontend/src/styles/globals.css` (dort kommt „role-accent" gar nicht vor) noch sonstwo. Die Rollenfarbe der Notizkarten ist damit heute unabhängig von HC-01 wirkungslos. Diese Phase stellt den korrekten `data-role-code` her; die fehlende Palette bleibt als eigener Befund stehen.
+
+**Success Criteria** (what must be TRUE):
+
+  1. Die Rollenfarbe der öffentlichen Notizkarte wird aus dem stabilen `role_code` bestimmt, nicht aus dem Anzeige-Label: `PublicNoteCard` erhält den Code als eigene Eigenschaft und schreibt ihn nach `data-role-code`. `ROLE_CODE_BY_LABEL` und die Label-Rückwärtsauflösung sind ersatzlos entfernt; es entsteht keine neue Rollen-Map und kein neuer Fallback-Katalog.
+  2. Der `role_code` wird sauber von der Datenbank bis ins Frontend durchgereicht — Repository-Struct, JSON-Feld, `shared/contracts/`-Vertrag und TypeScript-Typ für **beide** Notiz-Oberflächen (Release-Detail und Projekt-Member-Seite). Ein Backend-Test belegt das Feld am echten Ergebnis, nicht per Quelltextsuche.
+  3. Ein Frontend-Regressionstest belegt, dass die aktuellen Rollen `fansub_lead`, `founder`, `co_leader`, `techadmin`, `gfxler`, `karaoke_fx`, `editor` und `typesetter` ihren eigenen `data-role-code` bekommen und nicht auf `other` zurückfallen, und dass eine Änderung von `label_de` den Wert nicht beeinflusst.
+  4. `ROLE_LABELS` und `roleLabelForCode` in `useGroupMembersTab.ts` sind entfernt; `roleSummary` löst Rollen-Labels über den bestehenden kataloggetriebenen `labelForRole(...)`-Pfad auf. Ein Test belegt die Auflösung über den Katalog.
+  5. `backend/internal/models/app_auth.go` exportiert `AppGlobalRoles` als einzige importierbare Quelle des globalen App-Rollen-Satzes. `admin_capability_handler.go`, `admin_users_handler.go`, `admin_users_repository.go` und `admin_users_mutations_handler.go` leiten Reihenfolge, Set, `AssignableRoles` und den Wertebereich im Fehlertext daraus ab — kein Wert dieser drei Rollen steht in diesen Dateien noch als String-Literal. Die Fehlermeldung bleibt deutsch mit korrekten Umlauten.
+  6. Ein Source-Contract-Test nach dem Muster der bestehenden `*_source_contract`-Tests liest die Migration `0072_keycloak_app_users_foundation.up.sql` und belegt, dass der Wertebereich der CHECK-Constraint `chk_app_user_global_roles_role` und `models.AppGlobalRoles` identisch sind. Es wird **keine** Laufzeit-Abfrage der Rollen aus der Datenbank eingeführt; die DB-CHECK bleibt Persistenz-Invariante.
+  7. Die vier Rollenkonstanten ohne Produktionsreferenz (`RoleTranslator`, `RoleTypesetter`, `RoleTechadmin`, `RoleGfxler`) sind aus `permissions.go` entfernt und ihre Testfixture-Verwendungen auf Literale umgestellt; der verbleibende Konstantenblock trägt einen Kommentar, der klarstellt, dass er keine autoritative Rollenliste ist, der Katalog in `role_definitions` liegt und hier nur direkt im Go-Code referenzierte Codes stehen. Es entsteht keine neue Go-Rollenliste.
+  8. Backend-, Frontend- und Contract-Tests laufen grün; ein Live-UAT auf `:3000` bestätigt, dass die Notizdarstellung mit dem neuen `role_code`-Pfad unverändert korrekt rendert.
+
+**Plans**: 6 plans across 3 waves
+
+  - Wave 1: 147-01 (HC-01 backend: role_code SELECT/Scan at all 3 note query sites + OpenAPI contract + real-Postgres proof), 147-03 (HC-02: useGroupMembersTab.ts onto labelForRole), 147-04 (HC-03: models.AppGlobalRoles + 4 consumers + source-contract test), 147-05 (HC-09: remove 4 unreferenced permissions.go constants)
+  - Wave 2: 147-02 (HC-01 frontend: role_code TS types + PublicNoteCard prop + consumers + roleColors.ts removal, depends on 147-01)
+  - Wave 3: 147-06 (full regression gate + live UAT sign-off, depends on all five)
+
+**Plan-time read first**: `.planning/phases/147-rollen-registry-letzte-parallelkataloge-aufl-sen/147-CONTEXT.md`, `.planning/phases/147-rollen-registry-letzte-parallelkataloge-aufl-sen/147-PATTERNS.md`, `backend/internal/repository/release_detail_public_repository.go`, `backend/internal/repository/project_member_public_repository.go`, `backend/internal/models/app_auth.go`, `backend/internal/permissions/permissions.go`, `frontend/src/components/public/PublicNoteCard.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersTab.ts`.
+
+**UI hint**: nein — reine Datenquellen-Umstellung hinter einem bestehenden Attribut-Seam, kein neues visuelles Element, keine Layout-Änderung.
+
+Plans:
+**Wave 1**
+
+- [x] 147-01-PLAN.md — HC-01 backend: role_code SELECT/Scan at all 3 note query sites + OpenAPI contract + real-Postgres proof.
+- [x] 147-03-PLAN.md — HC-02: useGroupMembersTab.ts migrated onto the catalog-driven labelForRole path.
+- [x] 147-04-PLAN.md — HC-03: models.AppGlobalRoles single source + 4 derived consumers + source-contract test.
+- [x] 147-05-PLAN.md — HC-09: remove the 4 unreferenced permissions.go role constants.
+
+**Wave 2** *(blocked on 147-01 completion)*
+
+- [x] 147-02-PLAN.md — HC-01 frontend: role_code TS types + PublicNoteCard roleCode prop + consumers + roleColors.ts removal.
+
+**Wave 3** *(blocked on Wave 1 and Wave 2 completion)*
+
+- [x] 147-06-PLAN.md — Full regression gate (backend/frontend/contract) + live UAT sign-off.
+
+### Phase 148: Rollenfarben wieder an den Katalog anschließen
+
+**Goal:** Die Rollenfarbe kommt app-weit wieder sichtbar an — aus genau einer Quelle: `role_definitions.color_key` über den in Phase 136-30 gebauten `data-color-key`-Seam. Die beim damaligen Umbau zurückgebliebenen toten Token-Referenzen, Hex-in-`data-role-code`-Attribute und Kategorie-Klassenmaps sind entfernt, und `data-role-code` trägt überall ausschließlich den stabilen Rollen-Code.
+
+**Requirements**: TBD (Restbefunde aus Phase 147, siehe `147-06-SUMMARY.md` „Out-of-Scope Findings"; kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 147
+**Scope-Grenze:** Nur die Rollenfarb-Verkettung. **Nicht** in dieser Phase: Badge-Schwellen, Badge-Artwork, `LayeredBadgeArtwork` (setzt bewusst eine eigene `--role-accent`-Farbe und bleibt unberührt), Karussell, Member-Profile-Performance, die Palette selbst (die 15 Hex-Werte in `role_definitions.color_key` und `ROLE_COLOR_KEYS` werden nicht neu gewählt), sowie alle offenen Hardcoding-Findings HC-04 bis HC-08. Am Badge-System wird ausschließlich die tote Farbvariable angeschlossen, sonst nichts.
+
+**Ausgangsbefund** (selbst gemessen 2026-09-05 auf `team4s-linux`, Commit `df7fa91a`):
+
+  - Commit `84a38c0f` („feat(136-30): add bounded semantic role color seam", 2026-08-21) hat die 14 Tokens `--role-accent-base/-default/-fansub-lead/…` und den kompletten `[data-role-code='<code>'] { --role-accent: … }`-Block **absichtlich** aus `frontend/src/styles/globals.css` entfernt und durch einen Katalog-Seam ersetzt: `[data-color-key='<hex>'] { --role-chip-accent: <hex> }` plus die Klasse `.role-catalog-chip`. Commit-Begründung: „role codes never select color". Der Seam funktioniert und wird von sechs Admin-Oberflächen korrekt benutzt (`UserContributionsTab`, `AnimeGroupCard`, `DefaultCrewManager`, `FansubAppMemberEditorPanel`, `ReleaseVersionNotesTab`).
+  - **Nicht mitgezogen wurden zehn CSS-Module**, die weiterhin `var(--role-accent, var(--role-accent-default))` lesen bzw. sich selbst `--role-accent: var(--role-accent-<code>)` zuweisen: `PublicNoteCard`, `ProjectMemberPage`, `ProjectMemberReleasesSection`, `MemberCurrentProjectsSection`, `MemberBadgeChain`, `RoleBadgeCard` (+ `.stages` + `.status`) und `FansubEdit`. Keiner dieser Tokennamen ist heute irgendwo im Repo definiert. Im Browser gemessen (`getComputedStyle` auf der Notizkarte): `--role-accent` und `--role-accent-default` liefern beide den leeren String; die Deklarationen sind damit invalid-at-computed-value-time, das Header-Band bleibt transparent und der 8px-Farbstreifen fällt auf `currentColor`. Die Rollenfarbe ist auf diesen Oberflächen seit dem 2026-08-21 tot.
+  - **`categoryForRole()`** (`frontend/src/lib/roleCatalog.ts:66`) verspricht laut Kommentar eine „Semantische Rollen-Kategorie (technical/creative/production/language/other …)", liefert aber `role.color_key` — und der ist seit `84a38c0f` ein Hex-Wert. Sechs Komponenten schreiben dieses Ergebnis direkt nach `data-role-code`: `ProjectMemberHero`, `ProjectMemberReleaseCard`, `MemberCurrentProjectsSection` (2×), `ContributionCard` und `me/projects/[animeId]/group/[fansubGroupId]/page.tsx`. Live gemessen auf der Projekt-Member-Seite: `data-role-code="#7b3c4e"`. Das trifft weder einen CSS-Selektor noch ist es ein Rollen-Code.
+  - **`getRoleClassName()`** (`FansubAppMembersOverview.tsx:55`) mappt die Kategorienamen `leadership/creative/technical/language/quality/production` auf CSS-Klassen. Diese Werte gibt `color_key` seit `84a38c0f` nicht mehr her, also greift ausnahmslos der `fansubEditRoleDefault`-Zweig — eine dritte tote Parallelmap.
+  - **`presentationForRole()`** verwirft die Farbe zusammen mit dem Icon: `if (!role || !role.icon_key || !ICON_KEYS.has(role.icon_key)) return neutral`. Im Katalog tragen `fansub_lead`, `founder`, `co_leader`, `techadmin`, `gfxler` und `group_member` den Wert `icon_key='other'`, der nicht in `ICON_KEYS` steht — sie bekommen deshalb auch im *funktionierenden* Chip-Seam neutrales Grau, obwohl ihr `color_key` ein gültiger Hex-Wert ist (`#183B7C`, `#8C4A16`, `#0F766E`, `#475569`, `#7E22CE`). Ohne diese Entkopplung bliebe der Fix ausgerechnet für die Leitungsrollen wirkungslos.
+  - Für die öffentliche Notizkarte liegt der `color_key` nicht vor: Phase 147 reicht `role_code` durch, aber nicht `color_key`, und `PublicNoteCard` hat — anders als die sechs `categoryForRole`-Konsumenten — keinen Katalog als Prop. Ein zusätzlicher Katalog-Fetch auf den öffentlichen SSR-Seiten wäre der falsche Weg (siehe `.planning/notes` zum seriellen SSR-Request-Fächer); der `color_key` gehört analog zu `role_code` ins DTO. Alle drei Notiz-Abfragen joinen `role_definitions` bereits.
+  - Das Audit `.planning/audits/2026-09-05-hardcoding-drift-audit.md` führt unter HC-09 vier Konstanten mit „Prod 0 / Test 0" und dem Satz „Vier Konstanten haben null Referenzen im gesamten Repo". Nachgemessen ist das falsch: `RoleTranslator` (3 Testdateien), `RoleTypesetter`, `RoleTechadmin` und `RoleGfxler` (je `capability_registry_test.go`) wurden paketintern unqualifiziert benutzt; gezählt wurden offenbar nur qualifizierte `permissions.X`-Treffer. Richtig ist „keine Produktionsreferenz".
+
+**Success Criteria** (what must be TRUE):
+
+  1. Es gibt genau einen Ort, an dem eine Rollenfarbe aus dem Katalog in CSS ankommt: `globals.css` leitet `--role-accent` aus dem bestehenden `--role-chip-accent`/`data-color-key`-Seam ab und definiert einen neutralen Default. Kein CSS-Modul weist sich mehr eine Farbe aus einem `--role-accent-<code>`-Token zu, und kein Selektor wählt eine Farbe anhand eines Rollen-Codes.
+  2. Keine Referenz auf die nicht existierenden Tokens `--role-accent-base`, `--role-accent-default` oder `--role-accent-<code>` bleibt im Repo übrig — nachweisbar per Suche. `LayeredBadgeArtwork.module.css` behält seine eigene, bewusst gesetzte `--role-accent`-Farbe.
+  3. `data-role-code` trägt an jeder Stelle den stabilen Rollen-Code aus `role_definitions.code`, niemals einen Hex-Wert oder Kategorienamen. `categoryForRole()` ist ersatzlos entfernt; die sechs Konsumenten setzen den Code für die Semantik und `data-color-key` für die Farbe.
+  4. `getRoleClassName()` und die zugehörige Kategorie-Klassenmap in `FansubAppMembersOverview.tsx` sind entfernt; die Rollen-Badges dort beziehen ihre Farbe über denselben Seam wie alle anderen.
+  5. `presentationForRole()` entkoppelt Farbe und Icon: ein unbekannter `icon_key` führt zum neutralen Icon, verwirft aber einen gültigen `color_key` nicht mehr. Ein Test belegt das für `fansub_lead`, `founder`, `co_leader`, `techadmin` und `gfxler`, und ebenso, dass ein unbekannter `color_key` weiterhin auf `neutral` fällt.
+  6. Die öffentliche Notizkarte bekommt ihre Farbe ohne zusätzlichen Client-Request: `role_color_key` wird an allen drei Notiz-Abfragestellen aus `role_definitions.color_key` mitgeliefert, im `shared/contracts/`-Vertrag und in beiden TypeScript-Typen geführt, und ein Backend-Test belegt das Feld am echten Abfrageergebnis.
+  7. Frontend-Tests belegen für mindestens eine Oberfläche je Seam-Typ, dass ein Element mit Rollenbezug sowohl den korrekten `data-role-code` als auch den korrekten `data-color-key` trägt — und dass eine Änderung von `color_key` im Katalog die Farbe ändert, eine Änderung von `label_de` aber nicht.
+  8. Backend-, Frontend- und Contract-Tests laufen grün, ohne neue Fehler gegenüber der Baseline. Ein Live-UAT auf `:3000` belegt an der Release-Detail-Notizkarte und auf der Projekt-Member-Seite eine tatsächlich gerenderte, rollenabhängige Farbe — gemessen über `getComputedStyle`, nicht nach Augenschein.
+  9. Die HC-09-Tabelle im Audit-Dokument ist korrigiert: die vier Konstanten hatten keine Produktionsreferenz, aber sehr wohl paketinterne Testfixture-Referenzen, und die Korrektur benennt die Zählweise, die zum Fehler geführt hat.
+
+**UI hint**: ja — die Phase macht app-weit Farben sichtbar, die heute fehlen. Vor `plan-phase` `/gsd-ui-phase 148` laufen lassen.
+
+**Plans:** 8/8 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 148-01-PLAN.md — roleCatalog.ts contract (decouple presentationForRole, remove categoryForRole) + migrate 6 consumers
+- [x] 148-02-PLAN.md — globals.css --role-accent seam derivation + 3-module fallback cleanup + contrast-test extension
+- [x] 148-05-PLAN.md — Backend role_color_key passthrough + contract + PublicNoteCard wiring
+- [x] 148-06-PLAN.md — HC-09 audit-doc correction
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 148-03-PLAN.md — RoleBadgeCard + MemberBadgeChain color wiring
+- [x] 148-04-PLAN.md — FansubEdit role-toggle cleanup + FansubAppMembersOverview seam migration
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 148-07-PLAN.md — Full regression sweep + live UAT
+
+**Wave 4** *(gap closure, blocked on 148-04 and 148-07's finding)*
+
+- [x] 148-08-PLAN.md — Migrate GroupMembersHistTable.tsx + FansubAppMemberAddModal.tsx off their local getRoleClassName()/roleClassMap onto the presentationForRole()/data-color-key seam; remove the now-dead role-specific classes from FansubEdit.module.css (closes SC1/SC2 gap found by 148-VERIFICATION.md)
+
+### Phase 149: Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen
+
+**Goal:** Kein Stylesheet referenziert mehr eine CSS-Custom-Property, die es nirgends gibt — die betroffenen Text-, Flächen- und Akzentfarben wirken wieder. Ein automatischer Guard verhindert Neuzugänge dieser Fehlerklasse. Zusätzlich erfüllt der Rollentext der öffentlichen Notizkarte die WCAG-AA-Schwelle für alle 15 Katalogfarben.
+
+**Requirements**: TBD (Restbefunde aus Phase 148 `deferred-items.md` plus eigener Repo-Scan vom 2026-09-05; kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 148
+**Scope-Grenze:** Nur (a) das Umbiegen referenzierter, aber undefinierter Custom Properties auf vorhandene Design-Tokens, (b) der Guard-Test und (c) die eine Kontrast-Zahl der Notizkarte. **Nicht** in dieser Phase: neue Design-Tokens erfinden, die Palette ändern, Layouts anfassen, die 44 Referenzen **mit** Fallback (die degradieren sauber und sind kein Defekt), der vorbestehende `params`-Typkonflikt in der generierten Next.js-Routendatei, Badge-System, HC-04 bis HC-08.
+
+**Ausgangsbefund** (selbst gemessen 2026-09-05 auf `team4s-linux`, Commit `05ffefec`, per Repo-Scan über alle `.css`/`.ts`/`.tsx` unter `frontend/src`):
+
+  - 184 Custom Properties sind definiert, 227 werden referenziert. **57 werden referenziert, aber nirgends definiert.** Davon degradieren 44 sauber, weil sie einen `var(--x, fallback)`-Fallback tragen — die sind kein Defekt und bleiben unangetastet.
+  - **13 werden ohne Fallback referenziert, in 78 Referenzen über rund 30 Dateien.** Eine `var()`-Referenz auf eine undefinierte Property ohne Fallback macht die gesamte Deklaration invalid-at-computed-value-time; die Regel ist also wirkungslos, und es rendert die vererbte bzw. initiale Farbe. Das ist exakt dieselbe Fehlerklasse wie die in Phase 148 behobenen `--role-accent-*`-Tokens, nur breiter — und keine Testsuite findet sie.
+  - Verteilung, absteigend: `--color-text-muted` (22 Referenzen, 11 Dateien), `--color-text` (15/6), `--color-surface` (12/6), `--surface-muted` (8/3), `--accent` (5/1), `--color-text-tertiary` (4/2), `--color-info` (3/1), `--success` (2/1), `--accent-primary-strong` (2/2), `--tag-` (2/1), `--radius` (1/1), `--border-default` (1/1), `--border-soft` (1/1).
+  - Betroffen sind unter anderem `UserAuditTab`, `UserGroupRightsTab`, `UserOverviewTab`, `releases/page.module.css`, `me/profile/page.module.css`, `GroupContributionBlock`, `CollapsibleStory`, `Breadcrumbs`, `VersionRow`, `ThemeTimeline`, `ui.module.css` und `FansubEdit.module.css`.
+  - Für jeden der 13 Fälle existiert ein passendes, bereits definiertes Token — es handelt sich durchweg um Altnamen, nicht um fehlende Design-Entscheidungen. Belegte Zuordnung aus dem jeweiligen Nutzungskontext:
+
+    | tot | Ersatz | Beleg |
+    |---|---|---|
+    | `--color-text-muted` | `--text-muted` | `globals.css:24` definiert `--text-muted: var(--color-text-secondary)` |
+    | `--color-text` | `--text-primary` | `globals.css:22`; alle Fundstellen sind Haupttext |
+    | `--color-surface` | `--surface-card` | `globals.css:129`; alle Fundstellen sind Kartenflächen |
+    | `--surface-muted` | `--surface-card-muted` | `globals.css:130` |
+    | `--accent` | `--accent-primary` | `globals.css:29`; Fokusrahmen/Schatten in `FansubEdit.module.css:501,502,523` |
+    | `--color-text-tertiary` | `--text-faint` | `globals.css:136`; dritte Textstufe in `releases/page.module.css` |
+    | `--color-info` | `--accent-primary` | `VersionRow.module.css:99-101`, blauer Info-Badge |
+    | `--success` | `--color-success` | `globals.css:13`; `FansubEdit.module.css:531,533` |
+    | `--accent-primary-strong` | `--accent-deep` | `globals.css:32`; betonte Akzentschrift |
+    | `--border-default` | `--color-border` | `globals.css:12`; Standardrahmen in `ThemeTimeline.module.css:58` |
+    | `--border-soft` | `--border-subtle` | `globals.css:138`; `ui.module.css:643` |
+    | `--radius` | im Kontext belegen | `RoleCapabilityDetail.tsx:224` Inline-Style; `--radius-md` ist der Kandidat |
+    | `--tag-` | prüfen, mutmaßlich Fehlalarm | `app/dev/ui-system/page.tsx`, sieht nach Template-String-Konstruktion aus und ist dann kein echter Treffer |
+
+  - Kontrast der öffentlichen Notizkarte, in Phase 148 als benannte Schuld hinterlassen und jetzt durchgerechnet: der Rollentext `color-mix(--role-accent 38%, --text-primary)` auf dem Band `color-mix(--role-accent 55%, --color-border)` erreicht für die dunkelste Katalogfarbe `#183b7c` nur **4,01:1** (live gemessen für `#7b3c4e`: 4,16:1). Der Engpass ist **nicht** die Textmischung, sondern das Band: selbst bei 0 % Textmischung bleibt `#183b7c` bei 4,63:1 und damit nur knapp über der Schwelle. Durchgerechnet über alle 15 Katalogfarben und beide Mischverhältnisse: **Band 55 % → 45 % genügt und lässt die 38-%-Textmischung unangetastet** — schlechtester Wert dann 4,83:1. Die Alternative, nur die Textmischung zu senken, löst das Problem bei keinem Wert.
+
+**Success Criteria** (what must be TRUE):
+
+  1. Keine Custom Property wird im Frontend mehr ohne Fallback referenziert, ohne definiert zu sein. Nachweis über denselben Scan, der den Befund erhoben hat: die Menge der 13 ist leer.
+  2. Jede Ersetzung nutzt ein **bereits vorhandenes** Design-Token gemäß der Zuordnungstabelle oben. Es wird kein neues Token eingeführt und kein bestehendes im Wert verändert; die `--tag-`-Fundstelle wird als echter Treffer oder als Scan-Fehlalarm belegt entschieden.
+  3. Ein automatischer Test schlägt fehl, sobald eine neue fallback-lose Referenz auf eine undefinierte Custom Property hinzukommt. Er läuft in der regulären Frontend-Testsuite, benennt im Fehlerfall Token, Datei und Zeile, und behandelt Referenzen **mit** Fallback bewusst als zulässig.
+  4. Die 44 Referenzen mit Fallback bleiben unverändert; sie sind im Guard als zulässig dokumentiert, damit die Unterscheidung nicht bei der nächsten Änderung verloren geht.
+  5. Der Rollentext der öffentlichen Notizkarte erreicht für alle 15 Katalogfarben mindestens 4,5:1. Die Bandmischung sinkt von 55 % auf 45 %, die Textmischung bleibt bei 38 %.
+  6. Der Kontrast-Test in `roleCatalog.accessibility.test.ts` prüft diese Zusage als echte Schwelle statt als „known gap"-Snapshot; der entsprechende Snapshot-Eintrag entfällt. Die übrigen, weiterhin bewusst dokumentierten Lücken bleiben als Snapshot bestehen und werden nicht stillschweigend mitgeändert.
+  7. Backend-, Frontend- und Contract-Tests laufen grün, ohne neue Fehler gegenüber der Baseline. Ein Live-UAT auf `:3000` belegt per `getComputedStyle` an mindestens je einer Fundstelle der drei häufigsten Tokens (`--color-text-muted`, `--color-text`, `--surface-muted`) eine tatsächlich aufgelöste Farbe statt eines leeren Wertes, sowie das aufgehellte Notizkarten-Band.
+
+**UI hint**: ja — Textfarben, Flächen und ein Kontrastverhältnis ändern sich sichtbar. Vor `plan-phase` `/gsd-ui-phase 149` laufen lassen.
+
+**Plans:** 6/6 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 149-01-PLAN.md — Block A file group 1: --color-text-muted/--color-text/--color-surface/--color-text-tertiary in admin user tabs + releases page + GroupEdgeNavigation
+- [x] 149-02-PLAN.md — Block A file group 2: --surface-muted in project/media-review CSS + --accent/--success in FansubEdit + Breadcrumbs two-level dead reference
+- [x] 149-03-PLAN.md — Block A file group 3: --color-info + --accent-primary-strong + --border-default + --border-soft + --radius across 6 files
+- [x] 149-04-PLAN.md — Block C: PublicNoteCard .head band 55%→45% + roleCatalog.accessibility.test.ts known-gap→real-threshold conversion
+
+**Wave 2** *(blocked on Wave 1 Block A completion)*
+
+- [x] 149-05-PLAN.md — Block B: cssCustomProperties guard test (synthetic-fixture unit tests + real-tree integration assertion)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 149-06-PLAN.md — Full regression sweep + live UAT
+
+### Phase 150: Badge-Regeln — eine autoritative Schwellenquelle
+
+**Goal:** Eine Änderung einer Badge-Schwelle wird an genau einer fachlich autoritativen Stelle vorgenommen. Das Frontend kennt keine Schwellen mehr und leitet weder Tier noch nächste Stufe noch „es fehlen noch X" selbst ab, sondern stellt nur dar, was das Backend entschieden hat.
+
+**Requirements**: TBD (Nutzerauftrag vom 2026-09-06, wörtlich in `.planning/notes/2026-09-06-auftrag-phase150-badge-rules.md`; kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 149
+**Scope-Grenze:** Ausschließlich Badge-Schwellen und Badge-Fortschrittsregeln. **Nicht** in dieser Phase: Badge-Karussell, `FocalCarousel`, Swipe, Animationen, Settle-Timer, Scroll-/Settle-Verhalten, Badge-Bildgrößen, WebP/AVIF, Lazy Loading, Bildkomprimierung, öffentliche Profil-Ladezeit, SQL-Performance außerhalb der Badge-Abfragen, neue Badge-Familien, neues Artwork, neues Badge-Design, große `MemberBadgeChain`-Refactorings. Die Rollen-Registry aus Phase 147 wird nicht erneut angefasst.
+
+**Ausgangsbefund** (selbst gemessen 2026-09-06 auf `team4s-linux`, Commit `016da485` — Code gelesen, DB abgefragt und die Live-API für Member `type` ausgewertet):
+
+  - Alle im Auftrag genannten Schwellen sind bestätigt: Role Volume 12/108/320/510 · Points 1/50/200/500/1000/2500 · Membership 5/7/10 Jahre · Contributions 1/5/15 und 10/50/150 (zweimal) · Productive 1/10/25/50.
+  - **Persistiert werden nur drei Badge-Codes.** `SELECT badge_code FROM member_badges` liefert ausschließlich `first_contribution`, `historical_leader`, `verified`. Role-Volume-, Role-Entry-, Points-, Contribution- und Membership-Badges werden bei jedem Read live berechnet und nie geschrieben. Die Schwellen sind damit reine Code-Konstanten, keine Daten.
+  - **Dieselben Zahlen liegen an acht Stellen** — sechs davon im Backend, die Doppelhaltung ist also nicht nur Backend↔Frontend, sondern auch backend-intern:
+
+    | # | Ort | Familien | Form |
+    |---|---|---|---|
+    | 1 | `repository/member_profile_contribution_badges_repository.go:22,40,59` | contribution ×3 | `switch count >=` |
+    | 2 | `repository/member_profile_dashboard_repository.go:103-107` | contribution ×3 | `contribFamilyAscendingThresholds`-Map, dieselben Zahlen |
+    | 3 | `repository/member_profile_progress_repository.go:67-79` | progress, points, contribution ×3, membership | Inline-Literale in `loadBadgeProgress` |
+    | 4 | `repository/member_profile_role_volume_repository.go:15-28` | role_volume | `highestRoleVolumeTier`-switch |
+    | 5 | `repository/member_profile_role_volume_repository.go:78-100` | role_volume | zweiter switch in `roleVolumeProgressBadge`, dieselben Zahlen nochmal |
+    | 6 | `services/badge_service.go:35-36,144-147,203-212` | membership, productive | Go-Argumente + SQL-`INTERVAL '5 years'` |
+    | 7 | `components/profile/memberBadgeLabels.ts:195-199,275-282,354-360` | role_volume, points | `ROLE_VOLUME_TIER_THRESHOLDS`, `POINT_MILESTONES`, `ROLE_PROGRESS_STAGES` |
+    | 8 | `components/profile/memberBadgeLabels.ts:418-441` | progress, contribution ×3 | Inline-Arrays `[1,5,15]`, `[10,50,150]`, `1/10/25/50` in den Familien-Definitionen |
+
+    Der Kommentar an Ort 2 behauptet, die Single Source of Truth bleibe Ort 1 — tatsächlich sind die Zahlen dort ein zweites Mal ausgeschrieben.
+
+  - **Root Cause der Frontend-Rechnung sind vier Lücken im ausgelieferten Vertrag.** Das Frontend rechnet nicht aus Nachlässigkeit, sondern weil die benötigte Information nicht im Response steht:
+    1. `models.PublicMemberBadgeProgress` (`models/member_profile.go:204-211`) trägt `family`, `current_count`, `next_threshold`, `remaining_count`, `next_tier`, `complete` — aber **kein `current_tier`**. Aus `next_tier` allein ist das aktuelle Tier nicht ableitbar, dazu müsste man die Tier-Reihenfolge kennen, also die Schwellenliste. Das ist der direkte Grund, warum das Frontend die Liste hält.
+    2. `badge_progress` enthält **keine role_volume-Familie**. `loadBadgeProgress` liefert sechs Familien, role_volume ist nicht darunter.
+    3. `OwnDashboardRoleVolumeEntry` (`repository/member_profile_dashboard_repository.go:19-22`) trägt nur `role_code` und `count` — kein Tier, keine Schwelle, kein Rest.
+    4. Der Dashboard-Response liefert `total_points` als nackte Zahl ohne Points-Fortschrittszeile; `category_progress` deckt nur die drei Contribution-Familien ab.
+
+  - **Die Berechnung existiert im Backend bereits** und müsste nicht neu erfunden, sondern nur durchgereicht werden: `buildContribCategoryProgress` (`dashboard_repository.go:122`) liefert `CurrentTier` für die Dashboard-Familien, `roleVolumeProgressBadge` (`role_volume_repository.go:78`) liefert `current_tier`/`next_tier`/`next_threshold`/`remaining_count` für Role Volume. An der Live-API für Member `type` gemessen: `role_volume_typesetter_bronze` kommt mit `current_count 13 · current_tier bronze · next_threshold 108 · remaining_count 95 · next_tier silver` — also genau das, was `MemberBadgeChain` daneben selbst rekonstruiert.
+
+  - **Vier Frontend-Stellen rechnen Business-Regeln nach:**
+    - `app/members/[slug]/MemberProfileContent.tsx:47` — `deriveMilestoneBadge(profile.total_points ?? 0)` leitet das Punkte-Badge komplett aus `POINT_MILESTONES` ab, obwohl `badge_progress` die Familie `points` bereits liefert.
+    - `app/me/dashboard/components/CategoryProgressTable.tsx:87` — `buildPointsRow` über `resolveNextPointMilestone` + `POINT_MILESTONES`.
+    - `app/me/dashboard/components/CategoryProgressTable.tsx:103` — `buildRoleVolumeRow` über `resolveNextRoleVolumeThreshold`. Direkt daneben macht es `buildCategoryRow` bereits richtig und liest `row.current_tier` vom Backend — der Beleg, dass der serverautoritative Weg im selben File schon funktioniert.
+    - `components/profile/MemberBadgeChain.tsx:634-637` — rekonstruiert bei fehlendem `current_count` den Zählwert aus `ROLE_VOLUME_TIER_THRESHOLDS[tier]`, leitet also aus dem Badge-Code die Business-Regel zurück.
+
+  - **Das doppelte `role_entry_typesetter` ist ein echter Defekt, kein Datenproblem und keine Absicht.** Zwei Codepfade emittieren unabhängig voneinander denselben Badge-Code in dasselbe Array: `loadPublicBadges` (`member_profile_public_repository.go:203-215`) erzeugt aus `release_role_credit_lifecycles` je Rolle ein `role_entry_<code>` **ohne** Fortschrittsfelder, und `loadRoleVolumeBadges` (`member_profile_role_volume_repository.go:140-148`) hängt für jede Rolle mit Tier ≠ `entry` eine **zweite** `role_entry_<code>`-Zeile **mit** Fortschrittsfeldern an, bevor es das `role_volume_<code>_<tier>`-Badge ergänzt. Beide Funktionen sind in `GetPublicMemberProfile` (`member_profile_public_repository.go:121-134`) nacheinander verdrahtet. In der Live-Antwort steht `role_entry_typesetter` deshalb zweimal, einmal ohne und einmal mit Progress-Daten. Kein Kommentar erwähnt die Doppelung; `loadRoleVolumeBadges` verweist auf die andere Stelle nur als Vorbild für „nie persistiert". Konsument `MemberBadgeChain` fängt das heute mit `Math.max` ab — das ist die Kompensation, nicht die Absicht.
+
+**Zielarchitektur** (kleinstmöglich, keine Neuentwicklung):
+
+  - Eine einzige Go-Schwellenregistry als autoritative Quelle für alle Familien inklusive Role Volume. Die sechs Backend-Fundstellen leiten daraus ab, statt Zahlen zu wiederholen; die bestehenden Funktionsnamen und ihr Verhalten bleiben erhalten. Es entsteht **genau eine** Registry — keine zweite Quelle daneben, kein Spiegel, kein neuer Endpoint. Auch die Dashboard-Projektion rechnet Schwellen nicht mehr eigenständig nach, sondern leitet aus derselben Registry ab.
+  - Der Vertrag wird an den vier belegten Lücken erweitert, nicht ersetzt: `current_tier` in `PublicMemberBadgeProgress`, role_volume als Familie in `badge_progress`, Tier/Schwelle/Rest in `OwnDashboardRoleVolumeEntry`, eine Points-Zeile im Dashboard-Fortschritt. **Kein neuer Badge-Endpoint.**
+  - Die Doppelemission von `role_entry_<code>` wird an einer Stelle aufgelöst, sodass jeder Badge-Code höchstens einmal im Array steht und die Progress-Felder trägt.
+  - Das Frontend behält ausschließlich Präsentation: Labels, Beschreibungen, Artwork, Varianten, Gruppen und die Reihenfolge der Badge-Codes. Badge-Codes, Family-Codes und Tier-Codes bleiben als stabiler Vertrag erhalten — `role_entry_timer_gold` ist Identität, kein Hardcoding.
+
+**Success Criteria** (what must be TRUE):
+
+  1. Es gibt genau eine autoritative Schwellenquelle im Backend, und nur eine. Keine der sechs bisherigen Backend-Fundstellen hält die Zahlen 12/108/320/510, 1/50/200/500/1000/2500, 5/7/10, 1/5/15, 10/50/150 oder 1/10/25/50 noch als eigenes Literal — auch nicht die Dashboard-Projektion, die heute mit `contribFamilyAscendingThresholds` eine eigene Kopie führt. Alle leiten aus der Registry ab, und es entsteht keine zweite Registry und kein Spiegel daneben. Nachweisbar per Suche über `backend/`.
+  2. Das Frontend enthält keine Badge-Schwelle mehr. `ROLE_VOLUME_TIER_THRESHOLDS`, `POINT_MILESTONES`, `ROLE_PROGRESS_STAGES` und die Inline-Schwellen der Familien-Definitionen in `memberBadgeLabels.ts` sind entfernt oder tragen keine Zahlen mehr. Was bleibt, ist Präsentation: Label, Beschreibung, Artwork, Variante, Gruppe, Reihenfolge.
+  3. Die vier Frontend-Rechenstellen lesen Tier, nächste Schwelle und Restwert aus dem Response statt sie abzuleiten — `MemberProfileContent.tsx:47`, `CategoryProgressTable.tsx:87` und `:103`, `MemberBadgeChain.tsx:634-637`. `deriveMilestoneBadge`, `resolveNextPointMilestone`, `resolveNextRoleVolumeThreshold` und `resolveRoleProgressPresentation` sind entfernt, soweit sie danach unbenutzt sind.
+  4. Der Vertrag deckt alles ab, was die Oberfläche braucht: `current_tier` in `PublicMemberBadgeProgress`, role_volume als Familie in `badge_progress`, Tier/Schwelle/Rest in `OwnDashboardRoleVolumeEntry`, Points-Fortschritt im Dashboard. `shared/contracts/` ist mitgepflegt, und bestehende Felder behalten Namen und Bedeutung.
+  5. `role_entry_<code>` erscheint je Rolle genau einmal in `public_badges` und trägt dabei die Fortschrittsfelder. Ein Test belegt das gegen echtes Postgres für eine Rolle oberhalb der Einstiegsstufe.
+  6. Eine Änderung einer Schwelle in der Registry wirkt sich ohne jede TypeScript-Änderung auf die Oberfläche aus. Ein Test belegt das, indem er eine geänderte Schwelle durch die Kette bis in die gerenderte Ausgabe verfolgt.
+  7. Tests decken jede Familie ab: Role Volume für mehrere `role_code`, Points, Membership, Contributions und Projects. Belegt wird außerdem, dass die höchste Stufe kein `next_threshold` mehr meldet und dass `remaining_count` nie negativ wird.
+  8. Bestehende Profile bleiben API-kompatibel, oder der Vertrag wird bewusst und dokumentiert angepasst. Ein bestehender Anti-Drift-Test, der nach dem Umbau nur noch zwei identische Listen vergleicht, wird entfernt oder durch einen Vertragstest ersetzt, statt formal grün weiterzulaufen.
+  9. Backend-, Frontend- und Contract-Tests laufen grün, ohne neue Fehler gegenüber der Baseline. Ein Live-UAT auf `:3000` belegt an einem echten Profil, dass Badge-Fortschritt unverändert korrekt dargestellt wird — Stufe, nächste Stufe und Restwert an derselben Stelle wie vorher.
+
+**Regression-Gates** (müssen vor dem Abschluss grün sein):
+
+  - `go build ./...`, `go vet ./...` sauber; `go test ./...` ohne neue Fehler gegenüber der Baseline von Commit `016da485` (heute 51 vorbestehende, DSN-bedingte Fehlschläge — Vergleich über einen separaten `git archive`-Checkout).
+  - Die real-Postgres-Tests der Badge-Repositories laufen mit echter Testdatenbank, nicht nur gegen Stubs.
+  - Frontend `vitest` vollständig, `tsc --noEmit` ohne neue Fehler, `docker compose build team4sv30-frontend` erfolgreich.
+  - Live-Vergleich vorher/nachher an Member `type`: `role_volume_typesetter_bronze` behält `current_count 13 · current_tier bronze · next_threshold 108 · remaining_count 95 · next_tier silver`, und die Punkte-Zeile behält `current_count 39 · next_threshold 50 · remaining_count 11`.
+
+**UI hint**: ja — die Badge-Fortschrittsanzeige auf dem öffentlichen Profil und im eigenen Dashboard wechselt ihre Datenquelle. Vor `plan-phase` `/gsd-ui-phase 150` laufen lassen.
+
+## v1.4 Coverage
+
+| Phase | Requirement Count | Requirement IDs |
+|-------|-------------------|-----------------|
+| 136. Capability Policy, Catalog & Schema Contract | 7 | CAP-04, CAP-11-14, QUAL-01, QUAL-04 |
+| 137. Central Effective-Rights Resolver & Overrides | 6 | CAP-01, CAP-02, CAP-05-07, QUAL-03 |
+| 138. Effective-Rights Administration & Impact UX | 4 | CAP-08-10, UADM-01 |
+| 139. Scalable User-Admin Projections | 8 | UADM-02-08, QUAL-06 |
+| 140. Review Delegation Management | 4 | RDEL-01-04 |
+| 141. Actor-Decidable Review Queue | 7 | RDEL-05, RQUE-01-06 |
+| 142. Integrated Security, Fixtures & Live Release Gate | 4 | QUAL-02, QUAL-05, QUAL-07, QUAL-08 |
+| **Total v1.4** | **41** | **41 unique requirements; no duplicates or orphans** |
+
+## v1.4 Progress
+
+**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145 - 146 - 147 - 148 - 149 - 150
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 136. Capability Policy, Catalog & Schema Contract | 31/31 | Complete | 2026-08-21 |
+| 137. Central Effective-Rights Resolver & Overrides | 14/14 | Complete | 2026-08-21 |
+| 138. Effective-Rights Administration & Impact UX | 18/18 | Complete | 2026-08-24 |
+| 139. Scalable User-Admin Projections | 10/10 | Complete | 2026-08-24 |
+| 140. Review Delegation Management | 3/3 | Complete | 2026-08-26 |
+| 141. Actor-Decidable Review Queue | 7/7 | Complete | 2026-08-26 |
+| 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | Complete | 2026-09-01 |
+| 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
+| 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
+| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
+| 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
+| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
+| 148. Rollenfarben wieder an den Katalog anschließen | 8/8 | Complete    | 2026-09-05 |
+| 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete    | 2026-09-06 |
+| 150. Badge-Regeln — eine autoritative Schwellenquelle | 7/7 | Complete   | 2026-09-07 |
+| 151. Erfolgsbadge-Karussell-Konsolidierung | 5/5 | Complete | 2026-09-07 |
+| 152. Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung | 10/10 | Complete   | 2026-09-08 |
+
+### Phase 151: Erfolgsbadge-Karussell-Konsolidierung
+
+**Goal:** Erfolgsbadges zeigen scharfes Artwork in einer kleineren, konsistenten, container-responsiven Bühne; Karaoke FX ist vollständig integriert, das Karussell bleibt präzise und die Phase-150-Business-/Query-Architektur unverändert.
+**Requirements**: P151-01, P151-02, P151-03, P151-04, P151-05, P151-06, P151-07, P151-08, P151-09, P151-10, P151-11, P151-12
+**Depends on:** Phase 150
+**Plans:** 5 plans
+
+Plans:
+
+- [x] 151-01-PLAN.md — Rollen-Artwork-Manifest, vollständige Karaoke-FX-Assets und echte Katalog-/Dateisystem-Abdeckung
+- [x] 151-02-PLAN.md — Gemeinsamer Artwork-Slot, produktive Karten-/Stage-Komposition mit gemeinsamer Slot-CSS
+- [x] 151-03-PLAN.md — Fokussierte Härtung des generischen FocalCarousel mit Interaktions- und Stressregressionen
+- [x] 151-04-PLAN.md — Konsolidierte mobile Container-CSS für Karten und Badge-Familien
+- [x] 151-05-PLAN.md — Dev-Galerie, vollständige Linux-Browserevidenz, Full-Suite-Gates und manuelle Einzelabnahme
+
+### Phase 152: Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung
+
+**Goal:** Die oeffentliche Fansub-Gruppenseite `/fansubs/[slug]` nutzt fuer History-Badges den
+gemeinsamen Phase-151-Artwork-Slot statt eines zweiten Badge-Systems, liefert Badge- und Hero-Bilder
+ueber die vorhandene Next-Image-Pipeline aus, steuert Achievement-Darstellung datengetrieben ueber die
+bestehende Gruppen-History-Registry, laesst Admin-Freitexte unveraendert, laedt public-seitig nur noch
+tatsaechlich benoetigte Daten mit abgesichertem Query-Budget, besitzt einen konsistenten
+Tiptap-Link-Contract und ist durch verhaltensbasierte Tests, axe-Abdeckung und eine vollstaendige
+Viewport-Sichtabnahme belegt.
+
+**Requirements**: P152-01, P152-02, P152-03, P152-04, P152-05, P152-06, P152-07, P152-08, P152-09, P152-10, P152-11, P152-12, P152-13, P152-14
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `152-USER-REQUEST.md`):
+
+| ID | Workstream | Anforderung |
+|----|-----------|-------------|
+| P152-01 | A1 | `/history-event-badges-transparent/**` fuer die Next-Image-Pipeline freigeben; `/_next/image` liefert 200 statt 400, WebP, srcset, Lazy Loading; Master-PNGs unveraendert |
+| P152-02 | A2 | `FansubHistorySection` rendert Artwork ueber den Phase-151-`AchievementArtwork`-Slot; Timeline, eigene Assets und eigene Registry bleiben; kein Member-Badge-Resolver |
+| P152-03 | A3 | `--history-badge-size`, zugehoerige Badge-Groessen-Breakpoints, die `releases_10000`-Sondergroesse, achievement-spezifische Groessenlogik und unnoetige Pixel-Shifts sind entfernt |
+| P152-04 | A4 | `achievementEventStyle`/harte `eventType`-If-Ketten sind durch additive Felder in `GROUP_HISTORY_EVENT_OPTIONS` ersetzt; keine zweite Registry |
+| P152-05 | A5 | `publicDomainTerms` entfernt; statische Public-Labels in der Registry; Admin-Freitext nachweislich unveraendert |
+| P152-06 | A6, E | Bildperformance vorher/nachher dokumentiert (History; Hero falls umgestellt), inkl. Initial-Payload-Differenz und prozentualer Reduktion |
+| P152-07 | B1, B2 | Public-spezifischer Gruppenladepfad hydratisiert nur benoetigte Felder; doppelte Link-Ladung beseitigt; andere Konsumenten unbeschaedigt; keine Monster-Query |
+| P152-08 | B3 | Ungenutzte Contributors-Projektion geprueft und Entscheidung belegt; `public-profile` und `domain-projection` bleiben fachlich getrennt |
+| P152-09 | B4 | Query-Budget-Test auf Basis der vorhandenen Query-Counter-Infrastruktur; konstantes Budget, kein Wachstum mit Projekten/Mitgliedern/History/Media; neuer Sollwert dokumentiert |
+| P152-10 | C1-C5 | Totes History-CSS entfernt, angefasste Breakpoints/Hex-Farben konsolidiert, Initialenlogik entschieden, `CATEGORY_TAG_CLASS` typisiert, `Promise.allSettled([single])` vereinfacht |
+| P152-11 | D1, D2 | Tiptap-Link-Contract zwischen Editor und Backend konsistent, mit Regressionstest; Sanitizer-Haertung (`class`-Muster, `h1`) geprueft und wo ohne Seiteneffekt umgesetzt |
+| P152-12 | D3, D4 | Accessibility-Findings behoben (kein doppeltes Jahr im A11y-Tree, keine Doppelbeschriftung der Medien-Thumbnails); axe-Abdeckung ueber die vorhandene Infrastruktur ergaenzt |
+| P152-13 | D5, D6 | Page-Kompositionstests fuer Sektionsbedingungen, Leerzustaende, Projektions-Fallback und Fehlerzustand; History-Tests verhaltensbasiert statt Klassennamen-Assertions |
+| P152-14 | QA | Viewport-Sichtabnahme 320/390/520/768/1024/1440/1920/2560 ueber Hero, Story, Projekte, Team, History, Media; Build und relevante Front-/Backend-Tests PASS; unabhaengige Abschlussverifikation |
+
+**Depends on:** Phase 151
+**Plans:** 10/10 plans complete
+
+  - Wave 1: 152-01 (A1 next.config localPatterns), 152-02 (Tiptap D1/D2, own strand), 152-03 (B1/B2/B3 public data flow), 152-04 (media a11y/typing D3/D4/C4), 152-05 (Hero C3 + E1/E2/E3), 152-06 (page composition C5/D5)
+  - Wave 2: 152-07 (History artwork/registry/CSS/tests A2-A5/D3/D6, depends on 152-01), 152-08 (query-budget gate B4, depends on 152-03)
+  - Wave 3: 152-09 (full regression gate + performance measurement + temp fixture seed, depends on all Wave 1/2 plans)
+  - Wave 4: 152-10 (Visual QA checkpoint + fixture cleanup + phase close, depends on 152-09)
+
+**Plan-time read first**: `frontend/src/components/fansubs/FansubHistorySection.tsx`, `frontend/src/components/fansubs/FansubPublicSections.module.css`, `frontend/src/lib/group-history-events.ts`, `frontend/src/components/profile/AchievementArtwork.tsx`, `backend/internal/repository/fansub_repository.go`, `backend/internal/repository/domain_projection_repository.go`, `backend/internal/services/tiptap_service.go`, `frontend/next.config.mjs`, and `152-RESEARCH.md`/`152-PATTERNS.md`/`152-UI-SPEC.md` as the binding contracts.
+**UI hint**: yes (152-UI-SPEC.md approved)
+
+Plans:
+**Wave 1**
+
+- [x] 152-01-PLAN.md — Free /history-event-badges-transparent/** for the Next Image pipeline (A1).
+- [x] 152-02-PLAN.md — Tiptap link-contract closure + sanitizer hardening (D1, D2).
+- [x] 152-03-PLAN.md — Public group load-path reduction + contributors trim (B1, B2, B3).
+- [x] 152-04-PLAN.md — Media-block accessibility fix + category typing (D3, D4, C4).
+- [x] 152-05-PLAN.md — Hero initials divergence doc + image optimization (C3, E1, E2, E3).
+- [x] 152-06-PLAN.md — Page composition simplification + tests (C5, D5).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 152-07-PLAN.md — History artwork-slot migration + registry + CSS + tests (A2-A5, D3, D6).
+- [x] 152-08-PLAN.md — Query-budget constant gate (B4).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 152-09-PLAN.md — Full regression gate + image-performance measurement + temp fixture seed.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 152-10-PLAN.md — Visual QA checkpoint + fixture cleanup + phase close (P152-14).
+
+### Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit
+
+**Goal:** Das oeffentliche Member-Profil `/members/[slug]` haelt bei SPA-Navigation keine entfernten
+DOM-Baeume mehr fest, laedt keinen Editor-Zweig und keine private Not-found-Vollvorschau mehr in den
+oeffentlichen Clientgraph, und zeigt bereits serverseitig gerenderte Inhalte ohne Wartezeit auf die
+Hydration an — belegt mit denselben committeten Messskripten, die die Ausgangslage erhoben haben,
+und ohne den weiterhin unreproduzierten Chrome-Absturz als behoben zu erklaeren.
+
+**Requirements**: P153-01, P153-02, P153-03, P153-04, P153-05, P153-06, P153-07, P153-08, P153-09, P153-10, P153-11, P153-12, P153-13, P153-14
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `153-USER-REQUEST.md`):
+
+| ID | Workstream | Anforderung |
+|----|-----------|-------------|
+| P153-01 | A1, A3, A4 | `auto`-Praefix im `sizes`-Deskriptor entfernt; deterministische, an der CSS-Wahrheit ausgerichtete responsive `sizes` fuer Hero und Stage; weitere `auto`-Aufrufstellen mitbehandelt |
+| P153-02 | A2 | Lazy Loading, reservierte Geometrie, Optimizer, `srcset` und Bildschaerfe nachweislich unveraendert; kein globales `eager` |
+| P153-03 | A | Keine lineare DOM-/Listener-Retention ueber 12 und 50 SPA-Zyklen, belegt mit dem committeten Retentionsskript |
+| P153-04 | B1, B2 | Alle vier reinen Renderer-Konsumenten importieren `RichTextRenderer` direkt; keine Kopie, kein zweiter Renderer |
+| P153-05 | B3 | Entscheidung ueber die kuenftige Barrel-Struktur getroffen und begruendet dokumentiert |
+| P153-06 | B4 | Private Not-found-Vollvorschau hinter echter Ladegrenze; Owner-/Privatsphaere-Logik unveraendert, Vorschau regressionsgeprueft |
+| P153-07 | B5, B | Kein Tiptap/ProseMirror/RichTextEditor im oeffentlichen Importgraph; Rich-Text-Darstellung und Phase-152-Link-Contract unveraendert; DEV- und Produktionsbytes neu gemessen |
+| P153-08 | C1, C6 | Serverseitig vorhandene oeffentliche Inhalte vor vollstaendiger Hydration sichtbar; Daten, SEO und Accessibility unveraendert |
+| P153-09 | C2, C5 | Leere Bereiche serverseitig entschieden; Umfang der gesperrten Badge-Darstellung bei leerem Profil bewusst geklaert statt still gekuerzt |
+| P153-10 | C3, C4 | Kleinere interaktive Inseln mit echten Ladegrenzen; keine Skeleton-Timer-Kosmetik, kein rootMargin-Tuning als Ersatzloesung |
+| P153-11 | D1 | Vorher/Nachher-Messung unter Berichtsbedingungen als neues Auditdokument; bestehender Bericht unveraendert |
+| P153-12 | D2, D3 | Regressionstests fuer alle drei Workstreams gruen, bestehende Frontend-Suite gruen, Produktionsbuild ueber `docker compose build` PASS; Retentions-/Bundle-Gate als Dauerschutz geprueft |
+| P153-13 | D4 | RCA-04 explizit als offen gefuehrt; kein Crash-Behoben-Claim; Beobachtungsauftrag fuer das Nutzer-Chrome formuliert |
+| P153-14 | D5 | Bestehende phasenfremde Typecheck-, Build- und Lint-Defekte benannt und belegt abgegrenzt statt still mitveraendert |
+
+**Faktenbasis:** `docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`),
+Befunde RCA-01, RCA-02 und RCA-03. Die P2-Befunde RCA-05, RCA-06 und RCA-08 sind bewusst
+ausgeklammert und fuer Phase 154 vorgesehen; RCA-07 ist laut Bericht erst nach der
+Graphverkleinerung sinnvoll erneut messbar. RCA-04 (gemeldeter Chrome-Tab-Absturz) bleibt offen und
+ist kein Umsetzungsziel.
+
+**Depends on:** Phase 152
+
+**Plan-time read first**: `frontend/src/components/profile/AchievementArtwork.tsx`,
+`frontend/src/components/ui/ResponsiveImage.tsx`, `frontend/src/components/editor/index.ts`,
+`frontend/src/components/profile/MemberStorySection.tsx`,
+`frontend/src/app/members/[slug]/not-found.tsx`,
+`frontend/src/app/members/[slug]/OwnHiddenProfilePreview.tsx`,
+`frontend/src/components/profile/MemberProfileContent.tsx`,
+`frontend/src/components/profile/MemberBadgeChain.tsx`,
+`frontend/src/hooks/useNearViewportActivation.ts`,
+`docs/audits/2026-09-09-public-member-performance/REPORT.md` und `153-USER-REQUEST.md` als
+verbindliche Auftragsquelle.
+
+**UI hint**: yes — Workstream C aendert die sichtbare Ladereihenfolge und Leerzustaende des
+oeffentlichen Profils.
+
+**Plans:** 7/7 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 153-01-PLAN.md — Workstream A: AchievementArtwork sizes fix (auto-Praefix entfernen, Retentionsaudit 12/50 Zyklen).
+- [x] 153-02-PLAN.md — Workstream B1/B3: vier Renderer-Only-Konsumenten auf Direktimport, Barrel-Split-Entscheidung dokumentiert.
+- [x] 153-03-PLAN.md — Workstream B4: echte Ladegrenze fuer die private Not-found-Vollvorschau.
+- [x] 153-04-PLAN.md — Workstream C: MemberCurrentProjectsSection — Skeleton-Overlay entfernen, leerer Zustand serverseitig entschieden.
+- [x] 153-05-PLAN.md — Workstream C: LatestContributionsSection + PreviousContributionsSection — identischer Skeleton-Fix (Sibling-Konsistenz).
+
+**Wave 2** *(blocked on 153-01)*
+
+- [x] 153-06-PLAN.md — Workstream C: MemberBadgeChain — Skeleton-Timing-Fix ohne Aenderung am Badge-/Stufen-Inhalt (P153-09 Ladder-Ausnahme). Haengt an 153-01: die drei `auto,`-Assertions in MemberBadgeChain.test.tsx pruefen Ausgabe, die erst 153-01s Quellfix erzeugt.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 153-07-PLAN.md — Workstream D: Vorher/Nachher-Audit, Regressions-Guard, volle Testsuite + docker compose build, Live-Checkpoint.
+
+### Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung
+
+**Goal:** Der oeffentliche Profil-Aggregator laedt jede Tatsache nur noch einmal statt vier Paare
+doppelt, ein Profil ohne Projekte laedt kein ungegatetes Hero-Artwork und keine Multi-Megabyte-
+Originalbilder bei Optimizer-Fehlern mehr, die Viewer-Aufloesung zieht kein zweites Vollprofil
+allein fuer den Edit-Link und reicht das vorhandene Abbruchsignal durch — belegt mit denselben
+committeten Messskripten, ohne Beschleunigungsversprechen fuer die Seitenanzeige und ohne den
+weiterhin unreproduzierten Chrome-Absturz als behoben zu erklaeren.
+
+**Requirements**: P154-01, P154-02, P154-03, P154-04, P154-05, P154-06, P154-07, P154-08, P154-09, P154-10, P154-11, P154-12, P154-13, P154-14, P154-15
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `154-USER-REQUEST.md`):
+
+| ID | Workstream | Anforderung |
+|----|-----------|-------------|
+| P154-01 | A1 | Vier Duplikatpaare (Rollen-Volumen, Contribution-Projekte, Chronik, Archivist) beseitigt; Fakten request-lokal einmal geladen und mehrfach abgeleitet |
+| P154-02 | A2, A3 | Fachliche Trennung Badges/Fortschritt erhalten; keine Monsterfunktion, keine Blind-Parallelisierung, kein kartesisch wachsender Join, keine spekulative Indexmigration |
+| P154-03 | A4 | Query-Budget-Test auf vorhandener Counter-Infrastruktur; neuer Sollwert dokumentiert und als Regressionsschutz, nicht als Performancenachweis beschriftet |
+| P154-04 | A5 | Ausgelieferte DTOs und Sichtbarkeitsregeln unveraendert; Public- und Owner-Antworten inhaltlich identisch |
+| P154-05 | B1 | Kein Projekt-Hero-Artwork bei null Projekten; Locked-Gating folgt dem vorhandenen Muster, keine dritte Variante |
+| P154-06 | B2, B4 | Original-Fallback begrenzt ueber vorhandene Medienstrukturen; kein Retry-Loop, kein Geometriesprung; keine pauschale PNG-Crash-Zuschreibung |
+| P154-07 | B3 | Animierte Avatare mit eigenem Budget; der unverkleinerte Optimizer-Durchlauf ist behandelt und die Wahl begruendet |
+| P154-08 | C1 | Kein unnoetiger Vollprofilabruf allein fuer den Edit-Link; Viewer- und Vollprofilbedarf getrennt oder Information weitergereicht |
+| P154-09 | C2 | `getMemberProfile` nimmt ein optionales `AbortSignal` und reicht es an `apiClientFetch` weiter; `useMemberViewer` uebergibt das Hook-Signal |
+| P154-10 | C3, C4 | PMFE-10-Fail-closed-Invariant und Fetcher-Memoisierung unveraendert; Auth-Refresh, keine private Datenfreigabe, keine falsche Login-Anzeige |
+| P154-11 | D1 | RCA-07 nach der Graphverkleinerung erneut gemessen und dokumentiert; keine Zuschreibung ohne Beleg |
+| P154-12 | D2 | Listener-Rest aus Phase 153 untersucht; Ergebnis offen dokumentiert, auch ein Negativbefund ist zulaessig |
+| P154-13 | E1, E2, E3 | Vorher/Nachher-Messung als neues Auditdokument; volle Suiten, Backend-Tests im Go-Container und `docker compose build` PASS |
+| P154-14 | E5, E8 | RCA-04 als offen gefuehrt; phasenfremde Altdefekte benannt und abgegrenzt, die Phase-153-Diskrepanz geklaert oder erneut als offen dokumentiert |
+| P154-15 | E6 | Owner-Ansicht eines versteckten Profils live als angemeldeter Eigentuemer bestaetigt (offener Punkt aus Phase 153) |
+
+**Faktenbasis:** `docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`),
+Befunde RCA-05, RCA-06, RCA-07 und RCA-08, sowie `153-AFTER.md` mit den nach Phase 153 offen
+gebliebenen Punkten. RCA-01/02/03 sind in Phase 153 geschlossen und werden nicht erneut angefasst.
+RCA-04 (gemeldeter Chrome-Tab-Absturz) bleibt offen und ist kein Umsetzungsziel.
+
+**Einordnung:** Der Bericht stuft RCA-05 als „aktuell sekundaer fuer UX, strukturell wichtig fuer
+Last und Roundtrips" ein — die HTTP-Mediane liegen bei 4 bis 6 ms. Diese Phase verspricht deshalb
+ausdruecklich **keine** spuerbare Beschleunigung der Seitenanzeige.
+
+**Depends on:** Phase 153
+
+**Plan-time read first**: `backend/internal/repository/member_profile_public_repository.go`,
+`backend/internal/repository/member_profile_role_volume_repository.go`,
+`backend/internal/repository/member_profile_contribution_badges_repository.go`,
+`backend/internal/repository/member_profile_progress_repository.go`,
+`frontend/src/components/profile/AnimeProjectAchievementStage.tsx`,
+`frontend/src/components/ui/ResponsiveImage.tsx`,
+`frontend/src/lib/useMemberViewer.ts`, `frontend/src/hooks/useCancellableSlugState.ts`,
+`frontend/src/lib/api.ts` (getMemberProfile), `docs/audits/2026-09-09-public-member-performance/REPORT.md`,
+`docs/audits/2026-09-09-public-member-performance/153-AFTER.md` und `154-USER-REQUEST.md` als
+verbindliche Auftragsquelle.
+
+**UI hint**: yes — Workstream B aendert sichtbares Artwork bei leeren Profilen und das
+Fehlerverhalten von Bildern.
+
+**Plans:** 7/7 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 154-01-PLAN.md — Workstream A: vier doppelte Faktenabfragen im Aggregator beseitigen (Query-Budget 20->16).
+- [x] 154-02-PLAN.md — Workstream B1: Locked-Hero-Gate fuer AnimeProjectAchievementStage nachziehen.
+- [x] 154-03-PLAN.md — Workstream B2/B3: begrenzter Bild-Fallback und Budget fuer animierte Avatare.
+- [x] 154-04-PLAN.md — Workstream C: schlanker Viewer-Endpunkt + durchgereichtes Abbruchsignal.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 154-05-PLAN.md — Workstream D: RCA-07- und Listener-Rest-Nachmessung mit offenem Ausgang.
+
+**Wave 3** *(blocked on 154-05)*
+
+- [x] 154-06-PLAN.md — Workstream E: Vorher/Nachher-Audit, volle Testsuiten, docker compose build.
+
+**Wave 4** *(blocked on 154-04, 154-06)*
+
+- [x] 154-07-PLAN.md — Workstream E: menschlicher Live-Checkpoint, Owner-Ansicht eines versteckten Profils.
+
+### Phase 155: Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget
+
+**Goal:** Die oeffentliche Fansub-Projektseite liefert dieselben sichtbaren Informationen wie heute,
+laedt sie aber ueber einen gezielten Project Resolver, eine schlanke Contributor-Summary und
+entflochtene Release-Pfade — ohne doppelten Profil-Load, ohne Vollinventar-Abfragen und ohne Fetches
+ohne sichtbaren Consumer; Member-Klicks fuehren kanonisch auf die Projekt-Member-Route.
+
+**Requirements**: P155-01, P155-02, P155-03, P155-04, P155-05, P155-06, P155-07, P155-08, P155-09,
+P155-10, P155-11, P155-12, P155-13, P155-14, P155-15
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `155-USER-REQUEST.md`):
+
+| ID | Auftragsabschnitt | Inhalt |
+|----|-------------------|--------|
+| P155-01 | 1 | `groupSlug + animeSlug` werden ueber einen gezielten Resolver zu `groupID`, `animeID`, Projekt-Identitaet und kanonischem Pfad aufgeloest; kein Vollprofil, kein Gruppenprofil als Resolver |
+| P155-02 | 1, 11 | Kein doppelter Public-Fansub-Profile-Load im normalen Project-Request; Previous/Next nur, wenn ohne nennenswerte Zusatzlast |
+| P155-03 | 2, 13 | Contributor-Projection der Projektseite enthaelt nur sichtbare Uebersichtsfelder; keine Member-Texte, Medien, Beteiligungslisten, Historien, Badges oder Vollprofile |
+| P155-04 | 2, 12 | Kein Request-Fan-out pro Member; Lasttest mit 30–50 Mitwirkenden belegt, dass keine Detaildaten nachgeladen werden |
+| P155-05 | 3 | Jeder Member-Klick im Projektkontext fuehrt kanonisch auf `/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]`, nicht auf `/members/[slug]` |
+| P155-06 | 3, 7 | Projekt-Member-Seite bleibt unveraendert bestehen und laedt Texte/Medien/Beteiligungen erst selbst; globales Profil bleibt als sekundaere Navigation erreichbar |
+| P155-07 | 4 | Latest Release Preview und Release-Historie sind getrennte, jeweils bounded Pfade ohne doppelte Beschaffung derselben Daten |
+| P155-08 | 4, 5 | Counts/Flags kommen aus Count- bzw. Query-Metadaten; `per_page: 100` ist entfernt oder nachweislich begruendet und bounded |
+| P155-09 | 13 | Getrennte Projections fuer Latest Preview und History erlaubt; kein Universal-DTO aus Bequemlichkeit |
+| P155-10 | 6 | Keine initialen Fetches ohne sichtbaren Consumer (Themes, Release-Media, tote Flags); entfernte Felder verschwinden auch aus dem Loader-Vertrag |
+| P155-11 | 9, 10 | Release-Drill-down und die bestehende Informationsarchitektur inkl. Block „Neuestes Fansub-Release" bleiben vollstaendig erhalten; kein Redesign |
+| P155-12 | 8, 14, 15 | Keine neue Tabelle, keine Materialisierung, keine Datendopplung; Indizes nur mit Query-Plan-Beleg |
+| P155-13 | 16, 17 | Resolver und Summary liefern nur oeffentliche Daten; bestehende Visibility-Filter unveraendert; Edge- und Not-found-Faelle belegt |
+| P155-14 | 11, 12, 19 | Vorher/Nachher-Messung von Requests, Queries, Payload und TTFB als eigenes Auditdokument |
+| P155-15 | 18 | Backend- und Frontend-Tests gruen, Vertragsparitaet Go-DTO ↔ OpenAPI ↔ TS ↔ `api.ts`, sauberer Working Tree |
+
+**Faktenbasis:** `155-USER-REQUEST.md` als verbindliche Auftragsquelle. Die dort genannten Befunde
+sind am Code vorgeprueft: `frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/page.tsx` loest
+`animeSlug` ueber `getPublicFansubProfileBySlug` auf und
+`frontend/src/app/anime/[id]/group/[groupId]/projectPageData.ts` laedt dasselbe Profil ein zweites
+Mal; `getGroupReleases(..., { per_page: 100 })` steht neben Cursor- und Detail-Abfragen; `themesData`
+und `releaseMediaData` sowie `hasThemes`/`hasMedia`/`hasTeamContent` haben in `ProjectPage.tsx`
+keinen Consumer. Die Contributor-Projection ist auf Contract-Ebene bereits schlank — ihre SQL-Seite
+ist zu pruefen, ein Negativbefund ist zulaessig.
+
+**Einordnung:** Read-Model-, Datenfluss-, API- und Performance-Phase in derselben Linie wie Phase 152
+(oeffentliche Gruppenseite) und 153/154 (oeffentliches Member-Profil). Diese Phase verspricht
+ausdruecklich **kein** visuelles Redesign und keine Aenderung der sichtbaren Informationen.
+
+**Depends on:** Phase 154
+
+**Plans:** 7/7 plans complete
+
+Plans:
+
+**Wave 1**
+
+- [x] 155-01-PLAN.md — Project Resolver: Backend-Repository, Handler, Contract
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 155-02-PLAN.md — Release-Version-Count: eigenstaendige Query, Endpoint, Contract
+- [x] 155-03-PLAN.md — Contributor-Query-Budget-Absicherung (30-50 Mitwirkende)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 155-04-PLAN.md — Project-Loader-Umbau: Release-Datenpfade, tote Fetches, Resolver-Schnittstelle
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 155-05-PLAN.md — Render-Konsumenten: Hero/Stats/Assets/Releases-Prop-Verdrahtung
+- [x] 155-06-PLAN.md — Drill-down-Routen: Resolver-Verdrahtung in allen drei Pretty-Routen
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 155-07-PLAN.md — Messung, Edge-Cases, Vorher/Nachher-Auditbericht
+
+**Plan-time read first**: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`,
+`155-CONTEXT.md`, `frontend/src/app/anime/[id]/group/[groupId]/projectPageData.ts`,
+`frontend/src/app/anime/[id]/group/[groupId]/ProjectPage.tsx`,
+`frontend/src/app/anime/[id]/group/[groupId]/sections/`,
+`frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/page.tsx`,
+`frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]/page.tsx`,
+`frontend/src/components/fansubs/ProjectMemberRows.tsx`,
+`frontend/src/lib/fansubProjectRoutes.ts`, `frontend/src/lib/fansubProjectNavigation.ts`,
+`frontend/src/lib/api.ts`, `frontend/src/types/groupContributors.ts`,
+`backend/cmd/server/main.go`, `shared/contracts/openapi.yaml`,
+`docs/audits/2026-09-09-public-member-performance/REPORT.md` (Muster fuer die Messdokumentation).
+
+**UI hint**: nein — Read-Model-, Datenfluss- und Query-Budget-Phase. Die sichtbare Oberflaeche und
+die Informationsarchitektur bleiben unveraendert; lediglich Link-**Ziele** werden vereinheitlicht.
+`plan-phase` daher mit `--skip-ui` fahren.
+
+### Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion
+
+**Goal:** `theme_segment_assignments` ist die kanonische Wahrheit dafuer, welche Release-Version
+welches Kara-Segment verwendet; Bereichsaenderungen und spaeter angelegte Releases halten die
+Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer
+stabilen, korrigierbaren Segment-Origin projiziert, und Projektseite wie Release-Seite lesen
+dieselbe Wahrheit mit unterschiedlicher Darstellung.
+
+**Requirements**: P156-01, P156-02, P156-03, P156-04, P156-05, P156-06, P156-07, P156-08, P156-09,
+P156-10, P156-11, P156-12, P156-13, P156-14, P156-15, P156-16, P156-17, P156-18, P156-19
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `156-USER-REQUEST.md`):
+
+| ID | Auftragsabschnitt | Inhalt |
+|----|-------------------|--------|
+| P156-01 | 1, Zentrale Fachentscheidung | `theme_segment_assignments` ist die kanonische Release↔Segment-Wahrheit; `start_episode`/`end_episode` beschreibt nur noch den fachlichen Gueltigkeitsbereich |
+| P156-02 | 1 | Bereichsaenderung bestimmt eine Soll-Menge; Verkuerzung entfernt Assignments ausserhalb des Bereichs kontrolliert, Erweiterung ergaenzt fehlende — nicht mehr rein additiv |
+| P156-03 | 2 | Legitime Overrides/Sonderzuweisungen werden nicht blind geloescht; Zielzustand eindeutig und testbar, keine neue Komplexitaet ohne belegten Bedarf; unvollstaendiger Bereich loescht nichts |
+| P156-04 | 3 | Eine neu angelegte Release-Version innerhalb eines bestehenden Segmentbereichs erhaelt ihr Assignment automatisch; beide Reihenfolgen (Segment zuerst / Release zuerst) funktionieren |
+| P156-05 | 8, 22 | Stabile fachliche Segment-Origin (`origin_release_version_id` o. gleichwertig) mit dokumentiertem, deterministischem Backfill; kein blindes `MIN(Episode)`, keine falsche Praezision |
+| P156-06 | 9 | Origin ist administrativ korrigierbar und validiert; keine unveraenderliche Momentaufnahme |
+| P156-07 | 10, 11, 14 | Segment-Credits werden dynamisch aus den aktuellen Credits der Origin-Release-Version projiziert; keine neue Tabelle, keine Kopie; Faelle A–D (Segment zuerst, Credits zuerst, Credit korrigiert, Member ergaenzt) belegt |
+| P156-08 | 12 | Keine Rollenlabel-Substring-Heuristik mehr; Ableitung ueber stabile Rollen-Codes aus dem bestehenden Katalog, keine neuen Rollen, keine parallele Mapping-Welt |
+| P156-09 | 13 | Segmentrelevante Rollen an genau einer zentralen Stelle definiert; Frontend erhaelt fertig projizierte Credits |
+| P156-10 | 5, 6, 18 | Projektseite leitet Segmente aus Assignments statt aus der Range ab und zeigt ein Segment nur beim ersten Auftreten bzw. Segmentwechsel |
+| P156-11 | 4, 15 | Segmentidentitaet (`theme_segment_id`) entscheidet allein ueber ein neues Karaoke-Ereignis; Member-, Rollen-, Credit-, Timing-, Render- oder Caption-Aenderungen erzeugen keinen neuen Eintrag |
+| P156-12 | 16 | Ein echtes Folgesegment (eigene ID, eigener Bereich, eigene Origin) erzeugt einen neuen Projekt-Timeline-Eintrag und ersetzt das Vorsegment auf seinen Release-Seiten |
+| P156-13 | 7, 18 | Release-Detailseite zeigt alle ihrem Release tatsaechlich zugewiesenen Segmente mit fachlicher Kennzeichnung (verwendet seit / gueltig bis) statt sie zu unterdruecken |
+| P156-14 | 19 | Segmentbezogene Member-Klicks fuehren im Projektkontext auf `/fansubs/[groupSlug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]` |
+| P156-15 | 17 | `ThemeTimeline` und verwandte Komponenten halten keine eigene fachliche Typwelt mehr; kanonische Segmenttypen kommen aus Backend/Domaene, das Frontend rendert |
+| P156-16 | 20 | Kein N+1: keine Query je Segment, Member, Release oder Credit; Segmentdaten und Origin-Credits gebuendelt geladen; Query-Budget gemessen |
+| P156-17 | 21 | Indizes fuer Assignments, Segmentbereich und Origin geprueft; neue Indizes nur mit Query-Plan-Beleg |
+| P156-18 | 23, 24, 29 | Admin-Segmentverwaltung kann Origin sauber setzen ohne unnoetige Pflichtinteraktion; keine UI-Neugestaltung, nur neue fachliche Semantik sichtbar; Public-Visibility-Regeln unveraendert |
+| P156-19 | 25, 26, 27, 28, 30 | Vollstaendige Testmatrix (Lifecycle, Projektseite, Release-Seite, Credits inkl. Encoding/QC-Negativfaelle) gruen; Migration/Backfill geprueft; Vorher/Nachher-Bericht; sauberer Working Tree |
+
+**Faktenbasis:** `156-USER-REQUEST.md` als verbindliche Auftragsquelle. Die dort genannten Befunde
+sind am Code vorgeprueft: `backend/internal/repository/theme_segment_assignments.go:57-185`
+(`AssignThemeSegmentToEpisodeRange`) ist per Kommentar und Implementierung ausdruecklich **additiv**;
+`backend/internal/repository/group_repository_cursor.go:290-330` leitet die Projekt-Timeline direkt
+aus `start_episode`/`end_episode` ab und klassifiziert Segmenttypen per SQL-`LIKE`-Heuristik;
+`backend/internal/repository/release_detail_public_repository_helpers.go:104-107` filtert
+Segment-Credits ueber `strings.Contains(label, "kara") || strings.Contains(label, "typeset")`, weil
+`PublicReleaseContributor` nur ein aggregiertes `RoleLabel` und keinen Rollen-Code traegt, obwohl
+`loadPublicEffectiveContributors` (`public_effective_contributors.go:43ff`) `acr.role_code` bereits
+in der Hand hat und **beide** Flaechen beliefert; `theme_segments` hat **keine** Origin-Spalte; der
+einzige produktive `release_versions`-Insert-Pfad
+(`episode_import_repository_release_helpers.go:163`) kennt bestehende Segmente nicht;
+`ThemeTimeline.tsx:32-58` haelt eine eigene Typwelt inkl. `'OP KARA'`/`'INSERT KARA'`-Varianten.
+Rollen-Codes `translator`, `timer`, `karaoke_fx`, `typesetter`, `encoder`, `quality_checker`
+existieren als stabiler Katalog in `role_definitions` (per DB geprueft). Naechste freie
+Migrationsnummer: **0161**.
+
+**Einordnung:** Domain-Konsistenz-, Datenmodell- und Projektionsphase. Sie loest fuer die
+Release-Detailseite bewusst die Phase-117-Entscheidung D-02 (Unterdrueckung bereits sichtbarer
+Segmente) ab und verschiebt die First-Occurrence-Regel auf die Projektseite. Diese Phase verspricht
+ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmenttabellen.
+
+**Depends on:** Phase 155
+
+**Plans:** 22/22 plans complete
+
+Plans:
+
+**Wave 1**
+
+- [x] 156-01-PLAN.md — Migration 0161 (origin_release_version_id + backfill) + zentraler Rollen-Codes-Katalog
+- [x] 156-02-PLAN.md — Soll-Ist-Synchronisation: AssignThemeSegmentToEpisodeRange reconciling + Guard-Test
+- [x] 156-03-PLAN.md — Auto-Zuweisung neuer Release-Versionen (Release-zuerst-Reihenfolge)
+- [x] 156-06-PLAN.md — Projektseite: Assignment-basierte Timeline, kanonischer Segmenttyp, First-Occurrence
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 156-04-PLAN.md — Segment-Origin: Repository, Admin-Endpoint, Read-Path-Plumbing
+- [x] 156-05-PLAN.md — Rollen-Codes + member_slug durch loadPublicEffectiveContributors
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 156-07-PLAN.md — Release-Seite: dynamische Origin-Credit-Projektion, Suppression entfernt, DECISIONS.md
+- [x] 156-11-PLAN.md — Admin-UI: minimale Origin-Korrektur im Segment-Editor. **TEILWEISE** —
+      Task 1 (Type/API/Select-Control) implementiert, committet (`d6edc718`), automatisiert
+      gruen; Task 2 (`checkpoint:human-verify`) ausgefuehrt, Live-UAT durch den Auftraggeber
+      ausstehend (keine Platform-Admin-Zugangsdaten in dieser Ausfuehrungsumgebung) — kein
+      "verified"-Claim. Pruefanweisung + Testdatensatz (`theme_segment_id 3`) in
+      `deferred-items.md`. See `156-11-SUMMARY.md`.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 156-08-PLAN.md — Frontend: ThemeTimeline-Split, kanonischer Typ, Projekt-Member-Link
+- [x] 156-09-PLAN.md — Query-Budget-Regressionstest + Index-Plan-Beleg
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 156-10-PLAN.md — Vollstaendige Testmatrix, Migrationsverifikation, Vorher/Nachher-Auditbericht
+
+**Post-hoc UAT gap-closure** (156-UAT.md, 2026-09-12, GAP-01/GAP-02)
+
+- [x] 156-12-PLAN.md — GAP-01 Segment-Contributors: Datenmodell (Migration 0162), Rollenkatalog-Erweiterung (editor/quality_checker), validierte Reconcile-Schreibpfad + atomarer Origin-Wechsel-Cleanup
+- [x] 156-13-PLAN.md — GAP-01 oeffentliche Projektion (explizite Auswahl als Schnittmenge, Query-Budget erweitert, Regressionsmatrix A-J) + Admin-GET/PUT-Endpunkte
+- [x] 156-14-PLAN.md — GAP-01 Admin-UI: Dateigroessen-Extraktion (SegmentEditPanel.tsx/SegmenteTab.tsx) + „Mitwirkende am Segment"-Mehrfachauswahl
+- [x] 156-15-PLAN.md — Vollstaendiger Phase-156-Regressionslauf + gebuendelter Live-UAT-Checkpoint (GAP-02: 5 Origin- + 9 Segment-Contributor-Pruefpunkte)
+
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-14, GAP-04/GAP-05)
+
+- [x] 156-16-PLAN.md — Zentrale Origin-Ensure-Funktion (ensureThemeSegmentOriginTx), verdrahtet in
+      Range-Sync/Segment-Anlage/Auto-Zuweisung, Migration 0164 (Bestandsreparatur), SQL/Go-Regel-
+      Aequivalenzbeweis. Schliesst GAP-04 (Origin veraltet nach Bereichsaenderung: Segment 3,
+      origin=29, aktuell nur 40/41 zugewiesen) und GAP-05 (Segmente 4/5 ohne Origin trotz
+      Zuweisungen) aus dem Live-UAT vom 2026-09-14. Der 156-UAT.md-Live-UAT-Checkpoint selbst bleibt
+      ausdruecklich separat und offen -- dieser Plan beansprucht ihn nicht als bestanden.
+
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-14, GAP-06)
+
+- [x] 156-17-PLAN.md — Segment-Credits mit Segment-Beschriftung: zentrale Rollen-Code-zu-Label-
+      Zuordnung (`permissions/segment_credit_roles.go`, ausgelagert aus dem ueberlangen
+      `permissions.go`), additives `SegmentRoleLabel`-Feld nur fuer Segment-Participants, ein-Zeilen-
+      Frontend-Swap in `ThemeTimelineSegmentDetails.tsx`. Schliesst GAP-06 (Segment-Credit zeigte die
+      unveraenderte Release-Rolle statt der vom Auftraggeber am 2026-09-14 bestaetigten
+      Segment-Beschriftung) aus dem Live-UAT vom 2026-09-14. Der 156-UAT.md-Live-UAT-Checkpoint
+      selbst bleibt ausdruecklich separat und offen -- dieser Plan beansprucht ihn nicht als
+      bestanden.
+
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-14, GAP-07)
+
+- [x] 156-18-PLAN.md — Segment-Mitwirkende automatisch vorauswaehlen: neuer nullable Merker
+      `theme_segments.contributors_initialized_at`, zentrale Vorauswahl-Regel
+      (`ensureThemeSegmentContributorsPreselectedTx`/`ensureThemeSegmentOriginAndContributorsTx`,
+      komponiert mit dem unveraenderten `ensureThemeSegmentOriginTx` aus Plan 156-16), verdrahtet
+      in allen fuenf bestehenden Aufrufstellen plus dem manuellen Origin-Endpunkt und dem
+      Speichern der Mitwirkenden-Auswahl, Migration 0165 (Bestandsvorauswahl + SQL/Go-
+      Regel-Aequivalenzbeweis), optionaler Hinweistext im Admin-UI. Schliesst GAP-07
+      (Segment-Mitwirkende blieben nach Anlage leer, obwohl die Origin-Mitwirkenden bereits
+      bekannt waren) aus dem Live-UAT vom 2026-09-14, Auftraggeber-Entscheid "Ja, auch
+      bestehende". Der 156-UAT.md-Live-UAT-Checkpoint selbst bleibt ausdruecklich separat und
+      offen -- dieser Plan beansprucht ihn nicht als bestanden.
+
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-15, GAP-08)
+
+- [x] 156-19-PLAN.md — Mitwirkende auch bei Ein-Folgen-Segmenten editierbar:
+      `SegmentEditPanel.tsx`s "Mitwirkende am Segment"-Gate von `isSharedSegment &&` auf
+      `origin_release_version_id != null` verengt, damit die durch Plan 156-18 vorausgewaehlten
+      Mitwirkenden bei Ein-Folgen-Segmenten ("Kara time 1", "Ending Buddy", "test") wieder sicht-
+      und abwaehlbar sind. Ein-Folgen-Segmente mit gueltiger Origin zeigen zusaetzlich eine
+      schreibgeschuetzte "Origin: Folge N"-Info statt eines nutzlosen Ein-Options-Selects; geteilte
+      Segmente bleiben mit dem editierbaren Select byte-identisch. Schliesst GAP-08 (vom
+      Auftraggeber am 2026-09-15 als Blocker fuer die Live-UAT-Abnahme freigegeben). Der
+      156-UAT.md-Live-UAT-Checkpoint selbst bleibt ausdruecklich separat und offen -- dieser Plan
+      beansprucht ihn nicht als bestanden.
+
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-15, GAP-09)
+
+- [x] 156-20-PLAN.md — Zentrale Rollen-/Label-Definition: `permissions.SegmentCreditRoleCodes`
+      waechst auf acht Codes (encoder/designer neu freigegeben), neue, kleinere
+      `permissions.SegmentCreditPreselectionRoleCodes` traegt weiterhin nur die alten sechs
+      Codes (echte Teilmenge, per Test bewiesen), `typesetter`-Label auf "Karaoke-Typesetting"
+      umbenannt, neue Labels "Karaoke-Encoding"/"Logo".
+
+- [x] 156-21-PLAN.md — Wiring + Testkorrektur: automatische Vorauswahl liest jetzt die neue
+      Preselection-Liste (Encoder/Designer weiterhin nie vorausgewaehlt), Migration-0165-
+      Aequivalenztest zeigt auf dieselbe Liste (Migration selbst unveraendert), oeffentliche
+      Projektions- und Rollenfilter-Tests fachlich korrigiert (nicht geloescht) fuer die neue
+      "Encoder/Designer nur bei Auswahl sichtbar"-Regel, zwei stale Doku-Kommentare korrigiert.
+
+- [x] 156-22-PLAN.md — Frontend: Editor-Hinweistext in `SegmentContributorsField.tsx` (Encoding/
+      Design werden nie automatisch vorausgewaehlt), `ThemeTimeline.test.tsx`-Fixture von
+      "Typesetting / Logo" auf "Karaoke-Typesetting" nachgezogen. Schliesst GAP-09 (vom
+      Auftraggeber im Chat am 2026-09-15 entschieden, ersetzt ausdruecklich die alte "Encoder
+      erscheint nie"-Regel aus GAP-01/Regressionsfall D). Der 156-UAT.md-Live-UAT-Checkpoint
+      selbst bleibt ausdruecklich separat und offen -- diese Plaene beanspruchen ihn nicht als
+      bestanden.
+
+**Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
+`156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
+`backend/internal/repository/theme_segment_assignments.go`,
+`backend/internal/repository/group_repository_cursor.go`,
+`backend/internal/repository/release_detail_public_repository_helpers.go`,
+`backend/internal/repository/public_effective_contributors.go`,
+`backend/internal/permissions/permissions.go`,
+`frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ThemeTimeline.tsx`.
+
+**UI hint**: nein — Domain-, Datenmodell- und Projektionsphase. Bestehende Komponenten bleiben
+erhalten; UI aendert sich nur dort, wo neue fachliche Semantik sichtbar gemacht werden muss
+(„gilt Folge 1–10", „seit Folge 1", Credits, Origin). `plan-phase` daher mit `--skip-ui` fahren.
+
+### Phase 157: Projekt-Memberseite visuell auf Referenzdesign umbauen
+
+**Goal:** Die oeffentliche Projekt-Member-Seite entspricht in Informationshierarchie, Reihenfolge,
+Kartengroessen, Abstaenden und Typografie dem vom Auftraggeber beigefuegten Referenzdesign: kompakter
+Profilkopf, eine Statistikleiste statt vier Karten, Tab-Navigation mit Aktivzustand, eine
+Beitragszusammenfassung, Notizen als kompakte Timeline **ohne** redundanten Rollen-Header je
+Beitrag, Medienbereich nach Referenz und ein kompakter Releases-Empty-State — bei unveraenderter
+fachlicher Semantik.
+
+**Requirements**: P157-01, P157-02, P157-03, P157-04, P157-05, P157-06, P157-07, P157-08, P157-09,
+P157-10, P157-11, P157-12, P157-13
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `157-USER-REQUEST.md`):
+
+| ID | Auftragsabschnitt | Inhalt |
+|----|-------------------|--------|
+| P157-01 | 1 | Hero mit Avatar links, Name/Verifiziert/Projektzeile/Rollen-Chip rechts, beide Aktionsbuttons nebeneinander (auf schmalen Screens stapelnd); angezeigte Daten unveraendert |
+| P157-02 | 2 | Eine kompakte Statistikleiste mit Icon+Zahl+Label in Referenz-Reihenfolge (Rolle, Beitraege, Medien, Releases), korrekter Singular/Plural; keine vier grossen Boxen — **Ersetzt** durch Nutzerentscheid (Hero-Kennzahlen ersetzen Statistikleiste/Beitragszusammenfassung, siehe Aufträge vom 2026-09-13/2026-09-14 und `DECISIONS.md`). |
+| P157-03 | 3 | Tab-/Jump-Navigation kompakt mit sichtbar hervorgehobenem aktivem Bereich; bestehende Anchor-/Scroll-Mechanik wiederverwendet; kein Abschneiden auf 390 px |
+| P157-04 | 4 | Beitragszusammenfassung „Rolle fuer N Folgen · M dokumentierte Arbeitsnotizen · K Medien"; der Folgen-Zaehler ist definiert als Folgen mit mindestens einer oeffentlichen Notiz ODER einem oeffentlichen Medium, gebildet mit den vorhandenen Public-Praedikaten — keine erfundene Zahl — **Ersetzt** durch Nutzerentscheid (Hero-Kennzahlen ersetzen Statistikleiste/Beitragszusammenfassung, siehe Aufträge vom 2026-09-13/2026-09-14 und `DECISIONS.md`). |
+| P157-05 | 5 | Notizen als kompakte Timeline-Zeilen: Meta-Zeile Folge · Version · Datum, Titel darunter, 2–4 Zeilen Text, optional „Mehr anzeigen"; kein Rollen-Header, keine doppelte Folgenangabe, keine grossen farbigen Karten |
+| P157-06 | 6 | Bei genau einer Projektrolle erscheint die Rolle nur im Header; bei mehreren Rollen ist ein kleiner Chip in der Meta-Zeile zulaessig; keine Wiederholung ohne Mehrwert |
+| P157-07 | 7 | Pager nennt die tatsaechliche naechste Anzahl („Weitere N Beitraege anzeigen") neben „X von Y angezeigt"; bestehende Lazy-Load-Mechanik unveraendert |
+| P157-08 | 8 | Medienbereich nach Referenz: Kopfzeile mit Anzahl rechts, responsive Galerie mit Bild, Titel, Folge/Version; bestehende Lightbox und Medienlogik unveraendert |
+| P157-09 | 9 | Bei 0 Releases kompakter Empty-State statt grosser Leerflaeche; keine Doppelinformation aus Zaehler und „Alle 0 angezeigt" — **Entfällt**: Releases-Sektion auf ausdrücklichen Nutzerauftrag vom 2026-09-13 vollständig entfernt (Plan 157-08), siehe `DECISIONS.md`. |
+| P157-10 | 10, 11 | Informationshierarchie Person → Rolle → Umfang → Beitraege → Medien → Releases; sauberes Verhalten von 320 bis 1440 px ohne horizontale Scrollbar |
+| P157-11 | 12, 13 | Team4s-Designsprache und globale Primitives/Tokens erhalten, keine neuen Tokens; keine Regression bei Sichtbarkeit, Slug-Verlinkung, Release-Zuordnung, Medien-Sichtbarkeit, Pagination, API-Semantik, Rollenberechnung; keine Backend-Parallelstruktur |
+| P157-12 | 15, 16, 17 | Testmatrix angepasst statt geloescht und vollstaendig gruen; Live-UAT mit Vorher/Nachher-Screenshots (Header+Statistik, Beitraege, Medien, Releases, Desktop, schmaler Viewport) gegen die Referenz geprueft und Abweichungen dokumentiert |
+| P157-13 | Nachtrag 2026-09-12 | Bestehende Rollenfarb-Semantik bleibt vollstaendig erhalten: die Rollenfarbe ist an JEDEM Beitrag sichtbar (unabhaengig von der Rollenzahl), ausschliesslich ueber die zentrale Naht role_color_key -> boundedColorKey() -> data-color-key -> globals.css:271-293 -> --role-accent; keine Hex-Werte im Komponenten-CSS, kein zweites Farbmapping; Referenzbild ist in diesem Punkt (neutrale Karten) ausdruecklich nicht verbindlich, Struktur/Reihenfolge/Proportionen bleiben es |
+
+**Nachtrag GAP-03 F5 (2026-09-14):** P157-02, P157-04 und P157-09 sind NICHT stillschweigend als
+erfüllt zu lesen — sie sind durch spätere, explizite Nutzerentscheidungen ersetzt bzw. entfallen.
+P157-02 (Statistikleiste) und P157-04 (Beitragszusammenfassung) wurden durch den Nutzerauftrag vom
+2026-09-13 („Kennzahlen direkt im Hero: Folgen / Beiträge / Medien") und dessen Bestätigung/
+Erweiterung durch den Nutzerauftrag vom 2026-09-14 (V6, klickbare Hero-Kennzahlen, separate Tab-Card
+entfällt) ersetzt. P157-09 (Releases-Empty-State) entfällt, weil die Releases-Sektion auf
+ausdrücklichen Nutzerauftrag vom 2026-09-13 vollständig entfernt wurde (Plan 157-08). Die durable
+Aufzeichnung beider Entscheidungen steht in `DECISIONS.md`, Eintrag „2026-09-14: Phase 157
+Statistikleiste and Beitragszusammenfassung superseded by Hero-inline metrics; Releases-section
+removal recorded retroactively".
+
+**Faktenbasis:** `157-USER-REQUEST.md` als verbindliche Auftragsquelle, `157-CONTEXT.md` mit
+Implementation Map, gemessenem Ist-Zustand und der Referenz-Spezifikation in Worten (das Bild liegt
+Executoren nicht vor). Live gemessen am 2026-09-12 auf
+`/fansubs/new-subs/fansubprojekt/buddy-complex/mitwirkende/type`: Dokumenthoehe 2996 px mobil /
+2746 px Desktop, Notizbereich 1649 px fuer 5 Notizen, der Rollenname erscheint **einmal pro Notiz**
+(5× mobil, 12× Desktop), die Releases-Sektion liest wortwoertlich „Mitwirkung an Releases0Alle 0
+angezeigt", die Beitragszusammenfassung fehlt vollstaendig, die Statistik sind vier grosse Karten
+und die Tab-Reihe hat keinen Aktivzustand. Der Folgen-Zaehler der Referenz („13 Folgen") ist
+reproduzierbar: mit dem kanonischen Public-Praedikat hat der Member 12 oeffentliche Notizen in 12
+Folgen und 2 Medien in 2 Folgen, die Vereinigung ergibt **13**.
+
+**Einordnung:** UI-/Layoutphase mit genau **einer** additiven Backend-Ergaenzung (ein zusaetzlicher
+`episodes`-Count im vorhandenen Summary-Endpunkt, gebildet mit den vorhandenen Public-Praedikaten).
+Die geteilte `PublicNoteCard` wird ausdruecklich **nicht** angefasst — sie beliefert auch die
+Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
+
+**Depends on:** Phase 156
+
+**UI hint**: ja — der beigefuegte Referenz-Screenshot IST die visuelle Acceptance-Referenz und ist in
+`157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
+nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
+
+**Plans:** 16/16 plans complete
+closed the last of GAP-02's four automated closure plans (157-11/12/13/14). GAP-03 (independent
+post-GAP-02 check, 157-UAT.md, 2026-09-14, findings F1-F5) added two further gap-closure plans,
+157-15 and 157-16, planned but not yet executed. Phase-level human Live-UAT sign-off (157-06 Task 4
+checkpoint, plus a full re-run of 157-UAT.md GAP-02 points 1-9 and GAP-03 F1-F5) remains OPEN —
+phase not yet marked done.
+
+Plans:
+
+**Wave 1**
+
+- [x] 157-01-PLAN.md — Additive `episodes`-Count (einzige Backend-Aenderung) + Contract-Paritaet
+- [x] 157-04-PLAN.md — Medienbereich: Kopfzeile-Icon + "Alle N angezeigt"-Entfernung
+- [x] 157-05-PLAN.md — Releases-Empty-State via erweitertes EmptyState-Primitive
+
+**Wave 2** *(blocked on Wave 1 completion — 157-02 depends on 157-01's `episodes` contract)*
+
+- [x] 157-02-PLAN.md — Hero, Statistikleiste, Tab-Nav-Aktivzustand, Beitragszusammenfassung-Band
+
+**Wave 3** *(blocked on Wave 2 completion — shares ProjectMemberPage.tsx with 157-02)*
+
+- [x] 157-03-PLAN.md — Notiz-Timeline (Kernstueck) + konkrete Pager-Beschriftung
+
+**Wave 4** *(blocked on Waves 2/3/1(04,05) completion — cross-cutting Abschlussverifikation)*
+
+- [x] 157-06-PLAN.md — Responsive-Audit, volle Testsuite, Live-UAT mit Vorher/Nachher-Vergleich
+- [x] 157-07-PLAN.md — Project Member Hero konsolidieren
+- [x] 157-08-PLAN.md — Beitraege statt zweiter Release-Historie (Release-Sektion/-Tab/-Zaehler entfernt)
+- [x] 157-09-PLAN.md — Mobiles Artwork-Banner + einheitliche 4-Zeilen-Beitragsvorschau (useClampedOverflow extrahiert)
+
+**Gap closure — Wave 5** *(GAP-01 aus 157-UAT.md: Nutzerauftrag 2026-09-13, verbindliche Nachpruefung nach 157-09)*
+
+- [x] 157-10-PLAN.md — Notiz-Timeline: ungueltige Verschachtelung (Button/Link in Link) beheben, Rollenfarbe auf den Punkt konsolidieren, Card-Rahmen subtiler, Vorschau auf 3 Zeilen
+
+**Gap closure — Wave 6** *(GAP-02 aus 157-UAT.md: Live-UAT-Befunde 2026-09-14, Punkte V1-V6 +
+"Entscheid 2026-09-14 zu V4"; Punkt 9 Browser-Zoom war zuvor ungeprueft)*
+
+- [x] 157-11-PLAN.md — Tooling: shot-projectmember.mjs scrollt/wartet vor dem fullPage-Screenshot, plus immer aktive 200%-Zoom-Overflow-Pruefung (schliesst Pruefpunkt 9)
+- [x] 157-12-PLAN.md — V1+V2+V5: globale SectionHeader-Unterstreichung auf Projektseite + Texte-&-Notizen/Bilder-&-Medien-Kopfzeilen, redundanter "Alle N angezeigt"-Pagertext entfernt
+- [x] 157-13-PLAN.md — V3+V4: Timeline-Punkt deutlich groesser, Timeline-Linie deutlich dicker und je Eintrag in dessen eigener Rollenfarbe (Entscheid 2026-09-14 zu V4)
+- [x] 157-14-PLAN.md — V6: Hero-Kennzahlen Beitraege/Medien als klickbare Sprungziele (additive HeroMetrics-API + geteilter scrollToSection-Helper), ProjectMemberStickyNav vollstaendig entfernt
+
+**Gap closure — Wave 7** *(GAP-03 aus 157-UAT.md: unabhaengige Nachkontrolle vom 2026-09-14 nach
+Abschluss der Plaene 157-11..14, Befunde F1-F5)*
+
+- [x] 157-15-PLAN.md — F1+F2+F3+F4: globale SectionHeader-Icon/Zaehler-Erweiterung (volle
+  Unterstreichungsbreite, Zaehler bleibt in der Titelzeile), dauerhaft erkennbare klickbare
+  Hero-Kennzahlen mit sichtbarem Fokus, Tab-Kontrolle fuer abgeschnittene Notiz-Links (Review WR-03),
+  isolierter Stacking-Context der Notiz-Karte (Review WR-04)
+
+- [x] 157-16-PLAN.md — F5: ROADMAP/DECISIONS-Abgleich (P157-02/04/09 als durch Nutzerentscheid
+  ersetzt/entfallen dokumentiert statt still erfuellt), verwaiste
+  ProjectMemberSummary/-Band-Komponenten entfernt, 157-VERIFICATION.md-Neulauf als Folgeschritt
+  festgehalten
+
+### Phase 158: Public Anime Detail — Reparatur
+
+**Goal:** Die öffentliche Anime-Detailseite behebt belegte Lesbarkeits-, Overflow-, Session-, Fehler- und Routingdefekte, entfernt unwahre Kennzahlen, verlinkt Projekte kanonisch und prüft Relations schlank, ohne Redesign oder Datenänderung.
+**Requirements**: P158-01, P158-02, P158-03, P158-04, P158-05, P158-06, P158-07, P158-08, P158-09
+**Depends on:** Implementierter Architekturstand157; offene Human-UAT 156/157 bleibt ausdrücklich offen und blockiert diesen neu autorisierten Scope nicht.
+**Baseline:** 7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85.
+**Plans:** 4/4 ausgeführt; technisch verifiziert (9/9 Anforderungen, 33/33 Fixture-Prüfgruppen). Globale Baselinefehler und Human-UAT bleiben separat offen.
+
+- [x] 158-01 — Slug-, Relations- und Compatibility-Verträge (Welle 1)
+- [x] 158-02 — Session- und Fehlerzustände (Welle 1, seriell)
+- [x] 158-03 — Strikte Route, Lesbarkeit, Overflow und Pretty-Integration (Welle 2)
+- [x] 158-04 — Technische Gesamtverifikation und Gate für 159 (Welle 3)
+
+| ID | Anforderung | Audit |
+|---|---|---|
+| P158-01 | Episodentitel auf weißen Karten und Contributionüberschrift auf dunkler Fläche lesbar; vorhandene globale Tokens. | F01 |
+| P158-02 | Hero ohne horizontalen Dokumentoverflow; lokale Begrenzung, Fokus/Slider/Controls erhalten. | F03 |
+| P158-03 | Access- oder Refreshsession mit Reaktion nach Mount; ausschließlich zentrale Session-/Refreshseam. | F02 |
+| P158-04 | Contributions: Laden/leer/Fehler; Watchlistunknown blockiert Mutationen; sichtbare Aktionsfehler auch bei Custom-Styling. | F12 |
+| P158-05 | Vollständig positive sichere Integer-ID; echte Next404 für ungültig/fehlend; konsistenter Titel/Canonical/Robots ohne doppelten Animefetch. | F05 technisch |
+| P158-06 | Keine erfundene7.8-Bewertung/0Views; vorhandenes Anime22-/Emby-Mapping unverändert. | F04 Darstellung |
+| P158-07 | Gruppenbereich über kanonischen Pretty-Link aus autoritativen Slugs; DTO/Go/OpenAPI/TS gezielt; numeric Compatibility erhalten. | F06 |
+| P158-08 | Relationsprüfung ohne GetByID-Vollreload; aktive/unbekannte/deaktivierte Semantik; erfolgreicher Pfad höchstens zwei Datenstatements. | F07 |
+| P158-09 | Vollständige technische Nutzermatrix, frische Gates und Browser-/HTTP-/Request-/SQLbelege; neue Regressionen ausgeschlossen;156/157UAT offen. | Gate |
+
+**Verbindliche Quellen:** .planning/phases/158-public-anime-detail-reparatur/158-USER-REQUEST.md und158-CONTEXT.md (D-01 bisD-08); vollständige Abnahme in158-VALIDATION.md. Research, Patterns und konservativer UI-SPEC liegen vor.
+**Scopegrenze:** F15, Kommentar-Pagination, Audio-/Video-Umbau, neue Anime-Slug-/Rating-/View-/Embyregeln, Daten-/Compatibilitylöschungen und globale Cleanup-Arbeit bleiben ausgeschlossen.
+**Technisches Gate:** alle Nutzerfälle einschließlich360/390/767/768/1440, Sessionmatrix, echtenHTTP404/Metadata, Pretty/numericCompatibility, Relations≤2Statements und frische Tests/Typecheck/Lint/isolierterBuild/diffcheck/Browser/Queryvergleich.156GAP02/157-06Task4 bleibenOPEN.
+
+### Phase 159: Public Anime Detail — Konsolidierung
+
+**Goal:** Eine gemeinsame aktive Gruppe, korrekte lazy Gridnachbarn, begrenzte Bilddelivery und Manifestretention sowie consumergeprüfte Varianten-/Assignment-/ID-Verträge konsolidieren die bestehende Seite ohne Rewrite.
+**Requirements**: P159-01, P159-02, P159-03, P159-04, P159-05, P159-06, P159-07, P159-08
+**Depends on:** Phase 158 vollständig implementiert und technisch verifiziert; keine159-Ausführung vorher.
+**Baseline:** `c3bfcb23781addca1ccd3931592535416f706787`; Phase158 technisch abgeschlossen, unabhängiger Review/Security/Verifier bestanden.
+**Plans:** 5/5 ausgeführt und unabhängig technisch verifiziert: 8/8 Anforderungen, 91/91 Produktionsprüffälle, Review clean (57 Dateien), 12/12 Sicherheitsmaßnahmen belegt. Typecheck/scoped Lint bestehen; globale Baselinefehler und Human-UAT bleiben separat offen. Vollständiger Build mit bekanntem Admin-Exportblocker, selektiver Produktionsbuild bestanden.
+
+- [x] 159-01 — Begrenzte öffentliche Projektion und Assignment-Vertrag (Welle 1)
+- [x] 159-02 — Explizite Streamidentität mit erhaltener Compatibility (Welle 2)
+- [x] 159-03 — Gemeinsamer Gruppenzustand und Gridnachbarn (Welle 3)
+- [x] 159-04 — Coverbudget und begrenzter Manifestcache (Welle 4; Produktionsabnahme in 159-05 bestanden)
+- [x] 159-05 — Technische Gesamtverifikation (Welle 5)
+
+| ID | Anforderung | Audit |
+|---|---|---|
+| P159-01 | Ein SSR-deterministischer Clientbesitzer für Story/Filter/Versionen, sichere Persistierung/Multitabs, kein200msPoll/Wechselrefetch. | F11 |
+| P159-02 | Gridnachbarn mit Zielanime+Gridseite; erster asynchroner Klick; Abort/Ignore; kein initialer Listenrequest ohne Interaktion. | F13 |
+| P159-03 | Reales mobiles/desktop Coverbudget über vorhandene Medienmechanismen; lokale/provider Bilder; keine Scheintransformation/Originalflucht. | F09 |
+| P159-04 | Ein geteilter Manifestrequest; begrenzte Lebensdauer/Größe; Consumerabort, Retry, SPA-Aktualisierung. | F10 |
+| P159-05 | Repositoryweite Feld-/Consumer-Matrix und isolierte Fixtures vor riskanten Änderungen; neutrale Episodenfallbacks erhalten. | F08/F14 Voraussetzung |
+| P159-06 | Assignmentautorität bei echtem Segmentbedarf; fansub_groups-Parität; eindeutige Varianten-/VersionsIDs; kontrollierte Streamcompatibility. | F08/F14 |
+| P159-07 | Belegte Payload-/Rowgrenze oder passender Abrufmechanismus; kein N+1 pro Episode/Variante/Gruppe/Contributor. | F08/F14 |
+| P159-08 | Volle technische Nutzermatrix einschließlich Storage/Multitab/Grid/Media/Cache/Kollision/Assignmentdivergenz und frische Gesamtgates. | Gate |
+
+**Verbindliche Quellen:** .planning/phases/159-public-anime-detail-konsolidierung/159-USER-REQUEST.md und159-CONTEXT.md (D-01 bisD-09); vollständige Abnahme in159-VALIDATION.md. Riskante Vertragsänderungen erst nach Feld-/Consumer-Matrix und isoliertenFixtures.
+**Scopegrenze:** gemeinsame Ausschlüsse aus158 bleiben bindend; Streamcompatibility und fachliche Daten-/Medienownership erhalten.
+**Technisches Gate:** volle Storage/Multitab/SSR/Grid/Media/Cache/Vertrags-/ID-/Assignmentmatrix; atomareRow-/Payloadgrenze, keinN+1, frische Gesamtgates und belegte Vorher/Nachherwerte; offene Human-UAT 156/157 nicht schließen.
+
+### Phase 160: Öffentliche Anime-Detailseite nachschärfen: Tags anzeigen, Gruppenlinks klar benennen, Coop sichtbar machen
+
+**Goal:** Die öffentliche Anime-Detailseite zeigt Tags unter der Beschreibung, die Gruppenbereich-Links sind eindeutig benannt ohne doppelte gleich aussehende Gruppen-Buttons, und Coop-Versionen sind erkennbar.
+**Requirements**: TBD (in discuss-phase zu klären)
+**Depends on:** Phase 159; erst planen, wenn die separate Jellyfin-Reparatur (andere KI, parallel) abgeschlossen ist — Banner, Logo und Laufzeit der Detailseite hängen am Jellyfin-Medien-Manifest.
+**Verbindliche Quelle:** .planning/phases/160-oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g/160-LIVE-UAT-BEFUNDE.md — Live-UAT-Befunde und Entscheidungen des Auftraggebers vom 2026-09-15. Mehrere Punkte sind dort als offen markiert und werden in discuss-phase geklärt.
+**Hinweis:** Phase 158/159 wurden am 16.09.2026 vom Auftraggeber „so weit“ abgenommen; die noch nötigen Überarbeitungen der Detailseite gehören in diese Phase 160.
+**Stand 17.09.2026:** Teilschritt „Tags und Genres“ (6 Pläne + Gap-Fixes) umgesetzt und vom Auftraggeber abgenommen. Laut Auftraggeber werden Gruppenbereich/Gruppenbuttons/Coop als eigene Phase 162 behandelt (noch nicht angelegt).
+**Teilschritt-Hinweis:** Die 6 Pläne unten decken ausschließlich den Teilschritt „Tags und Genres“ ab (160-CONTEXT.md, D-01–D-20). Gruppenbuttons/„Gruppenbereich“/Coop/Episodenfilter bleiben offen für einen separaten Discuss-Schritt innerhalb Phase 160.
+**Plans:** 6/6 plans complete (Teilschritt „Tags und Genres“). Unabhängige Verifikation (160-VERIFICATION.md): 20/20 D-IDs und alle 5 Auftraggeber-Mandat-Punkte code-/test-seitig bestätigt, Status `human_needed` (kein Browser-Automatisierungs-Tool in dieser Umgebung für die visuellen/interaktiven Prüfpunkte). Ein vom Verifier vorhergesagtes Kontrastrisiko (D-17, Tags-Chips) wurde noch am selben Tag vom Auftraggeber live bestätigt (weiße Schrift auf heller Infokarte, /anime/3) und in Commit 9233adf2 behoben (WCAG AA 5.30:1/14.45:1). Offene Human-UAT-Punkte (375px-Umbruch, Tab/Enter-Tastaturnavigation, Sichtprüfung des Kontrast-Fixes, authentifizierter Admin-Durchlauf) in 160-HUMAN-UAT.md festgehalten — Teilschritt gilt erst mit Auftraggeber-Abnahme als vollständig abgeschlossen.
+
+Plans:
+**Wave 1**
+
+- [x] 160-01-PLAN.md — Migration 0168 (tag_names/genre_names) + deutsche Namensauflösung im öffentlichen Detail-Read
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 160-02-PLAN.md — Admin-Backend-CRUD für deutsche Tag-/Genre-Namen
+- [x] 160-04-PLAN.md — Suche: q-Pflicht-Ausnahme, Sprachnamen-Filter, Fansub-Leerzustand-Fix
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 160-03-PLAN.md — Admin-Seite „Tags und Genres“ (Frontend)
+- [x] 160-05-PLAN.md — Suche: Frontend-Spiegelung der q-Pflicht-Ausnahme
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 160-06-PLAN.md — Öffentliche Anzeige: Tags-Block + Genre-Chips als Links
+
+### Phase 161: Jellyfin 12 Kompatibilitaet und MediaSource-Import
+
+**Goal:** Die tatsächlich verwendeten Team4s-Jellyfin-Zugriffe funktionieren unter Jellyfin 12 und importieren eine deterministisch zugeordnete MediaSource samt zugehörigem Container, Audio und Untertiteln; keine Secret-URLs, kein N+1 und keine Änderungen anderer Provider.
+**Requirements**: P161-AUTH, P161-API, P161-ITEMS, P161-SOURCE, P161-METADATA, P161-REGRESSION
+**Depends on:** Implementierter Stand 159 und Repository-Baseline b3b07ff0; Phase 160 war keine Voraussetzung und wurde nicht ausgeführt.
+**Plans:** 9/9 technisch abgeschlossen; unabhängige Verifikation 16/16, keine offene Implementierungslücke. Human-UAT am 16.09.2026 vom Auftraggeber vollständig abgenommen (inkl. Import/Relink, Rescan, Kaltstart).
+
+- [x] 161-01 — Jellyfin-Transport und korrekte Metadatenabfragen
+- [x] 161-02 — Typisierte Quellenbindung und deterministische Auswahl
+- [x] 161-03 — Medienproxies, Untertitel und FFmpeg authentifizieren
+- [x] 161-04 — Import-/Editorverträge und Frontend-Übertragung
+- [x] 161-05 — Import serverseitig prüfen und atomar speichern
+- [x] 161-06 — Technische Metadaten bei Bearbeitung und Relink erhalten
+- [x] 161-07 — Quellenidentität in Playback, Untertiteln und Rendercache
+- [x] 161-08 — Öffentliche Metadaten aus derselben Quelle projizieren
+- [x] 161-09 — Integrierte Verifikation, Live-Belege und Abschlussbericht
+
+**Source:** `.planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md`
+**Verification:** 161-VERIFICATION.md, 161-VALIDATION.md und docs/audits/2026-09-15-jellyfin12/RESULTS.md. Backendgates 64340e93, Frontendgates 3e410901, gezielte öffentliche DTO-Korrektur 718ebf57; nur bekannte globale Baselinefehler. Kapitel/Dateigröße sind separate Folgearbeit.
+**UI hint:** no redesign; existing release metadata projection only.
+
+### Phase 162: Öffentliche Anime-Seite: Fansub-Gruppenauswahl, Kurzgeschichte und Navigation
+
+**Goal:** Der Fansub-Bereich auf `/anime/[id]` hat genau eine eindeutige Auswahl (Filter-Chips, „Alle“ nur bei 2+ Gruppen, im URL-Zustand teilbar), zeigt bei konkreter Gruppe eine 3-Zeilen-Kurzgeschichte aus der bestehenden Fansub-Geschichte und navigiert über klar beschriftete Links „Zur Fansub-Gruppe“ / „Zum Projekt“; alte redundante Gruppen-Elemente („Gruppenbereich“, grauer Chip, verlinkter Story-Titel) entfallen.
+**Requirements**: REQ-162-01, REQ-162-02, REQ-162-03, REQ-162-04, REQ-162-05, REQ-162-06, REQ-162-07, REQ-162-08, REQ-162-09, REQ-162-10, REQ-162-11, REQ-162-12, REQ-162-13, REQ-162-14, REQ-162-15, REQ-162-16, REQ-162-17, REQ-162-18, REQ-162-19, REQ-162-20, REQ-162-21 (abgeleitet aus 162-USER-REQUEST.md §1–§17 und 162-CONTEXT.md D-01–D-14, siehe 162-RESEARCH.md "Phase Requirements")
+**Depends on:** Phase 160 (Teilschritt Tags/Genres abgenommen); löst die in 160 offen gelassenen Gruppenbutton-/„Gruppenbereich“-/Coop-Punkte ab.
+**Verbindliche Quellen:** `.planning/phases/162-oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation/162-USER-REQUEST.md` und `162-CONTEXT.md`.
+**Scopegrenze:** keine Coop-Kennzeichnung in der Versionszeile, keine neue Coop-Entität, keine Datenänderung durch Agenten (Coop-Testdaten legt der Auftraggeber an).
+**UI hint:** yes
+**Plans:** 5/5 plans complete. Live-UAT am 17.09.2026 vom Auftraggeber bestanden (162-HUMAN-UAT.md).
+
+Plans:
+**Wave 1**
+
+- [x] 162-01-PLAN.md — Backend: additiver story_preview-Contract (LATERAL-Join, OpenAPI/TS-Sync, Postgres-Integrationstest)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 162-02-PLAN.md — Frontend: FansubGroupPicker (Filter-Chips) + FansubGroupContext (ersetzt ActiveFansubStory)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 162-03-PLAN.md — Frontend: FansubVersionBrowser URL-Zustand (history.pushState/popstate statt localStorage) + Wiring
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 162-04-PLAN.md — Frontend: page.tsx SSR-Wiring (searchParams.fansub), Entfernen des alten fansubRow-Blocks
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 162-05-PLAN.md — Read-only DB-Inventar + Desktop-/Mobile-Browser-Verifikation (§16/§17)
+
+### Phase 163: Öffentliche Anime-Seite: Episoden nach Fansub-Gruppe und vorhandenen Releases filtern
+
+**Goal:** Die Episodenliste auf `/anime/[id]` zeigt nur Episoden mit mindestens einer öffentlich sichtbaren Release-Version; bei aktiver Fansub-Gruppe (Phase-162-URL-Zustand `?fansub=`) nur Episoden und Versionen dieser Gruppe inkl. Coop-Beteiligung – serverseitig, paginationskorrekt, ohne N+1 und ohne Umsortierung.
+**Requirements**: REQ-163-01 bis REQ-163-24 (siehe `.planning/REQUIREMENTS.md`, abgeleitet aus 163-USER-REQUEST.md §1–§17)
+**Depends on:** Phase 162 (Fansub-Gruppenauswahl im URL-Zustand, live abgenommen 17.09.2026)
+**Verbindliche Quelle:** `.planning/phases/163-oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern/163-USER-REQUEST.md`
+**Scopegrenze:** keine neue Episodenanzahl-Anzeige ohne UI-Entscheidung, keine zweite Gruppenauswahl, keine unrelated Refactorings, keine Datenänderung durch Agenten.
+**UI hint:** yes
+**Plans:** 5/5 plans complete
+
+  - Wave 1: 163-01 (Backend RED — Baseline-Erfassung + korrigierte/neue Fixture-Tests für Pflichtfälle B, C, D, E, F, I, J)
+  - Wave 2: 163-02 (Backend GREEN — SQL-Fix, Cursor v2, Slug-Resolver, Handler/OpenAPI, After-Fix-EXPLAIN)
+  - Wave 3: 163-03 (Frontend RED — Contracts, resolveActiveFansubSlug-Stub, korrigierte/neue Tests für D-07..D-16)
+  - Wave 4: 163-04 (Frontend GREEN — SSR-Weiterleitung, Gruppenwechsel-Refetch, Dimmen, Leer-/Fehlerzustände)
+  - Wave 5: 163-05 (Container-Rebuild, Live-Browser-UAT-Checkpoint Naruto, Abschlussbericht)
+
+Plans:
+**Wave 1**
+
+- [x] 163-01-PLAN.md — Backend RED: Baseline-Erfassung + korrigierte/neue Fixture-Tests (Pflichtfälle B, C, D, E, F, I, J).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 163-02-PLAN.md — Backend GREEN: publicEpisodeQuery-Fix, Cursor v2, Slug-Resolver, Handler/OpenAPI, After-Fix-EXPLAIN.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 163-03-PLAN.md — Frontend RED: Contracts + korrigierte/neue Tests (D-07..D-16, G).
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 163-04-PLAN.md — Frontend GREEN: SSR-Weiterleitung, Gruppenwechsel-Refetch, Dimmen, Leer-/Fehlerzustände.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 163-05-PLAN.md — Container-Rebuild, Live-Browser-UAT-Checkpoint Naruto (§16), Abschlussbericht.
+
+### Phase 164: Öffentliche Anime-Seite: Episode-/Release-UI, performantes Public Read-Model und Infinite Scroll
+
+**Goal:** Die Episoden-/Release-Darstellung auf `/anime/[id]` ist ein mobil-zuerst gebautes Fansub-Release-Archiv mit glasiger Episodenkarte (Tint nur nach Filler-/Canon-Klassifikation), gruppenzentrierter Release-Vorschau ohne schwere Detaildaten, einem erweiterten Public-Read-Model ohne N+1 (Gruppen/Logos/has_images/has_notes/has_karaoke gebündelt) und Infinite Scroll mit begrenztem bidirektionalem Fenster, stabiler Scrollposition und filterkonsistentem Cursor.
+**Requirements**: REQ-164-01 bis REQ-164-48 (siehe `.planning/REQUIREMENTS.md`, ein Requirement pro Entscheidung D-01..D-48 aus `164-CONTEXT.md`)
+**Depends on:** Phase 163 (serverseitiger Gruppenfilter, Cursor-Scope, Trefferzahl) – abgeschlossen und live abgenommen 17.09.2026
+**Verbindliche Quelle:** `.planning/phases/164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll/164-USER-REQUEST.md`
+**Scopegrenze:** keine Episode-Detailseite, kein Details-Dropdown, keine Screenshots/Rich-Text/Segmentdetails in der Preview, keine neue Klassifikationsheuristik, keine neue Virtualization-Library ohne Nachweis, keine Datenänderung durch Agenten. Planung ohne Ausführung – Freigabe durch den Auftraggeber abwarten.
+**UI hint:** yes
+**Plans:** 13/13 plans complete
+
+  - Wave 1: 164-01 (Backend Read-Model-Kern: publicEpisodeQuery-Erweiterung, batched Flags-Query, Modelle, Budget-Tests), 164-02 (Contracts: OpenAPI + TS-Typen additiv)
+  - Wave 2: 164-03 (Backend Scale-Fixture + Query-Budget-/Paginations-Nachweis bei vielen Episoden, isolierte Test-DB), 164-04 (Frontend Episode-Glass-Card + Release-Preview-UI, D-01–D-20/D-48 visuelle Testfälle)
+  - Wave 3: 164-05 (Frontend Infinite-Scroll-/Bounded-Windowing-Engine: Sentinels, Eviction/Restoration, Scroll-Anchoring)
+  - Wave 4: 164-06 (Frontend Filterwechsel-/Cursor-Integration, Zum-Release-Link inkl. Coop, Race-Condition-Härtung)
+  - Wave 5: 164-07 (Vollständiges Gate + Naruto-Live-UAT + D-48-Visualmatrix + Abschlussbericht)
+
+  Gap-Closure (Live-UAT 18.09.2026, `164-UAT.md`):
+
+  - Gap-Wave 1: 164-08 (GAP-01 Logo-URL-Fix + GAP-02 Backend: geteilte Standard-Release-Name-Berechnung, öffentliche Anime-Seite + Release-Seite), 164-09 (GAP-12 Import-Standard-Episodentyp aus anime.type), 164-11 (GAP-04..10 Frontend-Kontrast/Radius/Abstand/Glas-Karte)
+  - Gap-Wave 2: 164-10 (GAP-11 Backend: Migration 0169 Anzeigenamen-Spalte, öffentliche Projektion, Admin-Lookup-Endpunkt) — abhängig von 164-08
+  - Gap-Wave 3: 164-12 (GAP-02/03/11 Frontend-Konsum: release_name, Technikzeile ohne „Unbekannt", DB-Klassifikationslabels + Admin-Platzhalter), 164-13 (GAP-11 Admin-Auswahlfelder aus DB) — abhängig von 164-08/164-10
+
+**Plan-time read first**: `backend/internal/repository/episode_version_public_query.go`, `backend/internal/repository/release_detail_public_repository_helpers.go`, `backend/internal/repository/episode_classification.go`, `backend/internal/models/episode_version.go`, `backend/internal/handlers/episode_version_reads.go`, `frontend/src/components/fansubs/FansubVersionBrowser.tsx` (+ `.module.css`), `frontend/src/app/anime/[id]/group/[groupId]/sections/OlderReleasesList.tsx`, `frontend/src/hooks/useNearViewportActivation.ts`, `frontend/src/types/episodeVersion.ts`, `shared/contracts/openapi.yaml`, sowie `164-RESEARCH.md`/`164-PATTERNS.md`/`164-UI-SPEC.md`/`164-VALIDATION.md` als verbindliche Vorgaben.
+
+### Phase 165: Library Discovery und Assisted Anime Creation (Serien)
+
+**Goal:** Auf `/admin/anime/create` gibt es zusätzlich „Aus meiner Bibliothek“: eine schlanke, paginierte Jellyfin-Library-Liste (Series und Movie) mit Status „offen“ / „bereits vorhanden“ / „ignoriert“ / „teilweise“ (nur exakte technische Referenzen), deren Auswahl in den bestehenden Create-Draft übergibt – AniSearch-Suche vorbelegt, Auswahl immer durch den Benutzer, Dubletten nach AniSearch-Auswahl mit „verbinden oder neu“. Nach Assisted-Create geht es bei Serien direkt zu den Episoden und mit erhaltenem Kontext zurück zur Discovery.
+**Requirements**: REQ-165-01 bis REQ-165-22 (1:1 aus 165-CONTEXT.md D-01..D-22 abgeleitet, Reihenfolge D-01..D-15, dann D-17..D-22, dann D-16; siehe Coverage-Tabelle unten)
+**Depends on:** Phase 164 (abgeschlossen); Jellyfin-12-Transport aus Phase 161
+**Verbindliche Quellen:** `.planning/phases/165-library-discovery-assisted-anime-creation/165-USER-REQUEST.md`, `165-CONTEXT.md`, `165-RESEARCH.md`, `165-PATTERNS.md`, `165-UI-SPEC.md`, `165-VALIDATION.md`
+**Scopegrenze:** Film-Content-Flow → Phase 166; kein Provider-Framework, kein Source-Refactor, keine automatische AniSearch-Zuordnung, kein Fuzzy-Matching, keine Datenänderung durch Agenten.
+**Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
+**D-15-Hinweis (aufgelöst 2026-09-21):** 165-11 war isoliert (letzte Wave, keine Dependents, aber Dependencies auf 165-01/165-06/165-09, deren Dateien additiv erweitert wurden) und begann mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Der Auftraggeber wählte am Checkpoint **Option C: D-15 komplett zurückgestellt** (keine Tabelle, keine Migration, keine Semantikänderung, kein Staffel-Batch-Fetch) — Begründung: nur 27 von 2111 Serien betroffen, Staffel-Fetch würde jedes Neuladen um ~28 s verlängern. Details und Wortlaut: 165-CONTEXT.md D-15-Nachtrag, `165-11-SUMMARY.md`. Die übrigen zwölf Pläne lieferten und funktionieren vollständig unabhängig davon — D-15 selbst bleibt **funktional nicht umgesetzt** und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt (noch nicht in dieser Roadmap eingeplant).
+**UI hint:** yes
+**Plans:** 19/19 plans complete
+
+  - Wave 1: 165-01 (Discovery-Snapshot-Cache/Cursor/Status-Resolver), 165-02 (Ignore-Tabelle Migration+Repo), 165-03 (D-20 Save-Time-Dublettencheck Backend), 165-04 (D-14 Episode-Import-Ordnerauswahl, fail-closed), 165-05 (Create-Page Entry-Card/Return-Link/Redirect-Helper)
+  - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit + D-24 library_context), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung + D-23-Fix), 165-12 (D-11 Return-Link auf Episoden-/Edit-Seite), 165-13 (D-23 Backend ForceNew-Bypass für Enrich())
+  - Wave 3: 165-07 (D-05-Fix + D-18 Backend Ordner-Verwaltung), 165-09 (Discovery-Bibliotheksseite Frontend, D-24 Karten-Layout)
+  - Wave 4: 165-10 (D-18 Frontend Ordner-Verwaltung Edit-Seite)
+  - Wave 5: 165-11 (D-15 Checkpoint — ZURÜCKGESTELLT, Option C: keine Mehrstaffel-Umsetzung; isoliert/optional)
+  - Wave 6 (Gap-Closure, unabhaengig voneinander): 165-14 (GAP-07 Episoden-Import Ordner-Filter), 165-15 (GAP-09-Backend-Verifikation + GAP-14 Suche + GAP-15 Cache-Single-Flight), 165-16 (GAP-09-Frontend + GAP-11 URL-Seitenverlauf + GAP-16 DiscoveryEntryCard-Stil), 165-17 (GAP-05 additiv verbinden + GAP-10 Eigentums-Konflikt 409 + GAP-12 Navigation + GAP-13 Audit-Gating)
+  - Wave 7 (Gap-Closure, blocked on 165-17): 165-18 (GAP-06/D-30 "Trotzdem neu anlegen" entfaellt, 409 statt 500)
+  - Wave 8 (Gap-Closure, blocked on 165-18): 165-19 (GAP-08/D-31 vorhandene AniSearch-Kandidaten anzeigen)
+
+Plans:
+**Wave 1**
+
+- [x] 165-01-PLAN.md — Backend Discovery-Snapshot-Core: Cursor-Codec, Series+Movie-Cache-Builder, reiner Status-Resolver.
+- [x] 165-02-PLAN.md — Ignore-Tabelle: Migration 0170 + Repository (Insert/Delete/Batch-Lookup).
+- [x] 165-03-PLAN.md — D-20 Save-Time-Dublettencheck in CreateAnime.
+- [x] 165-04-PLAN.md — D-14 Episode-Import-Ordnerauswahl: fail-closed Backend-Guard + Frontend-Selector.
+- [x] 165-05-PLAN.md — Create-Page-Kontrakte: DiscoveryEntryCard, DiscoveryReturnLink, buildAssistedCreateRedirectPath.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 165-06-PLAN.md — Backend Discovery-Listen-Handler + Ignorieren/Entignorieren-Endpunkte + Audit + D-24 library_context-Feld.
+- [x] 165-08-PLAN.md — Create-Page-Integration (Auto-Adopt, AniSearch-Vorbelegung, Redirect-Zweig) + AniSearchDuplicateDecision-UI + D-23-Fix (Entfernen der automatischen Umleitung, ForceNew-Retry-Wiring).
+- [x] 165-12-PLAN.md — D-11 Return-Link auf Episoden-Übersicht und Edit-Seite (die zwei verbleibenden Redirect-Ziele von buildAssistedCreateRedirectPath).
+- [x] 165-13-PLAN.md — D-23 Backend: ForceNew-Bypass-Feld auf AdminAnimeAniSearchEnrichmentRequest + Enrich()-Gate (Live-Befund-Korrektur).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 165-07-PLAN.md — Backend: D-05-„Verbinden"-Fix (Pitfall 3) + D-18 Ordner-Kontext/-Entfernen + Audit.
+- [x] 165-09-PLAN.md — Frontend Discovery-Bibliotheksseite (Toolbar/DiscoveryLibraryCard-Karten-Liste/Pager/Ignorieren, D-24 Karten- statt Tabellen-Layout).
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 165-10-PLAN.md — Frontend Ordner-Verwaltung auf der Anime-Bearbeitungsseite (D-18).
+
+**Wave 5** *(isoliert, kein Dependent, keine Dependency)*
+
+- [x] 165-11-PLAN.md — D-15 Checkpoint (Schema-Wahl): **ZURÜCKGESTELLT** per Auftraggeber-Entscheidung 2026-09-21 (Option C). Kein Code für die Mehrstaffel-Zuordnung selbst; nur Checkpoint-Präsentation, Entscheidungsprotokoll und Kommentar-/Doku-Klarstellung ausgeführt. Siehe `165-11-SUMMARY.md`.
+
+**Wave 6 — Gap-Closure** *(2026-09-22, aus 165-UAT.md GAP-05..GAP-16; unabhaengig voneinander)*
+
+- [x] 165-14-PLAN.md — GAP-07: Episoden-Import filtert bei explizit gewaehltem Zusatz-Ordner nach dessen eigenem Pfad statt dem Haupt-Ordner.
+- [x] 165-15-PLAN.md — GAP-09-Backend-Verifikation (Filter-vor-Paginierung bereits per GAP-02-Fix behoben) + GAP-14 (Suche matcht Titel/Ordnername, nicht den vollen Pfad) + GAP-15 (Cache-Neuaufbau single-flighted).
+- [x] 165-16-PLAN.md — GAP-09-Frontend (filterabhaengige Leerzustaende) + GAP-11 (Seiten-/Cursor-Verlauf aus der URL rekonstruierbar) + GAP-16 (DiscoveryEntryCard im Stil der Provider-Karten).
+- [x] 165-17-PLAN.md — GAP-05 (additiv verbinden immer bei bereits gesetztem Haupt-Ordner) + GAP-10 (Ordner-Eigentums-Konflikt liefert 409, kein Audit) + GAP-12 (Navigation nach Verbinden) + GAP-13 (Audit nur beim expliziten Verbinden).
+
+**Wave 7 — Gap-Closure** *(blocked on 165-17)*
+
+- [x] 165-18-PLAN.md — GAP-06/D-30: "Trotzdem als neuen Anime anlegen" entfaellt ersatzlos; Speichern mit vergebener AniSearch-ID liefert 409 statt 500.
+
+**Wave 8 — Gap-Closure** *(blocked on 165-18)*
+
+- [x] 165-19-PLAN.md — GAP-08/D-31: AniSearch-Kandidatensuche zeigt bereits vorhandene Anime mit Hinweis statt sie auszufiltern.
+
+## Coverage — Phase 165
+
+| Requirement | Decision | Plan(s) |
+|---|---|---|
+| REQ-165-01 | D-01 (Aufteilung 165/166) | 165-06, 165-08 |
+| REQ-165-02 | D-02 (Zustand B erst nach AniSearch) | 165-06, 165-08, 165-13 |
+| REQ-165-03 | D-03 (offen/bereits vorhanden) | 165-06, 165-09 |
+| REQ-165-04 | D-04 (Filter) | 165-06, 165-09 |
+| REQ-165-05 | D-05 (mehrere Jellyfin-Ordner, additiv) | 165-07 |
+| REQ-165-06 | D-06 (Snapshot/Cache/Cursor) | 165-01, 165-09 |
+| REQ-165-07 | D-07 (Budget-Gates) | 165-01, 165-06, 165-09 |
+| REQ-165-08 | D-08 (Handoff in Create-Draft) | 165-08 |
+| REQ-165-09 | D-09 (AniSearch-Vorbelegung) | 165-08 |
+| REQ-165-10 | D-10 (Post-Create-Redirect) | 165-05, 165-08 |
+| REQ-165-11 | D-11 (Kontext-Erhalt via URL) | 165-05, 165-08, 165-09, 165-12 |
+| REQ-165-12 | D-12 (Constraints/Non-Regression) | 165-06, 165-08 |
+| REQ-165-13 | D-13 (UI-Primitives/Umlaute/450-Zeilen/N+1) | 165-05, 165-08, 165-09, 165-10 |
+| REQ-165-14 | D-14 (Episode-Import-Ordnerauswahl) | 165-04 |
+| REQ-165-15 | D-15 (Mehrstaffel, Checkpoint-pflichtig) — **ZURÜCKGESTELLT** (Auftraggeber-Entscheidung 2026-09-21, Option C, kein Code für die Zuordnung selbst) | 165-11 |
+| REQ-165-16 | D-17 (Ignorieren/Entignorieren) | 165-02, 165-06, 165-09 |
+| REQ-165-17 | D-18 (Ordner-Verwaltung Edit-Seite) | 165-07, 165-10 |
+| REQ-165-18 | D-19 (Cache+Refresh, Status-Konsistenz) | 165-06, 165-09 |
+| REQ-165-19 | D-20 (Save-Time-Dublettencheck) | 165-03, 165-08 |
+| REQ-165-20 | D-21 (Audit-Attribution) | 165-06, 165-07 |
+| REQ-165-21 | D-22 (server_key-Vorsorge) | 165-02 |
+| REQ-165-22 | D-16 (Ordner-Umzug, kein neuer Code) | 165-07 |
+
+**Live-Befund-Korrekturen D-23 bis D-26 (2026-09-21, kein eigener REQ-ID-Block — Korrektur/Bestätigung bestehender Requirements, keine neuen Requirements):** D-23 (Fix der automatischen AniSearch-Konflikt-Umleitung, ersetzt fälschlich angenommenes bereits korrektes Verhalten unter REQ-165-02) → 165-08 (Frontend-Fix), 165-13 (Backend ForceNew-Bypass, neu). D-24 (Karten- statt Tabellen-Layout für die Bibliotheksliste, unter REQ-165-03/REQ-165-04/REQ-165-06) → 165-06 (library_context-Feld), 165-09 (DiscoveryLibraryCard). D-25 (Zurück/Weiter-Pagination bestätigt, unter REQ-165-06/REQ-165-11) → 165-09, keine Planänderung. D-26 (AniSearch-Titel-Vorbelegung bestätigt, unter REQ-165-09) → 165-08, keine Planänderung.
+
+**Live-Befund-Korrekturen D-27 bis D-29 (2026-09-21, zweite Live-Durchsicht gegen die reale Jellyfin-Instanz, kein eigener REQ-ID-Block):** D-27 (Discovery-Snapshot muss bei leerer `JELLYFIN_ALLOWED_LIBRARY_IDS`-Liste — heutiger Laufzeitzustand, Compose leitet die Variable nicht durch — denselben ungefilterten globalen Weg wie die Direktsuche gehen, sonst leere Liste in Produktion, unter REQ-165-06/REQ-165-07) → 165-01 (Snapshot-Builder, beide Zweige + StartIndex/Limit-Paginierung). D-28 (Typ bleibt pfadbasiert abgeleitet, aber `buildJellyfinIntakeTypeHint` erkannte "Spezial" bisher nicht — nur die englische Schreibweise "special", unter REQ-165-03/REQ-165-04) → 165-06 (additive Ein-Zeilen-Erweiterung des geteilten Helpers + Test über alle 8 Live-Pfadsegmente). D-29 (Mengengerüst live gemessen 2111 statt ~1500 Series-Items, unter REQ-165-06/REQ-165-07) → 165-01 und 165-06 (Skalierungstests mit ~2111-Item-Fixtures). 165-09 unverändert (konsumiert nur die vom Backend gelieferten Felder).
+
+**Gap-Closure-Nachtrag D-30/D-31 (2026-09-22, aus Live-UAT + unabhaengigem Code-Review, 165-UAT.md GAP-05..GAP-16, kein eigener REQ-ID-Block — ersetzt den "Trotzdem neu anlegen"-Teil von REQ-165-02/REQ-165-19, ergaenzt REQ-165-02/REQ-165-06/REQ-165-07):** D-30 (AniSearch-ID gehoert zu genau einem Anime; "Trotzdem als neuen Anime anlegen" entfaellt ersatzlos an beiden Ausloesepunkten, Speichern liefert 409 statt 500) → 165-18. D-31 (Kandidatensuche filtert vorhandene Anime nicht mehr aus, sondern markiert sie mit Hinweis; Auswahl fuehrt zur Verbinden-Entscheidung) → 165-19. Zusaetzlich GAP-05/GAP-10/GAP-12/GAP-13 (additiver Verbinden-Pfad haerten) → 165-17; GAP-07 (Episoden-Import-Ordner-Filter) → 165-14; GAP-09/GAP-14/GAP-15 (Bibliotheks-Listen-Korrektheit) → 165-15/165-16; GAP-16 (DiscoveryEntryCard-Stil) → 165-16.
+
+### Phase 166: Film-Content-Flow für Anime vom Typ Film
+
+**Goal:** Ein Anime mit `type = film` bekommt zuverlässig eine kanonische Content-Unit #1 mit `episode_type = movie` (auch ohne AniSearch-Episodenliste), die Jellyfin-Movie-Datei ist ohne Staffel-/Episodennummer zuordenbar, Zusatzdateien bleiben reviewpflichtig, und Titel-Fallbacks zeigen den Filmtitel statt „Folge 1“; Assisted-Create eines Films führt direkt in diesen Flow.
+**Requirements**: TBD (aus 165-USER-REQUEST.md §17–§24 und §32 abzuleiten)
+**Depends on:** Phase 165
+**Verbindliche Quelle:** `.planning/phases/165-library-discovery-assisted-anime-creation/165-USER-REQUEST.md` (§17–§24, §32)
+**Live-Befund 2026-09-21:** Filme sind auf dem Server Series-Items unter `/media/Anime/Movie/Anime.Film.Sub` (0 Movie-Items); Film-Annahmen aus dem Auftrag (§21 ohne EpisodeNumber) vor der Planung neu prüfen.
+**UI hint:** yes
+**Plans:** TBD
+
+### Phase 167: Fansub-Gruppenerkennung beim Episoden-Import
+
+**Goal:** Das Gruppenkürzel aus dem Release-Dateinamen wird zuverlässig erkannt (inkl. Szene-Schema, ohne Prüfsummen/Technik als Gruppe) und beim Import automatisch der bestehenden Fansub-Gruppe zugeordnet (Name, Slug, Alias); unbekannte Kürzel werden beim Zuordnen als weiterer Alias gelernt, aus Dateinamen entstehen keine neuen Gruppen mehr, und eine Versionskennung (v2/v3/v4) wird als Release-Version vorgeschlagen.
+**Requirements**: REQ-167-01 bis REQ-167-23 (siehe REQUIREMENTS.md "Phase 167 — Fansub-Gruppenerkennung beim Episoden-Import")
+**Depends on:** Phase 165 (Import-Ordnerauswahl, Discovery)
+**Verbindliche Quellen:** `.planning/phases/167-fansub-gruppenerkennung-beim-import/167-USER-REQUEST.md`, `167-CONTEXT.md`
+**Scopegrenze:** keine Änderung der Episodenzuordnung (Doppelfolgen nur prüfen/dokumentieren), kein Umbenennen von Dateien, keine rückwirkende Zuordnung bereits importierter Releases, keine Fuzzy-Automatik.
+**UI hint:** yes
+**Plans:** 8/8 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 167-01-PLAN.md — Parser hardening (filename-only, denylist, scene-schema) + release-version detection
+- [x] 167-02-PLAN.md — Batch fansub-group matching repository + Phase-167 Postgres test fixture
+- [x] 167-03-PLAN.md — ReassignAlias backend endpoint (dual permission check) + route + audit
+- [x] 167-04-PLAN.md — Frontend contract types + reassignFansubAlias API client
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 167-05-PLAN.md — Preview-time batch-match wiring, origin hint, version detection surface
+- [x] 167-07-PLAN.md — Import-mapping-row origin hint / suggestion / conflict UI
+- [x] 167-08-PLAN.md — Fansub group alias management UI + audit-history translation
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 167-06-PLAN.md — Remove filename auto-create fallback; apply-time alias auto-learn + audit
+
+### Phase 168: Episoden-Import UI-Flow und Kartenbereinigung: Vorschau beim Öffnen laden, unnötige Zwischenschritte entfernen und den Import cardweise über dokumentierte Quick Tasks verbessern
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 167
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 168 to break down)
+
+### Phase 169: Release-Medienrechte: Projektleiter, Preview, Highlights und Bildreihenfolge
+
+**Goal:** Release-Version-Medien können sicher und projektbezogen als Preview, mehrere Highlights und sortierte Galerie kuratiert werden; Projektleiter und delegierte Mitglieder erhalten den passenden Zugriff, und der Fansub-Admin-Einstieg zu Notizen & Bildern ist vorhanden.
+**Requirements**: REQ-169-01 bis REQ-169-08 (siehe 169-CONTEXT.md und PLAN-Dateien)
+**Depends on:** Phase 168
+**Verbindliche Quellen:** .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-CONTEXT.md, 169-RESEARCH.md
+**UI hint:** yes
+**Plans:** 4/5 plans complete
+
+Plans:
+
+**Wave 1**
+
+- [x] 169-01-PLAN.md — Datenmodell, API-Verträge und projektbezogene Medienrechte für Preview, Highlights und Reihenfolge
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 169-02-PLAN.md — Autoritative Highlight-/Reorder-API und Contracts
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 169-03-PLAN.md — Admin-Galerie, Capability-Gates und Notizen-&-Bilder-Navigation
+- [x] 169-04-PLAN.md — Öffentliche Preview-/Highlight-Projektion
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 169-05-PLAN.md — Live Actor-, Refresh- und Responsive-UAT
+
+### Phase 170: Release-Media Stabilisierung, Contract Cleanup und Legacy-Drift
+
+**Goal:** Die Release-Media-Architektur aus Phase 169 bleibt unverändert bestehen, während stale Timeline-DTO-Zugriffe entfernt, Highlight-/Reorder-Contracts gehärtet, Media-Listenrechte batchweise projiziert und die tatsächlichen Tests-/GSD-Status synchronisiert werden.
+**Depends on:** Phase 169
+**Status:** Implementierung abgeschlossen; fokussierte Media-Tests grün. Vollständige Suiten enthalten benannte, vorbestehende Fehler außerhalb dieses Diffs.
+**Scope:** Keine neuen Features, keine neue Media-Relation und keine Verschiebung von Highlight-Daten aus `release_version_media_highlights`.
+
+Erledigt:
+
+- `start_episode`-Zugriff aus dem öffentlichen Older-Releases-Timeline-Code entfernt; Range-Felder bleiben ausschließlich im Definitions-/Admin-Modell.
+- Highlight-Responses liefern `highlight_order` immer, beim Entfernen ausdrücklich `null`.
+- `ListReleaseVersionMedia` lädt Contributor-Gruppen gesammelt und löst Effective Rights höchstens einmal pro unterschiedlicher Gruppe auf.
+- Media-Reorder validiert IDs/Orders, verlangt die vollständige aktive Liste und normalisiert die gespeicherte Reihenfolge serverseitig.
+- `shared/contracts/admin-content.yaml` und die Backend-Antwort sind synchronisiert; Phase-169-Preview/Highlight-Orthogonalität und Public-Visibility-Projektion bleiben unverändert.
+
+### Phase 171: 171 Kara-Segmente in Release-Media und Public Story integrieren
+
+**Goal:** Kara-Segmente sind sicher in die Release-Media-Reihenfolge integriert und werden als gemischte öffentliche Story mit Timeline-Navigation und autorisiertem Playback dargestellt.
+**Requirements**: D-01, D-02, D-05, D-09, D-11, D-12, D-14, D-15, D-16
+**Depends on:** Phase 170
+**Status:** Abgeschlossen; automatisierte Checks und menschliche Live-UAT für Release 27 bestanden.
+**Plans:** 4/4 plans complete
+
+Plans:
+
+- [x] 171-01-PLAN.md — establish the canonical typed release-version story order and contracts
+- [x] 171-02-PLAN.md — integrate Kara into the existing ReleaseVersionMedia admin list with immediate refresh
+- [x] 171-03-PLAN.md — render the mixed public story with timeline anchors and permission-aware playback
+- [x] 171-04-PLAN.md — run cross-surface automated and live verification
+
+### Phase 172: Kara-Vorschaubild pro Segment: automatisch aus dem Render (Frame bei ca. 35 %) und manuell auf der Segment-Seite ersetzbar (Upload oder Übernahme eines Release-Bildes), keine Review-Prüfung, einheitliche preview_url für Admin-Media-Liste und Public-Release-Story
+
+**Goal:** Jedes Kara-Segment hat ein garantiert vorhandenes, ueber Admin-Media-Liste und Public-Release-Story identisch aufgeloestes Vorschaubild — automatisch aus dem Render bei ~35% der Segmentdauer erzeugt und auf der Segment-Seite manuell per Upload oder Release-Bild-Uebernahme ersetzbar, ohne Review-Pruefung.
+**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
+**Depends on:** Phase 171
+**Plans:** 10/10 plans executed — abgeschlossen 2026-10-02 (Live-UAT bestanden, siehe 172-UAT.md)
+
+Plans:
+**Wave 1**
+
+- [x] 172-01-PLAN.md — migration + shared manual>auto>fallback preview resolution, wired into admin list/single reads
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 172-02-PLAN.md — switch public release-detail segment reads onto the same shared resolution
+- [x] 172-03-PLAN.md — admin write paths (set/reset/attach/list-candidates) + interface + fake updates
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 172-04-PLAN.md — render-worker auto-extraction hook + upload-path 35% offset fix
+- [x] 172-05-PLAN.md — 4 new admin preview-image HTTP endpoints in a dedicated handler file
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 172-06-PLAN.md — one-off backfill binary for existing finished renders (Release 27)
+- [x] 172-07-PLAN.md — frontend types/api.ts functions + OpenAPI/admin-content contract sync
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 172-08-PLAN.md — segment-panel preview-image UI (upload/picker/reset)
+- [x] 172-09-PLAN.md — remove frontend fallback logic + kara-card deep link to segment tab
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 172-10-PLAN.md — live UAT on Release 27 (desktop + mobile)
+
+### Phase 173: Öffentliche Bildqualität: zusätzliche Display-Variante (Backend) als Quelle für die Next.js-Bildoptimierung auf allen Public-Seiten, Original bleibt 1:1 und erscheint nur per Klick, Admin/Bearbeitung behält Thumbnails, eigener Media-Namensraum mit Musterliste und Test für Fansub-/Gruppenbilder, animierte GIFs bekommen eine animierte Display-Variante, Backfill für Bestandsbilder
+
+**Goal:** Jeder der sechs bestehenden Bild-Schreibpfade (globaler Uploader, Release-Version-Media
+Upload/Replace, Fansub-Gruppenmedien, Fansub-Logo/-Banner, Profil-Avatar/-Hintergrund/-Story)
+erzeugt zusätzlich eine `display`-Variante (max. 1920px lange Kante, nie hochskaliert, inkl.
+animiertem WebP für animierte GIFs), öffentliche APIs liefern `display_url` mit
+Original-Fallback, Fansub-Medien bekommen einen eigenen `/media/fansub/<group_id>/...`-Namensraum
+mit dauerhaftem Redirect von alten URLs, und ein idempotentes Backfill-Kommando bringt
+Bestandsbilder auf den gleichen Stand — ohne neuen Upload-Endpunkt. **Erweitert per Revision
+2026-10-02:** zusätzlich bevorzugen alle weiteren betroffenen Lesepfade (Kara-Vorschau,
+Anime-Cover/-Banner, Fansub-Gruppen-/Projekt-Banner, öffentliches Mitgliederprofil) serverseitig
+`display` vor `thumb`/`original`, und ALLE zehn in `173-CONTEXT.md` genannten Public-Komponenten
+(Galerie, Hero, Kara, Fansub-Banner/-Logo/-Medien, Mitgliederprofil-Avatar/-Hintergrund)
+konsumieren diese Quelle über `ResponsiveImage`/`next/image` ohne `unoptimized` — mit zwei
+dokumentierten, begründeten Ausnahmen (`AnimeMediaProvider.tsx`, `app/anime/[id]/page.tsx`-Poster),
+die bewusst bei der bestehenden `imageDisplay.ts`-Pipeline bleiben (D-16). Die volle visuelle
+Public-UI-Abnahme (D-13) erfolgt live innerhalb dieser Phase, nicht als Folgephase.
+**Requirements**: [REQ-173-01 … REQ-173-31]
+**Depends on:** Phase 172
+**Plans:** 16/16 plans complete
+
+Plans:
+
+- [x] 173-01-PLAN.md — globaler Uploader: statische + animierte display-Variante (processImage)
+- [x] 173-02-PLAN.md — RVM-Display-Helper + Release-Version-Media-Upload-Verdrahtung
+- [x] 173-03-PLAN.md — Release-Version-Media-Replace-Verdrahtung
+- [x] 173-04-PLAN.md — Fansub-Namensraum + Display (Logo/Banner/Gruppenmedien) + Legacy-Redirect
+- [x] 173-05-PLAN.md — Avatar/Hintergrund-Display-Variante + display_url im eigenen Profil
+- [x] 173-06-PLAN.md — Story-Bild: echtes Original + Display-Variante (D-15)
+- [x] 173-07-PLAN.md — idempotentes Backfill-Kommando (Display + Namensraum-Migration)
+- [x] 173-08-PLAN.md — öffentliche display_url-Projektion an 4 bestehenden Lesestellen
+- [x] 173-09-PLAN.md — Backend-Lesepräferenz „display vor original": Kara-Vorschau + Anime-/Projekt-Banner
+- [x] 173-10-PLAN.md — Backend-Lesepräferenz: Fansub-Gruppen-Logo/-Banner + öffentliches Mitgliederprofil
+- [x] 173-11-PLAN.md — OpenAPI/Frontend-Typen-Sync für die 4 display_url-DTOs
+- [x] 173-12-PLAN.md — next.config.mjs (Fansub-Namensraum + quality 85) + ResponsiveImage-Config-Test
+- [x] 173-13-PLAN.md — Komponenten-Verdrahtung: ReleaseGallery/PublicReleaseBlock/HeroSection
+- [x] 173-14-PLAN.md — Komponenten-Verdrahtung: FansubGroupMediaBlock/-Banner/-ProfileTabs/-ProjectBannerCard
+- [x] 173-15-PLAN.md — Komponenten-Verdrahtung: öffentliches Mitgliederprofil Avatar/Hintergrund
+- [x] 173-16-PLAN.md — Vollständigkeitsprüfung: Testsuite, D-04/D-14/D-16-Gates, volle Live-UAT (D-13)
+
+### Phase 174: Modularisierung & Wartbarkeits-Refactoring: Hotspot-Analyse, api.ts-Aufteilung mit kompatiblem Barrel, P1-Frontend-/Backend-/CSS-Hotspots verhaltenserhaltend modularisieren, Abschlussaudit vorher/nachher
+
+**Goal:** Team4s' groesste Wartbarkeits-Hotspots (voran `frontend/src/lib/api.ts` mit 371 Exports,
+drei Frontend-Controller/Komponenten-Monolithen, vier Backend-Repository-/Handler-Dateien und zwei
+CSS-Sammelmodule) sind verhaltenserhaltend in nachvollziehbare, testbare Module aufgeteilt -- erst
+systematisch analysiert (Hotspot-Liste, Prioritaet, Baseline), dann gezielt entlang echter
+fachlicher Grenzen entflochten, mit Vorher/Nachher-Audit und dokumentierten offenen P2/P3-Kandidaten
+fuer Folgephasen.
+**Requirements**: D-01 - D-24 (Decision-Coverage via `174-CONTEXT.md`, kein REQUIREMENTS.md-Mapping vorhanden)
+**Depends on:** Phase 173
+**Plans:** 26/26 plans complete
+
+**Plan-time read first**: `174-CONTEXT.md` (24 locked decisions), `174-RESEARCH.md` (real measurements), `174-PATTERNS.md` (closest-analog split shapes already live in-repo), `174-HOTSPOTS.md` (Welle-1 output, produced by 174-01).
+
+Plans:
+**Wave 1**
+
+- [x] 174-01-PLAN.md — Welle 1: Hotspot-Analyse, Baseline-Messung, P1/P2/P3-Priorisierung, D-07-Verdikte (`174-HOTSPOTS.md`)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 174-02-PLAN.md — Welle 2: api.ts-Barrel-Grundlage — Client-Infrastruktur-Carve-out + Canary-Test
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [x] 174-03-PLAN.md — Welle 2: Admin-Anime/Segmente/Episoden/Users/Fansub-Members-Module
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [x] 174-04-PLAN.md — Welle 2: Fansubs/Episoden/Members/Projects/Contributions-Module
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [x] 174-05-PLAN.md — Welle 2: Auth/Permissions/Reviews/History/Search-Module
+
+**Wave 6** *(blocked on Wave 3-5)*
+
+- [x] 174-06-PLAN.md — Welle 2: Media/Assets-Bucket nach Konsumenten-Domäne trianiert (kein neues Media-Gottmodul)
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [x] 174-07-PLAN.md — Welle 2: verbleibende "other/unclear"-Funktionen per Import-Site-Grep verteilt
+
+**Wave 8** *(blocked on Wave 7)*
+
+- [x] 174-08-PLAN.md — Welle 2 Abschluss: Export-Parität, 0 neue Zyklen, Prod-Build
+
+**Wave 9** *(blocked on Wave 8)*
+
+- [x] 174-09-PLAN.md — Welle 3: Characterization-Tests für `fansubs/create/page.tsx` (D-20)
+- [x] 174-10-PLAN.md — Welle 3: `useAdminAnimeCreateController`-Split Teil 1 (Facade/Impl + Jellyfin/AniSearch-Sub-Hooks)
+- [x] 174-12-PLAN.md — Welle 3: `GroupMediaReviewSection`-Split Teil 1 (Hook-Extraktion)
+
+**Wave 10** *(blocked on Wave 9)*
+
+- [x] 174-11-PLAN.md — Welle 3: `useAdminAnimeCreateController`-Split Teil 2 (Asset-Staging + Submit)
+- [x] 174-13-PLAN.md — Welle 3: `GroupMediaReviewSection`-Split Teil 2 (5 Sektions-Komponenten)
+- [x] 174-14-PLAN.md — Welle 3: `fansubs/create/page.tsx`-Split (Action-Hook + 3 Sektionen)
+
+**Wave 11** *(blocked on Wave 10)*
+
+- [x] 174-15-PLAN.md — Welle 4: Characterization-Tests für `admin_content_anime_themes.go` (D-20)
+- [x] 174-16-PLAN.md — Welle 4: `fansub_repository.go`-Split Teil 1 (Groups/Links/Aliases)
+- [x] 174-19-PLAN.md — Welle 4: `anime_assets.go`-Split nach Asset-Typ (Legacy/V2-Paare erhalten)
+- [x] 174-20-PLAN.md — Welle 4: `admin_content_release_version_media.go` — verbleibende Cluster aufgeteilt
+
+**Wave 12** *(blocked on Wave 11)*
+
+- [x] 174-17-PLAN.md — Welle 4: `fansub_repository.go`-Split Teil 2 (Public-Profile/Members/Merge) + Baseline-Test-Resolution
+- [x] 174-18-PLAN.md — Welle 4: `admin_content_anime_themes.go`-Split (5 Sibling-Dateien)
+
+**Wave 13** *(blocked on Wave 12)*
+
+- [x] 174-21-PLAN.md — Welle 4 Abschluss: N+1/Query-Count-Verifikationsgate (D-17)
+
+**Wave 14** *(blocked on Wave 13)*
+
+- [x] 174-22-PLAN.md — Welle 5: `FansubEdit.module.css`-Split (grep-verifizierte Single-Owner-Klassen)
+- [x] 174-23-PLAN.md — Welle 5: `ui.module.css`-Split (grep-verifizierte Single-Owner-Klassen)
+
+**Wave 15** *(blocked on Wave 14)*
+
+- [x] 174-24-PLAN.md — Welle 5: manuelle visuelle Gleichheitsprüfung (Checkpoint)
+
+**Wave 16** *(blocked on Wave 15)*
+
+- [x] 174-25-PLAN.md — Welle 6: Abschlussaudit + `174-REPORT.md`
+
+**Wave 17** *(blocked on Wave 16)*
+
+- [x] 174-26-PLAN.md — Welle 6: finales kombiniertes Gate + Live-UAT über alle 7 Kernflows (Checkpoint)
+
+### Phase 175: Inventur Doppelungen nach Fachaufgaben: pro Fachaufgabe alle UI-Flächen, Endpunkte, Rechteprüfungen und Datenwege erfassen, Parallelsysteme und Rechte-Inkonsistenzen belegen, Zusammenführungs-Phasen (Bildanzeige, Suche, Uploader, Release-Bearbeitung u. a.) zuschneiden — reine Analyse, keine Code-Änderungen
+
+**Goal:** Für jede der 12 in D-02 benannten Fachaufgaben (Medien hochladen, Bild ansehen, Release bearbeiten, Prüfen & Freigeben, Mitglieder einladen/Claims, Notizen schreiben, Suchen & Filtern, Löschen/Aufräumen, Anime anlegen/importieren, Rechte anzeigen vs. durchsetzen, Status-/Label-Darstellung, Benachrichtigung/Hinweise) liegt eine fundstellenbelegte, per Skript reproduzierbare Inventur aller UI-Flächen, Frontend-API-Funktionen, Backend-Endpunkte, Anzeige- und Durchsetzungs-Rechte, Datenhaltung und Verhaltensabweichungen vor; jede Rechte-Inkonsistenz ist in einer konsolidierten Matrix markiert; ein vom Auftraggeber bestätigter Zuschnitt der Zusammenführungs-Folgephasen (Bildanzeige, Suche, Uploader, Release-Bearbeitung u. a.) liegt vor — reine Analyse, keine Code-Änderung (D-01).
+**Requirements**: D-01 - D-10 (Decision-Coverage via `175-CONTEXT.md`, kein REQUIREMENTS.md-Mapping vorhanden)
+**Depends on:** Phase 174
+**Plans:** 9/9 plans complete
+
+  - Wave 1: 175-01 (Fachaufgabe 1 Medien hochladen + 2 Bild ansehen), 175-02 (Fachaufgabe 3 Release bearbeiten + 7 Suchen & Filtern), 175-03 (Fachaufgabe 4 Prüfen & Freigeben + 10 Rechte anzeigen vs. durchsetzen), 175-04 (Fachaufgabe 5 Mitglieder einladen/Claims + 6 Notizen schreiben), 175-05 (Fachaufgabe 8 Löschen/Aufräumen + 9 Anime anlegen/importieren), 175-06 (Fachaufgabe 11 Status-/Label-Darstellung + 12 Benachrichtigung/Hinweise)
+  - Wave 2: 175-07 (175-INVENTORY.md aus allen 12 Fragmenten), 175-08 (175-PERMISSION-MATRIX.md aus allen 12 Fragmenten)
+  - Wave 3: 175-09 (175-ROADMAP-PROPOSAL.md + D-09-Nutzer-Checkpoint)
+
+**Plan-time read first**: `175-CONTEXT.md` (10 locked decisions), `174-FOLLOWUPS.md` (F-01..F-24), `174-BUGS.md`, `174-REPORT.md` (inkl. Abschlussaudit), `174-HOTSPOTS.md` (D-07-Verdicts der Welle-1-Analyse).
+
+Plans:
+**Wave 1**
+
+- [x] 175-01-PLAN.md — Fachaufgabe 1 (Medien hochladen) + Fachaufgabe 2 (Bild ansehen): vollständige Inventur.
+- [x] 175-02-PLAN.md — Fachaufgabe 3 (Release bearbeiten) + Fachaufgabe 7 (Suchen & Filtern): vollständige Inventur.
+- [x] 175-03-PLAN.md — Fachaufgabe 4 (Prüfen & Freigeben) + Fachaufgabe 10 (Rechte anzeigen vs. durchsetzen): vollständige Inventur mit Rechte-Konsistenz-Fokus.
+- [x] 175-04-PLAN.md — Fachaufgabe 5 (Mitglieder einladen/Claims) + Fachaufgabe 6 (Notizen schreiben): vollständige Inventur.
+- [x] 175-05-PLAN.md — Fachaufgabe 8 (Löschen/Aufräumen) + Fachaufgabe 9 (Anime anlegen/importieren): vollständige Inventur.
+- [x] 175-06-PLAN.md — Fachaufgabe 11 (Status-/Label-Darstellung) + Fachaufgabe 12 (Benachrichtigung/Hinweise): vollständige Inventur.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 175-07-PLAN.md — 175-INVENTORY.md aus den 12 Fachaufgaben-Fragmenten zusammenführen, zusätzliche Fachaufgaben prüfen.
+- [x] 175-08-PLAN.md — 175-PERMISSION-MATRIX.md: konsolidierte Anzeige- vs. Durchsetzungs-Rechte-Tabelle aus den 12 Fragmenten.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 175-09-PLAN.md — 175-ROADMAP-PROPOSAL.md synthetisieren + D-09-Nutzer-Checkpoint (Phasenzuschnitt bestätigen, keine ROADMAP.md-Anlage in dieser Phase).
+
+### Phase 176: Bug- und Altlasten-Sammelphase: offene 174-Followups (F-02 OUT-Kürzel aus DB, F-03 Umlaute, F-04 native Felder, F-05 doppelte anime_contributions, F-06 rote Tests/openapi-Duplikat, F-12, F-14, F-19, F-21–F-24) plus Rechte-/Sicherheitsbefunde aus Phase 175 (Claim-Invite-Accept ohne disabled-Prüfung, Notizen-Tab-Gate, Legacy-Member-Delete-Endpunkt) und Entfernung der Member-Group-Story-Altlast — Risiko mittel, intern in geblockte Pakete getrennt
+
+**Goal:** Alle 23 in 176-CONTEXT.md entschiedenen offenen Bugs und Altlasten aus Phase 174/175 sind behoben oder bewusst bereinigt entfernt -- in fünf voneinander getrennten, nacheinander abgeschlossenen Arbeitspaketen (A-E), ohne neue Features oder Parallelsystem-Zusammenführungen.
+**Requirements**: Kein REQUIREMENTS.md-Mapping -- Decision-Coverage via D-01 bis D-23 in `176-CONTEXT.md` (jede Plan-Datei trägt die zutreffenden D-IDs in ihren must_haves).
+**Depends on:** Phase 175
+**Plans:** 16/15 plans complete
+
+  - Wave 1: 176-01 (Paket A -- Member-Group-Story-Entfernung, D-16)
+  - Wave 2: 176-02 (Paket B -- Theme-Typ-Kürzel aus DB, D-01)
+  - Wave 3: 176-03 (Paket C -- anime_contributions Diagnose + Code-Fix, D-02)
+  - Wave 4: 176-04 (Paket C -- Bestandsdaten-Bereinigung-Checkpoint, D-23)
+  - Wave 5: 176-05 (Paket D -- Backend-Rechtefixes D-17/D-19/D-21), 176-06 (Paket D -- Notizen-Tab-Gate, D-18)
+  - Wave 6: 176-07 (D-03/D-04 Fansub-Anlegeseite), 176-08 (D-05 rote Tests/openapi), 176-09 (D-06 Test-Fixture), 176-10 (D-07 Sticky-Button), 176-11 (D-08 getAdminTagTokens), 176-12 (D-09 Quelltext-Tests), 176-13 (D-10/D-20), 176-14 (D-11/D-12)
+  - Wave 7: 176-15 (phasenweites Prüfketten-Gate + finale Live-Abnahme, D-13)
+
+**Plan-time read first**: `.planning/phases/176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-/176-CONTEXT.md`, `176-PATTERNS.md`.
+
+Plans:
+**Wave 1**
+
+- [x] 176-01-PLAN.md — Member-Group-Story-Altlast vollständig entfernen (D-16).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 176-02-PLAN.md — Theme-Typ-Kürzel aus der Datenbank statt Namens-Raten (D-01).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 176-03-PLAN.md — anime_contributions-Duplikate: Ursachendiagnose + Code-Fix ohne Checkpoint (D-02).
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 176-04-PLAN.md — Bestandsdaten-Bereinigung mit blockierendem Nutzer-Checkpoint nach Backup (D-23).
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 176-05-PLAN.md — Rechte-/Sicherheitsfixes: Claim-Invite disabled-Check, Legacy-Member-Delete entfernen, Memorial-Guard zusammenführen (D-17, D-19, D-21).
+- [x] 176-06-PLAN.md — Notizen-Tab-Gate/Buttons mit foundingOnly-Pendant absichern (D-18).
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 176-07-PLAN.md — Fansub-Anlegeseite: Umlaute + native Felder auf UI-Primitives (D-03, D-04).
+- [x] 176-08-PLAN.md — 6 bekannte rote Frontend-Tests + openapi.yaml-Duplikat beheben (D-05).
+- [x] 176-09-PLAN.md — Phase-107-Test-Fixture um Capability-Registry-Schema nachziehen (D-06).
+- [x] 176-10-PLAN.md — Sticky-Speichern-Button-Überlapp auf schmalen Viewports beheben (D-07).
+- [x] 176-11-PLAN.md — getAdminTagTokens-Dopplung klären und konsolidieren (D-08).
+- [x] 176-12-PLAN.md — Quelltext-Inspektionstests durch Verhaltenstests ersetzen (D-09).
+- [x] 176-13-PLAN.md — displayVariantFileName/rvmReplaceDisplayPath zusammenführen + tote review_status_id-Spalte entfernen (D-10, D-20).
+- [x] 176-14-PLAN.md — CSS-Proxy-Merge-Muster in 16 Dateien + wackeligen Test deflaken (D-11, D-12).
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 176-15-PLAN.md — Phasenweites Prüfketten-Gate: Vorher/Nachher-Vergleich, Prod-Build, finale Live-Abnahme (D-13).
+
+### Phase 177: Einheitlicher Bild-Viewer (F-18): ein gemeinsamer Viewer-Baustein auf Basis von FansubMediaLightbox statt sechs eigenständiger Implementierungen, erweitert um Zoom, Touch-Swipe, Display→Original-Progressive-Load, Metadaten-Overlay und Prefetch; ScreenshotGallery-Lightbox, ProjectMemberMediaViewer, GroupAssetsExperience-Bildanteil und toter ReleaseVersionMediaDetailPanel werden abgelöst
+
+**Goal:** Ein gemeinsamer, erweiterter Viewer-Baustein (Basis `FansubMediaLightbox.tsx`) mit Zoom, Touch-Swipe, Display→Original-Progressive-Load, Metadaten-Overlay und Prefetch ersetzt sechs eigenständige Bild-Viewer-Implementierungen; Sichtbarkeit bleibt serverseitig durchgesetzt.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung -- Decision-Coverage via D-01 bis D-24 in `177-CONTEXT.md`.
+**Depends on:** Phase 176
+**Plans:** 14/14 plans complete
+
+  - Wave 1: 177-01 (pure viewer-logic module: wrapIndex/swipe/zoom/progressive-load, D-03/D-23), 177-02 (Modal "stage" + Button "floating" primitives + --surface-stage token + delete dead ReleaseVersionMediaDetailPanel.tsx, D-06/D-11/D-15), 177-03 (backend D-24 fix: ListReleaseVersionImagesCursor mf_display JOIN + visibility-predicate test, D-19/D-24)
+  - Wave 2: 177-04 (shared viewer shell: FansubMediaLightbox extended + new MediaViewerStage + MediaViewerMetadataPanel, D-01/D-02/D-03/D-07/D-12/D-15/D-19/D-21/D-22/D-23)
+  - Wave 3: 177-05 (ScreenshotGallery migrated onto getGroupReleaseImages + shared viewer, D-04), 177-06 (ProjectMemberMediaGallery swapped onto shared viewer + ProjectMemberMediaViewer deleted, D-02/D-10), 177-07 (GroupAssetsExperience image-lightbox migrated, video path untouched, D-05/D-18/D-20)
+  - Wave 4: 177-08 (full automated gate + Live-UAT checkpoint, D-08/D-09/D-13/D-14/D-16/D-17)
+
+**Plan-time read first**: `frontend/src/components/fansubs/FansubMediaLightbox.tsx`, `frontend/src/components/ui/Modal.tsx`, `frontend/src/components/ui/Button.tsx`, `frontend/src/app/episodes/[id]/components/ScreenshotGallery/ScreenshotGallery.tsx`, `frontend/src/components/fansubs/projectMember/ProjectMemberMediaViewer.tsx`, `frontend/src/components/groups/GroupAssetsExperience.tsx`, `backend/internal/repository/release_detail_public_repository.go`, `backend/internal/repository/project_member_visibility.go`, and `.planning/phases/177-.../177-RESEARCH.md`/`177-PATTERNS.md`/`177-UI-SPEC.md` as read-only analogs.
+**UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [x] 177-01-PLAN.md — Pure viewer-logic module (wrapIndex, swipe threshold, zoom toggle, progressive-load URL selection) + D-13-compliant tests.
+- [x] 177-02-PLAN.md — Modal "stage" variant + Button "floating" variant + --surface-stage token + delete dead ReleaseVersionMediaDetailPanel.tsx.
+- [x] 177-03-PLAN.md — Backend D-24 fix: ListReleaseVersionImagesCursor gains the missing mf_display JOIN + visibility-predicate regression test.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 177-04-PLAN.md — Shared viewer shell: extended FansubMediaLightbox + new MediaViewerStage + MediaViewerMetadataPanel.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 177-05-PLAN.md — ScreenshotGallery migrated onto getGroupReleaseImages + the shared viewer.
+- [x] 177-06-PLAN.md — ProjectMemberMediaGallery swapped onto the shared viewer; ProjectMemberMediaViewer deleted.
+- [x] 177-07-PLAN.md — GroupAssetsExperience's image lightbox migrated; video path untouched.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 177-08-PLAN.md — Full automated gate + Live-UAT checkpoint across all five surfaces.
+
+### Phase 178: Suchen & Filtern vereinheitlichen (F-16): ein gemeinsamer, umlaut-toleranter Filter-Helfer (wiederverwendet die Normalisierung der globalen Suchbibliothek) statt sechs unabhängiger toLowerCase().includes()-Filter; größte Admin-Listen (Fansub-Liste, Merge, Gruppen) prüfen auf Umstellung auf die Backend-Suche statt per_page:500-Vollabruf; Scoring der Merge-Seite bleibt erhalten
+
+**Goal:** Ein gemeinsamer, umlaut-toleranter Filter-Helfer (nach dem Vorbild der globalen Suchbibliothek `search_anime.go`) ersetzt die sechs unabhängigen `toLowerCase().includes()`-Filter aus Fachaufgabe 7; das eigene Scoring der Merge-Seite bleibt als nachgeschalteter Schritt erhalten; für die drei größten Listen (Fansub-Liste, Merge, Gruppen) wird eine Umstellung vom `per_page:500`-Pseudo-Vollabruf auf die Backend-Suche geprüft.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung -- Decision-Coverage via D-01 bis D-19 in `178-CONTEXT.md` (alle 5 ursprünglich offenen Fragen beantwortet).
+**Depends on:** Phase 177
+**Plans:** 7/7 plans complete
+
+  - Wave 1: 178-01 (shared textFilter helper + D-16 info-hint primitive + wire into #4), 178-02 (backend FansubGroup.aliases contract extension)
+  - Wave 2: 178-03 (#1 AdminGroupsClient.tsx Kürzel/Alias filter), 178-04 (#2 admin/fansubs/page.tsx Input swap + filter + remove lazy alias fetch), 178-05 (#3 merge/page.tsx scoring extension + live D-16 hint), 178-06 (D-19 shared Genre/Tag autocomplete hook)
+  - Wave 3: 178-07 (full automated gate + Live-UAT across all 6 filter sites)
+
+**Plan-time read first**: `backend/internal/repository/search_anime.go`, `frontend/src/app/admin/groups/AdminGroupsClient.tsx`, `frontend/src/app/admin/fansubs/page.tsx`, `frontend/src/app/admin/fansubs/merge/page.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/GroupMediaReviewSection.tsx`, `frontend/src/app/admin/anime/hooks/internal/useAnimePatchImpl.ts`, `frontend/src/app/admin/anime/create/internal/useAdminAnimeCreateControllerImpl.ts`, `backend/internal/repository/fansub_repository_groups.go`, and `.planning/phases/178-.../178-RESEARCH.md`/`178-PATTERNS.md` as read-only analogs.
+
+Plans:
+**Wave 1**
+
+- [x] 178-01-PLAN.md — Shared textFilter helper (normalizeSearchText/matchesSearch) + EmptyState 'info' variant + wire into #4.
+- [x] 178-02-PLAN.md — Backend FansubGroup.aliases contract extension (attachGroupAliases + contract/type parity).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 178-03-PLAN.md — #1 AdminGroupsClient.tsx: extracted filter predicate + Kürzel/Alias search + D-16 hint.
+- [x] 178-04-PLAN.md — #2 admin/fansubs/page.tsx: Input primitive swap + filter extraction + remove lazy alias fetch + D-16 hint.
+- [x] 178-05-PLAN.md — #3 merge/page.tsx: scoring extraction + filter/scorer extension (Kürzel/Alias) + Input swap + live D-16 hint.
+- [x] 178-06-PLAN.md — D-19 shared Genre/Tag autocomplete hook + Create-flow duplicate deletion + UI primitive swap.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 178-07-PLAN.md — Full automated gate + Live-UAT across all six filter sites.
+
+### Phase 179: Media-Backend & Rechte vereinheitlichen (F-15 Teil 1): eine Rechte-Prüfung je Upload-Aktion statt paralleler Ebenen (Permission-Matrix 1.2 Gruppenmedien-Upload, 1.4 fehlende Anzeige-Capability Anime-Assets, 1.6 eigene ActionReleaseThemeAssetUpload statt fremd genutzter Release-Medien-Aktion), gemeinsamer Soft-Delete-Helfer für Medien, extrahierte Theme-Asset-Persistenz — Grundlage für das gemeinsame Upload-Frontend in Phase 180
+
+**Goal:** Jede Medien-Upload-Aktion dieser Phase hat genau eine Rechte-Prüfung aus der
+Capability-Registry statt paralleler Ebenen (Permission-Matrix 1.2, 1.4, 1.6), Soft-Delete-SQL
+für Medien ist einmal statt zweimal implementiert, und die Theme-Asset-Persistenz ist nicht mehr
+duplikativ — Grundlage für das gemeinsame Upload-Frontend in Phase 180.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung — Decision-Coverage via D-01 bis D-14 in
+`179-CONTEXT.md` (alle 5 ursprünglich offenen Fragen beantwortet).
+**Depends on:** Phase 178
+**Plans:** 6/6 plans complete
+
+  - Wave 1: 179-01 (capability-registry foundation: migration 0182 + ActionReleaseThemeAssetUpload
+    + repair of 9 hardcoded capability-catalog test fixtures, D-12), 179-03 (D-10 remove the
+    upload-only custom-permission fallback + real-Postgres regression), 179-04 (D-14 shared
+    soft-delete helper for fansub_group_media/release_version_media), 179-05 (D-13 frontend
+    isPlatformAdmin display flag for AnimeJellyfinAssetUploadControls)
+
+  - Wave 2: 179-02 (D-12 theme-asset handler action swap + persistence-tail extraction, depends on
+    179-01)
+
+  - Wave 3: 179-06 (full automated gate + migration fresh/down proof across the whole phase)
+
+**Plan-time read first**: `backend/internal/handlers/fansub_media_upload.go`,
+`backend/internal/handlers/fansub_media_delete.go`,
+`backend/internal/handlers/admin_content_release_theme_assets.go`,
+`backend/internal/repository/media_repository.go`,
+`backend/internal/repository/release_version_media_repository.go`,
+`backend/internal/permissions/permissions.go`,
+`frontend/src/app/admin/anime/components/AnimeEditPage/AnimeJellyfinAssetUploadControls.tsx`, and
+`.planning/phases/179-.../179-RESEARCH.md`/`179-PATTERNS.md`/`179-VALIDATION.md` as read-only
+analogs.
+
+Plans:
+**Wave 1**
+
+- [x] 179-01-PLAN.md -- Capability-registry foundation: migration 0182 + ActionReleaseThemeAssetUpload + repair 9 hardcoded capability-catalog test fixtures (D-12).
+- [x] 179-03-PLAN.md -- Remove the upload-only custom-permission fallback + real-Postgres regression (D-10, D-11).
+- [x] 179-04-PLAN.md -- Shared soft-delete helper for fansub_group_media/release_version_media (D-14).
+- [x] 179-05-PLAN.md -- Frontend isPlatformAdmin display flag for AnimeJellyfinAssetUploadControls (D-13).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 179-02-PLAN.md -- Theme-asset handler action swap + persistence-tail extraction (D-12, D-06).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 179-06-PLAN.md -- Full automated gate + migration fresh/down proof across the whole phase.
+
+### Phase 180: Einheitliche Upload-Oberfläche (F-15 Teil 2): ein wiederverwendbarer Upload-Baustein (Mehrfachauswahl wird ergänzt statt ersetzt, Titel/Bildunterschrift pro Datei, Retry bei Fehlern) nach Vorbild des Release-Medien-Uploads statt getrennt gebauter Upload-Flächen; Gruppenmedien-Upload (GroupMediaReviewUploadPanel) und Release-Medien-Upload laufen über denselben Baustein, die übrigen Upload-Wege werden nur auf Konvertierbarkeit geprüft
+
+**Goal:** Zwei gemeinsame Präsentations-Primitives (`UploadDropzone`, `UploadFileRow`) und ein
+geteilter Orchestrierungs-Hook (`useUploadQueue`) ersetzen sechs unabhängige Upload-Implementierungen;
+Weg 1 (Release-Medien) und Weg 2 (Gruppenmedien) laufen funktional über denselben Baustein
+(Mehrfachauswahl-Merge statt Ersetzen, optionale Pro-Datei-Felder, Einzel-Retry), alle acht Upload-Wege
+teilen sich die Präsentations-Primitives, und echtes Drag&Drop ist auf allen acht Wegen aktiv
+(ursprünglich nur für Weg 4 geplant, D-16; von D-17 auf alle Wege verallgemeinert, Nutzerkorrektur
+2026-10-11).
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung — Decision-Coverage via D-01 bis D-17 in
+`180-CONTEXT.md` (alle 5 ursprünglich offenen Fragen plus 3 Recherche-Weichen plus 1
+Nutzerkorrektur nach Planungsbeginn beantwortet).
+**Depends on:** Phase 179
+**Plans:** 12/12 plans executed — phase complete
+
+  - Wave 1: 180-01 (Präsentations-Primitives UploadDropzone/UploadFileRow + /dev/ui-system-Showcase),
+    180-02 (Orchestrierungs-Hook useUploadQueue + reine Helfer), 180-03 (Backend D-14:
+    fansub_group_media_id additiv + Frontend-Typ), 180-04 (Weg-1-Strukturaufteilung: D-15-Entscheidung
+
+    + Grid/EditDrawer-Extraktion), 180-06 (Weg-2-Strukturaufteilung: useGroupMediaReviewFilters-Hook)
+  - Wave 2: 180-05 (Weg-1-Upload-Verdrahtung auf die geteilten Primitives/Hook, depends on 180-01/02/04),
+    180-07 (Weg-2-Upload-Migration inkl. D-03-Altlast-Entfernung, depends on 180-01/02/03/06),
+    180-08 (Weg 3 + Weg 7 präsentational + D-17 Drag&Drop für Weg 7, depends on 180-01), 180-09
+    (Weg 5 + Weg 8 präsentational + D-17 Drag&Drop für beide, depends on 180-01), 180-10 (Weg 6
+    präsentational + D-17 Drag&Drop für beide Einstiege, depends on 180-01), 180-11 (Weg 4 D-16
+    Drag&Drop-Verhaltenszugewinn, depends on 180-01)
+
+  - Wave 3: 180-12 (voller automatisierter Gate-Lauf + Live-UAT-Checkpoint für D-13 und D-16/D-17
+    Drag&Drop auf allen acht Wegen)
+
+**Plan-time read first**: `frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx`,
+`ReleaseVersionMediaUploadQueue.tsx`, `useReleaseVersionMedia.ts`,
+`frontend/src/app/admin/fansubs/[id]/edit/GroupMediaReviewSection.tsx`,
+`GroupMediaReviewUploadPanel.tsx`, `useGroupMediaReviewActions.ts`,
+`backend/internal/handlers/fansub_media_upload.go`, and
+`.planning/phases/180-.../180-RESEARCH.md`/`180-PATTERNS.md`/`180-UI-SPEC.md`/`180-VALIDATION.md` as
+read-only analogs.
+**UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [x] 180-01-PLAN.md — Shared presentation primitives UploadDropzone/UploadFileRow + /dev/ui-system showcase (D-02, D-04, D-05, D-06, D-09, D-11, D-12, D-13).
+- [x] 180-02-PLAN.md — useUploadQueue orchestration hook + pure helpers (D-02, D-05, D-08, D-09, D-10, D-12).
+- [x] 180-03-PLAN.md — Backend D-14 additive fansub_group_media_id field + frontend type (D-01, D-14).
+- [x] 180-04-PLAN.md — Weg-1 structural split: D-15 dead-code decision + Grid/EditDrawer extraction (D-06, D-15).
+- [x] 180-06-PLAN.md — Weg-2 structural split: useGroupMediaReviewFilters extraction (D-06).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 180-05-PLAN.md — Weg-1 upload wiring onto the shared primitives/hook (D-01, D-02, D-06, D-08, D-09, D-10, D-11, D-12, D-13).
+- [x] 180-07-PLAN.md — Weg-2 upload migration + removal of superseded replace/batch-error code (D-01, D-03, D-04, D-09, D-11, D-12, D-13, D-14).
+- [x] 180-08-PLAN.md — Weg 3 (Fansub-Logo/Banner) + Weg 7 (Profil-Avatar/-Hintergrund) presentational adoption, Weg 7 gains real drag&drop (D-01, D-04, D-13, D-17).
+- [x] 180-09-PLAN.md — Weg 5 (Segment-Assets) + Weg 8 (Medien-Vorschläge) presentational adoption, both gain real drag&drop (D-01, D-04, D-13, D-17).
+- [x] 180-10-PLAN.md — Weg 6 (Release-Theme-Assets, 2 Einstiege) presentational adoption, both entry points gain real drag&drop (D-01, D-04, D-13, D-17).
+- [x] 180-11-PLAN.md — Weg 4 (Anime-Assets) D-16 drag&drop behavioral gain + multi-file-single-slot guard (D-01, D-04, D-13, D-16, D-17).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 180-12-PLAN.md — Full automated gate + Live-UAT checkpoint for D-13 (visual parity) and D-16/D-17 (drag&drop on all eight ways, not just Weg 4) (D-04, D-06, D-07, D-13, D-16, D-17).
+
+### Phase 181: Release-Bearbeitung zusammenführen (F-13): bestehender Episode-Version-Editor wird die einzige Bearbeitungsseite; Workspace-Einstiege springen dorthin, Workspace-URL leitet weiter — NEUSTART, erster Versuch verworfen (Revert dae19862)
+
+**Goal:** `/admin/episode-versions/[versionId]/edit` (unverändertes Layout) ist die einzige Release-Bearbeitungsseite; alle Einstiege, die heute auf `/me/releases/[id]/workspace` zeigen, springen stattdessen dorthin (mit `return_to`), und die alte Workspace-URL leitet dauerhaft weiter.
+**Requirements**: D-01 bis D-05 (siehe 181-CONTEXT.md — additive Phase ohne formale REQ-IDs, Traceability läuft über Entscheidungen statt Requirements-Katalog)
+**Depends on:** Phase 180
+**Plans:** 2/2 plans complete — phase complete
+
+  - Wave 1: 181-01 (retarget all 5 workspace-pointing links to the admin episode-version editor with return_to, extend the editor's return_to allowlist)
+  - Wave 2: 181-02 (permanent redirect from the old workspace URL + delete workspace code + D-05 live regression checkpoint)
+
+Plans:
+**Wave 1**
+
+- [x] 181-01-PLAN.md — Retarget the 5 workspace-pointing links onto the admin editor with return_to; extend the editor's return_to allowlist (/me/dashboard, /me/contributions).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 181-02-PLAN.md — Permanent redirect /me/releases/[id]/workspace -> editor; delete workspace route (Tasks 1-2, commits `22b2e81ca`/`7d3b4041e`); live D-05 regression checkpoint (release version 27 / timer role) — Task 3 user-approved 2026-10-14, see 181-02-SUMMARY.md.
+
+**Phase closure (2026-10-14):** 181-VERIFICATION.md confirmed 8/8 must-haves (D-01..D-05) and
+escalated two code-review findings (181-REVIEW.md WR-01, WR-02) as `human_needed`. User decided
+to fix both now rather than defer: WR-01 (`informationen` added as last `visibleActiveTab`
+fallback, extracted into pure `resolveVisibleActiveTab`, commit `2be605e49`) and WR-02 (negative
+exact-match allowlist regression tests for `/me/dashboard`/`/me/contributions`, commit
+`0f6881e83`). Full gate (tests/tsc/lint) green in container, frontend restarted and confirmed
+healthy. Phase 181 is now fully closed — see `181-VERIFICATION.md` Resolution addendum and
+`181-HUMAN-UAT.md` (both items `result: resolved`).
+
+### Phase 182: Alten Bildspeicher entfernen (F-01): Legacy-Bildpfade (anime.cover_image, Legacy-Zweige in anime_assets*, hasV2AssetSchema-Abfrage, syncLegacyAnimeCoverImageV2) entfallen; alle Leser nutzen nur noch den V2-Speicher (anime_media + media_assets); Spalte per Migration entfernt, API-Vertrag bereinigt — ohne sichtbare Änderung für Nutzer
+
+**Goal:** Alle Leser des Anime-Covers (Liste, Detail, Watchlist, Fansub-Profile, Admin-Beziehungen,
+AniSearch-Matching) lesen ausschliesslich aus dem V2-Speicher (anime_media + media_assets,
+COALESCE-Helper + Jellyfin-Fallback); die Legacy-Spalte anime.cover_image, ihre
+hasV2AssetSchema-Abzweigungen, der Mirror-Writer syncLegacyAnimeCoverImageV2 und das historische
+Einmal-Migrationswerkzeug sind entfernt, die Spalte ist per sicherheitsgeprueft-abbrechender
+Migration gedroppt, und der API-Vertrag ist bereinigt — ohne sichtbare Regression, mit dem bewusst
+in Kauf genommenen Nebeneffekt aus D-01 (zuvor fehlende Jellyfin-Cover erscheinen neu auf
+/fansubs und /me/watchlist).
+**Requirements**: D-01, D-02, D-03, D-04 (Decision-Coverage via 182-CONTEXT.md, kein
+REQUIREMENTS.md-Mapping vorhanden; jede Plan-Datei traegt die zutreffenden D-IDs im
+`requirements`-Frontmatter-Feld)
+**Depends on:** Phase 181
+**Plans:** 4/4 plans complete
+
+  - Wave 1: 182-01 (hasV2AssetSchema-Legacy-Zweige entfernen aus anime_assets.go/anime_assets_cover.go
+    [AssignManualCover/ClearCover]/anime_assets_background*.go/anime_assets_banner_logo.go, D-03)
+  - Wave 2: 182-02 (die 5 rohen Cover-Leser auf den V2-COALESCE-Helper umstellen +
+    syncLegacyAnimeCoverImageV2/ApplyProviderCover-Fix, D-01/D-03; depends_on 182-01 wegen
+    gemeinsam bearbeiteter Dateien, keine funktionale Abhaengigkeit)
+  - Wave 3: 182-03 (reversible Migration mit Vorab-Sicherheitscheck + COALESCE-Helper kuerzen +
+    Vertragsbereinigung + Migration 0184 live gegen team4s_v2 anwenden und verifizieren, D-02/D-03;
+    depends_on 182-01 und 182-02)
+  - Wave 4: 182-04 (historisches Migrationswerkzeug/Skripte entfernen + Live-Checkpoint ueber die
+    5 D-04-Vergleichs-URLs, D-03/D-04; depends_on 182-03)
+
+**Plan-time read first**: `backend/internal/repository/anime_v2.go`,
+`backend/internal/repository/anime_assets.go`, `backend/internal/repository/anime_assets_cover.go`,
+`backend/internal/testsupport/phase165_postgres.go`, `backend/internal/testsupport/phase106_postgres.go`,
+`backend/cmd/migrate/main.go`, `docker-compose.override.yml`,
+and `182-CONTEXT.md` (contains the full file:line inventory and the verified Jellyfin-image
+next/image-allowlist finding; serves as this phase's research source, no separate RESEARCH.md).
+
+Plans:
+**Wave 1**
+
+- [x] 182-01-PLAN.md — Remove dead hasV2AssetSchema legacy branches across anime_assets.go, anime_assets_cover.go (AssignManualCover/ClearCover only), anime_assets_background.go, anime_assets_background_video.go, anime_assets_banner_logo.go (D-03).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 182-02-PLAN.md — Migrate the 5 raw cover_image readers to the V2-aware COALESCE helper + remove syncLegacyAnimeCoverImageV2 + fix ApplyProviderCover (D-01, D-03).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 182-03-PLAN.md — Reversible migration dropping anime.cover_image behind a pre-flight safety check + shrink the shared COALESCE helpers + clean up shared/contracts/*.yaml + apply migration 0184 live against team4s_v2 and verify (D-02, D-03).
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 182-04-PLAN.md — Remove the historical migrate-covers tool/scripts + Live-Checkpoint comparing the 5 D-04 reference URLs before/after (D-03, D-04).
+
+### Phase 183: Status-/Label-Konsolidierung (Fachaufgabe 11): eine kanonische Implementierung je identischer Status-/Label-Gruppe statt Parallel-Implementierungen (u. a. App-User-Status-Labels in AdminUsersClient, UserOverviewTab, RoleHoldersTable), tote Label-Pfade entfernt — gleiche Begriffe überall gleich angezeigt
+
+**Goal:** Jede Status-/Label-Gruppe (App-User-Status, Fansub-Gruppenmedien-Kategorie, Claim-Status) hat genau eine Berechnungsfunktion statt redundanter Parallel-Implementierungen — gleiche Begriffe werden überall identisch angezeigt (D-01/D-02/D-03), bestätigt durch einen Live-Checkpoint gegen echte Daten (D-04).
+**Requirements**: D-01, D-02, D-03, D-04 (Nutzerentscheidungen aus 183-CONTEXT.md, keine formale REQUIREMENTS.md-Zuordnung für diese Phase)
+**Depends on:** Phase 182
+**Plans:** 3/3 plans complete
+
+Plans:
+- [x] 183-01-PLAN.md — App-User-Status-Helfer (appUserStatusLabels.ts) extrahieren, vier Konsumenten (AdminUsersClient, UserDetailPageClient, UserOverviewTab, RoleHoldersTable) umstellen (D-01).
+- [x] 183-02-PLAN.md — Fansub-Gruppenmedien-Kategorie-Label im Admin-Review-Grid auf fansub-labels.ts umstellen (D-02); gemeinsamer Claim-Status-Helfer (claimStatusLabels.ts), UserClaimsTab + ClaimsClient umstellen (D-03).
+- [x] 183-03-PLAN.md — Frontend-Container neu starten, Live-Checkpoint gegen die 6 Vergleichs-URLs aus 183-CONTEXT.md (D-04).
+
+### Phase 184: Aufräumpunkte aus Phase 174 abschließen: tote CSS-Klassen in FansubEdit.module.css entfernen (F-20), doppelte Hilfsfunktionen zusammenführen (formatDate, Pagination-Fenster; F-07), latenten CSS-Modul-Merge-Fehler beheben (F-12), doppelte original→display-Regel zusammenführen (F-23) — ohne sichtbare Änderung — **COMPLETE (2026-10-15)**
+
+**Goal:** Die vier aus Phase 174 übernommenen Wartbarkeits-Altlasten (F-07 doppelte formatDate-/Pagination-Hilfsfunktionen, F-12 latenter CSS-Modul-Merge-Fehler, F-20 tote CSS-Klassen, F-23 original→display-Regel-Nachzieh) sind geschlossen, ohne dass sich für Nutzer:innen etwas sichtbar ändert.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung — D-01 bis D-05 aus 184-CONTEXT.md sind die verbindlichen Entscheidungen dieser Phase.
+**Depends on:** Phase 183
+**Plans:** 10/10 plans executed — Verifikation bestanden (184-VERIFICATION.md, 5/5 must-haves), Live-Checkpoint vom Nutzer "approved" (184-10-HUMAN-UAT.md)
+
+Plans:
+- [x] 184-01-PLAN.md — F-23-Nachzieh (D-04): 4 Literal-Duplikate im Release-Version- und generischen Media-Upload-Pfad auf services.DisplayVariantFileName umstellen.
+- [x] 184-02-PLAN.md — F-07 (D-02): computePageWindow-Helfer (beide Pagination-Komponenten) + zwei formatDate-Helfer (Cluster A/B, 7 Konsumenten) mit Logik-Tests.
+- [x] 184-03-PLAN.md — F-12-Grundstein (D-01): Zentraler Helfer frontend/src/lib/mergeCssModules.ts (Proxy-basiert) + Logik-Tests (2er/3er-Merge).
+- [x] 184-04-PLAN.md — F-12 (D-01/D-05): FansubAppMembersSection.tsx aufteilen (657→≤450 Zeilen), danach 16 bereits reparierte inline-Proxy-Dateien in admin/fansubs/[id]/edit/ auf mergeCssModules umstellen.
+- [x] 184-05-PLAN.md — D-05-Vorlauf: admin/fansubs/page.tsx (760) und admin/fansubs/merge/page.tsx (954) auf ≤450 Zeilen aufteilen (reiner Umbau, keine Proxy-Änderung).
+- [x] 184-06-PLAN.md — F-12 (D-01): 7 Fansub-Umfeld-Dateien (Liste, Create-Flow, Merge-Wizard) vom kaputten Spread-Muster auf mergeCssModules umstellen.
+- [x] 184-07-PLAN.md — F-12 (D-01/D-05): admin/episodes/page.tsx aufteilen (637→≤450), danach AnimeBrowser-Cluster (4 Dateien) auf mergeCssModules umstellen.
+- [x] 184-08-PLAN.md — F-12 (D-01): AnimeContext-Cluster (3) + EpisodeManager-Cluster (8, inkl. 3er-Merge-Sonderfall EpisodeEditForm.tsx) auf mergeCssModules umstellen.
+- [x] 184-09-PLAN.md — F-12 (D-01/D-05): ReleaseVersionNotesTab.tsx aufteilen (743→≤450), danach auf mergeCssModules umstellen.
+- [x] 184-10-PLAN.md — F-20 (D-03): Grep-belegte Nutzungsprüfung (inkl. dynamischer Zugriffe) über FansubEdit.module.css, tote Klassen löschen (nicht verschieben), Vorher/Nachher-Screenshot-Vergleich, blockierender Live-Checkpoint — vom Nutzer approved.
+
+### Phase 185: Testsuite grün machen: alle dauerhaft roten Frontend- und Backend-Tests analysieren und beheben (Ursache je Test: veraltete Erwartung, Test-Fixture-Schema-Drift, Umgebungsabhängigkeit, echter Produktfehler), danach ist die volle Suite ohne bekannte Fehlschläge grün — **COMPLETE (2026-10-17)**
+
+**Goal:** Die volle Testsuite (Frontend-Vitest + Backend-Go-Tests) läuft zweimal hintereinander ohne roten Test durch — jeder in der Ist-Stand-Analyse gefundene dauerhaft rote Test (1 Frontend, 93 Backend über 18 Ursachen-Cluster) ist durch einen echten Code-/Testfixture-Fix behoben, kein Test wurde gelöscht oder stillschweigend übersprungen.
+**Requirements**: Keine REQUIREMENTS.md-Zuordnung — D-01 bis D-07 aus 185-CONTEXT.md sind die verbindlichen Entscheidungen dieser Phase.
+**Depends on:** Phase 184
+**Plans:** 12/12 plans complete
+
+  - Wave 1: 185-01 (Frontend D-01 Contract-Fix), 185-02 (D-02 geteilter public.unaccent-Fix, 44 Tests), 185-03 (D-04 ResolveMigrationsDir + Pflicht-Dateiaufteilung runner.go), 185-04 (D-03a Jellyfin-EOF-Debian-Probe), 185-05 (D-03b Phase-134-Matrix env-konfigurierbare URL), 185-06 (D-05 + Phase-155-ID-Kollision + search_bypass-Fixture-Lücke), 185-07 (Episode-Spalten-Lücken + Phase-135 role_capabilities), 185-08 (Permission-Stub-Lücke + Phase-137-Doppelanlage), 185-09 (Repository-Trio: anime_relations/release_version_media/cross_package), 185-10 (member_claims_repository_test.go echter Verhaltenstest + Ratchet-Liste)
+  - Wave 2: 185-11 (D-07 scripts/test-backend.sh + docs/ENTWICKLUNG.md, abhängig von 185-04s Image-Entscheidung)
+  - Wave 3: 185-12 (Abschluss-Verifikation: volle Suite zweimal grün, alle 94 Tests namentlich bestätigt)
+
+**Plan-time read first**: `.planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-CONTEXT.md` (vollständige Ist-Zustand-Cluster-Tabelle und Nutzerentscheidungen D-01 bis D-07), `.planning/phases/185-testsuite-gr-n-machen-alle-dauerhaft-roten-frontend-und-back/185-PATTERNS.md` (Pattern-Map je Cluster).
+
+Plans:
+- [x] 185-01-PLAN.md — Frontend D-01: anime-detail-contract.test.ts an den korrigierten AnimeRelation-Contract anpassen.
+- [x] 185-02-PLAN.md — D-02: geteilter public.unaccent-Fix in den Phase-139/167-Testsupport-Fixtures (44 Tests).
+- [x] 185-03-PLAN.md — D-04: ResolveMigrationsDir-Reihenfolge korrigieren, backend/database/migrations/ entfernen, runner.go pflichtgemäß aufgeteilt (471→≤450 Zeilen).
+- [x] 185-04-PLAN.md — D-03a: Jellyfin-Preview-EOF-Cluster unter Debian-Image reproduzieren und branchen.
+- [x] 185-05-PLAN.md — D-03b: Phase-134-Matrix-URLs env-konfigurierbar statt hart kodierter Host-IP.
+- [x] 185-06-PLAN.md — D-05 + D-02: Phase-152-Seed-Lücke, Phase-155-ID-Kollision, search_bypass-Fixture-Lücke.
+- [x] 185-07-PLAN.md — D-02: episode_type_source/filler_source-Spaltenlücken + Phase-135 role_capabilities-Stand-in.
+- [x] 185-08-PLAN.md — D-02: ActionReleaseVersionMediaReorder in 3 Permission-Stub-Listen + Phase-137-Doppelanlage entfernen.
+- [x] 185-09-PLAN.md — D-02: anime_relations-Cover-Resolver, release_version_media-Spalten, audit-log-Fake statt nil.
+- [x] 185-10-PLAN.md — D-02/D-06: member_claims_repository_test.go auf echten Verhaltenstest umstellen, aus Ratchet-Liste entfernt.
+- [x] 185-11-PLAN.md — D-07: scripts/test-backend.sh + docs/ENTWICKLUNG.md-Dokumentation.
+- [x] 185-12-PLAN.md — Abschluss-Verifikation: volle Frontend- und Backend-Suite je zweimal grün, alle 94 Tests namentlich bestätigt.

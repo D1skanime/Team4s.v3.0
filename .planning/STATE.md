@@ -14,6 +14,18 @@ progress:
   percent: 90
 ---
 
+## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
+
+Formally closed non-destructively, same pattern as `v1.3`. Originally scoped as Phases 136-144
+(41/41 requirements, `.planning/v1.4-MILESTONE-AUDIT.md`, passed 2026-09-01); extended additively
+under the same `v1.4`/"Coverage" label through Phase 185 before this close — no full re-audit
+across all 49 phases was run, each phase carries its own phase-level verification record below.
+See `.planning/MILESTONES.md` for the closing summary and `.planning/archive/v1.4/` for a copied
+snapshot of `ROADMAP.md`, `REQUIREMENTS.md`, `PROJECT.md`, and `STATE.md` at close time. This
+file, `ROADMAP.md`, and `REQUIREMENTS.md` all remain live in place (not archived/removed/reset) —
+by explicit decision no new milestone was started; future phases continue additively from here
+via `/gsd-phase add`.
+
 # Phase 184 — Aufräumpunkte aus Phase 174 abschließen (F-07/F-12/F-20/F-23) — COMPLETE (2026-10-15)
 
 Alle 10 Pläne sind code-vollständig, committet und verifiziert (`184-VERIFICATION.md`, 5/5
