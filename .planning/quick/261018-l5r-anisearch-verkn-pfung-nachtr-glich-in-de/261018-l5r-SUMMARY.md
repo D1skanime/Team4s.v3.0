@@ -202,3 +202,104 @@ für Anime 13 „Freezing“, AniSearch-ID 6465) — unabhängig vom Ausgang der
 
 All 10 created files confirmed present on disk; all 3 task commit hashes
 (`61e2b42b4`, `26a1d9b1d`, `c103f672f`) confirmed present in `git log --oneline --all`.
+
+---
+
+## Addendum (2026-10-18): Dedupe-Nachtrag zu Tasks 1-3, Items 1-4
+
+User-angeforderter De-Duplizierungs-Nachtrag auf die bereits committeten Tasks 1-3 — **kein
+neues Feature**, Task 4 (Checkpoint) und Task 5 des Original-Plans bleiben unverändert
+unausgeführt.
+
+### Status: Items 1-4 COMPLETE, Task 4/5 des Original-Plans weiterhin offen
+
+### Commits
+
+1. `26c31bc73` (refactor) — gemeinsame `AniSearchSearchCard` extrahiert
+2. `c4ff94d12` (refactor) — gemeinsamer `extractAniSearchIDFromLinkInput`, auch im Create-Flow
+3. `a93eff6b8` (chore) — totes AniSearch-Enrichment entfernt (gelöschte Dateien)
+4. `2c9ff9b7d` (chore) — Nachtrag zu Commit 3: die begleitenden Änderungen in bestehenden Dateien
+   (Route-Entfernung, `buildAdminAnimeEditPath`-Verschiebung, Wrapper-Entfernung,
+   Test-Entfernung), die durch einen Staging-Fehler (ungültiger Pathspec auf einer bereits per
+   `git rm` entfernten Datei ließ `git add` mit mehreren Pfaden komplett abbrechen) aus Commit 3
+   herausfielen
+
+### Item 1 — Gemeinsame AniSearchSearchCard
+
+Neue Komponente `frontend/src/app/admin/anime/components/shared/AniSearchSearchCard.tsx` (178
+Zeilen) — platziert im bereits etablierten `components/shared/`-Konventionsordner (siehe
+`AnimeEditorShell.tsx`/`AnimeOwnershipBadge.tsx` dort). Owns ausschließlich: Titel-Suche-Zeile,
+ID/URL-Eingabe-Zeile, Kandidaten-Liste (`FormField`+`Input`+`Button` aus `@/components/ui`, keine
+nativen Elemente). Labels/Platzhalter/Button-Texte sind pro Aufrufer konfigurierbar.
+
+- `CreateAniSearchIntakeCard.tsx`: 166 → 104 Zeilen. Eigene `<section>`, Header und das
+  `AniSearchDuplicateDecision`-Rendering bleiben unverändert — nur die beiden nativen
+  Input-Zeilen + Kandidaten-Liste wurden durch die neue Komponente ersetzt. Alle nativen
+  `<input>`/`<button>` sind daraus verschwunden.
+- `AnimeEditSourceSection.tsx`: 245 → 202 Zeilen. Der inline `FormField`/`Input`/`Button`-Block
+  aus Task 3 wurde durch dieselbe Komponente ersetzt; eigener Header und Konflikt-/Fehler-/
+  Erfolgs-Block bleiben unverändert.
+- Kandidaten-Liste jetzt bei beiden Flows im einheitlichen Card-Stil (vorher: Edit nutzte
+  `<ul><li>`-Markup mit abweichendem Meta-Textformat) — `AnimeEditSourceSection.test.tsx`
+  entsprechend auf das neue Rendering angepasst (1 Assertion geändert, keine neue Test-Lücke).
+- Test: neue `AniSearchSearchCard.test.tsx` (9 Verhaltens-Tests: Tippen, Klicken, Disabled-State,
+  Submitting-Label-Swap, Kandidaten-Auswahl, Existing-Hint, optionaler Dismiss-Button).
+- Nebenbei behoben: ASCII-Tippfehler "Laedt..." → korrektes "Lädt..." beim Umzug (CLAUDE.md
+  Sprachqualität, Rule 1/CLAUDE.md-Durchsetzung).
+
+### Item 2 — Gemeinsamer AniSearch-ID/URL-Extractor
+
+`extractAniSearchIDFromLinkInput` aus `useAnimeEditAniSearchLink.ts` nach
+`frontend/src/app/admin/anime/utils/anime-helpers.ts` verschoben (einzige Definition jetzt,
+Hook importiert sie). `loadAniSearchDraftByID` im Create-Flow
+(`useAniSearchIntakeActions.ts`) wendet den Extractor jetzt auf die eingegebene ID an, bevor der
+Request gebaut wird — eine komplette AniSearch-URL im Create-ID-Feld funktioniert jetzt genauso
+wie in der Anime-Bearbeitung. Tests: 6 neue Fälle in `anime-helpers.test.ts` (plain ID, URL mit/
+ohne Slug, Whitespace, leer, unbekanntes Muster) + 1 neuer Create-Flow-Test (`handleAniSearchDraftLoad`
+mit eingefügter URL → identische submitted ID wie bei direkter Zahleneingabe).
+
+### Item 3 — Totes AniSearch-Enrichment entfernt
+
+Gelöscht: `AniSearchEnrichmentSection.tsx`/`.test.tsx`, `useAniSearchEditEnrichment.ts`/`.test.ts`
+(frontend, nirgends mehr importiert — verifiziert per `grep`, einziger verbleibender Treffer ist
+eine Absence-Check-Assertion in `[id]/edit/page.test.tsx`, die weiterhin grün ist). Der
+Backend-Endpunkt `LoadAnimeAniSearchEnrichment` (`POST /admin/anime/:id/enrichment/anisearch`)
+plus seine Tests wurden ebenfalls entfernt, da der einzige Aufrufer
+(`loadAdminAnimeEditAniSearchEnrichment` im Frontend-API-Wrapper) mitentfernt wurde — eigener
+`grep -rn "LoadAnimeAniSearchEnrichment\|enrichment/anisearch"` über Front- und Backend bestätigte
+keine weiteren Aufrufer. `buildAdminAnimeEditPath` (weiterhin von zwei anderen Handlern gebraucht)
+wurde vor dem Löschen nach `admin_content_anime_anisearch_link.go` verschoben, nicht mitgelöscht.
+Die Go-Modelltypen `AdminAnimeAniSearchEditRequest`/`-SuccessResult` sowie das Frontend-Pendant
+`AdminAnimeEditDraftPayload`-Verwandte in `types/admin.ts` wurden bewusst NICHT entfernt (außerhalb
+des explizit vom Auftrag benannten Lösch-Umfangs) — jetzt orphaned, als Altlast für eine
+zukünftige Aufräumrunde notiert, kein Blocker.
+
+**Wichtig für Task 4 des Original-Plans:** Diese Löschung schließt die Option "den toten Code
+reaktivieren" literal aus — eine künftige Reaktivierung der "AniSearch-Daten übernehmen"-Logik
+müsste neu gebaut werden, nicht wiederbelebt.
+
+### Item 4 — Backend-Write-Pfad-Check für `anime.anisearch_id`: DISKREPANZ GEFUNDEN
+
+Die Orchestrator-Vorab-Prüfung (siehe Task-4-Prompt) behauptete, `LinkAniSearchSource`
+(`admin_content_anisearch_link.go`) sei "der EINZIGE existierende Write-Pfad für
+`anime.anisearch_id` im gesamten Repo" basierend auf der Prüfung von `anime_v2.go` und
+`admin_content_anime_update_v2.go` (beide tatsächlich nur SELECT — das wurde erneut mit
+`grep -n "anisearch_id" backend/internal/repository/*.go` bestätigt).
+
+**Das ist nicht vollständig richtig.** `backend/internal/repository/admin_content_anime_create_v2.go`
+(Zeilen 186–194) enthält einen DRITTEN Schreibzugriff: Beim initialen `INSERT INTO anime (...)`
+der Anime-Neuanlage (Create-Flow, `buildCreateAnimeV2InsertQuery`) wird `anisearch_id` als Spalte
+mit aufgenommen, abgeleitet aus `input.Source`/`input.SourceLinks` via
+`extractAnimeSourceIDByPrefix(..., "anisearch:")`.
+
+Das ist jedoch ein strukturell anderer Fall als "ein zweiter Ort, der dasselbe tut wie
+`LinkAniSearchSource`": `LinkAniSearchSource` ist ein UPDATE auf einen bereits existierenden
+Anime (nachträgliches Verknüpfen); der Create-Insert setzt die Spalte einmalig beim Erstanlegen
+einer komplett neuen Zeile, abgeleitet aus Feldern, die zu diesem Zeitpunkt bereits im
+Create-Request stehen. Es gibt keinen Fall, in dem beide Pfade um dieselbe Zeile konkurrieren
+könnten (INSERT vs. UPDATE auf unterschiedliche Lebenszyklus-Phasen). Es gibt daher nichts, das
+hier "konsolidiert" werden müsste oder sollte — aber die Aussage "einziger Write-Pfad im gesamten
+Repo" ist präzise gefasst falsch, und wird hiermit korrigiert statt stillschweigend übernommen.
+
+**Keine Code-Änderung vorgenommen** (wie vom Auftrag für diesen Fall verlangt — Diskrepanz
+melden, nichts anfassen).
