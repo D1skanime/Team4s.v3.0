@@ -52,16 +52,22 @@ func (f *fakeAniSearchLinkLookupRepo) ResolveAdminAnimeRelationTargetsBySources(
 	return nil, nil
 }
 
-// fakeAniSearchLinkRepo is an in-memory adminAniSearchLinkRepository fake for the actual link write.
+// fakeAniSearchLinkRepo is an in-memory adminAniSearchLinkRepository fake for the actual link
+// write. takeoverPatches/actorUserIDs record the Task-2 field-takeover arguments the handler
+// passed through, so tests can assert on them without a live Postgres instance.
 type fakeAniSearchLinkRepo struct {
-	linkCalls int
-	linkIDs   []string
-	linkErr   error
+	linkCalls       int
+	linkIDs         []string
+	linkErr         error
+	takeoverPatches []*models.AdminAnimePatchInput
+	actorUserIDs    []int64
 }
 
-func (f *fakeAniSearchLinkRepo) LinkAniSearchSource(_ context.Context, _ int64, aniSearchID string) error {
+func (f *fakeAniSearchLinkRepo) LinkAniSearchSource(_ context.Context, _ int64, aniSearchID string, takeoverPatch *models.AdminAnimePatchInput, actorUserID int64) error {
 	f.linkCalls++
 	f.linkIDs = append(f.linkIDs, aniSearchID)
+	f.takeoverPatches = append(f.takeoverPatches, takeoverPatch)
+	f.actorUserIDs = append(f.actorUserIDs, actorUserID)
 	return f.linkErr
 }
 

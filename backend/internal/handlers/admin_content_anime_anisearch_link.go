@@ -76,7 +76,14 @@ func (h *AdminContentHandler) LinkAnimeAniSearchSource(c *gin.Context) {
 		return
 	}
 
-	if err := h.animeAniSearchLinkRepo.LinkAniSearchSource(c.Request.Context(), animeID, aniSearchID); err != nil {
+	// quick-261018-l5r Task 2: VOR dem additiven Link-Schreibvorgang die Fill/Replace/Keep-
+	// Entscheidung für die 8 Übernahme-Felder treffen (siehe admin_content_anime_anisearch_
+	// takeover.go). takeoverPatch/takeoverResult sind beide nil, wenn die Übernahme gar nicht
+	// erst versucht werden konnte -- der Link-Schreibvorgang läuft in diesem Fall unverändert
+	// additiv weiter, ohne Felder zu übernehmen.
+	takeoverPatch, takeoverResult := h.buildAniSearchFieldTakeover(c.Request.Context(), animeID, aniSearchID)
+
+	if err := h.animeAniSearchLinkRepo.LinkAniSearchSource(c.Request.Context(), animeID, aniSearchID, takeoverPatch, identity.UserID); err != nil {
 		if errors.Is(err, repository.ErrConflict) {
 			h.writeAniSearchLinkRaceConflict(c, animeID, aniSearchID, sourceTag)
 			return
@@ -88,6 +95,12 @@ func (h *AdminContentHandler) LinkAnimeAniSearchSource(c *gin.Context) {
 
 	if h.auditLogRepo != nil {
 		appUserID, legacyUserID := actorPointersFromIdentity(identity)
+		payload := map[string]any{"anisearch_id": aniSearchID}
+		if takeoverResult != nil {
+			payload["takeover_filled"] = takeoverResult.Filled
+			payload["takeover_replaced"] = takeoverResult.Replaced
+			payload["jellyfin_unreachable"] = takeoverResult.JellyfinUnreachable
+		}
 		_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
 			ActorAppUserID:    appUserID,
 			ActorLegacyUserID: legacyUserID,
@@ -96,7 +109,7 @@ func (h *AdminContentHandler) LinkAnimeAniSearchSource(c *gin.Context) {
 			TargetID:          &animeID,
 			Action:            "link",
 			Outcome:           "allowed",
-			Payload:           map[string]any{"anisearch_id": aniSearchID},
+			Payload:           payload,
 		})
 	}
 
@@ -104,6 +117,7 @@ func (h *AdminContentHandler) LinkAnimeAniSearchSource(c *gin.Context) {
 		Mode:        "linked",
 		AniSearchID: aniSearchID,
 		Source:      sourceTag,
+		Takeover:    takeoverResult,
 	}})
 }
 

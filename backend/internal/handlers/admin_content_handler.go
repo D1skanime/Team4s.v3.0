@@ -144,12 +144,39 @@ type adminAniSearchRepository interface {
 	ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error)
 }
 
-// adminAniSearchLinkRepository (quick-261018-l5r Task 1) definiert den schmalen Schreibzugriff für
-// den additiven "nur verknüpfen"-Endpunkt (POST /admin/anime/:id/anisearch/link) -- bewusst
-// getrennt vom breiteren adminAniSearchRepository-Lookup-Interface, damit Handler-Tests beide
-// unabhängig faken können, analog zu adminAnimeCreateRepository.
+// adminAniSearchLinkRepository (quick-261018-l5r Task 1, Signatur erweitert in Task 2) definiert
+// den schmalen Schreibzugriff für den additiven "verknüpfen + ggf. Felder übernehmen"-Endpunkt
+// (POST /admin/anime/:id/anisearch/link) -- bewusst getrennt vom breiteren
+// adminAniSearchRepository-Lookup-Interface, damit Handler-Tests beide unabhängig faken können,
+// analog zu adminAnimeCreateRepository. takeoverPatch ist nil, wenn der Handler keine Übernahme
+// versuchen konnte (fehlende Abhängigkeiten oder fehlgeschlagener AniSearch-Fetch) -- die
+// Implementierung muss in diesem Fall ausschließlich den additiven Link schreiben.
 type adminAniSearchLinkRepository interface {
-	LinkAniSearchSource(ctx context.Context, animeID int64, aniSearchID string) error
+	LinkAniSearchSource(ctx context.Context, animeID int64, aniSearchID string, takeoverPatch *models.AdminAnimePatchInput, actorUserID int64) error
+}
+
+// adminAniSearchTakeoverSnapshotRepository (quick-261018-l5r Task 2) definiert den schmalen
+// Lesezugriff auf die aktuellen Werte der 8 Übernahme-Felder eines bestehenden Anime, VOR dem
+// additiven Link-Schreibvorgang -- getrennt gehalten, damit Handler-Tests den additiven
+// Link-Endpunkt weiterhin ohne laufende Postgres-Instanz testen können (nil = Übernahme wird
+// erst gar nicht versucht).
+type adminAniSearchTakeoverSnapshotRepository interface {
+	GetAnimeAniSearchTakeoverSnapshot(ctx context.Context, animeID int64) (*models.AdminAnimeAniSearchTakeoverSnapshot, error)
+}
+
+// adminAniSearchAnimeFetcher (quick-261018-l5r Task 2) ist der schmale Fetch-Zugriff für das
+// Übernahme-Feature -- wraps dieselbe services.AniSearchFetcher.FetchAnime-Methode, die
+// AnimeCreateEnrichmentService bereits für den Create-Flow verwendet, auf derselben
+// aniSearchClient-Instanz (kein zweiter AniSearch-HTTP-Client).
+type adminAniSearchAnimeFetcher interface {
+	FetchAnime(ctx context.Context, aniSearchID string) (services.AniSearchAnime, error)
+}
+
+// adminAniSearchTakeoverSyncSourceRepository (quick-261018-l5r Task 2) ist der schmale Lesezugriff
+// auf den aktuellen Jellyfin-Verknüpfungs-Kontext eines Anime (Source/SourceLinks), den die
+// Übernahme-Logik braucht, um überhaupt zu wissen, ob ein Jellyfin-Vergleich versucht werden soll.
+type adminAniSearchTakeoverSyncSourceRepository interface {
+	GetAnimeSyncSource(ctx context.Context, animeID int64) (*models.AdminAnimeSyncSource, error)
 }
 
 // adminAnimeCreateRepository definiert den minimalen Lese-/Schreibzugriff, den CreateAnime für den
@@ -274,6 +301,14 @@ type AdminContentHandler struct {
 	// animeAniSearchLinkRepo (quick-261018-l5r Task 1): schmale Repo-Oberflaeche fuer den additiven
 	// "nur verknüpfen"-Endpunkt, siehe admin_content_anime_anisearch_link.go.
 	animeAniSearchLinkRepo adminAniSearchLinkRepository
+	// aniSearchTakeoverSnapshotRepo/aniSearchFetcher/aniSearchTakeoverSyncSourceRepo
+	// (quick-261018-l5r Task 2): die drei schmalen Abhaengigkeiten des transaktionalen
+	// Feld-Uebernahme-Features, siehe admin_content_anime_anisearch_takeover.go. Jede davon darf
+	// nil sein (z.B. in aelteren Handler-Tests) -- der Handler degradiert dann auf "nur verknuepfen,
+	// keine Uebernahme versucht", nie auf einen Fehler.
+	aniSearchTakeoverSnapshotRepo   adminAniSearchTakeoverSnapshotRepository
+	aniSearchFetcher                adminAniSearchAnimeFetcher
+	aniSearchTakeoverSyncSourceRepo adminAniSearchTakeoverSyncSourceRepository
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -345,6 +380,11 @@ func NewAdminContentHandler(
 	handler.discoveryExistingMatchRepo = repo
 	handler.folderManagementRepo = repo
 	handler.animeAniSearchLinkRepo = repo
+	// quick-261018-l5r Task 2: dieselbe aniSearchClient-Instanz wie enrichmentService/
+	// aniSearchEpisodes -- kein zweiter AniSearch-HTTP-Client.
+	handler.aniSearchFetcher = aniSearchClient
+	handler.aniSearchTakeoverSnapshotRepo = repo
+	handler.aniSearchTakeoverSyncSourceRepo = repo
 
 	return handler
 }
