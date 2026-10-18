@@ -2816,10 +2816,19 @@ Plans:
 
 ### Phase 186: Episoden-Import nachschärfen (Paket A aus UX-Abgleich): Dateinamen-Erkennung mit etabliertem Parser statt Regex-Fallback, "Ab hier"-Gruppenübernahme respektiert bewusst abweichende Zeilen, eindeutige Knopfbeschriftungen im Import-Mapper
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Der Episoden-Import-Mapper erkennt Episodennummern aus Dateinamen zuverlässig auch bei
+CRC-Checksum-Tags (anitogo hinter einem austauschbaren `ReleaseFilenameParser`-Interface, D-03),
+überschreibt bei "Ab hier" keine bewusst abweichenden Gruppenzuordnungen mehr (D-01), und hat
+eindeutige Knopfbeschriftungen für "alle übernehmen" vs. "nur diese Zeile übernehmen" (D-02) —
+ohne Verhaltensänderung für bereits korrekt erkannte, kanonisch benannte Dateien.
+**Requirements**: TBD (Decision-Coverage via D-01 bis D-04 in `186-CONTEXT.md`, kein
+REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 185
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 186 to break down)
+- [ ] 186-01-PLAN.md — Backend D-04 pure split of admin_episode_import.go into 4 files (<=450 lines each) before the D-03 content change
+- [ ] 186-02-PLAN.md — Backend D-03: anitogo-backed ReleaseFilenameParser behind a swappable interface, fixes CRC-as-episode-number bug, regression-tested against 15 real filenames
+- [ ] 186-03-PLAN.md — Frontend D-01: applyGroupFromHere pure function + rewritten "Ab hier" adapter that respects deliberately-different group assignments
+- [ ] 186-04-PLAN.md — Frontend D-02: button label renames ("Alle bestätigten übernehmen", "Nur diese Version übernehmen") + native-button-to-Button migration in page.tsx
+- [ ] 186-05-PLAN.md — Deploy (backend rebuild, frontend restart) + blocking live UAT checkpoint for all 4 decisions
