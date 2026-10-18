@@ -2813,3 +2813,13 @@ Plans:
 - [x] 185-10-PLAN.md — D-02/D-06: member_claims_repository_test.go auf echten Verhaltenstest umstellen, aus Ratchet-Liste entfernt.
 - [x] 185-11-PLAN.md — D-07: scripts/test-backend.sh + docs/ENTWICKLUNG.md-Dokumentation.
 - [x] 185-12-PLAN.md — Abschluss-Verifikation: volle Frontend- und Backend-Suite je zweimal grün, alle 94 Tests namentlich bestätigt.
+
+### Phase 186: Episoden-Import nachschärfen (Paket A aus UX-Abgleich): Dateinamen-Erkennung mit etabliertem Parser statt Regex-Fallback, "Ab hier"-Gruppenübernahme respektiert bewusst abweichende Zeilen, eindeutige Knopfbeschriftungen im Import-Mapper
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 185
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 186 to break down)

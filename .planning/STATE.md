@@ -560,6 +560,15 @@ Last activity: 2026-10-17
 
 ### Roadmap Evolution
 
+- Phase 186 added (2026-10-18): Episoden-Import nachschärfen (Paket A aus UX-Abgleich) —
+  Dateinamen-Erkennung auf einen etablierten Parser statt des bisherigen Regex-Fallbacks
+  umstellen (Prüfsummen wie `[E61CA0BA]` dürfen nicht als Episode erkannt werden, UX-Finding #15),
+  die "Ab hier"-Gruppenübernahme darf bewusst abweichende Zeilen nicht mehr überschreiben
+  (UX-Finding #2), und die Knöpfe im Import-Mapper brauchen eindeutige Beschriftungen
+  (UX-Finding #3). Additiv nach dem formalen v1.4-Milestone-Abschluss (siehe
+  "Milestone v1.4 'Coverage': COMPLETE" oben) angelegt — Milestone-Status `milestone_complete`
+  bleibt unverändert, es wurde kein neues Milestone gestartet. Nur add-phase — noch nicht geplant.
+
 - Phase 185 added (2026-10-16): Testsuite grün machen — alle dauerhaft roten Frontend- und
   Backend-Tests analysieren und beheben (Ursache je Test: veraltete Erwartung,
   Test-Fixture-Schema-Drift, Umgebungsabhängigkeit, echter Produktfehler), danach ist die volle
