@@ -2849,3 +2849,13 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 186-05-PLAN.md — Deploy (backend rebuild, frontend restart) + blocking live UAT checkpoint for all 4 decisions — approved
+
+### Phase 187: Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups): Fansub-Gruppe eines bestehenden Releases nur änderbar solange nichts dranhängt; sonst serverseitige Sperre mit deutscher Meldung statt FK-Fehler/stillem CASCADE-Löschen; Partnergruppe hinzufügen statt Wechsel; kein Umzugs-Assistent
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 186
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 187 to break down)

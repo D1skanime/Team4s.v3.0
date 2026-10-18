@@ -585,6 +585,17 @@ Last activity: 2026-10-18
 
 ### Roadmap Evolution
 
+- Phase 187 added (2026-10-18): Gruppenwechsel bei bestehenden Releases (release_versions /
+  release_version_groups) — die Fansub-Gruppe eines bestehenden Releases ist heute nur über einen
+  FK-RESTRICT-Fehler (release_role_credit_lifecycles) oder stilles CASCADE-Löschen
+  (release_crew_snapshots/Entitlements) änderbar. Gesetzt: Stufe 1 (frei änderbar ohne Anhang),
+  Stufe 2 (serverseitig gesperrt mit deutscher Meldung, WAS dranhängt, statt FK-Fehler/CASCADE),
+  eigener Knopf „Partnergruppe hinzufügen" (release_version_groups erlaubt N Gruppen), kein
+  Umzugs-Assistent (Stufe 3) in dieser Phase. Additiv nach dem formalen v1.4-Milestone-Abschluss
+  angelegt — Milestone-Status `milestone_complete` bleibt unverändert, es wurde kein neues
+  Milestone gestartet. Nur add-phase — noch nicht geplant; Ist-Analyse + CONTEXT.md mit offenen
+  Fragen folgt direkt im Anschluss.
+
 - Phase 186 added (2026-10-18): Episoden-Import nachschärfen (Paket A aus UX-Abgleich) —
   Dateinamen-Erkennung auf einen etablierten Parser statt des bisherigen Regex-Fallbacks
   umstellen (Prüfsummen wie `[E61CA0BA]` dürfen nicht als Episode erkannt werden, UX-Finding #15),
