@@ -3,6 +3,7 @@
 import styles from "../../admin.module.css";
 import createStyles from "./page.module.css";
 import { AniSearchDuplicateDecision } from "./AniSearchDuplicateDecision";
+import { AniSearchSearchCard } from "../components/shared/AniSearchSearchCard";
 import type {
   CreateAniSearchConflictState,
   CreateAniSearchDraftState,
@@ -55,92 +56,29 @@ export function CreateAniSearchIntakeCard({
         </div>
       </div>
 
-      <div className={createStyles.providerInputRow}>
-        <label className={[styles.field, createStyles.providerFieldGrow].join(" ")}>
-          <span>AniSearch Titel</span>
-          <input
-            value={searchQuery}
-            placeholder="z. B. Bleach"
-            onChange={(event) => onSearchQueryChange(event.target.value)}
-          />
-        </label>
-        <button
-          type="button"
-          className={createStyles.secondaryAction}
-          aria-busy={isSearchingCandidates}
-          disabled={isSearchingCandidates || !searchQuery.trim()}
-          onClick={onSearchSubmit}
-        >
-          {isSearchingCandidates ? "Sucht..." : "Titel suchen"}
-        </button>
-      </div>
-
-      <div className={createStyles.providerInputRow}>
-        <label className={[styles.field, createStyles.providerFieldGrow].join(" ")}>
-          <span>AniSearch ID</span>
-          <input
-            value={anisearchID}
-            placeholder="z. B. 5170"
-            aria-describedby={statusID}
-            onChange={(event) => onAniSearchIDChange(event.target.value)}
-          />
-        </label>
-        <button
-          type="button"
-          className={createStyles.primaryAction}
-          aria-busy={isLoading}
-          disabled={isLoading || !anisearchID.trim()}
-          onClick={onSubmit}
-        >
-          {isLoading ? "Laedt..." : "AniSearch laden"}
-        </button>
-      </div>
-
-
-      {candidates.length > 0 ? (
-        <div className={createStyles.providerResultsBlock}>
-          <div className={createStyles.providerResultsHeader}>
-            <p className={createStyles.resultsEyebrow}>Suchergebnisse</p>
-            <strong className={createStyles.providerResultsCount}>
-              {candidates.length} Treffer
-            </strong>
-          </div>
-          <div className={createStyles.providerList}>
-            {candidates.map((candidate) => (
-              <div key={candidate.anisearch_id} className={createStyles.providerRowCard}>
-                <div className={createStyles.providerRowIcon}>A</div>
-                <div className={createStyles.providerRowContent}>
-                  <strong className={createStyles.providerRowTitle}>{candidate.title}</strong>
-                  <span className={createStyles.providerRowMeta}>
-                    {candidate.year ? `${candidate.year} | ` : ""}
-                    {candidate.type}
-                    {` | AniSearch-ID ${candidate.anisearch_id}`}
-                  </span>
-                  {candidate.existing_anime_id ? (
-                    <span className={styles.hint}>
-                      {`Existiert schon als „${candidate.existing_title}“ (#${candidate.existing_anime_id})`}
-                    </span>
-                  ) : null}
-                </div>
-                <button
-                  type="button"
-                  className={createStyles.secondaryAction}
-                  onClick={() => onCandidateSelect(candidate)}
-                >
-                  Auswählen
-                </button>
-              </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            className={createStyles.providerLinkButton}
-            onClick={onCandidateDismiss}
-          >
-            Suche verfeinern
-          </button>
-        </div>
-      ) : null}
+      <AniSearchSearchCard
+        searchLabel="AniSearch Titel"
+        searchPlaceholder="z. B. Bleach"
+        searchQuery={searchQuery}
+        onSearchQueryChange={onSearchQueryChange}
+        onSearchSubmit={onSearchSubmit}
+        isSearchingCandidates={isSearchingCandidates}
+        searchButtonLabel="Titel suchen"
+        searchingLabel="Sucht..."
+        idLabel="AniSearch ID"
+        idPlaceholder="z. B. 5170"
+        idValue={anisearchID}
+        onIDChange={onAniSearchIDChange}
+        onSubmit={onSubmit}
+        isSubmitting={isLoading}
+        submitButtonLabel="AniSearch laden"
+        submittingLabel="Lädt..."
+        idAriaDescribedBy={statusID}
+        candidates={candidates}
+        onCandidateSelect={onCandidateSelect}
+        candidateActionLabel="Auswählen"
+        onCandidateDismiss={onCandidateDismiss}
+      />
 
       <div
         id={statusID}

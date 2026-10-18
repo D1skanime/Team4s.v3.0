@@ -148,7 +148,8 @@ describe('AnimeEditSourceSection — AniSearch verknuepfen (Task 3)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
 
     await waitFor(() => expect(searchMock).toHaveBeenCalledWith('Freezing', { limit: 8 }))
-    await waitFor(() => expect(screen.getByText(/Freezing \(2011\)/)).not.toBeNull())
+    await waitFor(() => expect(screen.getByText('Freezing')).not.toBeNull())
+    expect(screen.getByText('2011 | tv | AniSearch-ID 6465')).not.toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Übernehmen' }))
 

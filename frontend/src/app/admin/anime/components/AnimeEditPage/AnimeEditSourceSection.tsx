@@ -3,14 +3,13 @@
 import { useState } from 'react'
 
 import { Button } from '@/components/ui'
-import { FormField } from '@/components/ui/FormField'
-import { Input } from '@/components/ui/Input'
 import type { AnimeDetail } from '@/types/anime'
 
 import styles from '../../../admin.module.css'
 import createStyles from '../../create/page.module.css'
 import workspaceStyles from '../ManualCreate/ManualCreateWorkspace.module.css'
 import { CreateJellyfinCard } from '../../create/CreateJellyfinCard'
+import { AniSearchSearchCard } from '../shared/AniSearchSearchCard'
 import { useAnimeEditAniSearchLink } from '../../hooks/useAnimeEditAniSearchLink'
 import { useJellyfinIntake } from '../../hooks/useJellyfinIntake'
 import { buildAniSearchAnimeURL } from '../../utils/anime-helpers'
@@ -129,73 +128,31 @@ export function AnimeEditSourceSection({
           <h2 className={workspaceStyles.sectionTitle}>AniSearch verknüpfen</h2>
         </div>
 
-        <FormField label="AniSearch-Titel suchen" htmlFor="edit-anisearch-title-search">
-          <div className={styles.gridTwo}>
-            <Input
-              id="edit-anisearch-title-search"
-              value={aniSearchLink.titleQuery}
-              placeholder="z. B. Freezing"
-              onChange={(event) => aniSearchLink.setTitleQuery(event.target.value)}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              loading={aniSearchLink.isSearching}
-              disabled={aniSearchLink.isSearching || !aniSearchLink.titleQuery.trim()}
-              onClick={() => {
-                void aniSearchLink.handleTitleSearch()
-              }}
-            >
-              Suchen
-            </Button>
-          </div>
-        </FormField>
-
-        {aniSearchLink.candidates.length > 0 ? (
-          <ul className={workspaceStyles.infoField} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {aniSearchLink.candidates.map((candidate) => (
-              <li key={candidate.anisearch_id} className={`${workspaceStyles.infoField} ${workspaceStyles.infoFieldWithAction}`}>
-                <span>
-                  {candidate.title}
-                  {candidate.year ? ` (${candidate.year})` : ''} — AniSearch-ID {candidate.anisearch_id}
-                  {candidate.existing_anime_id ? ` — gehört bereits zu „${candidate.existing_title}“ (#${candidate.existing_anime_id})` : ''}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => aniSearchLink.handleSelectCandidate(candidate)}
-                >
-                  Übernehmen
-                </Button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        <FormField label="AniSearch-ID oder -URL" htmlFor="edit-anisearch-id-input">
-          <div className={styles.gridTwo}>
-            <Input
-              id="edit-anisearch-id-input"
-              value={aniSearchLink.idOrUrlInput}
-              placeholder="z. B. 6465 oder https://www.anisearch.de/anime/6465,freezing"
-              onChange={(event) => aniSearchLink.setIdOrUrlInput(event.target.value)}
-            />
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              loading={aniSearchLink.isLinking}
-              disabled={aniSearchLink.isLinking || !aniSearchLink.idOrUrlInput.trim()}
-              onClick={() => {
-                void aniSearchLink.handleLink()
-              }}
-            >
-              Verknüpfen
-            </Button>
-          </div>
-        </FormField>
+        <AniSearchSearchCard
+          searchInputId="edit-anisearch-title-search"
+          searchLabel="AniSearch-Titel suchen"
+          searchPlaceholder="z. B. Freezing"
+          searchQuery={aniSearchLink.titleQuery}
+          onSearchQueryChange={aniSearchLink.setTitleQuery}
+          onSearchSubmit={() => {
+            void aniSearchLink.handleTitleSearch()
+          }}
+          isSearchingCandidates={aniSearchLink.isSearching}
+          searchButtonLabel="Suchen"
+          idInputId="edit-anisearch-id-input"
+          idLabel="AniSearch-ID oder -URL"
+          idPlaceholder="z. B. 6465 oder https://www.anisearch.de/anime/6465,freezing"
+          idValue={aniSearchLink.idOrUrlInput}
+          onIDChange={aniSearchLink.setIdOrUrlInput}
+          onSubmit={() => {
+            void aniSearchLink.handleLink()
+          }}
+          isSubmitting={aniSearchLink.isLinking}
+          submitButtonLabel="Verknüpfen"
+          candidates={aniSearchLink.candidates}
+          onCandidateSelect={aniSearchLink.handleSelectCandidate}
+          candidateActionLabel="Übernehmen"
+        />
 
         {aniSearchLink.linkConflict ? (
           <div className={styles.errorBox} role="alert">
