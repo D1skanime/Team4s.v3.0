@@ -188,12 +188,21 @@ func parseAniSearchEpisodeTitles(cell *xhtml.Node) map[string]string {
 	return result
 }
 
+// parseAniSearchEpisodeNumber anchors the match to the WHOLE trimmed cell
+// text (^\d+$) rather than finding any digit substring anywhere in it.
+// AniSearch bonus/special rows (e.g. "B1", crossover OVAs linking to a
+// DIFFERENT anime id) are not pure numeric episode numbers and must be
+// rejected here so they cannot collide with and overwrite a real episode
+// number in the caller's episodesByNumber map (debug session
+// anisearch-episode-titles-wrong-and-no-language-select.md).
+var aniSearchEpisodeNumberPattern = regexp.MustCompile(`^\d+$`)
+
 func parseAniSearchEpisodeNumber(raw string) int32 {
-	match := regexp.MustCompile(`\d+`).FindString(strings.TrimSpace(raw))
-	if match == "" {
+	trimmed := strings.TrimSpace(raw)
+	if !aniSearchEpisodeNumberPattern.MatchString(trimmed) {
 		return 0
 	}
-	parsed, err := strconv.Atoi(match)
+	parsed, err := strconv.Atoi(trimmed)
 	if err != nil || parsed <= 0 || parsed > 32767 {
 		return 0
 	}

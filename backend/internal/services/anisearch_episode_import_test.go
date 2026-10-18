@@ -1,6 +1,10 @@
 package services
 
-import "testing"
+import (
+	"os"
+	"strings"
+	"testing"
+)
 
 func TestParseAniSearchEpisodeListHTML_ReturnsCanonicalEpisodes(t *testing.T) {
 	t.Parallel()
@@ -157,5 +161,127 @@ func TestParseAniSearchEpisodeListHTML_TitlelessRowYieldsNilTitleNotSyntheticFal
 	}
 	if episodes[0].Title != nil {
 		t.Fatalf("expected nil title for titleless row, not a synthetic fallback, got %#v", episodes[0].Title)
+	}
+}
+
+// TestParseAniSearchEpisodeListHTML_BonusRowDoesNotOverwriteRegularEpisode
+// reproduces the "B1" bonus-episode collision from the debug session
+// anisearch-episode-titles-wrong-and-no-language-select.md: a bonus row
+// whose episode-number cell is "B1" (not pure-numeric, and linking to a
+// DIFFERENT anime id) must be rejected entirely by
+// parseAniSearchEpisodeNumber, not parsed as episode 1 and overwrite the
+// real episode 1 that appears earlier in document order.
+func TestParseAniSearchEpisodeListHTML_BonusRowDoesNotOverwriteRegularEpisode(t *testing.T) {
+	t.Parallel()
+
+	fixture := `
+		<section id="episoden">
+			<table>
+				<tr data-episode="true">
+					<th scope="row"><b>1</b></th>
+					<td data-title="Titel"><div lang="de"><span lang="de">Unantastbare Koenigin</span></div></td>
+				</tr>
+				<tr data-episode="true">
+					<th scope="row"><b><a href="anime/7031">B1</a></b></th>
+					<td data-title="Titel"><div lang="en"><span lang="en">Freezing: Hajikechau! Dokidoki Trouble Freezing</span></div></td>
+				</tr>
+			</table>
+		</section>`
+
+	episodes, err := parseAniSearchEpisodeListHTML(fixture)
+	if err != nil {
+		t.Fatalf("parse fixture: %v", err)
+	}
+	if len(episodes) != 1 {
+		t.Fatalf("expected the bonus row to be excluded entirely, got %d episodes: %+v", len(episodes), episodes)
+	}
+	if episodes[0].EpisodeNumber != 1 {
+		t.Fatalf("expected the only surviving episode to be number 1, got %d", episodes[0].EpisodeNumber)
+	}
+	if episodes[0].Title == nil || *episodes[0].Title != "Unantastbare Koenigin" {
+		t.Fatalf("expected real episode 1 title to survive, got %#v", episodes[0].Title)
+	}
+	for _, title := range episodes[0].TitlesByLanguage {
+		if strings.Contains(title, "Hajikechau") {
+			t.Fatalf("bonus title leaked into episode 1's TitlesByLanguage: %#v", episodes[0].TitlesByLanguage)
+		}
+	}
+}
+
+// readAniSearchEpisodeFixture loads a real, committed AniSearch episode-page
+// HTML fixture from testdata/. This reads a test FIXTURE file, not a
+// handler's own .go source used to fake a behavior assertion -- the Teststil
+// source-self-grepping prohibition in CLAUDE.md does not apply here; the
+// parser under test is still invoked end-to-end against this HTML.
+func readAniSearchEpisodeFixture(t *testing.T, name string) string {
+	t.Helper()
+	content, err := os.ReadFile("testdata/" + name)
+	if err != nil {
+		t.Fatalf("read fixture %s: %v", name, err)
+	}
+	return string(content)
+}
+
+// TestParseAniSearchEpisodeListHTML_FreezingRealFixture_BonusRowExcluded is
+// the integration-style regression test against the real, broken case:
+// AniSearch 6465 "Freezing" has 12 regular episodes plus one trailing "B1"
+// bonus row. Before the anchored-regex fix, the bonus row overwrote episode
+// 1 with its own bonus title; after the fix exactly 12 regular episodes
+// survive and episode 1 keeps its real German title.
+func TestParseAniSearchEpisodeListHTML_FreezingRealFixture_BonusRowExcluded(t *testing.T) {
+	t.Parallel()
+
+	fixture := readAniSearchEpisodeFixture(t, "anisearch_6465_freezing_episodes.html")
+
+	episodes, err := parseAniSearchEpisodeListHTML(fixture)
+	if err != nil {
+		t.Fatalf("parse real fixture: %v", err)
+	}
+	if len(episodes) != 12 {
+		t.Fatalf("expected exactly 12 regular episodes (bonus B1 row excluded), got %d", len(episodes))
+	}
+	if episodes[0].EpisodeNumber != 1 {
+		t.Fatalf("expected first episode to be number 1, got %d", episodes[0].EpisodeNumber)
+	}
+	if episodes[0].Title == nil || *episodes[0].Title != "Unantastbare Königin" {
+		t.Fatalf("expected episode 1's real German title, got %#v", episodes[0].Title)
+	}
+	const bonusTitle = "Freezing: Hajikechau! Dokidoki Trouble Freezing"
+	for _, episode := range episodes {
+		for _, title := range episode.TitlesByLanguage {
+			if title == bonusTitle {
+				t.Fatalf("bonus title %q leaked into episode %d", bonusTitle, episode.EpisodeNumber)
+			}
+		}
+		if episode.Title != nil && *episode.Title == bonusTitle {
+			t.Fatalf("bonus title %q leaked into episode %d's display title", bonusTitle, episode.EpisodeNumber)
+		}
+	}
+}
+
+// TestParseAniSearchEpisodeListHTML_BuddyComplexRealFixture_StillParsesAll13
+// is the regression counterexample: AniSearch 9251 "Buddy Complex" has 13
+// purely numeric episode rows (1-13), no bonus-row collision. The anchored
+// regex must not break this already-working case.
+func TestParseAniSearchEpisodeListHTML_BuddyComplexRealFixture_StillParsesAll13(t *testing.T) {
+	t.Parallel()
+
+	fixture := readAniSearchEpisodeFixture(t, "anisearch_9251_buddycomplex_episodes.html")
+
+	episodes, err := parseAniSearchEpisodeListHTML(fixture)
+	if err != nil {
+		t.Fatalf("parse real fixture: %v", err)
+	}
+	if len(episodes) != 13 {
+		t.Fatalf("expected all 13 episodes to parse, got %d", len(episodes))
+	}
+	for i, episode := range episodes {
+		expectedNumber := int32(i + 1)
+		if episode.EpisodeNumber != expectedNumber {
+			t.Fatalf("expected episode at index %d to be number %d, got %d", i, expectedNumber, episode.EpisodeNumber)
+		}
+	}
+	if episodes[0].Title == nil || *episodes[0].Title != "Begegnung" {
+		t.Fatalf("expected episode 1's real German title, got %#v", episodes[0].Title)
 	}
 }
