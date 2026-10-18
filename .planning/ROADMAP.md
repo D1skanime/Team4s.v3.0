@@ -2820,7 +2820,7 @@ Plans:
 - [x] 185-11-PLAN.md — D-07: scripts/test-backend.sh + docs/ENTWICKLUNG.md-Dokumentation.
 - [x] 185-12-PLAN.md — Abschluss-Verifikation: volle Frontend- und Backend-Suite je zweimal grün, alle 94 Tests namentlich bestätigt.
 
-### Phase 186: Episoden-Import nachschärfen (Paket A aus UX-Abgleich): Dateinamen-Erkennung mit etabliertem Parser statt Regex-Fallback, "Ab hier"-Gruppenübernahme respektiert bewusst abweichende Zeilen, eindeutige Knopfbeschriftungen im Import-Mapper
+### Phase 186: Episoden-Import nachschärfen (Paket A aus UX-Abgleich): Dateinamen-Erkennung mit etabliertem Parser statt Regex-Fallback, "Ab hier"-Gruppenübernahme respektiert bewusst abweichende Zeilen, eindeutige Knopfbeschriftungen im Import-Mapper — **COMPLETE (2026-10-18)**
 
 **Goal:** Der Episoden-Import-Mapper erkennt Episodennummern aus Dateinamen zuverlässig auch bei
 CRC-Checksum-Tags (anitogo hinter einem austauschbaren `ReleaseFilenameParser`-Interface, D-03),
@@ -2830,7 +2830,10 @@ ohne Verhaltensänderung für bereits korrekt erkannte, kanonisch benannte Datei
 **Requirements**: TBD (Decision-Coverage via D-01 bis D-04 in `186-CONTEXT.md`, kein
 REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 185
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans executed — Verifikation bestanden (186-VERIFICATION.md, 5/5 must-haves, nach
+Nachbesserung des D-04-Zeilenlängen-Funds), Live-Checkpoint vom Nutzer "approved" (186-05-HUMAN-UAT.md),
+inkl. zwei Nacharbeit-Runden (3 Code-Review-Befunde + eine davon ausgelöste Zwei-Schritt-Regression,
+beide live nachgeprüft und freigegeben, siehe 186-REVIEW-FIX.md)
 
 Plans:
 **Wave 1**
@@ -2845,4 +2848,4 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 186-05-PLAN.md — Deploy (backend rebuild, frontend restart) + blocking live UAT checkpoint for all 4 decisions
+- [x] 186-05-PLAN.md — Deploy (backend rebuild, frontend restart) + blocking live UAT checkpoint for all 4 decisions — approved

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: "186-05-PLAN.md Task 1 done (backend rebuilt, frontend restarted, /health 200); Task 2 is a blocking human-verify checkpoint awaiting live UAT response -- plan 186-05 is NOT complete"
-last_updated: "2026-10-18T12:49:33.000Z"
+status: milestone_complete
+stopped_at: "Phase 186 formal abgeschlossen (186-VERIFICATION.md passed, 5/5 must-haves; 186-05-HUMAN-UAT.md approved_by: user) -- inkl. zwei Nacharbeit-Runden (Code-Review-Fixes + Ab-hier-Zwei-Schritt-Regression), beide live auf Anime 13 Freezing nachgeprüft und freigegeben, 2026-10-18. Quick-Task 261018-l5r (AniSearch-Verknüpfung) ebenfalls formal abgeschlossen und live freigegeben."
+last_updated: "2026-10-18T21:10:00.000Z"
 last_activity: 2026-10-18
 progress:
   total_phases: 51
-  completed_phases: 45
-  total_plans: 463
-  completed_plans: 459
-  percent: 88
+  completed_phases: 46
+  total_plans: 464
+  completed_plans: 464
+  percent: 100
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -25,6 +25,31 @@ snapshot of `ROADMAP.md`, `REQUIREMENTS.md`, `PROJECT.md`, and `STATE.md` at clo
 file, `ROADMAP.md`, and `REQUIREMENTS.md` all remain live in place (not archived/removed/reset) —
 by explicit decision no new milestone was started; future phases continue additively from here
 via `/gsd-phase add`.
+
+# Phase 186 — Episoden-Import nachschärfen (Paket A aus UX-Abgleich) — COMPLETE (2026-10-18)
+
+Alle 5 Pläne code-vollständig und committet. D-01 ("Ab hier" respektiert abweichende
+Gruppenzuordnungen), D-02 (eindeutige Knopfbeschriftungen + Button-Primitive-Migration), D-03
+(anitogo-ReleaseFilenameParser statt Regex-Fallback, CRC-Bug #15 behoben) und D-04
+(Datei-Längen-Regel) sind erfüllt (`186-VERIFICATION.md`, passed, 5/5 must-haves). Live-Checkpoint
+vom Nutzer auf `/admin/anime/13/episodes/import` "approved" (`186-05-HUMAN-UAT.md`). Danach deckte
+ein Code-Review 3 Befunde in bereits ausgeliefertem Phase-186-Code auf (Ab-hier-Baseline war ein
+eingefrorener Preview-Snapshot statt live; toter Legacy-className an migrierten Buttons;
+anitogo-Episodenrange wurde nicht vollständig genutzt) — alle 3 behoben, mit Tests
+(`186-REVIEW-FIX.md`). Befund 1s eigener Fix enthielt selbst eine Regression (Chip-Wechsel über
+den in der UI einzig möglichen Zwei-Schritt-Weg — entfernen, dann hinzufügen — überschrieb die
+"Ab hier"-Baseline), erst bei einem späteren, unabhängigen Live-Test entdeckt und ebenfalls
+behoben (`.planning/debug/resolved/ab-hier-two-step-chip-change-regression.md`). Beide
+Nacharbeit-Runden wurden vom Nutzer live auf Anime 13 "Freezing" nachgeprüft und freigegeben.
+Volle Testsuiten bestätigt grün: Backend `scripts/test-backend.sh` GATE GREEN (2292 PASS/0 FAIL/28
+SKIP, dreimal reproduziert), Frontend eigenständiger Lauf 391/392 Dateien, 3588/3591 Tests, 0
+Fehlschläge (zwei beobachtete Timeout-Flakes bei Ressourcen-Konkurrenz mit dem parallel
+laufenden Backend-Lauf, isoliert reproduzierbar grün, außerhalb des Phase-186-Scopes). Der
+schon zuvor bekannte `TestEpisodeImport11eyesEnumeratesEveryPhysicalSource`-Fehlschlag unter
+`docker compose exec team4sv30-backend` ist kein Regressionsbug, sondern eine Folge des fehlenden
+Repo-Root-Mounts dieses produktiv gebauten Containers (Fixture liegt unter `docs/`, außerhalb des
+Docker-Build-Contexts `./backend`) — mit `scripts/test-backend.sh`s korrektem Mount läuft der Test
+PASS, siehe `186-VERIFICATION.md` für den vollständigen Beleg.
 
 # Phase 184 — Aufräumpunkte aus Phase 174 abschließen (F-07/F-12/F-20/F-23) — COMPLETE (2026-10-15)
 
