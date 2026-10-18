@@ -31,7 +31,7 @@ interface EpisodeImportMappingRowCardProps {
   onRemoveSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   /** Legacy callback kept for direct component consumers; no longer rendered as a button. */
   onApplyFansubGroupToEpisode?: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
-  onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
+  onApplyFansubGroupFromEpisode: (sourceKey: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onConfirm?: (sourceKey: string) => void
   onSkip: (sourceKey: string) => void
   onApplyRow?: (sourceKey: string) => void

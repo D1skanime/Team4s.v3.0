@@ -23,7 +23,7 @@ interface EpisodeImportMappingRowGroupFieldProps {
   onSetSelectedFansubGroups: (sourceKey: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onAddSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   onRemoveSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
-  onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
+  onApplyFansubGroupFromEpisode: (sourceKey: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
 }
 
 /**
@@ -202,7 +202,7 @@ export function EpisodeImportMappingRowGroupField({
             variant="subtle"
             size="sm"
             disabled={isSkipped || episodeNumber <= 0 || !hasSelectedGroups}
-            onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, selectedFansubGroups)}
+            onClick={() => onApplyFansubGroupFromEpisode(sourceKey, selectedFansubGroups)}
           >
             Ab hier
           </Button>
@@ -210,7 +210,7 @@ export function EpisodeImportMappingRowGroupField({
             variant="subtle"
             size="sm"
             disabled={isSkipped || episodeNumber <= 0}
-            onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, [])}
+            onClick={() => onApplyFansubGroupFromEpisode(sourceKey, [])}
           >
             Ab hier entfernen
           </Button>

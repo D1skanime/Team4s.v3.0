@@ -53,7 +53,7 @@ export interface EpisodeGroupProps {
     fansubGroups: EpisodeImportSelectedFansubGroup[],
   ) => void;
   onApplyFansubGroupFromEpisode: (
-    episodeNumber: number,
+    sourceKey: string,
     fansubGroups: EpisodeImportSelectedFansubGroup[],
   ) => void;
   onSetEpisodeTitle: (episodeNumber: number, title: string) => void;

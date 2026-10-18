@@ -87,7 +87,7 @@ interface UseEpisodeImportBuilderState {
   addSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   removeSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   applyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
-  applyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
+  applyFansubGroupFromEpisode: (sourceKey: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   setEpisodeTitle: (episodeNumber: number, title: string) => void
   confirmMapping: (sourceKey: string) => void
   skipMapping: (sourceKey: string) => void
@@ -330,8 +330,15 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       setMappings((current) => removeMappingFansubGroup(current, sourceKey, fansubGroup)),
     applyFansubGroupToEpisode: (episodeNumber, fansubGroups) =>
       setMappings((current) => applyFansubGroupToEpisodeRows(current, episodeNumber, fansubGroups)),
-    applyFansubGroupFromEpisode: (episodeNumber, fansubGroups) =>
-      setMappings((current) => applyFansubGroupFromEpisodeDown(current, episodeNumber, fansubGroups)),
+    applyFansubGroupFromEpisode: (sourceKey, newFansubGroups) =>
+      setMappings((current) => {
+        const startIndex = current.findIndex((row) => jellyfinSourceKey(row) === sourceKey)
+        if (startIndex === -1) return current
+        // D-01: "old value" = the row's PRISTINE baseline from the original preview load, not its
+        // live-edited state (which by click time already reflects any chip edits on this row).
+        const baselineRow = preview?.mappings?.find((row) => jellyfinSourceKey(row) === sourceKey)
+        return applyFansubGroupFromEpisodeDown(current, startIndex, baselineRow?.fansub_groups ?? [], newFansubGroups)
+      }),
     setEpisodeTitle: (episodeNumber, title) =>
       setPreview((current) => {
         if (!current) return current
