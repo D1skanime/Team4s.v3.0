@@ -1,5 +1,5 @@
 ---
-status: fix applied, pending live re-check
+status: resolved
 trigger: >
   Live-UAT-Befund nach Verknuepfung von Anime 13 "Freezing" mit AniSearch 6465
   (Quick-Task 261018-l5r). Im Episoden-Import (/admin/anime/13/episodes/import):

@@ -1,5 +1,5 @@
 ---
-status: fix applied, pending live re-check
+status: resolved
 trigger: >
   Regression nach Review-Fix 389bd52a2 ("Ab-hier-Baseline live statt eingefrorener
   Preview-Snapshot"). Live-UAT auf /admin/anime/13/episodes/import (Freezing):

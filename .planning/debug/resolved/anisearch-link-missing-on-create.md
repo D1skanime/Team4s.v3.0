@@ -1,5 +1,5 @@
 ---
-status: diagnosed — awaiting user decision (not a recent regression, see Resolution)
+status: resolved — Quick-Task 261018-l5r, live auf Anime 13 "Freezing" (AniSearch 6465) freigegeben
 trigger: >
   Beim Anlegen eines neuen Anime per POST /api/v1/admin/anime (zuletzt Anime 12 "Angel Beats!"
   um 14:55 und Anime 13 "Freezing" um 15:02, beide heute 2026-10-18, beide 201) wird KEINE
