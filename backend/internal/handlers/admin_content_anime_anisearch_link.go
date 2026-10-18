@@ -10,6 +10,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -145,4 +146,12 @@ func (h *AdminContentHandler) writeAniSearchLinkRaceConflict(c *gin.Context, ani
 	}
 
 	writeAniSearchLinkOwnershipConflict(c, aniSearchID, match)
+}
+
+// buildAdminAnimeEditPath erstellt den Frontend-Pfad zur Bearbeitungsseite eines bestimmten
+// Anime. Item 3 (quick-261018-l5r Dedupe-Nachtrag): hierher verschoben aus dem jetzt entfernten
+// admin_content_anime_enrichment_edit.go (toter LoadAnimeAniSearchEnrichment-Endpunkt) -- bleibt
+// als gemeinsamer Helfer fuer diese Datei und admin_content_anime.go erhalten.
+func buildAdminAnimeEditPath(animeID int64) string {
+	return fmt.Sprintf("/admin/anime/%d/edit", animeID)
 }
