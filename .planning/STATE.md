@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 186-02-PLAN.md (anitogo-backed ReleaseFilenameParser, D-03, Finding #15)
-last_updated: "2026-10-18T12:41:14.792Z"
+stopped_at: "Completed 186-04-PLAN.md (button-label clarity + Button primitive migration, D-02, Finding #3)"
+last_updated: "2026-10-18T12:47:10.696Z"
 last_activity: 2026-10-18
 progress:
   total_phases: 51
   completed_phases: 45
   total_plans: 463
-  completed_plans: 458
+  completed_plans: 459
   percent: 88
 ---
 
@@ -1309,6 +1309,7 @@ Last activity: 2026-10-18
 - [Phase 186]: 186-03: applyGroupFromHere implemented as the exact CONTEXT.md D-01 low-level pure function (index + single-value), with applyFansubGroupFromEpisodeDown as the adapter via fansubGroupsValueKey; "old value" baseline is read from the pristine preview.mappings, not live-edited state, documented inline
 - [Phase 186]: 186-03: episodeImportMapping.ts crossed 450 lines (485) after the D-01 rewrite; split normalizeFansubGroups/normalizeFansubGroup/getFansubGroupKey/normalizeOptionalText verbatim into a new episodeImportFansubGroupHelpers.ts sibling (D-04), per the plan's own anticipated seam
 - [Phase 186]: 186-02: services.ReleaseFilenameParser (anitogo-backed) replaces only the innermost Exx-regex fallback in episodeImportEvidenceEpisodeNumber, fixing Finding #15 (CRC tags like "[E61CA0BA]" misread as episode 61); buildEpisodeImportPreview threads the parser through a trailing variadic parameter so all 7 pre-existing test call sites stayed byte-identical; go get+go mod tidy had to run AFTER the consuming file was written, else tidy silently drops the still-unused dependency
+- [Phase 186]: 186-04: page.tsx's 3 workbench-header buttons migrated from native <button> to the @/components/ui Button primitive (className passthrough preserving existing CSS-module styling); header apply-all label "Mapping anwenden" -> "Alle bestätigten übernehmen", row apply-one label "Übernehmen" -> "Nur diese Version übernehmen" (D-02, Finding #3); EpisodeImportEpisodeGroup.tsx's two native buttons left untouched per explicit out-of-scope; a stale button-name regex in EpisodeImportMappingRow.test.tsx updated as a Rule 3 blocking-issue fix
 
 ### Pending Todos
 
@@ -1997,11 +1998,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 186 P01 | 25min | 3 tasks | 4 files |
 | Phase 186 P03 | 6min | 3 tasks | 7 files |
 | Phase 186 P02 | 55min | 3 tasks | 9 files |
+| Phase 186 P04 | 8min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-18T12:41:14.792Z
-Stopped at: Completed 186-02-PLAN.md (anitogo-backed ReleaseFilenameParser, D-03, Finding #15)
-Last activity: 2026-10-18 - Completed 186-02-PLAN.md
+Last session: 2026-10-18T12:47:10.696Z
+Stopped at: Completed 186-04-PLAN.md (button-label clarity + Button primitive migration, D-02, Finding #3)
+Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None

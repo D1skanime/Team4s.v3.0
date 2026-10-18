@@ -2830,7 +2830,7 @@ ohne Verhaltensänderung für bereits korrekt erkannte, kanonisch benannte Datei
 **Requirements**: TBD (Decision-Coverage via D-01 bis D-04 in `186-CONTEXT.md`, kein
 REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 185
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 **Wave 1**
@@ -2841,7 +2841,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 186-02-PLAN.md — Backend D-03: anitogo-backed ReleaseFilenameParser behind a swappable interface, fixes CRC-as-episode-number bug, regression-tested against 15 real filenames
-- [ ] 186-04-PLAN.md — Frontend D-02: button label renames ("Alle bestätigten übernehmen", "Nur diese Version übernehmen") + native-button-to-Button migration in page.tsx
+- [x] 186-04-PLAN.md — Frontend D-02: button label renames ("Alle bestätigten übernehmen", "Nur diese Version übernehmen") + native-button-to-Button migration in page.tsx
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
