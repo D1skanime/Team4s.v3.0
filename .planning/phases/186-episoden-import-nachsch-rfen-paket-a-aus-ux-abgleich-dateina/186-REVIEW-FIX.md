@@ -143,3 +143,23 @@ dokumentiert in `deferred-items.md`.
 3. `e914707cc` — fix(186-review): anitogo-Episodenrange statt nur EpisodeNumber[0] nutzen
 4. `df9175314` — refactor(186-review): useEpisodeImportBuilder.ts unter 450-Zeilen-Limit splitten
    (Deviation Rule 2/CLAUDE.md-Durchsetzung, ausgelöst durch Befund 1)
+
+## Nacharbeit (2026-10-18): Regression in Befund 1s eigenem Fix gefunden + behoben
+
+Während eines unabhängigen Live-Tests (Quick-Task 261018-l5r, AniSearch-Verknüpfung auf Anime 13
+"Freezing") fiel eine Regression auf, die Befund 1s Fix (`389bd52a2`) selbst eingeführt hatte:
+"Ab hier" funktionierte nicht mehr, wenn der Chip-Wechsel über den in dieser UI einzig möglichen
+Zwei-Schritt-Weg (bestehenden Chip anklicken = entfernen, dann neue Gruppe suchen+anklicken ODER
+Freitext+Enter = hinzufügen) erfolgte — der zweite Mutator-Aufruf überschrieb den vom ersten
+Aufruf korrekt gesetzten Baseline-Ref mit dem bereits leeren Zwischenzustand. Vollständige
+Diagnose: `.planning/debug/ab-hier-two-step-chip-change-regression.md`.
+
+**Fix:** `06b39a2f5` — Ref wird jetzt nur beim ERSTEN Mutator-Aufruf seit der letzten Konsumierung
+gesetzt (nicht mehr bei jedem), und nach Konsum durch `applyFansubGroupFromEpisode` gelöscht.
+5 neue Hook-Zustandstests (keine Render-Simulation) decken beide Bedienwege (Suchergebnis-Klick,
+Freitext), mehrere Folgezeilen mit gemischten Gruppen, und beide Regressionswächter aus Befund 1
+(getrennte Klicks mit Zwischenbearbeitung, "entfernen" nach Einzel-Edit) ab — 123/123 Tests im
+`episodes/import`-Verzeichnis grün.
+
+Vom Nutzer live auf Anime 13 "Freezing" (Chip "M-L" → "MelonSubs", "Ab hier") nachgeprüft und
+freigegeben.
