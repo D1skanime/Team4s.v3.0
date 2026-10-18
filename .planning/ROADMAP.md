@@ -2830,12 +2830,12 @@ ohne Verhaltensänderung für bereits korrekt erkannte, kanonisch benannte Datei
 **Requirements**: TBD (Decision-Coverage via D-01 bis D-04 in `186-CONTEXT.md`, kein
 REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 185
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 186-01-PLAN.md — Backend D-04 pure split of admin_episode_import.go into 4 files (<=450 lines each) before the D-03 content change
+- [x] 186-01-PLAN.md — Backend D-04 pure split of admin_episode_import.go into 4 files (<=450 lines each) before the D-03 content change
 - [ ] 186-03-PLAN.md — Frontend D-01: applyGroupFromHere pure function + rewritten "Ab hier" adapter that respects deliberately-different group assignments
 
 **Wave 2** *(blocked on Wave 1 completion)*

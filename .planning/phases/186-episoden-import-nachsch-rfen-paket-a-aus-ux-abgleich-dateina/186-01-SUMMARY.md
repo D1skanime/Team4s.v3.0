@@ -82,5 +82,10 @@ None — plan executed exactly as written. All acceptance criteria for all three
 - `./scripts/test-backend.sh` exited 0 with `GATE: GREEN (0)` and zero `--- FAIL` lines anywhere in the full log, including the `handlers` package (`ok team4s.v3/backend/internal/handlers 22.555s`) and the full `admin_episode_import_test.go` cluster.
 - The final commit (`727d95114`) stages exactly the 4 files from `files_modified`, with a `refactor(186-01):` prefix and no `feat`/`fix` content.
 
-## Self-Check Preview
-All four touched files and the commit hash are verified to exist below.
+## Self-Check: PASSED
+
+- FOUND: backend/internal/handlers/admin_episode_import.go
+- FOUND: backend/internal/handlers/admin_episode_import_filename_parser.go
+- FOUND: backend/internal/handlers/admin_episode_import_series_resolution.go
+- FOUND: backend/internal/handlers/admin_episode_import_preview_builder.go
+- FOUND: commit 727d95114 (refactor(186-01) split commit)
