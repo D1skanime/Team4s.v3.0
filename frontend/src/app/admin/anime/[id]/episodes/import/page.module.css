@@ -728,7 +728,6 @@
 
 /* ---- Buttons ---- */
 
-.primaryButton,
 .secondaryButton,
 .microButton {
   display: inline-flex;
@@ -742,16 +741,6 @@
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
-}
-
-.primaryButton {
-  background: #ff6848;
-  color: #fff;
-}
-
-.primaryButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
 }
 
 .secondaryButton {
@@ -931,7 +920,6 @@
   }
 
   .microButton,
-  .primaryButton,
   .secondaryButton {
     width: 100%;
   }

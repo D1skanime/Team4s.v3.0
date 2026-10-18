@@ -188,7 +188,6 @@ function AdminAnimeEpisodeImportContent() {
               <Button
                 variant="secondary"
                 size="sm"
-                className={styles.secondaryButton}
                 onClick={() => builder.skipAllSuggested()}
                 disabled={!builder.hasSuggestedRows}
               >
@@ -197,7 +196,6 @@ function AdminAnimeEpisodeImportContent() {
               <Button
                 variant="secondary"
                 size="sm"
-                className={styles.secondaryButton}
                 onClick={() => builder.confirmAllSuggested()}
                 disabled={!builder.hasSuggestedRows}
               >
@@ -206,7 +204,6 @@ function AdminAnimeEpisodeImportContent() {
               <Button
                 variant="primary"
                 size="sm"
-                className={styles.primaryButton}
                 disabled={!builder.canApply || builder.isApplying}
                 onClick={() => void builder.applyMappings()}
               >
