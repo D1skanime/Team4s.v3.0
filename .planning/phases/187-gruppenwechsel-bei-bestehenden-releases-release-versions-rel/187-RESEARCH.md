@@ -463,7 +463,7 @@ func evecFixtureRequest(h *AdminContentHandler) *httptest.ResponseRecorder {
 | A2 | The dependents-check should be a pre-check (SELECT before write), not a caught DB-level FK error, so the import per-row continuation (D-12) doesn't need SAVEPOINTs | Common Pitfalls / Pitfall 1 | Medium — if the planner instead chooses to catch the FK error after a failed write, every per-row continuation test must also verify the transaction's write-set is correctly unwound (savepoint rollback), which is meaningfully more test surface than a pure pre-check approach implies. |
 | A3 | A narrow interface seam for the dependents-check (fake-based handler tests) is preferable to real-Postgres-fixture-only handler tests | Architecture Patterns / Pattern 2 | Low — both are valid per CLAUDE.md; this is a recommendation, not a verified fact, and the planner may reasonably choose the fixture-only route instead (documented as an explicit alternative in the same section). |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact guard function signature / package placement**
    - What we know: the guard's core SQL needs access to `release_version_id` + candidate
@@ -474,6 +474,7 @@ func evecFixtureRequest(h *AdminContentHandler) *httptest.ResponseRecorder {
      `episode_import_repository_release_helpers.go`, or two call-site-specific wrappers around one
      shared low-level dependents-count function (given Pitfall 3's differing exception carve-outs).
    - Recommendation: one shared low-level `countReleaseVersionGroupDependents(ctx, tx, releaseVersionID, groupID) (DependencySummary, error)`, with each call site applying its own allow/block exception logic (same-group-update bypass for import, none for editor) around the shared count.
+   - RESOLVED: see Plan 01 <architecture_decisions> (package placement + the unification insight that makes the same-group/add exception fall out of `diffRemovedReleaseVersionGroupIDs` with no special-casing).
 
 2. **Whether "does the import reliably recognize an existing release" (D-12's Prüfauftrag) blocks test-writing for the rest of this phase**
    - What we know: D-12 explicitly asks this be investigated and reported, not silently fixed.
@@ -482,6 +483,7 @@ func evecFixtureRequest(h *AdminContentHandler) *httptest.ResponseRecorder {
      (duplicate-detection false negative) that isn't yet scoped.
    - Recommendation: the planner should resolve this Prüfauftrag early (Wave 0) since it could
      change the shape of the import-path test fixtures needed.
+   - RESOLVED: see Plan 05 Task 1 (D-12's Prüfauftrag is investigated and the finding documented as a code comment plus a named "Finding" section in 187-05-SUMMARY.md, not silently fixed).
 
 ## Environment Availability
 
