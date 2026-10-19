@@ -59,7 +59,7 @@ function AdminAnimeEpisodeImportContent() {
   }
 
   useEffect(() => {
-    if (!animeID || !builder.applyResult) {
+    if (!animeID || !builder.applyResult || builder.applyResult.conflicts !== 0) {
       return;
     }
 
@@ -302,8 +302,26 @@ function AdminAnimeEpisodeImportContent() {
             erstellt: <strong>{builder.applyResult.versions_created}</strong>,
             aktualisiert:{" "}
             <strong>{builder.applyResult.versions_updated}</strong>, Mappings:{" "}
-            <strong>{builder.applyResult.mappings_applied}</strong>.
+            <strong>{builder.applyResult.mappings_applied}</strong>, übersprungen:{" "}
+            <strong>{builder.applyResult.skipped}</strong>, Konflikte:{" "}
+            <strong>{builder.applyResult.conflicts}</strong>.
           </p>
+          {builder.applyResult.conflicts > 0 &&
+          builder.applyResult.conflict_details?.length ? (
+            <ul className={styles.hint}>
+              {builder.applyResult.conflict_details.map((conflict, index) => (
+                <li
+                  key={`${conflict.media_item_id}-${conflict.media_source_id ?? index}`}
+                >
+                  {conflict.media_item_id}
+                  {conflict.media_source_id
+                    ? ` (${conflict.media_source_id})`
+                    : ""}
+                  : {conflict.reason}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {animeID ? (
             <Link
               className={styles.secondaryButton}
