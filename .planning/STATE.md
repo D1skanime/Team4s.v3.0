@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 187-01-PLAN.md (Gruppenwechsel-Dependents-Guard, D-01/D-06/D-07/D-08/D-09/D-13/D-14)
-last_updated: "2026-10-19T11:23:10.229Z"
+stopped_at: Completed 187-02-PLAN.md (Gruppenwechsel-Editor-Guard-Verdrahtung, D-01/D-02/D-06/D-07/D-08/D-09/D-10/D-11/D-14)
+last_updated: "2026-10-19T11:40:04.806Z"
 last_activity: 2026-10-19
 progress:
   total_phases: 52
   completed_phases: 46
   total_plans: 471
-  completed_plans: 461
+  completed_plans: 462
   percent: 88
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 187 (Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups)) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1348,6 +1348,8 @@ Last activity: 2026-10-19
 - [Phase 186]: 186-04: page.tsx's 3 workbench-header buttons migrated from native <button> to the @/components/ui Button primitive (className passthrough preserving existing CSS-module styling); header apply-all label "Mapping anwenden" -> "Alle bestätigten übernehmen", row apply-one label "Übernehmen" -> "Nur diese Version übernehmen" (D-02, Finding #3); EpisodeImportEpisodeGroup.tsx's two native buttons left untouched per explicit out-of-scope; a stale button-name regex in EpisodeImportMappingRow.test.tsx updated as a Rule 3 blocking-issue fix
 - [Phase 187-01]: release_crew_snapshots wird vom Dependents-Guard nie gezaehlt (D-09) — Nur release_role_credit_lifecycles traegt echten Credit-Inhalt, release_crew_snapshots ist nur ein Kontext-Marker
 - [Phase 187-01]: GetReleaseVersionGroupDependents lebt in einer neuen Datei (release_version_group_guard.go) — episode_version_repository.go ist bereits 565 Zeilen (ueber dem 450-Zeilen-Limit) und wird von diesem Plan sonst nicht angefasst
+- [Phase 187]: Deleted the Plan-02 source-grep test instead of relocating it; replaced with a real-Postgres idempotency test — Teststil rule forbids extending the source-grep pattern; the move would have silently broken its file-path-coupled assertions regardless of logic correctness
+- [Phase 187]: Handler test fixture builds directly on testsupport.OpenPhase187Postgres, extended in place, rather than bridging with OpenPhase117Postgres — The two fixtures define incompatible schemas for shared table names and Phase187's guard tables have FK dependencies Phase117 does not provide
 
 ### Pending Todos
 
@@ -2039,11 +2041,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 186 P02 | 55min | 3 tasks | 9 files |
 | Phase 186 P04 | 8min | 2 tasks | 3 files |
 | Phase 187 P01 | 15min | 2 tasks | 4 files |
+| Phase 187 P02 | 17min | 3 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T11:23:10.206Z
-Stopped at: Completed 187-01-PLAN.md (Gruppenwechsel-Dependents-Guard, D-01/D-06/D-07/D-08/D-09/D-13/D-14)
+Last session: 2026-10-19T11:40:04.774Z
+Stopped at: Completed 187-02-PLAN.md (Gruppenwechsel-Editor-Guard-Verdrahtung, D-01/D-02/D-06/D-07/D-08/D-09/D-10/D-11/D-14)
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
