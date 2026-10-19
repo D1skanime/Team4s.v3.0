@@ -63,6 +63,18 @@ export interface EpisodeVersionDateNeighbor {
   date: string
 }
 
+/**
+ * A single selected fansub group's real, counted dependents (Phase 187, D-10),
+ * computed by the same guard the group-change write path uses. Present with
+ * all-zero counts for a group proven to have no dependents -- never omitted.
+ */
+export interface FansubGroupDependents {
+  fansub_group_id: number
+  credits: number
+  media: number
+  notes: number
+}
+
 export interface EpisodeVersionEditorContext {
   /** Saved selected-file read projection; null when unavailable. Contributor provider fields are redacted. */
   selected_file?: EpisodeVersionMediaFile | null
@@ -70,6 +82,12 @@ export interface EpisodeVersionEditorContext {
   anime_title: string
   anime_folder_path?: string | null
   selected_groups: FansubGroupSummary[]
+  /**
+   * Per-selected-group real dependents breakdown (Phase 187, D-10), keyed by
+   * fansub_group_id. Present for the admin editor context only -- absent for the
+   * narrow contributor context, since contributors cannot edit the group field.
+   */
+  selected_group_dependents?: Record<number, FansubGroupDependents>
   /** At most four anchors per selected group, matching anime and version label. */
   date_neighbors: EpisodeVersionDateNeighbor[]
   /** Einstufung der übergeordneten Episode (nicht der Version); nur im Admin-Kontext. */

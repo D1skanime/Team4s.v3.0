@@ -14560,6 +14560,31 @@ components:
         story_preview:
           type: string
           nullable: true
+    FansubGroupDependents:
+      type: object
+      description: >-
+        A single selected fansub group's real, counted dependents (Phase 187, D-10),
+        computed by the same guard the group-change write path uses
+        (GetReleaseVersionGroupDependents). Present with all-zero counts for a group
+        proven to have no dependents -- never omitted.
+      required:
+        - fansub_group_id
+        - credits
+        - media
+        - notes
+      properties:
+        fansub_group_id:
+          type: integer
+          format: int64
+        credits:
+          type: integer
+          format: int32
+        media:
+          type: integer
+          format: int32
+        notes:
+          type: integer
+          format: int32
     FansubGroup:
       type: object
       required:
@@ -16092,6 +16117,16 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FansubGroupSummary"
+        selected_group_dependents:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/FansubGroupDependents"
+          description: >-
+            Per-selected-group real dependents breakdown (Phase 187, D-10), keyed by
+            fansub_group_id. Present for the admin editor context only -- the narrow
+            contributor context never sets this, since contributors cannot edit the
+            group field at all. A group with zero dependents is present with all-zero
+            counts, never omitted.
         date_neighbors:
           type: array
           description: >-
