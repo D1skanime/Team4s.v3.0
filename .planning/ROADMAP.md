@@ -2887,10 +2887,20 @@ Plans:
 
 ### Phase 188: UX-Abgleich-Rest — Korrektheits- und Robustheitsfixes vor neuen Features
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Die drei verbliebenen Korrektheits- und Robustheitsbefunde aus dem UX-Abgleich vom
+2026-10-17 (#18 Badge-Nenner-Korrektheit, #27 Re-Subjecting-Sicherheitslücke + Datenkonsistenz,
+#35.1 Config-Robustheit) sind behoben und mit echten Verhaltens-Tests belegt, bevor neue
+Feature-Arbeit beginnt.
+**Requirements**: D-04, D-05, D-06, D-07, D-08, D-09 (siehe 188-CONTEXT.md; additive Phase ohne
+REQUIREMENTS.md-Mapping, Decision-Coverage via D-IDs im `requirements`-Frontmatter-Feld jedes Plans.
+D-01/D-02/D-03 sind reine Scope-/Prozessentscheidungen ohne eigenen Code-Task.)
 **Depends on:** Phase 187
-**Plans:** 0 plans
+**Plans:** 4 plans, 1 Welle (alle unabhängig, keine gemeinsamen Dateien)
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 188 to break down)
+**Wave 1**
+
+- [ ] 188-01-PLAN.md — Badge-Nenner "Mitgetragene Projekte" auf anime.max_episodes umstellen (D-04/D-05/D-06).
+- [ ] 188-02-PLAN.md — Re-Subjecting nur bei verifizierter E-Mail (D-07).
+- [ ] 188-03-PLAN.md — Hygiene-Report-Skript für verwaiste app_users-Zeilen (D-08).
+- [ ] 188-04-PLAN.md — next.config.mjs Fail-Fast bei ungültigem NEXT_PUBLIC_API_URL (D-09).
