@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 187 was final phase)
-last_updated: 2026-10-19T14:35:23.435Z
+status: executing
+stopped_at: Completed 188-01-PLAN.md
+last_updated: "2026-10-19T23:07:50.615Z"
 last_activity: 2026-10-19
 progress:
-  total_phases: 52
+  total_phases: 53
   completed_phases: 47
-  total_plans: 471
-  completed_plans: 522
-  percent: 90
+  total_plans: 476
+  completed_plans: 469
+  percent: 89
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -431,16 +431,16 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 188 — ux-abgleich-rest-korrektheits-und-robustheitsfixes-vor-neuen
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 187
-Plan: Not started
+Phase: 188 (ux-abgleich-rest-korrektheits-und-robustheitsfixes-vor-neuen) — EXECUTING
+Plan: 2 of 5
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
-Status: Milestone complete
+Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -579,7 +579,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-19 - Completed quick task 261019-lcz: Anime-Detailseite weicher Hintergrundbild-Wechsel statt Flackern (Crossfade + Preload + Ken-Burns); Live-Checkpoint wartet auf Nutzerbestaetigung
+Last activity: 2026-10-19
 
 ## Accumulated Context
 
@@ -1376,6 +1376,7 @@ Last activity: 2026-10-19 - Completed quick task 261019-lcz: Anime-Detailseite w
 - [Phase 187-07]: useEpisodeImportBuilder.ts unveraendert gelassen -- conflict_details lief bereits unconditional durch setApplyResult(response.data) aus Plan 05
 - [Phase 187-07]: Kein neuer automatisierter Test fuer die navigate-away-Bedingung -- Plan-Verifikation verlangt nur tsc/lint, Bedingung lebt in page-level useEffect ohne exportierte reine Funktion
 - [Phase 187]: German pluralization bug fixed in dependents-count reason text (D-10-adjacent): shared formatGermanCount()/DependencySummary.GermanReasonFragment() helpers on frontend and backend — Fixed during the Plan 187-08 Live-UAT checkpoint at the user's explicit request; previously three call sites independently duplicated an un-pluralized fmt.Sprintf/template-literal pattern
+- [Phase 188]: Nenner-Formel nach 188-RESEARCH.md umgesetzt: COALESCE(MAX(pv.max_episodes), COUNT(*)) als Nenner, COUNT(DISTINCT episode_id) als Zaehler, explizites WHERE numerator >= denominator AND denominator > 0 statt impliziter HAVING
 
 ### Pending Todos
 
@@ -2077,11 +2078,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 187 P06 | ~70min | 2 tasks | 13 files |
 | Phase 187 P07 | 15min | 1 tasks | 1 files |
 | Phase 187 P08 | 3h | 2 tasks | 7 files |
+| Phase 188 P01 | 35min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T14:22:40.164Z
-Stopped at: Completed 187-08-PLAN.md
+Last session: 2026-10-19T23:07:50.584Z
+Stopped at: Completed 188-01-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
