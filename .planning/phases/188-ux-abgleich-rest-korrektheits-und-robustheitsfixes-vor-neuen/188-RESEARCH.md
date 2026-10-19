@@ -561,3 +561,134 @@ Alle drei Fragen sind während der Planung (Orchestrator-Entscheidung bzw. Plane
 **Valid until:** Stabil, solange `#18`/`#27`/`#35.1`-Code nicht durch andere Phasen zwischenzeitlich
 verändert wird — da diese Phase direkt nach Erstellung des CONTEXT.md geplant wird, keine
 Ablaufgefahr vor Planungsbeginn.
+
+---
+
+## Nachtrag: Bug "Leader/Projektleiter kann Projektzeitraum nicht setzen" (Plan 188-05, 2026-10-19)
+
+**Confidence:** HIGH — alle Fundstellen direkt gelesen (zwei unabhängige Explore-Durchläufe plus
+eigene Live-DB-Abfragen, siehe `188-CONTEXT.md`-Abschnitt "Erweiterung: Bug …" für die vollständigen
+Zitate und Live-Daten). Dieser Nachtrag ergänzt ausschließlich Architektur-Vorlage, Code-Beispiele,
+Datei-Split- und Testfixture-Strategie für Plan 188-05 — die Ist-Analyse selbst steht in
+`188-CONTEXT.md` (D-10 bis D-14).
+
+### Architecture Pattern: `CanForReleaseVersion` als Vorlage für eine neue `CanForAnimeProject`
+
+Das gesuchte "Gruppe + Projektkontext"-Muster existiert bereits für die Release-Version-Ebene und ist
+1:1 auf die Anime-Projekt-Ebene übertragbar:
+
+| Release-Version-Ebene (existiert) | Anime-Projekt-Ebene (neu zu bauen) |
+|---|---|
+| `Resolver.ListActorContributionRolesForVersion(ctx, appUserID, releaseVersionID) ([]string, error)` (`permissions.go:354`, impl. `authz_permissions.go:507-588`) | `Resolver.ListActorContributionRolesForAnimeProject(ctx, appUserID, animeID, fansubGroupID) ([]string, error)` — neue Interface-Methode auf demselben `Resolver`-Interface |
+| `Service.CanForReleaseVersion(ctx, actor, action, releaseVersionID) (Result, error)` (`permissions.go:626-707`) | `Service.CanForAnimeProject(ctx, actor, action, animeID, fansubGroupID) (Result, error)` — neue Methode auf demselben `Service` |
+| Schritt 1: `ResolveReleaseVersion` liefert `FansubGroupIDs` | Entfällt — `fansubGroupID` ist hier bereits bekannter Eingabeparameter (kommt aus der Route), kein Resolve nötig |
+| Schritt 2: `canForReleaseVersionGroupRole` → `ResolveGroupRights(actor, fansubGroupID)` je Gruppe | Direkt: `ResolveGroupRights(ctx, actor, fansubGroupID)` (bereits existierende, wiederverwendbare Methode, `permissions.go`, von `CanForFansubGroup`/`canForContext` ebenfalls genutzt) |
+| Schritt 3: `ListActorContributionRolesForVersion` + `roleAllows(code, action)`-Schleife | Identisches Muster: `ListActorContributionRolesForAnimeProject` + dieselbe `roleAllows`-Schleife (öffentliche Package-Funktion, bereits vorhanden) |
+
+**Wichtiger Unterschied zur bestehenden Methode (bewusst, laut Nutzervorgabe D-12):** Die neue
+`ListActorContributionRolesForAnimeProject`-Query MUSS `anime_contributions.status = 'confirmed'`
+filtern — die bestehende `ListActorContributionRolesForVersion` tut das NICHT (sie akzeptiert jeden
+Status). Das ist eine neue, eigenständige Methode, keine Parametrisierung der bestehenden — die
+bestehende Methode bleibt für die Release-Version-Ebene unverändert (andere Anrufer, andere
+Entscheidung, nicht Teil dieses Bugfixes).
+
+**Konzeptionelle SQL (Vorlage, exakte Spalten/Join-Reihenfolge gegen das reale Schema prüfen):**
+```sql
+-- Analog zu authz_permissions.go:553-570 (Schritt 2 / anime-weiter Fallback-Zweig dort),
+-- aber direkt ueber (animeID, fansubGroupID) parametrisiert statt ueber eine Release-Version
+-- abgeleitet, UND mit status='confirmed'-Filter (D-12, bewusster Unterschied zur
+-- bestehenden Methode).
+SELECT DISTINCT acr.role_code
+FROM anime_contributions ac
+JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+JOIN fansub_group_members fgm ON fgm.member_id = ac.member_id
+  AND fgm.fansub_group_id = ac.fansub_group_id
+WHERE ac.anime_id = $1
+  AND ac.fansub_group_id = $2
+  AND ac.status = 'confirmed'
+  AND fgm.app_user_id = $3
+  AND fgm.status = 'active'
+ORDER BY acr.role_code
+```
+
+**Aufrufstellen, die auf die neue `CanForAnimeProject`-Methode umgestellt werden:**
+1. `requireAnimeProjectTimelineWriteAccess` (`admin_content_anime_project_timeline.go:62-90`) — muss
+   zusätzlich `animeID` aus `c.Param("animeId")` parsen (Validierung analog zu
+   `UpdateAnimeFansubProjectTimeline`s eigenem Parsing, Zeile 103-106) und
+   `CanForAnimeProject(ctx, actor, ActionAnimeFansubProjectTimelineUpdate, animeID, fansubID)` statt
+   `CanForFansubGroup(...)` aufrufen.
+2. `GetFansubGroupCapabilities` (`app_auth_capabilities.go:44-...,116-120`) — Route
+   `GET /admin/fansubs/:id/capabilities` braucht einen **optionalen** Query-Parameter `anime_id`
+   (`admin_routes.go:221`, Route-Signatur selbst muss nicht geändert werden, nur der Handler liest
+   `c.Query("anime_id")` zusätzlich). Ist `anime_id` gesetzt und gültig (`> 0`), wird
+   `CanEditProjectTimeline` über `CanForAnimeProject` berechnet; ist der Parameter leer/fehlt, bleibt
+   das bestehende gruppenweite `CanForFansubGroup`-Verhalten exakt erhalten (Abwärtskompatibilität für
+   alle anderen Capability-Felder und für Aufrufer ohne `anime_id`).
+3. Frontend: `AnimeProjectTimelineSection.tsx` (hat `animeId`/`fansubId`/`expanded` bereits als Props,
+   lädt den Timeline-Inhalt bereits lazy nur bei `expanded`, Zeilen 36-59) bekommt denselben
+   lazy-`useEffect`-Aufruf für ein neues `getFansubGroupCapabilities(fansubId, { animeId })` (oder
+   äquivalent erweiterter API-Client-Aufruf in `frontend/src/lib/api.ts`/`frontend/src/lib/api/`), statt
+   die gruppenweite `canEdit`-Prop aus `AnimeReleasesCockpit.tsx` ungefiltert durchzureichen. Die
+   bestehende `canEditProjectTimeline`-Prop-Kette (`FansubEditClient.tsx:159-160` →
+   `AnimeReleasesCockpit.tsx:294-303` → `AnimeProjectTimelineSection`) kann als **Fallback/Default**
+   erhalten bleiben (z. B. während das projektspezifische Capability noch lädt), muss aber durch das
+   projektspezifische Ergebnis überschrieben werden, sobald es vorliegt.
+
+### Datei-Split-Pflicht (D-14) — konkrete Kandidaten
+
+| Datei | Aktuell | Betroffen durch | Hinweis für den Split |
+|---|---|---|---|
+| `backend/internal/permissions/permissions.go` | 970 Zeilen | Neue `CanForAnimeProject`-Methode | Datei enthält bereits klar abgrenzbare thematische Blöcke (Typen/Constants, `CanForFansubGroup`/`canForContext`, `CanForRelease*`-Familie, Cache-Loading `LoadCache`/`ReloadCache`). Ein Split entlang dieser Linien (z. B. `permissions_types.go`, `permissions_group.go`, `permissions_release.go`, `permissions_cache.go`) ist naheliegend — Planer muss konkrete Grenzen anhand der tatsächlichen Code-Struktur ziehen, reiner Umbau-Commit zuerst. |
+| `backend/internal/repository/authz_permissions.go` | 588 Zeilen | Neue `ListActorContributionRolesForAnimeProject`-Methode | Enthält bereits mehrere unabhängige Resolver-Methoden (`ListActorGroupRoles`, `LoadRoleCapabilities`, `LoadFansubGroupRoles`, `LoadCapabilityRoles`, `ListActorContributionRolesForVersion`) — Split entlang Loader- vs. Resolver-Zuständigkeit möglich. |
+| `frontend/src/app/admin/fansubs/[id]/edit/AnimeReleasesCockpit.tsx` | 507 Zeilen | Capability-Wiring pro Projekt-Zeile ändert sich | Datei rendert bereits mehrere unabhängige Akkordeon-Abschnitte pro Anime-Projekt (Timeline, Notes, Contributors) — Extraktion der Projekt-Zeilen-Rendering-Logik in eine eigene Komponente ist ein naheliegender Schnitt. |
+
+Alle drei Splits folgen der bereits etablierten CLAUDE.md-/Phase-184/187-Konvention: reiner
+Umbau-Commit zuerst (Verhalten unverändert, Tests/Typecheck grün, öffentliche
+Schnittstellen/Importe bleiben stabil oder werden im selben Commit vollständig nachgezogen), danach
+erst der inhaltliche Fix als separater Commit.
+
+### Test-Strategie (echte Postgres-Fixture, kein Mock/Stub-Only)
+
+Der bestehende Handler-Test (`admin_content_anime_project_timeline_test.go`) nutzt einen reinen
+In-Memory-Stub-Resolver (`permissionResolverStub` aus `app_auth_test.go:170-201`), dessen
+`ListActorContributionRolesForVersion`-Implementierung immer `nil, nil` liefert — für die neuen
+Fälle ("Leader ohne Projektrolle", "Gruppenmitglied ohne Rechte aber Projekt-project_lead
+bestätigt", "Projektrolle unbestätigt → kein Recht", "Projektrolle bei anderem Anime → kein Recht",
+"typesetter → kein Recht mehr") reicht ein Stub, der auch `ListActorContributionRolesForAnimeProject`
+simulieren kann (einfache Erweiterung desselben Stub-Patterns um ein konfigurierbares
+Rückgabe-Feld) — für `Service.CanForAnimeProject`-Unit-Tests (reine Entscheidungslogik, kein
+SQL) ist das ausreichend und schnell.
+
+Für die SQL-Query selbst (`ListActorContributionRolesForAnimeProject`-Resolver-Implementierung in
+`authz_permissions.go`) braucht es eine **echte Postgres-Fixture**, da hier genau die
+`status='confirmed'`-Filterung bewiesen werden muss (Teststil-Pflicht: Verhaltens-Assertion, die den
+Code wirklich ausführt). Es existiert aktuell **keine** Fixture, die `anime_contributions` +
+`anime_contribution_roles` + `fansub_group_members` gemeinsam mit den exakten, für diese Phase
+relevanten Spalten (`status`, `anime_id`, `fansub_group_id`, `member_id`, `role_code`) bereitstellt.
+Nächstliegendes Vorbild: `backend/internal/testsupport/phase150_postgres.go` (`OpenPhase150Postgres`,
+`createPhase150Prerequisites`) — baut spaltengetreue Minimal-Stand-ins für `anime_contributions` u. a.
+nach, explizit **ohne** die volle Migrationskette zu laden (Begründungskommentar Zeilen 20-27 dort:
+vermeidet unnötige `role_definitions`/`anime`/`fansub_groups`-Stand-ins nur für FK-Zwänge). Für Plan
+188-05 empfiehlt sich ein neuer `backend/internal/testsupport/phase188_permissions_postgres.go` nach
+exakt diesem Muster, mit Stand-ins für `anime_contributions` (inkl. `status`), `anime_contribution_roles`
+(`anime_contribution_id`, `role_code`), `fansub_group_members` (`member_id`, `fansub_group_id`,
+`app_user_id`, `status`). `role_capabilities`/`role_allows` selbst muss NICHT aus der DB gelesen
+werden — das läuft über den In-Memory-Cache (`permissions.LoadCache`/`roleAllows`), der in Tests
+direkt über einen einfachen Test-`CacheLoader` (Map-Literal) befüllt werden kann, ohne eine
+`role_capabilities`-Tabelle in der Fixture zu benötigen.
+
+### Migrations-Hinweis
+
+Nächste freie Nummer: **0185**. Zwei getrennte Migrationsdateien empfohlen (eine je Rolle/Richtung,
+analog zum bestehenden `0157`-Einzelzweck-Muster), oder eine kombinierte Datei mit zwei klar
+kommentierten Blöcken — Planer entscheidet, beide additiv/gezielt wie in `188-CONTEXT.md` D-10/D-11
+festgelegt (kein `DELETE FROM role_capabilities;` ohne `WHERE`).
+
+### Live-UAT-Reproduktionsschritte (Referenz für den blockierenden Checkpoint)
+
+1. Backend neu bauen/starten (`docker compose up -d --build team4sv30-backend` oder äquivalent) und
+   Frontend neu starten, damit Migration + Permission-Cache-Reload wirken.
+2. Login als `app_user 6` (Leader, Strawhat Subs).
+3. `/admin/fansubs/26/edit` → Projekt „11eyes: Pink Phantasmagoria“ (Anime 3) aufklappen.
+4. Projektzeitraum-Datumsfelder müssen jetzt editierbar sein (heute: gesperrt) — Speichern muss
+   erfolgreich sein.
