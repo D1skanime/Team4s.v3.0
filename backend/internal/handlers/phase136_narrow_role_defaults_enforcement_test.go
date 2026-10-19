@@ -29,7 +29,9 @@ func TestPhase136NarrowRoleDefaultsSeedToHandlerContract(t *testing.T) {
 	migrationContent, err := os.ReadFile(filepath.Join(phase136RepoRoot(t), "database/migrations/0146_capability_policy_catalog.up.sql"))
 	require.NoError(t, err)
 	migration := string(migrationContent)
-	permissionsSource := read("internal/permissions/permissions.go")
+	// Plan 188-05 split permissions.go (D-14, >450 lines) into several files; the Action
+	// constants this test greps for now live in permissions_types.go, not permissions.go.
+	permissionsSource := read("internal/permissions/permissions.go") + read("internal/permissions/permissions_types.go")
 	cases := []struct {
 		role, action, handler string
 	}{
