@@ -43,6 +43,11 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 		return nil, err
 	}
 
+	selectedGroupDependents, err := h.resolveEpisodeVersionSelectedGroupDependents(ctx, version.ReleaseVersionID, resolved.selectedGroups)
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.EpisodeVersionEditorContext{
 		Episode:                    episode,
 		SelectedFile:               selectedFile,
@@ -50,9 +55,38 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 		AnimeTitle:                 resolved.animeSource.Title,
 		AnimeFolderPath:            resolved.animeFolderPath,
 		SelectedGroups:             resolved.selectedGroups,
+		SelectedGroupDependents:    selectedGroupDependents,
 		DateNeighbors:              dateNeighbors,
 		JellyfinEnrichmentDegraded: resolved.jellyfinEnrichmentDegraded || fileDegraded,
 	}, nil
+}
+
+// resolveEpisodeVersionSelectedGroupDependents computes a per-selected-group
+// dependents breakdown (Phase 187, D-10) by calling Plan 01's
+// GetReleaseVersionGroupDependents once per selected group. A group with zero
+// dependents is still included with all-zero counts -- never omitted -- so
+// the frontend can distinguish "checked, removable" from "not yet checked".
+// Admin editor context only (see loadEpisodeVersionEditorContext); the narrow
+// loadEpisodeVersionContributorContext never calls this.
+func (h *AdminContentHandler) resolveEpisodeVersionSelectedGroupDependents(
+	ctx context.Context,
+	releaseVersionID int64,
+	selectedGroups []models.FansubGroupSummary,
+) (map[int64]models.FansubGroupDependents, error) {
+	dependents := make(map[int64]models.FansubGroupDependents, len(selectedGroups))
+	for _, group := range selectedGroups {
+		summary, err := h.episodeVersionRepo.GetReleaseVersionGroupDependents(ctx, releaseVersionID, group.ID)
+		if err != nil {
+			return nil, err
+		}
+		dependents[group.ID] = models.FansubGroupDependents{
+			FansubGroupID: group.ID,
+			Credits:       summary.Credits,
+			Media:         summary.Media,
+			Notes:         summary.Notes,
+		}
+	}
+	return dependents, nil
 }
 
 // loadEpisodeVersionContributorContext liefert nur den Kontext, den Media- und

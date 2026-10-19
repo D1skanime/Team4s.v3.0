@@ -160,6 +160,19 @@ func ValidateEpisodeVersionDates(start, completion *time.Time) error {
 	return nil
 }
 
+// FansubGroupDependents reports a single selected fansub group's real,
+// counted dependents (Credits/Media/Notes) on a release version, per the
+// Phase-187 guard (backend/internal/repository/release_version_group_guard.go).
+// Present with all-zero counts for a group proven to have no dependents --
+// never omitted -- so the frontend can distinguish "checked, removable" from
+// "not yet checked" (D-10).
+type FansubGroupDependents struct {
+	FansubGroupID int64 `json:"fansub_group_id"`
+	Credits       int32 `json:"credits"`
+	Media         int32 `json:"media"`
+	Notes         int32 `json:"notes"`
+}
+
 // EpisodeVersionEditorContext liefert alle Kontextdaten für den Admin-Editor
 // einer Episodenversion, inklusive Anime-Pfad und verfügbare Fansub-Gruppen.
 type EpisodeVersionEditorContext struct {
@@ -168,7 +181,12 @@ type EpisodeVersionEditorContext struct {
 	AnimeTitle      string                       `json:"anime_title"`
 	AnimeFolderPath *string                      `json:"anime_folder_path,omitempty"`
 	SelectedGroups  []FansubGroupSummary         `json:"selected_groups"`
-	DateNeighbors   []EpisodeVersionDateNeighbor `json:"date_neighbors"`
+	// SelectedGroupDependents is a per-selected-group dependents breakdown
+	// (Phase 187, D-10), keyed by fansub_group_id. Populated for the admin
+	// editor context only -- the narrow contributor context never sets this,
+	// since contributors cannot edit the group field at all.
+	SelectedGroupDependents map[int64]FansubGroupDependents `json:"selected_group_dependents,omitempty"`
+	DateNeighbors           []EpisodeVersionDateNeighbor     `json:"date_neighbors"`
 	// Episode ist die Einstufung der übergeordneten Episode (nicht der Version).
 	Episode *EpisodeClassification `json:"episode,omitempty"`
 	// JellyfinEnrichmentDegraded is true only when a configured Jellyfin connection was
