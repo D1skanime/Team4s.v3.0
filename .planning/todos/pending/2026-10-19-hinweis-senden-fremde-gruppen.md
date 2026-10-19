@@ -22,7 +22,11 @@ Als Mitglied einer Gruppe kann ich bei „Hinweis senden“ (Beitragsvorschlag) 
 ## Offene Fragen (vor dem Planen klären)
 
 1. ~~Wer bestätigt?~~ **ENTSCHIEDEN (Nutzer, 19.10.2026):** Geht es um die **Leader-Rolle**, bestätigt der **Plattform-Admin**. Bei **allen anderen Rollen** bestätigt der **Leader der Zielgruppe** (nicht die eigene Gruppe des Absenders).
-2. Welche Gruppen sind auswählbar: alle Gruppen, oder nur Gruppen, die das Projekt/Anime tatsächlich released haben?
+2. ~~Welche Gruppen?~~ **ENTSCHIEDEN (Nutzer, 19.10.2026): alle Gruppen**, über die **bereits gebaute Gruppensuche (Name + Alias)**. Code und UI WIEDERVERWENDEN, NICHT neu coden:
+   - Suchlogik heute: `useEpisodeVersionEditor.ts` (Effekt um `groupQuery`, ca. Z. 155–187): `getFansubList({ q, page: 1, per_page: 10 })` mit 180-ms-Debounce, bereits gewählte Gruppen ausgefiltert, Meldung „Keine passende Gruppe oder kein passender Alias gefunden.“
+   - UI heute: `FansubGroupsSection.tsx` im Release-Editor (Phase 187, „Partnergruppe hinzufügen“: `Input` + Ergebnis-`Button`s aus `@/components/ui`).
+   - Da die Suchlogik derzeit im Editor-Hook steckt: als gemeinsamen Hook herausziehen (z. B. `useFansubGroupSearch`) und im Release-Editor UND im Hinweis-Formular nutzen — keine Kopie. Ebenso das Such-/Ergebnis-Markup als gemeinsame Komponente teilen statt nachzubauen.
+   - In der Auswahl kennzeichnen: „Eigene Gruppe“ vs. „Andere Gruppe“.
 3. Wird man durch einen bestätigten Hinweis automatisch (Gast-)Mitglied der fremden Gruppe, oder bleibt es ein reiner Projekt-Beitrag ohne Mitgliedschaft? Bezug zur Mitgliedschafts-Registry und zu historischen Mitgliedschaften/Claims.
 4. Schutz vor Spam/Missbrauch: Begrenzung, Ablehnen mit Begründung, Sichtbarkeit für die Zielgruppe.
 5. Punkte und Badges: Zählen Beiträge bei fremden Gruppen genauso (Bezug Badge-Nenner aus Phase 188 und Punktekatalog #17)?
