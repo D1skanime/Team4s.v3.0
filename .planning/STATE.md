@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 187-04-PLAN.md
-last_updated: "2026-10-19T12:06:47.717Z"
+stopped_at: Completed 187-05-PLAN.md
+last_updated: "2026-10-19T12:19:47.212Z"
 last_activity: 2026-10-19
 progress:
   total_phases: 52
   completed_phases: 46
   total_plans: 471
-  completed_plans: 464
+  completed_plans: 465
   percent: 88
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 187 (Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups)) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1353,6 +1353,8 @@ Last activity: 2026-10-19
 - [Phase 187]: 187-03: upsertReleaseVersionGroup wired with the Plan-01 dependents guard; same-group/add exception falls out of diffRemovedReleaseVersionGroupIDs' empty removed-set by construction (D-12), no isImportPath-style branching
 - [Phase 187-04]: Zero-dependents selected group always included in selected_group_dependents with all-zero counts, never omitted (D-10)
 - [Phase 187-04]: loadEpisodeVersionContributorContext left untouched -- contributors cannot edit the group field, so the dependents breakdown stays admin-editor-path only
+- [Phase 187]: 187-05: apply-loop per-row conflict continuation reuses unqualified GroupHasDependentsError/ErrReleaseVersionGroupsEmpty (same package), not repository.-prefixed — episode_import_repository_apply.go is itself package repository; the plan's own pseudocode used a cross-package-looking qualifier that would not compile in-package
+- [Phase 187]: 187-05: full-suite scripts/test-backend.sh gate shows GATE RED(1) from one pre-existing, unrelated failure (TestEpisodeVersionDateEditorContextBothSurfacesAndFailure, caused by 187-04's dependents-enrichment call against a fixture missing release_role_credit_lifecycles) — Confirmed pre-existing via a throwaway worktree at the 187-04 tip commit (b21506aba) with no 187-05 changes applied, reproducing the identical failure; logged to deferred-items.md per scope-boundary rule instead of fixed in this plan
 
 ### Pending Todos
 
@@ -1368,6 +1370,7 @@ Last activity: 2026-10-19
 - internal/handlers package tests: ~20 tests across ~10 files (admin_content_anime_project_notes_test.go and siblings) depend on permissions.roleAllows/RoleAllowsAction but never call permissions.Service.LoadCache, so they always observe a nil cache and deny/return false regardless of real role_capabilities data. Pre-existing, verified not caused by Phase 137; see .planning/phases/137-central-effective-rights-resolver-overrides/deferred-items.md.
 - 164-07: Task 1 (automated gate + docs/audits/164-performance-gates.md) done, committed 9d4b4951. Task 3's dev harness route built/committed (3cba39a1), zero-backend-request verified. Tasks 2 (live Naruto browser UAT) and 3's live DOM-node-count/mobile-performance measurement (checkpoint:human-verify, gate=blocking) are UNRESOLVED -- require a human with real browser + Chrome DevTools. Phase 164 and plan 164-07 are NOT complete until both are approved. See 164-07-SUMMARY.md for verbatim how-to-verify steps.
 - 185-11: Phase-134-Matrix test cluster (9 tests, internal/repository/phase134_verification_matrix_*test.go) cannot pass until Keycloak dev-account credentials for csubs-leader@team4s.local and sheppert@team4s.local are verified/reset in the live Keycloak realm -- password grant returns invalid_grant. Out of scope for 185-11 (no file it touches can fix this); needs Keycloak admin action before the phase's 0-red-tests acceptance criterion can be met.
+- Pre-existing (187-04-introduced, not 187-05) full-suite failure: TestEpisodeVersionDateEditorContextBothSurfacesAndFailure/admin=true -- needs a fixture fix or tolerant error handling before scripts/test-backend.sh reports GATE GREEN again. See .planning/phases/187-gruppenwechsel-bei-bestehenden-releases-release-versions-rel/deferred-items.md
 
 ### Quick Tasks Completed
 
@@ -2047,11 +2050,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 187 P02 | 17min | 3 tasks | 6 files |
 | Phase 187 P03 | 35min | 2 tasks | 5 files |
 | Phase 187 P04 | 25min | 2 tasks | 5 files |
+| Phase 187 P05 | 25min | 2 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T12:06:47.690Z
-Stopped at: Completed 187-04-PLAN.md
+Last session: 2026-10-19T12:19:47.188Z
+Stopped at: Completed 187-05-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
