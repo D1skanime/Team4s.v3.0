@@ -72,6 +72,23 @@ func (r *AppAuthRepository) EnsureAppUserForIdentity(ctx context.Context, identi
 
 	now := time.Now().UTC()
 	if !found {
+		if identity.EmailVerified {
+			existingByEmail, emailFound, err := loadAppUserByEmail(ctx, tx, email)
+			if err != nil {
+				return models.AppUser{}, err
+			}
+			if shouldResubjectByEmail(identity.EmailVerified, emailFound) {
+				resubjected, err := resubjectAppUserByEmail(ctx, tx, existingByEmail, subject, email, displayName, identity, now)
+				if err != nil {
+					return models.AppUser{}, err
+				}
+				if err := tx.Commit(ctx); err != nil {
+					return models.AppUser{}, fmt.Errorf("ensure app user: commit resubject: %w", err)
+				}
+				return resubjected, nil
+			}
+		}
+
 		legacyUserID, err := createLegacyUserBridge(ctx, tx, identity)
 		if err != nil {
 			return models.AppUser{}, err

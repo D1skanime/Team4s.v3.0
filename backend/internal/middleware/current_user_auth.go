@@ -85,6 +85,7 @@ func (r *KeycloakCurrentUserResolver) ResolveCurrentUser(ctx context.Context, ra
 	currentUser, err := r.appAuthRepo.ResolveCurrentUser(ctx, models.KeycloakIdentity{
 		Subject:           claims.Subject,
 		Email:             strings.TrimSpace(claims.Email),
+		EmailVerified:     claims.EmailVerified,
 		DisplayName:       displayName,
 		PreferredUsername: strings.TrimSpace(claims.PreferredUsername),
 		GivenName:         strings.TrimSpace(claims.GivenName),
