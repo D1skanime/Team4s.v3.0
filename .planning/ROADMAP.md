@@ -2852,10 +2852,21 @@ Plans:
 
 ### Phase 187: Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups): Fansub-Gruppe eines bestehenden Releases nur änderbar solange nichts dranhängt; sonst serverseitige Sperre mit deutscher Meldung statt FK-Fehler/stillem CASCADE-Löschen; Partnergruppe hinzufügen statt Wechsel; kein Umzugs-Assistent
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Ein bestehendes Release lässt sich frei umgruppieren solange nichts dranhängt; sobald
+Credits, Medien oder Notizen an einer Gruppe hängen, verhindert eine serverseitige Sperre mit
+deutscher Anhangs-Auskunft den heutigen FK-Fehler bzw. das stille CASCADE-Löschen -- sowohl im
+Release-Editor als auch im Episoden-Import, der zusätzlich eine Zeile statt des ganzen Imports
+blockiert.
+**Requirements**: D-01..D-14 (siehe 187-CONTEXT.md; keine formalen REQ-IDs fuer diese additive Phase)
 **Depends on:** Phase 186
-**Plans:** 0 plans
+**Plans:** 8 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 187 to break down)
+- [ ] 187-01-PLAN.md — Dependents-guard core (Postgres fixture, counting SQL, set-diff helpers, sentinels)
+- [ ] 187-02-PLAN.md — Editor write path: split + guard wiring + 409/400 handler responses
+- [ ] 187-03-PLAN.md — Import write path: split + guard wiring (same-group/add exception via set diff)
+- [ ] 187-04-PLAN.md — Editor-context dependents data (backend) + contract/type parity
+- [ ] 187-05-PLAN.md — Import apply-loop per-row conflict continuation + D-12 Pruefauftrag finding
+- [ ] 187-06-PLAN.md — Frontend: FansubGroupsSection split, D-05 relabel, D-10 disabled-chip wiring
+- [ ] 187-07-PLAN.md — Frontend: import-apply conflict surfacing in the success panel
+- [ ] 187-08-PLAN.md — Deploy + blocking live UAT checkpoint
