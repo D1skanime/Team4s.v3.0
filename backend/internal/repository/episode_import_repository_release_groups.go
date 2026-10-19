@@ -15,7 +15,14 @@ import (
 // pure split, no behavior change at extraction time) to keep that file under
 // the project's 450-line limit. Plan 03's Task 2 wires the Phase-187
 // dependents guard (release_version_group_guard.go, Plan 01) into this
-// function.
+// function -- the import path's sibling of Plan 02's editor-path
+// syncEpisodeVersionSelectedGroups, but deliberately NARROWER per D-12: only
+// an actual group-replace is blocked, never a same-group re-apply or a
+// partner-group addition. That distinction falls out of
+// diffRemovedReleaseVersionGroupIDs' set-difference by construction (an
+// unchanged or add-only `memberGroups` set always yields an empty `removed`
+// set, so ensureRemovedReleaseVersionGroupsHaveNoDependents is a no-op) --
+// no `isImportPath`-style exception flag exists or is needed.
 func upsertReleaseVersionGroup(
 	ctx context.Context,
 	tx pgx.Tx,
@@ -25,8 +32,22 @@ func upsertReleaseVersionGroup(
 	learned *[]models.LearnedFansubAlias,
 ) error {
 	memberGroups, err := resolveImportFansubSelection(ctx, tx, mapping, media)
-	if err != nil || len(memberGroups) == 0 {
+	if err != nil {
 		return err
+	}
+
+	currentIDs, err := queryCurrentReleaseVersionGroupIDs(ctx, tx, releaseVersionID)
+	if err != nil {
+		return err
+	}
+	if err := ensureReleaseVersionGroupsNotReducedToEmpty(len(currentIDs), len(memberGroups)); err != nil {
+		return err
+	}
+	if len(memberGroups) == 0 {
+		// currentIDs is already empty here (the guard above would have
+		// rejected the patch otherwise) -- a release version that never had a
+		// group stays a pure no-op, same as before this guard existed.
+		return nil
 	}
 
 	if err := learnFansubGroupAliasesForExplicitSelection(ctx, tx, mapping, media, memberGroups, learned); err != nil {
@@ -45,6 +66,16 @@ func upsertReleaseVersionGroup(
 	for i, g := range memberGroups {
 		newIDs[i] = g.ID
 	}
+
+	// D-12: removed is the set of currently-present groups that the new
+	// selection drops. A same-group update or a pure add (partner group)
+	// always yields an empty removed set here, so the guard below is a
+	// no-op in those cases -- only an actual replace/removal is gated.
+	removed := diffRemovedReleaseVersionGroupIDs(currentIDs, newIDs)
+	if err := ensureRemovedReleaseVersionGroupsHaveNoDependents(ctx, tx, releaseVersionID, removed); err != nil {
+		return err
+	}
+
 	if _, err := tx.Exec(ctx, `
 		DELETE FROM release_version_groups
 		WHERE release_version_id = $1
