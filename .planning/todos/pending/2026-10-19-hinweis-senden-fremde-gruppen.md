@@ -21,7 +21,7 @@ Als Mitglied einer Gruppe kann ich bei „Hinweis senden“ (Beitragsvorschlag) 
 
 ## Offene Fragen (vor dem Planen klären)
 
-1. Wer prüft und bestätigt einen Hinweis für eine fremde Gruppe? Vermutlich der Leader bzw. die Rolle mit Freigaberecht **der Zielgruppe**, nicht die eigene Gruppe.
+1. ~~Wer bestätigt?~~ **ENTSCHIEDEN (Nutzer, 19.10.2026):** Geht es um die **Leader-Rolle**, bestätigt der **Plattform-Admin**. Bei **allen anderen Rollen** bestätigt der **Leader der Zielgruppe** (nicht die eigene Gruppe des Absenders).
 2. Welche Gruppen sind auswählbar: alle Gruppen, oder nur Gruppen, die das Projekt/Anime tatsächlich released haben?
 3. Wird man durch einen bestätigten Hinweis automatisch (Gast-)Mitglied der fremden Gruppe, oder bleibt es ein reiner Projekt-Beitrag ohne Mitgliedschaft? Bezug zur Mitgliedschafts-Registry und zu historischen Mitgliedschaften/Claims.
 4. Schutz vor Spam/Missbrauch: Begrenzung, Ablehnen mit Begründung, Sichtbarkeit für die Zielgruppe.
