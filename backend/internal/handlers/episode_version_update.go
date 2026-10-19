@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -73,6 +74,19 @@ func (h *FansubHandler) UpdateEpisodeVersion(c *gin.Context) {
 	}
 	if errors.Is(err, repository.ErrConflict) {
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "versionskombination bereits vorhanden"}})
+		return
+	}
+	if errors.Is(err, repository.ErrGroupHasDependents) {
+		var depErr *repository.GroupHasDependentsError
+		errors.As(err, &depErr)
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"message": fmt.Sprintf("Diese Gruppe kann nicht entfernt werden: %d Credits, %d Medien, %d Notizen hängen noch daran.", depErr.Summary.Credits, depErr.Summary.Media, depErr.Summary.Notes),
+			"code":    "release_version_group_has_dependents",
+		}})
+		return
+	}
+	if errors.Is(err, repository.ErrReleaseVersionGroupsEmpty) {
+		badRequest(c, "Ein Release muss mindestens eine Fansub-Gruppe behalten.")
 		return
 	}
 	if err != nil {
