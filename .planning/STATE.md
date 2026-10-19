@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 187-08-PLAN.md
-last_updated: "2026-10-19T14:23:45.062Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 187 was final phase)
+last_updated: 2026-10-19T14:35:23.435Z
 last_activity: 2026-10-19
 progress:
   total_phases: 52
   completed_phases: 47
   total_plans: 471
-  completed_plans: 468
+  completed_plans: 522
   percent: 90
 ---
 
@@ -431,16 +431,16 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 187 — Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups)
+**Current focus:** Milestone complete
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 187 (Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups)) — EXECUTING
-Plan: 8 of 8
+Phase: 187
+Plan: Not started
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
-Status: ready_for_verification
+Status: Milestone complete
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
