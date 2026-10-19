@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 188-02-PLAN.md
-last_updated: "2026-10-19T23:18:23.211Z"
+stopped_at: Completed 188-03-PLAN.md
+last_updated: "2026-10-19T23:28:01.029Z"
 last_activity: 2026-10-19
 progress:
   total_phases: 53
   completed_phases: 47
   total_plans: 476
-  completed_plans: 470
+  completed_plans: 471
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 188 (ux-abgleich-rest-korrektheits-und-robustheitsfixes-vor-neuen) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1378,6 +1378,7 @@ Last activity: 2026-10-19
 - [Phase 187]: German pluralization bug fixed in dependents-count reason text (D-10-adjacent): shared formatGermanCount()/DependencySummary.GermanReasonFragment() helpers on frontend and backend — Fixed during the Plan 187-08 Live-UAT checkpoint at the user's explicit request; previously three call sites independently duplicated an un-pluralized fmt.Sprintf/template-literal pattern
 - [Phase 188]: Nenner-Formel nach 188-RESEARCH.md umgesetzt: COALESCE(MAX(pv.max_episodes), COUNT(*)) als Nenner, COUNT(DISTINCT episode_id) als Zaehler, explizites WHERE numerator >= denominator AND denominator > 0 statt impliziter HAVING
 - [Phase 188-02]: shouldResubjectByEmail gated Re-Subjecting: nur bei verifizierter E-Mail wird eine bestehende app_users-Zeile per E-Mail-Match wiederverwendet; legacy_user_id bleibt dabei unangetastet (D-07).
+- [Phase 188-03]: D-08 Hygiene-Report (report-orphaned-app-users): KEYCLOAK_DATABASE_URL-Default zeigt auf bestehenden keycloak-db-Container, kein manueller Setup noetig
 
 ### Pending Todos
 
@@ -2081,11 +2082,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 187 P08 | 3h | 2 tasks | 7 files |
 | Phase 188 P01 | 35min | 2 tasks | 2 files |
 | Phase 188 P02 | 25min | 2 tasks | 6 files |
+| Phase 188 P03 | 25min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T23:18:23.187Z
-Stopped at: Completed 188-02-PLAN.md
+Last session: 2026-10-19T23:28:01.005Z
+Stopped at: Completed 188-03-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
