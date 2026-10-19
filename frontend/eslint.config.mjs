@@ -86,11 +86,6 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   // Ergaenzungen oben.
   'src/app/admin/episode-versions/\\[versionId\\]/edit/DateienTabSection.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/InformationenTabSection.tsx',
-  // 187-06 Task 1 (Zwischenstand): FansubGroupsSection.tsx wird in Task 1 byte-identisch aus
-  // EpisodeVersionEditorPage.tsx extrahiert (natives <input> unveraendert); Task 2 migriert
-  // dasselbe Feld auf @/components/ui Input und entfernt diesen Eintrag wieder (Ratchet schrumpft
-  // im selben Plan). Siehe 187-06-SUMMARY.md.
-  'src/app/admin/episode-versions/\\[versionId\\]/edit/FansubGroupsSection.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaDetailPanel.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaSection.tsx',
   // 180-04: reine Code-Verschiebung aus dem bereits gelisteten

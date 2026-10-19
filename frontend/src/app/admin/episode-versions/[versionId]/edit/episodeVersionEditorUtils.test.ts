@@ -4,6 +4,7 @@ import {
   buildInitialFormState,
   buildSnapshot,
   defaultReleaseTitle,
+  formatDependentsReason,
   formatDurationInput,
   fromDateInputValue,
   normalizeCRC32Draft,
@@ -37,6 +38,29 @@ describe('parseDurationInput', () => {
     expect(parseDurationInput('abc')).toBeNull()
     expect(parseDurationInput('1m90s')).toBeNull()
     expect(parseDurationInput('25:99')).toBeNull()
+  })
+})
+
+describe('formatDependentsReason', () => {
+  it('returns null for an absent/undefined breakdown (not yet checked, not "no dependents")', () => {
+    expect(formatDependentsReason(undefined)).toBeNull()
+    expect(formatDependentsReason(null)).toBeNull()
+  })
+
+  it('returns null when all counts are zero (safely removable)', () => {
+    expect(formatDependentsReason({ fansub_group_id: 1, credits: 0, media: 0, notes: 0 })).toBeNull()
+  })
+
+  it('returns a German reason naming every non-zero count when any count is non-zero', () => {
+    expect(formatDependentsReason({ fansub_group_id: 1, credits: 2, media: 1, notes: 0 })).toBe(
+      'Kann nicht entfernt werden: 2 Credits, 1 Medien, 0 Notizen hängen noch daran.',
+    )
+  })
+
+  it('treats a single non-zero count as sufficient to block removal', () => {
+    expect(formatDependentsReason({ fansub_group_id: 1, credits: 0, media: 0, notes: 3 })).toBe(
+      'Kann nicht entfernt werden: 0 Credits, 0 Medien, 3 Notizen hängen noch daran.',
+    )
   })
 })
 

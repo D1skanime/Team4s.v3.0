@@ -1,5 +1,5 @@
 import { ApiError } from '@/lib/api'
-import { EpisodeVersionEditorContext, EpisodeVersionMediaFile, SubtitleType } from '@/types/episodeVersion'
+import { EpisodeVersionEditorContext, EpisodeVersionMediaFile, FansubGroupDependents, SubtitleType } from '@/types/episodeVersion'
 import { FansubGroupSummary } from '@/types/fansub'
 
 export interface FormState {
@@ -45,6 +45,19 @@ export function resolveVisibleActiveTab(activeTab: ActiveTab, allowedTabs: Set<A
   if (allowedTabs.has('notizen')) return 'notizen'
   if (allowedTabs.has('informationen')) return 'informationen'
   return activeTab
+}
+
+/**
+ * D-10: a selected group's removable-chip reason. Returns `null` when the group has no real
+ * dependents (safely removable, chip stays enabled) -- never for an absent/undefined breakdown
+ * either, since "not yet checked" must not be mistaken for "has dependents". Returns the German
+ * blocking reason, naming the counts per kind, only when at least one count is non-zero.
+ */
+export function formatDependentsReason(dependents?: FansubGroupDependents | null): string | null {
+  if (!dependents) return null
+  const { credits, media, notes } = dependents
+  if (!credits && !media && !notes) return null
+  return `Kann nicht entfernt werden: ${credits} Credits, ${media} Medien, ${notes} Notizen hängen noch daran.`
 }
 
 /** Only an allow-listed, path-only same-origin destination is honored as a safe return target. */

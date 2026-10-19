@@ -1,5 +1,9 @@
+import { Button, Input } from '@/components/ui'
+
+import type { FansubGroupDependents } from '@/types/episodeVersion'
 import type { FansubGroup, FansubGroupSummary } from '@/types/fansub'
 
+import { formatDependentsReason } from './episodeVersionEditorUtils'
 import styles from './EpisodeVersionEditor.module.css'
 
 interface FansubGroupsSectionProps {
@@ -9,6 +13,7 @@ interface FansubGroupsSectionProps {
   searchMessage: string | null
   groupResults: FansubGroup[]
   selectedGroups: FansubGroupSummary[]
+  groupDependents: Record<number, FansubGroupDependents>
   addGroup: (group: FansubGroup) => void
   removeGroup: (groupID: number) => void
 }
@@ -20,6 +25,7 @@ export function FansubGroupsSection({
   searchMessage,
   groupResults,
   selectedGroups,
+  groupDependents,
   addGroup,
   removeGroup,
 }: FansubGroupsSectionProps) {
@@ -27,7 +33,7 @@ export function FansubGroupsSection({
     <section className={styles.card}>
       <div className={styles.sectionHeader}>
         <div>
-          <h2 className={styles.sectionTitle}>Fansub Gruppen</h2>
+          <h2 className={styles.sectionTitle}>Partnergruppe hinzufügen</h2>
           <p className={styles.helperText}>
             Suche nach Gruppenname oder Alias. Mehrere Gruppen
             werden als Kollaboration gespeichert.
@@ -37,7 +43,7 @@ export function FansubGroupsSection({
 
       <label className={styles.field}>
         <span>Gruppe suchen</span>
-        <input
+        <Input
           value={groupQuery}
           onChange={(event) => setGroupQuery(event.target.value)}
           placeholder="Name oder Alias..."
@@ -53,9 +59,10 @@ export function FansubGroupsSection({
       {groupResults.length > 0 ? (
         <div className={styles.groupSearchList}>
           {groupResults.map((group) => (
-            <button
+            <Button
               key={group.id}
-              type="button"
+              variant="secondary"
+              size="sm"
               className={styles.groupSearchItem}
               onClick={() => addGroup(group)}
             >
@@ -64,24 +71,30 @@ export function FansubGroupsSection({
                 {"Gruppe"}{" "}
                 | {group.slug}
               </span>
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}
 
       <div className={styles.chipRow}>
         {selectedGroups.length > 0 ? (
-          selectedGroups.map((group) => (
-            <button
-              key={group.id}
-              type="button"
-              className={styles.chip}
-              title={`Slug: ${group.slug}`}
-              onClick={() => removeGroup(group.id)}
-            >
-              {group.name} x
-            </button>
-          ))
+          selectedGroups.map((group) => {
+            const dependents = groupDependents?.[group.id]
+            const blockingReason = formatDependentsReason(dependents)
+            return (
+              <Button
+                key={group.id}
+                variant="subtle"
+                size="sm"
+                className={styles.chip}
+                disabled={blockingReason != null}
+                title={blockingReason ?? `Slug: ${group.slug}`}
+                onClick={() => removeGroup(group.id)}
+              >
+                {group.name} x
+              </Button>
+            )
+          })
         ) : (
           <span className={styles.helperText}>
             Keine Gruppe ausgewählt.

@@ -12,7 +12,7 @@ import {
 } from '@/lib/api'
 import { useConfirmDialog } from '@/components/ui'
 import { useAuthSession } from '@/lib/useAuthSession'
-import { EpisodeVersionEditorContext, EpisodeVersionMediaFile, EpisodeVersionPatchRequest } from '@/types/episodeVersion'
+import { EpisodeVersionEditorContext, EpisodeVersionMediaFile, EpisodeVersionPatchRequest, FansubGroupDependents } from '@/types/episodeVersion'
 import { FansubGroup, FansubGroupSummary } from '@/types/fansub'
 
 import {
@@ -51,6 +51,7 @@ export function useEpisodeVersionEditor() {
     durationSeconds: '',
   })
   const [selectedGroups, setSelectedGroups] = useState<FansubGroupSummary[]>([])
+  const [groupDependents, setGroupDependents] = useState<Record<number, FansubGroupDependents>>({})
   const [folderPath, setFolderPath] = useState('')
   const [availableFiles, setAvailableFiles] = useState<EpisodeVersionMediaFile[]>([])
   const [selectedFile, setSelectedFile] = useState<EpisodeVersionMediaFile | null>(null)
@@ -91,6 +92,7 @@ export function useEpisodeVersionEditor() {
     setContextData(null)
     selectedFileInvalidated.current = false
     setSelectedGroups([])
+    setGroupDependents({})
     setSelectedFile(null)
     setHasPendingFileSelection(false)
     fileSelectionRevision.current += 1
@@ -125,6 +127,7 @@ export function useEpisodeVersionEditor() {
         setContextData(nextContext)
         setFormState(nextFormState)
         setSelectedGroups(nextContext.selected_groups)
+        setGroupDependents(nextContext.selected_group_dependents ?? {})
         setFolderPath(nextContext.anime_folder_path || '')
         setAvailableFiles([])
         setSelectedFile(nextContext.selected_file ?? buildFallbackMediaFile(nextContext))
@@ -386,6 +389,7 @@ export function useEpisodeVersionEditor() {
     formState,
     setFormState,
     selectedGroups,
+    groupDependents,
     folderPath,
     availableFiles,
     selectedFile,

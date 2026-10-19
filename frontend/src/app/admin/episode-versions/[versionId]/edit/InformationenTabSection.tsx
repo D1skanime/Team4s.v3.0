@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import type { EpisodeVersionEditorContext } from "@/types/episodeVersion";
+import type { EpisodeVersionEditorContext, FansubGroupDependents } from "@/types/episodeVersion";
 import type { AnimeFansubProjectTimeline } from "@/types/fansubNotes";
 import type { FansubGroup, FansubGroupSummary } from "@/types/fansub";
 
@@ -23,6 +23,7 @@ interface InformationenTabSectionProps {
   searchMessage: string | null;
   groupResults: FansubGroup[];
   selectedGroups: FansubGroupSummary[];
+  groupDependents: Record<number, FansubGroupDependents>;
   addGroup: (group: FansubGroup) => void;
   removeGroup: (groupID: number) => void;
 }
@@ -40,6 +41,7 @@ export function InformationenTabSection({
   searchMessage,
   groupResults,
   selectedGroups,
+  groupDependents,
   addGroup,
   removeGroup,
 }: InformationenTabSectionProps) {
@@ -94,6 +96,7 @@ export function InformationenTabSection({
             searchMessage={searchMessage}
             groupResults={groupResults}
             selectedGroups={selectedGroups}
+            groupDependents={groupDependents}
             addGroup={addGroup}
             removeGroup={removeGroup}
           />

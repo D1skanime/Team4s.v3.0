@@ -349,6 +349,7 @@ export function EpisodeVersionEditorPage() {
                 searchMessage={editor.searchMessage}
                 groupResults={editor.groupResults}
                 selectedGroups={editor.selectedGroups}
+                groupDependents={editor.groupDependents}
                 addGroup={editor.addGroup}
                 removeGroup={editor.removeGroup}
               />
