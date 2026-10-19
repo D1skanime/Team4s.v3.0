@@ -2,7 +2,7 @@
 created: 2026-10-19T21:45:00+00:00
 title: „Hinweis senden“ — Beitrag auch für andere Gruppen vorschlagen können
 area: contributions-proposals
-status: discuss-first
+status: decided
 files:
   - frontend/src/components/contributions/MyProposalsSection.tsx
   - frontend/src/components/contributions/ProposalForm.tsx
@@ -28,9 +28,9 @@ Als Mitglied einer Gruppe kann ich bei „Hinweis senden“ (Beitragsvorschlag) 
    - Da die Suchlogik derzeit im Editor-Hook steckt: als gemeinsamen Hook herausziehen (z. B. `useFansubGroupSearch`) und im Release-Editor UND im Hinweis-Formular nutzen — keine Kopie. Ebenso das Such-/Ergebnis-Markup als gemeinsame Komponente teilen statt nachzubauen.
    - In der Auswahl kennzeichnen: „Eigene Gruppe“ vs. „Andere Gruppe“.
 3. ~~Automatische Mitgliedschaft?~~ **ENTSCHIEDEN (Nutzer, 19.10.2026):** Der Hinweis ist **nur eine Information**, nichts passiert automatisch. Der Leader der Zielgruppe (bzw. bei Leader-Rolle der Plattform-Admin) **sieht den Hinweis auf der Fansub-Seite seiner Gruppe** und **entscheidet selbst**, ob er die Person zur Gruppe hinzufügt und zu welchen Projekten in welcher Rolle. Dafür die **bestehenden** Wege nutzen (Mitglied hinzufügen, Projekt-/Release-Crew zuweisen) — keine neuen Zuweisungs-Flows bauen. Bezug zur Mitgliedschafts-Registry bleibt beim bestehenden Verhalten.
-4. Schutz vor Spam/Missbrauch: Begrenzung, Ablehnen mit Begründung, Sichtbarkeit für die Zielgruppe.
-5. Punkte und Badges: Zählen Beiträge bei fremden Gruppen genauso (Bezug Badge-Nenner aus Phase 188 und Punktekatalog #17)?
-6. Steuerung über das Rechtesystem: eigenes Recht „Hinweis für fremde Gruppen senden“ oder Teil der Grundausstattung?
+4. ~~Spam-Schutz?~~ **ENTSCHIEDEN (Nutzer, 19.10.2026):** Vorerst **kein** eigener Spam-Schutz geplant. Nichts dafür bauen.
+5. ~~Punkte/Badges?~~ **ENTSCHIEDEN:** **Nein.** Der Hinweis selbst bringt keine Punkte und keine Badges. Punkte entstehen erst, wenn der Leader die Person über die bestehenden Wege einer Rolle oder einem Projekt zuweist, nach den dort geltenden Regeln.
+6. ~~Eigenes Recht?~~ **ENTSCHIEDEN:** **Nein.** Es ist nur eine Anfrage bzw. ein Hinweis an die Fansub-Gruppe, kein eigenes Recht. Zwei Arten von Hinweis: (a) **Korrektur-Hinweis** — „bei diesem Projekt/Release ist etwas falsch“ (z. B. Rolle fehlt oder falsch zugeordnet); (b) **Anfrage für Mitgliedschaft** in der Gruppe.
 
 ## Vorgaben für später
 
