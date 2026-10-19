@@ -70,6 +70,7 @@ type CurrentUser struct {
 type KeycloakIdentity struct {
 	Subject           string
 	Email             string
+	EmailVerified     bool
 	DisplayName       string
 	PreferredUsername string
 	GivenName         string
