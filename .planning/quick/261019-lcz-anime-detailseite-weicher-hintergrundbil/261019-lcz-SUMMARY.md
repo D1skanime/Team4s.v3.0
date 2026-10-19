@@ -122,3 +122,7 @@ Dieser Plan enthaelt einen blockierenden Live-Checkpoint (Task 4), der vom Nutze
 - FOUND: frontend/src/components/anime/AnimeBackdropRotator.module.css
 - FOUND commit: 3b5466357
 - FOUND commit: 890d6db4d
+
+## Live-Abnahme
+
+2026-10-19: vom Nutzer approved, nach Nachbesserung 15d335d58 (Crossfade ohne Helligkeitsdelle, weich auch bei prefers-reduced-motion). Ton-Stopp aus 261019-kq9 vom Nutzer ebenfalls akzeptiert.
