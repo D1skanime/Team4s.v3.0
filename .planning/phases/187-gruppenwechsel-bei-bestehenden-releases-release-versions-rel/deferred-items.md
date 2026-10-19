@@ -38,3 +38,18 @@
 - **Recommended owner:** whichever later 187 plan closes the full backend suite gate (187-06/07/08
   or a dedicated follow-up fix task), since 187-04 (already committed) introduced the call site and
   187-05 only discovered it via the full-suite run.
+- **RESOLVED (standalone remediation, 2026-10-19):** Fixed the test fixture, not the production
+  handler (per CLAUDE.md "Produktverhalten nie ändern, nur um Tests grün zu machen").
+  `openEpisodeVersionPublicFixture` (`episode_version_public_integration_test.go`) now additionally
+  creates a trimmed `release_role_credit_lifecycles` stand-in (`release_version_id`,
+  `fansub_group_id` only — mirroring the trimmed-stand-in rationale already used for
+  `testsupport.OpenPhase187Postgres`) and adds the missing `fansub_group_id` column to this
+  fixture's pre-existing `release_version_media` table, so
+  `countReleaseVersionGroupDependents`'s three-table query (`release_version_group_guard.go`)
+  resolves against all three tables it reads instead of failing on a missing relation/column.
+  `release_version_notes` already carried `fansub_group_id` via the shared Phase-117 base, so it
+  needed no change. Zero rows are seeded into the new table, so the dependents query always
+  resolves to zero credits, matching every pre-187 test's existing 200-response expectations.
+  `admin_content_episode_version_editor_helpers.go` was not touched. Confirmed via
+  `bash scripts/test-backend.sh`: full suite now reports `GATE: GREEN (0)`, including
+  `TestEpisodeVersionDateEditorContextBothSurfacesAndFailure/admin=true` passing with a 200.
