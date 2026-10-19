@@ -2884,3 +2884,13 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 187-08-PLAN.md — Deploy + blocking live UAT checkpoint
+
+### Phase 188: UX-Abgleich-Rest — Korrektheits- und Robustheitsfixes vor neuen Features
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 187
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 188 to break down)

@@ -37,6 +37,12 @@ Duplikat anzulegen. Dieser Befund ist die Grundlage für die Planung dieses Todo
 Später, eigenes Feature. Erst nach Phase 187 (inkl. deren Wiedererkennungs-Befund) sinnvoll
 planbar.
 
+## Querverweis
+
+Entspricht UX-Finding #16 aus `.planning/notes/2026-10-17-ux-findings-abgleich.md` ("Release-Versionen
+ohne eigene Quelle") — dort als „zusammengeführt" markiert. Phase 188 (UX-Abgleich-Rest) deckt #16
+ausdrücklich NICHT ab; die eigentliche Umsetzung bleibt dieses Todo.
+
 ## Weitere konkrete Blocker (Befund aus Phase 187, Plan 08, Live-UAT-Vorbereitung 2026-10-19)
 
 Bei der Testdaten-Vorbereitung für Plan 08s Live-Checkpoint (zwei dateilose Test-Releases ohne

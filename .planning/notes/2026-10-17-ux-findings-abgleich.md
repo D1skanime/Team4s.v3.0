@@ -24,12 +24,16 @@ Befund-Überschriften.
 |---|---|
 | ERLEDIGT | 23 |
 | GEGENSTANDSLOS | 1 |
-| OFFEN | 14 |
+| OFFEN | 13 |
+| ZUSAMMENGEFÜHRT | 1 |
 | UNKLAR | 2 |
 | **Gesamt** | **40** |
 
-Von den 14 OFFENEN Punkten: 3× Priorität hoch, 7× mittel, 4× niedrig.
+Von den 13 OFFENEN Punkten: 3× Priorität hoch, 6× mittel, 4× niedrig.
 Von den 2 UNKLAREN Punkten: beide mittel.
+
+Stand 2026-10-19 (Phase 188 angelegt): #16 wurde mit einem bestehenden Todo zusammengeführt (siehe
+Zeile #16 unten). #18, #27, #35.1 werden in Phase 188 bearbeitet.
 
 ## Tabelle: OFFEN und UNKLAR (nach Priorität)
 
@@ -40,7 +44,7 @@ Von den 2 UNKLAREN Punkten: beide mittel.
 | #18 | hoch | OFFEN | `/me/profile`, `/members/[slug]` (Badges) | Projekt-Badge "vollständig mitgetragen" nutzt falschen Nenner; eine einzige verlinkte Release-Version reicht schon für "vollständig" (gameable). | Nenner auf `anime.max_episodes` umstellen, Einzel-Release-Verlinkung vom "vollständig"-Status ausschließen. |
 | #2 | mittel | OFFEN | `/admin/anime/[id]/episodes/import` | "Ab hier" (Gruppe) überschreibt bei bewusstem Klick über gemischten Zeilen weiterhin blind abweichende pro-Datei-Gruppen (Hauptfall durch Auto-Vorbelegung entschärft, Konfliktfall bleibt). | Nur leere Zeilen füllen oder Bestätigung bei Konflikt einholen. |
 | #12 | mittel | OFFEN | `/invitations/accept`, `/claim-invitations/accept` | Vor dem Annehmen gibt es keinen Hinweis, welche Gruppe/Rolle/Einlader dahintersteckt — nur statischer Text. | GET-Preview-Endpoint (unauth, rate-limited) ergänzen, `InviteAcceptFlow` um Kontextzeile erweitern. |
-| #16 | mittel | OFFEN | kein UI-Pfad vorhanden | Release-Versionen ohne eigene Quelle (Gruppe hat released, Datei nicht in Jellyfin/Besitz) lassen sich nicht erfassen — einziger Schreibpfad ist der Jellyfin-Import. | Manuellen Create-Flow (Handler+Repo) ergänzen, wenn priorisiert — laut Original-Finding bewusst zurückgestellt. |
+| #16 | mittel | ZUSAMMENGEFÜHRT | kein UI-Pfad vorhanden | Release-Versionen ohne eigene Quelle (Gruppe hat released, Datei nicht in Jellyfin/Besitz) lassen sich nicht erfassen — einziger Schreibpfad ist der Jellyfin-Import. | Zusammengeführt mit `.planning/todos/pending/2026-10-19-releases-ohne-jellyfin-datei.md` (2026-10-19) — dort inkl. zweier konkreter Blocker aus Phase 187. Nicht Teil von Phase 188. |
 | #27 | mittel | OFFEN | "Mitglied hinzufügen"-Dialog, `/admin/fansubs/[id]/edit` | Bei Keycloak-Delete+Recreate entsteht ein verwaister `app_users`-Datensatz, der in der Mitgliedersuche als zweiter, nicht einloggbarer Treffer auftaucht. | `EnsureAppUserForIdentity` optional per E-Mail-Match re-subjecten statt immer neu anzulegen; einmaliges Hygiene-Skript für bestehende Waisen. |
 | #35.1 | mittel | OFFEN | `frontend/next.config.mjs` (Build/Deploy) | Eine fehlerhafte `NEXT_PUBLIC_API_URL` lässt `new URL()` ohne try/catch werfen und reißt den gesamten Next.js-Config-Load mit — Build/Start bricht komplett ab. | try/catch um `new URL()` in `publicImagePatterns.mjs:47` mit klarer Fehlermeldung ergänzen. |
 | #17 | mittel | UNKLAR | Punktekatalog-Planung, `/me/dashboard` | Gruppen ohne Karaoke-Beitragstyp könnten bei der Punktevergabe benachteiligt sein — reine Fairness-/Designfrage, kein Code-Defekt; offene Designentscheidung seit `260722-member-gamification-DECISION.md` unverändert. | Punktekatalog-Entscheidung nachholen (nicht per Code-Grep klärbar). |

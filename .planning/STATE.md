@@ -585,6 +585,21 @@ Last activity: 2026-10-19 - Completed quick task 261019-lcz: Anime-Detailseite w
 
 ### Roadmap Evolution
 
+- Phase 188 added (2026-10-19): UX-Abgleich-Rest — Korrektheits- und Robustheitsfixes vor neuen
+  Features. Quelle: `.planning/notes/2026-10-17-ux-findings-abgleich.md`. Umfang: #18
+  (Projekt-Badge „vollständig" nutzt falschen Nenner, gameable über eine einzige verlinkte
+  Release-Version), #27 (verwaister `app_users`-Datensatz nach Keycloak-Delete+Recreate taucht in
+  der Admin-Mitgliedersuche als zweiter, nicht einloggbarer Treffer auf), #35.1
+  (`frontend/next.config.mjs`/`publicImagePatterns.mjs`: fehlerhafte `NEXT_PUBLIC_API_URL` lässt
+  `new URL()` werfen und reißt den gesamten Config-Load mit). Auf Nutzerwunsch am 2026-10-19
+  entschieden: diese Befunde werden jetzt vor neuen Features erledigt. #16 (Release-Versionen ohne
+  eigene Quelle) wird ins bestehende Todo
+  `.planning/todos/pending/2026-10-19-releases-ohne-jellyfin-datei.md` zusammengeführt; #17
+  (Punktekatalog-Fairness) und #14 (Transcoding) bleiben offen in der Notiz. Additiv nach dem
+  formalen v1.4-Milestone-Abschluss angelegt — Milestone-Status `milestone_complete` bleibt
+  unverändert, es wurde kein neues Milestone gestartet. Nur add-phase — noch nicht geplant;
+  Ist-Analyse + CONTEXT.md mit offenen Fragen folgt direkt im Anschluss.
+
 - Phase 187 added (2026-10-18): Gruppenwechsel bei bestehenden Releases (release_versions /
   release_version_groups) — die Fansub-Gruppe eines bestehenden Releases ist heute nur über einen
   FK-RESTRICT-Fehler (release_role_credit_lifecycles) oder stilles CASCADE-Löschen
