@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"team4s.v3/backend/internal/permissions"
 )
 
 // ListActorContributionRolesForAnimeProject gibt die role_codes zurück, die dem Actor
@@ -62,5 +64,6 @@ func (r *AuthzRepository) ListActorContributionRolesForAnimeProject(
 	return roleCodes, nil
 }
 
-// var _ permissions.AnimeProjectContributionResolver = (*AuthzRepository)(nil)
-// Wird in Task 3 (permissions_anime_project.go, definiert dort das Interface) entkommentiert.
+// Compile-Zeit-Assertion: AuthzRepository implementiert das optionale
+// AnimeProjectContributionResolver-Interface (Task 3, permissions_anime_project.go).
+var _ permissions.AnimeProjectContributionResolver = (*AuthzRepository)(nil)
