@@ -2859,7 +2859,7 @@ Release-Editor als auch im Episoden-Import, der zusätzlich eine Zeile statt des
 blockiert.
 **Requirements**: D-01..D-14 (siehe 187-CONTEXT.md; keine formalen REQ-IDs fuer diese additive Phase)
 **Depends on:** Phase 186
-**Plans:** 6/8 plans executed
+**Plans:** 7/8 plans executed
 
 Plans:
 **Wave 1**
@@ -2879,7 +2879,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 187-07-PLAN.md — Frontend: import-apply conflict surfacing in the success panel
+- [x] 187-07-PLAN.md — Frontend: import-apply conflict surfacing in the success panel
 
 **Wave 5** *(blocked on Wave 4 completion)*
 

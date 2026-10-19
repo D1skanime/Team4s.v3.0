@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 187-06-PLAN.md
-last_updated: "2026-10-19T12:47:11.264Z"
+last_updated: "2026-10-19T12:51:46.433Z"
 last_activity: 2026-10-19
 progress:
   total_phases: 52
   completed_phases: 46
   total_plans: 471
-  completed_plans: 466
+  completed_plans: 467
   percent: 88
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 187 (Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups)) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1358,6 +1358,8 @@ Last activity: 2026-10-19
 - [Phase 187-06]: EpisodeVersionEditorPage 450-Zeilen-Split ueber Plan-Scope hinaus auf 8 Komponenten erweitert (Rule 2), da Einzelextraktion allein das Limit nicht erreichte
 - [Phase 187-06]: ActiveTab/resolveVisibleActiveTab aus EpisodeVersionEditorPage.tsx re-exportiert nach Umzug nach episodeVersionEditorUtils.ts, damit page.test.tsx unveraendert bleibt
 - [Phase 187-06]: DateienTabSection.tsx/InformationenTabSection.tsx relokierte native Inputs in eslint.config.mjs Legacy-Liste aufgenommen statt Nachbar-UI ungefragt zu migrieren
+- [Phase 187-07]: useEpisodeImportBuilder.ts unveraendert gelassen -- conflict_details lief bereits unconditional durch setApplyResult(response.data) aus Plan 05
+- [Phase 187-07]: Kein neuer automatisierter Test fuer die navigate-away-Bedingung -- Plan-Verifikation verlangt nur tsc/lint, Bedingung lebt in page-level useEffect ohne exportierte reine Funktion
 
 ### Pending Todos
 
@@ -2055,10 +2057,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 187 P04 | 25min | 2 tasks | 5 files |
 | Phase 187 P05 | 25min | 2 tasks | 7 files |
 | Phase 187 P06 | ~70min | 2 tasks | 13 files |
+| Phase 187 P07 | 15min | 1 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T12:47:11.240Z
+Last session: 2026-10-19T12:51:28.047Z
 Stopped at: Completed 187-06-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
