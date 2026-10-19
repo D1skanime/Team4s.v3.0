@@ -2859,7 +2859,7 @@ Release-Editor als auch im Episoden-Import, der zusätzlich eine Zeile statt des
 blockiert.
 **Requirements**: D-01..D-14 (siehe 187-CONTEXT.md; keine formalen REQ-IDs fuer diese additive Phase)
 **Depends on:** Phase 186
-**Plans:** 5/8 plans executed
+**Plans:** 6/8 plans executed
 
 Plans:
 **Wave 1**
@@ -2875,7 +2875,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 187-05-PLAN.md — Import apply-loop per-row conflict continuation + D-12 Pruefauftrag finding
-- [ ] 187-06-PLAN.md — Frontend: FansubGroupsSection split, D-05 relabel, D-10 disabled-chip wiring
+- [x] 187-06-PLAN.md — Frontend: FansubGroupsSection split, D-05 relabel, D-10 disabled-chip wiring
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

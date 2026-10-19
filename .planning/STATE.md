@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 187-05-PLAN.md
-last_updated: "2026-10-19T12:19:47.212Z"
+stopped_at: Completed 187-06-PLAN.md
+last_updated: "2026-10-19T12:47:11.264Z"
 last_activity: 2026-10-19
 progress:
   total_phases: 52
   completed_phases: 46
   total_plans: 471
-  completed_plans: 465
+  completed_plans: 466
   percent: 88
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 187 (Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups)) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1355,6 +1355,9 @@ Last activity: 2026-10-19
 - [Phase 187-04]: loadEpisodeVersionContributorContext left untouched -- contributors cannot edit the group field, so the dependents breakdown stays admin-editor-path only
 - [Phase 187]: 187-05: apply-loop per-row conflict continuation reuses unqualified GroupHasDependentsError/ErrReleaseVersionGroupsEmpty (same package), not repository.-prefixed — episode_import_repository_apply.go is itself package repository; the plan's own pseudocode used a cross-package-looking qualifier that would not compile in-package
 - [Phase 187]: 187-05: full-suite scripts/test-backend.sh gate shows GATE RED(1) from one pre-existing, unrelated failure (TestEpisodeVersionDateEditorContextBothSurfacesAndFailure, caused by 187-04's dependents-enrichment call against a fixture missing release_role_credit_lifecycles) — Confirmed pre-existing via a throwaway worktree at the 187-04 tip commit (b21506aba) with no 187-05 changes applied, reproducing the identical failure; logged to deferred-items.md per scope-boundary rule instead of fixed in this plan
+- [Phase 187-06]: EpisodeVersionEditorPage 450-Zeilen-Split ueber Plan-Scope hinaus auf 8 Komponenten erweitert (Rule 2), da Einzelextraktion allein das Limit nicht erreichte
+- [Phase 187-06]: ActiveTab/resolveVisibleActiveTab aus EpisodeVersionEditorPage.tsx re-exportiert nach Umzug nach episodeVersionEditorUtils.ts, damit page.test.tsx unveraendert bleibt
+- [Phase 187-06]: DateienTabSection.tsx/InformationenTabSection.tsx relokierte native Inputs in eslint.config.mjs Legacy-Liste aufgenommen statt Nachbar-UI ungefragt zu migrieren
 
 ### Pending Todos
 
@@ -2051,11 +2054,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 187 P03 | 35min | 2 tasks | 5 files |
 | Phase 187 P04 | 25min | 2 tasks | 5 files |
 | Phase 187 P05 | 25min | 2 tasks | 7 files |
+| Phase 187 P06 | ~70min | 2 tasks | 13 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T12:19:47.188Z
-Stopped at: Completed 187-05-PLAN.md
+Last session: 2026-10-19T12:47:11.240Z
+Stopped at: Completed 187-06-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
