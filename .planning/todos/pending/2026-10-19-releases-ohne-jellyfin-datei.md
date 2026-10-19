@@ -36,3 +36,33 @@ Duplikat anzulegen. Dieser Befund ist die Grundlage für die Planung dieses Todo
 
 Später, eigenes Feature. Erst nach Phase 187 (inkl. deren Wiedererkennungs-Befund) sinnvoll
 planbar.
+
+## Weitere konkrete Blocker (Befund aus Phase 187, Plan 08, Live-UAT-Vorbereitung 2026-10-19)
+
+Bei der Testdaten-Vorbereitung für Plan 08s Live-Checkpoint (zwei dateilose Test-Releases ohne
+`release_variants`) sind zwei konkrete, bereits heute bestehende Blocker aufgefallen, die dieses
+Feature direkt angehen müsste:
+
+1. **`EpisodeVersionRepository.GetByID`** (`backend/internal/repository/episode_version_repository.go`)
+   ist mit `FROM release_variants rv JOIN release_versions rev ON ...` auf `release_variants` als
+   Ankertabelle aufgebaut (INNER JOIN). Eine `release_version` ohne jede `release_variants`-Zeile
+   liefert dadurch null Zeilen, was der Admin-Editor-Endpunkt
+   (`GET /api/v1/admin/episode-versions/:versionId/editor-context`) als `404 "episodenversion nicht
+   gefunden"` interpretiert — der Editor ist für ein dateiloses Release also aktuell gar nicht
+   erreichbar. Live reproduziert: zwei frisch angelegte Test-`release_versions` ohne
+   `release_variants`-Zeile ergaben exakt diesen 404, bis probeweise je eine `release_variants`-Zeile
+   ergänzt wurde.
+2. **`useEpisodeVersionEditor.ts`s `handleSave`** (Frontend) verlangt vor jedem nicht-reinen-
+   Metadaten-Speichern (`!metadataOnly`) zwingend sowohl `media_provider` als auch `media_item_id`
+   (`if (!metadataOnly && (!formState.mediaProvider.trim() || !formState.mediaItemID.trim())) { ...
+   return }`) — sonst erscheint die Fehlermeldung "Bitte zuerst eine Mediendatei aus dem Ordner
+   wählen oder den Advanced-Bereich ausfüllen." und das Speichern (inkl. reiner Gruppenänderungen)
+   wird abgebrochen. Ein dateiloses Release hat per Definition noch kein `media_item_id` — auch
+   dieser Pfad müsste für "Releases ohne Jellyfin-Datei" eine datei-lose Variante erlauben. Live
+   reproduziert: ein Speichern (Gruppe hinzufügen/entfernen) auf einem Test-Release ohne
+   `release_streams`/`stream_sources`-Bindung scheiterte clientseitig an genau dieser Prüfung, bis
+   probeweise eine `release_streams`/`stream_sources`-Zeile ergänzt wurde.
+
+Beide Befunde sind reine Beobachtungen aus der Testdaten-Vorbereitung, keine Umsetzung — die
+eigentliche Lösung (datei-lose Releases erlauben, inkl. Wiedererkennung beim späteren Import) bleibt
+Teil der eigentlichen Planung dieses Todos.
