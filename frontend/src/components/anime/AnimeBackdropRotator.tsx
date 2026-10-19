@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 
 import { normalizeBackdropImageURLs, normalizeThemeVideoURLs } from '@/lib/animeBackdrops'
 import { useAnimeMediaManifest } from './AnimeMediaProvider'
-import { shouldRenderEnableAudioButton } from './themeVideoAudio'
+import { isNavigationTriggerEvent, shouldRenderEnableAudioButton, stopThemeVideoPlayback } from './themeVideoAudio'
 
 import styles from './AnimeBackdropRotator.module.css'
 
@@ -81,7 +81,11 @@ export function AnimeBackdropRotator({ fallbackImageURL }: AnimeBackdropRotatorP
   useEffect(() => {
     if (!showThemeVideo || !activeThemeVideoUrl || !isThemeVideoMuted) return undefined
 
-    function onUserActivation() {
+    function onUserActivation(event: Event) {
+      const key = 'key' in event ? (event as KeyboardEvent).key : undefined
+      if (isNavigationTriggerEvent(event.type as 'pointerdown' | 'keydown', event.target, key, window.location.href)) {
+        return
+      }
       void enableThemeVideoAudio(false)
     }
 
@@ -96,6 +100,38 @@ export function AnimeBackdropRotator({ fallbackImageURL }: AnimeBackdropRotatorP
       }
     }
   }, [showThemeVideo, activeThemeVideoUrl, isThemeVideoMuted, enableThemeVideoAudio])
+
+  useEffect(() => {
+    if (!showThemeVideo || !activeThemeVideoUrl) return undefined
+
+    const video = themeVideoRef.current
+    if (!video) return undefined
+
+    const onPotentialNavigation = (event: Event) => {
+      const key = 'key' in event ? (event as KeyboardEvent).key : undefined
+      if (isNavigationTriggerEvent(event.type as 'pointerdown' | 'keydown', event.target, key, window.location.href)) {
+        stopThemeVideoPlayback(video)
+      }
+    }
+
+    const onPageHide = () => {
+      stopThemeVideoPlayback(video)
+    }
+
+    const navigationEvents: Array<keyof WindowEventMap> = ['pointerdown', 'keydown']
+    for (const eventName of navigationEvents) {
+      window.addEventListener(eventName, onPotentialNavigation, { passive: true })
+    }
+    window.addEventListener('pagehide', onPageHide)
+
+    return () => {
+      for (const eventName of navigationEvents) {
+        window.removeEventListener(eventName, onPotentialNavigation)
+      }
+      window.removeEventListener('pagehide', onPageHide)
+      stopThemeVideoPlayback(video)
+    }
+  }, [showThemeVideo, activeThemeVideoUrl])
 
   const activeBackdrop = backdropUrls[activeIndex] || fallbackImageURL
   const showEnableAudioButton = shouldRenderEnableAudioButton(showThemeVideo, activeThemeVideoUrl, isThemeVideoMuted)
