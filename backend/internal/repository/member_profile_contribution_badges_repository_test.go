@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -69,6 +70,17 @@ CREATE TABLE episodes (
 	id BIGINT PRIMARY KEY,
 	anime_id BIGINT NOT NULL
 );
+-- Phase 188 (D-04/D-05/D-06): minimale anime-Stand-in-Tabelle mit exakt der
+-- Spalte, die loadContribProjectsCount's neuer max_episodes-Nenner braucht
+-- (Konvention aus testsupport/phase165_postgres.go). anime_id 100 wird bereits
+-- von den bestehenden Episoden 1/2 referenziert; max_episodes NULL hier bewahrt
+-- den D-05-Rueckfall (heutige COUNT(*)-Logik) fuer ALLE bestehenden Tests dieser
+-- Datei unveraendert.
+CREATE TABLE anime (
+	id BIGINT PRIMARY KEY,
+	max_episodes SMALLINT
+);
+INSERT INTO anime (id, max_episodes) VALUES (100, NULL);
 -- member_claims already exists via the Phase-128 base fixture
 -- (testsupport.OpenPhase128Postgres's createPhase128Prerequisites); a second
 -- CREATE TABLE here collided with it (pre-existing schema drift, not caused by
@@ -515,4 +527,146 @@ func TestPhase129ArchivistCountExcludesUnapprovedPrivateMedia(t *testing.T) {
 	require.NoError(t, err)
 	require.Equalf(t, int64(1), count,
 		"PMDA-06: unapproved/non-public release media must NOT inflate the archivist contribution count; expected 1, got %d", count)
+}
+
+// seedContribMaxEpisodesProject legt ein eigenstaendiges, isoliertes Projekt
+// (anime/episodes/fansub_releases/release_versions/release_version_groups) an und
+// vergibt pro Release-Version einen "awarded"-Credit an einen beliebigen Ledger-Member,
+// damit die Release-Version in loadContribProjectsCount's project_versions-CTE
+// erscheint (die CTE verlangt mindestens einen ledger-erfassten awarded-Credit pro
+// Release-Version, unabhaengig vom Member, dessen Abdeckung spaeter geprueft wird).
+// anime_id/episode_id/fansub_release_id/release_version_id-Raeume ueberschneiden sich
+// NICHT mit der Basis-Fixture (anime_id 100, episodes 1/2, fansub_releases 1/2,
+// release_versions 30/31) oder zwischen den drei Phase-188-Tests dieser Datei, sodass
+// jeder Test seine Rohzahl-Aussage isoliert treffen kann.
+func seedContribMaxEpisodesProject(
+	t *testing.T,
+	pool *pgxpool.Pool,
+	ledger *PointLedgerRepository,
+	animeID int64,
+	maxEpisodes *int16,
+	episodeIDs []int64,
+	releaseVersionsByEpisode map[int64][]int64,
+	ledgerAwardMemberID int64,
+	idempotencyPrefix string,
+) {
+	t.Helper()
+
+	_, err := pool.Exec(context.Background(), `INSERT INTO anime (id, max_episodes) VALUES ($1, $2)`, animeID, maxEpisodes)
+	require.NoError(t, err)
+
+	for _, episodeID := range episodeIDs {
+		_, err := pool.Exec(context.Background(), `INSERT INTO episodes (id, anime_id) VALUES ($1, $2)`, episodeID, animeID)
+		require.NoError(t, err)
+		_, err = pool.Exec(context.Background(), `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, episodeID, episodeID)
+		require.NoError(t, err)
+
+		for _, releaseVersionID := range releaseVersionsByEpisode[episodeID] {
+			_, err := pool.Exec(context.Background(), `INSERT INTO release_versions (id, release_id) VALUES ($1, $2)`, releaseVersionID, episodeID)
+			require.NoError(t, err)
+			_, err = pool.Exec(context.Background(), `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, 20)`, releaseVersionID)
+			require.NoError(t, err)
+
+			award, err := ledger.InsertAward(context.Background(), postgresAwardInputForMember(
+				ledgerAwardMemberID, idempotencyPrefix+":ledger-seed:"+t.Name()+":"+fmtInt64(releaseVersionID)))
+			require.NoError(t, err)
+			insertContribLifecycleRow(t, pool, releaseVersionID, 20, ledgerAwardMemberID, "encode", 1, "awarded", &award.ID, nil)
+		}
+	}
+}
+
+func fmtInt64(v int64) string {
+	return fmt.Sprintf("%d", v)
+}
+
+// TestLoadContribProjectsCountMaxEpisodesDenominatorRejectsPartialLedgerCoverage beweist
+// D-04: ein Projekt mit bekanntem anime.max_episodes (hier 24) darf NICHT als vollstaendig
+// mitgetragen zaehlen, nur weil ein Member alle bisher jemals vergebenen (drei) ledger-
+// erfassten Release-Versionen abdeckt -- 3 abgedeckte Episoden < 24 max_episodes bleibt
+// unvollstaendig. Gegen den unveraenderten Produktionscode (Nenner = COUNT(*) ueber
+// ledger-erfasste Release-Versionen = 3) zaehlt dieses Projekt faelschlich als
+// vollstaendig (3 >= 3) -- dieser Test ist daher ROT vor Task 2 und GRUEN danach.
+func TestLoadContribProjectsCountMaxEpisodesDenominatorRejectsPartialLedgerCoverage(t *testing.T) {
+	pool := openContributionBadgesPostgres(t)
+	ledger := NewPointLedgerRepository(pool)
+	repo := NewMemberProfileRepository(pool, "")
+
+	maxEpisodes := int16(24)
+	seedContribMaxEpisodesProject(t, pool, ledger, 101, &maxEpisodes,
+		[]int64{201, 202, 203},
+		map[int64][]int64{201: {201}, 202: {202}, 203: {203}},
+		2, "award:contrib-188-partial")
+
+	// Member 1 deckt genau die drei ledger-erfassten Release-Versionen ab (volle
+	// Ledger-Abdeckung), aber die tatsaechliche Episodenzahl (24) bleibt weit davon
+	// entfernt.
+	for _, releaseVersionID := range []int64{201, 202, 203} {
+		award, err := ledger.InsertAward(context.Background(), postgresAwardInputForMember(
+			1, "award:contrib-188-partial:member1:"+fmtInt64(releaseVersionID)))
+		require.NoError(t, err)
+		insertContribLifecycleRow(t, pool, releaseVersionID, 20, 1, "typeset", 1, "awarded", &award.ID, nil)
+	}
+
+	projectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), projectsCount,
+		"D-04: 3 abgedeckte Episoden von max_episodes=24 duerfen das Projekt NICHT als vollstaendig mitgetragen zaehlen, selbst bei voller Ledger-Abdeckung")
+}
+
+// TestLoadContribProjectsCountDistinctEpisodeDedupesMultipleVersionsOfSameEpisode beweist
+// D-06: zwei Release-Version-Zeilen derselben Episode (v1 + Re-Release v2) duerfen den
+// Zaehler nicht ueber die tatsaechliche Episodenzahl hinaustreiben. Member 1 deckt nur
+// EINE der beiden Release-Versionen ab, aber da beide zur selben (einzigen) Episode
+// gehoeren und max_episodes=1 ist, zaehlt das Projekt als vollstaendig.
+func TestLoadContribProjectsCountDistinctEpisodeDedupesMultipleVersionsOfSameEpisode(t *testing.T) {
+	pool := openContributionBadgesPostgres(t)
+	ledger := NewPointLedgerRepository(pool)
+	repo := NewMemberProfileRepository(pool, "")
+
+	maxEpisodes := int16(1)
+	seedContribMaxEpisodesProject(t, pool, ledger, 102, &maxEpisodes,
+		[]int64{301},
+		map[int64][]int64{301: {301, 302}},
+		2, "award:contrib-188-dedup")
+
+	award, err := ledger.InsertAward(context.Background(), postgresAwardInputForMember(1, "award:contrib-188-dedup:member1:301"))
+	require.NoError(t, err)
+	insertContribLifecycleRow(t, pool, 301, 20, 1, "typeset", 1, "awarded", &award.ID, nil)
+
+	projectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), projectsCount,
+		"D-06: eine abgedeckte Episode ueber EINE ihrer zwei Release-Version-Zeilen muss bei max_episodes=1 als Vollabdeckung zaehlen")
+}
+
+// TestLoadContribProjectsCountNullMaxEpisodesFallbackStaysReleaseVersionCount beweist
+// D-05: bei anime.max_episodes = NULL bleibt der Nenner COUNT(*) ueber ledger-erfasste
+// Release-Version-Zeilen (NICHT COUNT(DISTINCT episode_id) -- eine Vermischung von
+// D-05-Rueckfall und D-06-Dedup wuerde diesen Fall faelschlich als vollstaendig werten).
+// Member 1 deckt beide Release-Versionen derselben Episode ab (Zaehler via DISTINCT
+// episode_id = 1), der Rueckfall-Nenner bleibt aber 2 (zwei ledger-erfasste Zeilen) --
+// 1 < 2, also unvollstaendig. Gegen den unveraenderten Produktionscode (Nenner UND
+// Zaehler beide COUNT(*) = 2) zaehlt dieses Projekt faelschlich als vollstaendig
+// (2 >= 2) -- dieser Test ist daher ROT vor Task 2 und GRUEN danach.
+func TestLoadContribProjectsCountNullMaxEpisodesFallbackStaysReleaseVersionCount(t *testing.T) {
+	pool := openContributionBadgesPostgres(t)
+	ledger := NewPointLedgerRepository(pool)
+	repo := NewMemberProfileRepository(pool, "")
+
+	seedContribMaxEpisodesProject(t, pool, ledger, 103, nil,
+		[]int64{401},
+		map[int64][]int64{401: {401, 402}},
+		2, "award:contrib-188-nullfallback")
+
+	for _, releaseVersionID := range []int64{401, 402} {
+		award, err := ledger.InsertAward(context.Background(), postgresAwardInputForMember(
+			1, "award:contrib-188-nullfallback:member1:"+fmtInt64(releaseVersionID)))
+		require.NoError(t, err)
+		insertContribLifecycleRow(t, pool, releaseVersionID, 20, 1, "typeset", 1, "awarded", &award.ID, nil)
+	}
+
+	projectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), projectsCount,
+		"D-05: bei max_episodes=NULL bleibt der Rueckfall-Nenner COUNT(*) der ledger-erfassten Release-Version-Zeilen (2), nicht COUNT(DISTINCT episode_id) (1) -- 1 < 2 bleibt unvollstaendig")
 }
