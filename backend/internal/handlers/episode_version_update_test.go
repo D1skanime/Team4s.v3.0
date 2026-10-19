@@ -177,7 +177,7 @@ func TestUpdateEpisodeVersion_GroupGuard(t *testing.T) {
 
 		require.Equal(t, http.StatusConflict, rec.Code, rec.Body.String())
 		require.Contains(t, rec.Body.String(), "release_version_group_has_dependents")
-		require.Contains(t, rec.Body.String(), "1 Credits")
+		require.Contains(t, rec.Body.String(), "1 Credit,")
 	})
 
 	t.Run("200 when the removed group has zero dependents", func(t *testing.T) {
