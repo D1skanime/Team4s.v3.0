@@ -209,8 +209,19 @@ for var in "${THROWAWAY_DSN_VARS[@]}"; do
   # TEAM4S_PHASE150_TEST_DSN, not "team4s_phase150_04_test" -- see header
   # comment. All other vars use the uniform stripping rule: strip the
   # TEAM4S_ prefix and _TEST_DSN suffix, lowercase it.
+  #
+  # TEAM4S_PHASE188_PERMISSIONS_TEST_DSN is a second special case (Plan
+  # 188-05, phase188_permissions_postgres.go): its own regex deliberately
+  # requires NO underscore between "phase188" and "permissions"
+  # (^team4s_phase188permissions_test_[a-z0-9]+$, chosen in the plan to stay
+  # visually distinct from the unrelated, pre-existing
+  # TEAM4S_PHASE188_TEST_DSN fixture from 188-02-PLAN.md) -- the generic
+  # stripping rule below would instead produce "phase188_permissions" with
+  # an underscore, which does not match.
   if [ "${var}" = "TEAM4S_PHASE150_04_TEST_DSN" ]; then
     base_name="team4s_phase150_test"
+  elif [ "${var}" = "TEAM4S_PHASE188_PERMISSIONS_TEST_DSN" ]; then
+    base_name="team4s_phase188permissions_test"
   else
     middle="${var#TEAM4S_}"
     middle="${middle%_TEST_DSN}"
