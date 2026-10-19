@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 187-02-PLAN.md (Gruppenwechsel-Editor-Guard-Verdrahtung, D-01/D-02/D-06/D-07/D-08/D-09/D-10/D-11/D-14)
-last_updated: "2026-10-19T11:40:04.806Z"
+stopped_at: Completed 187-03-PLAN.md (Gruppenwechsel-Import-Guard-Verdrahtung, D-06/D-07/D-12/D-14)
+last_updated: "2026-10-19T11:58:04.353Z"
 last_activity: 2026-10-19
 progress:
   total_phases: 52
   completed_phases: 46
   total_plans: 471
-  completed_plans: 462
+  completed_plans: 463
   percent: 88
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 187 (Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups)) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1350,6 +1350,7 @@ Last activity: 2026-10-19
 - [Phase 187-01]: GetReleaseVersionGroupDependents lebt in einer neuen Datei (release_version_group_guard.go) — episode_version_repository.go ist bereits 565 Zeilen (ueber dem 450-Zeilen-Limit) und wird von diesem Plan sonst nicht angefasst
 - [Phase 187]: Deleted the Plan-02 source-grep test instead of relocating it; replaced with a real-Postgres idempotency test — Teststil rule forbids extending the source-grep pattern; the move would have silently broken its file-path-coupled assertions regardless of logic correctness
 - [Phase 187]: Handler test fixture builds directly on testsupport.OpenPhase187Postgres, extended in place, rather than bridging with OpenPhase117Postgres — The two fixtures define incompatible schemas for shared table names and Phase187's guard tables have FK dependencies Phase117 does not provide
+- [Phase 187]: 187-03: upsertReleaseVersionGroup wired with the Plan-01 dependents guard; same-group/add exception falls out of diffRemovedReleaseVersionGroupIDs' empty removed-set by construction (D-12), no isImportPath-style branching
 
 ### Pending Todos
 
@@ -2042,11 +2043,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 186 P04 | 8min | 2 tasks | 3 files |
 | Phase 187 P01 | 15min | 2 tasks | 4 files |
 | Phase 187 P02 | 17min | 3 tasks | 6 files |
+| Phase 187 P03 | 35min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T11:40:04.774Z
-Stopped at: Completed 187-02-PLAN.md (Gruppenwechsel-Editor-Guard-Verdrahtung, D-01/D-02/D-06/D-07/D-08/D-09/D-10/D-11/D-14)
+Last session: 2026-10-19T11:58:04.329Z
+Stopped at: Completed 187-03-PLAN.md (Gruppenwechsel-Import-Guard-Verdrahtung, D-06/D-07/D-12/D-14)
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None

@@ -2859,7 +2859,7 @@ Release-Editor als auch im Episoden-Import, der zusätzlich eine Zeile statt des
 blockiert.
 **Requirements**: D-01..D-14 (siehe 187-CONTEXT.md; keine formalen REQ-IDs fuer diese additive Phase)
 **Depends on:** Phase 186
-**Plans:** 2/8 plans executed
+**Plans:** 3/8 plans executed
 
 Plans:
 **Wave 1**
@@ -2869,7 +2869,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 187-02-PLAN.md — Editor write path: split + guard wiring + 409/400 handler responses
-- [ ] 187-03-PLAN.md — Import write path: split + guard wiring (same-group/add exception via set diff)
+- [x] 187-03-PLAN.md — Import write path: split + guard wiring (same-group/add exception via set diff)
 - [ ] 187-04-PLAN.md — Editor-context dependents data (backend) + contract/type parity
 
 **Wave 3** *(blocked on Wave 2 completion)*
