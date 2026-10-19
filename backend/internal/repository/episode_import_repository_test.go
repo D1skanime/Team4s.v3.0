@@ -231,25 +231,18 @@ func TestBuildAnimeFansubLinkGroupIDs_IsIdempotentAcrossRepeatedApply(t *testing
 	}
 }
 
-func TestEpisodeImportReleaseHelpers_SourceLinksAnimeFansubsAfterReleaseVersionGroupWrite(t *testing.T) {
-	t.Parallel()
-
-	content, err := os.ReadFile("episode_import_repository_release_helpers.go")
-	if err != nil {
-		t.Fatalf("read release helper source: %v", err)
-	}
-	source := string(content)
-
-	releaseGroupWrite := strings.Index(source, "INSERT INTO release_version_groups")
-	animeFollowThrough := strings.Index(source, "ensureAnimeFansubGroupLinks")
-	animeLinkInsert := strings.Index(source, "INSERT INTO anime_fansub_groups")
-	if releaseGroupWrite < 0 || animeFollowThrough < 0 || animeLinkInsert < 0 {
-		t.Fatalf("expected release version group writes to include anime_fansub_groups follow-through")
-	}
-	if animeFollowThrough < releaseGroupWrite {
-		t.Fatalf("expected anime fansub follow-through to happen after release group persistence is wired")
-	}
-}
+// TestEpisodeImportReleaseHelpers_SourceLinksAnimeFansubsAfterReleaseVersionGroupWrite
+// was deleted (Phase 187, Plan 03, Task 1): moving upsertReleaseVersionGroup and
+// ensureAnimeFansubGroupLinksForMembers out of episode_import_repository_release_helpers.go
+// into episode_import_repository_release_groups.go made its file-path-coupled
+// strings.Index("INSERT INTO release_version_groups") assertion permanently false
+// regardless of logic correctness. Its claim (a release_version_groups write is
+// followed through to anime_fansub_groups) is already behavior-proven by the
+// real-Postgres TestEpisodeImportSourceCreateRepeatAndInitialBinding
+// (episode_import_source_integration_test.go), which actually executes the apply
+// path and asserts both tables receive real rows via live SELECT count(*) in
+// sourceGraphState. CLAUDE.md's Teststil rule forbids extending the source-grep
+// pattern by relocating the grep target into the new file.
 
 func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 	t.Parallel()
@@ -262,6 +255,10 @@ func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read release helper source: %v", err)
 	}
+	releaseGroupsContent, err := os.ReadFile("episode_import_repository_release_groups.go")
+	if err != nil {
+		t.Fatalf("read release groups source: %v", err)
+	}
 	streamContent, err := os.ReadFile("release_stream_repository_helpers.go")
 	if err != nil {
 		t.Fatalf("read stream helper source: %v", err)
@@ -270,24 +267,19 @@ func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	normalized := strings.ToLower(string(sourceContent) + "\n" + string(applyContent) + "\n" + string(releaseContent) + "\n" + string(streamContent))
+	normalized := strings.ToLower(string(sourceContent) + "\n" + string(applyContent) + "\n" + string(releaseContent) + "\n" + string(releaseGroupsContent) + "\n" + string(streamContent))
 	// Nach Phase 81: fansub_collaboration_members und FansubGroupTypeCollaboration sind entfernt (D-02).
-	required := []string{
-		"insert into episodes",
-		"insert into episode_titles",
-		"insert into fansub_releases",
-		"insert into release_versions",
-		"insert into release_variants",
-		"insert into stream_sources",
-		"insert into release_streams",
-		"insert into release_version_groups",
-		"insert into release_variant_episodes",
-	}
-	for _, fragment := range required {
-		if !strings.Contains(normalized, fragment) {
-			t.Fatalf("expected release-native apply source to contain %q", fragment)
-		}
-	}
+	// Phase 187, Plan 03, Task 1: the presence check that used to live here (every one of
+	// the nine release-native INSERT statements, including "insert into
+	// release_version_groups") is no longer possible as a plain source-grep once
+	// upsertReleaseVersionGroup moved into its own file (episode_import_repository_release_groups.go,
+	// now included above) -- relocating the grep target into the new file instead of fixing it
+	// is the explicitly disfavored fix (CLAUDE.md Teststil rule). That presence of all nine
+	// release-native INSERT statements is instead proven by the real-Postgres
+	// TestEpisodeImportSourceCreateRepeatAndInitialBinding's sourceGraphState row-count
+	// assertions (episode_import_source_integration_test.go), which actually execute the apply
+	// path and assert every one of those tables receives a real row. The two ABSENCE checks
+	// below remain valid, CLAUDE.md-permitted absence checks regardless of the split.
 	if strings.Contains(normalized, "episode_versions") || strings.Contains(normalized, "episode_version_episodes") {
 		t.Fatalf("release-native apply source must not reference legacy episode version tables")
 	}
