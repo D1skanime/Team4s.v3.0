@@ -126,8 +126,8 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 				MediaItemID:   mapping.MediaItemID,
 				MediaSourceID: mapping.MediaSourceID,
 				Reason: fmt.Sprintf(
-					"Gruppe kann nicht ersetzt werden: %d Credits, %d Medien, %d Notizen hängen noch daran.",
-					depErr.Summary.Credits, depErr.Summary.Media, depErr.Summary.Notes,
+					"Gruppe kann nicht ersetzt werden: %s hängen noch daran.",
+					depErr.Summary.GermanReasonFragment(),
 				),
 			})
 			continue

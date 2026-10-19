@@ -80,7 +80,7 @@ func (h *FansubHandler) UpdateEpisodeVersion(c *gin.Context) {
 		var depErr *repository.GroupHasDependentsError
 		errors.As(err, &depErr)
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
-			"message": fmt.Sprintf("Diese Gruppe kann nicht entfernt werden: %d Credits, %d Medien, %d Notizen hängen noch daran.", depErr.Summary.Credits, depErr.Summary.Media, depErr.Summary.Notes),
+			"message": fmt.Sprintf("Diese Gruppe kann nicht entfernt werden: %s hängen noch daran.", depErr.Summary.GermanReasonFragment()),
 			"code":    "release_version_group_has_dependents",
 		}})
 		return

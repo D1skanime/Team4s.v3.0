@@ -25,6 +25,32 @@ func (s DependencySummary) HasAny() bool {
 	return s.Credits > 0 || s.Media > 0 || s.Notes > 0
 }
 
+// germanPluralCount formats a single count with its correctly pluralized
+// German noun. Exactly 1 uses the singular form; every other count
+// (including 0) uses the plural form -- mirrors the frontend's
+// formatGermanCount (episodeVersionEditorUtils.ts).
+func germanPluralCount(count int32, singular string, plural string) string {
+	if count == 1 {
+		return fmt.Sprintf("%d %s", count, singular)
+	}
+	return fmt.Sprintf("%d %s", count, plural)
+}
+
+// GermanReasonFragment returns the correctly pluralized German fragment
+// naming every counted dependent kind (e.g. "1 Credit, 0 Medien, 2
+// Notizen"), shared by both the editor-path 409 message
+// (episode_version_update.go) and the import-apply conflict message
+// (episode_import_repository_apply.go) so the two call sites cannot drift
+// out of sync with each other or with the frontend's chip tooltip.
+func (s DependencySummary) GermanReasonFragment() string {
+	return fmt.Sprintf(
+		"%s, %s, %s",
+		germanPluralCount(s.Credits, "Credit", "Credits"),
+		germanPluralCount(s.Media, "Medium", "Medien"),
+		germanPluralCount(s.Notes, "Notiz", "Notizen"),
+	)
+}
+
 // dependentsQueryRower is the minimal surface countReleaseVersionGroupDependents
 // needs. Both *pgxpool.Pool and pgx.Tx satisfy it, so the same counting
 // function serves a pre-write transactional check (A2: pre-check, no

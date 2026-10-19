@@ -53,13 +53,55 @@ describe('formatDependentsReason', () => {
 
   it('returns a German reason naming every non-zero count when any count is non-zero', () => {
     expect(formatDependentsReason({ fansub_group_id: 1, credits: 2, media: 1, notes: 0 })).toBe(
-      'Kann nicht entfernt werden: 2 Credits, 1 Medien, 0 Notizen hängen noch daran.',
+      'Kann nicht entfernt werden: 2 Credits, 1 Medium, 0 Notizen hängen noch daran.',
     )
   })
 
   it('treats a single non-zero count as sufficient to block removal', () => {
     expect(formatDependentsReason({ fansub_group_id: 1, credits: 0, media: 0, notes: 3 })).toBe(
       'Kann nicht entfernt werden: 0 Credits, 0 Medien, 3 Notizen hängen noch daran.',
+    )
+  })
+
+  it.each([
+    [0, 'Credits'],
+    [1, 'Credit'],
+    [2, 'Credits'],
+  ])('pluralizes %i credits as "%s" (singular only for exactly 1)', (credits, expectedNoun) => {
+    expect(formatDependentsReason({ fansub_group_id: 1, credits, media: 0, notes: 0 })).toBe(
+      credits === 0
+        ? null
+        : `Kann nicht entfernt werden: ${credits} ${expectedNoun}, 0 Medien, 0 Notizen hängen noch daran.`,
+    )
+  })
+
+  it.each([
+    [1, 'Medium'],
+    [2, 'Medien'],
+  ])('pluralizes %i media as "%s" (singular only for exactly 1)', (media, expectedNoun) => {
+    expect(formatDependentsReason({ fansub_group_id: 1, credits: 0, media, notes: 0 })).toBe(
+      `Kann nicht entfernt werden: 0 Credits, ${media} ${expectedNoun}, 0 Notizen hängen noch daran.`,
+    )
+  })
+
+  it('treats zero media as plural ("0 Medien"), matching the zero-credits/zero-notes convention', () => {
+    expect(formatDependentsReason({ fansub_group_id: 1, credits: 1, media: 0, notes: 0 })).toBe(
+      'Kann nicht entfernt werden: 1 Credit, 0 Medien, 0 Notizen hängen noch daran.',
+    )
+  })
+
+  it.each([
+    [1, 'Notiz'],
+    [2, 'Notizen'],
+  ])('pluralizes %i notes as "%s" (singular only for exactly 1)', (notes, expectedNoun) => {
+    expect(formatDependentsReason({ fansub_group_id: 1, credits: 0, media: 0, notes })).toBe(
+      `Kann nicht entfernt werden: 0 Credits, 0 Medien, ${notes} ${expectedNoun} hängen noch daran.`,
+    )
+  })
+
+  it('treats zero notes as plural ("0 Notizen"), matching the zero-credits/zero-media convention', () => {
+    expect(formatDependentsReason({ fansub_group_id: 1, credits: 1, media: 0, notes: 0 })).toBe(
+      'Kann nicht entfernt werden: 1 Credit, 0 Medien, 0 Notizen hängen noch daran.',
     )
   })
 })

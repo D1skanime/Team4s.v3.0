@@ -48,16 +48,25 @@ export function resolveVisibleActiveTab(activeTab: ActiveTab, allowedTabs: Set<A
 }
 
 /**
+ * Formats a single count with its correctly pluralized German noun. Exactly 1 uses the
+ * singular form; every other count (including 0) uses the plural form.
+ */
+function formatGermanCount(count: number, singular: string, plural: string): string {
+  return `${count} ${count === 1 ? singular : plural}`
+}
+
+/**
  * D-10: a selected group's removable-chip reason. Returns `null` when the group has no real
  * dependents (safely removable, chip stays enabled) -- never for an absent/undefined breakdown
  * either, since "not yet checked" must not be mistaken for "has dependents". Returns the German
- * blocking reason, naming the counts per kind, only when at least one count is non-zero.
+ * blocking reason, naming the counts per kind (correctly pluralized), only when at least one
+ * count is non-zero.
  */
 export function formatDependentsReason(dependents?: FansubGroupDependents | null): string | null {
   if (!dependents) return null
   const { credits, media, notes } = dependents
   if (!credits && !media && !notes) return null
-  return `Kann nicht entfernt werden: ${credits} Credits, ${media} Medien, ${notes} Notizen hängen noch daran.`
+  return `Kann nicht entfernt werden: ${formatGermanCount(credits, 'Credit', 'Credits')}, ${formatGermanCount(media, 'Medium', 'Medien')}, ${formatGermanCount(notes, 'Notiz', 'Notizen')} hängen noch daran.`
 }
 
 /** Only an allow-listed, path-only same-origin destination is honored as a safe return target. */
