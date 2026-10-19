@@ -61,6 +61,15 @@ func upsertReleaseVersionGroupsForSync(
 	return nil
 }
 
+// syncEpisodeVersionSelectedGroups writes the operator-selected fansub group
+// set for a release version. Before any DELETE/INSERT runs, it gates the
+// change through two Phase-187 guards (release_version_group_guard.go,
+// Plan 01): a patch may never reduce a release version from one or more
+// groups down to zero (D-06/D-14), and an actual group removal may never
+// drop a group that still has real credit/media/note dependents
+// (D-01/D-07/D-08/D-09). Both guards run strictly before any write, and
+// apply identically regardless of caller identity (D-11 -- this is a
+// data-consistency rule, not an authorization check).
 func syncEpisodeVersionSelectedGroups(
 	ctx context.Context,
 	tx pgx.Tx,
@@ -78,11 +87,29 @@ func syncEpisodeVersionSelectedGroups(
 	if err != nil {
 		return err
 	}
+
+	currentIDs, err := queryCurrentReleaseVersionGroupIDs(ctx, tx, releaseVersionID)
+	if err != nil {
+		return err
+	}
+	if err := ensureReleaseVersionGroupsNotReducedToEmpty(len(currentIDs), len(memberGroups)); err != nil {
+		return err
+	}
+
 	if len(memberGroups) == 0 {
-		if _, err := tx.Exec(ctx, `DELETE FROM release_version_groups WHERE release_version_id = $1`, releaseVersionID); err != nil {
-			return fmt.Errorf("clear release version groups version=%d: %w", releaseVersionID, err)
-		}
+		// currentIDs is already empty here (the guard above would have
+		// rejected the patch otherwise) -- a release version that never had a
+		// group stays a pure no-op, same as before this guard existed.
 		return nil
+	}
+
+	newIDs := make([]int64, len(memberGroups))
+	for i, g := range memberGroups {
+		newIDs[i] = g.ID
+	}
+	removed := diffRemovedReleaseVersionGroupIDs(currentIDs, newIDs)
+	if err := ensureRemovedReleaseVersionGroupsHaveNoDependents(ctx, tx, releaseVersionID, removed); err != nil {
+		return err
 	}
 
 	if err := upsertReleaseVersionGroupsForSync(ctx, tx, releaseVersionID, memberGroups); err != nil {
