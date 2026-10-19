@@ -38,6 +38,19 @@ func upsertImportReleaseGraph(
 	if sourceErr != nil {
 		return false, sourceErr
 	}
+	// D-12 Prüfauftrag finding (Phase 187, Plan 05 -- investigated, NOT
+	// silently changed): this is the ONLY lookup that decides whether a
+	// mapping updates a pre-existing release or creates a new one. It
+	// recognizes "existing" EXCLUSIVELY via an already-linked Jellyfin
+	// stream_sources/release_streams row for the exact streamSourceID
+	// (itself resolved one call up, by (media_item_id/jellyfin) identity via
+	// upsertStreamSourceSnapshot) -- NEVER by matching
+	// anime_id/episode/fansub_group/release_version. A future "Release ohne
+	// Jellyfin-Datei" (no linked Jellyfin source at all) would therefore NOT
+	// be recognized by this query and would create a DUPLICATE release
+	// instead of updating the pre-existing one. Reported here as a finding
+	// only (187-05-SUMMARY.md), per CONTEXT.md's "Produktverhalten nie
+	// ändern, nur um Tests grün zu machen" -- no behavior change in this task.
 	var variantID, existingAnimeID int64
 	err := tx.QueryRow(ctx, `
 		SELECT rv.id, ep.anime_id

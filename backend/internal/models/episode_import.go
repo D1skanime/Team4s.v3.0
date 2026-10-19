@@ -203,11 +203,28 @@ type EpisodeImportApplyResult struct {
 	MappingsApplied  int32 `json:"mappings_applied"`
 	Skipped          int32 `json:"skipped"`
 	Conflicts        int32 `json:"conflicts"`
+	// ConflictDetails (Phase 187, Plan 05, D-12) carries one entry per
+	// guard-rejected row counted in Conflicts above -- a dependents-having
+	// group replace (ErrGroupHasDependents) or an empty-group reduction
+	// (ErrReleaseVersionGroupsEmpty). A per-row rejection never aborts the
+	// rest of the batch; this is how the admin learns WHICH row was rejected
+	// and WHY, instead of only seeing an opaque conflicts count.
+	ConflictDetails []EpisodeImportApplyConflict `json:"conflict_details,omitempty"`
 	// LearnedFansubAliases is server-internal only (D-01): every alias the apply
 	// transaction learned for an admin's explicit existing-group selection, so the
 	// handler can audit each one (fansub_group_alias.learned) after Apply returns. The
 	// frontend has no use for this list.
 	LearnedFansubAliases []LearnedFansubAlias `json:"-"`
+}
+
+// EpisodeImportApplyConflict identifies one guard-rejected mapping row from
+// an apply batch (Phase 187, Plan 05, D-12): the admin needs this row's
+// identity (media_item_id/media_source_id) and a German reason to understand
+// which row was blocked and why, without the whole batch having aborted.
+type EpisodeImportApplyConflict struct {
+	MediaItemID   string `json:"media_item_id"`
+	MediaSourceID string `json:"media_source_id,omitempty"`
+	Reason        string `json:"reason"`
 }
 
 // EpisodeImportExistingCoverage describes already persisted episode-version

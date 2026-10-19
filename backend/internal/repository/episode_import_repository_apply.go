@@ -111,7 +111,35 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 			StreamTypeID:     streamTypeID,
 		}
 		created, err := upsertImportReleaseGraph(ctx, tx, r.crewSeeder, releaseIDs, mapping, media, episodeIDsByNumber, &learned)
-		if err != nil {
+		// D-12 (Phase 187, Plan 05): a guard-rejected row (dependents-having
+		// group replace, or an empty-group reduction) is a per-row conflict,
+		// not a whole-batch abort. Plan 03's guard runs as a pure pre-check
+		// (SELECT only) strictly before any DELETE/INSERT for this mapping
+		// (Pitfall 1/A2), so `continue`-ing past it here leaves nothing to
+		// unwind for this specific mapping -- no SAVEPOINT needed. Every OTHER
+		// error still aborts the whole transaction exactly as before.
+		var depErr *GroupHasDependentsError
+		switch {
+		case errors.As(err, &depErr):
+			result.Conflicts++
+			result.ConflictDetails = append(result.ConflictDetails, models.EpisodeImportApplyConflict{
+				MediaItemID:   mapping.MediaItemID,
+				MediaSourceID: mapping.MediaSourceID,
+				Reason: fmt.Sprintf(
+					"Gruppe kann nicht ersetzt werden: %d Credits, %d Medien, %d Notizen hängen noch daran.",
+					depErr.Summary.Credits, depErr.Summary.Media, depErr.Summary.Notes,
+				),
+			})
+			continue
+		case errors.Is(err, ErrReleaseVersionGroupsEmpty):
+			result.Conflicts++
+			result.ConflictDetails = append(result.ConflictDetails, models.EpisodeImportApplyConflict{
+				MediaItemID:   mapping.MediaItemID,
+				MediaSourceID: mapping.MediaSourceID,
+				Reason:        "Zeile würde alle Gruppen entfernen; mindestens eine Gruppe muss bestehen bleiben.",
+			})
+			continue
+		case err != nil:
 			return nil, err
 		}
 		if created {
