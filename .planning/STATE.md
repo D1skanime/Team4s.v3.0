@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 188-03-PLAN.md
-last_updated: "2026-10-19T23:28:01.029Z"
+stopped_at: Completed 188-04-PLAN.md
+last_updated: "2026-10-19T23:35:36.432Z"
 last_activity: 2026-10-19
 progress:
   total_phases: 53
   completed_phases: 47
   total_plans: 476
-  completed_plans: 471
+  completed_plans: 472
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 188 (ux-abgleich-rest-korrektheits-und-robustheitsfixes-vor-neuen) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1379,6 +1379,7 @@ Last activity: 2026-10-19
 - [Phase 188]: Nenner-Formel nach 188-RESEARCH.md umgesetzt: COALESCE(MAX(pv.max_episodes), COUNT(*)) als Nenner, COUNT(DISTINCT episode_id) als Zaehler, explizites WHERE numerator >= denominator AND denominator > 0 statt impliziter HAVING
 - [Phase 188-02]: shouldResubjectByEmail gated Re-Subjecting: nur bei verifizierter E-Mail wird eine bestehende app_users-Zeile per E-Mail-Match wiederverwendet; legacy_user_id bleibt dabei unangetastet (D-07).
 - [Phase 188-03]: D-08 Hygiene-Report (report-orphaned-app-users): KEYCLOAK_DATABASE_URL-Default zeigt auf bestehenden keycloak-db-Container, kein manueller Setup noetig
+- [Phase 188-04]: ftp:/malformed wirft in Node keinen URL-Parse-Fehler; zweiter Fehlerfall-Testwert auf relative/path/only geaendert — per Node-Check vor Testschreiben verifiziert, damit Fehlerfall-Test tatsaechlich D-09-Verhalten prueft
 
 ### Pending Todos
 
@@ -2083,11 +2084,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 188 P01 | 35min | 2 tasks | 2 files |
 | Phase 188 P02 | 25min | 2 tasks | 6 files |
 | Phase 188 P03 | 25min | 2 tasks | 3 files |
+| Phase 188 P04 | 12min | 1 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T23:28:01.005Z
-Stopped at: Completed 188-03-PLAN.md
+Last session: 2026-10-19T23:35:36.409Z
+Stopped at: Completed 188-04-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None

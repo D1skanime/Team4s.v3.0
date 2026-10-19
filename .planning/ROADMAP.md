@@ -2899,7 +2899,7 @@ anime_fansub_project.timeline.update.
 `requirements`-Frontmatter-Feld jedes Plans. D-01/D-02/D-03 sind reine Scope-/Prozessentscheidungen
 ohne eigenen Code-Task.)
 **Depends on:** Phase 187
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 188-05 ebenfalls unabhängig, additiv aufgenommen, endet mit blockierendem Live-Checkpoint)
 
 Plans:
@@ -2908,5 +2908,5 @@ Plans:
 - [x] 188-01-PLAN.md — Badge-Nenner "Mitgetragene Projekte" auf anime.max_episodes umstellen (D-04/D-05/D-06).
 - [x] 188-02-PLAN.md — Re-Subjecting nur bei verifizierter E-Mail (D-07).
 - [x] 188-03-PLAN.md — Hygiene-Report-Skript für verwaiste app_users-Zeilen (D-08).
-- [ ] 188-04-PLAN.md — next.config.mjs Fail-Fast bei ungültigem NEXT_PUBLIC_API_URL (D-09).
+- [x] 188-04-PLAN.md — next.config.mjs Fail-Fast bei ungültigem NEXT_PUBLIC_API_URL (D-09).
 - [ ] 188-05-PLAN.md — Projektzeitraum-Rechteprüfung: fansub_lead/typesetter-Migration + Projektkontext-Logikfix (D-10/D-11/D-12/D-13/D-14).
