@@ -44,7 +44,15 @@ export function configuredApiMediaPatterns(apiBaseURL) {
   const trimmed = (apiBaseURL || '').trim()
   if (!trimmed) return []
 
-  const mediaOrigin = new URL(trimmed)
+  let mediaOrigin
+  try {
+    mediaOrigin = new URL(trimmed)
+  } catch {
+    throw new Error(
+      `Ungültige Umgebungsvariable NEXT_PUBLIC_API_URL: "${trimmed}" ist keine gültige URL. ` +
+      'Die Next.js-Konfiguration kann deshalb nicht geladen werden.',
+    )
+  }
 
   return [{
     protocol: mediaOrigin.protocol.slice(0, -1),
