@@ -28,10 +28,82 @@ CASCADE-Löschens. Das Backend muss dies serverseitig erzwingen (kein reiner UI-
 ### D-03 — Partnergruppe hinzufügen statt Wechsel
 Eigener Knopf „Partnergruppe hinzufügen": `release_version_groups` kann N Gruppen; eine
 zusätzliche Gruppe hinzufügen statt zu wechseln. **Wichtiger Ist-Befund dazu in Abschnitt 4 unten
-— vermutlich bereits teilweise vorhanden, siehe Offene Frage 1.**
+— siehe D-05 (Beantwortung von Offener Frage 1).**
 
 ### D-04 — Kein Umzugs-Assistent (Stufe 3) in dieser Phase
 Explizit nicht Teil dieser Phase.
+
+### D-05 — Antwort auf Frage 1: kein zusätzlicher Parallel-Knopf
+Kein zusätzlicher Parallel-Knopf. Das vorhandene Suchfeld + Chip-Mechanismus im Release-Editor
+(`EpisodeVersionEditorPage.tsx`, Abschnitt „Fansub Gruppen") bleibt der einzige Weg, wird aber
+klar als „Partnergruppe hinzufügen" beschriftet (Überschrift/Label der Suchfeld-Sektion).
+
+### D-06 — Antwort auf Frage 2: letzte Gruppe darf nicht entfernt werden
+Die letzte verbleibende Gruppe darf NICHT entfernt werden. Ein Release hat immer mindestens eine
+Gruppe. Wechseln = erst neue Gruppe hinzufügen, dann alte entfernen (zwei Schritte, nie ein
+Zustand mit 0 Gruppen). Serverseitig erzwingen — löst damit auch die heutige Lücke in
+`syncEpisodeVersionSelectedGroups` (blanko `DELETE` auf 0 Gruppen, siehe Abschnitt 3 #3).
+
+### D-07 — Antwort auf Frage 3: Entfernen einer Partnergruppe folgt derselben Stufe-2-Logik
+Entfernen einer Partnergruppe: dieselbe Stufe-2-Sperrlogik wie beim Wechsel (hängt an DIESER
+Gruppe am Release etwas → Entfernen gesperrt mit Meldung). Keine Sonderregel, nur weil eine andere
+Gruppe am Release verbleibt.
+
+### D-08 — Antwort auf Frage 4: Medien/Notizen zählen als „hängt dran"
+Medien (`release_version_media`) und Notizen/Beiträge (`release_version_notes`) mit
+`fansub_group_id` dieser Gruppe zählen als „hängt dran" und sperren — damit kein stilles Verwaisen
+(Case C aus Abschnitt 2) mehr auftreten kann.
+
+### D-09 — Antwort auf Frage 5: leerer `inherited`-Snapshot zählt NICHT als „hängt dran"
+Ein leerer, nur `snapshot_mode='inherited'`-markierter `release_crew_snapshots`-Eintrag ohne echte
+Credits zählt NICHT als „hängt dran". Nur echte Crew-Einträge/Credits
+(`release_role_credit_lifecycles` u. ä.), Medien und Notizen sperren. Der leere Snapshot wird beim
+Wechsel sauber mitgenommen/neu angelegt statt zu blockieren (löst den in Abschnitt 2/Case A
+beobachteten Nebenbefund — das Neuanlegen ist gewolltes Verhalten, kein offener Punkt mehr).
+
+### D-10 — Antwort auf Frage 6: doppelte Durchsetzung, client- und serverseitig
+Beides: Entfernen-Chip im Editor vorab deaktiviert/ausgegraut mit sichtbarer Begründung, was
+dranhängt (Anzahl je Art, deutsche Texte mit Umlauten); zusätzlich serverseitige Prüfung beim
+Speichern mit verständlicher deutscher Fehlerantwort (409 mit Aufschlüsselung statt generischem
+500 — löst den in Abschnitt 3 dokumentierten Fehlerbehandlungs-Mangel von
+`episode_version_update.go`).
+
+### D-11 — Antwort auf Frage 7: Sperre gilt für alle, auch Platform-Admins
+Die Sperre gilt für ALLE, auch für den Plattform-Admin (Datenkonsistenz, keine Rechtefrage). Der
+heute fehlende Gruppenleiter-Pfad (Abschnitt 3, „Zugriffsschutz heute") bleibt unverändert —
+unabhängig davon gilt die Stufe-2-Sperre für jeden, der die Berechtigung zum Ändern überhaupt hat.
+
+### D-12 — Antwort auf Frage 8: Guard auch im Episoden-Import „Übernehmen", aber zeilen-scoped
+Guard auch im Episoden-Import „Übernehmen". **Präzisierung (wichtig, enger als eine 1:1-Übernahme
+der Editor-Sperre):** Gesperrt ist nur das ENTFERNEN/ERSETZEN einer Gruppe, an der etwas hängt —
+NICHT das Aktualisieren eines bestehenden Releases mit derselben Gruppe. Der Import darf bestehende
+Releases mit gleicher Gruppe immer aktualisieren (Datei zuordnen, technische Daten wie Auflösung/
+CRC/Dauer), auch wenn Medien/Notizen/Credits dranhängen. Eine Partnergruppe hinzufügen ist im
+Import ebenfalls immer erlaubt. Würde der Import eine gesperrte Gruppe ERSETZEN, wird NUR diese
+Zeile als Konflikt mit Begründung markiert und nicht übernommen; die übrigen Zeilen laufen normal
+durch (kein globaler Abbruch).
+
+**Hintergrund (Motivation für die Präzisierung):** Künftig sollen Releases ohne Jellyfin-Datei
+angelegt werden können (Release ist belegt/angekündigt, aber die Datei liegt noch nicht vor).
+Landet die Datei später in Jellyfin, muss der Import sie dem BESTEHENDEN Release zuordnen, ohne
+Medien/Crew/Notizen zu verlieren — genau der „Update bestehender Release, gleiche Gruppe"-Fall, der
+deshalb nicht gesperrt sein darf. Separates Folge-Feature, siehe Todo
+`.planning/todos/pending/2026-10-19-releases-ohne-jellyfin-datei.md`.
+
+**Teil dieser Phase (Prüfauftrag, nicht Umbau):** Prüfen und als Befund dokumentieren, ob der
+Import ein bestehendes Release heute zuverlässig wiedererkennt (gleiches Anime, Episode, Gruppe,
+Version) statt ein Duplikat anzulegen. Falls nicht zuverlässig: als Befund melden, NICHT still
+umbauen (kein Verhaltensumbau ohne gesonderte Entscheidung).
+
+### D-13 — Antwort auf Frage 9: Fansub-Gruppen-Merge ist NICHT Teil dieser Phase
+Der Fansub-Gruppen-Merge-Pfad (`fansub_repository_merge_core.go`, Abschnitt 3 Zeile #6/Abschnitt 6)
+ist NICHT Teil dieser Phase. Eigener Todo-Eintrag:
+`.planning/todos/pending/2026-10-19-fansub-gruppen-merge-ungeschuetzter-pfad.md`.
+
+### D-14 — Antwort auf Frage 10: Editor und Import verhalten sich bei leerer Gruppenliste gleich
+Editor und Import lehnen beide eine leere Zielgruppenliste ab (beide dürfen nie auf 0 Gruppen
+reduzieren) — folgt direkt aus D-06 und schließt damit die in Abschnitt 3 #5 dokumentierte
+Inkonsistenz (heute: Editor löscht blanko, Import bricht früh ab).
 
 ## Verbindliche Vorgaben für alle späteren Schritte (Planung + Ausführung)
 
@@ -39,11 +111,10 @@ Explizit nicht Teil dieser Phase.
   `frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx`
   (Abschnitt „Fansub Gruppen") ist die einzige Oberfläche für diese Änderung — **keine neue
   Parallelseite.**
-- **Globale UI-Primitives:** Jede neue/geänderte UI MUSS `@/components/ui` nutzen (`Button`,
-  `Input`, …). Der bestehende Abschnitt „Fansub Gruppen" nutzt heute native `<input>`/`<button>`
-  (Design-System-Abweichung) — wird dieser Abschnitt inhaltlich angefasst, zieht das laut
-  `CLAUDE.md` eine Migration auf die Primitives nach sich (gleiches Muster wie in Phase 186 bei
-  den Import-Mapper-Buttons).
+- **Datei-Split bei Anfassen:** `EpisodeVersionEditorPage.tsx` (981 Zeilen) wird beim Anfassen unter
+  450 Zeilen gesplittet; der Gruppen-Abschnitt nutzt dabei `@/components/ui`-Primitives
+  (`Button`, `Input`) statt der heutigen nativen `<input>`/`<button>`-Elemente (Design-System-
+  Abweichung, gleiches Muster wie in Phase 186 bei den Import-Mapper-Buttons).
 - **Produktverhalten nie ändern, nur um Tests grün zu machen.**
 - **Dateien ≤ 450 Zeilen:** Mehrere der hier betroffenen Dateien liegen bereits heute über dem
   Limit (Inventur in Abschnitt 8) — wer sie inhaltlich anfasst, teilt sie im selben Auftrag auf
@@ -51,8 +122,10 @@ Explizit nicht Teil dieser Phase.
   inhaltliche Änderung).
 - **Deutsche UI-Texte mit echten Umlauten** (ä/ö/ü/ß), keine ASCII-Ersetzungen — gilt für die neue
   Sperr-Meldung, Knopf-Beschriftungen, Fehlertexte.
-- **Teststil:** Verhaltens-Assertions für den neuen Guard müssen den Code echt ausführen
-  (`httptest` gegen Fake-Repository mit Statuscode/Body-Prüfung), kein Quelltext-Grep-Test.
+- **Teststil:** Tests prüfen die Logik hinter dem Button direkt — Guard-Funktion, API-Antwort,
+  Repository (`httptest` gegen Fake-Repository mit Statuscode/Body-Prüfung, kein
+  Quelltext-Grep-Test). KEINE Render-/Klick-Simulationstests für die UI. Klickabläufe im Editor
+  werden stattdessen als Live-UAT geprüft.
 
 ## Ist-Zustand (Code- und Schema-Inventur, Stand 2026-10-18)
 
@@ -218,47 +291,27 @@ Szenario in `episode_version_repository_test.go`,
 | `admin_episode_import.go` | 356 | Eher nicht — der Guard säße im Import-Repository, nicht hier | unkritisch |
 | `fansub_repository_merge_core.go` | 236 | Nur falls Merge-Pfad in Scope genommen wird (Frage 9) | unkritisch |
 
-## Offene Fragen an den Nutzer
+## Offene Fragen an den Nutzer — BEANTWORTET (2026-10-19)
 
-1. **„Partnergruppe hinzufügen" existiert im Datenmodell und in der UI bereits** (Suchfeld + Klick
-   fügt eine weitere Gruppe als Chip hinzu, siehe Abschnitt 4) — reicht diese bestehende
-   Hinzufügen-Funktion für D-03 aus (nur der fehlende Guard beim *Entfernen* muss noch gebaut
-   werden), oder soll es einen zusätzlichen, konzeptionell eigenen Knopf/Call-to-Action geben, der
-   sich von der heutigen „Gruppe suchen"-Leiste absetzt?
-2. **Darf man die zuletzt verbleibende Gruppe entfernen?** Der heutige Editor-Pfad erlaubt es
-   bereits technisch (blanko `DELETE` auf 0 Gruppen, siehe Abschnitt 3 #3). Soll das künftig
-   grundsätzlich verboten werden (ein Release braucht immer mindestens eine Gruppe), unabhängig
-   davon, ob Stufe 1 oder Stufe 2 greift?
-3. **Was passiert beim Entfernen einer Partnergruppe, an der etwas hängt?** Gilt dieselbe
-   Stufe-2-Sperrlogik 1:1 auch für das Entfernen einer von mehreren Gruppen, oder gibt es dort eine
-   andere Regel (z. B. weil die andere Gruppe ja noch bleibt)?
-4. **Soll der Guard auch das neu entdeckte Verwaisungsproblem (Case C) beheben?** Heute verwaisen
-   Medien-/Notiz-Einträge beim Gruppenwechsel still (sie bleiben bestehen, zeigen aber auf eine
-   Gruppe, die nicht mehr am Release hängt) — ohne Fehler, ohne Löschung. Soll „Medien/Notizen" im
-   Sinne von D-01/D-02 ALS Anhang zählen und den Wechsel sperren (wie vom Auftrag „keine Medien,
-   keine Notizen/Beiträge" bereits nahegelegt), oder ist das separat zu behandeln?
-5. **Zählt ein leerer, `snapshot_mode='inherited'`-`release_crew_snapshots`-Eintrag selbst als
-   „etwas hängt dran"?** 162 von 175 heutigen Paaren haben einen solchen Eintrag, aber keine
-   echten Credit-/Crew-Zeilen. Diese Analyse geht davon aus, dass ein reiner `'inherited'`-Snapshot
-   ohne zugehörige `release_role_credit_lifecycles`-Zeilen NICHT als Anhang zählt (Stufe 1 bliebe
-   offen) — bitte bestätigen oder korrigieren.
-6. **Wo genau soll der Guard greifen und wie soll die Sperr-Meldung angezeigt werden?** Serverseitig
-   vor dem Speichern (Backend lehnt das PATCH mit einer strukturierten Fehlerantwort ab, Frontend
-   zeigt sie an) ist laut D-02 Pflicht — zusätzlich auch client-seitig vorab deaktiviert/ausgegraut
-   (z. B. das „×" am Chip deaktiviert, mit Tooltip), oder reicht eine Fehlermeldung nach
-   Speichern-Klick?
-7. **Gilt die Sperre auch für Gruppenleiter, oder nur für Admins?** Heute können ausschließlich
-   Platform-Admins das Gruppenfeld überhaupt ändern (kein Gruppenleiter-Pfad existiert). Ist diese
-   Frage rein zukunftssichernd gemeint (falls Gruppenleiter-Rechte für dieses Feld später erweitert
-   werden), oder soll in dieser Phase bereits ein Gruppenleiter-Pfad mitbedacht werden?
-8. **Soll der Guard an beiden Schreibstellen gleichzeitig eingebaut werden** — Editor-Pfad
-   (`episode_version_repository_write_helpers.go`) UND Episoden-Import-„Übernehmen"-Pfad
-   (`episode_import_repository_release_helpers.go`) — oder zunächst nur im Editor, mit dem
-   Import-Pfad als Folgearbeit?
-9. **Ist der Fansub-Gruppen-Merge-Pfad (Abschnitt 6, `fansub_repository_merge_core.go`) Teil dieser
-   Phase?** Gleiche Wurzelursache (Composite-Key ohne Dependenz-Guard bei `UPDATE` statt `DELETE`),
-   aber ein anderer Auslöser (Gruppen-Zusammenführung statt Release-Bearbeitung) und bisher nicht
-   im Auftrag erwähnt.
-10. **Soll die Inkonsistenz zwischen Editor-Pfad und Import-Pfad bei leerer Gruppenliste** (Editor:
-    löscht alle Gruppen; Import: bricht früh ab, löscht nichts) im Zuge dieser Phase vereinheitlicht
-    werden, oder ist das außerhalb des Scopes?
+Alle zehn Fragen sind vom Nutzer beantwortet und oben als D-05 bis D-14 verbindlich festgehalten.
+Die ursprünglichen Fragen bleiben hier zur Nachvollziehbarkeit stehen, jeweils mit Verweis auf die
+zugehörige Entscheidung.
+
+1. „Partnergruppe hinzufügen" existiert im Datenmodell und in der UI bereits (Suchfeld + Klick fügt
+   eine weitere Gruppe als Chip hinzu, siehe Abschnitt 4) — reicht diese bestehende
+   Hinzufügen-Funktion für D-03 aus, oder soll es einen zusätzlichen, eigenen Knopf geben? →
+   **Beantwortet: D-05.**
+2. Darf man die zuletzt verbleibende Gruppe entfernen? → **Beantwortet: D-06.**
+3. Was passiert beim Entfernen einer Partnergruppe, an der etwas hängt? → **Beantwortet: D-07.**
+4. Soll der Guard auch das neu entdeckte Verwaisungsproblem (Case C, Medien/Notizen) beheben? →
+   **Beantwortet: D-08.**
+5. Zählt ein leerer, `snapshot_mode='inherited'`-`release_crew_snapshots`-Eintrag selbst als
+   „etwas hängt dran"? → **Beantwortet: D-09.**
+6. Wo genau soll der Guard greifen und wie soll die Sperr-Meldung angezeigt werden? →
+   **Beantwortet: D-10.**
+7. Gilt die Sperre auch für Gruppenleiter, oder nur für Admins? → **Beantwortet: D-11.**
+8. Soll der Guard an beiden Schreibstellen (Editor UND Episoden-Import) gleichzeitig eingebaut
+   werden? → **Beantwortet: D-12.**
+9. Ist der Fansub-Gruppen-Merge-Pfad Teil dieser Phase? → **Beantwortet: D-13 (nein, eigenes Todo).**
+10. Soll die Inkonsistenz zwischen Editor-Pfad und Import-Pfad bei leerer Gruppenliste
+    vereinheitlicht werden? → **Beantwortet: D-14.**
