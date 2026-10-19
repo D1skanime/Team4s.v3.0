@@ -144,6 +144,12 @@ export interface EpisodeImportApplyInput {
   mappings: EpisodeImportApplyMappingRow[]
 }
 
+export interface EpisodeImportApplyConflict {
+  media_item_id: string
+  media_source_id?: string
+  reason: string
+}
+
 export interface EpisodeImportApplyResult {
   anime_id: number
   episodes_created: number
@@ -153,6 +159,7 @@ export interface EpisodeImportApplyResult {
   mappings_applied: number
   skipped: number
   conflicts: number
+  conflict_details?: EpisodeImportApplyConflict[]
 }
 
 export interface EpisodeImportContextResponse {
