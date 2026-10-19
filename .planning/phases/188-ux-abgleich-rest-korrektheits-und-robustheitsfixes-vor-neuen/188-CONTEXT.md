@@ -35,6 +35,42 @@ Umgesetzt: Querverweis im Todo ergänzt, #16 in der Abgleich-Notiz als "ZUSAMMEN
 #17 (Punktekatalog-Fairness) ist eine reine Designfrage ohne Code-Defekt, #14 (Transcoding) ist ein
 eigenständig großes Feature. Beide bleiben unverändert als OFFEN in der Abgleich-Notiz stehen.
 
+### D-04 — Antwort auf Frage 1: Nenner = exakt `anime.max_episodes`, keine Typ-Filterung
+Der neue Nenner für "vollständig mitgetragen" ist exakt `anime.max_episodes`, unabhängig vom
+`episode_types`-Wert — Specials/OVAs/Movies werden nicht gesondert behandelt oder ausgeschlossen.
+
+### D-05 — Antwort auf Frage 2: `max_episodes IS NULL` → Rückfall auf heutige Zähllogik
+Ist `anime.max_episodes` NULL, gilt weiterhin die heutige Logik (Nenner = Anzahl jemals vergebener
+Release-Versionen dieses Anime+Gruppen-Paares) — kein genereller Ausschluss vom "vollständig"-Status
+nur wegen fehlender Gesamtzahl.
+
+### D-06 — Antwort auf Frage 3: Zähler auf `DISTINCT episode_id`
+Der Zähler (wie viele Episoden ein Member abdeckt) zählt pro Episode einmal
+(`DISTINCT episode_id`), auch wenn mehrere Release-Version-Zeilen/Credits zur selben Episode
+existieren.
+
+### D-07 — Antwort auf Frage 4: Re-Subjecting per E-Mail NUR bei verifizierter E-Mail
+Das Re-Subjecting in `EnsureAppUserForIdentity` darf einen bestehenden `app_users`-Datensatz nur
+dann per E-Mail-Match wiederverwenden, wenn `email_verified` aus dem Keycloak-Token `true` ist.
+Dafür muss `email_verified` bis zu `KeycloakIdentity`/`EnsureAppUserForIdentity` durchgereicht und
+dort geprüft werden. Ist die E-Mail nicht verifiziert, bleibt es beim heutigen Verhalten (neuer
+`app_users`-Datensatz). Übernahme fremder Konten ist damit ausgeschlossen (ein unverifiziertes
+Konto kann nie ein bestehendes Konto re-subjecten) — mit eigenen Tests für genau diesen
+Negativ-Fall (unverifizierte E-Mail führt NICHT zum Re-Subjecting) sowie den Positiv-Fall
+(verifizierte E-Mail führt zum Re-Subjecting).
+
+### D-08 — Antwort auf Frage 5: Hygiene-Skript im Prüf-/Report-Modus, keine automatische Löschung
+Das Hygiene-Skript wird gebaut, aber klein und sicher gehalten: Standardmodus ist reiner Report
+(listet verwaiste `app_users`-Zeilen auf, verändert nichts). Keine automatische Löschung in dieser
+Phase. Klarstellung: Es gibt nur die eine Datenbank auf der VM (`team4sv30-db`) — keine separate
+Produktionsumgebung. "Künftige Fälle" bezieht sich auf diesen einen Datenbestand, nicht auf eine
+getrennte Produktionsinstanz.
+
+### D-09 — Antwort auf Frage 6: Fail-fast mit variablen-spezifischer Fehlermeldung
+Bei ungültigem `NEXT_PUBLIC_API_URL`-Wert bricht der Next.js-Config-Load beim Start mit einer
+klaren, eindeutigen Fehlermeldung ab (fail-fast), die benennt, welche Variable (`NEXT_PUBLIC_API_URL`)
+welchen konkreten ungültigen Wert hatte — kein stummer Fallback.
+
 ## Verbindliche Vorgaben für alle späteren Schritte (Planung + Ausführung)
 
 - **Bestehende UI/Komponenten wiederverwenden:** `@/components/ui`-Primitives
@@ -218,9 +254,10 @@ Legacy-Bridge anfasst. Kein Test deckt das Delete+Recreate-/Re-Subjecting-Szenar
   (`csubs-leader`, `sheppert`, der reine Realm-Admin ohne E-Mail) haben noch keinen `app_users`-
   Datensatz (normal — wird beim ersten Login erzeugt, kein Waisen-Fall).
 - **Aktueller Bestand: 0 verwaiste `app_users`-Zeilen.** Der Bug ist strukturell vorhanden und
-  reproduzierbar (Code-Pfad bestätigt), aber in diesem Dev-Datenbestand bisher nicht eingetreten —
-  ein Hygiene-Skript hätte heute nichts zu bereinigen, wäre aber als Vorsorge für künftige
-  Produktionsfälle weiterhin sinnvoll.
+  reproduzierbar (Code-Pfad bestätigt), aber im aktuellen Datenbestand (der einen Datenbank auf der
+  VM, `team4sv30-db` — es gibt keine separate Produktionsumgebung) bisher nicht eingetreten. Ein
+  Hygiene-Skript hätte heute nichts zu bereinigen, bleibt aber als Vorsorge für künftige Fälle in
+  diesem selben Datenbestand sinnvoll (siehe D-08).
 
 ### #35.1 — `next.config.mjs` / `publicImagePatterns.mjs` Robustheit
 
@@ -270,7 +307,11 @@ ResponsiveImage.config.test.ts:5,41-54` importiert `next.config.mjs` und prüft
 malformte/leere Werte. `frontend/src/lib/publicApiUrl.test.ts:52,59,68` deckt das Gegenstück
 (`getBrowserApiBaseUrl`) ab, aber nicht den `publicImagePatterns.mjs`-Pfad.
 
-## Offene Fragen an den Nutzer
+## Offene Fragen an den Nutzer — BEANTWORTET (2026-10-19)
+
+Alle sechs Fragen sind vom Nutzer beantwortet und oben als D-04 bis D-09 verbindlich festgehalten
+(jeweils wie empfohlen). Die ursprünglichen Fragen bleiben hier zur Nachvollziehbarkeit stehen,
+jeweils mit Verweis auf die zugehörige Entscheidung.
 
 ### Zu #18 — Nenner-Korrektur
 
@@ -283,7 +324,7 @@ explizit ausschließen? Im einzigen Bestandsprojekt sind beide Zahlen identisch 
 sich das nicht an Live-Daten unterscheiden.
 *Empfehlung:* (a), exakt `anime.max_episodes` — einfachste, am Finding orientierte Lösung; Specials/
 OVAs fließen ohnehin heute schon ungefiltert ein, eine Typ-Filterung wäre ein zusätzlicher
-Scope-Zuwachs ohne expliziten Auftrag dafür.
+Scope-Zuwachs ohne expliziten Auftrag dafür. → **Beantwortet: D-04 (wie empfohlen).**
 
 **Frage 2 — Umgang mit `anime.max_episodes IS NULL`?**
 Aktuell betrifft das 0 von 12 Bestandsanime, ist aber strukturell möglich (nullable Spalte, z. B. bei
@@ -293,6 +334,7 @@ vergebener Release-Versionen) — oder (b) soll das Projekt dann grundsätzlich 
 gelten (kein Badge möglich ohne bekannte Gesamtzahl)?
 *Empfehlung:* (a), Rückfall auf heutige Logik bei NULL — verhindert, dass ein Datenlücken-Fall
 (fehlendes `max_episodes`) Mitgliedern rückwirkend einen bereits sichtbaren Status entzieht.
+→ **Beantwortet: D-05 (wie empfohlen).**
 
 **Frage 3 — Mehrere Release-Versionen derselben Episode (z. B. v2/Re-Release)?**
 Soll der Zähler (wie viele Episoden ein Member abdeckt) pro **Episode** einmal zählen (auch wenn
@@ -303,6 +345,7 @@ erreichen, wenn eine Episode zwei separate Release-Version-Zeilen hat und nur ei
 gutgeschrieben wurde.
 *Empfehlung:* Zähler auf `DISTINCT episode_id` umstellen, damit Mehrfachversionen nicht doppelt
 zählen — passt zur Fragestellung "wie viele der `max_episodes` Episoden deckt dieser Member ab".
+→ **Beantwortet: D-06 (wie empfohlen).**
 
 ### Zu #27 — Re-Subjecting per E-Mail
 
@@ -318,16 +361,19 @@ gering eingeschätzt wird?
 *Empfehlung:* (a) — Verifizierungs-Gate ergänzen. Der Mehraufwand ist überschaubar
 (`EmailVerified`-Feld in `KeycloakIdentity`/`app_users` + Abfrage im Re-Subjecting-Zweig), und ohne
 dieses Gate öffnet die Korrektur selbst einen neuen, kleinen Account-Übernahme-Pfad.
+→ **Beantwortet: D-07 (wie empfohlen).**
 
 **Frage 5 — Soll das Hygiene-Skript trotz 0 aktueller Waisen gebaut werden?**
 Der Live-Bestand zeigt heute **keine** verwaisten `app_users`-Zeilen — ein Hygiene-Lauf hätte
 aktuell nichts zu tun. Soll das einmalige Hygiene-Skript trotzdem gebaut werden (Vorsorge für
-Produktionsdaten/künftige Fälle, ggf. auch als wiederholbares Admin-Tool), oder reicht die reine
-Code-Korrektur in `EnsureAppUserForIdentity` ohne begleitendes Skript, solange der Ist-Bestand leer
-ist?
+künftige Fälle in diesem Datenbestand, ggf. auch als wiederholbares Admin-Tool), oder reicht die
+reine Code-Korrektur in `EnsureAppUserForIdentity` ohne begleitendes Skript, solange der Ist-Bestand
+leer ist?
 *Empfehlung:* Skript trotzdem bauen (einmalig lauffähig, idempotent) — der Befund wurde ursprünglich
-aus einem konkreten Produktionsvorfall gemeldet, auch wenn der aktuell gespiegelte Datenbestand ihn
-nicht zeigt; auf Produktionsdaten könnten bereits echte Waisen existieren.
+aus einem konkreten Vorfall gemeldet, auch wenn der aktuell gespiegelte Datenbestand ihn nicht
+zeigt; künftig könnten echte Waisen in diesem Datenbestand entstehen.
+→ **Beantwortet: D-08 — gebaut, aber standardmäßig nur Prüf-/Report-Modus (listet Waisen auf),
+keine automatische Löschung.**
 
 ### Zu #35.1 — Fehlerbehandlung
 
@@ -340,3 +386,4 @@ Build läuft durch, aber Bilder laden ggf. nicht) weitergearbeitet werden, ähnl
 *Empfehlung:* (a) fail-fast mit klarer Meldung — bei einer Server-/Build-Konfiguration ist ein
 stummer Fallback riskanter als ein lauter, sofort sichtbarer Abbruch mit verständlicher Ursache
 (entspricht der bestehenden "fail-fast"-Konvention in `backend/internal/config/config.go`).
+→ **Beantwortet: D-09 (wie empfohlen).**
