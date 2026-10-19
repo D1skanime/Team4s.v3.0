@@ -2862,11 +2862,25 @@ blockiert.
 **Plans:** 8 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 187-01-PLAN.md — Dependents-guard core (Postgres fixture, counting SQL, set-diff helpers, sentinels)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 187-02-PLAN.md — Editor write path: split + guard wiring + 409/400 handler responses
 - [ ] 187-03-PLAN.md — Import write path: split + guard wiring (same-group/add exception via set diff)
 - [ ] 187-04-PLAN.md — Editor-context dependents data (backend) + contract/type parity
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 187-05-PLAN.md — Import apply-loop per-row conflict continuation + D-12 Pruefauftrag finding
 - [ ] 187-06-PLAN.md — Frontend: FansubGroupsSection split, D-05 relabel, D-10 disabled-chip wiring
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 187-07-PLAN.md — Frontend: import-apply conflict surfacing in the success panel
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 187-08-PLAN.md — Deploy + blocking live UAT checkpoint
