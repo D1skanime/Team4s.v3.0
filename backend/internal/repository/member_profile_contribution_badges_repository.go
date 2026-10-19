@@ -61,19 +61,34 @@ const authorMemberSeam = `
 `
 
 // loadContribProjectsCount liefert die Rohzahl fuer Familie 1 (D-02, "vollstaendig
-// mitgetragene Projekte") -- exakt dieselbe SQL, die zuvor inline in
+// mitgetragene Projekte") -- urspruenglich exakt dieselbe SQL, die zuvor inline in
 // loadContributionBadges lag (116-02, Plan 116-02 Task 1: Rohzahl-Extraktion,
 // verhaltenserhaltend). Wird sowohl von loadContributionBadges (Tier-Ableitung) als
 // auch von GetOwnDashboard (D-04 "noch X bis naechste Stufe") wiederverwendet.
+//
+// Phase 188 (D-04/D-05/D-06, Befund #18): der Nenner ist primaer anime.max_episodes
+// (die tatsaechliche Episodenzahl des Projekts), NICHT mehr die Anzahl jemals
+// vergebener Release-Versionen -- ein Mitglied, das nur die bisher ledger-erfassten
+// Versionen abdeckt, aber nicht alle Episoden, zaehlt das Projekt nicht mehr als
+// "vollstaendig mitgetragen" (D-04). Ist anime.max_episodes NULL, faellt der Nenner
+// auf die heutige Logik zurueck (COUNT(*) ueber ledger-erfasste Release-Version-Zeilen,
+// D-05) -- unveraendert gegenueber dem Vor-Phase-188-Verhalten. Der Zaehler zaehlt
+// Episoden ueber COUNT(DISTINCT episode_id) statt Release-Version-Zeilen, damit
+// Mehrfachversionen derselben Episode (z. B. v1 + Re-Release v2) nicht ueber die
+// tatsaechliche Episodenzahl hinaustreiben (D-06). D-06 gilt ausschliesslich fuer den
+// Zaehler -- der NULL-Rueckfall-Nenner bleibt bewusst COUNT(*), nicht
+// COUNT(DISTINCT episode_id), sonst wuerde D-05 verletzt (188-RESEARCH.md #18).
 func (r *MemberProfileRepository) loadContribProjectsCount(ctx context.Context, memberID int64) (int64, error) {
 	var projectsCount int64
 	if err := r.db.QueryRow(ctx, `
 		WITH project_versions AS (
-			SELECT ep.anime_id, rvg.fansub_group_id, rv.id AS release_version_id
+			SELECT ep.anime_id, rvg.fansub_group_id, rv.id AS release_version_id,
+			       ep.id AS episode_id, a.max_episodes
 			FROM release_versions rv
 			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 			JOIN fansub_releases fr ON fr.id = rv.release_id
 			JOIN episodes ep ON ep.id = fr.episode_id
+			JOIN anime a ON a.id = ep.anime_id
 			WHERE EXISTS (
 				SELECT 1 FROM release_role_credit_lifecycles l
 				WHERE l.release_version_id = rv.id
@@ -87,17 +102,19 @@ func (r *MemberProfileRepository) loadContribProjectsCount(ctx context.Context, 
 			WHERE member_id = $1 AND lifecycle_status = 'awarded'
 		)
 		SELECT COUNT(*) FROM (
-			SELECT pv.anime_id, pv.fansub_group_id
-			FROM project_versions pv
-			GROUP BY pv.anime_id, pv.fansub_group_id
-			HAVING COUNT(*) > 0
-			   AND COUNT(*) = COUNT(*) FILTER (
+			SELECT pv.anime_id, pv.fansub_group_id,
+			       COALESCE(MAX(pv.max_episodes), COUNT(*)) AS denominator,
+			       COUNT(DISTINCT pv.episode_id) FILTER (
 					WHERE EXISTS (
 						SELECT 1 FROM member_covered mc
 						WHERE mc.release_version_id = pv.release_version_id
 						  AND mc.fansub_group_id = pv.fansub_group_id
-					))
+					)) AS numerator
+			FROM project_versions pv
+			GROUP BY pv.anime_id, pv.fansub_group_id
+			HAVING COUNT(*) > 0
 		) fully_carried
+		WHERE numerator >= denominator AND denominator > 0
 	`, memberID).Scan(&projectsCount); err != nil {
 		return 0, fmt.Errorf("load contribution-projects coverage for member %d: %w", memberID, err)
 	}
