@@ -15,6 +15,63 @@ export interface FormState {
   durationSeconds: string
 }
 
+export type ActiveTab =
+  | 'uebersicht'
+  | 'dateien'
+  | 'informationen'
+  | 'segmente'
+  | 'media'
+  | 'changelog'
+  | 'notizen'
+
+export const ACTIVE_TABS: ActiveTab[] = [
+  'uebersicht',
+  'dateien',
+  'informationen',
+  'segmente',
+  'media',
+  'changelog',
+  'notizen',
+]
+
+export function parseActiveTab(value: string | null): ActiveTab {
+  return ACTIVE_TABS.includes(value as ActiveTab) ? (value as ActiveTab) : 'informationen'
+}
+
+export function resolveVisibleActiveTab(activeTab: ActiveTab, allowedTabs: Set<ActiveTab>): ActiveTab {
+  if (allowedTabs.has(activeTab)) return activeTab
+  if (allowedTabs.has('segmente')) return 'segmente'
+  if (allowedTabs.has('media')) return 'media'
+  if (allowedTabs.has('notizen')) return 'notizen'
+  if (allowedTabs.has('informationen')) return 'informationen'
+  return activeTab
+}
+
+/** Only an allow-listed, path-only same-origin destination is honored as a safe return target. */
+export function getSafeReturnPath(value: string | null): string | null {
+  const trimmed = value?.trim()
+  if (!trimmed) return null
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//')) return null
+  if (trimmed.includes('\\') || trimmed.includes('://')) return null
+
+  try {
+    const parsed = new URL(trimmed, 'http://team4s.local')
+    if (parsed.origin !== 'http://team4s.local') return null
+
+    const isAdminFansubWorkspace = /^\/admin\/fansubs\/\d+\/edit$/.test(parsed.pathname)
+    const isMemberProjectWorkspace = /^\/me\/projects\/\d+\/group\/\d+$/.test(parsed.pathname)
+    const isMemberDashboard = parsed.pathname === '/me/dashboard'
+    const isMemberContributions = parsed.pathname === '/me/contributions'
+    if (!isAdminFansubWorkspace && !isMemberProjectWorkspace && !isMemberDashboard && !isMemberContributions) {
+      return null
+    }
+
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`
+  } catch {
+    return null
+  }
+}
+
 export function parsePositiveInt(raw: string): number | null {
   const value = Number.parseInt(raw, 10)
   if (!Number.isFinite(value) || value <= 0) return null

@@ -76,7 +76,21 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   'src/app/admin/anime/create/CreateAssetSearchDialog.tsx',
   'src/app/admin/anime/create/CreateJellyfinCard.tsx',
   'src/app/admin/anime/create/page.tsx',
-  'src/app/admin/episode-versions/\\[versionId\\]/edit/EpisodeVersionEditorPage.tsx',
+  // 187-06: reine Code-Verschiebung aus dem vormals hier gelisteten
+  // EpisodeVersionEditorPage.tsx (450-Zeilen-Split der Informationen-/Dateien-Tabs in eigene
+  // Sektions-Komponenten) -- keine neuen nativen Elemente, nur relokierte Altlast
+  // (Stream-Link-/Media-Provider-/Media-ID-Inputs bzw. das schreibgeschuetzte Anime-Folder-Path-
+  // Input). EpisodeVersionEditorPage.tsx selbst enthaelt nach dem Split kein natives Element mehr
+  // und wurde deshalb aus dieser Liste entfernt (Ratchet schrumpft). Bewusste, dokumentierte
+  // Ergaenzung (187-06-SUMMARY.md), gleiches Muster wie die 156-14-/174-14-/180-04-/184-05-
+  // Ergaenzungen oben.
+  'src/app/admin/episode-versions/\\[versionId\\]/edit/DateienTabSection.tsx',
+  'src/app/admin/episode-versions/\\[versionId\\]/edit/InformationenTabSection.tsx',
+  // 187-06 Task 1 (Zwischenstand): FansubGroupsSection.tsx wird in Task 1 byte-identisch aus
+  // EpisodeVersionEditorPage.tsx extrahiert (natives <input> unveraendert); Task 2 migriert
+  // dasselbe Feld auf @/components/ui Input und entfernt diesen Eintrag wieder (Ratchet schrumpft
+  // im selben Plan). Siehe 187-06-SUMMARY.md.
+  'src/app/admin/episode-versions/\\[versionId\\]/edit/FansubGroupsSection.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaDetailPanel.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaSection.tsx',
   // 180-04: reine Code-Verschiebung aus dem bereits gelisteten
