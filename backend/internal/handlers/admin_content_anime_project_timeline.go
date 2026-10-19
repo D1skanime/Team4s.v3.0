@@ -70,9 +70,17 @@ func (h *AdminContentHandler) requireAnimeProjectTimelineWriteAccess(c *gin.Cont
 		badRequest(c, "ungültige fansub id")
 		return middleware.AuthIdentity{}, false
 	}
+	// D-12: die Rechteprüfung berücksichtigt bestätigte Projektrollen für GENAU dieses
+	// Anime+Gruppe-Paar (CanForAnimeProject), nicht mehr nur gruppenweite Rollen
+	// (CanForFansubGroup) -- animeID wird dafür hier, vor der Prüfung, selbst geparst.
+	animeID, err := strconv.ParseInt(c.Param("animeId"), 10, 64)
+	if err != nil || animeID <= 0 {
+		badRequest(c, "ungültige anime id")
+		return middleware.AuthIdentity{}, false
+	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(
-		c.Request.Context(), actor, permissions.ActionAnimeFansubProjectTimelineUpdate, fansubID,
+	result, err := h.permissionSvc.CanForAnimeProject(
+		c.Request.Context(), actor, permissions.ActionAnimeFansubProjectTimelineUpdate, animeID, fansubID,
 	)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung für den Projektzeitraum konnte nicht geprüft werden.")

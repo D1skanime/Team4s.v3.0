@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
@@ -113,7 +115,21 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
 		return
 	}
-	canEditProjectTimeline, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionAnimeFansubProjectTimelineUpdate, fansubID)
+	// D-12/D-13: ist eine anime_id-Query gesetzt, wird die Rechteprüfung projektbezogen
+	// (CanForAnimeProject, berücksichtigt bestätigte Projektrollen für GENAU dieses
+	// Anime+Gruppe-Paar) statt gruppenweit (CanForFansubGroup) ausgewertet. Ohne anime_id
+	// bleibt das bestehende gruppenweite Verhalten für alle Aufrufer unverändert erhalten.
+	var canEditProjectTimeline permissions.Result
+	if rawAnimeID := strings.TrimSpace(c.Query("anime_id")); rawAnimeID != "" {
+		parsedAnimeID, parseErr := strconv.ParseInt(rawAnimeID, 10, 64)
+		if parseErr != nil || parsedAnimeID <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige anime-id"}})
+			return
+		}
+		canEditProjectTimeline, err = h.permissionSvc.CanForAnimeProject(c.Request.Context(), actor, permissions.ActionAnimeFansubProjectTimelineUpdate, parsedAnimeID, fansubID)
+	} else {
+		canEditProjectTimeline, err = h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionAnimeFansubProjectTimelineUpdate, fansubID)
+	}
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung für den Projektzeitraum konnte nicht geprüft werden.")
 		return

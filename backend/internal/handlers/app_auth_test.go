@@ -171,6 +171,12 @@ type permissionResolverStub struct {
 	context               *permissions.Context
 	roles                 map[int64][]string
 	resolveFansubGroupErr error
+	// projectContributionRoles (Plan 188-05, D-12) is keyed fansubGroupID -> animeID -> role
+	// codes. Additive extension of this existing, package-wide test stub -- every other
+	// usage of permissionResolverStub in this package keeps working unchanged (a nil map
+	// here just means "no project-specific contribution roles configured"), implementing
+	// permissions.AnimeProjectContributionResolver for every stub instance automatically.
+	projectContributionRoles map[int64]map[int64][]string
 }
 
 func (s permissionResolverStub) ResolveFansubGroup(_ context.Context, _ int64) (*permissions.Context, error) {
@@ -198,6 +204,10 @@ func (s permissionResolverStub) ListActorGroupRoles(_ context.Context, _ int64, 
 
 func (s permissionResolverStub) ListActorContributionRolesForVersion(_ context.Context, _ int64, _ int64) ([]string, error) {
 	return nil, nil
+}
+
+func (s permissionResolverStub) ListActorContributionRolesForAnimeProject(_ context.Context, _ int64, animeID int64, fansubGroupID int64) ([]string, error) {
+	return s.projectContributionRoles[fansubGroupID][animeID], nil
 }
 
 type appAuthCapabilityCacheLoader struct{}
@@ -1487,6 +1497,66 @@ func TestGetFansubGroupCapabilitiesDeniesProjectTimelineForQualityChecker(t *tes
 	}
 	if got := decodeBody(t, recorder)["data"].(map[string]any)["can_edit_project_timeline"]; got != false {
 		t.Fatalf("quality checker must not edit the project timeline, got %#v", got)
+	}
+}
+
+// TestGetFansubGroupCapabilitiesReturnsProjectSpecificTimelineRight is Plan 188-05's
+// Handler-Test C (D-12/D-13): with an anime_id query parameter, can_edit_project_timeline
+// is computed via CanForAnimeProject and reflects a confirmed project-specific role even
+// without any granting group role.
+func TestGetFansubGroupCapabilitiesReturnsProjectSpecificTimelineRight(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+
+	handler := &AppAuthHandler{permissionSvc: permissions.NewService(permissionResolverStub{
+		context:                  &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+		roles:                    map[int64][]string{88: {}},
+		projectContributionRoles: map[int64]map[int64][]string{88: {9: {permissions.RoleProjectLead}}},
+	})}
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities?anime_id=9", nil, middleware.AuthIdentity{
+		UserID: 6, AppUserID: 6, DisplayName: "Strawhat Leader", AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.GetFansubGroupCapabilities(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if got := decodeBody(t, recorder)["data"].(map[string]any)["can_edit_project_timeline"]; got != true {
+		t.Fatalf("confirmed project_lead for this anime+group pair must edit the project timeline, got %#v", got)
+	}
+}
+
+// TestGetFansubGroupCapabilitiesWithoutAnimeIdStaysGroupWide is Plan 188-05's Handler-Test D
+// (regression protection): without an anime_id query parameter, can_edit_project_timeline
+// stays on the pre-Plan-188-05 group-wide CanForFansubGroup path -- a granting project role
+// for one specific anime must NOT leak into the group-wide default. The actor's group role
+// (quality_checker, matching the pre-existing TestGetFansubGroupCapabilitiesDeniesProjectTimelineForQualityChecker
+// fixture) is deliberately non-empty so this request exercises the group-wide path exactly
+// like every other pre-188-05 caller of this endpoint without an anime_id parameter --
+// an actor with literally zero roles/no active membership would trip the unrelated
+// "nothing at all is allowed" 403 guard further down in this handler, which is not what this
+// regression test is about.
+func TestGetFansubGroupCapabilitiesWithoutAnimeIdStaysGroupWide(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+
+	handler := &AppAuthHandler{permissionSvc: permissions.NewService(permissionResolverStub{
+		context:                  &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+		roles:                    map[int64][]string{88: {permissions.RoleQualityChecker}},
+		projectContributionRoles: map[int64]map[int64][]string{88: {9: {permissions.RoleProjectLead}}},
+	})}
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities", nil, middleware.AuthIdentity{
+		UserID: 6, AppUserID: 6, DisplayName: "Strawhat Leader", AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.GetFansubGroupCapabilities(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if got := decodeBody(t, recorder)["data"].(map[string]any)["can_edit_project_timeline"]; got != false {
+		t.Fatalf("without anime_id, the group-wide default must stay unaffected by the project-specific role, got %#v", got)
 	}
 }
 

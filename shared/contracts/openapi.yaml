@@ -5030,6 +5030,20 @@ paths:
             type: integer
             format: int64
             minimum: 1
+        - name: anime_id
+          in: query
+          required: false
+          description: |
+            Optional (Plan 188-05, D-12/D-13). When set, can_edit_project_timeline is
+            evaluated project-specifically (CanForAnimeProject: group role OR a confirmed
+            anime_contribution_roles project role for exactly this anime+group pair)
+            instead of the group-wide default (CanForFansubGroup). Omitting this parameter
+            keeps the pre-Plan-188-05 group-wide fallback for every other field and for
+            callers that do not pass it.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
       responses:
         "200":
           description: Fansub group workspace capabilities
