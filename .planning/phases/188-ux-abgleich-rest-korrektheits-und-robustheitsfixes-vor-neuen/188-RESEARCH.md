@@ -394,7 +394,10 @@ produktivem Code.
 **Wenn diese Tabelle leer wäre:** Sie ist es nicht — drei Annahmen oben benötigen Bestätigung während
 der Planung/Ausführung, keine davon ist eine vom Nutzer bereits gesperrte Entscheidung.
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+Alle drei Fragen sind während der Planung (Orchestrator-Entscheidung bzw. Planer-Umsetzung,
+2026-10-19) wie empfohlen aufgelöst — siehe `RESOLVED:`-Zeile je Frage.
 
 1. **Mechanismus des Hygiene-Skript-Zugriffs auf Keycloak-Daten (direkte DB vs. Admin-API)?**
    - What we know: Beide Zugänge existieren bereits (Keycloak-DB-Container mit offenem Host-Port,
@@ -407,6 +410,9 @@ der Planung/Ausführung, keine davon ist eine vom Nutzer bereits gesperrte Entsc
      passend zum "einmalig lauffähig"-Charakter aus D-08) — mit explizitem Kommentar im Code, dass dies
      an Keycloaks internes Schema (`user_entity.id = subject`) gekoppelt ist und bei einem
      Keycloak-Major-Upgrade neu zu prüfen wäre.
+   - **RESOLVED:** Direkter DB-Zugriff (`KEYCLOAK_DATABASE_URL`, zweite Postgres-Verbindung),
+     wie empfohlen — Orchestrator-Entscheidung, da reine Implementierungsdetail-Frage. Umgesetzt in
+     `188-03-PLAN.md`.
 
 2. **Exakte SQL-Formulierung für #18 (CTE- vs. äußere JOIN-Platzierung von `anime.max_episodes`)?**
    - What we know: Die konzeptionelle Formel (siehe Code Examples) erfüllt D-04/D-05/D-06 auf dem
@@ -417,6 +423,9 @@ der Planung/Ausführung, keine davon ist eine vom Nutzer bereits gesperrte Entsc
      festlegen, bevor Tasks geschrieben werden.
    - Recommendation: Während der Planung direkt gegen `openContributionBadgesPostgres` (bestehende
      Fixture) prototypisieren, dann die lesbarere Variante committen.
+   - **RESOLVED:** Expliziter äußerer `JOIN anime a ON a.id = ep.anime_id` in der finalen
+     Aggregation, mit `COALESCE(a.max_episodes, COUNT(DISTINCT pv.episode_id))` für den
+     NULL-Rückfall. Umgesetzt in `188-01-PLAN.md`, Task 2.
 
 3. **Soll die neue `shouldResubjectByEmail`-Pure-Funktion (Pitfall 3) in `app_auth_repository.go`
    selbst leben oder in einer neuen, kleineren Datei?**
@@ -428,6 +437,8 @@ der Planung/Ausführung, keine davon ist eine vom Nutzer bereits gesperrte Entsc
    - Recommendation: In derselben Datei belassen, solange die 450-Zeilen-Grenze nicht überschritten
      wird — die CLAUDE.md-Regel verlangt Aufteilung nur bei tatsächlicher Überschreitung, keine
      vorsorgliche Trennung.
+   - **RESOLVED:** In `app_auth_repository.go` belassen (bleibt mit Ergänzung bei 347 Zeilen klar
+     unter dem Limit). Umgesetzt in `188-02-PLAN.md`.
 
 ## Environment Availability
 
