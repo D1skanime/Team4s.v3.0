@@ -5,15 +5,36 @@
   pointer-events: none;
 }
 
-.image {
+.backdropLayer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: opacity 1500ms ease-in-out;
+}
+
+.backdropLayer[data-backdrop-visible='true'] {
+  opacity: 1;
+}
+
+.backdropLayerZoom {
   position: absolute;
   inset: 0;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  transform: scale(1.06);
   filter: saturate(1.05);
-  transition: background-image 0.5s ease-in-out;
+  transform: scale(1.06);
+  animation: backdropKenBurns 9000ms ease-out forwards;
+}
+
+@keyframes backdropKenBurns {
+  from {
+    transform: scale(1.06);
+  }
+  to {
+    transform: scale(1.12);
+  }
 }
 
 .video {
@@ -22,6 +43,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 1;
+  transition: opacity 600ms ease-in-out;
+}
+
+.video[data-theme-video-state='ending'] {
+  opacity: 0;
 }
 
 .overlay {
@@ -91,5 +118,19 @@
 
   .audioButton {
     padding: 10px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdropLayer {
+    transition-duration: 150ms;
+  }
+
+  .backdropLayerZoom {
+    animation: none;
+  }
+
+  .video {
+    transition-duration: 150ms;
   }
 }
