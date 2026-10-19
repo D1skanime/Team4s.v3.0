@@ -2859,7 +2859,7 @@ Release-Editor als auch im Episoden-Import, der zusätzlich eine Zeile statt des
 blockiert.
 **Requirements**: D-01..D-14 (siehe 187-CONTEXT.md; keine formalen REQ-IDs fuer diese additive Phase)
 **Depends on:** Phase 186
-**Plans:** 7/8 plans executed
+**Plans:** 8/8 plans complete
 
 Plans:
 **Wave 1**
@@ -2883,4 +2883,4 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 187-08-PLAN.md — Deploy + blocking live UAT checkpoint
+- [x] 187-08-PLAN.md — Deploy + blocking live UAT checkpoint

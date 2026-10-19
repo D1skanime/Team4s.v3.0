@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 187-06-PLAN.md
-last_updated: "2026-10-19T12:51:46.433Z"
+status: verifying
+stopped_at: Completed 187-08-PLAN.md
+last_updated: "2026-10-19T14:23:45.062Z"
 last_activity: 2026-10-19
 progress:
   total_phases: 52
-  completed_phases: 46
+  completed_phases: 47
   total_plans: 471
-  completed_plans: 467
-  percent: 88
+  completed_plans: 468
+  percent: 90
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -440,7 +440,7 @@ Abschluss" entry below for the full closing record.
 Phase: 187 (Gruppenwechsel bei bestehenden Releases (release_versions / release_version_groups)) — EXECUTING
 Plan: 8 of 8
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
-Status: Ready to execute
+Status: ready_for_verification
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -1360,6 +1360,7 @@ Last activity: 2026-10-19
 - [Phase 187-06]: DateienTabSection.tsx/InformationenTabSection.tsx relokierte native Inputs in eslint.config.mjs Legacy-Liste aufgenommen statt Nachbar-UI ungefragt zu migrieren
 - [Phase 187-07]: useEpisodeImportBuilder.ts unveraendert gelassen -- conflict_details lief bereits unconditional durch setApplyResult(response.data) aus Plan 05
 - [Phase 187-07]: Kein neuer automatisierter Test fuer die navigate-away-Bedingung -- Plan-Verifikation verlangt nur tsc/lint, Bedingung lebt in page-level useEffect ohne exportierte reine Funktion
+- [Phase 187]: German pluralization bug fixed in dependents-count reason text (D-10-adjacent): shared formatGermanCount()/DependencySummary.GermanReasonFragment() helpers on frontend and backend — Fixed during the Plan 187-08 Live-UAT checkpoint at the user's explicit request; previously three call sites independently duplicated an un-pluralized fmt.Sprintf/template-literal pattern
 
 ### Pending Todos
 
@@ -2058,11 +2059,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 187 P05 | 25min | 2 tasks | 7 files |
 | Phase 187 P06 | ~70min | 2 tasks | 13 files |
 | Phase 187 P07 | 15min | 1 tasks | 1 files |
+| Phase 187 P08 | 3h | 2 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T12:51:28.047Z
-Stopped at: Completed 187-06-PLAN.md
+Last session: 2026-10-19T14:22:40.164Z
+Stopped at: Completed 187-08-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
