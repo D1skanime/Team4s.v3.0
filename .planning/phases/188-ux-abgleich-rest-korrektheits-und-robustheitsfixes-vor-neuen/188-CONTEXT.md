@@ -387,3 +387,199 @@ Build läuft durch, aber Bilder laden ggf. nicht) weitergearbeitet werden, ähnl
 stummer Fallback riskanter als ein lauter, sofort sichtbarer Abbruch mit verständlicher Ursache
 (entspricht der bestehenden "fail-fast"-Konvention in `backend/internal/config/config.go`).
 → **Beantwortet: D-09 (wie empfohlen).**
+
+---
+
+## Erweiterung: Bug "Leader/Projektleiter kann Projektzeitraum nicht setzen" (2026-10-19)
+
+**Quelle:** `.planning/todos/pending/2026-10-19-bug-projektzeitraum-leader-projektleiter.md` (vollständig
+gelesen). Vom Nutzer am 2026-10-19 entschieden: Dieser Bug wird zusätzlich in Phase 188 behoben
+(eigener Plan 188-05), additiv zu #18/#27/#35.1.
+
+### Problem (laut Todo + eigener Nachprüfung mit echten, aktuellen Live-Daten)
+
+Der Leader von Strawhat Subs (Fansub-Gruppe 26) kann im Projekt „11eyes: Pink Phantasmagoria“
+(Anime 3) den Projektzeitraum (Produktionsbeginn/-ende) nicht setzen — auch nicht, nachdem er sich
+selbst als **Projektleiter** für genau dieses Projekt eingetragen hat.
+
+**Live-Daten-Nachweis (2026-10-19, nur lesende Abfragen):**
+- Leader = `app_user 6` = `member 4`. Gruppenrollen in Gruppe 26 (`fansub_group_member_roles`,
+  `fansub_group_members.id = 7`): `fansub_lead`, `founder`, `techadmin` — **kein** `project_lead`
+  als Gruppenrolle.
+- `anime_contributions.id = 684`: `anime_id = 3`, `fansub_group_id = 26`, `member_id = 4`,
+  `status = 'confirmed'`. Zugehörige `anime_contribution_roles` (IDs 814/815):
+  `translator`, `project_lead` — beide als **Projektrolle**, bestätigt.
+- Gegenprobe: `app_user 8` (`member 13`) hat `project_lead` direkt als **Gruppenrolle** in Gruppe 26
+  und dürfte das Datum setzen (bestätigt den Unterschied Gruppenrolle vs. Projektrolle).
+- `role_capabilities` für `anime_fansub_project.timeline.update`: nur `project_lead` und
+  `typesetter` haben es. `fansub_lead` hat es **nicht**.
+- `role_definitions.contexts` zeigt: `project_lead`, `typesetter`, `translator`, `editor`,
+  `quality_checker` sind alle sowohl als Gruppenrolle (`fansub_group`) als auch als Projektrolle
+  (`anime_contribution`) zuweisbar — **derselbe Rollen-Code kann in beiden Kontexten vergeben sein**,
+  `role_capabilities` unterscheidet aber nicht nach Kontext.
+
+### Ursachen (Code-Nachweis)
+
+**Ursache 1 — Rechte-Konfiguration:** `database/migrations/0157_project_timeline_capability.up.sql`
+vergibt `anime_fansub_project.timeline.update` nur an `project_lead` (additiv, korrekt mit
+`ON CONFLICT DO NOTHING`). Der `typesetter`-Eintrag steht in **keiner** Migration
+(`grep -rln "anime_fansub_project.timeline.update" database/migrations/` findet nur `0157`) — er
+wurde demnach live über die Admin-Rechte-Matrix-UI gesetzt (`PUT
+/admin/role-capabilities/:roleCode/:actionCode`, `AdminCapabilityHandler.GrantCapability`,
+`admin_routes.go:296`), vermutlich ein Fehlklick, wie in der Notiz vermutet.
+
+**Ursache 2 — Logikfehler (struktureller Kern des Bugs):** Die Rechteprüfung läuft ausschließlich
+gruppenweit über `CanForFansubGroup` (`backend/internal/permissions/permissions.go:520-528`), das
+nur `fansub_group_member_roles` gegen `role_capabilities` prüft — niemals `anime_contribution_roles`:
+- Schreib-Endpunkt: `requireAnimeProjectTimelineWriteAccess`
+  (`backend/internal/handlers/admin_content_anime_project_timeline.go:62-90`) parst nur `fansubID`
+  aus der Route und ruft `CanForFansubGroup(ctx, actor,
+  ActionAnimeFansubProjectTimelineUpdate, fansubID)` auf — `animeID` (bereits im Handler selbst via
+  `c.Param("animeId")` verfügbar, Zeile 103) wird für die Prüfung **nicht** verwendet.
+- Capability für das Frontend: `app_auth_capabilities.go:116-120`
+  (`GetFansubGroupCapabilities` → `CanEditProjectTimeline`) ruft denselben gruppenweiten Check auf,
+  ohne jeden Anime-Bezug — die Route `GET /admin/fansubs/:id/capabilities` hat **keinen**
+  `animeId`-Parameter.
+- Frontend: `AnimeReleasesCockpit.tsx:294-303` rendert `AnimeProjectTimelineSection` einmal pro
+  Anime-Projekt-Zeile (`animeId={releaseGroup.anime.id}` ist bereits vorhanden), reicht aber überall
+  **dieselbe** gruppenweite `canEditProjectTimeline`-Variable aus `FansubEditClient.tsx:159-160`
+  durch — keine Projekt-Granularität, weder Backend noch Frontend.
+
+**Bereits existierendes, analoges Muster im selben System (wiederzuverwenden/zu erweitern statt neu
+zu bauen):** `CanForReleaseVersion` (`permissions.go:626-707`) prüft für die Release-Version-Ebene
+bereits genau nach diesem Prinzip: Schritt 1 Gruppenrollen (`canForReleaseVersionGroupRole`),
+Schritt 2 Fallback über `resolver.ListActorContributionRolesForVersion` (Resolver-Interface-Methode,
+implementiert in `backend/internal/repository/authz_permissions.go:507-588`), die `role_code` aus
+`anime_contribution_roles` auflöst (versions-spezifisch, mit Fallback auf anime-weite Contributions
+ohne `release_version_id`). **Für die Ebene (Gruppe, Anime) direkt — ohne Release-Version — existiert
+dieses Pendant noch nicht.** Wichtig: Die bestehende `ListActorContributionRolesForVersion`-Query
+filtert **nicht** auf `anime_contributions.status = 'confirmed'` (akzeptiert jeden Status) — das ist
+eine bestehende, nicht in dieser Phase zu ändernde Eigenheit jener Methode; die NEUE Methode für
+diesen Bugfix MUSS dagegen explizit auf `status = 'confirmed'` filtern (Nutzervorgabe).
+
+**Korrektur der Nutzer-Referenz "Phase 146 CR-01":** CR-01 aus `146-REVIEW.md` behandelt ein anderes
+Thema (Fake-Tests in `member_archive_repository_test.go`) und hat nichts mit
+Matrix-Laufzeitdaten zu tun. Die tatsächlich treffende Falle steht in **Phase 143**,
+`143-CONTEXT.md` Kriterium 2: Migration `0154_role_capability_defaults_snapshot.up.sql` führt ein
+unconditional `DELETE FROM role_capabilities;` (ohne `WHERE`) gefolgt von einem statischen
+232-Zeilen-Reinsert aus — das hätte jeden live über die Matrix-UI gesetzten Eintrag (wie den
+`typesetter`-Fehlklick) ersatzlos gelöscht. Migration `0159_role_capability_defaults_reset.up.sql`
+behebt dies nur teilweise (Reinsert additiv mit `ON CONFLICT DO NOTHING`, aber weiterhin ein
+unconditional `DELETE FROM role_capabilities;` vorab). **Migration 0157 selbst folgt bereits dem
+sicheren additiven Muster** (kein `DELETE`, nur `INSERT ... ON CONFLICT DO NOTHING`) — genau dieses
+Muster müssen auch die neuen Migrationen dieser Phase verwenden: additives `INSERT ... ON CONFLICT
+DO NOTHING` für die `fansub_lead`-Vergabe, und ein **gezieltes** `DELETE FROM role_capabilities WHERE
+role_code = 'typesetter' AND action_code = 'anime_fansub_project.timeline.update'` für die
+Rücknahme bei `typesetter` (niemals ein blunt `DELETE FROM role_capabilities;` ohne WHERE).
+Nächste freie Migrationsnummer: **0185** (aktuell höchste: `0184_drop_anime_cover_image`).
+
+**Vorab-Prüfung Laufzeitdaten (nur lesend, 2026-10-19):**
+- `user_group_capability_overrides`: 0 Zeilen für `action_code =
+  'anime_fansub_project.timeline.update'` — und strukturell auch keine künftigen möglich, da diese
+  Action in `action_definitions.user_overridable = false` steht (FK erzwingt
+  `catalog_user_overridable = true`, was die Allowlist aus Migration `0150` für diese Action nicht
+  vorsieht). Die Rücknahme bei `typesetter` kann also keine Nutzer-Override verwaisen lassen.
+  (Bitte vor Ausführung live gegenprüfen — Datenbestand kann sich bis zur Ausführung geändert haben.)
+- Wer verliert durch die `typesetter`-Rücknahme tatsächlich etwas: **1 Mitglied, `member 5` in
+  Gruppe 1**, hält `typesetter` als einzige Gruppenrolle, die dieses Recht vergibt (zweite Rolle dort:
+  `karaoke_fx`, ohne dieses Recht). Keine Projektrolle `project_lead` für `member 5` gefunden, die das
+  kompensieren würde — informativ für den Live-Checkpoint, kein Blocker (Nutzer hat die Rücknahme
+  bereits entschieden).
+
+**Prüfauftrag-Befund (nur dokumentiert, NICHT in dieser Phase geändert) —
+`anime_fansub_project.notes.write`:** Dasselbe Grundmuster (Projektrolle zählt nicht) träfe
+grundsätzlich auch hier zu — aber der tatsächliche Befund ist noch eine Stufe überraschender: Der
+Schreib-Handler für Projektnotizen (`UpsertAnimeFansubProjectNote`/`DeleteAnimeFansubProjectNote`,
+`admin_content_anime_project_notes.go:101-182`) ruft **nicht** die dedizierte Action
+`ActionAnimeFansubProjectNotesWrite` (`anime_fansub_project.notes.write`) auf, sondern
+`requireFansubGroupNoteWriteAccess` → `CanForFansubGroup(..., ActionFansubGroupNotesWrite, ...)`
+(`admin_content_fansub_group_notes.go:19-43`) — die **gruppenweite** Notizen-Action. Die dedizierte
+Projekt-Action `anime_fansub_project.notes.write` ist zwar in `role_capabilities` an
+`editor`/`fansub_lead`/`project_lead`/`quality_checker` vergeben und als Konstante deklariert
+(`permissions.go:43`), wird aber von **keinem** Handler jemals abgefragt — toter Katalog-Eintrag.
+Zwei unabhängige Befunde also: (a) dasselbe "Projektrolle zählt nicht"-Muster gilt faktisch auch
+hier (nur über die gruppenweite statt der projektspezifischen Action), und (b) die dedizierte
+`anime_fansub_project.notes.write`-Action ist unbenutzter toter Code. Beides bleibt für diese Phase
+unangetastet, nur als Befund für eine spätere Entscheidung dokumentiert.
+
+### D-10 — `fansub_lead` bekommt `anime_fansub_project.timeline.update` standardmäßig
+Neue, additive Migration (`0185_...`, `INSERT INTO role_capabilities (role_code, action_code)
+VALUES ('fansub_lead', 'anime_fansub_project.timeline.update') ON CONFLICT DO NOTHING`), nach dem
+sicheren Muster von Migration 0157 (kein `DELETE`, idempotent).
+
+### D-11 — `typesetter` verliert `anime_fansub_project.timeline.update`
+Migration entfernt gezielt genau diesen einen `role_capabilities`-Eintrag (`DELETE FROM
+role_capabilities WHERE role_code = 'typesetter' AND action_code =
+'anime_fansub_project.timeline.update'`) — kein blunt-Wipe der Tabelle (Lehre aus Migration 0154,
+siehe Ist-Befund oben). Vorher wurde geprüft: keine `user_group_capability_overrides`-Zeile für
+diese Action (0 Zeilen, strukturell auch keine möglich), ein Mitglied (`member 5`, Gruppe 1) verliert
+dadurch tatsächlich Zugriff — dokumentiert, kein Blocker.
+
+### D-12 — Logikfehler beheben: Projektkontext-Prüfung (Gruppe + Anime) im Permission-Service
+Der Projektzeitraum gehört zu Gruppe **und** Anime. Die Rechteprüfung muss zusätzlich zu den
+Gruppenrollen auch **bestätigte** (`anime_contributions.status = 'confirmed'`) Projektrollen aus
+`anime_contribution_roles` für genau diese Gruppe + dieses Anime berücksichtigen — sowohl im
+Schreib-Endpunkt (`requireAnimeProjectTimelineWriteAccess`, muss `animeID` zusätzlich parsen und
+durchreichen) als auch in der Capability, die das Frontend zum Freischalten der Datumsfelder nutzt
+(`can_edit_project_timeline`, muss projektbezogen werden können). Plattform-Admin-Bypass bleibt
+erhalten (bereits struktureller Teil von `CanForFansubGroup`/`canForContext`).
+
+### D-13 — Architektur-Vorgaben für Plan 188-05 (VERBINDLICH, vom Nutzer explizit nachgeschärft)
+- **Keine seitenspezifische/hartcodierte Lösung:** Keine Rollen-Namen (`fansub_lead`,
+  `project_lead`, …) im Handler oder Frontend abfragen, kein `if role == …` an der
+  Permission-Infrastruktur vorbei. Einzig entscheidend: das Recht
+  `anime_fansub_project.timeline.update` aus `role_capabilities`, aufgelöst durch den
+  Permission-Service.
+- **Keine doppelte Logik:** Die Projektkontext-Auflösung (Gruppenrollen + bestätigte
+  `anime_contribution_roles` für Gruppe+Anime) gehört als allgemeine, wiederverwendbare Fähigkeit in
+  den bestehenden Permission-Service/Resolver (`backend/internal/permissions` +
+  `backend/internal/repository/authz_*`), nach dem Muster der vorhandenen
+  `CanForReleaseVersion`/`ListActorContributionRolesForVersion`-Kombination. Konkret vorgeschlagen
+  (Planer darf benennen/strukturieren, aber das Muster übernehmen): neue Resolver-Interface-Methode
+  (analog `ListActorContributionRolesForVersion`, aber direkt parametrisiert über `animeID` +
+  `fansubGroupID` statt `releaseVersionID`, MIT explizitem `status = 'confirmed'`-Filter) plus eine
+  neue `Service`-Methode (analog `CanForReleaseVersion`), aufgerufen von
+  `requireAnimeProjectTimelineWriteAccess` UND von `GetFansubGroupCapabilities`. Kein eigener
+  SQL-Rechte-Check im Timeline-Handler, keine Kopie von `canForContext`.
+- **Bereits existierender Kontext wiederverwenden, nicht neu bauen:** `capabilityRoleCatalog`
+  (`permissions.go:277-285`) führt Rollen mit `anime_contribution`-Kontext bereits als
+  capability-editierbar in der Rechte-Matrix — das muss unverändert so bleiben (keine neue
+  Matrix-Logik nötig). Die Resolver-seitige Datenabfrage (`anime_contribution_roles` + bestätigter
+  Status) existiert konzeptionell in `ListActorContributionRolesForVersion`s anime-weitem
+  Fallback-Zweig (`authz_permissions.go:548-570`) — strukturell wiederverwenden/als Vorlage nehmen,
+  NICHT diese bestehende Methode selbst verändern (sie bleibt für die Release-Version-Ebene
+  unverändert, inkl. ihrer abweichenden Nicht-Filterung auf `confirmed`).
+- **Frontend:** Datumsfelder werden über eine vom Backend gelieferte Capability freigeschaltet, ggf.
+  pro Projekt (die Komponente `AnimeProjectTimelineSection.tsx` hat `animeId` bereits als Prop und
+  lädt ihre Daten bereits lazy nur bei `expanded` — ein analoges, pro-Projekt-bewusstes
+  Capability-Fetching passt ins bestehende Muster). Keine Rollenlogik, keine zusätzlichen
+  Sonderprüfungen im Frontend (kein Wiederverwenden von `ownProjectAssignmentKeys“-artiger
+  Frontend-Eigenlogik für diesen Zweck).
+- **Rechte-Matrix (Admin-UI) muss das Ergebnis korrekt abbilden:** `fansub_lead` hat das Recht,
+  `typesetter` nicht, Änderungen über die Matrix wirken weiterhin ohne Code-Änderung (folgt
+  automatisch aus der bestehenden `role_capabilities`-Cache-Architektur, solange keine
+  Rollen-Namen hartcodiert werden).
+- **Nachweispflicht im Abschlussbericht:** Welche bestehenden Funktionen/Interfaces
+  wiederverwendet/erweitert wurden, und ein `grep`-Beleg, dass keine Rollen-Namen (`fansub_lead`,
+  `project_lead`, `typesetter` o. ä.) hartcodiert im Handler- oder Frontend-Code für DIESE Prüfung
+  stehen (Ausnahme: Testdateien, Migrationsdateien und die Matrix-Katalog-Logik selbst, die bereits
+  heute Rollen-Namen für andere Zwecke kennt).
+
+### D-14 — Dateien ≤450 Zeilen gilt auch hier, mehrere Kandidaten bereits heute über dem Limit
+`backend/internal/permissions/permissions.go` (970 Zeilen), `backend/internal/repository/
+authz_permissions.go` (588 Zeilen) und `frontend/src/app/admin/fansubs/[id]/edit/
+AnimeReleasesCockpit.tsx` (507 Zeilen) liegen bereits heute über dem 450-Zeilen-Limit und werden von
+dieser Phase inhaltlich angefasst (neue Service-/Resolver-Methode bzw. neue Capability-Wiring). Wer
+sie anfasst, teilt sie im selben Auftrag auf: reiner Umbau-Commit zuerst (Verhalten unverändert,
+Tests/Typecheck grün), danach erst die inhaltliche Änderung — gleiches Vorgehen wie bereits in
+Phase 184/187 etabliert.
+
+### Live-UAT-Hinweis für Plan 188-05
+Für die spätere Live-UAT ist der **echte Fall Strawhat Subs / Anime 3 mit `app_user 6`** der
+Prüffall — keine künstlichen Testdaten nötig, der Bestand existiert bereits exakt wie im Todo
+beschrieben. Der Plan muss nach den Code-Änderungen einen Backend-Rebuild (`docker compose up -d
+--build team4sv30-backend` bzw. äquivalent) und einen Frontend-Restart enthalten (Permission-Cache
+wird beim Start geladen, siehe `LoadCache`/`ReloadCache`, `permissions.go:385,934` — ohne Neustart
+wirkt weder die Migration noch der Cache-Reload automatisch), und am Ende einen **blockierenden
+Live-Checkpoint**: Login als `app_user 6`, Fansub-Bearbeiten → Strawhat Subs → Projekt „11eyes: Pink
+Phantasmagoria“ aufklappen → Projektzeitraum setzen muss jetzt funktionieren.
