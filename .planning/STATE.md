@@ -579,7 +579,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-19
+Last activity: 2026-10-19 - Completed quick task 261019-kq9: Theme-Hintergrundvideo auf der Anime-Detailseite: Ton beim Verlassen sofort stoppen
 
 ## Accumulated Context
 
@@ -1382,6 +1382,7 @@ Last activity: 2026-10-19
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 261019-kq9 | Theme-Hintergrundvideo auf der Anime-Detailseite: navigierende Klicks/Enter-Tastendrücke aktivieren den Ton nicht mehr; laufendes Theme-Video wird bei Navigationsbeginn, Unmount und `pagehide` sofort gemutet, pausiert und entladen (themeVideoAudio.ts: reine Navigationserkennung + stopThemeVideoPlayback, 19 neue Tests) | 2026-10-19 | e8c9f36f8 | [261019-kq9-theme-hintergrundvideo-auf-der-anime-det](./quick/261019-kq9-theme-hintergrundvideo-auf-der-anime-det/) |
 | 261018-l5r | AniSearch-Verknüpfung nachträglich in der Anime-Bearbeitung ermöglichen: additiver Link-Endpunkt, gemeinsame Such-/Eingabekarte (Create+Edit), serverseitige Feld-Übernahme ("Jellyfin-Vergleich"-Regel) in derselben Transaktion, `admin.ts`-450-Zeilen-Split, totes Enrichment-Endpunkt entfernt. Live auf Anime 13 "Freezing"/AniSearch 6465 getestet und freigegeben; dabei zwei weitere Defekte gefunden+behoben (AniSearch-Bonus-Zeile "B1" überschrieb Episode 1, Sprach-Dropdown war Stub) | 2026-10-18 | 9697b8e65 | [261018-l5r-anisearch-verkn-pfung-nachtr-glich-in-de](./quick/261018-l5r-anisearch-verkn-pfung-nachtr-glich-in-de/) |
 | 261016-ccw | useDebouncedSearch.ts (4. Debounce-Kopie) auf gemeinsamen useDebouncedValue-Hook umgestellt; Grep-Beweis für Rest-Implementierungen dokumentiert | 2026-10-16 | 9ec04f89c | [261016-ccw-usedebouncedsearch-ts-auf-gemeinsamen-ho](./quick/261016-ccw-usedebouncedsearch-ts-auf-gemeinsamen-ho/) |
 | 261015-gm3 | README neu schreiben (F-11): nicht-technisches deutsches README, technischer Altinhalt wandert nach docs/ENTWICKLUNG.md | 2026-10-15 | fd3a08144 | [261015-gm3-readme-neu-schreiben-f-11-nicht-technisc](./quick/261015-gm3-readme-neu-schreiben-f-11-nicht-technisc/) |
