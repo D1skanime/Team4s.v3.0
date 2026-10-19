@@ -579,7 +579,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-19 - Completed quick task 261019-kq9: Theme-Hintergrundvideo auf der Anime-Detailseite: Ton beim Verlassen sofort stoppen
+Last activity: 2026-10-19 - Completed quick task 261019-lcz: Anime-Detailseite weicher Hintergrundbild-Wechsel statt Flackern (Crossfade + Preload + Ken-Burns); Live-Checkpoint wartet auf Nutzerbestaetigung
 
 ## Accumulated Context
 
@@ -1382,6 +1382,7 @@ Last activity: 2026-10-19 - Completed quick task 261019-kq9: Theme-Hintergrundvi
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 261019-lcz | Anime-Detailseite: weicher Hintergrundbild-Wechsel statt Flackern -- zwei persistente Bild-Ebenen mit Opacity-Crossfade (~1,5s), Pflicht-Vorladen+Decode vor jedem Bildwechsel, dezenter Ken-Burns-Zoom, weicher Video-Ende-Uebergang (sofortiger Navigations-Stopp aus 261019-kq9 unveraendert); reine Rotations-/Preload-Logik in AnimeBackdropRotator.logic.ts ausgelagert, 11 neue Tests. Tasks 1-3 automatisiert gruen; Task 4 (Live-Checkpoint) wartet auf Nutzerbestaetigung im Browser | 2026-10-19 | 890d6db4d | [261019-lcz-anime-detailseite-weicher-hintergrundbil](./quick/261019-lcz-anime-detailseite-weicher-hintergrundbil/) |
 | 261019-kq9 | Theme-Hintergrundvideo auf der Anime-Detailseite: navigierende Klicks/Enter-Tastendrücke aktivieren den Ton nicht mehr; laufendes Theme-Video wird bei Navigationsbeginn, Unmount und `pagehide` sofort gemutet, pausiert und entladen (themeVideoAudio.ts: reine Navigationserkennung + stopThemeVideoPlayback, 19 neue Tests) | 2026-10-19 | e8c9f36f8 | [261019-kq9-theme-hintergrundvideo-auf-der-anime-det](./quick/261019-kq9-theme-hintergrundvideo-auf-der-anime-det/) |
 | 261018-l5r | AniSearch-Verknüpfung nachträglich in der Anime-Bearbeitung ermöglichen: additiver Link-Endpunkt, gemeinsame Such-/Eingabekarte (Create+Edit), serverseitige Feld-Übernahme ("Jellyfin-Vergleich"-Regel) in derselben Transaktion, `admin.ts`-450-Zeilen-Split, totes Enrichment-Endpunkt entfernt. Live auf Anime 13 "Freezing"/AniSearch 6465 getestet und freigegeben; dabei zwei weitere Defekte gefunden+behoben (AniSearch-Bonus-Zeile "B1" überschrieb Episode 1, Sprach-Dropdown war Stub) | 2026-10-18 | 9697b8e65 | [261018-l5r-anisearch-verkn-pfung-nachtr-glich-in-de](./quick/261018-l5r-anisearch-verkn-pfung-nachtr-glich-in-de/) |
 | 261016-ccw | useDebouncedSearch.ts (4. Debounce-Kopie) auf gemeinsamen useDebouncedValue-Hook umgestellt; Grep-Beweis für Rest-Implementierungen dokumentiert | 2026-10-16 | 9ec04f89c | [261016-ccw-usedebouncedsearch-ts-auf-gemeinsamen-ho](./quick/261016-ccw-usedebouncedsearch-ts-auf-gemeinsamen-ho/) |
