@@ -2859,12 +2859,12 @@ Release-Editor als auch im Episoden-Import, der zusätzlich eine Zeile statt des
 blockiert.
 **Requirements**: D-01..D-14 (siehe 187-CONTEXT.md; keine formalen REQ-IDs fuer diese additive Phase)
 **Depends on:** Phase 186
-**Plans:** 8 plans
+**Plans:** 1/8 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 187-01-PLAN.md — Dependents-guard core (Postgres fixture, counting SQL, set-diff helpers, sentinels)
+- [x] 187-01-PLAN.md — Dependents-guard core (Postgres fixture, counting SQL, set-diff helpers, sentinels)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
