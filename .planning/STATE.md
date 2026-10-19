@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 188-01-PLAN.md
-last_updated: "2026-10-19T23:07:50.615Z"
+stopped_at: Completed 188-02-PLAN.md
+last_updated: "2026-10-19T23:18:23.211Z"
 last_activity: 2026-10-19
 progress:
   total_phases: 53
   completed_phases: 47
   total_plans: 476
-  completed_plans: 469
+  completed_plans: 470
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 188 (ux-abgleich-rest-korrektheits-und-robustheitsfixes-vor-neuen) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Task 4 blockierender Live-Checkpoint wartet auf Nutzerfreigabe — PLAN NICHT ABGESCHLOSSEN)
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1377,6 +1377,7 @@ Last activity: 2026-10-19
 - [Phase 187-07]: Kein neuer automatisierter Test fuer die navigate-away-Bedingung -- Plan-Verifikation verlangt nur tsc/lint, Bedingung lebt in page-level useEffect ohne exportierte reine Funktion
 - [Phase 187]: German pluralization bug fixed in dependents-count reason text (D-10-adjacent): shared formatGermanCount()/DependencySummary.GermanReasonFragment() helpers on frontend and backend — Fixed during the Plan 187-08 Live-UAT checkpoint at the user's explicit request; previously three call sites independently duplicated an un-pluralized fmt.Sprintf/template-literal pattern
 - [Phase 188]: Nenner-Formel nach 188-RESEARCH.md umgesetzt: COALESCE(MAX(pv.max_episodes), COUNT(*)) als Nenner, COUNT(DISTINCT episode_id) als Zaehler, explizites WHERE numerator >= denominator AND denominator > 0 statt impliziter HAVING
+- [Phase 188-02]: shouldResubjectByEmail gated Re-Subjecting: nur bei verifizierter E-Mail wird eine bestehende app_users-Zeile per E-Mail-Match wiederverwendet; legacy_user_id bleibt dabei unangetastet (D-07).
 
 ### Pending Todos
 
@@ -2079,11 +2080,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 187 P07 | 15min | 1 tasks | 1 files |
 | Phase 187 P08 | 3h | 2 tasks | 7 files |
 | Phase 188 P01 | 35min | 2 tasks | 2 files |
+| Phase 188 P02 | 25min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-19T23:07:50.584Z
-Stopped at: Completed 188-01-PLAN.md
+Last session: 2026-10-19T23:18:23.187Z
+Stopped at: Completed 188-02-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
