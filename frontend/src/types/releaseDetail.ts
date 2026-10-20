@@ -140,6 +140,7 @@ export interface CursorPage<T> {
   next_cursor: string | null;
   has_more: boolean;
   other_groups?: FansubGroupSummary[];
+  coop_groups?: FansubGroupSummary[];
 }
 
 export interface ReleaseImagesCursorPage extends CursorPage<PublicReleaseImage> {

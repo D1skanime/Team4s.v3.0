@@ -12,6 +12,10 @@ export function buildTechnicalFansubReleasePath(animeID: number, groupID: number
   return `/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}`
 }
 
+export function buildTechnicalFansubProjectPath(animeID: number, groupID: number): string {
+  return `/anime/${animeID}/group/${groupID}`
+}
+
 export function buildFansubReleaseHref(params: { animeID: number; groupID: number; releaseVersionID: number; canonicalProjectPath?: string | null }): string {
   const canonicalProjectPath = params.canonicalProjectPath?.trim().replace(/\/$/, '')
   return canonicalProjectPath
