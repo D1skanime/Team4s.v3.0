@@ -17795,6 +17795,16 @@ components:
           nullable: true
         has_more:
           type: boolean
+        other_groups:
+          type: array
+          description: Jede andere Gruppe mit irgendeinem Release zu diesem Anime, unabhaengig von Ueberschneidung.
+          items:
+            $ref: "#/components/schemas/FansubGroupSummary"
+        coop_groups:
+          type: array
+          description: Nur Gruppen mit mindestens einem GEMEINSAMEN Release mit dieser Gruppe auf diesem Anime (D-04).
+          items:
+            $ref: "#/components/schemas/FansubGroupSummary"
     ReleaseImagesCursorResponse:
       type: object
       description: Seek-Cursor-Seite der vollstaendigen Bildergalerie einer Release-Version (AO4-03/AO4-24)
