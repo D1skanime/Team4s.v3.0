@@ -104,11 +104,17 @@ export async function deleteFansubGroup(
   );
 
   if (!response.ok) {
-    const message = await parseApiError(
+    const parsed = await parseApiErrorPayload(
       response,
       `API request failed: ${response.status}`,
     );
-    throw new ApiError(response.status, message);
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 }
 
