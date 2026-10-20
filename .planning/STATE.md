@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 189-06-PLAN.md
-last_updated: "2026-10-20T14:26:18.854Z"
+status: verifying
+stopped_at: Completed 189-07-PLAN.md
+last_updated: "2026-10-20T14:38:52.080Z"
 last_activity: 2026-10-20
 progress:
   total_phases: 54
-  completed_phases: 48
+  completed_phases: 49
   total_plans: 484
-  completed_plans: 480
-  percent: 89
+  completed_plans: 481
+  percent: 91
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -439,7 +439,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 189 (Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Entfernung & Lösch-Sperre) — EXECUTING
 Plan: 8 of 8
-Status: Ready to execute
+Status: Phase complete — ready for verification
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -1412,6 +1412,7 @@ Last activity: 2026-10-20
 - [Phase 189]: GermanReasonFragment fuer FansubGroupDependencySummary listet nur Nicht-Null-Kategorien — 18 immer-aufgelistete Nullen waeren unlesbar, abweichend vom Phase-187-Muster
 - [Phase 189]: normalizeAliasKey vor dem Loeschen von fansub_repository_merge_core.go nach fansub_repository_aliases.go verschoben (4 externe Call-Sites, RESEARCH.md hatte dies nicht geflaggt)
 - [Phase 189]: Dangling Merge-Datenmodelle (MergeGroupsResult/-Preview/MergePreviewConflicts) aus internal/models/fansub.go entfernt, obwohl nicht explizit in RESEARCH.md/Plan-Dateiliste genannt -- D-11 verbietet 'deaktiviert aber vorhanden'
+- [Phase 189]: 189-07: shared/contracts/fansubs.yaml hatte noch Merge-Endpunkte/-Typen dokumentiert, die 189-05s openapi.yaml-Entfernung nicht erfasste -- mitentfernt (D-11 Vollstaendigkeits-Luecke).
 
 ### Pending Todos
 
@@ -2126,11 +2127,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 189 P08 | ~80min | 3 tasks | 11 files |
 | Phase 189 P05 | 25min | 2 tasks | 8 files |
 | Phase 189 P06 | ~30min | 2 tasks | 16 files |
+| Phase 189 P07 | ~50min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-10-20T14:26:18.826Z
-Stopped at: Completed 189-06-PLAN.md
+Last session: 2026-10-20T14:38:52.054Z
+Stopped at: Completed 189-07-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None

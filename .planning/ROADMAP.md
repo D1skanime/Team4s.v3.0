@@ -2946,4 +2946,4 @@ Plans:
 
 **Wave 3** *(blockiert auf Wave-2-Abschluss)*
 
-- [ ] 189-07-PLAN.md — Frontend: Merge-Wizard-Verzeichnis, API-Client-Funktionen, Merge-Typen und Admin-UI-Einstiegspunkte entfernen (D-11).
+- [x] 189-07-PLAN.md — Frontend: Merge-Wizard-Verzeichnis, API-Client-Funktionen, Merge-Typen und Admin-UI-Einstiegspunkte entfernen (D-11).
