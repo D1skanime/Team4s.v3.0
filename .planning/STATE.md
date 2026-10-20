@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 188-05-PLAN.md (Phase 188 vollstaendig abgeschlossen, 5/5)
-last_updated: "2026-10-20T11:51:32.203Z"
+stopped_at: Completed 189-01-PLAN.md
+last_updated: "2026-10-20T12:16:57.463Z"
 last_activity: 2026-10-20
 progress:
   total_phases: 54
   completed_phases: 48
   total_plans: 484
-  completed_plans: 473
+  completed_plans: 474
   percent: 89
 ---
 
@@ -431,14 +431,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 188 — ux-abgleich-rest-korrektheits-und-robustheitsfixes-vor-neuen
+**Current focus:** Phase 189 — Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Entfernung & Lösch-Sperre
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 188 (ux-abgleich-rest-korrektheits-und-robustheitsfixes-vor-neuen) — COMPLETE (2026-10-20)
-Plan: 5 of 5 (188-05 Task 7 Live-Checkpoint vom Nutzer "verifiziert" bestaetigt — PLAN ABGESCHLOSSEN)
+Phase: 189 (Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Entfernung & Lösch-Sperre) — EXECUTING
+Plan: 2 of 8
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
@@ -1404,6 +1404,7 @@ Last activity: 2026-10-20
 - [Phase 188-03]: D-08 Hygiene-Report (report-orphaned-app-users): KEYCLOAK_DATABASE_URL-Default zeigt auf bestehenden keycloak-db-Container, kein manueller Setup noetig
 - [Phase 188-04]: ftp:/malformed wirft in Node keinen URL-Parse-Fehler; zweiter Fehlerfall-Testwert auf relative/path/only geaendert — per Node-Check vor Testschreiben verifiziert, damit Fehlerfall-Test tatsaechlich D-09-Verhalten prueft
 - [Phase 188-05]: Task 7 Live-Checkpoint vom Nutzer als Leader ueber@team4s.de (Strawhat Subs, 11eyes: Pink Phantasmagoria) 'verifiziert' bestaetigt -- Projektzeitraum-Datumsfelder editierbar, gespeichert, Reload-Persistenz bestaetigt. Plan 188-05 und Phase 188 (5/5) damit vollstaendig abgeschlossen.
+- [Phase 189-01]: coop_groups additiv nur im Cursor-Endpunkt (GetGroupReleasesCursor); getCoopGroups in eigener Datei wegen 450-Zeilen-Limit von group_repository.go
 
 ### Pending Todos
 
@@ -2111,11 +2112,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 188 P03 | 25min | 2 tasks | 3 files |
 | Phase 188 P04 | 12min | 1 tasks | 3 files |
 | Phase 188 P05 | ~5min | 1 tasks | 2 files |
+| Phase 189 P01 | 27min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-20T08:27:23.007Z
-Stopped at: Completed 188-05-PLAN.md (Phase 188 vollstaendig abgeschlossen, 5/5)
+Last session: 2026-10-20T12:16:57.437Z
+Stopped at: Completed 189-01-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
