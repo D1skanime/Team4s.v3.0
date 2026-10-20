@@ -2937,7 +2937,7 @@ Plans:
 - [x] 189-02-PLAN.md — Frontend: Coop-Partner-Kennzahl (Namen-Links, 1/2/3+-Format) + „Mehr entdecken" für übrige Gruppen (D-05, D-06).
 - [x] 189-03-PLAN.md — Frontend: releases/page.tsx-Split + next/image-Absturz auf ResponsiveImage umstellen (D-07).
 - [x] 189-04-PLAN.md — Backend: Projektnotizen-Schreibrecht auf CanForAnimeProject umstellen, can_edit_project_notes-Capability (D-08, D-09, D-10).
-- [ ] 189-08-PLAN.md — Backend: Fansub-Gruppen-Lösch-Sperre (fansub_repository_groups.go-Split + 18-Kategorien-Abhängigkeitsprüfung + 409) (D-12).
+- [x] 189-08-PLAN.md — Backend: Fansub-Gruppen-Lösch-Sperre (fansub_repository_groups.go-Split + 18-Kategorien-Abhängigkeitsprüfung + 409) (D-12).
 
 **Wave 2** *(blockiert auf Wave-1-Abschluss)*
 
