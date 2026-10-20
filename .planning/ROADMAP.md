@@ -2909,3 +2909,13 @@ Plans:
 - [x] 188-03-PLAN.md — Hygiene-Report-Skript für verwaiste app_users-Zeilen (D-08).
 - [x] 188-04-PLAN.md — next.config.mjs Fail-Fast bei ungültigem NEXT_PUBLIC_API_URL (D-09).
 - [x] 188-05-PLAN.md — Projektzeitraum-Rechteprüfung: fansub_lead/typesetter-Migration + Projektkontext-Logikfix (D-10/D-11/D-12/D-13/D-14). Live-Checkpoint vom Nutzer "verifiziert" (Strawhat Subs, 11eyes: Pink Phantasmagoria, Leader ueber@team4s.de).
+
+### Phase 189: Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Guard
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 188
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 189 to break down)

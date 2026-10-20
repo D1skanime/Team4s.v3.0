@@ -584,6 +584,20 @@ Last activity: 2026-10-20 - Completed quick task 261020-cmi: Öffentliches Mitgl
 
 ### Roadmap Evolution
 
+- Phase 189 added (2026-10-20): Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht,
+  Gruppen-Merge-Guard. Quellen: `.planning/todos/pending/2026-10-20-bug-projektseite-coop-partner.md`,
+  `.planning/todos/pending/2026-10-20-projektnotizen-falsche-action.md`,
+  `.planning/todos/pending/2026-10-19-fansub-gruppen-merge-ungeschuetzter-pfad.md`. Umfang: (1)
+  Projektseite zeigt Gruppen ohne gemeinsames Release fälschlich als „Coop-Partner" und macht
+  Gruppen-Chips nicht klickbar; (2) Projektnotizen-Schreibrecht prüft `fansub_group.notes.write`
+  statt der vorgesehenen `anime_fansub_project.notes.write` (Phase-188-Muster, Projektrollen zählen
+  nicht); (3) Fansub-Gruppen-Merge ändert `release_version_groups` ohne den in Phase 187 gebauten
+  Abhängigkeits-Guard (gleiche Wurzelursache, anderer Auslöser). Explizit nicht enthalten:
+  Keycloak-Account-Konsole, Hinweis an fremde Gruppen senden, Releases ohne Jellyfin-Datei,
+  Mehrsprachigkeit, Theme-Video-Ton-Profileinstellung. Additiv angelegt, kein neues Milestone, kein
+  Reset. Nur add-phase — noch nicht geplant; Ist-Analyse + CONTEXT.md mit offenen Fragen folgt
+  direkt im Anschluss.
+
 - Phase 188 added (2026-10-19): UX-Abgleich-Rest — Korrektheits- und Robustheitsfixes vor neuen
   Features. Quelle: `.planning/notes/2026-10-17-ux-findings-abgleich.md`. Umfang: #18
   (Projekt-Badge „vollständig" nutzt falschen Nenner, gameable über eine einzige verlinkte
