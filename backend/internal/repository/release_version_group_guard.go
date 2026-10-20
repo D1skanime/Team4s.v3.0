@@ -97,26 +97,35 @@ func countReleaseVersionGroupDependents(
 // deliberately excludes fansub_group_aliases, the empty legacy fansub_members
 // table, and the pure-assignment anime_fansub_groups link (no real release),
 // per CONTEXT.md D-12 and RESEARCH.md's corrected dependents table.
+//
+// RESEARCH.md's dependents table also listed fansub_collaboration_members
+// (introduced by migration 0015) as a candidate "yes" category -- confirmed
+// during live verification of this plan that migration
+// 0102_drop_collaboration_schema.up.sql (Phase 81, D-02) already DROPPED
+// that table and fansub_groups.group_type entirely; the collaboration
+// feature no longer exists in the current schema at all. Deliberately NOT
+// counted here -- counting a table that does not exist would make every
+// DeleteGroup call fail with a raw "relation does not exist" error, exactly
+// the class of bug this plan exists to fix, not reintroduce.
 type FansubGroupDependencySummary struct {
-	Releases                 int32
-	Memberships              int32
-	Contributions            int32
-	HistoricalMembers        int32
-	Media                    int32
-	GroupNotes               int32
-	ProjectNotes             int32
-	History                  int32
-	Segments                 int32
-	SegmentLibrary           int32
-	DefaultCrew              int32
-	PendingInvitations       int32
-	PendingClaimInvitations  int32
-	CapabilityOverrides      int32
-	CollaborationMemberships int32
-	PlaybackEntitlements     int32
-	ReviewDecisions          int32
-	ReviewAuditHistory       int32
-	OverrideHistory          int32
+	Releases                int32
+	Memberships             int32
+	Contributions           int32
+	HistoricalMembers       int32
+	Media                   int32
+	GroupNotes              int32
+	ProjectNotes            int32
+	History                 int32
+	Segments                int32
+	SegmentLibrary          int32
+	DefaultCrew             int32
+	PendingInvitations      int32
+	PendingClaimInvitations int32
+	CapabilityOverrides     int32
+	PlaybackEntitlements    int32
+	ReviewDecisions         int32
+	ReviewAuditHistory      int32
+	OverrideHistory         int32
 }
 
 // HasAny reports whether this fansub group has at least one real dependent
@@ -136,7 +145,6 @@ func (s FansubGroupDependencySummary) HasAny() bool {
 		s.PendingInvitations > 0 ||
 		s.PendingClaimInvitations > 0 ||
 		s.CapabilityOverrides > 0 ||
-		s.CollaborationMemberships > 0 ||
 		s.PlaybackEntitlements > 0 ||
 		s.ReviewDecisions > 0 ||
 		s.ReviewAuditHistory > 0 ||
@@ -146,7 +154,7 @@ func (s FansubGroupDependencySummary) HasAny() bool {
 // GermanReasonFragment returns a correctly pluralized German fragment naming
 // every NON-ZERO counted dependent kind, joined with ", ". Deliberately
 // DIFFERENT from DependencySummary.GermanReasonFragment above, which always
-// lists all 3 of its categories (including zeros): here there are 19
+// lists all 3 of its categories (including zeros): here there are 18
 // categories, so an always-list-everything message would be an unreadable
 // wall of "0 X, 0 Y, ..." noise. Listing only what is actually non-zero
 // keeps the 409 message scannable for the admin while still naming every
@@ -172,7 +180,6 @@ func (s FansubGroupDependencySummary) GermanReasonFragment() string {
 		{s.PendingInvitations, "offene Einladung", "offene Einladungen"},
 		{s.PendingClaimInvitations, "offene Claim-Einladung", "offene Claim-Einladungen"},
 		{s.CapabilityOverrides, "Rechte-Override", "Rechte-Overrides"},
-		{s.CollaborationMemberships, "Kollaborations-Mitgliedschaft", "Kollaborations-Mitgliedschaften"},
 		{s.PlaybackEntitlements, "Freischaltregel", "Freischaltregeln"},
 		{s.ReviewDecisions, "Review-Entscheidung", "Review-Entscheidungen"},
 		{s.ReviewAuditHistory, "Review-Protokolleintrag", "Review-Protokolleinträge"},
@@ -233,8 +240,6 @@ func countFansubGroupDependents(
 				WHERE fansub_group_id = $1 AND status = 'pending') AS pending_claim_invitations,
 			(SELECT COUNT(*) FROM user_group_capability_overrides
 				WHERE fansub_group_id = $1) AS capability_overrides,
-			(SELECT COUNT(*) FROM fansub_collaboration_members
-				WHERE collaboration_id = $1 OR member_group_id = $1) AS collaboration_memberships,
 			(SELECT COUNT(*) FROM release_playback_entitlement_rules
 				WHERE fansub_group_id = $1) AS playback_entitlements,
 			(SELECT COUNT(*) FROM review_decisions
@@ -258,7 +263,6 @@ func countFansubGroupDependents(
 		&summary.PendingInvitations,
 		&summary.PendingClaimInvitations,
 		&summary.CapabilityOverrides,
-		&summary.CollaborationMemberships,
 		&summary.PlaybackEntitlements,
 		&summary.ReviewDecisions,
 		&summary.ReviewAuditHistory,

@@ -35,15 +35,14 @@ func TestCountFansubGroupDependentsDetectsEachRealCategory(t *testing.T) {
 	ctx := context.Background()
 
 	const (
-		groupID      = int64(10)
-		otherGroupID = int64(11)
-		releaseID    = int64(20)
-		memberID     = int64(30)
-		appUserID    = int64(40)
-		animeID      = int64(50)
+		groupID   = int64(10)
+		releaseID = int64(20)
+		memberID  = int64(30)
+		appUserID = int64(40)
+		animeID   = int64(50)
 	)
 
-	_, err := pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1), ($2)`, groupID, otherGroupID)
+	_, err := pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, groupID)
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `INSERT INTO release_versions (id) VALUES ($1)`, releaseID)
 	require.NoError(t, err)
@@ -100,19 +99,16 @@ func TestCountFansubGroupDependentsDetectsEachRealCategory(t *testing.T) {
 		) VALUES ($1, $2, 'fansub_group_media.upload', 'allow', $1, $1)
 	`, appUserID, groupID)
 	require.NoError(t, err)
-	// 15. CollaborationMemberships
-	_, err = pool.Exec(ctx, `INSERT INTO fansub_collaboration_members (collaboration_id, member_group_id) VALUES ($1, $2)`, groupID, otherGroupID)
-	require.NoError(t, err)
-	// 16. PlaybackEntitlements
+	// 15. PlaybackEntitlements
 	_, err = pool.Exec(ctx, `INSERT INTO release_playback_entitlement_rules (id, fansub_group_id) VALUES (1, $1)`, groupID)
 	require.NoError(t, err)
-	// 17. ReviewDecisions
+	// 16. ReviewDecisions
 	_, err = pool.Exec(ctx, `INSERT INTO review_decisions (id, fansub_group_id) VALUES (1, $1)`, groupID)
 	require.NoError(t, err)
-	// 18. ReviewAuditHistory
+	// 17. ReviewAuditHistory
 	_, err = pool.Exec(ctx, `INSERT INTO review_audit_events (id, fansub_group_id) VALUES (1, $1)`, groupID)
 	require.NoError(t, err)
-	// 19. OverrideHistory
+	// 18. OverrideHistory
 	_, err = pool.Exec(ctx, `
 		INSERT INTO user_group_capability_override_history (
 			app_user_id, fansub_group_id, action_code, actor_app_user_id, actor_is_platform_admin, before_effect, after_effect
@@ -137,7 +133,6 @@ func TestCountFansubGroupDependentsDetectsEachRealCategory(t *testing.T) {
 	require.Equal(t, int32(1), summary.PendingInvitations)
 	require.Equal(t, int32(1), summary.PendingClaimInvitations)
 	require.Equal(t, int32(1), summary.CapabilityOverrides)
-	require.Equal(t, int32(1), summary.CollaborationMemberships)
 	require.Equal(t, int32(1), summary.PlaybackEntitlements)
 	require.Equal(t, int32(1), summary.ReviewDecisions)
 	require.Equal(t, int32(1), summary.ReviewAuditHistory)

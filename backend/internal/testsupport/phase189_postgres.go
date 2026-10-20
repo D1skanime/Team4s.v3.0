@@ -55,7 +55,7 @@ func validatePhase189SchemaName(name string) error {
 // createPhase189Prerequisites builds on createPhase187Prerequisites (which
 // already brings in anime/release_version_groups/anime_fansub_groups plus
 // the Phase-107 base layer's capability-override tables) and adds exactly
-// the 13 REMAINING stand-in tables countFansubGroupDependents needs, plus
+// the 12 REMAINING stand-in tables countFansubGroupDependents needs, plus
 // fansub_group_aliases (NOT counted -- stand-in exists only so the
 // "ignores excluded tables" negative test has somewhere to insert a row)
 // and app_user_global_roles (the real migration 0072 shape, needed by
@@ -68,8 +68,17 @@ func validatePhase189SchemaName(name string) error {
 // fansub_group_notes, anime_fansub_project_notes, fansub_group_history,
 // theme_segments (minimal id/fansub_group_id), segment_library_definitions,
 // fansub_group_default_crew, fansub_group_invitations,
-// member_claim_invitations, fansub_collaboration_members,
-// release_playback_entitlement_rules, review_decisions, review_audit_events.
+// member_claim_invitations, release_playback_entitlement_rules,
+// review_decisions, review_audit_events.
+//
+// DELIBERATELY DOES NOT stand in fansub_collaboration_members: live
+// verification of this plan (curl against the real team4s_v2 schema) found
+// that migration 0102_drop_collaboration_schema.up.sql (Phase 81, D-02)
+// already DROPPED that table (and fansub_groups.group_type) long before
+// this phase -- RESEARCH.md's dependents table only checked migration
+// 0015's CREATE and missed 0102's later DROP. countFansubGroupDependents
+// correctly does NOT reference this table; a stand-in for it here would
+// misleadingly suggest it still exists.
 //
 // DELIBERATELY TRIMMED stand-ins, not the full real schema -- only the
 // columns the counting SQL and its own CHECK constraints need (mirrors
@@ -90,9 +99,6 @@ func validatePhase189SchemaName(name string) error {
 //   - database/migrations/0107_fansub_group_default_crew.up.sql
 //   - database/migrations/0076_fansub_group_invitations.up.sql
 //   - database/migrations/0092_member_claim_invitations.up.sql
-//   - database/migrations/0015_fansub_collaborations.up.sql
-//     (fansub_collaboration_members has NO surrogate id -- composite PK
-//     (collaboration_id, member_group_id), both FK'd to fansub_groups(id))
 //   - database/migrations/0129_release_playback_entitlements.up.sql
 //   - database/migrations/0134_review_foundation.up.sql (review_decisions/
 //     review_audit_events: both have fansub_group_id REFERENCES
@@ -175,11 +181,6 @@ CREATE TABLE member_claim_invitations (
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
     CONSTRAINT chk_member_claim_invitations_status
         CHECK (status IN ('pending', 'accepted', 'cancelled', 'expired'))
-);
-CREATE TABLE fansub_collaboration_members (
-    collaboration_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
-    member_group_id  BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
-    PRIMARY KEY (collaboration_id, member_group_id)
 );
 CREATE TABLE release_playback_entitlement_rules (
     id BIGINT PRIMARY KEY,
