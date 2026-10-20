@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildPublicFansubProjectMemberPath,
   buildPublicFansubProjectPath,
+  buildTechnicalFansubProjectPath,
 } from "@/lib/fansubProjectRoutes"
 
 describe("buildPublicFansubProjectMemberPath", () => {
@@ -23,5 +24,11 @@ describe("buildPublicFansubProjectMemberPath", () => {
     expect(buildPublicFansubProjectMemberPath("c-subs", "vipers-creed", "  a b ")).toBe(
       "/fansubs/c-subs/fansubprojekt/vipers-creed/mitwirkende/a%20b",
     )
+  })
+})
+
+describe("buildTechnicalFansubProjectPath", () => {
+  it("baut den technischen Projektpfad aus Anime- und Gruppen-ID", () => {
+    expect(buildTechnicalFansubProjectPath(3, 26)).toBe("/anime/3/group/26")
   })
 })
