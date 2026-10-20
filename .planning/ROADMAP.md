@@ -2910,10 +2910,19 @@ Plans:
 - [x] 188-04-PLAN.md — next.config.mjs Fail-Fast bei ungültigem NEXT_PUBLIC_API_URL (D-09).
 - [x] 188-05-PLAN.md — Projektzeitraum-Rechteprüfung: fansub_lead/typesetter-Migration + Projektkontext-Logikfix (D-10/D-11/D-12/D-13/D-14). Live-Checkpoint vom Nutzer "verifiziert" (Strawhat Subs, 11eyes: Pink Phantasmagoria, Leader ueber@team4s.de).
 
-### Phase 189: Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Guard
+### Phase 189: Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Entfernung & Lösch-Sperre
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Vier Bugfixes/Scope-Punkte: (1) Projektseite zeigt nur echte Coop-Partner (gemeinsames
+Release) namentlich und klickbar im Kopfbereich, übrige Gruppen klickbar in „Mehr entdecken"; (2)
+next/image-Absturz auf der Release-Liste durch fehlende Logo-URL in der zentralen Allowlist beheben;
+(3) Projektnotizen-Schreibrecht auf die projektbezogene Action (`anime_fansub_project.notes.write`
++ `CanForAnimeProject`) umstellen, bestätigte Projektrollen zählen künftig mit; (4) Fansub-Gruppen-
+Merge-Funktion vollständig entfernen (ersetzt durch Episode-Umhängen + Löschen) und dafür eine
+Lösch-Sperre für Fansub-Gruppen mit echten Abhängigkeiten einführen.
+**Requirements**: D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12 (siehe 189-CONTEXT.md;
+additive Phase ohne REQUIREMENTS.md-Mapping, Decision-Coverage via D-IDs im
+`requirements`-Frontmatter-Feld jedes Plans. D-01/D-02/D-03 sind Scope-/Prozessentscheidungen der
+ersten Runde, teils durch die zweite Runde überholt — siehe 189-CONTEXT.md.)
 **Depends on:** Phase 188
 **Plans:** 0 plans
 

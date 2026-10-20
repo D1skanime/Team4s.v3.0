@@ -598,6 +598,16 @@ Last activity: 2026-10-20 - Completed quick task 261020-cmi: Öffentliches Mitgl
   Reset. Nur add-phase — noch nicht geplant; Ist-Analyse + CONTEXT.md mit offenen Fragen folgt
   direkt im Anschluss.
 
+- Phase 189 Umfang aktualisiert (2026-10-20, zweite Entscheidungsrunde): Alle acht offenen Fragen
+  aus der Ist-Analyse beantwortet (D-04 bis D-12 in `189-CONTEXT.md`), teils abweichend von den
+  Empfehlungen, mit zwei Scope-Erweiterungen und einer Scope-Ersetzung. Erweitert: next/image-
+  Absturz auf der Release-Liste (fehlende Logo-URL in der zentralen Allowlist, D-07); Lösch-Sperre
+  für Fansub-Gruppen mit echten Abhängigkeiten (D-12). Ersetzt: Der ursprünglich vorgesehene
+  Merge-Guard entfällt — die Fansub-Gruppen-Merge-Funktion wird stattdessen vollständig entfernt
+  (D-11), Korrektur läuft künftig nur noch über Episode-Umhängen (Phase 187) + Löschen. ROADMAP-
+  Titel/Goal von Phase 189 entsprechend nachgezogen. Weiterhin additiv, kein neues Milestone, kein
+  Reset. Noch nicht geplant.
+
 - Phase 188 added (2026-10-19): UX-Abgleich-Rest — Korrektheits- und Robustheitsfixes vor neuen
   Features. Quelle: `.planning/notes/2026-10-17-ux-findings-abgleich.md`. Umfang: #18
   (Projekt-Badge „vollständig" nutzt falschen Nenner, gameable über eine einzige verlinkte

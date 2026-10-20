@@ -1,23 +1,33 @@
-# Phase 189: Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Guard — CONTEXT
+# Phase 189: Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Entfernung & Lösch-Sperre — CONTEXT
 
 **Quelle des Auftrags:** Nutzerauftrag vom 2026-10-20, additiv an ROADMAP angehängt, kein neues
-Milestone, kein Reset. Dieses Dokument ist reine Ist-Analyse + offene Fragen — **nicht geplant,
-nicht ausgeführt, keine Produktcode-Änderung.**
+Milestone, kein Reset. **Stand 2026-10-20 (zweite Entscheidungsrunde): Alle offenen Fragen sind
+beantwortet, Umfang ist final — siehe „Nutzerentscheidungen — zweite Runde" unten.** Dieses
+Dokument bleibt bis hierhin reine Ist-Analyse + Entscheidungen — keine Produktcode-Änderung in
+diesem Schritt.
 
-## Problem (laut Auftrag) — drei unabhängige Bugs, gebündelt
+## Problem (laut Auftrag, Stand nach zweiter Entscheidungsrunde) — vier Arbeitsstränge
 
-1. **Coop-Partner-Bug** (`.planning/todos/pending/2026-10-20-bug-projektseite-coop-partner.md`,
-   Status im Todo: `decided`): Die Projektseite `/anime/<animeId>/group/<groupId>` zeigt unter
-   „Coop-Partner" fälschlich alle anderen Gruppen, die denselben Anime bearbeitet haben, auch ohne
-   gemeinsames Release. Gruppen sind zudem nicht/falsch klickbar.
-2. **Projektnotizen-Rechte-Bug** (`.planning/todos/pending/2026-10-20-projektnotizen-falsche-action.md`,
-   Status im Todo: `open`): Der Schreib-Handler für Projektnotizen prüft die gruppenweite Action
+1. **Coop-Partner-Anzeige** (`.planning/todos/pending/2026-10-20-bug-projektseite-coop-partner.md`):
+   Die Projektseite `/anime/<animeId>/group/<groupId>` zeigt unter „Coop-Partner" fälschlich alle
+   anderen Gruppen, die denselben Anime bearbeitet haben, auch ohne gemeinsames Release. Gruppen
+   sind zudem nicht/falsch klickbar. Konkretes Zielbild für Kopfbereich und „Mehr entdecken" ist
+   jetzt final festgelegt (D-04 bis D-06).
+2. **NEU — next/image-Absturz auf der Release-Liste**: `/anime/2/group/26/releases` stürzt mit
+   `Invalid src prop ... does not match images.localPatterns` ab (`releases/page.tsx:326`,
+   `group.fansub.logo_url`). In Scope genommen, weil dieselbe Logo-URL-Form evtl. auch an den neu
+   gebauten Coop-Partner-/„Mehr entdecken"-Stellen auftritt (D-07).
+3. **Projektnotizen-Rechte-Bug** (`.planning/todos/pending/2026-10-20-projektnotizen-falsche-action.md`):
+   Der Schreib-Handler für Projektnotizen prüft die gruppenweite Action
    `fansub_group.notes.write` statt der vorgesehenen `anime_fansub_project.notes.write` —
-   bestätigte Projektrollen (`anime_contribution_roles`) zählen nicht.
-3. **Fansub-Gruppen-Merge ohne Guard** (`.planning/todos/pending/2026-10-19-fansub-gruppen-merge-ungeschuetzter-pfad.md`,
-   aus Phase 187 ausgelagert): Der Merge zweier Fansub-Gruppen aktualisiert
-   `release_version_groups` ohne Prüfung auf abhängige Credits/Crew-Snapshots — der in Phase 187
-   gebaute Abhängigkeits-Guard für den direkten Gruppenwechsel greift hier nicht.
+   bestätigte Projektrollen (`anime_contribution_roles`) zählen nicht (D-08 bis D-10).
+4. **Fansub-Gruppen-Merge: Entfernen statt Guard bauen, NEU: Lösch-Sperre für Fansub-Gruppen**
+   (`.planning/todos/pending/2026-10-19-fansub-gruppen-merge-ungeschuetzter-pfad.md`, aus Phase 187
+   ausgelagert): Statt den Merge mit einem Abhängigkeits-Guard abzusichern, wird die
+   Merge-Funktion komplett entfernt (D-11) — Korrektur falscher Gruppen-Zuordnungen läuft künftig
+   ausschließlich über den bestehenden Phase-187-Pfad (Episode umhängen + falsche Gruppe löschen).
+   Dafür NEU in Scope: Lösch-Sperre für Fansub-Gruppen, damit dieser Ersatzpfad nicht versehentlich
+   Daten verwaisen lässt (D-12).
 
 **Explizit NICHT Teil dieser Phase:** Keycloak-Account-Konsole-Fehler, Hinweis an fremde Gruppen
 senden, Releases ohne Jellyfin-Datei, Mehrsprachigkeit, Theme-Video-Ton-Profileinstellung — alle
@@ -40,13 +50,124 @@ ROADMAP angehängt (nach Phase 188), kein Milestone-Reset, kein neuer Meilenstei
 - `AvatarStack` ggf. global um optionale Links erweitern statt lokalem Sondermarkup.
 - „Weitere Releases dieser Episode" auf der Release-Detailseite bleibt unverändert (bereits korrekt).
 
-### D-03 — Projektnotizen & Merge-Guard: Lösungsrichtung vorgegeben, Details offen
-Für Projektnotizen ist die Lösungsrichtung vom Nutzer vorgegeben (Umstellung auf
-`anime_fansub_project.notes.write` + `CanForAnimeProject`, analog Phase 188 Plan 05), aber **vor
-jeder Umsetzung** ist die Rollenvergleichstabelle (wer gewinnt/verliert) vorzulegen — erledigt,
-siehe Abschnitt „Ist-Zustand" unten. Für den Merge-Guard ist nur die Wurzelursache vorgegeben
-(Phase-187-Guard wiederverwenden, nicht neu bauen); ob Abhängigkeiten umgezogen oder der Merge
-gesperrt wird, ist explizit offen (siehe offene Fragen).
+### D-03 — Projektnotizen & Merge: Lösungsrichtung vorgegeben, Details in zweiter Runde final geklärt
+Für Projektnotizen war die Lösungsrichtung vorgegeben (Umstellung auf
+`anime_fansub_project.notes.write` + `CanForAnimeProject`, analog Phase 188 Plan 05); die vorab
+geforderte Rollenvergleichstabelle (wer gewinnt/verliert) wurde vorgelegt, siehe Abschnitt
+„Ist-Zustand" unten. Für den Merge war zunächst ein Guard vorgesehen — die zweite Entscheidungsrunde
+(D-11) ersetzt das durch vollständige Entfernung der Merge-Funktion.
+
+## Nutzerentscheidungen — zweite Runde (2026-10-20, beantwortet alle offenen Fragen, final — nicht
+neu verhandeln)
+
+### D-04 — Coop-Partner: `coop_groups` nur im Cursor-Endpunkt
+`coop_groups` (Gruppen mit mindestens einem gemeinsamen `release_version` mit dieser Gruppe bei
+diesem Anime) wird nur im Cursor-Endpunkt ergänzt (`GetGroupReleasesCursor`), den die Projektseite
+tatsächlich nutzt. Der Offset-Endpunkt (`GetGroupReleases`, genutzt von der Release-Liste anderer
+Handler) bleibt unverändert — kein Scope-Zuwachs ohne Bedarf.
+
+### D-05 — Coop-Partner: Kennzahl im Kopfbereich bleibt, zeigt nur echte Partner, nur Name
+Die Kennzahl „Coop-Partner" im Kopfbereich (HeroSection/ProjectStats) bleibt erhalten, zeigt aber
+nur echte Coop-Partner (gemeinsames Release) und nur deren **Namen** — keine „gemeinsam X von
+Y"-Angabe, keine Logos/`AvatarStack` mehr nötig (damit entfällt die ursprünglich erwogene globale
+`AvatarStack`-Link-Erweiterung als Lösungsweg für diese Stelle). Jeder Name ist klickbar zur
+Projektseite der Partnergruppe beim selben Anime (`/anime/<animeId>/group/<groupId>`). Darstellung:
+1 Partner → Name als Link (bestehende `singleCoopPartner`-Darstellung wiederverwenden, nur
+Link-Ziel ändern). 2 Partner → „A · B". Ab 3 Partnern → „A · B +N" mit der bestehenden
+aufklappbaren Liste, auch dort Links zur Projektseite. Ohne Coop-Partner: Kennzahl ausblenden.
+
+### D-06 — Coop-Partner: „Weitere Gruppen zu diesem Anime" wandert in „Mehr entdecken", keine
+visuelle Chip-Übernahme
+„Weitere Gruppen zu diesem Anime" (übrige `other_groups` ohne Coop-Partner und ohne die eigene
+Gruppe) erscheint **nicht** im Kopfbereich — das würde mit der Projekt-Navigation
+„<Anime>: <Titel> ›" (andere Projekte derselben Gruppe) kollidieren. Stattdessen: im bestehenden
+Abschnitt „Mehr entdecken" (neben „Zur Gruppenseite"/„Zur Anime-Seite"), im dort bereits
+vorhandenen Linkstil. Gewählt: Option a — stimmiges Aussehen hat Vorrang. Die Logo-Chip-Optik aus
+`releases/page.tsx` (`otherGroupsSection`/`otherGroupChip`) wird **nicht** visuell übernommen;
+wiederverwendet werden nur Datenlogik und Link-Aufbau (gemeinsamer Helper für die
+Projektseiten-URL, z. B. aus `@/lib/fansubProjectRoutes`), keine Komponenten-Kopie. Ohne weitere
+Gruppen: Zeile ausblenden. **Hinweis für die Planung:** Das ursprüngliche D-02/Todo-Vorbild (Chip
+aus `releases/page.tsx` als gemeinsame UI-Komponente wiederverwenden) ist damit für den
+Projektseiten-Kopfbereich **überholt** — die Chip-Komponente wird nur noch dort selbst (Release-
+Liste) weiterverwendet, nicht auf der Projektseite gerendert.
+
+### D-07 — NEU in Scope: next/image-Absturz auf der Release-Liste über zentrale Allowlist beheben
+`/anime/2/group/26/releases` wirft zur Laufzeit `Invalid src prop
+(/api/v1/media/files/logo_1789627959614_...png) on next/image does not match
+images.localPatterns` (`releases/page.tsx:326`, `group.fansub.logo_url`). Ursache ist über die
+zentrale Allowlist zu klären und zu beheben (`frontend/src/lib/images/publicImagePatterns.mjs`
+bzw. die `ResponsiveImage`-Vorprüfung) — **nicht lokal umgehen**. Zusätzlich prüfen, ob dieselbe
+Logo-URL-Form auch an anderen Stellen denselben Absturz auslöst (insbesondere die neuen/
+geänderten Coop-Partner- und „Mehr entdecken"-Stellen aus D-05/D-06, sowie die Gruppenseite
+selbst). Bekanntes Muster aus früheren Phasen: lokale `/media`-Bilder ohne Pattern-Match reißen
+die gesamte Seite ab (Server Error), kein stilles Fallback.
+
+### D-08 — Projektnotizen: separate neue Capability, `can_edit_notes` unverändert
+Für das Schreibrecht der Projektnotizen wird eine **separate neue** Capability ergänzt
+(projektbezogen über `?anime_id=` + `CanForAnimeProject`, analog `can_edit_project_timeline` aus
+Phase 188) — `can_edit_notes` und damit die Sichtbarkeit des Notizen-Tabs bleiben unverändert
+(entspricht der ursprünglichen Empfehlung zu Frage 3).
+
+### D-09 — Projektnotizen: realer Verlust-Fall wird akzeptiert
+Der beobachtete reale Verlust-Fall (`member 5`, New-Subs, nur `founder`/`encoder` ohne
+Projektrolle, verliert Schreibrecht) wird akzeptiert — keine kompensierende Rollenvergabe vorab
+(entspricht der ursprünglichen Empfehlung zu Frage 4).
+
+### D-10 — Projektnotizen: `role_capabilities` NICHT um `co_leader`/`founder` erweitern
+`anime_fansub_project.notes.write` wird **nicht** zusätzlich an `co_leader`/`founder` vergeben, um
+den katalogseitigen Rechteverlust reiner Gruppenleitungsrollen abzufedern — das würde den Kern der
+Korrektur unterlaufen (entspricht der ursprünglichen Empfehlung zu Frage 5).
+
+### D-11 — Fansub-Gruppen-Merge: Funktion komplett ENTFERNEN statt Guard bauen (ersetzt
+Fragen 6-8)
+**Abweichung von der ursprünglichen Empfehlung.** Begründung des Nutzers: Ein falscher
+Gruppen-Chip entsteht ausschließlich beim Mapping (Jellyfin-Import/manuelle Zuordnung). Die
+richtige Korrektur ist, Episoden per Release-Editor/Import auf die richtige Gruppe umzuhängen
+(bestehender Phase-187-Pfad mit Guard) und die falsche Gruppe anschließend zu löschen. Das
+Zusammenführen zweier Gruppen wird dafür nicht mehr benötigt.
+
+Umfang der Entfernung (vollständig, ohne tote Reste):
+- Frontend-Seite `frontend/src/app/admin/fansubs/merge/page.tsx`.
+- Einstiegs-Links/Buttons zur Merge-Seite (z. B. auf `/admin/fansubs`).
+- API-Client-Funktionen für den Merge.
+- Backend-Route + Handler (`fansub_merge.go`).
+- Repository-Code (`fansub_repository_merge_core.go`; `fansub_repository_merge_duplicates.go`
+  **nur soweit ausschließlich für den Merge genutzt** — vor dem Löschen per `grep` prüfen, ob
+  Funktionen daraus noch anderswo gebraucht werden, z. B. für andere Duplikat-Prüfungen).
+- Contract-Einträge (`shared/contracts/openapi.yaml`) und zugehörige Tests.
+- Eine evtl. vorhandene Rechte-Action für den Merge wird per **append-only** Migration aus dem
+  `role_capabilities`/`action_definitions`-Katalog entfernt, oder bewusst als deprecated
+  stehengelassen — die gewählte Variante muss im Plan begründet werden (kein blindes `DELETE`
+  ohne Prüfung bestehender Nutzung, analog der Lehre aus Migration 0154/Phase 143).
+- Vorgehen: **Zuerst per `grep` alle Verwendungen vollständig auflisten** (Frontend-Routen,
+  API-Client, Backend-Handler/Repository/Tests, Contract, Permission-Katalog). Funktionen/Dateien,
+  die noch für andere Zwecke gebraucht werden, bleiben unverändert.
+- Der Alias-Nebenbefund aus der Ist-Analyse (Verlust der bestehenden Alias-Zeile beim Merge)
+  entfällt ersatzlos mit der Entfernung — keine eigene Korrektur mehr nötig.
+- Das Todo `.planning/todos/pending/2026-10-19-fansub-gruppen-merge-ungeschuetzter-pfad.md` wird
+  als „erledigt durch Entfernung (Phase 189)" markiert und nach Phasenabschluss nach `completed`
+  verschoben (nicht vorher, nicht gelöscht).
+
+### D-12 — NEU in Scope: Lösch-Sperre für Fansub-Gruppen
+Mit dem Wegfall des Merges wird der Ersatzpfad (Episode umhängen, dann falsche Gruppe löschen)
+zum einzigen Korrekturweg — `DeleteGroup`
+(`backend/internal/repository/fansub_repository_groups.go`, ca. Zeile 396 ff.) löscht heute aber
+ohne jede Abhängigkeitsprüfung: explizit geprüft werden aktuell nur `anime_contributions` und
+`hist_fansub_group_members`, per `CASCADE` verschwinden zusätzlich u. a.
+`release_version_groups`, `fansub_group_members`, `fansub_group_media`, `fansub_group_notes`,
+`anime_fansub_project_notes`, `fansub_group_history`, `theme_segments`,
+`segment_library_definitions`, `fansub_group_default_crew`, Einladungen, Overrides.
+
+**Neues Verhalten:** Löschen nur, wenn **nichts Echtes** mehr an der Gruppe hängt (Releases-
+Zuordnungen, Mitgliedschaften, Projektbeiträge, historische Mitglieder, Medien, Notizen, Chronik,
+Segmente usw. — vollständige Liste wird aus den tatsächlichen FKs abgeleitet und im Plan
+begründet, was als „echt" zählt; Aliase/reine Verknüpfungstabellen/leere Crew-Snapshot-Zeilen
+zählen **nicht**). Andernfalls serverseitig `409` mit deutscher Meldung, die auflistet, was noch
+dranhängt (Anzahl je Art) — dieselbe Information wird im Admin-UI beim Löschversuch angezeigt,
+unter Wiederverwendung bestehender UI/Dialoge. Die Abhängigkeitszählung wird nach dem Muster des
+Phase-187-Guards (`release_version_group_guard.go`) gebaut bzw. dieser erweitert — keine
+Parallel-Logik. Die Sperre gilt **auch für Plattform-Admins** (Datenkonsistenz geht vor
+Admin-Bypass).
 
 ## Verbindliche Vorgaben für alle späteren Schritte (Planung + Ausführung)
 
@@ -218,7 +339,12 @@ bestehende Alias-Zeile wird durch den Cascade-Delete in Schritt 5 ersatzlos gel�
 
 ---
 
-## Offene Fragen an den Nutzer
+## Offene Fragen an den Nutzer — BEANTWORTET (2026-10-20)
+
+Alle acht Fragen sind vom Nutzer beantwortet, teils abweichend von den ursprünglichen Empfehlungen
+und mit zwei Scope-Erweiterungen (next/image-Bug, Lösch-Sperre). Verbindlich festgehalten oben als
+D-04 bis D-12. Die ursprünglichen Fragen bleiben hier zur Nachvollziehbarkeit stehen, jeweils mit
+Verweis auf die zugehörige Entscheidung.
 
 ### Zu Coop-Partner
 
@@ -227,6 +353,7 @@ Die Projektseite nutzt ausschließlich `GetGroupReleasesCursor`. `GetGroupReleas
 wird von zwei anderen Handlern genutzt, aber nicht für die Projektseite.
 *Empfehlung:* Nur im Cursor-Endpunkt ergänzen — kein Auftrag für den Offset-Pfad, vermeidet
 unnötige zusätzliche Query-Last und Scope-Zuwachs.
+→ **Beantwortet: D-04 (wie empfohlen).**
 
 **Frage 2 — Link-Ziel der wiederverwendeten Chip-Komponente als vollständigen Pfad oder als
 Suffix parametrisieren?**
@@ -235,6 +362,12 @@ Suffix parametrisieren?**
 *Empfehlung:* Vollständigen Pfad per Prop/Builder-Funktion übergeben (nicht nur ein Suffix-String)
 — robuster gegenüber künftigen abweichenden Zielmustern, entspricht gängigem Prop-Übergabe-Muster
 im Repo.
+→ **Beantwortet, abweichend vom ursprünglichen Rahmen: D-05/D-06.** Die Chip-Komponente selbst
+wird NICHT auf der Projektseite wiederverwendet (weder Kopfbereich noch „Mehr entdecken"). Der
+Kopfbereich zeigt nur Namen-Links (D-05), „Mehr entdecken" nutzt einen eigenen Link-Helper mit dem
+dort vorhandenen Linkstil, nur Datenlogik/URL-Aufbau wiederverwendet (D-06). Die ursprüngliche
+Frage nach „voller Pfad vs. Suffix" ist damit gegenstandslos — es gibt keine geteilte
+Chip-Komponente mit zwei Zielmustern mehr.
 
 ### Zu Projektnotizen
 
@@ -248,6 +381,7 @@ bleibt und nur das tatsächliche Schreibrecht projektbezogen geprüft wird?
 dass eine Änderung an der Tab-Sichtbarkeits-Logik unbeabsichtigt mit der Schreibrechts-Korrektur
 vermischt wird; entspricht dem bereits etablierten Muster (`can_edit_project_timeline` als eigene,
 zusätzliche Capability neben der gruppenweiten).
+→ **Beantwortet: D-08 (wie empfohlen).**
 
 **Frage 4 — Soll der beobachtete reale Verlust-Fall (`founder`/`encoder` ohne überlappende Rolle)
 akzeptiert werden, oder soll vorher eine kompensierende Rolle vergeben werden?**
@@ -258,6 +392,7 @@ aktiven Mitglieds.
 *Empfehlung:* Verlust akzeptieren — reine Gruppenleitung ohne jeden Bezug zum konkreten Projekt
 soll laut Zielbild kein Projektnotizen-Schreibrecht mehr begründen; das Mitglied kann bei Bedarf
 regulär als Projektrolle eingetragen werden (wie beim Timeline-Bug in Phase 188 analog akzeptiert).
+→ **Beantwortet: D-09 (wie empfohlen).**
 
 **Frage 5 — Soll `role_capabilities` für `anime_fansub_project.notes.write` zusätzlich um
 `co_leader`/`founder` erweitert werden, um den katalogseitigen Rechteverlust für reine
@@ -269,11 +404,20 @@ in Phase 188, D-10, für die Timeline-Action).
 automatisch Projektnotizen-Schreibrecht verleihen; eine Erweiterung würde den Kern der Korrektur
 unterlaufen. Falls gewünscht, wäre dies ein expliziter separater Rechte-Matrix-Entscheid, kein
 technischer Zwang.
+→ **Beantwortet: D-10 (wie empfohlen).**
 
-### Zu Fansub-Gruppen-Merge
+### Zu Fansub-Gruppen-Merge — ERSETZT durch D-11/D-12 (Entfernen statt Guard)
+
+Die folgenden drei Fragen (6-8) gingen von der ursprünglichen Prämisse „Merge bleibt, braucht
+einen Guard" aus. Der Nutzer hat diese Prämisse selbst verworfen: Die Merge-Funktion wird
+komplett entfernt (D-11), wodurch Fragen 6 und 7 gegenstandslos werden. Frage 8 (Alias-Verlust)
+erübrigt sich ebenfalls, da sie nur beim Merge auftrat. Zusätzlich neu in Scope: Lösch-Sperre für
+Fansub-Gruppen (D-12), da der verbleibende Korrekturpfad (Episode umhängen + Gruppe löschen) sonst
+selbst Daten verwaisen lassen könnte. Die ursprünglichen Fragen bleiben unten nur zur
+Nachvollziehbarkeit stehen.
 
 **Frage 6 — Abhängigkeiten beim Merge aktiv umziehen oder Merge bei vorhandenen Abhängigkeiten
-sperren?**
+sperren? (gegenstandslos — siehe oben)**
 Heute scheitert JEDER Merge einer nicht-leeren Quellgruppe hart am FK-Fehler (100 % der
 Bestandsgruppen mit Releases betroffen, da `release_crew_snapshots` immer 1:1 vorhanden ist). Eine
 reine Vorprüfung (wie der Phase-187-Guard) würde das Problem nur sichtbar machen, nicht lösen,
@@ -290,7 +434,7 @@ Nebenwirkungen auf Lifecycle-Historie) und passt zum bereits in Phase 187 gewäh
 Gruppen würde den Admin stattdessen anleiten, zuerst die abhängigen Releases einzeln umzuhängen
 (bestehender Phase-187-Pfad), bevor der Merge möglich ist.
 
-**Frage 7 — Soll die Guard-Zähllogik für den Merge-Fall `release_crew_snapshots` einschließen,
+**Frage 7 — (gegenstandslos — siehe oben) Soll die Guard-Zähllogik für den Merge-Fall `release_crew_snapshots` einschließen,
 abweichend von der explizit in Phase 187 (D-09) getroffenen Entscheidung, Crew-Snapshots NICHT zu
 zählen?**
 Ohne Einbeziehung von `release_crew_snapshots` würde der Guard bei jedem Merge „0 Dependents"
@@ -302,7 +446,7 @@ Crew-Snapshot-Einträge bewusst nicht blockieren sollten; beim Merge mehrerer ko
 Release-Bestände ist die reale Blockade (100 % FK-Fehler-Rate) ein anderes Risiko-Niveau, das die
 ursprüngliche Ausnahme nicht mehr trägt.
 
-**Frage 8 — Soll der Alias-Verlust (bestehende Alias-Zeile der Quellgruppe wird beim Merge
+**Frage 8 — (gegenstandslos — siehe oben) Soll der Alias-Verlust (bestehende Alias-Zeile der Quellgruppe wird beim Merge
 ersatzlos durch Cascade-Delete entfernt, nur der Slug wird neu angelegt) im selben Zug mitbehoben
 werden?**
 Kleinerer, unabhängiger Nebenbefund, nicht Kern des Todo-Auftrags.
@@ -310,10 +454,12 @@ Kleinerer, unabhängiger Nebenbefund, nicht Kern des Todo-Auftrags.
 (bestehende Alias-Zeilen vor dem Cascade-Delete zusätzlich migrieren, analog zum bereits
 vorhandenen Slug-Migrations-Schritt) gering ist — sonst müsste dafür ein eigenes Folge-Todo
 angelegt werden, was bei ohnehin geöffnetem Code unnötiger Overhead wäre.
+→ **Ersetzt durch D-11/D-12:** Der Merge und damit der Alias-Verlust entfällt vollständig; die
+Lösch-Sperre (D-12) übernimmt stattdessen die Absicherung des verbleibenden Korrekturpfads.
 
 ---
 
 ## Nächster Schritt
 
-Dieses Dokument wartet auf Antworten zu Fragen 1-8. Erst danach `/gsd:plan-phase 189` (oder
-`/gsd:discuss-phase 189`, falls weitere Rückfragen nötig werden).
+Alle Fragen sind beantwortet (D-04 bis D-12), Umfang ist final. Nächster Schritt:
+`/gsd:plan-phase 189`.

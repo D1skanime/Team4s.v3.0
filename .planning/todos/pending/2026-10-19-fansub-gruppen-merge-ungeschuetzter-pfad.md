@@ -4,7 +4,17 @@ title: Fansub-Gruppen-Merge ändert release_version_groups ohne Credit-/Crew-Gua
 area: admin-fansubs
 files:
   - backend/internal/repository/fansub_repository_merge_core.go
+status: erledigt durch Entfernung (Phase 189)
 ---
+
+## Status-Update (2026-10-20, Phase 189, zweite Entscheidungsrunde)
+
+Nutzerentscheidung D-11 in `.planning/phases/189-bugfix-b-ndel-coop-partner-projektnotizen-recht-gruppen-merg/189-CONTEXT.md`:
+Kein Guard — die gesamte Fansub-Gruppen-Merge-Funktion wird in Phase 189 vollständig entfernt
+(Frontend-Seite, API-Client, Backend-Route/Handler/Repository, Contract, Tests). Korrektur
+falscher Gruppen-Zuordnungen läuft künftig ausschließlich über den bestehenden Phase-187-Pfad
+(Episode umhängen + falsche Gruppe löschen), abgesichert durch eine neue Lösch-Sperre (D-12).
+Dieses Todo wird nach Abschluss von Phase 189 nach `.planning/todos/completed/` verschoben.
 
 ## Befund (aus Phase-187-Ist-Analyse, 2026-10-18/19, siehe 187-CONTEXT.md Abschnitt 3 Zeile #6 und Abschnitt 6)
 
