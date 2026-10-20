@@ -240,52 +240,6 @@ endpoints:
       - status: 409
         description: Alias bereits bei der Zielgruppe vorhanden.
 
-  - name: fansub-merge-preview
-    method: POST
-    path: /api/v1/admin/fansubs/merge/preview
-    auth:
-      required: true
-      header:
-        name: Authorization
-        format: Bearer <signed token>
-      unauthenticated_status: 401
-      unauthenticated_response:
-        error:
-          message: "anmeldung erforderlich"
-      forbidden_status: 403
-      forbidden_response:
-        error:
-          message: "keine berechtigung"
-    request_body:
-      required: true
-      type: MergeFansubsRequest
-    response:
-      status: 200
-      type: MergeFansubsPreviewResponse
-
-  - name: fansub-merge
-    method: POST
-    path: /api/v1/admin/fansubs/merge
-    auth:
-      required: true
-      header:
-        name: Authorization
-        format: Bearer <signed token>
-      unauthenticated_status: 401
-      unauthenticated_response:
-        error:
-          message: "anmeldung erforderlich"
-      forbidden_status: 403
-      forbidden_response:
-        error:
-          message: "keine berechtigung"
-    request_body:
-      required: true
-      type: MergeFansubsRequest
-    response:
-      status: 200
-      type: MergeFansubsResponse
-
   - name: fansub-media-upload
     method: POST
     path: /api/v1/admin/fansubs/:id/media
@@ -525,10 +479,6 @@ types:
     data: AnimeFansub[]
   AnimeFansubResponse:
     data: AnimeFansub
-  MergeFansubsResponse:
-    data: MergeFansubsResult
-  MergeFansubsPreviewResponse:
-    data: MergeFansubsPreviewResult
   FansubGroupCreateRequest:
     slug: string (required, min: 1, max: 120)
     name: string (required, min: 1, max: 120)
@@ -577,36 +527,6 @@ types:
   AnimeFansubAttachRequest:
     is_primary: bool
     notes: string | null
-  MergeFansubsRequest:
-    target_id: int64 (required, minimum: 1)
-    source_ids: int64[] (required, min_items: 1)
-  MergeFansubsResult:
-    merged_count: int32
-    versions_migrated: int32
-    members_migrated: int32
-    relations_migrated: int32
-    aliases_added: string[]
-  MergeFansubsPreviewResult:
-    merged_count: int32
-    versions_migrated: int32
-    members_migrated: int32
-    relations_migrated: int32
-    aliases_added: string[]
-    aliases_skipped: string[]
-    can_merge: bool
-    conflicts: MergeFansubsPreviewConflicts
-  MergeFansubsPreviewConflicts:
-    version_conflicts: int32
-    duplicate_aliases_count: int32
-    duplicate_aliases: string[]
-    duplicate_members_count: int32
-    duplicate_members: string[]
-    duplicate_relations_count: int32
-    duplicate_relation_anime_ids: int64[]
-    duplicate_slugs_count: int32
-    duplicate_slugs: string[]
-    duplicate_names_count: int32
-    duplicate_names: string[]
   FansubGroup:
     id: int64
     slug: string

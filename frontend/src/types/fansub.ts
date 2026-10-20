@@ -299,52 +299,6 @@ export interface FansubAliasReassignRequest {
   target_fansub_group_id: number;
 }
 
-export interface MergeFansubsRequest {
-  target_id: number;
-  source_ids: number[];
-}
-
-export interface MergeFansubsResult {
-  merged_count: number;
-  versions_migrated: number;
-  members_migrated: number;
-  relations_migrated: number;
-  aliases_added: string[];
-}
-
-export interface MergeFansubsResponse {
-  data: MergeFansubsResult;
-}
-
-export interface MergeFansubsPreviewConflicts {
-  version_conflicts: number;
-  duplicate_aliases_count: number;
-  duplicate_aliases: string[];
-  duplicate_members_count: number;
-  duplicate_members: string[];
-  duplicate_relations_count: number;
-  duplicate_relation_anime_ids: number[];
-  duplicate_slugs_count: number;
-  duplicate_slugs: string[];
-  duplicate_names_count: number;
-  duplicate_names: string[];
-}
-
-export interface MergeFansubsPreviewResult {
-  merged_count: number;
-  versions_migrated: number;
-  members_migrated: number;
-  relations_migrated: number;
-  aliases_added: string[];
-  aliases_skipped: string[];
-  can_merge: boolean;
-  conflicts: MergeFansubsPreviewConflicts;
-}
-
-export interface MergeFansubsPreviewResponse {
-  data: MergeFansubsPreviewResult;
-}
-
 export type FansubMediaKind = "logo" | "banner";
 export type FansubGroupMediaUploadKind = "image";
 

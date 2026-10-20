@@ -5,9 +5,6 @@ import type {
   FansubGroupCreateRequest,
   FansubGroupPatchRequest,
   FansubGroupResponse,
-  MergeFansubsPreviewResponse,
-  MergeFansubsRequest,
-  MergeFansubsResponse,
 } from "@/types/fansub";
 import type {
   GroupAssetsResponse,
@@ -113,66 +110,6 @@ export async function deleteFansubGroup(
     );
     throw new ApiError(response.status, message);
   }
-}
-
-export async function mergeFansubsPreview(
-  payload: MergeFansubsRequest,
-  authToken?: string,
-): Promise<MergeFansubsPreviewResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/merge/preview`,
-    {
-      method: "POST",
-      headers: withAuthHeader(
-        {
-          "Content-Type": "application/json",
-        },
-        authToken,
-      ),
-      body: JSON.stringify(payload),
-    },
-  );
-
-  if (!response.ok) {
-    const message = await parseApiError(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(response.status, message);
-  }
-
-  return response.json() as Promise<MergeFansubsPreviewResponse>;
-}
-
-export async function mergeFansubs(
-  payload: MergeFansubsRequest,
-  authToken?: string,
-): Promise<MergeFansubsResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/merge`,
-    {
-      method: "POST",
-      headers: withAuthHeader(
-        {
-          "Content-Type": "application/json",
-        },
-        authToken,
-      ),
-      body: JSON.stringify(payload),
-    },
-  );
-
-  if (!response.ok) {
-    const message = await parseApiError(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(response.status, message);
-  }
-
-  return response.json() as Promise<MergeFansubsResponse>;
 }
 
 export async function getGroupDetail(
