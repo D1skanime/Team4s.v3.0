@@ -63,3 +63,13 @@ export const FANSUB_STATUS_LABELS: Record<FansubStatus, string> = {
 export function getFansubStatusLabel(status: FansubStatus): string {
   return FANSUB_STATUS_LABELS[status] ?? status
 }
+
+/**
+ * Phase 189 (D-06/UAT-Nachbesserung): zentrale Überschrift für die Liste der übrigen Gruppen,
+ * die denselben Anime getrennt bearbeitet haben. Wird sowohl auf der Projektseite
+ * (BacklinksSection, "Mehr entdecken") als auch auf der Release-Liste (OtherGroupsChips)
+ * verwendet, damit beide Stellen denselben Satz zeigen statt zwei gepflegter Kopien.
+ */
+export function getOtherGroupsHeading(animeTitle: string): string {
+  return `${animeTitle} wurde auch gesubbt von`
+}

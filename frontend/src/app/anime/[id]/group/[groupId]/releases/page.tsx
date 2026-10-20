@@ -373,7 +373,7 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
           />
 
           <section className={styles.releasesSection}>
-            <OtherGroupsChips animeID={animeID} otherGroups={otherGroups} />
+            <OtherGroupsChips animeID={animeID} animeTitle={anime.title} otherGroups={otherGroups} />
 
             {meta && (
               <div className={styles.releasesMeta}>

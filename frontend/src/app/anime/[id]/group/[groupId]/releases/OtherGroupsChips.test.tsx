@@ -21,6 +21,7 @@ it('D-07: rendert ein legacy /api/v1/media/files/... Logo unoptimiert statt abzu
   render(
     <OtherGroupsChips
       animeID={2}
+      animeTitle="11eyes"
       otherGroups={[
         {
           id: 26,
@@ -34,4 +35,21 @@ it('D-07: rendert ein legacy /api/v1/media/files/... Logo unoptimiert statt abzu
 
   const image = screen.getByRole('img', { name: 'Strawhat Subs' })
   expect(image.getAttribute('data-unoptimized')).toBe('true')
+})
+
+// UAT-Nachbesserung Phase 189: Beschriftung + aria-label nutzen den echten Animetitel ueber den
+// gemeinsamen Text-Helper getOtherGroupsHeading statt eines generischen Satzes.
+it('zeigt "<Animetitel> wurde auch gesubbt von" als Beschriftung und aria-label', () => {
+  render(
+    <OtherGroupsChips
+      animeID={2}
+      animeTitle="11eyes"
+      otherGroups={[
+        { id: 24, name: 'Bloody-Shadow', slug: 'bloody-shadow', logo_url: null },
+      ]}
+    />,
+  )
+
+  expect(screen.getByText('11eyes wurde auch gesubbt von')).toBeTruthy()
+  expect(screen.getByLabelText('11eyes wurde auch gesubbt von')).toBeTruthy()
 })

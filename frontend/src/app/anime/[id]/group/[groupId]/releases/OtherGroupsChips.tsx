@@ -3,6 +3,7 @@
 import Link from 'next/link'
 
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
+import { getOtherGroupsHeading } from '@/lib/fansub-labels'
 
 import styles from './page.module.css'
 
@@ -16,18 +17,21 @@ interface OtherGroupChipItem {
 
 interface OtherGroupsChipsProps {
   animeID: number
+  animeTitle: string
   otherGroups: OtherGroupChipItem[]
 }
 
-export function OtherGroupsChips({ animeID, otherGroups }: OtherGroupsChipsProps) {
+export function OtherGroupsChips({ animeID, animeTitle, otherGroups }: OtherGroupsChipsProps) {
   if (otherGroups.length === 0) {
     return null
   }
 
+  const heading = getOtherGroupsHeading(animeTitle)
+
   return (
     <div className={styles.otherGroupsSection}>
-      <p className={styles.otherGroupsLabel}>Weitere Gruppen zu diesem Anime</p>
-      <div className={styles.otherGroupsScroller} aria-label="Weitere Fansub-Gruppen">
+      <p className={styles.otherGroupsLabel}>{heading}</p>
+      <div className={styles.otherGroupsScroller} aria-label={heading}>
         {otherGroups.map((otherGroup) => (
           <Link
             key={otherGroup.id}

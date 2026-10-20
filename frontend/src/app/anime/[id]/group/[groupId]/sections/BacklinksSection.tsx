@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ExternalLink } from 'lucide-react'
 
 import { Card, SectionHeader } from '@/components/ui'
+import { getOtherGroupsHeading } from '@/lib/fansub-labels'
 import { buildTechnicalFansubProjectPath } from '@/lib/fansubProjectRoutes'
 import type { FansubGroupSummary } from '@/types/fansub'
 
@@ -10,10 +11,11 @@ import styles from '../page.module.css'
 interface BacklinksSectionProps {
   fansubSlug: string
   animeID: number
+  animeTitle: string
   discoverableGroups?: FansubGroupSummary[]
 }
 
-export function BacklinksSection({ fansubSlug, animeID, discoverableGroups }: BacklinksSectionProps) {
+export function BacklinksSection({ fansubSlug, animeID, animeTitle, discoverableGroups }: BacklinksSectionProps) {
   return (
     <div className={styles.backlinksSection}>
       <SectionHeader title="Mehr entdecken" />
@@ -28,7 +30,7 @@ export function BacklinksSection({ fansubSlug, animeID, discoverableGroups }: Ba
         </div>
         {(discoverableGroups ?? []).length > 0 && (
           <div className={styles.backlinksGroup}>
-            <h3 className={styles.blockTitle}>Weitere Gruppen zu diesem Anime</h3>
+            <h3 className={styles.otherGroupsLabel}>{getOtherGroupsHeading(animeTitle)}</h3>
             <div className={styles.backlinksRow}>
               {(discoverableGroups ?? []).map((group) => (
                 <Link

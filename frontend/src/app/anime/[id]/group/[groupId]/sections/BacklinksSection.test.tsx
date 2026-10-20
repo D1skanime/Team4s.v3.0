@@ -6,7 +6,7 @@ import { BacklinksSection } from './BacklinksSection'
 
 describe('BacklinksSection', () => {
   it('rendert nur die zwei bestehenden Links ohne discoverableGroups', () => {
-    render(<BacklinksSection fansubSlug="c-subs" animeID={4} />)
+    render(<BacklinksSection fansubSlug="c-subs" animeID={4} animeTitle="11eyes" />)
 
     expect(screen.getAllByRole('link')).toHaveLength(2)
     expect(screen.getByRole('link', { name: /Zur Gruppenseite/ }).getAttribute('href')).toBe('/fansubs/c-subs')
@@ -14,22 +14,36 @@ describe('BacklinksSection', () => {
   })
 
   it('rendert nur die zwei bestehenden Links bei leerem discoverableGroups-Array', () => {
-    render(<BacklinksSection fansubSlug="c-subs" animeID={4} discoverableGroups={[]} />)
+    render(<BacklinksSection fansubSlug="c-subs" animeID={4} animeTitle="11eyes" discoverableGroups={[]} />)
 
     expect(screen.getAllByRole('link')).toHaveLength(2)
-    expect(screen.queryByText('Weitere Gruppen zu diesem Anime')).toBeNull()
+    expect(screen.queryByText('11eyes wurde auch gesubbt von')).toBeNull()
   })
 
-  it('zeigt die Beschriftung "Weitere Gruppen zu diesem Anime" nur wenn discoverableGroups nicht leer ist', () => {
+  it('zeigt die Beschriftung "<Animetitel> wurde auch gesubbt von" nur wenn discoverableGroups nicht leer ist', () => {
     render(
       <BacklinksSection
         fansubSlug="c-subs"
         animeID={4}
+        animeTitle="11eyes"
         discoverableGroups={[{ id: 9, slug: 'other-subs', name: 'Other Subs', logo_url: null }]}
       />,
     )
 
-    expect(screen.getByText('Weitere Gruppen zu diesem Anime')).toBeTruthy()
+    expect(screen.getByText('11eyes wurde auch gesubbt von')).toBeTruthy()
+  })
+
+  it('verwendet den echten Animetitel in der Beschriftung', () => {
+    render(
+      <BacklinksSection
+        fansubSlug="c-subs"
+        animeID={4}
+        animeTitle="Buddy Complex"
+        discoverableGroups={[{ id: 9, slug: 'other-subs', name: 'Other Subs', logo_url: null }]}
+      />,
+    )
+
+    expect(screen.getByText('Buddy Complex wurde auch gesubbt von')).toBeTruthy()
   })
 
   it('rendert zusaetzliche Links pro discoverableGroups-Eintrag zur jeweiligen Projektseite', () => {
@@ -37,6 +51,7 @@ describe('BacklinksSection', () => {
       <BacklinksSection
         fansubSlug="c-subs"
         animeID={4}
+        animeTitle="11eyes"
         discoverableGroups={[
           { id: 9, slug: 'other-subs', name: 'Other Subs', logo_url: null },
           { id: 10, slug: 'third-subs', name: 'Third Subs', logo_url: null },

@@ -53,6 +53,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
       <BacklinksSection
         fansubSlug={data.group.fansub.slug}
         animeID={data.animeID}
+        animeTitle={data.anime.title}
         discoverableGroups={data.discoverableGroups}
       />
     </main>
