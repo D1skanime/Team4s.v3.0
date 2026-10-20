@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
+status: executing
 stopped_at: Completed 188-05-PLAN.md (Phase 188 vollstaendig abgeschlossen, 5/5)
-last_updated: "2026-10-20T08:27:23.031Z"
+last_updated: "2026-10-20T11:51:32.203Z"
 last_activity: 2026-10-20
 progress:
-  total_phases: 53
+  total_phases: 54
   completed_phases: 48
-  total_plans: 476
+  total_plans: 484
   completed_plans: 473
-  percent: 91
+  percent: 89
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -439,7 +439,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 188 (ux-abgleich-rest-korrektheits-und-robustheitsfixes-vor-neuen) — COMPLETE (2026-10-20)
 Plan: 5 of 5 (188-05 Task 7 Live-Checkpoint vom Nutzer "verifiziert" bestaetigt — PLAN ABGESCHLOSSEN)
-Status: Phase complete — ready for verification
+Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -578,7 +578,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-20 - Completed quick task 261020-cmi: Öffentliches Mitgliederprofil zeigt keine Folgen-/Release-Auflistung mehr
+Last activity: 2026-10-20
 
 ## Accumulated Context
 
