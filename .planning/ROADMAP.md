@@ -2942,7 +2942,7 @@ Plans:
 **Wave 2** *(blockiert auf Wave-1-Abschluss)*
 
 - [x] 189-05-PLAN.md — Backend: Fansub-Gruppen-Merge vollständig entfernen (Handler/Repository/Route/Contract) (D-11).
-- [ ] 189-06-PLAN.md — Frontend: fansub.ts-Pflicht-Split + can_edit_project_notes-Wiring (FansubEditClient/AnimeProjectNoteWorkspace) (D-08).
+- [x] 189-06-PLAN.md — Frontend: fansub.ts-Pflicht-Split + can_edit_project_notes-Wiring (FansubEditClient/AnimeProjectNoteWorkspace) (D-08).
 
 **Wave 3** *(blockiert auf Wave-2-Abschluss)*
 
