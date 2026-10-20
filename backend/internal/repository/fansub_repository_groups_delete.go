@@ -13,26 +13,29 @@ import (
 // home for Task 2's dependents pre-check (D-12).
 
 func (r *FansubRepository) DeleteGroup(ctx context.Context, id int64) error {
-	// D-12: pre-check every real dependent BEFORE opening a transaction or
-	// issuing any DELETE. This applies identically to every caller --
-	// including platform admins, who gate through the same DeleteFansub
-	// handler with no bypass branch -- turning today's silent CASCADE /
-	// raw uncaught FK error (e.g. review_decisions/review_audit_events,
-	// which have no ON DELETE clause at all) into one consistent, counted,
-	// typed error.
-	summary, err := countFansubGroupDependents(ctx, r.db, id)
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin delete fansub group tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	// D-12 (189-REVIEW.md CR-02): pre-check every real dependent INSIDE the
+	// already-open transaction, mirroring
+	// ensureRemovedReleaseVersionGroupsHaveNoDependents's precedent in
+	// release_version_group_guard.go -- minimizes the TOCTOU window in which
+	// a dependent row could be created between the check and the DELETE.
+	// This applies identically to every caller -- including platform admins,
+	// who gate through the same DeleteFansub handler with no bypass branch --
+	// turning today's silent CASCADE / raw uncaught FK error (e.g.
+	// review_decisions/review_audit_events, which have no ON DELETE clause
+	// at all) into one consistent, counted, typed error.
+	summary, err := countFansubGroupDependents(ctx, tx, id)
 	if err != nil {
 		return fmt.Errorf("check fansub group %d dependents: %w", id, err)
 	}
 	if summary.HasAny() {
 		return &FansubGroupHasDependentsError{FansubGroupID: id, Summary: summary}
 	}
-
-	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
-	if err != nil {
-		return fmt.Errorf("begin delete fansub group tx: %w", err)
-	}
-	defer tx.Rollback(ctx)
 
 	// Historical members and contributions intentionally use RESTRICT FKs.
 	// Admin group deletion is the explicit cleanup boundary for those records.
