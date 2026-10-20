@@ -17,6 +17,19 @@ describe('BacklinksSection', () => {
     render(<BacklinksSection fansubSlug="c-subs" animeID={4} discoverableGroups={[]} />)
 
     expect(screen.getAllByRole('link')).toHaveLength(2)
+    expect(screen.queryByText('Weitere Gruppen zu diesem Anime')).toBeNull()
+  })
+
+  it('zeigt die Beschriftung "Weitere Gruppen zu diesem Anime" nur wenn discoverableGroups nicht leer ist', () => {
+    render(
+      <BacklinksSection
+        fansubSlug="c-subs"
+        animeID={4}
+        discoverableGroups={[{ id: 9, slug: 'other-subs', name: 'Other Subs', logo_url: null }]}
+      />,
+    )
+
+    expect(screen.getByText('Weitere Gruppen zu diesem Anime')).toBeTruthy()
   })
 
   it('rendert zusaetzliche Links pro discoverableGroups-Eintrag zur jeweiligen Projektseite', () => {

@@ -465,7 +465,9 @@
 
 /* ── Sammel-Hinweis fuer leere Bereiche (AO4-07) ── */
 /* ── Backlinks ── */
-.backlinksCard { padding: 16px; display: flex; gap: 16px; flex-wrap: wrap; }
+.backlinksCard { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.backlinksRow { display: flex; gap: 16px; flex-wrap: wrap; }
+.backlinksGroup { display: grid; gap: 8px; }
 .deepLink { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; color: var(--color-primary); text-decoration: none; }
 .deepLink:hover { text-decoration: underline; }
 
