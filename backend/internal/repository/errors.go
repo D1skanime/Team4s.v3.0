@@ -53,3 +53,28 @@ func (e *GroupHasDependentsError) Error() string {
 func (e *GroupHasDependentsError) Unwrap() error {
 	return ErrGroupHasDependents
 }
+
+// ErrFansubGroupHasDependents (Phase 189, D-12) is returned when a whole
+// fansub group deletion is blocked because the group still has real
+// dependents in any of countFansubGroupDependents' 19 counted categories.
+// Parallels ErrGroupHasDependents above, which blocks removing a group from
+// a single release version -- this blocks removing the group entirely.
+var ErrFansubGroupHasDependents = errors.New("fansub group has dependents")
+
+// FansubGroupHasDependentsError carries the FansubGroupDependencySummary
+// that produced the block, for callers (the DeleteFansub handler) that need
+// to build a German, per-category 409 message from it. Error() is an
+// internal Go string only -- the German user-facing message is built
+// separately by the handler from the Summary field.
+type FansubGroupHasDependentsError struct {
+	FansubGroupID int64
+	Summary       FansubGroupDependencySummary
+}
+
+func (e *FansubGroupHasDependentsError) Error() string {
+	return fmt.Sprintf("fansub group %d has dependents: %+v", e.FansubGroupID, e.Summary)
+}
+
+func (e *FansubGroupHasDependentsError) Unwrap() error {
+	return ErrFansubGroupHasDependents
+}

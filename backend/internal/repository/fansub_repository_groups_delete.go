@@ -13,6 +13,21 @@ import (
 // home for Task 2's dependents pre-check (D-12).
 
 func (r *FansubRepository) DeleteGroup(ctx context.Context, id int64) error {
+	// D-12: pre-check every real dependent BEFORE opening a transaction or
+	// issuing any DELETE. This applies identically to every caller --
+	// including platform admins, who gate through the same DeleteFansub
+	// handler with no bypass branch -- turning today's silent CASCADE /
+	// raw uncaught FK error (e.g. review_decisions/review_audit_events,
+	// which have no ON DELETE clause at all) into one consistent, counted,
+	// typed error.
+	summary, err := countFansubGroupDependents(ctx, r.db, id)
+	if err != nil {
+		return fmt.Errorf("check fansub group %d dependents: %w", id, err)
+	}
+	if summary.HasAny() {
+		return &FansubGroupHasDependentsError{FansubGroupID: id, Summary: summary}
+	}
+
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("begin delete fansub group tx: %w", err)

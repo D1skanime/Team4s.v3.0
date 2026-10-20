@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -84,6 +85,187 @@ func countReleaseVersionGroupDependents(
 	`, releaseVersionID, fansubGroupID).Scan(&summary.Credits, &summary.Media, &summary.Notes)
 	if err != nil {
 		return DependencySummary{}, fmt.Errorf("count release version group dependents: %w", err)
+	}
+	return summary, nil
+}
+
+// FansubGroupDependencySummary reports how many real dependents a whole
+// fansub group has, keyed by fansub_group_id alone (Phase 189, D-12) --
+// structurally different from DependencySummary above, which is keyed by a
+// (release_version_id, fansub_group_id) PAIR. FK-verified against every
+// `REFERENCES fansub_groups(id)` site in database/migrations (189-RESEARCH.md);
+// deliberately excludes fansub_group_aliases, the empty legacy fansub_members
+// table, and the pure-assignment anime_fansub_groups link (no real release),
+// per CONTEXT.md D-12 and RESEARCH.md's corrected dependents table.
+type FansubGroupDependencySummary struct {
+	Releases                 int32
+	Memberships              int32
+	Contributions            int32
+	HistoricalMembers        int32
+	Media                    int32
+	GroupNotes               int32
+	ProjectNotes             int32
+	History                  int32
+	Segments                 int32
+	SegmentLibrary           int32
+	DefaultCrew              int32
+	PendingInvitations       int32
+	PendingClaimInvitations  int32
+	CapabilityOverrides      int32
+	CollaborationMemberships int32
+	PlaybackEntitlements     int32
+	ReviewDecisions          int32
+	ReviewAuditHistory       int32
+	OverrideHistory          int32
+}
+
+// HasAny reports whether this fansub group has at least one real dependent
+// of any counted kind.
+func (s FansubGroupDependencySummary) HasAny() bool {
+	return s.Releases > 0 ||
+		s.Memberships > 0 ||
+		s.Contributions > 0 ||
+		s.HistoricalMembers > 0 ||
+		s.Media > 0 ||
+		s.GroupNotes > 0 ||
+		s.ProjectNotes > 0 ||
+		s.History > 0 ||
+		s.Segments > 0 ||
+		s.SegmentLibrary > 0 ||
+		s.DefaultCrew > 0 ||
+		s.PendingInvitations > 0 ||
+		s.PendingClaimInvitations > 0 ||
+		s.CapabilityOverrides > 0 ||
+		s.CollaborationMemberships > 0 ||
+		s.PlaybackEntitlements > 0 ||
+		s.ReviewDecisions > 0 ||
+		s.ReviewAuditHistory > 0 ||
+		s.OverrideHistory > 0
+}
+
+// GermanReasonFragment returns a correctly pluralized German fragment naming
+// every NON-ZERO counted dependent kind, joined with ", ". Deliberately
+// DIFFERENT from DependencySummary.GermanReasonFragment above, which always
+// lists all 3 of its categories (including zeros): here there are 19
+// categories, so an always-list-everything message would be an unreadable
+// wall of "0 X, 0 Y, ..." noise. Listing only what is actually non-zero
+// keeps the 409 message scannable for the admin while still naming every
+// real blocker.
+func (s FansubGroupDependencySummary) GermanReasonFragment() string {
+	type counted struct {
+		count    int32
+		singular string
+		plural   string
+	}
+	candidates := []counted{
+		{s.Releases, "Release", "Releases"},
+		{s.Memberships, "Mitgliedschaft", "Mitgliedschaften"},
+		{s.Contributions, "Beitrag", "Beiträge"},
+		{s.HistoricalMembers, "historisches Mitglied", "historische Mitglieder"},
+		{s.Media, "Medium", "Medien"},
+		{s.GroupNotes, "Gruppennotiz", "Gruppennotizen"},
+		{s.ProjectNotes, "Projektnotiz", "Projektnotizen"},
+		{s.History, "Chronik-Eintrag", "Chronik-Einträge"},
+		{s.Segments, "Segment", "Segmente"},
+		{s.SegmentLibrary, "Segment-Bibliothekseintrag", "Segment-Bibliothekseinträge"},
+		{s.DefaultCrew, "Standard-Besetzungs-Eintrag", "Standard-Besetzungs-Einträge"},
+		{s.PendingInvitations, "offene Einladung", "offene Einladungen"},
+		{s.PendingClaimInvitations, "offene Claim-Einladung", "offene Claim-Einladungen"},
+		{s.CapabilityOverrides, "Rechte-Override", "Rechte-Overrides"},
+		{s.CollaborationMemberships, "Kollaborations-Mitgliedschaft", "Kollaborations-Mitgliedschaften"},
+		{s.PlaybackEntitlements, "Freischaltregel", "Freischaltregeln"},
+		{s.ReviewDecisions, "Review-Entscheidung", "Review-Entscheidungen"},
+		{s.ReviewAuditHistory, "Review-Protokolleintrag", "Review-Protokolleinträge"},
+		{s.OverrideHistory, "Override-Historieneintrag", "Override-Historieneinträge"},
+	}
+
+	fragments := make([]string, 0, len(candidates))
+	for _, c := range candidates {
+		if c.count <= 0 {
+			continue
+		}
+		fragments = append(fragments, germanPluralCount(c.count, c.singular, c.plural))
+	}
+
+	return strings.Join(fragments, ", ")
+}
+
+// countFansubGroupDependents counts every real dependent of a single
+// fansub group (Phase 189, D-12) in one QueryRow with one scalar subquery
+// per table -- the exact same shape as countReleaseVersionGroupDependents
+// above, just keyed by fansub_group_id alone instead of a
+// (release_version_id, fansub_group_id) pair. fansub_group_media's FK
+// column is named `group_id`, not `fansub_group_id` -- confirmed against
+// database/migrations/0026_add_media_tables.up.sql, not assumed.
+func countFansubGroupDependents(
+	ctx context.Context,
+	db dependentsQueryRower,
+	fansubGroupID int64,
+) (FansubGroupDependencySummary, error) {
+	var summary FansubGroupDependencySummary
+	err := db.QueryRow(ctx, `
+		SELECT
+			(SELECT COUNT(*) FROM release_version_groups
+				WHERE fansub_group_id = $1) AS releases,
+			(SELECT COUNT(*) FROM fansub_group_members
+				WHERE fansub_group_id = $1) AS memberships,
+			(SELECT COUNT(*) FROM anime_contributions
+				WHERE fansub_group_id = $1) AS contributions,
+			(SELECT COUNT(*) FROM hist_fansub_group_members
+				WHERE fansub_group_id = $1) AS historical_members,
+			(SELECT COUNT(*) FROM fansub_group_media
+				WHERE group_id = $1) AS media,
+			(SELECT COUNT(*) FROM fansub_group_notes
+				WHERE fansub_group_id = $1 AND deleted_at IS NULL) AS group_notes,
+			(SELECT COUNT(*) FROM anime_fansub_project_notes
+				WHERE fansub_group_id = $1 AND deleted_at IS NULL) AS project_notes,
+			(SELECT COUNT(*) FROM fansub_group_history
+				WHERE fansub_group_id = $1) AS history,
+			(SELECT COUNT(*) FROM theme_segments
+				WHERE fansub_group_id = $1) AS segments,
+			(SELECT COUNT(*) FROM segment_library_definitions
+				WHERE fansub_group_id = $1) AS segment_library,
+			(SELECT COUNT(*) FROM fansub_group_default_crew
+				WHERE fansub_group_id = $1) AS default_crew,
+			(SELECT COUNT(*) FROM fansub_group_invitations
+				WHERE fansub_group_id = $1 AND status = 'pending') AS pending_invitations,
+			(SELECT COUNT(*) FROM member_claim_invitations
+				WHERE fansub_group_id = $1 AND status = 'pending') AS pending_claim_invitations,
+			(SELECT COUNT(*) FROM user_group_capability_overrides
+				WHERE fansub_group_id = $1) AS capability_overrides,
+			(SELECT COUNT(*) FROM fansub_collaboration_members
+				WHERE collaboration_id = $1 OR member_group_id = $1) AS collaboration_memberships,
+			(SELECT COUNT(*) FROM release_playback_entitlement_rules
+				WHERE fansub_group_id = $1) AS playback_entitlements,
+			(SELECT COUNT(*) FROM review_decisions
+				WHERE fansub_group_id = $1) AS review_decisions,
+			(SELECT COUNT(*) FROM review_audit_events
+				WHERE fansub_group_id = $1) AS review_audit_history,
+			(SELECT COUNT(*) FROM user_group_capability_override_history
+				WHERE fansub_group_id = $1) AS override_history
+	`, fansubGroupID).Scan(
+		&summary.Releases,
+		&summary.Memberships,
+		&summary.Contributions,
+		&summary.HistoricalMembers,
+		&summary.Media,
+		&summary.GroupNotes,
+		&summary.ProjectNotes,
+		&summary.History,
+		&summary.Segments,
+		&summary.SegmentLibrary,
+		&summary.DefaultCrew,
+		&summary.PendingInvitations,
+		&summary.PendingClaimInvitations,
+		&summary.CapabilityOverrides,
+		&summary.CollaborationMemberships,
+		&summary.PlaybackEntitlements,
+		&summary.ReviewDecisions,
+		&summary.ReviewAuditHistory,
+		&summary.OverrideHistory,
+	)
+	if err != nil {
+		return FansubGroupDependencySummary{}, fmt.Errorf("count fansub group dependents: %w", err)
 	}
 	return summary, nil
 }
