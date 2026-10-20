@@ -14,6 +14,7 @@ import {
   authorizedFetch,
   getApiBaseUrl,
   parseApiError,
+  parseApiErrorPayload,
   withAuthHeader,
 } from "./client";
 
@@ -198,11 +199,17 @@ export async function updateEpisodeVersion(
   );
 
   if (!response.ok) {
-    const message = await parseApiError(
+    const parsed = await parseApiErrorPayload(
       response,
       `API request failed: ${response.status}`,
     );
-    throw new ApiError(response.status, message);
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
   }
 
   return response.json() as Promise<EpisodeVersionResponse>;
