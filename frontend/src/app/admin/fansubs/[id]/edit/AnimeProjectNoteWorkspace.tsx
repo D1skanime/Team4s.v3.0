@@ -9,6 +9,7 @@ import {
   ApiError,
   deleteAnimeFansubProjectNote,
   getAnimeFansubProjectNote,
+  getFansubGroupCapabilities,
   upsertAnimeFansubProjectNote,
 } from '@/lib/api'
 import type { AnimeFansubProjectNote, UpsertAnimeFansubProjectNoteRequest } from '@/types/fansubNotes'
@@ -59,6 +60,14 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded, canEdit
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  // 189-06/D-08: projektbezogene Freischaltung der Bearbeitungs-Steuerelemente
+  // (eigener Capability-Abruf mit anime_id) -- überschreibt die gruppenweite
+  // Fallback-Prop `canEdit`, sobald das Ergebnis vorliegt. `null` bedeutet
+  // "noch nicht geladen oder Abruf fehlgeschlagen": effectiveCanEdit fällt in
+  // diesem Fall auf `canEdit` zurück, damit ein Netzwerkfehler bei diesem
+  // Zusatzabruf die bereits funktionierende Notiz-Anzeige nicht blockiert.
+  // Exaktes Spiegelbild von AnimeProjectTimelineSection.tsx.
+  const [projectCanEdit, setProjectCanEdit] = useState<boolean | null>(null)
 
   // Lazy-Load-Effect: lädt erst wenn aufgeklappt (D-12)
   useEffect(() => {
@@ -82,6 +91,25 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded, canEdit
       cancelled = true
     }
   }, [expanded, fansubId, animeId])
+
+  useEffect(() => {
+    if (!expanded) return
+    let active = true
+    getFansubGroupCapabilities(fansubId, undefined, { animeId })
+      .then((response) => {
+        if (!active) return
+        setProjectCanEdit(response.data.can_edit_project_notes)
+      })
+      .catch(() => {
+        if (!active) return
+        setProjectCanEdit(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [expanded, fansubId, animeId])
+
+  const effectiveCanEdit = projectCanEdit ?? canEdit
 
   async function handleSave() {
     setSaving(true)
@@ -166,7 +194,7 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded, canEdit
           title="Projekt-Einblick fehlt"
           description="Noch kein Einblick für dieses Projekt vorhanden."
           action={
-            canEdit ? (
+            effectiveCanEdit ? (
               <Button variant="primary" size="sm" onClick={handleEdit}>
                 Einblick hinzufügen
               </Button>
@@ -184,7 +212,7 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded, canEdit
         <SectionHeader
           title="Projekt-Einblick"
           actions={
-            canEdit ? (
+            effectiveCanEdit ? (
               <>
                 <Button variant="ghost" size="sm" onClick={handleEdit} disabled={deleting}>
                   Einblick bearbeiten

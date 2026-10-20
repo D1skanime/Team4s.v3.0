@@ -77,6 +77,7 @@ const fullCapabilities: FansubGroupCapabilities = {
   can_link_historical_members: true,
   can_edit_notes: true,
   can_edit_project_timeline: false,
+  can_edit_project_notes: false,
   can_view_invitations: true,
   can_create_invitation: true,
   can_cancel_invitation: true,

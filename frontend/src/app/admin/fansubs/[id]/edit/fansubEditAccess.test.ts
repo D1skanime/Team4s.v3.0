@@ -27,6 +27,7 @@ function capabilities(
     can_link_historical_members: false,
     can_edit_notes: false,
   can_edit_project_timeline: false,
+  can_edit_project_notes: false,
     can_view_invitations: false,
     can_create_invitation: false,
     can_cancel_invitation: false,

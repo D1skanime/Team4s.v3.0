@@ -13,7 +13,6 @@ import {
   canEditReleaseNotes,
   canManageReleaseContributors,
   canUploadReleaseMedia,
-  canUseMainTab,
   canViewReleaseContributors,
   canViewReleaseMedia,
 } from "./fansubEditAccess";
@@ -151,11 +150,8 @@ export function FansubEditClient({
   const canUseReleaseNotes = canEditReleaseNotes(isPlatformAdmin, capabilities);
   const canViewProjectNotes =
     isPlatformAdmin || Boolean(capabilities?.can_view_releases);
-  const canEditProjectNotes = canUseMainTab(
-    "notes",
-    isPlatformAdmin,
-    capabilities,
-  );
+  const canEditProjectNotes =
+    isPlatformAdmin || Boolean(capabilities?.can_edit_project_notes);
   const canEditProjectTimeline =
     isPlatformAdmin || Boolean(capabilities?.can_edit_project_timeline);
   const canUseAdminReleaseDetails = isPlatformAdmin;

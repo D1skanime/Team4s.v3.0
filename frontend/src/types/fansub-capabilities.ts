@@ -12,6 +12,7 @@ export interface FansubGroupCapabilities {
   can_link_historical_members: boolean;
   can_edit_notes: boolean;
   can_edit_project_timeline: boolean;
+  can_edit_project_notes: boolean;
   can_view_invitations: boolean;
   can_create_invitation: boolean;
   can_cancel_invitation: boolean;
