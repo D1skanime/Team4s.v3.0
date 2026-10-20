@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 189-03-PLAN.md
-last_updated: "2026-10-20T12:50:36.920Z"
+stopped_at: Completed 189-04-PLAN.md
+last_updated: "2026-10-20T13:06:02.386Z"
 last_activity: 2026-10-20
 progress:
   total_phases: 54
   completed_phases: 48
   total_plans: 484
-  completed_plans: 476
+  completed_plans: 477
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 189 (Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Entfernung & Lösch-Sperre) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
@@ -1407,6 +1407,7 @@ Last activity: 2026-10-20
 - [Phase 189-01]: coop_groups additiv nur im Cursor-Endpunkt (GetGroupReleasesCursor); getCoopGroups in eigener Datei wegen 450-Zeilen-Limit von group_repository.go
 - [Phase 189]: Coop-Partner-Kopfbereich zeigt nur Namen-Links zur Partner-Projektseite (D-05), AvatarStack und die dafuer gebaute Viewport-Logik vollstaendig entfernt — D-05/D-06 final: keine Logos, fixes 1/2/3+ Format statt Breakpoint-abhaengiger Avatar-Anzahl
 - [Phase 189]: 189-03: OtherGroup/Episode-Prop-Formen lokal in jeder neuen Komponente redeklariert statt aus page.tsx exportiert — haelt jede extrahierte Komponente eigenstaendig, vermeidet Import aus einem Next.js-Seitenmodul
+- [Phase 189]: 189-04: Testfixture appAuthCapabilityCacheLoader fehlte ActionAnimeFansubProjectNotesWrite fuer RoleProjectLead -- nachgezogen, damit die neuen D-08-Tests das echte role_capabilities-Verhalten pruefen statt eines Fixture-Artefakts
 
 ### Pending Todos
 
@@ -2117,11 +2118,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 189 P01 | 27min | 2 tasks | 4 files |
 | Phase 189 P02 | 40min | 3 tasks | 12 files |
 | Phase 189 P03 | 55m | 2 tasks | 5 files |
+| Phase 189 P04 | 35min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-20T12:50:27.764Z
-Stopped at: Completed 189-03-PLAN.md
+Last session: 2026-10-20T13:06:02.361Z
+Stopped at: Completed 189-04-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
