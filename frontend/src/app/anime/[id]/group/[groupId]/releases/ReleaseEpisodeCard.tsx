@@ -1,8 +1,9 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { Play } from 'lucide-react'
+
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 
 import styles from './page.module.css'
 
@@ -38,7 +39,7 @@ export function ReleaseEpisodeCard({ episode, animeID, groupID }: ReleaseEpisode
         <article>
           {episode.thumbnail_url ? (
             <div className={styles.thumbnail}>
-              <Image
+              <ResponsiveImage
                 src={episode.thumbnail_url}
                 alt={episode.title ?? `Episode ${episode.episode_number}`}
                 width={320}
@@ -73,7 +74,7 @@ export function ReleaseEpisodeCard({ episode, animeID, groupID }: ReleaseEpisode
     <article className={styles.releaseCard} aria-label={`Episode ${episode.episode_number}`}>
       {episode.thumbnail_url ? (
         <div className={styles.thumbnail}>
-          <Image
+          <ResponsiveImage
             src={episode.thumbnail_url}
             alt={episode.title ?? `Episode ${episode.episode_number}`}
             width={320}
