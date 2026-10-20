@@ -35,29 +35,14 @@ export function buildFansubReleasePlaybackLoginHref(params: {
   return `/login?next=${encodeURIComponent(target)}`
 }
 
-export function buildPublicFansubProjectHref(params: {
-  project: PublicFansubProject
-  groupId: number
-  fansubSlug?: string | null
-}): string {
-  const fansubSlug = params.fansubSlug?.trim()
-  const animeSlug = params.project.anime_slug?.trim()
-
-  if (fansubSlug && animeSlug) {
-    return buildPublicFansubProjectPath(fansubSlug, animeSlug)
-  }
-
-  return `/anime/${params.project.id}/group/${params.groupId}`
-}
-
 /**
  * Phase 189 (UAT-Nachbesserung): kanonisches Link-Ziel für eine Fansub-Gruppe
  * bei einem bestimmten Anime, mit Rückfall auf den technischen Pfad nur wenn
- * einer der beiden Slugs fehlt -- selbe Rückfalllogik wie
- * buildPublicFansubProjectHref oben, hier aber mit den primitiven
- * Feldern (groupSlug/animeSlug/animeID/groupID), die an den tatsächlichen
- * Aufrufstellen (Coop-Partner-Links, "Mehr entdecken") bereits vorliegen,
- * statt eines vollen PublicFansubProject-Objekts.
+ * einer der beiden Slugs fehlt. Primitive Felder (groupSlug/animeSlug/
+ * animeID/groupID) statt eines vollen PublicFansubProject-Objekts, damit
+ * Aufrufstellen ohne ein solches Objekt (Coop-Partner-Links, "Mehr
+ * entdecken") sie direkt nutzen können; buildPublicFansubProjectHref
+ * unten delegiert hierher, um dieselbe Rückfalllogik nicht zu duplizieren.
  */
 export function buildFansubProjectPath(params: {
   groupSlug?: string | null
@@ -73,6 +58,19 @@ export function buildFansubProjectPath(params: {
   }
 
   return buildTechnicalFansubProjectPath(params.animeID, params.groupID)
+}
+
+export function buildPublicFansubProjectHref(params: {
+  project: PublicFansubProject
+  groupId: number
+  fansubSlug?: string | null
+}): string {
+  return buildFansubProjectPath({
+    groupSlug: params.fansubSlug,
+    animeSlug: params.project.anime_slug,
+    animeID: params.project.id,
+    groupID: params.groupId,
+  })
 }
 
 export function buildPublicFansubProjectMemberPath(
