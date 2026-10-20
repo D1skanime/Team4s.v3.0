@@ -195,6 +195,15 @@
   text-decoration: none;
 }
 
+.coopPartnerSummary {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--text-primary);
+}
+
 .singleCoopPartner:hover {
   color: var(--accent-primary);
   text-decoration: underline;

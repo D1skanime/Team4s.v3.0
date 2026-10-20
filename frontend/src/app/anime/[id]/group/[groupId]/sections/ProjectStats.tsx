@@ -1,72 +1,42 @@
 'use client'
 
 import Link from 'next/link'
-import { useId, useState, useSyncExternalStore } from 'react'
+import { useId, useState } from 'react'
 
-import { AvatarStack, Button, HeroMetrics } from '@/components/ui'
-import { resolveApiUrl } from '@/lib/api'
+import { Button, HeroMetrics } from '@/components/ui'
+import { buildTechnicalFansubProjectPath } from '@/lib/fansubProjectRoutes'
 import type { FansubGroupSummary } from '@/types/fansub'
 
 import styles from '../page.module.css'
 
-const MOBILE_QUERY = '(max-width: 600px)'
-const TABLET_QUERY = '(max-width: 900px)'
-const MOBILE_VISIBLE = 3
-const TABLET_VISIBLE = 4
-const DESKTOP_VISIBLE = 6
 const DETAIL_INITIAL_LIMIT = 7
-
-export function coopPartnerLimitForMatches(mobile: boolean, tablet: boolean) {
-  if (mobile) return MOBILE_VISIBLE
-  if (tablet) return TABLET_VISIBLE
-  return DESKTOP_VISIBLE
-}
-
-function currentVisibleLimit() {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return DESKTOP_VISIBLE
-  return coopPartnerLimitForMatches(
-    window.matchMedia(MOBILE_QUERY).matches,
-    window.matchMedia(TABLET_QUERY).matches,
-  )
-}
-
-function subscribeToViewport(onStoreChange: () => void) {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => undefined
-  const mobile = window.matchMedia(MOBILE_QUERY)
-  const tablet = window.matchMedia(TABLET_QUERY)
-  mobile.addEventListener('change', onStoreChange)
-  tablet.addEventListener('change', onStoreChange)
-  return () => {
-    mobile.removeEventListener('change', onStoreChange)
-    tablet.removeEventListener('change', onStoreChange)
-  }
-}
 
 interface ProjectStatsProps {
   contributorCount: number
   releaseCount: number
   coopGroups: FansubGroupSummary[]
+  animeID: number
 }
 
-export function ProjectStats({ contributorCount, releaseCount, coopGroups }: ProjectStatsProps) {
-  const visibleLimit = useSyncExternalStore(subscribeToViewport, currentVisibleLimit, () => DESKTOP_VISIBLE)
+export function ProjectStats({ contributorCount, releaseCount, coopGroups, animeID }: ProjectStatsProps) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const detailsId = useId()
   const singleCoopGroup = coopGroups.length === 1 ? coopGroups[0] : null
-  const hasOverflow = coopGroups.length > visibleLimit
+  const hasOverflowList = coopGroups.length > 2
   const visibleDetails = showAll ? coopGroups : coopGroups.slice(0, DETAIL_INITIAL_LIMIT)
   const remainingDetails = Math.max(0, coopGroups.length - visibleDetails.length)
-  const avatarItems = coopGroups.map((group) => ({
-    id: group.id,
-    label: group.name,
-    imageUrl: group.logo_url ? resolveApiUrl(group.logo_url) : null,
-  }))
 
   const toggleDetails = () => {
     if (detailsOpen) setShowAll(false)
     setDetailsOpen((current) => !current)
   }
+
+  const partnerLink = (group: FansubGroupSummary, className: string) => (
+    <Link href={buildTechnicalFansubProjectPath(animeID, group.id)} prefetch={false} className={className}>
+      {group.name}
+    </Link>
+  )
 
   return (
     <div className={styles.projectStats}>
@@ -78,37 +48,37 @@ export function ProjectStats({ contributorCount, releaseCount, coopGroups }: Pro
           ...(coopGroups.length > 0 ? [{
             label: 'Coop-Partner',
             value: singleCoopGroup ? (
-              <Link
-                href={`/fansubs/${singleCoopGroup.slug}`}
-                prefetch={false}
-                className={styles.singleCoopPartner}
-              >
-                {singleCoopGroup.name}
-              </Link>
+              partnerLink(singleCoopGroup, styles.singleCoopPartner)
             ) : (
-              <AvatarStack
-                items={avatarItems}
-                maxVisible={visibleLimit}
-                ariaLabel={`${coopGroups.length} Coop-Partner`}
-                onOverflowClick={hasOverflow ? toggleDetails : undefined}
-                overflowExpanded={detailsOpen}
-                overflowControls={detailsId}
-                overflowAriaLabel={detailsOpen ? 'Coop-Partner ausblenden' : `${coopGroups.length - visibleLimit} weitere Coop-Partner anzeigen`}
-              />
+              <span className={styles.coopPartnerSummary}>
+                {partnerLink(coopGroups[0], styles.singleCoopPartner)}
+                {' · '}
+                {partnerLink(coopGroups[1], styles.singleCoopPartner)}
+                {hasOverflowList ? (
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    onClick={toggleDetails}
+                    aria-expanded={detailsOpen}
+                    aria-controls={detailsId}
+                  >
+                    {`+${coopGroups.length - 2}`}
+                  </Button>
+                ) : null}
+              </span>
             ),
           }] : []),
         ]}
       />
 
-      {detailsOpen && hasOverflow ? (
+      {detailsOpen && hasOverflowList ? (
         <div id={detailsId} className={styles.coopPartnerDetails}>
           <p className={styles.coopPartnerCount}>{coopGroups.length} Coop-Partner</p>
           <ul className={styles.coopPartnerList}>
             {visibleDetails.map((group) => (
               <li key={group.id}>
-                <Link href={`/fansubs/${group.slug}`} className={styles.coopPartnerChip}>
-                  {group.name}
-                </Link>
+                {partnerLink(group, styles.coopPartnerChip)}
               </li>
             ))}
           </ul>

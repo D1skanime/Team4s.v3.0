@@ -153,6 +153,7 @@ export function HeroSection({
                     contributorCount={group.stats.project_contributor_count}
                     releaseCount={releaseVersionCount}
                     coopGroups={coopGroups}
+                    animeID={animeID}
                   />
                 </div>
               </div>
