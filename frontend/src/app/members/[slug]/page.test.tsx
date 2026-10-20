@@ -294,18 +294,6 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
           { code: 'future_role', label_de: 'stale future label' },
           { code: 'typesetter', label_de: 'stale typesetting label' },
         ],
-        release_versions: [
-          {
-            release_version_id: 501,
-            release_version_label: 'Episode 01 - v2',
-            version: 'v2',
-            title: null,
-            episode_number: '01',
-            episode_title: 'Start',
-            roles: [{ code: 'timer', label_de: 'Timing' }],
-            is_release_specific: false,
-          },
-        ],
         is_project_level: false,
         contribution_status: 'confirmed',
         started_year: 2014,

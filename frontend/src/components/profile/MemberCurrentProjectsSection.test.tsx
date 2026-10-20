@@ -92,7 +92,6 @@ function makeProject(index = 1, overrides: Partial<PublicMemberCurrentProject> =
     fansub_group_id: 100 + index,
     fansub_group_name: `Gruppe ${index}`,
     roles: [{ code: 'typesetter', label_de: 'Typesetting / FX' }],
-    release_versions: [],
     is_project_level: true,
     contribution_status: 'confirmed',
     ...overrides,
@@ -130,7 +129,6 @@ describe('MemberCurrentProjectsSection', () => {
     expect(screen.getByText('Karaoke-FX').getAttribute('data-color-key')).toBe('#7e22ce')
     expect(screen.getByText('Future Role').getAttribute('data-role-code')).toBe('future_role')
     expect(screen.getByText('Future Role').getAttribute('data-color-key')).toBe('neutral')
-    expect(screen.getByText('Projektweit').className).toContain('badgeNeutral')
     expect(projectStyles).not.toMatch(/--role-accent-/)
     expect(projectStyles).toMatch(/\.roleChip\s*\{[^}]*--project-role-accent:\s*var\(--role-accent\);/s)
     expect(container.querySelector('[class*="projectArrow"]')).toBeNull()
@@ -148,38 +146,25 @@ describe('MemberCurrentProjectsSection', () => {
     expect(container.querySelector('[class*="projectArrow"]')).toBeNull()
   })
 
-  it('separates release-specific exceptions from project-wide roles', () => {
-    render(
+  it('no longer renders a release listing or a Projektweit badge, while keeping title, group and role chips visible', () => {
+    const { container } = render(
       <MemberCurrentProjectsSection
         memberSlug="qc"
         projects={[
           makeProject(1, {
             roles: [{ code: 'translator', label_de: '\u00dcbersetzung' }],
-            release_versions: [
-              {
-                release_version_id: 41,
-                release_version_label: 'v1',
-                version: 'v1',
-                episode_number: '5',
-                episode_title: 'Zeit f\u00fcr Entschlossenheit',
-                roles: [
-                  { code: 'typesetter', label_de: 'Typesetting' },
-                  { code: 'timer', label_de: 'Timing' },
-                ],
-                is_release_specific: true,
-              },
-            ],
+            is_project_level: true,
           }),
         ]}
         totalCount={1}
       />,
     )
 
-    expect(screen.getByText('Projektweit')).not.toBeNull()
-    expect(screen.getByText('Folge 5: Zeit f\u00fcr Entschlossenheit')).not.toBeNull()
+    expect(screen.queryByText('Projektweit')).toBeNull()
+    expect(container.querySelector('[class*="releaseException"]')).toBeNull()
+    expect(screen.getByText('Projekt 1')).not.toBeNull()
+    expect(screen.getByText('Gruppe 1')).not.toBeNull()
     expect(screen.getByText('\u00dcbersetzung')).not.toBeNull()
-    expect(screen.getByText('Timing')).not.toBeNull()
-    expect(screen.getByText('Typesetting')).not.toBeNull()
   })
 
   it('loads exactly the next six once while preserving the initial six and guarding in-flight clicks', async () => {

@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Layers } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { Badge, Button, Card, EmptyState, ErrorState, SectionHeader } from '@/components/ui'
@@ -31,11 +30,6 @@ function projectHref(project: PublicMemberCurrentProject): string {
 // für den Dedup-Updater unten wiederverwendet, damit beide Stellen nie auseinanderlaufen.
 function projectKey(project: PublicMemberCurrentProject): string {
   return `${project.anime_id}:${project.fansub_group_id}`
-}
-
-function releaseExceptionLabel(episodeNumber: string, episodeTitle?: string | null): string {
-  const episode = episodeNumber.trim() ? 'Folge ' + episodeNumber : 'Release-Ausnahme'
-  return episodeTitle?.trim() ? episode + ': ' + episodeTitle : episode
 }
 
 // PMFE-06/D-04: reiner Dedup-Append (Dedup ausschließlich aus `prev`, keine Ref-Mutation) —
@@ -182,46 +176,8 @@ export function MemberCurrentProjectsSection({ memberSlug, projects, totalCount 
                             {labelForRole(contributionRoles, role.code)}
                           </Badge>
                         ))}
-                      {project.is_project_level ? (
-                        <Badge variant="neutral">
-                          <Layers size={13} aria-hidden="true" />
-                          Projektweit
-                        </Badge>
-                      ) : null}
                     </span>
                   ) : null}
-                  {project.release_versions
-                    .filter((release) => release.is_release_specific)
-                    .map((release) => (
-                      <span key={release.release_version_id} className={styles.releaseException}>
-                        <span className={styles.releaseExceptionLabel}>
-                          {releaseExceptionLabel(release.episode_number, release.episode_title)}
-                        </span>
-                        <span className={styles.chipRow}>
-                          {release.roles
-                            .slice()
-                            .sort((left, right) => {
-                              const leftIndex = contributionRoles.findIndex((role) => role.code === left.code)
-                              const rightIndex = contributionRoles.findIndex((role) => role.code === right.code)
-                              return (
-                                (leftIndex < 0 ? Number.MAX_SAFE_INTEGER : leftIndex) -
-                                (rightIndex < 0 ? Number.MAX_SAFE_INTEGER : rightIndex)
-                              )
-                            })
-                            .map((role) => (
-                              <Badge
-                                key={role.code}
-                                variant="neutral"
-                                className={styles.roleChip}
-                                data-role-code={role.code}
-                                data-color-key={presentationForRole(contributionRoles, role.code).colorKey}
-                              >
-                                {labelForRole(contributionRoles, role.code)}
-                              </Badge>
-                            ))}
-                        </span>
-                      </span>
-                    ))}
                 </span>
               </Card>
             </Link>

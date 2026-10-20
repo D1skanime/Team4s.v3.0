@@ -184,17 +184,6 @@ export interface PublicMemberRole {
   started_year?: number | null
   ended_year?: number | null
 }
-export interface PublicMemberProjectReleaseVersion {
-  release_version_id: number
-  release_version_label: string
-  version: string
-  title?: string | null
-  episode_number: string
-  episode_title?: string | null
-  roles: PublicMemberRole[]
-  is_release_specific: boolean
-}
-
 export interface PublicMemberCurrentProject {
   anime_id: number
   anime_title: string
@@ -202,7 +191,6 @@ export interface PublicMemberCurrentProject {
   fansub_group_id: number
   fansub_group_name: string
   roles: PublicMemberRole[]
-  release_versions: PublicMemberProjectReleaseVersion[]
   is_project_level: boolean
   contribution_status: 'confirmed'
   started_year?: number | null

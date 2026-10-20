@@ -107,20 +107,6 @@
   gap: 5px;
 }
 
-.releaseException {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-subtle);
-}
-
-.releaseExceptionLabel {
-  color: var(--text-secondary, #64748b);
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
 .roleChip {
   --project-role-accent: var(--role-accent);
   border-color: color-mix(in srgb, var(--project-role-accent) 32%, transparent);
