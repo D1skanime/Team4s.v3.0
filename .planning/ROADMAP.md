@@ -2924,7 +2924,26 @@ additive Phase ohne REQUIREMENTS.md-Mapping, Decision-Coverage via D-IDs im
 `requirements`-Frontmatter-Feld jedes Plans. D-01/D-02/D-03 sind Scope-/Prozessentscheidungen der
 ersten Runde, teils durch die zweite Runde überholt — siehe 189-CONTEXT.md.)
 **Depends on:** Phase 188
-**Plans:** 0 plans
+**Plans**: 8 plans across 3 waves
+
+  - Wave 1: 189-01 (Backend coop_groups data, D-04), 189-02 (Frontend Coop-Partner UI + Mehr entdecken, D-05/D-06), 189-03 (Frontend next/image crash fix, D-07), 189-04 (Backend Projektnotizen-Rechteprüfung, D-08/D-09/D-10), 189-08 (Backend Fansub-Gruppen-Lösch-Sperre, D-12)
+  - Wave 2: 189-05 (Backend Merge-Entfernung + Contract, D-11, depends on 189-01), 189-06 (Frontend fansub.ts-Split + Projektnotizen-Capability-Wiring, D-08, depends on 189-04)
+  - Wave 3: 189-07 (Frontend Merge-Entfernung, D-11, depends on 189-05 + 189-06)
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 189 to break down)
+**Wave 1**
+
+- [ ] 189-01-PLAN.md — Backend: coop_groups-Feld im Cursor-Endpunkt (nur Gruppen mit gemeinsamem Release) (D-04).
+- [ ] 189-02-PLAN.md — Frontend: Coop-Partner-Kennzahl (Namen-Links, 1/2/3+-Format) + „Mehr entdecken" für übrige Gruppen (D-05, D-06).
+- [ ] 189-03-PLAN.md — Frontend: releases/page.tsx-Split + next/image-Absturz auf ResponsiveImage umstellen (D-07).
+- [ ] 189-04-PLAN.md — Backend: Projektnotizen-Schreibrecht auf CanForAnimeProject umstellen, can_edit_project_notes-Capability (D-08, D-09, D-10).
+- [ ] 189-08-PLAN.md — Backend: Fansub-Gruppen-Lösch-Sperre (fansub_repository_groups.go-Split + 18-Kategorien-Abhängigkeitsprüfung + 409) (D-12).
+
+**Wave 2** *(blockiert auf Wave-1-Abschluss)*
+
+- [ ] 189-05-PLAN.md — Backend: Fansub-Gruppen-Merge vollständig entfernen (Handler/Repository/Route/Contract) (D-11).
+- [ ] 189-06-PLAN.md — Frontend: fansub.ts-Pflicht-Split + can_edit_project_notes-Wiring (FansubEditClient/AnimeProjectNoteWorkspace) (D-08).
+
+**Wave 3** *(blockiert auf Wave-2-Abschluss)*
+
+- [ ] 189-07-PLAN.md — Frontend: Merge-Wizard-Verzeichnis, API-Client-Funktionen, Merge-Typen und Admin-UI-Einstiegspunkte entfernen (D-11).
