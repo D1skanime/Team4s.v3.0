@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 189-01-PLAN.md
-last_updated: "2026-10-20T12:16:57.463Z"
+stopped_at: Completed 189-02-PLAN.md
+last_updated: "2026-10-20T12:37:02.244Z"
 last_activity: 2026-10-20
 progress:
   total_phases: 54
   completed_phases: 48
   total_plans: 484
-  completed_plans: 474
+  completed_plans: 475
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 189 (Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Entfernung & Lösch-Sperre) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
@@ -1405,6 +1405,7 @@ Last activity: 2026-10-20
 - [Phase 188-04]: ftp:/malformed wirft in Node keinen URL-Parse-Fehler; zweiter Fehlerfall-Testwert auf relative/path/only geaendert — per Node-Check vor Testschreiben verifiziert, damit Fehlerfall-Test tatsaechlich D-09-Verhalten prueft
 - [Phase 188-05]: Task 7 Live-Checkpoint vom Nutzer als Leader ueber@team4s.de (Strawhat Subs, 11eyes: Pink Phantasmagoria) 'verifiziert' bestaetigt -- Projektzeitraum-Datumsfelder editierbar, gespeichert, Reload-Persistenz bestaetigt. Plan 188-05 und Phase 188 (5/5) damit vollstaendig abgeschlossen.
 - [Phase 189-01]: coop_groups additiv nur im Cursor-Endpunkt (GetGroupReleasesCursor); getCoopGroups in eigener Datei wegen 450-Zeilen-Limit von group_repository.go
+- [Phase 189]: Coop-Partner-Kopfbereich zeigt nur Namen-Links zur Partner-Projektseite (D-05), AvatarStack und die dafuer gebaute Viewport-Logik vollstaendig entfernt — D-05/D-06 final: keine Logos, fixes 1/2/3+ Format statt Breakpoint-abhaengiger Avatar-Anzahl
 
 ### Pending Todos
 
@@ -2113,11 +2114,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 188 P04 | 12min | 1 tasks | 3 files |
 | Phase 188 P05 | ~5min | 1 tasks | 2 files |
 | Phase 189 P01 | 27min | 2 tasks | 4 files |
+| Phase 189 P02 | 40min | 3 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-10-20T12:16:57.437Z
-Stopped at: Completed 189-01-PLAN.md
+Last session: 2026-10-20T12:36:52.718Z
+Stopped at: Completed 189-02-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
