@@ -206,13 +206,6 @@ var (
 	_ permissions.GroupRightsOverridesResolver  = (*AuthzRepository)(nil)
 )
 
-// ListActorContributionRolesForVersion gibt die role_codes zurück, die dem Actor
-// für eine Release-Version zustehen.
-// Auflösungsreihenfolge (D-02):
-//  1. versions-spezifische anime_contributions (release_version_id = versionID)
-//  2. Fallback: anime-weite Contributions (release_version_id IS NULL, anime_id aus Episode ermittelt)
-//
-// Gibt leere Liste zurück wenn keine Contribution existiert (→ D-04: kein Recht).
 // LoadRoleCapabilities lädt die vollständige Rolle→Action-Matrix aus role_capabilities.
 // Implementiert das permissions.CacheLoader-Interface für den Startup-Load (D-04, D-06).
 // Compile-Zeit-Assertion: var _ permissions.CacheLoader = (*AuthzRepository)(nil)

@@ -110,6 +110,13 @@ func (r *AuthzRepository) LoadCapabilityRoles(ctx context.Context) ([]string, er
 // Compile-Zeit-Assertion: AuthzRepository implementiert CatalogLoader (D-12).
 var _ permissions.CatalogLoader = (*AuthzRepository)(nil)
 
+// ListActorContributionRolesForVersion gibt die role_codes zurück, die dem Actor
+// für eine Release-Version zustehen.
+// Auflösungsreihenfolge (D-02):
+//  1. versions-spezifische anime_contributions (release_version_id = versionID)
+//  2. Fallback: anime-weite Contributions (release_version_id IS NULL, anime_id aus Episode ermittelt)
+//
+// Gibt leere Liste zurück wenn keine Contribution existiert (→ D-04: kein Recht).
 func (r *AuthzRepository) ListActorContributionRolesForVersion(ctx context.Context, appUserID int64, releaseVersionID int64) ([]string, error) {
 	if appUserID <= 0 || releaseVersionID <= 0 {
 		return nil, nil
