@@ -124,7 +124,9 @@ endpoints:
         description: >-
           Gruppe hat echte Dependents (D-12): Code
           "fansub_group_has_dependents", Nachricht "Diese Gruppe kann nicht
-          entfernt werden: {GermanReasonFragment} hängen noch daran."
+          entfernt werden: {GermanReasonFragment} hängt/hängen noch daran."
+          Das Verb stimmt mit der Gesamtanzahl aller Dependents ueberein:
+          "hängt" bei genau 1 Element, sonst "hängen" (siehe GermanHaengenVerb).
 
   - name: fansub-members-list
     method: GET
