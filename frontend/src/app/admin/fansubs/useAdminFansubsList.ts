@@ -52,6 +52,14 @@ export function formatDeleteFansubError(error: unknown, groupName: string): stri
   return formatError(error);
 }
 
+/**
+ * Code-Review WR-03 (Phase 189, Review-2): das Bulk-Löschen zeigte immer das
+ * Plural-Nomen "Fansub-Gruppen", auch bei genau einer ausgewählten Gruppe.
+ */
+export function fansubGroupNoun(count: number): string {
+  return count === 1 ? "Fansub-Gruppe" : "Fansub-Gruppen";
+}
+
 export function statusLabel(status: FansubStatus): string {
   if (status === "dissolved") return "archived";
   return status;
@@ -261,7 +269,7 @@ export function useAdminFansubsList() {
     if (selected.length === 0) return;
 
     const ok = await confirm({
-      title: `${selected.length} Fansub-Gruppen wirklich löschen?`,
+      title: `${selected.length} ${fansubGroupNoun(selected.length)} wirklich löschen?`,
       description:
         "Die Gruppen werden endgültig gelöscht. Das geht nur für Gruppen, an denen nichts mehr hängt (Releases, Mitglieder, Medien, Notizen …).",
       confirmLabel: "Löschen",
@@ -273,24 +281,41 @@ export function useAdminFansubsList() {
     setErrorMessage(null);
     setSuccessMessage(null);
     const deletedIDs = new Set<number>();
-    try {
-      for (const item of selected) {
+    const failures: { item: FansubGroup; error: unknown }[] = [];
+    // Jedes Element einzeln versuchen statt beim ersten Fehler abzubrechen,
+    // damit eine durch die Loesch-Sperre blockierte Gruppe nicht die
+    // restliche Auswahl unversucht laesst (Code-Review WR-05).
+    for (const item of selected) {
+      try {
         await deleteFansubGroup(item.id);
         deletedIDs.add(item.id);
+      } catch (error) {
+        failures.push({ item, error });
       }
-      setSuccessMessage(`${selected.length} Fansub-Gruppen gelöscht.`);
-    } catch (error) {
-      const failedItem = selected.find((item) => !deletedIDs.has(item.id));
-      setErrorMessage(
-        failedItem ? formatDeleteFansubError(error, failedItem.name) : formatError(error),
-      );
-    } finally {
-      if (deletedIDs.size > 0) {
-        setItems((prev) => prev.filter((existing) => !deletedIDs.has(existing.id)));
-      }
-      await loadList();
-      setIsMutating(false);
     }
+
+    if (deletedIDs.size > 0) {
+      setItems((prev) => prev.filter((existing) => !deletedIDs.has(existing.id)));
+    }
+
+    if (failures.length === 0) {
+      setSuccessMessage(`${selected.length} ${fansubGroupNoun(selected.length)} gelöscht.`);
+    } else {
+      if (deletedIDs.size > 0) {
+        setSuccessMessage(
+          `${deletedIDs.size} von ${selected.length} ${fansubGroupNoun(selected.length)} gelöscht.`,
+        );
+      }
+      const failureDetails = failures
+        .map((failure) => formatDeleteFansubError(failure.error, failure.item.name))
+        .join(" ");
+      setErrorMessage(
+        `${failures.length} ${fansubGroupNoun(failures.length)} nicht gelöscht: ${failureDetails}`,
+      );
+    }
+
+    await loadList();
+    setIsMutating(false);
   }
 
   async function onBulkStatusChange() {
