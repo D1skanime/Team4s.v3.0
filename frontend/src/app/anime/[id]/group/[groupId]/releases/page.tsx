@@ -1,13 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { notFound, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { GroupEdgeNavigation } from '@/components/groups/GroupEdgeNavigation'
 import { Pagination } from '@/components/anime/Pagination'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { buildGroupNavigationGroups } from '@/lib/groupNavigation'
 import { getGroupReleases, getAnimeByID, getAnimeFansubs, ApiError } from '@/lib/api'
 
@@ -326,7 +326,7 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
             <section className={styles.header}>
               <div className={styles.headerContent}>
                 {group.fansub.logo_url ? (
-                  <Image
+                  <ResponsiveImage
                     src={group.fansub.logo_url}
                     alt={group.fansub.name}
                     width={60}

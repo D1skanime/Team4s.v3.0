@@ -1,7 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
+
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 
 import styles from './page.module.css'
 
@@ -34,7 +35,7 @@ export function OtherGroupsChips({ animeID, otherGroups }: OtherGroupsChipsProps
             className={styles.otherGroupChip}
           >
             {otherGroup.logo_url ? (
-              <Image
+              <ResponsiveImage
                 src={otherGroup.logo_url}
                 alt={otherGroup.name}
                 width={22}
