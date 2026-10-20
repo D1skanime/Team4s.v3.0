@@ -20,8 +20,6 @@ const apiMocks = vi.hoisted(() => ({
   getFansubAliases: vi.fn(),
   getFansubByID: vi.fn(),
   getFansubList: vi.fn(),
-  mergeFansubs: vi.fn(),
-  mergeFansubsPreview: vi.fn(),
   removeCollaborationMember: vi.fn(),
   updateFansubGroup: vi.fn(),
   updateFansubLink: vi.fn(),
@@ -70,7 +68,6 @@ vi.mock("@/components/admin/MediaUpload", () => ({
 }));
 
 import AdminFansubCreatePage from "./create/page";
-import MergeFansubsPage from "./merge/page";
 
 afterEach(() => {
   cleanup();
@@ -87,16 +84,6 @@ function mockNonPlatformUser() {
   });
 }
 
-function mockPlatformAdmin() {
-  useAuthSessionMock.mockReturnValue({
-    hasAccessToken: true,
-    isClientInitialized: true,
-  });
-  getCurrentUserMock.mockResolvedValue({
-    data: { id: 1, display_name: "Admin", is_platform_admin: true },
-  });
-}
-
 describe("fansub admin direct access gates", () => {
   it("blocks non-platform direct visits to /admin/fansubs/create", async () => {
     mockNonPlatformUser();
@@ -108,47 +95,5 @@ describe("fansub admin direct access gates", () => {
     ).not.toBeNull();
     expect(screen.queryByRole("heading", { name: "Fansub erstellen" })).toBeNull();
     expect(apiMocks.getFansubList).not.toHaveBeenCalled();
-  });
-
-  it("blocks non-platform direct visits to /admin/fansubs/merge", async () => {
-    mockNonPlatformUser();
-
-    render(<MergeFansubsPage />);
-
-    expect(
-      await screen.findByText("Diese Ansicht ist dem Team4s-Admin vorbehalten."),
-    ).not.toBeNull();
-    expect(
-      screen.queryByRole("heading", { name: "Fansub Merge Wizard" }),
-    ).toBeNull();
-    expect(apiMocks.getFansubList).not.toHaveBeenCalled();
-  });
-});
-
-describe("MergeFansubsPage — Abrufgrenze-Hinweis (WR-05)", () => {
-  it("zeigt den Abrufgrenze-Hinweis, wenn mehr Gruppen vorhanden sind als in einer Seite geladen wurden", async () => {
-    mockPlatformAdmin();
-    apiMocks.getFansubList.mockResolvedValue({
-      data: [
-        {
-          id: 1,
-          slug: "sakura-subs",
-          name: "Sakura Subs",
-          status: "active",
-          anime_relations_count: 0,
-          projects_count: 0,
-          release_versions_count: 0,
-          members_count: 0,
-          aliases_count: 0,
-          created_at: "2026-01-01T00:00:00Z",
-          updated_at: "2026-01-01T00:00:00Z",
-        },
-      ],
-      meta: { page: 1, per_page: 500, total: 501, total_pages: 2 },
-    });
-
-    render(<MergeFansubsPage />);
-
-    expect(await screen.findByText("Abrufgrenze erreicht")).not.toBeNull();
   });
 });

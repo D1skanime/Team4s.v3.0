@@ -106,12 +106,6 @@ function AdminFansubsContent() {
           >
             + Neue Fansubgruppe
           </Link>
-          <Link
-            href="/admin/fansubs/merge"
-            className={`${styles.buttonSecondary} ${styles.fansubTopActionButton}`}
-          >
-            Gruppen zusammenfuehren
-          </Link>
         </div>
 
         <div className={styles.fansubFilterBar}>
@@ -195,12 +189,6 @@ function AdminFansubsContent() {
               >
                 Status aendern
               </button>
-              <Link
-                href="/admin/fansubs/merge"
-                className={styles.buttonSecondary}
-              >
-                Zusammenfuehren
-              </Link>
               <button
                 type="button"
                 className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
