@@ -50,7 +50,11 @@ export function ProjectPage({ data }: ProjectPageProps) {
       releaseFallbackImageUrl={data.posterImage}
         />
       ) : null}
-      <BacklinksSection fansubSlug={data.group.fansub.slug} animeID={data.animeID} />
+      <BacklinksSection
+        fansubSlug={data.group.fansub.slug}
+        animeID={data.animeID}
+        discoverableGroups={data.discoverableGroups}
+      />
     </main>
   );
 }

@@ -52,6 +52,7 @@ export interface PublicFansubProjectPageData extends PublicFansubProjectIDs {
   hasReleases: boolean;
   navigationGroups: FansubGroupSummary[];
   cooperationGroups: FansubGroupSummary[];
+  discoverableGroups: FansubGroupSummary[];
   fansubProjectNavigation: FansubProjectNavigation;
   breadcrumbItems: { label: string; href?: string }[];
   heroBackdropUrl: string | null;
@@ -105,6 +106,20 @@ export function parsePublicFansubProjectRouteParams(
 }
 
 export { buildPublicFansubProjectPath };
+
+/**
+ * D-06: die in "Mehr entdecken" anzuzeigenden uebrigen Gruppen -- otherGroups ohne die
+ * eigene Gruppe und ohne jede echte Coop-Partner-Gruppe (die Mengen sind nicht von Natur
+ * aus disjunkt, siehe RESEARCH.md).
+ */
+export function discoverableOtherGroups(
+  otherGroups: FansubGroupSummary[],
+  coopGroups: FansubGroupSummary[],
+  selfGroupId: number,
+): FansubGroupSummary[] {
+  const excludedIds = new Set<number>([selfGroupId, ...coopGroups.map((group) => group.id)]);
+  return otherGroups.filter((group) => !excludedIds.has(group.id));
+}
 
 const RELEASE_PREVIEW_LIMIT = 1;
 
@@ -236,7 +251,7 @@ export async function loadPublicFansubProjectPageData({
       }
       return { canonicalProjectPath, fansubProjectNavigation };
     })(),
-    (async (): Promise<{ previews: PublicReleasePreview[]; cooperationGroups: FansubGroupSummary[] }> => {
+    (async (): Promise<{ previews: PublicReleasePreview[]; cooperationGroups: FansubGroupSummary[]; otherGroups: FansubGroupSummary[] }> => {
       // Selber canonicalProjectPath (selbes Profil-Promise), aber getrennt vom Release-Liste-try/catch.
       // Ist er bereits vorab aufgeloest (precomputed), wird kein zweiter Aufloese-Versuch gestartet.
       const canonicalProjectPath = precomputed
@@ -258,11 +273,12 @@ export async function loadPublicFansubProjectPageData({
           previews: activityPage.items.map((release, index) =>
             buildPublicReleasePreview({ animeID, groupID, release, detail: index === 0 ? latestDetail : null, canonicalProjectPath }),
           ),
-          cooperationGroups: activityPage.other_groups ?? [],
+          cooperationGroups: activityPage.coop_groups ?? [],
+          otherGroups: activityPage.other_groups ?? [],
         };
       } catch {
         /* Public release block degrades independently from the project shell. */
-        return { previews: [], cooperationGroups: [] };
+        return { previews: [], cooperationGroups: [], otherGroups: [] };
       }
     })(),
     withFallback<GroupContributorsResponse>(() => getGroupContributors(animeID, groupID), { team_members: [], external_contributors: [] }),
@@ -270,7 +286,8 @@ export async function loadPublicFansubProjectPageData({
   ]);
 
   const { canonicalProjectPath, fansubProjectNavigation } = profileDerived;
-  const { previews: publicReleasePreviews, cooperationGroups } = publicReleasePreviewData;
+  const { previews: publicReleasePreviews, cooperationGroups, otherGroups } = publicReleasePreviewData;
+  const discoverableGroups = discoverableOtherGroups(otherGroups, cooperationGroups, groupID);
 
   const hasTeamContent =
     contributorsData.team_members.length > 0 ||
@@ -350,6 +367,7 @@ export async function loadPublicFansubProjectPageData({
       hasReleases,
       navigationGroups,
       cooperationGroups,
+      discoverableGroups,
       fansubProjectNavigation,
       breadcrumbItems,
       heroBackdropUrl,
