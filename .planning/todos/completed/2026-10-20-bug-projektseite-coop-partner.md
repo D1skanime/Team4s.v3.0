@@ -2,7 +2,7 @@
 created: 2026-10-20T00:00:00+00:00
 title: "BUG: Projektseite zeigt falsche „Coop-Partner“, und andere Gruppen sind nicht klickbar"
 area: public-project-page
-status: decided
+status: erledigt (Phase 189)
 files:
   - backend/internal/repository/group_repository.go
   - backend/internal/repository/group_repository_cursor.go
@@ -37,3 +37,12 @@ Projektseite `/anime/2/group/26` (Strawhat Subs × 11eyes): Unter **„Coop-Part
 - Backend-Test gegen echte Postgres-Fixture: getrennte Releases → kein Coop-Partner; gemeinsames Release → Partner; die eigene Gruppe ist nie enthalten.
 - Frontend: Aufteilung Coop vs. weitere Gruppen und die Link-Ziele als reine Funktion testen, keine Render-/Klick-Simulation.
 - Contract (`shared/contracts`) und Frontend-Typen nachziehen. Dateien ≤450 Zeilen, deutsche Texte mit Umlauten.
+
+## Status-Update (2026-10-20, Phase 189, abgenommen)
+
+Umgesetzt in Plan 189-01 (Backend `coop_groups`) und 189-02 (Frontend Kopfbereich +
+„Mehr entdecken") sowie zwei Live-UAT-Nachbesserungsrunden: Überschrift „<Animetitel> wurde
+auch gesubbt von" statt generischem Text, kanonische öffentliche Projekt-URLs statt
+technischer Route, internes Navigationssymbol statt `ExternalLink`, kräftigere Überschrift.
+Vom Nutzer nach vollständiger Live-Prüfung auf `/fansubs/strawhat-subs/fansubprojekt/11eyes`
+abgenommen (`approved`). Details: `.planning/phases/189-bugfix-b-ndel-coop-partner-projektnotizen-recht-gruppen-merg/189-VERIFICATION.md`.

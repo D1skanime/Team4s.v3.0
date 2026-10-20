@@ -2,7 +2,7 @@
 created: 2026-10-20T00:00:00+00:00
 title: Projektnotizen prüfen die falsche Action — Projektrollen zählen nicht
 area: permissions-project-notes
-status: open
+status: erledigt (Phase 189)
 files:
   - backend/internal/permissions/permissions_anime_project.go
 ---
@@ -17,3 +17,13 @@ Der Schreib-Handler für Projektnotizen (Fansub-Bearbeiten → Projekt → Notiz
 - Frontend-Freischaltung über den projektbezogenen Capability-Abruf (`?anime_id=`), keine Rollenlogik im Frontend.
 - Vorher klären: Wer hat heute über `fansub_group.notes.write` Schreibrecht und würde es nach der Umstellung verlieren oder gewinnen? Vergleich beider Rollenlisten vorlegen, bevor etwas geändert wird.
 - Keine hartcodierten Rollennamen, keine doppelte Logik.
+
+## Status-Update (2026-10-20, Phase 189, abgenommen)
+
+Umgesetzt in Plan 189-04 (Backend: `requireAnimeProjectNoteWriteAccess` über
+`CanForAnimeProject`, neue separate `can_edit_project_notes`-Capability, `can_edit_notes`
+unverändert, keine `role_capabilities`-Migration) und 189-06 (Frontend-Wiring). Die vorab
+geforderte Vergleichstabelle (wer gewinnt/verliert) wurde in der Ist-Analyse
+(`189-CONTEXT.md`) mit echten Daten vorgelegt und vom Nutzer entschieden (Verlust-Fall
+akzeptiert, keine Katalog-Erweiterung). Details:
+`.planning/phases/189-bugfix-b-ndel-coop-partner-projektnotizen-recht-gruppen-merg/189-VERIFICATION.md`.

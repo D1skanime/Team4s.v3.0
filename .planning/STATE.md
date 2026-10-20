@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 189-07-PLAN.md
-last_updated: "2026-10-20T14:38:52.080Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 189 was final phase)
+last_updated: 2026-10-20T22:21:26.680Z
 last_activity: 2026-10-20
 progress:
   total_phases: 54
   completed_phases: 49
   total_plans: 484
-  completed_plans: 481
+  completed_plans: 535
   percent: 91
 ---
 
@@ -431,15 +431,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 189 — Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Entfernung & Lösch-Sperre
+**Current focus:** Milestone complete
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 189 (Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht, Gruppen-Merge-Entfernung & Lösch-Sperre) — EXECUTING
-Plan: 8 of 8
-Status: Phase complete — ready for verification
+Phase: 189
+Plan: Not started
+Status: Milestone complete
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -1413,6 +1413,18 @@ Last activity: 2026-10-20
 - [Phase 189]: normalizeAliasKey vor dem Loeschen von fansub_repository_merge_core.go nach fansub_repository_aliases.go verschoben (4 externe Call-Sites, RESEARCH.md hatte dies nicht geflaggt)
 - [Phase 189]: Dangling Merge-Datenmodelle (MergeGroupsResult/-Preview/MergePreviewConflicts) aus internal/models/fansub.go entfernt, obwohl nicht explizit in RESEARCH.md/Plan-Dateiliste genannt -- D-11 verbietet 'deaktiviert aber vorhanden'
 - [Phase 189]: 189-07: shared/contracts/fansubs.yaml hatte noch Merge-Endpunkte/-Typen dokumentiert, die 189-05s openapi.yaml-Entfernung nicht erfasste -- mitentfernt (D-11 Vollstaendigkeits-Luecke).
+- [Phase 189]: Abschluss. Alle 8 Pläne ausgeführt, zwei Code-Review-Durchgänge (189-REVIEW.md:
+  2 Critical/3 Warning, alle gefixt; 189-REVIEW-2.md: 0 Critical/5 Warning/1 Info, alle Warnings
+  gefixt), drei Live-UAT-Runden vom Nutzer (Coop-Partner/"Mehr entdecken"-Beschriftung+Linkziele
+  +Symbol, next/image-Fix, Lösch-Sperre-Grammatik+Meldungstext+Dialogtext+Listenaktualisierung) —
+  alle Nachbesserungen noch innerhalb der Phase behoben und erneut bestätigt. Finale Testläufe:
+  `scripts/test-backend.sh` GATE: GREEN (0); Frontend-Vollsuite 398/399 Dateien (1 skip),
+  3645/3648 Tests grün. Vom Nutzer final mit "approved" abgenommen (2026-10-20). 189-VERIFICATION.md
+  auf `status: passed`, 189-HUMAN-UAT.md auf `status: approved` gesetzt. Todos
+  2026-10-20-bug-projektseite-coop-partner.md, 2026-10-20-projektnotizen-falsche-action.md und
+  (aus Phase 187) 2026-10-19-fansub-gruppen-merge-ungeschuetzter-pfad.md nach
+  `.planning/todos/completed/` verschoben. Phase 189 vollständig abgeschlossen — letzte Phase der
+  aktuellen Roadmap, keine neue Phase geplant.
 
 ### Pending Todos
 

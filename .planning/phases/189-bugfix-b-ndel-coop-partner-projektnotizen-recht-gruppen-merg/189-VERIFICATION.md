@@ -1,8 +1,8 @@
 ---
 phase: 189-bugfix-b-ndel-coop-partner-projektnotizen-recht-gruppen-merg
-verified: 2026-10-20T15:45:00Z
-status: human_needed
-score: 26/26 must-haves verified
+verified: 2026-10-20T22:30:00Z
+status: passed
+score: 26/26 must-haves verified (automated) + 3/3 human-verification items approved
 overrides_applied: 0
 human_verification:
   - test: "Projektseite /anime/2/group/26 im Browser öffnen: Kopfbereich zeigt Coop-Partner-Kennzahl nur bei echtem gemeinsamem Release (Name(n) klickbar zur Partner-Projektseite), 'Weitere Gruppen zu diesem Anime' erscheint NICHT im Kopfbereich, sondern unten in 'Mehr entdecken' im dortigen Linkstil."
@@ -157,5 +157,35 @@ No gaps found. All 9 decision IDs (D-04 through D-12) are implemented, wired, an
 
 ---
 
-_Verified: 2026-10-20T15:45:00Z_
-_Verifier: Claude (gsd-verifier)_
+## Nachtrag (2026-10-20T22:30:00Z) — Live-UAT abgeschlossen, Status auf `passed`
+
+Der Nutzer hat alle 3 Human-Verification-Items live geprüft und freigegeben (`approved`), nach
+mehreren direkt in dieser Phase behobenen Nachbesserungsrunden — siehe
+`189-HUMAN-UAT.md` für die vollständige Historie je Item:
+- Coop-Partner/"Mehr entdecken": fehlende Beschriftung ergänzt, auf echten Animetitel
+  umgestellt, Linkziele auf die kanonische öffentliche Projekt-URL korrigiert
+  (`buildFansubProjectPath`), `ExternalLink`- durch `ChevronRight`-Symbol ersetzt, Beschriftung
+  optisch verstärkt.
+- next/image-Crash-Fix: ohne Nachbesserung bestätigt.
+- Lösch-Sperre: Grammatik (`GermanHaengenVerb`), Meldungstext ohne Statuscode-Präfix mit
+  Gruppenname (`formatDeleteFansubError` + Fix für den zugrunde liegenden
+  `deleteFansubGroup`-`error.code`-Verlust), Bestätigungsdialog-Text, sofortige
+  Listenaktualisierung nach Löschen.
+
+Zusätzlich wurde ein zweiter Code-Review-Durchgang (`189-REVIEW-2.md`) über alle seit dem
+ersten Review hinzugekommenen Commits durchgeführt (0 Critical, 5 Warning, 1 Info). Alle 5
+Warning-Befunde wurden behoben: veralteter Contract-Text für die Verb-Grammatik
+(`shared/contracts/fansubs.yaml`), ein latenter Zwilling des `error.code`-Verlust-Bugs in
+`updateEpisodeVersion` (`episodes.ts`), Plural-Grammatik im Bulk-Löschen-Dialog/-Erfolgstext
+(„1 Fansub-Gruppen" → „1 Fansub-Gruppe"), ein ASCII-Umlaut-Tippfehler
+(„geprueft" → „geprüft" in `episode_version_update.go`), und fehlende Teilerfolgs-Rückmeldung
+beim Bulk-Löschen (jede Gruppe wird jetzt einzeln versucht statt beim ersten Fehler
+abzubrechen, kombinierte Erfolgs-/Fehlermeldung).
+
+Finale Testläufe nach allen Fixes: `scripts/test-backend.sh` → `GATE: GREEN (0)`; Frontend
+`admin/fansubs`-Suite → 50/50 Dateien, 396/396 Tests grün; `npx tsc --noEmit` → clean.
+
+---
+
+_Verified: 2026-10-20T15:45:00Z (automatisiert), 2026-10-20T22:30:00Z (Live-UAT + Review-2 abgeschlossen)_
+_Verifier: Claude (gsd-verifier, Nachtrag durch Orchestrator)_
