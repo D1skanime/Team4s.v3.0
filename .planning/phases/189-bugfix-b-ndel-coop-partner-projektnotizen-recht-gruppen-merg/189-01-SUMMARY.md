@@ -112,6 +112,16 @@ None - no external service configuration required.
 - Plan 189-02 (frontend coop-partner UI) can now consume `coop_groups` from `GET /api/v1/anime/:id/group/:groupId/release-list` directly -- the field is live, contract-documented, and verified against real production data (anime 4/group 29 ↔ 30, "Project Messiah").
 - No blockers. `other_groups` behavior and the Offset endpoint (`GetGroupReleases`, used by `releases/page.tsx` and other non-project-page consumers) are provably untouched (acceptance-criteria grep + live curl both confirm).
 
+## Self-Check: PASSED
+
+- FOUND: backend/internal/repository/group_repository_coop.go
+- FOUND: backend/internal/repository/group_repository_coop_test.go
+- FOUND: .planning/phases/189-bugfix-b-ndel-coop-partner-projektnotizen-recht-gruppen-merg/189-01-SUMMARY.md
+- FOUND commit: 9d0a37d0e (test, RED)
+- FOUND commit: ad7ba7a0f (feat, GREEN)
+- FOUND commit: 31fc83131 (docs, contract)
+- FOUND commit: 82ae81c17 (docs, summary)
+
 ---
 *Phase: 189-bugfix-b-ndel-coop-partner-projektnotizen-recht-gruppen-merg*
 *Completed: 2026-10-20*
