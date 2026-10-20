@@ -18097,6 +18097,7 @@ components:
         - can_link_historical_members
         - can_edit_notes
         - can_edit_project_timeline
+        - can_edit_project_notes
         - can_view_invitations
         - can_create_invitation
         - can_cancel_invitation
@@ -18137,6 +18138,8 @@ components:
         can_edit_notes:
           type: boolean
         can_edit_project_timeline:
+          type: boolean
+        can_edit_project_notes:
           type: boolean
         can_view_invitations:
           type: boolean

@@ -50,7 +50,7 @@ func TestPhase136ContractParity(t *testing.T) {
 		expected := stringSlice(contractValue(t, contracts["shared/contracts/openapi.yaml"], "components", "schemas", "FansubGroupCapabilities", "required"))
 		assertJSONRequiredSubset(t, fansubGroupCapabilitiesResponse{}, expected...)
 
-		tsBytes, err := os.ReadFile(filepath.Join(root, "frontend/src/types/fansub.ts"))
+		tsBytes, err := os.ReadFile(filepath.Join(root, "frontend/src/types/fansub-capabilities.ts"))
 		if err != nil {
 			t.Fatal(err)
 		}
