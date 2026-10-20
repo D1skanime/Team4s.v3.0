@@ -18,11 +18,22 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { membershipBaselineCodesForTest } from './RoleCapabilityDetail'
 
-const BACKEND_PERMISSIONS_GO_PATH = '/backend/internal/permissions/permissions.go'
+// Plan 188-05 (D-14) split permissions.go (970 lines, over the 450-line project limit)
+// into permissions.go/permissions_types.go/permissions_cache.go/permissions_release.go --
+// MembershipBaselineActionCodes now lives in permissions_cache.go and the Action*
+// constants it references now live in permissions_types.go, so this anti-drift check
+// reads all three files together instead of only the original monolithic file.
+const BACKEND_PERMISSIONS_GO_PATHS = [
+  '/backend/internal/permissions/permissions.go',
+  '/backend/internal/permissions/permissions_types.go',
+  '/backend/internal/permissions/permissions_cache.go',
+]
 
 describe('membershipBaselineCodes anti-drift', () => {
   it('matches permissions.MembershipBaselineActionCodes in the Go source exactly', () => {
-    const source = readFileSync(BACKEND_PERMISSIONS_GO_PATH, 'utf-8')
+    const source = BACKEND_PERMISSIONS_GO_PATHS.map((path) => readFileSync(path, 'utf-8')).join(
+      '\n',
+    )
 
     const varMatch = source.match(
       /var MembershipBaselineActionCodes = \[\]Action\{([^}]+)\}/
