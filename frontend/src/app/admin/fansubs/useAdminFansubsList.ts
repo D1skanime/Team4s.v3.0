@@ -32,6 +32,26 @@ export function formatError(error: unknown): string {
   return "Anfrage fehlgeschlagen.";
 }
 
+const FANSUB_GROUP_HAS_DEPENDENTS_CODE = "fansub_group_has_dependents";
+const FANSUB_GROUP_HAS_DEPENDENTS_PREFIX = "Diese Gruppe kann nicht entfernt werden: ";
+
+/**
+ * Formatiert den Lösch-Sperre-Fehler (D-12) ohne technischen Statuscode-Präfix
+ * und mit dem echten Gruppennamen statt des generischen "Diese Gruppe" aus der
+ * Backend-Meldung, z. B. '"Strawhat Subs" kann nicht gelöscht werden: 1
+ * Gruppennotiz hängt noch daran.'. Alle anderen Fehler fallen auf formatError
+ * zurück, damit dessen Statuscode-Präfix für echte Diagnosefälle erhalten bleibt.
+ */
+export function formatDeleteFansubError(error: unknown, groupName: string): string {
+  if (error instanceof ApiError && error.code === FANSUB_GROUP_HAS_DEPENDENTS_CODE) {
+    const reason = error.message.startsWith(FANSUB_GROUP_HAS_DEPENDENTS_PREFIX)
+      ? error.message.slice(FANSUB_GROUP_HAS_DEPENDENTS_PREFIX.length)
+      : error.message;
+    return `"${groupName}" kann nicht gelöscht werden: ${reason}`;
+  }
+  return formatError(error);
+}
+
 export function statusLabel(status: FansubStatus): string {
   if (status === "dissolved") return "archived";
   return status;
@@ -207,7 +227,8 @@ export function useAdminFansubsList() {
 
     const ok = await confirm({
       title: `Fansub "${item.name}" wirklich löschen?`,
-      description: "Episoden bleiben erhalten; fansub_group_id wird entkoppelt.",
+      description:
+        "Die Gruppe wird endgültig gelöscht. Das geht nur, wenn nichts mehr an ihr hängt (Releases, Mitglieder, Medien, Notizen …).",
       confirmLabel: "Löschen",
       tone: "danger",
     });
@@ -219,9 +240,10 @@ export function useAdminFansubsList() {
     try {
       await deleteFansubGroup(item.id);
       setSuccessMessage(`Fansub "${item.name}" gelöscht.`);
+      setItems((prev) => prev.filter((existing) => existing.id !== item.id));
       await loadList();
     } catch (error) {
-      setErrorMessage(formatError(error));
+      setErrorMessage(formatDeleteFansubError(error, item.name));
     } finally {
       setIsMutating(false);
     }
@@ -240,7 +262,8 @@ export function useAdminFansubsList() {
 
     const ok = await confirm({
       title: `${selected.length} Fansub-Gruppen wirklich löschen?`,
-      description: "Episoden bleiben erhalten; fansub_group_id wird entkoppelt.",
+      description:
+        "Die Gruppen werden endgültig gelöscht. Das geht nur für Gruppen, an denen nichts mehr hängt (Releases, Mitglieder, Medien, Notizen …).",
       confirmLabel: "Löschen",
       tone: "danger",
     });
@@ -249,15 +272,23 @@ export function useAdminFansubsList() {
     setIsMutating(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+    const deletedIDs = new Set<number>();
     try {
       for (const item of selected) {
         await deleteFansubGroup(item.id);
+        deletedIDs.add(item.id);
       }
       setSuccessMessage(`${selected.length} Fansub-Gruppen gelöscht.`);
-      await loadList();
     } catch (error) {
-      setErrorMessage(formatError(error));
+      const failedItem = selected.find((item) => !deletedIDs.has(item.id));
+      setErrorMessage(
+        failedItem ? formatDeleteFansubError(error, failedItem.name) : formatError(error),
+      );
     } finally {
+      if (deletedIDs.size > 0) {
+        setItems((prev) => prev.filter((existing) => !deletedIDs.has(existing.id)));
+      }
+      await loadList();
       setIsMutating(false);
     }
   }

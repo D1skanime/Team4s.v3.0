@@ -468,6 +468,9 @@
 .backlinksCard { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 .backlinksRow { display: flex; gap: 16px; flex-wrap: wrap; }
 .backlinksGroup { display: grid; gap: 8px; }
+/* Gleiche Werte wie releases/page.module.css .otherGroupsLabel (bewusst kein text-transform:
+   uppercase wie .blockTitle, da hier ein echter Satz mit Animetitel steht). */
+.otherGroupsLabel { margin: 0 0 8px; font-size: 13px; color: var(--color-text-secondary); }
 .deepLink { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; color: var(--color-primary); text-decoration: none; }
 .deepLink:hover { text-decoration: underline; }
 

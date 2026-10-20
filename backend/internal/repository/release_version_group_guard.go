@@ -26,6 +26,15 @@ func (s DependencySummary) HasAny() bool {
 	return s.Credits > 0 || s.Media > 0 || s.Notes > 0
 }
 
+// TotalCount sums every counted dependent, regardless of kind. Used to pick
+// the grammatically correct verb ("hängt" vs. "hängen") in the 409 message --
+// the GermanReasonFragment() noun phrase lists dependents by kind, but the
+// verb must agree with the TOTAL number of attached items, not with any
+// single kind's count.
+func (s DependencySummary) TotalCount() int32 {
+	return s.Credits + s.Media + s.Notes
+}
+
 // germanPluralCount formats a single count with its correctly pluralized
 // German noun. Exactly 1 uses the singular form; every other count
 // (including 0) uses the plural form -- mirrors the frontend's
@@ -35,6 +44,19 @@ func germanPluralCount(count int32, singular string, plural string) string {
 		return fmt.Sprintf("%d %s", count, singular)
 	}
 	return fmt.Sprintf("%d %s", count, plural)
+}
+
+// GermanHaengenVerb picks the grammatically correct conjugation of "hängen"
+// for the fixed 409-message template "... <reason> <verb> noch daran.".
+// Agreement is with the TOTAL number of attached items (see TotalCount()),
+// not with how many different kinds are listed -- "1 Gruppennotiz hängt noch
+// daran." (one item) vs. "1 Gruppennotiz, 1 Release hängen noch daran." (two
+// items, even though each individual kind's count is 1).
+func GermanHaengenVerb(total int32) string {
+	if total == 1 {
+		return "hängt"
+	}
+	return "hängen"
 }
 
 // GermanReasonFragment returns the correctly pluralized German fragment
@@ -151,6 +173,32 @@ func (s FansubGroupDependencySummary) HasAny() bool {
 		s.ReviewAuditHistory > 0 ||
 		s.OverrideHistory > 0 ||
 		s.Links > 0
+}
+
+// TotalCount sums every counted dependent across all 19 categories,
+// regardless of kind. Used to pick the grammatically correct verb ("hängt"
+// vs. "hängen") in the 409 message -- see DependencySummary.TotalCount()
+// above for the identical rationale.
+func (s FansubGroupDependencySummary) TotalCount() int32 {
+	return s.Releases +
+		s.Memberships +
+		s.Contributions +
+		s.HistoricalMembers +
+		s.Media +
+		s.GroupNotes +
+		s.ProjectNotes +
+		s.History +
+		s.Segments +
+		s.SegmentLibrary +
+		s.DefaultCrew +
+		s.PendingInvitations +
+		s.PendingClaimInvitations +
+		s.CapabilityOverrides +
+		s.PlaybackEntitlements +
+		s.ReviewDecisions +
+		s.ReviewAuditHistory +
+		s.OverrideHistory +
+		s.Links
 }
 
 // GermanReasonFragment returns a correctly pluralized German fragment naming

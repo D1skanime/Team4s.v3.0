@@ -412,8 +412,12 @@ func (h *FansubHandler) DeleteFansub(c *gin.Context) {
 	var depErr *repository.FansubGroupHasDependentsError
 	if errors.As(err, &depErr) {
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
-			"message": fmt.Sprintf("Diese Gruppe kann nicht entfernt werden: %s hängen noch daran.", depErr.Summary.GermanReasonFragment()),
-			"code":    "fansub_group_has_dependents",
+			"message": fmt.Sprintf(
+				"Diese Gruppe kann nicht entfernt werden: %s %s noch daran.",
+				depErr.Summary.GermanReasonFragment(),
+				repository.GermanHaengenVerb(depErr.Summary.TotalCount()),
+			),
+			"code": "fansub_group_has_dependents",
 		}})
 		return
 	}

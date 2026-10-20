@@ -126,8 +126,9 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 				MediaItemID:   mapping.MediaItemID,
 				MediaSourceID: mapping.MediaSourceID,
 				Reason: fmt.Sprintf(
-					"Gruppe kann nicht ersetzt werden: %s hängen noch daran.",
+					"Gruppe kann nicht ersetzt werden: %s %s noch daran.",
 					depErr.Summary.GermanReasonFragment(),
+					GermanHaengenVerb(depErr.Summary.TotalCount()),
 				),
 			})
 			continue
