@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { forwardRef, type ImgHTMLAttributes } from 'react'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 
 import GroupStoryPage, { generateMetadata } from './page'
@@ -236,7 +236,7 @@ describe('HeroSection navigation (102-03)', () => {
     )
 
     expect(screen.getByText('Coop-Partner')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Honto' }).getAttribute('href')).toBe('/fansubs/honto')
+    expect(screen.getByRole('link', { name: 'Honto' }).getAttribute('href')).toBe('/anime/13/group/2')
     expect(screen.queryByText('Coop mit')).toBeNull()
     expect(screen.queryByRole('button')).toBeNull()
   })
@@ -267,7 +267,7 @@ describe('HeroSection navigation (102-03)', () => {
     expect(screen.getByRole('img', { name: "Viper's Creed Banner" })).toBeTruthy()
   })
 
-  it('rendert auch drei Coop-Gruppen ohne unnötigen Aufklappbutton', () => {
+  it('rendert drei Coop-Gruppen als "A · B +1" mit aufklappbarer Liste zur jeweiligen Projektseite', () => {
     render(
       <HeroSection
         group={group}
@@ -293,10 +293,11 @@ describe('HeroSection navigation (102-03)', () => {
       />,
     )
 
-    expect(screen.getByTitle('Honto')).toBeTruthy()
-    expect(screen.getByTitle('Akropolus')).toBeTruthy()
-    expect(screen.getByTitle('Moonlight')).toBeTruthy()
-    expect(screen.queryByRole('button')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Honto' }).getAttribute('href')).toBe('/anime/13/group/2')
+    expect(screen.getByRole('link', { name: 'Akropolus' }).getAttribute('href')).toBe('/anime/13/group/3')
+    const overflowButton = screen.getByRole('button', { name: '+1' })
+    fireEvent.click(overflowButton)
+    expect(screen.getByRole('link', { name: 'Moonlight' }).getAttribute('href')).toBe('/anime/13/group/4')
   })
 })
 
