@@ -409,9 +409,8 @@ func (h *FansubHandler) DeleteFansub(c *gin.Context) {
 	// D-12: blockiert auch für Plattform-Admins -- h.requireAdmin(c) oben
 	// gated bereits jeden Aufrufer identisch, es gibt hier bewusst keine
 	// zusätzliche Admin-Bypass-Verzweigung.
-	if errors.Is(err, repository.ErrFansubGroupHasDependents) {
-		var depErr *repository.FansubGroupHasDependentsError
-		errors.As(err, &depErr)
+	var depErr *repository.FansubGroupHasDependentsError
+	if errors.As(err, &depErr) {
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
 			"message": fmt.Sprintf("Diese Gruppe kann nicht entfernt werden: %s hängen noch daran.", depErr.Summary.GermanReasonFragment()),
 			"code":    "fansub_group_has_dependents",
