@@ -57,7 +57,13 @@ func validatePhase189SchemaName(name string) error {
 // the Phase-107 base layer's capability-override tables) and adds exactly
 // the 13 REMAINING stand-in tables countFansubGroupDependents needs, plus
 // fansub_group_aliases (NOT counted -- stand-in exists only so the
-// "ignores excluded tables" negative test has somewhere to insert a row):
+// "ignores excluded tables" negative test has somewhere to insert a row)
+// and app_user_global_roles (the real migration 0072 shape, needed by
+// Plan 189-08 Task 3's DeleteFansub handler test, which must satisfy the
+// handler's real, concrete-typed `requireAdmin` -> AuthzRepository.
+// AppUserHasGlobalRole admin gate -- not a fake, since FansubHandler's
+// authzRepo/fansubRepo fields are concrete repository types, not
+// interfaces):
 // anime_contributions, hist_fansub_group_members, fansub_group_media,
 // fansub_group_notes, anime_fansub_project_notes, fansub_group_history,
 // theme_segments (minimal id/fansub_group_id), segment_library_definitions,
@@ -102,6 +108,12 @@ func createPhase189Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 	createPhase187Prerequisites(t, pool)
 
 	const standInSQL = `
+CREATE TABLE app_user_global_roles (
+    app_user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+    role VARCHAR(40) NOT NULL,
+    PRIMARY KEY (app_user_id, role),
+    CONSTRAINT chk_app_user_global_roles_role CHECK (role IN ('platform_admin', 'content_admin', 'user'))
+);
 CREATE TABLE fansub_group_aliases (
     id BIGSERIAL PRIMARY KEY,
     fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,

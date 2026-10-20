@@ -397,14 +397,28 @@ func (h *FansubHandler) DeleteFansub(c *gin.Context) {
 		return
 	}
 
-	if err := h.fansubRepo.DeleteGroup(c.Request.Context(), id); errors.Is(err, repository.ErrNotFound) {
+	err = h.fansubRepo.DeleteGroup(c.Request.Context(), id)
+	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
 				"message": "fansubgruppe nicht gefunden",
 			},
 		})
 		return
-	} else if err != nil {
+	}
+	// D-12: blockiert auch für Plattform-Admins -- h.requireAdmin(c) oben
+	// gated bereits jeden Aufrufer identisch, es gibt hier bewusst keine
+	// zusätzliche Admin-Bypass-Verzweigung.
+	if errors.Is(err, repository.ErrFansubGroupHasDependents) {
+		var depErr *repository.FansubGroupHasDependentsError
+		errors.As(err, &depErr)
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"message": fmt.Sprintf("Diese Gruppe kann nicht entfernt werden: %s hängen noch daran.", depErr.Summary.GermanReasonFragment()),
+			"code":    "fansub_group_has_dependents",
+		}})
+		return
+	}
+	if err != nil {
 		log.Printf("fansub delete: repo error (user_id=%d, fansub_id=%d): %v", identity.UserID, id, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": gin.H{
