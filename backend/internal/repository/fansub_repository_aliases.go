@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 
@@ -250,4 +251,16 @@ func (r *FansubRepository) ListAnimeAliasCandidates(
 	}
 
 	return items, nil
+}
+
+// normalizeAliasKey returns a lowercase alphanumeric-only version of the alias,
+// used to detect alias collisions regardless of spacing/casing/punctuation.
+func normalizeAliasKey(raw string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(raw) {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
 }

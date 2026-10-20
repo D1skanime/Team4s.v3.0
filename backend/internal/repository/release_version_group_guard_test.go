@@ -275,22 +275,3 @@ func TestEnsureRemovedReleaseVersionGroupsHaveNoDependents(t *testing.T) {
 		require.True(t, depErr.Summary.HasAny())
 	})
 }
-
-// TestFansubRepositoryMergeCoreHasNoGuardReferences is the D-13 absence check:
-// fansub_repository_merge_core.go's merge write path must never special-case
-// or call any Phase-187 guard identifier -- the guard is new, independent
-// logic that only the release-version-group write paths (Plan 02/03) use.
-func TestFansubRepositoryMergeCoreHasNoGuardReferences(t *testing.T) {
-	content, err := os.ReadFile("fansub_repository_merge_core.go")
-	require.NoError(t, err)
-	source := string(content)
-
-	for _, forbidden := range []string{
-		"ErrGroupHasDependents",
-		"countReleaseVersionGroupDependents",
-		"ensureRemovedReleaseVersionGroupsHaveNoDependents",
-		"ensureReleaseVersionGroupsNotReducedToEmpty",
-	} {
-		require.NotContainsf(t, source, forbidden, "fansub_repository_merge_core.go must not reference the Phase-187 guard identifier %q", forbidden)
-	}
-}

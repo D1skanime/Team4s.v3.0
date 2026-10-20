@@ -254,40 +254,6 @@ type FansubGroupLinkPatchInput struct {
 	URL      OptionalString `json:"url"`
 }
 
-// MergeGroupsResult contains statistics from a fansub group merge operation.
-type MergeGroupsResult struct {
-	MergedCount       int      `json:"merged_count"`
-	VersionsMigrated  int      `json:"versions_migrated"`
-	MembersMigrated   int      `json:"members_migrated"`
-	RelationsMigrated int      `json:"relations_migrated"`
-	AliasesAdded      []string `json:"aliases_added"`
-}
-
-type MergePreviewConflicts struct {
-	VersionConflicts          int      `json:"version_conflicts"`
-	DuplicateAliasesCount     int      `json:"duplicate_aliases_count"`
-	DuplicateAliases          []string `json:"duplicate_aliases"`
-	DuplicateMembersCount     int      `json:"duplicate_members_count"`
-	DuplicateMembers          []string `json:"duplicate_members"`
-	DuplicateRelationsCount   int      `json:"duplicate_relations_count"`
-	DuplicateRelationAnimeIDs []int64  `json:"duplicate_relation_anime_ids"`
-	DuplicateSlugsCount       int      `json:"duplicate_slugs_count"`
-	DuplicateSlugs            []string `json:"duplicate_slugs"`
-	DuplicateNamesCount       int      `json:"duplicate_names_count"`
-	DuplicateNames            []string `json:"duplicate_names"`
-}
-
-type MergeGroupsPreview struct {
-	MergedCount       int                   `json:"merged_count"`
-	VersionsMigrated  int                   `json:"versions_migrated"`
-	MembersMigrated   int                   `json:"members_migrated"`
-	RelationsMigrated int                   `json:"relations_migrated"`
-	AliasesAdded      []string              `json:"aliases_added"`
-	AliasesSkipped    []string              `json:"aliases_skipped"`
-	CanMerge          bool                  `json:"can_merge"`
-	Conflicts         MergePreviewConflicts `json:"conflicts"`
-}
-
 type FansubMemberCreateInput struct {
 	Handle    string
 	Role      string

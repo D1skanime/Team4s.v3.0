@@ -135,8 +135,6 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/anime/:id/episodes/:episodeNumber/versions", auth, deps.fansubHandler.CreateEpisodeVersion)
 	v1.PATCH("/episode-versions/:versionId", auth, deps.fansubHandler.UpdateEpisodeVersion)
 	v1.DELETE("/episode-versions/:versionId", auth, deps.fansubHandler.DeleteEpisodeVersion)
-	v1.POST("/admin/fansubs/merge", auth, deps.fansubHandler.MergeFansubs)
-	v1.POST("/admin/fansubs/merge/preview", auth, deps.fansubHandler.MergeFansubsPreview)
 	v1.POST("/admin/upload", auth, deps.mediaUploadHandler.Upload)
 	v1.DELETE("/admin/media/:id", auth, deps.mediaUploadHandler.Delete)
 	v1.GET("/admin/theme-types", auth, deps.adminContentHandler.ListThemeTypes)
