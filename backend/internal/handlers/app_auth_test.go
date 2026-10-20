@@ -242,7 +242,7 @@ func (appAuthCapabilityCacheLoader) LoadRoleCapabilities(_ context.Context) (map
 	return map[string][]permissions.Action{
 		"catalog_test_owner":        allActions,
 		permissions.RoleFansubLead:  allActions,
-		permissions.RoleProjectLead: {permissions.ActionFansubGroupMembersView, permissions.ActionAnimeFansubProjectTimelineUpdate, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionMediaReorder, permissions.ActionReleaseVersionMediaHighlight, permissions.ActionReleaseVersionNotesWrite},
+		permissions.RoleProjectLead: {permissions.ActionFansubGroupMembersView, permissions.ActionAnimeFansubProjectTimelineUpdate, permissions.ActionAnimeFansubProjectNotesWrite, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionMediaReorder, permissions.ActionReleaseVersionMediaHighlight, permissions.ActionReleaseVersionNotesWrite},
 		permissions.RoleEncoder:     {permissions.ActionFansubGroupMembersView, permissions.ActionFansubGroupMediaView, permissions.ActionFansubGroupMediaUpload, permissions.ActionFansubGroupMediaUpdateOwn, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
 		permissions.RoleRawProvider: {permissions.ActionReleaseView},
 		"gfxler":                    {permissions.ActionFansubGroupMediaUpdate},

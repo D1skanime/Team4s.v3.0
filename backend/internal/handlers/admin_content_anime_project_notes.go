@@ -64,6 +64,47 @@ func (h *AdminContentHandler) requireAnimeProjectNoteReadAccess(c *gin.Context) 
 	return identity, true
 }
 
+// Dieser Guard prueft das Schreibrecht fuer Projektnotizen projektbezogen
+// (CanForAnimeProject, beruecksichtigt bestaetigte Projektrollen fuer GENAU dieses
+// Anime+Gruppe-Paar) statt gruppenweit (CanForFansubGroup) -- analog zum
+// Projektzeitraum-Guard aus Phase 188 (admin_content_anime_project_timeline.go).
+// Ersetzt die bisherige, faelschlich gruppenweite Pruefung an beiden Aufrufstellen
+// (Upsert/Delete).
+func (h *AdminContentHandler) requireAnimeProjectNoteWriteAccess(c *gin.Context) (middleware.AuthIdentity, bool) {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return middleware.AuthIdentity{}, false
+	}
+
+	fansubID, err := parseFansubRouteID(c)
+	if err != nil || fansubID <= 0 {
+		badRequest(c, "ungültige fansub id")
+		return middleware.AuthIdentity{}, false
+	}
+	animeID, err := strconv.ParseInt(c.Param("animeId"), 10, 64)
+	if err != nil || animeID <= 0 {
+		badRequest(c, "ungültige anime id")
+		return middleware.AuthIdentity{}, false
+	}
+
+	result, err := h.permissionSvc.CanForAnimeProject(
+		c.Request.Context(), actor, permissions.ActionAnimeFansubProjectNotesWrite, animeID, fansubID,
+	)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung für die Projektnotiz konnte nicht geprüft werden.")
+		return middleware.AuthIdentity{}, false
+	}
+	if !result.Allowed {
+		auditPermissionDenied(
+			c, h.auditLogRepo, identity, "anime_project_note.write.denied",
+			&fansubID, "anime_fansub_group", nil, permissions.ActionAnimeFansubProjectNotesWrite, result,
+		)
+		writePermissionDenied(c, result)
+		return middleware.AuthIdentity{}, false
+	}
+	return identity, true
+}
+
 // GetAnimeFansubProjectNote verarbeitet GET /api/v1/admin/fansubs/:id/anime/:animeId/notes.
 func (h *AdminContentHandler) GetAnimeFansubProjectNote(c *gin.Context) {
 	if _, ok := h.requireAnimeProjectNoteReadAccess(c); !ok {
@@ -100,7 +141,7 @@ func (h *AdminContentHandler) GetAnimeFansubProjectNote(c *gin.Context) {
 
 // UpsertAnimeFansubProjectNote verarbeitet PUT /api/v1/admin/fansubs/:id/anime/:animeId/notes.
 func (h *AdminContentHandler) UpsertAnimeFansubProjectNote(c *gin.Context) {
-	identity, ok := h.requireFansubGroupNoteWriteAccess(c)
+	identity, ok := h.requireAnimeProjectNoteWriteAccess(c)
 	if !ok {
 		return
 	}
@@ -176,7 +217,7 @@ func (h *AdminContentHandler) UpsertAnimeFansubProjectNote(c *gin.Context) {
 
 // DeleteAnimeFansubProjectNote verarbeitet DELETE /api/v1/admin/fansubs/:id/anime/:animeId/notes/:noteId.
 func (h *AdminContentHandler) DeleteAnimeFansubProjectNote(c *gin.Context) {
-	identity, ok := h.requireFansubGroupNoteWriteAccess(c)
+	identity, ok := h.requireAnimeProjectNoteWriteAccess(c)
 	if !ok {
 		return
 	}

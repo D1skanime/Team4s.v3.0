@@ -123,6 +123,80 @@ func TestAnimeProjectNoteDeleteDelegatesOnce(t *testing.T) {
 	require.Equal(t, int64(71), stub.lastActor)
 }
 
+// TestAnimeProjectNoteUpsertAllowsConfirmedProjectLeadWithoutGroupRole is the D-08 gain
+// case (189-04-PLAN.md): a confirmed project_lead contribution role for exactly this
+// (animeID, fansubGroupID) pair grants write access via UpsertAnimeFansubProjectNote
+// even though the actor has NO granting group-wide role at all.
+func TestAnimeProjectNoteUpsertAllowsConfirmedProjectLeadWithoutGroupRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+	stub := &projectNoteCreditStub{note: &repository.AnimeFansubProjectNote{ID: 91, AnimeID: 61, FansubGroupID: 41}}
+	handler := &AdminContentHandler{
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context:                  &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{41}},
+			roles:                    map[int64][]string{41: {}},
+			projectContributionRoles: map[int64]map[int64][]string{41: {61: {permissions.RoleProjectLead}}},
+		}),
+		tiptapSvc:            services.NewTipTapService(),
+		projectNoteCreditSvc: stub,
+	}
+	body := []byte(`{"title":"Projekt","body_json":{"type":"doc"},"visibility":"internal","status":"draft"}`)
+	c, recorder := projectNoteHandlerContext(http.MethodPut, "/api/v1/admin/fansubs/41/anime/61/notes", body)
+
+	handler.UpsertAnimeFansubProjectNote(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
+	require.Equal(t, 1, stub.upsertCalls)
+}
+
+// TestAnimeProjectNoteUpsertDeniesFounderOnlyWithoutProjectRole is the D-09 real loss
+// case (189-04-PLAN.md, member 5/New-Subs/Buddy Complex): a group-wide founder role alone,
+// with no overlapping confirmed project role for this (animeID, fansubGroupID) pair, no
+// longer suffices for Projektnotizen write access.
+func TestAnimeProjectNoteUpsertDeniesFounderOnlyWithoutProjectRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+	stub := &projectNoteCreditStub{}
+	handler := &AdminContentHandler{
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{41}},
+			roles:   map[int64][]string{41: {"founder"}},
+		}),
+		tiptapSvc:            services.NewTipTapService(),
+		projectNoteCreditSvc: stub,
+	}
+	body := []byte(`{"title":"Projekt","body_json":{"type":"doc"},"visibility":"internal","status":"draft"}`)
+	c, recorder := projectNoteHandlerContext(http.MethodPut, "/api/v1/admin/fansubs/41/anime/61/notes", body)
+
+	handler.UpsertAnimeFansubProjectNote(c)
+
+	require.NotEqual(t, http.StatusOK, recorder.Code, recorder.Body.String())
+	require.Zero(t, stub.upsertCalls)
+}
+
+// TestAnimeProjectNoteDeleteAllowsConfirmedProjectLeadWithoutGroupRole mirrors the D-08
+// gain case for DeleteAnimeFansubProjectNote.
+func TestAnimeProjectNoteDeleteAllowsConfirmedProjectLeadWithoutGroupRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+	stub := &projectNoteCreditStub{}
+	handler := &AdminContentHandler{
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context:                  &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{41}},
+			roles:                    map[int64][]string{41: {}},
+			projectContributionRoles: map[int64]map[int64][]string{41: {61: {permissions.RoleProjectLead}}},
+		}),
+		projectNoteCreditSvc: stub,
+	}
+	c, recorder := projectNoteHandlerContext(http.MethodDelete, "/api/v1/admin/fansubs/41/anime/61/notes/91", nil)
+	c.Params = append(c.Params, gin.Param{Key: "noteId", Value: "91"})
+
+	handler.DeleteAnimeFansubProjectNote(c)
+
+	require.Equal(t, http.StatusNoContent, recorder.Code, recorder.Body.String())
+	require.Equal(t, 1, stub.deleteCalls)
+}
+
 func TestAnimeProjectNoteHandlerOwnsNoLedgerPolicy(t *testing.T) {
 	source, err := os.ReadFile("admin_content_anime_project_notes.go")
 	require.NoError(t, err)
