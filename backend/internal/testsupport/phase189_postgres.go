@@ -55,7 +55,7 @@ func validatePhase189SchemaName(name string) error {
 // createPhase189Prerequisites builds on createPhase187Prerequisites (which
 // already brings in anime/release_version_groups/anime_fansub_groups plus
 // the Phase-107 base layer's capability-override tables) and adds exactly
-// the 12 REMAINING stand-in tables countFansubGroupDependents needs, plus
+// the 13 REMAINING stand-in tables countFansubGroupDependents needs, plus
 // fansub_group_aliases (NOT counted -- stand-in exists only so the
 // "ignores excluded tables" negative test has somewhere to insert a row)
 // and app_user_global_roles (the real migration 0072 shape, needed by
@@ -69,7 +69,8 @@ func validatePhase189SchemaName(name string) error {
 // theme_segments (minimal id/fansub_group_id), segment_library_definitions,
 // fansub_group_default_crew, fansub_group_invitations,
 // member_claim_invitations, release_playback_entitlement_rules,
-// review_decisions, review_audit_events.
+// review_decisions, review_audit_events, fansub_group_links
+// (189-REVIEW.md CR-01).
 //
 // DELIBERATELY DOES NOT stand in fansub_collaboration_members: live
 // verification of this plan (curl against the real team4s_v2 schema) found
@@ -90,6 +91,10 @@ func validatePhase189SchemaName(name string) error {
 //     real FK column is named `group_id`, NOT `fansub_group_id` -- the
 //     counting SQL queries it as such, confirmed against the real
 //     migration, not assumed)
+//   - database/migrations/0044_add_db_schema_v2_target_tables.up.sql
+//     (fansub_group_links: 189-REVIEW.md CR-01. Real FK column is also
+//     named `group_id`, NOT `fansub_group_id`, same as fansub_group_media
+//     above -- confirmed against the real migration, not assumed)
 //   - database/migrations/0061_fansub_group_notes.up.sql
 //   - database/migrations/0063_anime_fansub_project_notes.up.sql
 //   - database/migrations/0084_fansub_group_history.up.sql
@@ -193,6 +198,10 @@ CREATE TABLE review_decisions (
 CREATE TABLE review_audit_events (
     id BIGINT PRIMARY KEY,
     fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id)
+);
+CREATE TABLE fansub_group_links (
+    id BIGSERIAL PRIMARY KEY,
+    group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE
 );`
 	if err := validatePhase106SQL(standInSQL); err != nil {
 		t.Fatal(err)

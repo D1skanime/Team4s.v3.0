@@ -115,6 +115,10 @@ func TestCountFansubGroupDependentsDetectsEachRealCategory(t *testing.T) {
 		) VALUES ($1, $2, 'fansub_group_media.upload', $1, true, NULL, 'allow')
 	`, appUserID, groupID)
 	require.NoError(t, err)
+	// 19. Links (189-REVIEW.md CR-01: real FK column is group_id, not fansub_group_id,
+	// same as fansub_group_media above)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_group_links (group_id) VALUES ($1)`, groupID)
+	require.NoError(t, err)
 
 	summary, err := countFansubGroupDependents(ctx, pool, groupID)
 	require.NoError(t, err)
@@ -137,8 +141,33 @@ func TestCountFansubGroupDependentsDetectsEachRealCategory(t *testing.T) {
 	require.Equal(t, int32(1), summary.ReviewDecisions)
 	require.Equal(t, int32(1), summary.ReviewAuditHistory)
 	require.Equal(t, int32(1), summary.OverrideHistory)
+	require.Equal(t, int32(1), summary.Links)
 
 	require.Contains(t, summary.GermanReasonFragment(), "1 Release")
+	require.Contains(t, summary.GermanReasonFragment(), "1 Link")
+}
+
+// TestCountFansubGroupDependentsDetectsLinksOnly is a focused negative-
+// regression guard for 189-REVIEW.md CR-01: countFansubGroupDependents must
+// detect a fansub_group_links row even when every other counted category is
+// empty. The initial D-12 implementation omitted this table entirely, so a
+// group whose ONLY dependent was a links row silently passed the dependents
+// check and was deleted, cascading the link row away with no 409.
+func TestCountFansubGroupDependentsDetectsLinksOnly(t *testing.T) {
+	pool := testsupport.OpenPhase189Postgres(t)
+	ctx := context.Background()
+
+	const groupID = int64(110)
+
+	_, err := pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, groupID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_group_links (group_id) VALUES ($1)`, groupID)
+	require.NoError(t, err)
+
+	summary, err := countFansubGroupDependents(ctx, pool, groupID)
+	require.NoError(t, err)
+	require.True(t, summary.HasAny(), "a group whose only dependent is a fansub_group_links row must count as having dependents")
+	require.Equal(t, int32(1), summary.Links)
 }
 
 func TestCountFansubGroupDependentsIgnoresExcludedTables(t *testing.T) {

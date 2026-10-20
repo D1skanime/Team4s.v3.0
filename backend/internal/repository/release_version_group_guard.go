@@ -126,6 +126,7 @@ type FansubGroupDependencySummary struct {
 	ReviewDecisions         int32
 	ReviewAuditHistory      int32
 	OverrideHistory         int32
+	Links                   int32
 }
 
 // HasAny reports whether this fansub group has at least one real dependent
@@ -148,7 +149,8 @@ func (s FansubGroupDependencySummary) HasAny() bool {
 		s.PlaybackEntitlements > 0 ||
 		s.ReviewDecisions > 0 ||
 		s.ReviewAuditHistory > 0 ||
-		s.OverrideHistory > 0
+		s.OverrideHistory > 0 ||
+		s.Links > 0
 }
 
 // GermanReasonFragment returns a correctly pluralized German fragment naming
@@ -184,6 +186,7 @@ func (s FansubGroupDependencySummary) GermanReasonFragment() string {
 		{s.ReviewDecisions, "Review-Entscheidung", "Review-Entscheidungen"},
 		{s.ReviewAuditHistory, "Review-Protokolleintrag", "Review-Protokolleinträge"},
 		{s.OverrideHistory, "Override-Historieneintrag", "Override-Historieneinträge"},
+		{s.Links, "Link", "Links"},
 	}
 
 	fragments := make([]string, 0, len(candidates))
@@ -204,6 +207,11 @@ func (s FansubGroupDependencySummary) GermanReasonFragment() string {
 // (release_version_id, fansub_group_id) pair. fansub_group_media's FK
 // column is named `group_id`, not `fansub_group_id` -- confirmed against
 // database/migrations/0026_add_media_tables.up.sql, not assumed.
+// fansub_group_links also uses `group_id`, not `fansub_group_id` --
+// confirmed against database/migrations/0044_add_db_schema_v2_target_tables.up.sql
+// (189-REVIEW.md CR-01: a real, actively-managed group website/Discord/IRC/
+// GitHub links table with an ON DELETE CASCADE FK to fansub_groups(id) that
+// the initial D-12 implementation omitted).
 func countFansubGroupDependents(
 	ctx context.Context,
 	db dependentsQueryRower,
@@ -247,7 +255,9 @@ func countFansubGroupDependents(
 			(SELECT COUNT(*) FROM review_audit_events
 				WHERE fansub_group_id = $1) AS review_audit_history,
 			(SELECT COUNT(*) FROM user_group_capability_override_history
-				WHERE fansub_group_id = $1) AS override_history
+				WHERE fansub_group_id = $1) AS override_history,
+			(SELECT COUNT(*) FROM fansub_group_links
+				WHERE group_id = $1) AS links
 	`, fansubGroupID).Scan(
 		&summary.Releases,
 		&summary.Memberships,
@@ -267,6 +277,7 @@ func countFansubGroupDependents(
 		&summary.ReviewDecisions,
 		&summary.ReviewAuditHistory,
 		&summary.OverrideHistory,
+		&summary.Links,
 	)
 	if err != nil {
 		return FansubGroupDependencySummary{}, fmt.Errorf("count fansub group dependents: %w", err)
