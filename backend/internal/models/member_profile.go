@@ -260,31 +260,17 @@ type PublicMemberRole struct {
 	EndedYear   *int32 `json:"ended_year,omitempty"`
 }
 
-type PublicMemberProjectReleaseVersion struct {
-	ReleaseVersionID    int64              `json:"release_version_id"`
-	ReleaseVersionLabel string             `json:"release_version_label"`
-	Version             string             `json:"version"`
-	Title               *string            `json:"title,omitempty"`
-	EpisodeNumber       string             `json:"episode_number"`
-	EpisodeTitle        *string            `json:"episode_title,omitempty"`
-	Roles               []PublicMemberRole `json:"roles"`
-	// IsReleaseSpecific marks a release-only role assignment which overrides the
-	// project-wide assignment for this release version.
-	IsReleaseSpecific bool `json:"is_release_specific"`
-}
-
 type PublicMemberCurrentProject struct {
-	AnimeID            int64                               `json:"anime_id"`
-	AnimeTitle         string                              `json:"anime_title"`
-	CoverURL           *string                             `json:"cover_url,omitempty"`
-	FansubGroupID      int64                               `json:"fansub_group_id"`
-	FansubGroupName    string                              `json:"fansub_group_name"`
-	Roles              []PublicMemberRole                  `json:"roles"`
-	ReleaseVersions    []PublicMemberProjectReleaseVersion `json:"release_versions"`
-	IsProjectLevel     bool                                `json:"is_project_level"`
-	ContributionStatus string                              `json:"contribution_status"`
-	StartedYear        *int32                              `json:"started_year,omitempty"`
-	EndedYear          *int32                              `json:"ended_year,omitempty"`
+	AnimeID            int64               `json:"anime_id"`
+	AnimeTitle         string              `json:"anime_title"`
+	CoverURL           *string             `json:"cover_url,omitempty"`
+	FansubGroupID      int64               `json:"fansub_group_id"`
+	FansubGroupName    string              `json:"fansub_group_name"`
+	Roles              []PublicMemberRole  `json:"roles"`
+	IsProjectLevel     bool                `json:"is_project_level"`
+	ContributionStatus string              `json:"contribution_status"`
+	StartedYear        *int32              `json:"started_year,omitempty"`
+	EndedYear          *int32              `json:"ended_year,omitempty"`
 }
 
 type PublicMemberProjectsPage struct {

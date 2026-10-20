@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -122,33 +123,6 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		return nil, fmt.Errorf("iterate current projects for member %d: %w", memberID, err)
 	}
 
-	// Batch the per-card release-version reads into ONE set-based query for the whole
-	// page instead of one round-trip per project (former loadCurrentProjectReleaseVersions
-	// N+1). This keeps the profile-load query count CONSTANT regardless of project count
-	// (PMPF-01, D-07 SC1). Attach the batched results back to their project in Go.
-	if len(items) > 0 {
-		animeIDs := make([]int64, len(items))
-		fansubGroupIDs := make([]int64, len(items))
-		for i := range items {
-			animeIDs[i] = items[i].AnimeID
-			fansubGroupIDs[i] = items[i].FansubGroupID
-		}
-		byProject, err := r.loadCurrentProjectReleaseVersionsBatch(ctx, memberID, animeIDs, fansubGroupIDs)
-		if err != nil {
-			return nil, err
-		}
-		for i := range items {
-			key := memberProjectKey{animeID: items[i].AnimeID, fansubGroupID: items[i].FansubGroupID}
-			if versions := byProject[key]; versions != nil {
-				for versionIndex := range versions {
-					versions[versionIndex].IsReleaseSpecific = !sameMemberRoleSets(items[i].Roles, versions[versionIndex].Roles)
-				}
-				items[i].ReleaseVersions = versions
-			} else {
-				items[i].ReleaseVersions = make([]models.PublicMemberProjectReleaseVersion, 0)
-			}
-		}
-	}
 	return items, nil
 }
 
@@ -317,6 +291,16 @@ func (r *MemberProfileRepository) GetPublicMemberProjectsByID(ctx context.Contex
 	}, nil
 }
 
-// memberProjectKey, loadCurrentProjectReleaseVersionsBatch, sameMemberRoleSets und
-// decodeMemberRoles sind ausgelagert in member_profile_projects_release_versions_repository.go
-// (Phase 143, 450-Zeilen-Limit).
+// decodeMemberRoles wandelt eine serverseitig aggregierte jsonb-Rollenliste
+// ([{code,label_de}, ...]) in []models.PublicMemberRole; nil/leer -> leeres Slice
+// (nie null im JSON). Serverautoritative Code+Label-Paare (D-06).
+func decodeMemberRoles(raw []byte) []models.PublicMemberRole {
+	roles := make([]models.PublicMemberRole, 0)
+	if len(raw) == 0 {
+		return roles
+	}
+	if err := json.Unmarshal(raw, &roles); err != nil || roles == nil {
+		return []models.PublicMemberRole{}
+	}
+	return roles
+}

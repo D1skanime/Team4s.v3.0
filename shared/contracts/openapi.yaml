@@ -13564,38 +13564,6 @@ components:
           type: integer
           format: int32
           nullable: true
-    PublicMemberProjectReleaseVersion:
-      type: object
-      required:
-        - release_version_id
-        - release_version_label
-        - version
-        - episode_number
-        - roles
-        - is_release_specific
-      properties:
-        release_version_id:
-          type: integer
-          format: int64
-        release_version_label:
-          type: string
-        version:
-          type: string
-        title:
-          type: string
-          nullable: true
-        episode_number:
-          type: string
-        episode_title:
-          type: string
-          nullable: true
-        roles:
-          type: array
-          items:
-            $ref: "#/components/schemas/PublicMemberRole"
-        is_release_specific:
-          type: boolean
-          description: True when release-specific roles override the project-wide assignment for this version.
     PublicMemberCurrentProject:
       type: object
       required:
@@ -13604,7 +13572,6 @@ components:
         - fansub_group_id
         - fansub_group_name
         - roles
-        - release_versions
         - is_project_level
         - contribution_status
       properties:
@@ -13625,10 +13592,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicMemberRole"
-        release_versions:
-          type: array
-          items:
-            $ref: "#/components/schemas/PublicMemberProjectReleaseVersion"
         is_project_level:
           type: boolean
         contribution_status:

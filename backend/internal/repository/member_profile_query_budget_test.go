@@ -145,7 +145,7 @@ func TestPhase131PublicProfileQueryBudgetCharacterization(t *testing.T) {
 	require.Len(t, profile.CurrentProjects, smallProjectCount,
 		"seed must produce exactly the expected number of listed current projects")
 
-	t.Logf("PMPF-01 characterization: a single GetPublicMemberProfileByID load with %d current projects issued %d SQL queries (post-131-03 shape: fixed loader base + 1 loadCurrentProjects list query + 1 batched loadCurrentProjectReleaseVersionsBatch query; constant regardless of project count).",
+	t.Logf("PMPF-01 characterization: a single GetPublicMemberProfileByID load with %d current projects issued %d SQL queries (post-261020-cmi shape: fixed loader base + 1 loadCurrentProjects list query, no release-version batch query since the public profile no longer renders a release listing; constant regardless of project count).",
 		smallProjectCount, got)
 
 	// Loose upper bound ONLY -- this records reality and stays GREEN. The constant-
@@ -174,7 +174,11 @@ func TestPhase131PublicProfileQueryBudgetCharacterization(t *testing.T) {
 // results into all three consumers. No SQL changed, no join, no index migration -- this
 // is purely a call-count reduction (20 -> 16), NOT a page-load speed claim (per
 // CONTEXT.md A3/A4; HTTP medians were already 4-6ms before this change).
-const phase131ConstantQueryBudget = 16
+// Quick 261020-cmi: lowered by 1 (16 -> 15) nach Entfernung der gebatchten
+// Release-Version-Query (loadCurrentProjectReleaseVersionsBatch) aus loadCurrentProjects
+// -- das oeffentliche Profil zeigt keine Release-Auflistung mehr, daher entfaellt diese
+// Query vollstaendig (Value real gemessen via TestPhase131PublicProfileQueryBudgetCharacterization).
+const phase131ConstantQueryBudget = 15
 
 // TestPhase131PublicProfileQueryBudgetIsConstant is the constant-query-budget gate
 // (Requirement PMPF-01, CONTEXT D-07 SC1): a public-profile load must issue the SAME

@@ -78,7 +78,6 @@ func fullyPopulatedPublicMemberProfile() models.PublicMemberProfile {
 			FansubGroupID:      7,
 			FansubGroupName:    "Tsuki no Fansubs",
 			Roles:              []models.PublicMemberRole{{Code: "timer", LabelDe: "Timing"}},
-			ReleaseVersions:    []models.PublicMemberProjectReleaseVersion{},
 			ContributionStatus: "confirmed",
 		}},
 		CurrentProjectsCount: 1,
