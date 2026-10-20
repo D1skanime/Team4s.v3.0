@@ -57,7 +57,8 @@ CREATE TABLE anime_fansub_groups (
 CREATE TABLE episodes (
     id BIGINT PRIMARY KEY,
     anime_id BIGINT NOT NULL REFERENCES anime(id),
-    episode_number TEXT
+    episode_number TEXT,
+    title TEXT
 );
 CREATE TABLE fansub_releases (
     id BIGINT PRIMARY KEY,
@@ -193,18 +194,21 @@ func TestGetCoopGroupsReturnsOnlySharedReleaseGroups(t *testing.T) {
 		groupB           = int64(2)
 	)
 
-	_, err := pool.Exec(ctx, `
-		INSERT INTO anime (id) VALUES ($1);
-		INSERT INTO fansub_groups (id, slug, name) VALUES
-			($2, 'group-a', 'Group A'),
-			($3, 'group-b', 'Group B');
-		INSERT INTO episodes (id, anime_id) VALUES ($4, $1);
-		INSERT INTO fansub_releases (id, episode_id) VALUES ($5, $4);
-		INSERT INTO release_versions (id, release_id, version) VALUES ($6, $5, 'v1');
-		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES
-			($6, $7),
-			($6, $8);
-	`, animeID, groupA, groupB, episodeID, fansubReleaseID, releaseVersionID, groupA, groupB)
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO fansub_groups (id, slug, name) VALUES ($1, 'group-a', 'Group A'), ($2, 'group-b', 'Group B')
+	`, groupA, groupB)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id) VALUES ($1, $2)`, episodeID, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, fansubReleaseID, episodeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v1')`, releaseVersionID, fansubReleaseID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2), ($1, $3)
+	`, releaseVersionID, groupA, groupB)
 	require.NoError(t, err)
 
 	repo := NewGroupRepository(pool)
@@ -238,18 +242,27 @@ func TestGetCoopGroupsExcludesNonOverlappingSameAnimeGroup(t *testing.T) {
 		groupC            = int64(3)
 	)
 
-	_, err := pool.Exec(ctx, `
-		INSERT INTO anime (id) VALUES ($1);
-		INSERT INTO fansub_groups (id, slug, name) VALUES
-			($2, 'group-a', 'Group A'),
-			($3, 'group-c', 'Group C');
-		INSERT INTO episodes (id, anime_id) VALUES ($4, $1), ($5, $1);
-		INSERT INTO fansub_releases (id, episode_id) VALUES ($6, $4), ($7, $5);
-		INSERT INTO release_versions (id, release_id, version) VALUES ($8, $6, 'v1'), ($9, $7, 'v1');
-		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES
-			($8, $2),
-			($9, $3);
-	`, animeID, groupA, groupC, episodeAID, episodeCID, fansubReleaseAID, fansubReleaseCID, releaseVersionAID, releaseVersionCID)
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO fansub_groups (id, slug, name) VALUES ($1, 'group-a', 'Group A'), ($2, 'group-c', 'Group C')
+	`, groupA, groupC)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO episodes (id, anime_id) VALUES ($1, $3), ($2, $3)
+	`, episodeAID, episodeCID, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $3), ($2, $4)
+	`, fansubReleaseAID, fansubReleaseCID, episodeAID, episodeCID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO release_versions (id, release_id, version) VALUES ($1, $3, 'v1'), ($2, $4, 'v1')
+	`, releaseVersionAID, releaseVersionCID, fansubReleaseAID, fansubReleaseCID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $3), ($2, $4)
+	`, releaseVersionAID, releaseVersionCID, groupA, groupC)
 	require.NoError(t, err)
 
 	repo := NewGroupRepository(pool)
@@ -283,18 +296,21 @@ func TestGetGroupReleasesCursorPopulatesCoopGroupsField(t *testing.T) {
 		groupB           = int64(2)
 	)
 
-	_, err := pool.Exec(ctx, `
-		INSERT INTO anime (id) VALUES ($1);
-		INSERT INTO fansub_groups (id, slug, name) VALUES
-			($2, 'group-a', 'Group A'),
-			($3, 'group-b', 'Group B');
-		INSERT INTO episodes (id, anime_id, episode_number) VALUES ($4, $1, '1');
-		INSERT INTO fansub_releases (id, episode_id) VALUES ($5, $4);
-		INSERT INTO release_versions (id, release_id, version) VALUES ($6, $5, 'v1');
-		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES
-			($6, $7),
-			($6, $8);
-	`, animeID, groupA, groupB, episodeID, fansubReleaseID, releaseVersionID, groupA, groupB)
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO fansub_groups (id, slug, name) VALUES ($1, 'group-a', 'Group A'), ($2, 'group-b', 'Group B')
+	`, groupA, groupB)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, episode_number) VALUES ($1, $2, '1')`, episodeID, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, fansubReleaseID, episodeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v1')`, releaseVersionID, fansubReleaseID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2), ($1, $3)
+	`, releaseVersionID, groupA, groupB)
 	require.NoError(t, err)
 
 	repo := NewGroupRepository(pool)

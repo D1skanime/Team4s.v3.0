@@ -19,10 +19,11 @@ import (
 // Release-Liste. Additiv neben GetGroupReleases (Offset) — die alte Offset-
 // `releases/page.tsx` bleibt unveraendert und nutzt weiterhin GetGroupReleases.
 type GroupReleasesCursorPage struct {
-	Items      []models.EpisodeReleaseSummary `json:"items"`
-	NextCursor *string                        `json:"next_cursor"`
-	HasMore    bool                           `json:"has_more"`
-	OtherGroups []models.FansubGroupSummary   `json:"other_groups"`
+	Items       []models.EpisodeReleaseSummary `json:"items"`
+	NextCursor  *string                        `json:"next_cursor"`
+	HasMore     bool                           `json:"has_more"`
+	OtherGroups []models.FansubGroupSummary    `json:"other_groups"`
+	CoopGroups  []models.FansubGroupSummary    `json:"coop_groups"`
 }
 
 // GetGroupReleasesCursor liefert eine Seek-paginierte (Cursor-)Seite der
@@ -287,11 +288,16 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 	if err != nil {
 		return nil, fmt.Errorf("load other release groups (%d,%d): %w", animeID, groupID, err)
 	}
+	coopGroups, err := r.getCoopGroups(ctx, animeID, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("load coop groups (%d,%d): %w", animeID, groupID, err)
+	}
 
 	return &GroupReleasesCursorPage{
-		Items:      page,
-		NextCursor: nextCursor,
-		HasMore:    hasMore,
+		Items:       page,
+		NextCursor:  nextCursor,
+		HasMore:     hasMore,
 		OtherGroups: otherGroups,
+		CoopGroups:  coopGroups,
 	}, nil
 }
