@@ -18,17 +18,28 @@ import (
 // readAuthzPermissionsSource lädt die Quelldatei authz_permissions.go
 // relativ zur aktuellen Test-Datei (Source-Inspection-Muster, konsistent mit
 // anderen Repository-Tests wie admin_content_fansub_releases_test.go).
+//
+// Plan 188-05 (D-14) teilte authz_permissions.go (588 Zeilen) in drei Dateien auf;
+// ListActorContributionRolesForVersion selbst zog dabei nach authz_roles.go um
+// (reiner Umbau-Commit, keine Verhaltensänderung). Diese Funktion liest deshalb
+// beide Dateien zusammen, damit die unten bestehenden Source-Contract-Tests
+// (die auf genau diese Methode greppen) ohne Pfadänderung weiter funktionieren.
 func readAuthzPermissionsSource(t *testing.T) string {
 	t.Helper()
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("resolve test file path failed")
 	}
-	content, err := os.ReadFile(filepath.Join(filepath.Dir(file), "authz_permissions.go"))
+	dir := filepath.Dir(file)
+	content, err := os.ReadFile(filepath.Join(dir, "authz_permissions.go"))
 	if err != nil {
 		t.Fatalf("read authz_permissions.go: %v", err)
 	}
-	return string(content)
+	rolesContent, err := os.ReadFile(filepath.Join(dir, "authz_roles.go"))
+	if err != nil {
+		t.Fatalf("read authz_roles.go: %v", err)
+	}
+	return string(content) + string(rolesContent)
 }
 
 // TestListActorContributionRolesForVersion ist ein Wave-0-Test (Plan 83-01) für D-02.
