@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useId, useState } from 'react'
 
 import { Button, HeroMetrics } from '@/components/ui'
-import { buildTechnicalFansubProjectPath } from '@/lib/fansubProjectRoutes'
+import { buildFansubProjectPath } from '@/lib/fansubProjectRoutes'
 import type { FansubGroupSummary } from '@/types/fansub'
 
 import styles from '../page.module.css'
@@ -16,9 +16,10 @@ interface ProjectStatsProps {
   releaseCount: number
   coopGroups: FansubGroupSummary[]
   animeID: number
+  animeSlug?: string | null
 }
 
-export function ProjectStats({ contributorCount, releaseCount, coopGroups, animeID }: ProjectStatsProps) {
+export function ProjectStats({ contributorCount, releaseCount, coopGroups, animeID, animeSlug }: ProjectStatsProps) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const detailsId = useId()
@@ -33,7 +34,11 @@ export function ProjectStats({ contributorCount, releaseCount, coopGroups, anime
   }
 
   const partnerLink = (group: FansubGroupSummary, className: string) => (
-    <Link href={buildTechnicalFansubProjectPath(animeID, group.id)} prefetch={false} className={className}>
+    <Link
+      href={buildFansubProjectPath({ groupSlug: group.slug, animeSlug, animeID, groupID: group.id })}
+      prefetch={false}
+      className={className}
+    >
       {group.name}
     </Link>
   )

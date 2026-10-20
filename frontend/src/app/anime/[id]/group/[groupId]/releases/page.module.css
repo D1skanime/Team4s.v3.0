@@ -193,7 +193,8 @@
 .otherGroupsLabel {
   margin: 0 0 8px;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 .otherGroupsScroller {

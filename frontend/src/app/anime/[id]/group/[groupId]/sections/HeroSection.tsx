@@ -154,6 +154,7 @@ export function HeroSection({
                     releaseCount={releaseVersionCount}
                     coopGroups={coopGroups}
                     animeID={animeID}
+                    animeSlug={anime.slug}
                   />
                 </div>
               </div>

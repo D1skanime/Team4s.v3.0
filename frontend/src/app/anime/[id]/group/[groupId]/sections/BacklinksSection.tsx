@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { ExternalLink } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 import { Card, SectionHeader } from '@/components/ui'
 import { getOtherGroupsHeading } from '@/lib/fansub-labels'
-import { buildTechnicalFansubProjectPath } from '@/lib/fansubProjectRoutes'
+import { buildFansubProjectPath } from '@/lib/fansubProjectRoutes'
 import type { FansubGroupSummary } from '@/types/fansub'
 
 import styles from '../page.module.css'
@@ -12,20 +12,27 @@ interface BacklinksSectionProps {
   fansubSlug: string
   animeID: number
   animeTitle: string
+  animeSlug?: string | null
   discoverableGroups?: FansubGroupSummary[]
 }
 
-export function BacklinksSection({ fansubSlug, animeID, animeTitle, discoverableGroups }: BacklinksSectionProps) {
+export function BacklinksSection({
+  fansubSlug,
+  animeID,
+  animeTitle,
+  animeSlug,
+  discoverableGroups,
+}: BacklinksSectionProps) {
   return (
     <div className={styles.backlinksSection}>
       <SectionHeader title="Mehr entdecken" />
       <Card variant="flat" className={styles.backlinksCard}>
         <div className={styles.backlinksRow}>
           <Link href={`/fansubs/${fansubSlug}`} className={styles.deepLink}>
-            <ExternalLink size={16} aria-hidden="true" /> Zur Gruppenseite
+            <ChevronRight size={16} aria-hidden="true" /> Zur Gruppenseite
           </Link>
           <Link href={`/anime/${animeID}`} className={styles.deepLink}>
-            <ExternalLink size={16} aria-hidden="true" /> Zur Anime-Seite
+            <ChevronRight size={16} aria-hidden="true" /> Zur Anime-Seite
           </Link>
         </div>
         {(discoverableGroups ?? []).length > 0 && (
@@ -35,10 +42,10 @@ export function BacklinksSection({ fansubSlug, animeID, animeTitle, discoverable
               {(discoverableGroups ?? []).map((group) => (
                 <Link
                   key={group.id}
-                  href={buildTechnicalFansubProjectPath(animeID, group.id)}
+                  href={buildFansubProjectPath({ groupSlug: group.slug, animeSlug, animeID, groupID: group.id })}
                   className={styles.deepLink}
                 >
-                  <ExternalLink size={16} aria-hidden="true" /> {group.name}
+                  <ChevronRight size={16} aria-hidden="true" /> {group.name}
                 </Link>
               ))}
             </div>

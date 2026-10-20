@@ -20,7 +20,7 @@ describe('ProjectStats', () => {
     expect(screen.queryByText('Coop-Partner')).toBeNull()
   })
 
-  it('schreibt einen einzelnen Coop-Partner aus und verlinkt zu dessen Projektseite', () => {
+  it('schreibt einen einzelnen Coop-Partner aus und verlinkt zu dessen Projektseite (technischer Pfad ohne Anime-Slug)', () => {
     render(
       <ProjectStats
         contributorCount={3}
@@ -32,6 +32,24 @@ describe('ProjectStats', () => {
 
     const partnerLink = screen.getByRole('link', { name: 'Honto' })
     expect(partnerLink.getAttribute('href')).toBe('/anime/4/group/2')
+  })
+
+  // Live-UAT-Nachbesserung Phase 189: mit Anime-Slug muss der Coop-Partner-Link
+  // auf die kanonische oeffentliche Projekt-URL zeigen, nicht auf die technische
+  // Route (buildFansubProjectPath, D-05/D-06-Nachbesserung).
+  it('verlinkt zur kanonischen oeffentlichen Projektseite, wenn der Anime-Slug vorhanden ist', () => {
+    render(
+      <ProjectStats
+        contributorCount={3}
+        releaseCount={12}
+        coopGroups={[{ id: 2, slug: 'honto', name: 'Honto', logo_url: '/logo.png' }]}
+        animeID={4}
+        animeSlug="11eyes"
+      />,
+    )
+
+    const partnerLink = screen.getByRole('link', { name: 'Honto' })
+    expect(partnerLink.getAttribute('href')).toBe('/fansubs/honto/fansubprojekt/11eyes')
   })
 
   it('zeigt bei genau zwei Partnern "A · B" mit zwei eigenstaendigen Links', () => {

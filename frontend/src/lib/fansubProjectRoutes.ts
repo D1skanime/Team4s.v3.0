@@ -50,6 +50,31 @@ export function buildPublicFansubProjectHref(params: {
   return `/anime/${params.project.id}/group/${params.groupId}`
 }
 
+/**
+ * Phase 189 (UAT-Nachbesserung): kanonisches Link-Ziel für eine Fansub-Gruppe
+ * bei einem bestimmten Anime, mit Rückfall auf den technischen Pfad nur wenn
+ * einer der beiden Slugs fehlt -- selbe Rückfalllogik wie
+ * buildPublicFansubProjectHref oben, hier aber mit den primitiven
+ * Feldern (groupSlug/animeSlug/animeID/groupID), die an den tatsächlichen
+ * Aufrufstellen (Coop-Partner-Links, "Mehr entdecken") bereits vorliegen,
+ * statt eines vollen PublicFansubProject-Objekts.
+ */
+export function buildFansubProjectPath(params: {
+  groupSlug?: string | null
+  animeSlug?: string | null
+  animeID: number
+  groupID: number
+}): string {
+  const groupSlug = params.groupSlug?.trim()
+  const animeSlug = params.animeSlug?.trim()
+
+  if (groupSlug && animeSlug) {
+    return buildPublicFansubProjectPath(groupSlug, animeSlug)
+  }
+
+  return buildTechnicalFansubProjectPath(params.animeID, params.groupID)
+}
+
 export function buildPublicFansubProjectMemberPath(
   fansubSlug: string,
   animeSlug: string,

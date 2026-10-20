@@ -54,6 +54,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
         fansubSlug={data.group.fansub.slug}
         animeID={data.animeID}
         animeTitle={data.anime.title}
+        animeSlug={data.anime.slug}
         discoverableGroups={data.discoverableGroups}
       />
     </main>
