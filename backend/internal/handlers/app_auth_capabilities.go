@@ -25,6 +25,7 @@ type fansubGroupCapabilitiesResponse struct {
 	CanLinkHistoricalMembers   bool `json:"can_link_historical_members"`
 	CanEditNotes               bool `json:"can_edit_notes"`
 	CanEditProjectTimeline     bool `json:"can_edit_project_timeline"`
+	CanEditProjectNotes        bool `json:"can_edit_project_notes"`
 	CanViewInvitations         bool `json:"can_view_invitations"`
 	CanCreateInvitation        bool `json:"can_create_invitation"`
 	CanCancelInvitation        bool `json:"can_cancel_invitation"`
@@ -120,8 +121,10 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 	// Anime+Gruppe-Paar) statt gruppenweit (CanForFansubGroup) ausgewertet. Ohne anime_id
 	// bleibt das bestehende gruppenweite Verhalten für alle Aufrufer unverändert erhalten.
 	var canEditProjectTimeline permissions.Result
+	var parsedAnimeID int64
 	if rawAnimeID := strings.TrimSpace(c.Query("anime_id")); rawAnimeID != "" {
-		parsedAnimeID, parseErr := strconv.ParseInt(rawAnimeID, 10, 64)
+		var parseErr error
+		parsedAnimeID, parseErr = strconv.ParseInt(rawAnimeID, 10, 64)
 		if parseErr != nil || parsedAnimeID <= 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige anime-id"}})
 			return
@@ -132,6 +135,21 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 	}
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung für den Projektzeitraum konnte nicht geprüft werden.")
+		return
+	}
+	// D-08 (189-04-PLAN.md): dieselbe anime_id-abhaengige Verzweigung wie bei
+	// canEditProjectTimeline, hier fuer die separate Projektnotizen-Schreibberechtigung.
+	// can_edit_notes (gruppenweit, steuert auch die Notizen-Tab-Sichtbarkeit) bleibt davon
+	// unberuehrt -- das ist der Kern von D-08. parsedAnimeID ist der bereits oben geparste
+	// Wert -- kein zweites Parsen von anime_id aus der Query.
+	var canEditProjectNotes permissions.Result
+	if parsedAnimeID > 0 {
+		canEditProjectNotes, err = h.permissionSvc.CanForAnimeProject(c.Request.Context(), actor, permissions.ActionAnimeFansubProjectNotesWrite, parsedAnimeID, fansubID)
+	} else {
+		canEditProjectNotes, err = h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionAnimeFansubProjectNotesWrite, fansubID)
+	}
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung für die Projektnotiz konnte nicht geprüft werden.")
 		return
 	}
 	canViewInvitations, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsView, fansubID)
@@ -236,6 +254,7 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		!canManageLinks.Allowed &&
 		!canEditNotes.Allowed &&
 		!canEditProjectTimeline.Allowed &&
+		!canEditProjectNotes.Allowed &&
 		!canViewInvitations.Allowed &&
 		!canCreateInvitation.Allowed &&
 		!canCancelInvitation.Allowed &&
@@ -268,6 +287,7 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		CanLinkHistoricalMembers:   canLinkHistoricalMembers.Allowed,
 		CanEditNotes:               canEditNotes.Allowed,
 		CanEditProjectTimeline:     canEditProjectTimeline.Allowed,
+		CanEditProjectNotes:        canEditProjectNotes.Allowed,
 		CanViewInvitations:         canViewInvitations.Allowed,
 		CanCreateInvitation:        canCreateInvitation.Allowed,
 		CanCancelInvitation:        canCancelInvitation.Allowed,

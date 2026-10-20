@@ -1560,6 +1560,66 @@ func TestGetFansubGroupCapabilitiesWithoutAnimeIdStaysGroupWide(t *testing.T) {
 	}
 }
 
+// TestGetFansubGroupCapabilitiesReturnsProjectSpecificNotesRight is 189-04-PLAN.md's D-08
+// capability test (mirrors Plan 188-05's Handler-Test C for the sibling timeline action):
+// with an anime_id query parameter, can_edit_project_notes is computed via
+// CanForAnimeProject and reflects a confirmed project-specific role even without any
+// granting group role. can_edit_notes (the unrelated, group-wide, tab-visibility
+// capability) must stay unaffected.
+func TestGetFansubGroupCapabilitiesReturnsProjectSpecificNotesRight(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+
+	handler := &AppAuthHandler{permissionSvc: permissions.NewService(permissionResolverStub{
+		context:                  &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+		roles:                    map[int64][]string{88: {}},
+		projectContributionRoles: map[int64]map[int64][]string{88: {9: {permissions.RoleProjectLead}}},
+	})}
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities?anime_id=9", nil, middleware.AuthIdentity{
+		UserID: 6, AppUserID: 6, DisplayName: "Strawhat Leader", AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.GetFansubGroupCapabilities(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	data := decodeBody(t, recorder)["data"].(map[string]any)
+	if got := data["can_edit_project_notes"]; got != true {
+		t.Fatalf("confirmed project_lead for this anime+group pair must edit project notes, got %#v", got)
+	}
+	if got := data["can_edit_notes"]; got != false {
+		t.Fatalf("can_edit_notes must stay unaffected by the new project-specific capability, got %#v", got)
+	}
+}
+
+// TestGetFansubGroupCapabilitiesWithoutAnimeIdNotesStaysGroupWide is 189-04-PLAN.md's D-08
+// regression test: without an anime_id query parameter, can_edit_project_notes stays on the
+// group-wide CanForFansubGroup path -- a granting project role for one specific anime must
+// NOT leak into the group-wide default.
+func TestGetFansubGroupCapabilitiesWithoutAnimeIdNotesStaysGroupWide(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+
+	handler := &AppAuthHandler{permissionSvc: permissions.NewService(permissionResolverStub{
+		context:                  &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+		roles:                    map[int64][]string{88: {permissions.RoleQualityChecker}},
+		projectContributionRoles: map[int64]map[int64][]string{88: {9: {permissions.RoleProjectLead}}},
+	})}
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities", nil, middleware.AuthIdentity{
+		UserID: 6, AppUserID: 6, DisplayName: "Strawhat Leader", AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.GetFansubGroupCapabilities(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if got := decodeBody(t, recorder)["data"].(map[string]any)["can_edit_project_notes"]; got != false {
+		t.Fatalf("without anime_id, the group-wide default must stay unaffected by the project-specific role, got %#v", got)
+	}
+}
+
 func TestGetFansubGroupCapabilitiesAllowsEncoderMediaAndNotesWorkspace(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	loadAppAuthCapabilityTestCache(t)
