@@ -45,7 +45,7 @@ vi.mock("@/lib/api", () => ({
   getGroupReleases: mocks.getGroupReleases,
 }));
 
-import { loadPublicFansubProjectPageData } from "./projectPageData";
+import { discoverableOtherGroups, loadPublicFansubProjectPageData } from "./projectPageData";
 
 const ANIME_ID = 13;
 const GROUP_ID = 1;
@@ -242,6 +242,30 @@ describe("loadPublicFansubProjectPageData - bounded request count (Plan 155-04)"
     for (const count of Object.values(callCountsWithFewItems)) {
       expect(count).toBe(1);
     }
+  });
+});
+
+describe("discoverableOtherGroups (D-06 - Mehr entdecken Datengrundlage)", () => {
+  it("liefert ein leeres Array bei leeren Eingaben", () => {
+    expect(discoverableOtherGroups([], [], GROUP_ID)).toEqual([]);
+  });
+
+  it("schliesst eine Gruppe aus, die sowohl in otherGroups als auch in coopGroups vorkommt", () => {
+    const shared = { id: 5, slug: "shared", name: "Shared", logo_url: null };
+    const onlyOther = { id: 6, slug: "only-other", name: "Only Other", logo_url: null };
+
+    const result = discoverableOtherGroups([shared, onlyOther], [shared], GROUP_ID);
+
+    expect(result).toEqual([onlyOther]);
+  });
+
+  it("schliesst die eigene Gruppe aus, auch wenn sie in otherGroups vorkommt", () => {
+    const self = { id: GROUP_ID, slug: "self", name: "Self", logo_url: null };
+    const onlyOther = { id: 7, slug: "only-other", name: "Only Other", logo_url: null };
+
+    const result = discoverableOtherGroups([self, onlyOther], [], GROUP_ID);
+
+    expect(result).toEqual([onlyOther]);
   });
 });
 
