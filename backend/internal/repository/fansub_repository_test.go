@@ -208,11 +208,14 @@ func TestAttachGroupCounts_ProjectsCountExcludesDisabledAnime(t *testing.T) {
 
 func TestFansubRepository_DeleteGroupCleansRestrictedChildrenFirst(t *testing.T) {
 	// 174-16 moved DeleteGroup into fansub_repository_groups.go (same
-	// package/receiver, D-15 split) -- this is a pure import-path adjustment
-	// of the self-inspection assertion below, not a behavior change.
-	src, err := os.ReadFile("fansub_repository_groups.go")
+	// package/receiver, D-15 split); 189-08 Task 1 moved it again into its
+	// own fansub_repository_groups_delete.go (same package/receiver) to make
+	// room for the D-12 dependents pre-check -- this is a second pure
+	// import-path adjustment of the self-inspection assertion below, not a
+	// behavior change.
+	src, err := os.ReadFile("fansub_repository_groups_delete.go")
 	if err != nil {
-		t.Fatalf("read fansub repository groups: %v", err)
+		t.Fatalf("read fansub repository groups delete: %v", err)
 	}
 	content := string(src)
 
