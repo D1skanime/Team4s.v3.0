@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound, useRouter, useSearchParams } from 'next/navigation'
-import { Play, X } from 'lucide-react'
 import { useEffect, useState, useCallback } from 'react'
 
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
@@ -11,6 +10,10 @@ import { GroupEdgeNavigation } from '@/components/groups/GroupEdgeNavigation'
 import { Pagination } from '@/components/anime/Pagination'
 import { buildGroupNavigationGroups } from '@/lib/groupNavigation'
 import { getGroupReleases, getAnimeByID, getAnimeFansubs, ApiError } from '@/lib/api'
+
+import { OtherGroupsChips } from './OtherGroupsChips'
+import { ReleaseEpisodeCard } from './ReleaseEpisodeCard'
+import { ReleasesFilterBar } from './ReleasesFilterBar'
 
 import styles from './page.module.css'
 
@@ -352,97 +355,25 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
             ) : null}
           </section>
 
-          <section id="filterBar" className={`${styles.filterBar} ${isSticky ? styles.filterBarSticky : ''}`}>
-            <div className={styles.filterChips}>
-              <button
-                type="button"
-                className={`${styles.chip} ${!anyFilterActive ? styles.chipActive : styles.chipInactive}`}
-                onClick={toggleAll}
-                aria-pressed={!anyFilterActive}
-              >
-                Alle
-              </button>
-              <button
-                type="button"
-                className={`${styles.chip} ${filterOp ? styles.chipActive : styles.chipInactive}`}
-                onClick={() => toggleFilter('op')}
-                aria-pressed={filterOp}
-              >
-                Mit OP
-              </button>
-              <button
-                type="button"
-                className={`${styles.chip} ${filterEd ? styles.chipActive : styles.chipInactive}`}
-                onClick={() => toggleFilter('ed')}
-                aria-pressed={filterEd}
-              >
-                Mit ED
-              </button>
-              <button
-                type="button"
-                className={`${styles.chip} ${filterKaraoke ? styles.chipActive : styles.chipInactive}`}
-                onClick={() => toggleFilter('karaoke')}
-                aria-pressed={filterKaraoke}
-              >
-                Mit Karaoke
-              </button>
-            </div>
-            <div className={styles.searchContainer}>
-              <input
-                type="text"
-                className={styles.searchInput}
-                placeholder="Suche..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                aria-label="Suche nach Releases"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  className={styles.clearButton}
-                  onClick={() => {
-                    setSearchTerm('')
-                    setDebouncedSearchTerm('')
-                    updateURL({ q: undefined })
-                  }}
-                  aria-label="Suche löschen"
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
-          </section>
+          <ReleasesFilterBar
+            filterOp={filterOp}
+            filterEd={filterEd}
+            filterKaraoke={filterKaraoke}
+            anyFilterActive={Boolean(anyFilterActive)}
+            searchTerm={searchTerm}
+            isSticky={isSticky}
+            onToggleFilter={toggleFilter}
+            onToggleAll={toggleAll}
+            onSearchChange={setSearchTerm}
+            onClearSearch={() => {
+              setSearchTerm('')
+              setDebouncedSearchTerm('')
+              updateURL({ q: undefined })
+            }}
+          />
 
           <section className={styles.releasesSection}>
-            {otherGroups.length > 0 ? (
-              <div className={styles.otherGroupsSection}>
-                <p className={styles.otherGroupsLabel}>Weitere Gruppen zu diesem Anime</p>
-                <div className={styles.otherGroupsScroller} aria-label="Weitere Fansub-Gruppen">
-                  {otherGroups.map((otherGroup) => (
-                    <Link
-                      key={otherGroup.id}
-                      href={`/anime/${animeID}/group/${otherGroup.id}/releases`}
-                      className={styles.otherGroupChip}
-                    >
-                      {otherGroup.logo_url ? (
-                        <Image
-                          src={otherGroup.logo_url}
-                          alt={otherGroup.name}
-                          width={22}
-                          height={22}
-                          className={styles.otherGroupLogo}
-                        />
-                      ) : (
-                        <span className={styles.otherGroupInitial} aria-hidden="true">
-                          {otherGroup.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      <span className={styles.otherGroupName}>{otherGroup.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+            <OtherGroupsChips animeID={animeID} otherGroups={otherGroups} />
 
             {meta && (
               <div className={styles.releasesMeta}>
@@ -465,79 +396,9 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
               </div>
             ) : (
               <div className={styles.releaseGrid}>
-                {episodes.map((episode) =>
-                  episode.episode_id ? (
-                    <Link
-                      key={episode.id}
-                      href={`/episodes/${episode.episode_id}?releaseId=${episode.id}&animeId=${animeID}&groupId=${groupID}`}
-                      className={styles.releaseCard}
-                      aria-label={`Episode ${episode.episode_number}${episode.title ? `: ${episode.title}` : ''}`}
-                    >
-                      <article>
-                        {episode.thumbnail_url ? (
-                          <div className={styles.thumbnail}>
-                            <Image
-                              src={episode.thumbnail_url}
-                              alt={episode.title ?? `Episode ${episode.episode_number}`}
-                              width={320}
-                              height={180}
-                              className={styles.thumbnailImage}
-                            />
-                            <div className={styles.playOverlay}>
-                              <Play size={32} />
-                            </div>
-                          </div>
-                        ) : (
-                          <div className={styles.thumbnailPlaceholder}>
-                            <Play size={32} />
-                          </div>
-                        )}
-                        <div className={styles.releaseInfo}>
-                          <h3 className={styles.episodeTitle}>
-                            Episode {episode.episode_number}
-                            {episode.title ? `: ${episode.title}` : ''}
-                          </h3>
-                          {episode.version_label ? (
-                            <p className={styles.releaseDate}>{episode.version_label}</p>
-                          ) : null}
-                          {episode.released_at ? (
-                            <p className={styles.releaseDate}>
-                              {new Date(episode.released_at).toLocaleDateString('de-DE')}
-                            </p>
-                          ) : null}
-                        </div>
-                      </article>
-                    </Link>
-                  ) : (
-                    <article key={episode.id} className={styles.releaseCard} aria-label={`Episode ${episode.episode_number}`}>
-                      {episode.thumbnail_url ? (
-                        <div className={styles.thumbnail}>
-                          <Image
-                            src={episode.thumbnail_url}
-                            alt={episode.title ?? `Episode ${episode.episode_number}`}
-                            width={320}
-                            height={180}
-                            className={styles.thumbnailImage}
-                          />
-                        </div>
-                      ) : (
-                        <div className={styles.thumbnailPlaceholder}>
-                          <Play size={32} />
-                        </div>
-                      )}
-                      <div className={styles.releaseInfo}>
-                        <h3 className={styles.episodeTitle}>
-                          Episode {episode.episode_number}
-                          {episode.title ? `: ${episode.title}` : ''}
-                        </h3>
-                        {episode.version_label ? (
-                          <p className={styles.releaseDate}>{episode.version_label}</p>
-                        ) : null}
-                        <p className={styles.releaseDate}>Episode-Route nicht verfügbar.</p>
-                      </div>
-                    </article>
-                  )
-                )}
+                {episodes.map((episode) => (
+                  <ReleaseEpisodeCard key={episode.id} episode={episode} animeID={animeID} groupID={groupID} />
+                ))}
               </div>
             )}
 
