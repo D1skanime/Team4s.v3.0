@@ -584,6 +584,20 @@ Last activity: 2026-10-20
 
 ### Roadmap Evolution
 
+- Phase 190 added (2026-10-20): Öffentliche Fansub-Gruppenseite überarbeiten (`/fansubs/<slug>`).
+  Quelle: gemeinsame Live-Durchsicht mit dem Nutzer am 20./21.10.2026 auf `/fansubs/new-subs`
+  (Desktop 1440 px). Umfang laut Nutzervorgabe (D-a bis D-n): Kopfbereich an die öffentliche
+  Projektseite angleichen (Rahmen-Karte entfernt, größeres Banner, Komponenten wiederverwenden),
+  Kennzahl „Release-Versionen" → „Releases", „aufgelöst" nur einmal zeigen, Mitglieder-Bezeichnung
+  je Gruppenstatus, Team-Karten vereinheitlichen mit aufklappbaren Zitaten, „unbestätigt" nur noch
+  in der Abschnittsüberschrift, Einzelprojekt im normalen Kartenraster statt Großkarte, Medien ohne
+  generische Titel und mit nur einem „Alle anzeigen"-Element, Medien nach Kategorien gruppiert,
+  Geschichte-Textblock mittig mit Lesebreite und linksbündigem Text. Reihenfolge der Abschnitte und
+  Kennzahl „Mitglieder"/Zeitleiste bleiben unverändert. Explizit nicht enthalten: Inhalte/Testdaten
+  (Test-Text, Tippfehler, inhaltliche Widersprüche) — das sind Daten, keine UI. Additiv angelegt,
+  kein neues Milestone, kein Reset. Nur add-phase — noch nicht geplant; Ist-Analyse + CONTEXT.md mit
+  offenen Fragen folgt direkt im Anschluss.
+
 - Phase 189 added (2026-10-20): Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht,
   Gruppen-Merge-Guard. Quellen: `.planning/todos/pending/2026-10-20-bug-projektseite-coop-partner.md`,
   `.planning/todos/pending/2026-10-20-projektnotizen-falsche-action.md`,

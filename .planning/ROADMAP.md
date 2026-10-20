@@ -2947,3 +2947,13 @@ Plans:
 **Wave 3** *(blockiert auf Wave-2-Abschluss)*
 
 - [x] 189-07-PLAN.md — Frontend: Merge-Wizard-Verzeichnis, API-Client-Funktionen, Merge-Typen und Admin-UI-Einstiegspunkte entfernen (D-11).
+
+### Phase 190: Öffentliche Fansub-Gruppenseite überarbeiten (/fansubs/<slug>)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 189
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 190 to break down)
