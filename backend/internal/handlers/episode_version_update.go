@@ -46,7 +46,7 @@ func (h *FansubHandler) UpdateEpisodeVersion(c *gin.Context) {
 		}
 		result, permissionErr := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMetadataUpdate, versionID)
 		if permissionErr != nil {
-			writePermissionInternalError(c, permissionErr, "Release-Metadaten-Berechtigung konnte nicht geprueft werden.")
+			writePermissionInternalError(c, permissionErr, "Release-Metadaten-Berechtigung konnte nicht geprüft werden.")
 			return
 		}
 		if !result.Allowed {
