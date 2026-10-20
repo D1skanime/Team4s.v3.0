@@ -6,6 +6,7 @@ import { Button, DatePicker, FormField } from '@/components/ui'
 import {
   ApiError,
   getAnimeFansubProjectTimeline,
+  getFansubGroupCapabilities,
   updateAnimeFansubProjectTimeline,
 } from '@/lib/api'
 import type { AnimeFansubProjectTimeline } from '@/types/fansubNotes'
@@ -33,6 +34,13 @@ export function AnimeProjectTimelineSection({ fansubId, animeId, expanded, canEd
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // D-12/D-13: projektbezogene Freischaltung der Datumsfelder (eigener
+  // Capability-Abruf mit anime_id) -- überschreibt die gruppenweite
+  // Fallback-Prop `canEdit`, sobald das Ergebnis vorliegt. `null` bedeutet
+  // "noch nicht geladen oder Abruf fehlgeschlagen": effectiveCanEdit fällt in
+  // diesem Fall auf `canEdit` zurück, damit ein Netzwerkfehler bei diesem
+  // Zusatzabruf die bereits funktionierende Timeline-Anzeige nicht blockiert.
+  const [projectCanEdit, setProjectCanEdit] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (!expanded) return
@@ -52,6 +60,23 @@ export function AnimeProjectTimelineSection({ fansubId, animeId, expanded, canEd
       })
       .finally(() => {
         if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [expanded, fansubId, animeId])
+
+  useEffect(() => {
+    if (!expanded) return
+    let active = true
+    getFansubGroupCapabilities(fansubId, undefined, { animeId })
+      .then((response) => {
+        if (!active) return
+        setProjectCanEdit(response.data.can_edit_project_timeline)
+      })
+      .catch(() => {
+        if (!active) return
+        setProjectCanEdit(null)
       })
     return () => {
       active = false
@@ -78,6 +103,7 @@ export function AnimeProjectTimelineSection({ fansubId, animeId, expanded, canEd
 
   const currentYear = new Date().getFullYear()
   const changed = startedOn !== (timeline.productionStartedOn ?? '') || completedOn !== (timeline.productionCompletedOn ?? '')
+  const effectiveCanEdit = projectCanEdit ?? canEdit
 
   return (
     <section aria-label="Projektzeitraum">
@@ -93,7 +119,7 @@ export function AnimeProjectTimelineSection({ fansubId, animeId, expanded, canEd
               value={startedOn}
               minYear={1950}
               maxYear={currentYear + 5}
-              disabled={!canEdit || saving}
+              disabled={!effectiveCanEdit || saving}
               onChange={setStartedOn}
             />
           </FormField>
@@ -105,7 +131,7 @@ export function AnimeProjectTimelineSection({ fansubId, animeId, expanded, canEd
               minYear={1950}
               maxYear={currentYear + 5}
               minDate={startedOn || undefined}
-              disabled={!canEdit || saving}
+              disabled={!effectiveCanEdit || saving}
               panelAlign="end"
               onChange={setCompletedOn}
             />
@@ -113,7 +139,7 @@ export function AnimeProjectTimelineSection({ fansubId, animeId, expanded, canEd
         </div>
       ) : null}
       {error ? <p className={styles.errorText}>{error}</p> : null}
-      {canEdit ? (
+      {effectiveCanEdit ? (
         <div className={styles.saveRow}>
           <Button variant="primary" size="sm" onClick={() => void handleSave()} disabled={loading || saving || !changed}>
             {saving ? 'Speichern...' : 'Projektzeitraum speichern'}

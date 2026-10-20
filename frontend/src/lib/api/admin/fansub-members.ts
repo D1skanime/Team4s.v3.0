@@ -124,10 +124,14 @@ export async function searchFansubAppMemberCandidates(
 export async function getFansubGroupCapabilities(
   fansubId: number,
   authToken?: string,
+  options?: { animeId?: number },
 ): Promise<FansubGroupCapabilitiesResponse> {
   const API_BASE_URL = getApiBaseUrl();
+  const query = options?.animeId
+    ? `?anime_id=${options.animeId}`
+    : "";
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/capabilities`,
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/capabilities${query}`,
     {
       authToken,
       cache: "no-store",
