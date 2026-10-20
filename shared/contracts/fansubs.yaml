@@ -119,6 +119,12 @@ endpoints:
     response:
       status: 204
       type: none
+    error_responses:
+      - status: 409
+        description: >-
+          Gruppe hat echte Dependents (D-12): Code
+          "fansub_group_has_dependents", Nachricht "Diese Gruppe kann nicht
+          entfernt werden: {GermanReasonFragment} hängen noch daran."
 
   - name: fansub-members-list
     method: GET
