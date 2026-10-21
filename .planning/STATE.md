@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 190-07-PLAN.md
-last_updated: "2026-10-21T12:29:34.728Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 190 was final phase)
+last_updated: 2026-10-21T15:02:42.636Z
 last_activity: 2026-10-21
 progress:
   total_phases: 55
   completed_phases: 49
   total_plans: 493
-  completed_plans: 488
+  completed_plans: 544
   percent: 89
 ---
 
@@ -431,15 +431,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 190 — ffentliche-fansub-gruppenseite-berarbeiten-fansubs-slug
+**Current focus:** Milestone complete
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 190 (ffentliche-fansub-gruppenseite-berarbeiten-fansubs-slug) — EXECUTING
-Plan: 7 of 9
-Status: Ready to execute
+Phase: 190
+Plan: Not started
+Status: Milestone complete
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -1461,6 +1461,21 @@ Last activity: 2026-10-21
 - [Phase 190]: 190-05: resolveFansubMediaTitle nimmt media_type gar nicht als Parameter an — D-i-Regression (generischer image-Titel) durch Typsystem ausgeschlossen statt per Konvention
 - [Phase 190-06]: D-t: role_definitions.label_de fuer code='editor' per append-only Migration 0186 von 'Edit' auf 'Editing' korrigiert; 0149 unveraendert gelassen; kein Frontend-Codepfad verzweigt auf den Label-String 'Edit'.
 - [Phase 190]: D-u: HeroMetrics-Mobil-Fix als flex: 1 1 140px auf .heroMetricItem im bestehenden 767px-Media-Query, siteweit ueber die gemeinsame Komponente, keine per-Call-Site-Overrides
+- [Phase 190]: Abschluss. Alle 9 Pläne ausgeführt, drei Live-UAT-Checkpoint-Runden mit
+  Nutzerkorrekturen (D-p Banner-Root-Cause statt Zahlenwert; D-h Einzelprojekt-Karte erst
+  singleItemLayout-Prop dann vollstaendig FocalCarousel-umgangene Variante B, der ungenutzte Prop
+  danach komplett zurueckgebaut; D-k Medien erst global dann pro Kategorie paginiert, danach
+  Hierarchie-/Rasterbreiten-Korrektur) — alle Nachbesserungen noch innerhalb der Phase behoben und
+  erneut live bestaetigt. Nach finaler Nutzerfreigabe zusaetzlich Deep-Code-Review
+  (190-REVIEW.md, 26 Dateien: 0 Critical/5 Warning/3 Info) durchgefuehrt, alle 5 Warnings gefixt
+  (React-Key-Kollision, tote CSS-Klassen — 2 vom Review faelschlich als tot gemeldete Klassen
+  selbst gegengeprueft und behalten, 2 weitere tote Klassen selbst gefunden und mitentfernt, ein
+  vorbestehender sortHistory-Komparator-Bug, fehlendes Error-Logging, eine beruehrte 458-Zeilen-
+  Datei ohne Split). Finale Testlaeufe: `scripts/test-backend.sh` GATE: GREEN (0), 2345 PASS/0
+  FAIL; Frontend-Vollsuite 400/401 Dateien (1 skip), 3670 Tests gruen. Vom Nutzer final mit
+  "approved" abgenommen (2026-10-21). 190-VERIFICATION.md auf `status: passed`,
+  190-HUMAN-UAT.md auf `status: approved` gesetzt. Phase 190 vollstaendig abgeschlossen — additiv
+  an die v1.4-Roadmap angehaengt, kein neues Milestone, letzte Phase der aktuellen Roadmap.
 
 ### Pending Todos
 

@@ -2958,7 +2958,7 @@ Mobilgeräten.
 **Requirements**: TBD (additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-a bis D-u in
 190-CONTEXT.md, siehe Plan-Frontmatter `requirements`)
 **Depends on:** Phase 189
-**Plans:** 8/9 plans executed
+**Plans:** 9/9 plans complete
 
 Plans:
 - [x] 190-01-PLAN.md — Hero ohne Rahmen-Karte + Status nur einmal, für alle Status (D-a, D-d, D-o).
@@ -2969,4 +2969,4 @@ Plans:
 - [x] 190-06-PLAN.md — Migration 0186: Rollen-Label "editor" -> "Editing" (D-t).
 - [x] 190-07-PLAN.md — HeroMetrics-Mobil-Umbruch-Fix, siteweit (D-u, Teil 1).
 - [x] 190-08-PLAN.md — Blockierender Live-Checkpoint: HeroMetrics-Sweep an allen sechs Verwendungsstellen (D-u, Teil 2).
-- [ ] 190-09-PLAN.md — Abschliessendes Phasen-Gate + Live-UAT (D-m, D-n, D-s).
+- [x] 190-09-PLAN.md — Abschliessendes Phasen-Gate + Live-UAT (D-m, D-n, D-s).
