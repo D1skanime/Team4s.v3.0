@@ -20,7 +20,6 @@ interface FansubGroupMediaBlockProps {
 
 const MEDIA_IMAGE_SIZES = '(max-width: 640px) 100vw, 220px'
 const PREVIEW_LIMIT = 5
-const MEDIA_BATCH = 10
 
 type FansubMediaCategory =
   | 'gallery'
@@ -52,10 +51,11 @@ function isImage(item: PublicFansubMediaItem): boolean {
 }
 
 /**
- * AO6-11: begrenzt die Vorschau auf 5 Kacheln (letzte Kachel als '+X weitere'-Ueberlauf,
- * sobald mehr Medien vorhanden sind), erweitert das Grid inline batchweise ueber
- * 'Alle N anzeigen' bzw. Klick auf die Ueberlaufkachel (kein Auto-Scroll/Nachladen).
- * Bild-Thumbnails sind klickbare Trigger (onSelect) als Seam fuer die Lightbox aus 99-25.
+ * AO6-11/190-05 (D-j): begrenzt die Vorschau auf 5 Kacheln; sobald mehr Medien vorhanden
+ * sind, erscheint genau EIN Ueberlauf-Element -- der 'Alle N anzeigen'-Button, der das Grid
+ * auf einen Schlag vollstaendig aufklappt (kein Auto-Scroll/Nachladen, keine separate
+ * '+N weitere'-Kachel mehr). Bild-Thumbnails sind klickbare Trigger (onSelect) als Seam
+ * fuer die Lightbox aus 99-25.
  */
 export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlockProps) {
   const [visibleCount, setVisibleCount] = useState(PREVIEW_LIMIT)
@@ -77,15 +77,9 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
   }
 
   const hasOverflow = media.length > visibleCount
-  const cardSlots = hasOverflow ? visibleCount - 1 : visibleCount
-  const visibleItems = media.slice(0, cardSlots)
-  const overflowCount = media.length - cardSlots
+  const visibleItems = media.slice(0, visibleCount)
   const indexById = new Map(visibleItems.map((item, index) => [item.id, index]))
   const mediaGroups = groupFansubMediaByCategory(visibleItems)
-
-  function revealMore() {
-    setVisibleCount((current) => Math.min(media.length, current + MEDIA_BATCH))
-  }
 
   function revealAll() {
     setVisibleCount(media.length)
@@ -156,11 +150,6 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
           </div>
         </div>
       ))}
-      {hasOverflow ? (
-        <Button type="button" variant="ghost" className={styles.mediaOverflowTile} onClick={revealMore}>
-          +{overflowCount} weitere
-        </Button>
-      ) : null}
       {hasOverflow ? (
         <div className={styles.mediaShowAll}>
           <Button type="button" variant="subtle" onClick={revealAll}>
