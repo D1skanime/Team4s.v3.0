@@ -2958,7 +2958,7 @@ Mobilgeräten.
 **Requirements**: TBD (additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-a bis D-u in
 190-CONTEXT.md, siehe Plan-Frontmatter `requirements`)
 **Depends on:** Phase 189
-**Plans:** 5/9 plans executed
+**Plans:** 6/9 plans executed
 
 Plans:
 - [x] 190-01-PLAN.md — Hero ohne Rahmen-Karte + Status nur einmal, für alle Status (D-a, D-d, D-o).
@@ -2966,7 +2966,7 @@ Plans:
 - [x] 190-03-PLAN.md — "Releases"-Label, status-abhängige Mitglieder-Überschrift, Zitat-Clamp, Badge-Bereinigung (D-c, D-e, D-q, D-f, D-g).
 - [x] 190-04-PLAN.md — Banner-Höhe (Checkpoint-Ergebnis), Geschichte zentrieren, FocalCarousel-Einzelprojekt-Fix (D-b, D-l, D-h, D-r).
 - [x] 190-05-PLAN.md — Medien: Titel-Fallback, einzelne "Mehr anzeigen", Kategorie-Gruppierung + CSS-Datei-Split (D-i, D-j, D-k).
-- [ ] 190-06-PLAN.md — Migration 0186: Rollen-Label "editor" -> "Editing" (D-t).
+- [x] 190-06-PLAN.md — Migration 0186: Rollen-Label "editor" -> "Editing" (D-t).
 - [ ] 190-07-PLAN.md — HeroMetrics-Mobil-Umbruch-Fix, siteweit (D-u, Teil 1).
 - [ ] 190-08-PLAN.md — Blockierender Live-Checkpoint: HeroMetrics-Sweep an allen sechs Verwendungsstellen (D-u, Teil 2).
 - [ ] 190-09-PLAN.md — Abschliessendes Phasen-Gate + Live-UAT (D-m, D-n, D-s).

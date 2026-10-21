@@ -91,6 +91,14 @@ None - no external service configuration required.
 - No frontend code changes were needed or made for this plan; the public fansub group page (team cards showing the `editor` role) will now render "Editing" the next time it fetches role_definitions, consistent with the badge-system convention already used elsewhere in the codebase.
 - This plan's D-t work is independent of the remaining wave-3+ work in phase 190 (D-f team-card clamp, D-g unconfirmed badge, D-h/D-r FocalCarousel prop, D-i/D-j/D-k media, D-l story width, D-u HeroMetrics mobile) — no blockers introduced for subsequent plans.
 
+## Self-Check: PASSED
+
+- FOUND: database/migrations/0186_role_catalog_editor_label_correction.up.sql
+- FOUND: database/migrations/0186_role_catalog_editor_label_correction.down.sql
+- FOUND: .planning/phases/190-ffentliche-fansub-gruppenseite-berarbeiten-fansubs-slug/190-06-SUMMARY.md
+- FOUND commit: 80105ac83 (fix(190-06): migration 0186)
+- FOUND commit: 61aa7d685 (docs(190-06): plan summary)
+
 ---
 *Phase: 190-ffentliche-fansub-gruppenseite-berarbeiten-fansubs-slug*
 *Completed: 2026-10-21*
