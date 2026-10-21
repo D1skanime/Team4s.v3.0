@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 190-01-PLAN.md
-last_updated: "2026-10-21T08:55:31.419Z"
+stopped_at: Completed 190-03-PLAN.md
+last_updated: "2026-10-21T11:38:05.721Z"
 last_activity: 2026-10-21
 progress:
   total_phases: 55
   completed_phases: 49
   total_plans: 493
-  completed_plans: 482
+  completed_plans: 484
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 190 (ffentliche-fansub-gruppenseite-berarbeiten-fansubs-slug) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
@@ -1452,6 +1452,9 @@ Last activity: 2026-10-21
   aktuellen Roadmap, keine neue Phase geplant.
 
 - [Phase 190]: 190-01: Badge bleibt alleiniger Status-Indikator, Meta-Zeile verliert ihr Status-Segment via includeStatus:false statt umgekehrt — Badge nutzt bereits farbcodiertes statusVariant und ist die bestehende, staerker gestylte Darstellung; die drei unveraenderten Aufrufstellen von buildFansubFactSummary (ReadinessTab, FansubProfileTabs, episode-helpers) behalten ihr Verhalten unveraendert bei
+- [Phase 190]: status als Pflicht-Prop (nicht optional) auf FansubTeamSection/FansubTeamActiveGroup eingefuehrt, damit kein Call-Site unbemerkt auf den alten hartkodierten Text zurueckfaellt
+- [Phase 190]: Clamp-Zielwert 3.6rem fuer Team-Zitate (statt 8.5rem aus FansubStoryBlock), weil .memberSlogan kleinere Schrift (13px/1.4) nutzt
+- [Phase 190]: unconfirmed-Badge aus Team-Karten entfernt, Hinweis einmalig in Historische-Nennungen-Ueberschrift (D-g)
 
 ### Pending Todos
 
@@ -2168,11 +2171,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 189 P06 | ~30min | 2 tasks | 16 files |
 | Phase 189 P07 | ~50min | 2 tasks | 5 files |
 | Phase 190 P01 | 15min | 2 tasks | 4 files |
+| Phase 190 P03 | 25min | 3 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-10-21T08:55:31.392Z
-Stopped at: Completed 190-01-PLAN.md
+Last session: 2026-10-21T11:38:05.695Z
+Stopped at: Completed 190-03-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
