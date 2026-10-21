@@ -17,20 +17,9 @@
   line-height: 1.65;
 }
 
-.stack {
-  display: grid;
-  gap: 16px;
-}
-
 .compactStack {
   display: grid;
   gap: 8px;
-}
-
-.cardGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
 }
 
 .highlightGrid {
@@ -48,37 +37,6 @@
 .mutedMeta {
   color: var(--text-secondary);
   font-size: 14px;
-}
-
-.projectLink {
-  color: inherit;
-  text-decoration: none;
-}
-
-.historyList {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.historyYear {
-  min-width: 48px;
-  color: var(--accent-primary);
-  font-weight: 600;
-}
-
-.historyNote {
-  margin: 6px 0 0;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.mediaGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
 }
 
 /* Galerie: feste Spaltenzahl, Spalten teilen sich die volle Sektionsbreite gleichmaessig
@@ -187,21 +145,6 @@
   min-height: 0 !important;
   border-radius: 6px;
   overflow: hidden;
-}
-
-.mediaOverflowTile {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  min-height: 0 !important;
-  padding: 0 !important;
-  border-radius: 8px;
-  background: var(--accent-dark) !important;
-  color: var(--color-white) !important;
-  font-size: 15px;
-  font-weight: 600;
 }
 
 .mediaShowAll {
