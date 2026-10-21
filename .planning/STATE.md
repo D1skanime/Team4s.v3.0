@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 190-04-PLAN.md
-last_updated: "2026-10-21T12:02:39.664Z"
+stopped_at: Completed 190-05-PLAN.md
+last_updated: "2026-10-21T12:18:56.542Z"
 last_activity: 2026-10-21
 progress:
   total_phases: 55
   completed_phases: 49
   total_plans: 493
-  completed_plans: 485
+  completed_plans: 486
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 190 (ffentliche-fansub-gruppenseite-berarbeiten-fansubs-slug) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
@@ -1457,6 +1457,8 @@ Last activity: 2026-10-21
 - [Phase 190]: unconfirmed-Badge aus Team-Karten entfernt, Hinweis einmalig in Historische-Nennungen-Ueberschrift (D-g)
 - [Phase 190]: D-b final als Komponenten-Bugfix umgesetzt: stray sizes="1200px"-Prop vom Gruppenseiten-Banner entfernt statt neuer CSS-Wert
 - [Phase 190]: D-r/D-h: FocalCarousel bekommt optionalen singleItemLayout-Prop ('quiet'|'grid', Default 'quiet'), nur FansubProjectsGrid optiert auf 'grid'
+- [Phase 190]: 190-05: FansubPublicSections.module.css vor dem D-k-Inhaltswechsel in FansubHistoryTimeline.module.css aufgeteilt (611->280 Zeilen) — CLAUDE.md 450-Zeilen-Regel, reiner Umbau-Commit vor Verhaltensaenderung
+- [Phase 190]: 190-05: resolveFansubMediaTitle nimmt media_type gar nicht als Parameter an — D-i-Regression (generischer image-Titel) durch Typsystem ausgeschlossen statt per Konvention
 
 ### Pending Todos
 
@@ -2175,11 +2177,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 190 P01 | 15min | 2 tasks | 4 files |
 | Phase 190 P03 | 25min | 3 tasks | 12 files |
 | Phase 190 P04 | ~25min | 3 tasks | 6 files |
+| Phase 190 P05 | 20min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-21T12:02:39.637Z
-Stopped at: Completed 190-04-PLAN.md
+Last session: 2026-10-21T12:18:56.511Z
+Stopped at: Completed 190-05-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
