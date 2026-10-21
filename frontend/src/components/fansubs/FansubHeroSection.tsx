@@ -4,7 +4,7 @@ import { Badge, HeroMetrics } from '@/components/ui'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
 import { getFansubLinkTypeLabel } from '@/lib/fansub-labels'
-import { buildFansubFactSummary } from '@/lib/fansub-summary'
+import { buildFansubFactSummary, statusLabel } from '@/lib/fansub-summary'
 import type { FansubGroup, FansubGroupLink, FansubGroupLinkType, FansubGroupSummary } from '@/types/fansub'
 
 import styles from '../../app/fansubs/[slug]/page.module.css'
@@ -42,12 +42,6 @@ function buildInitials(name: string): string {
     .slice(0, 2)
     .join('')
     .toUpperCase()
-}
-
-function statusLabel(status: FansubGroup['status']): string {
-  if (status === 'active') return 'aktiv'
-  if (status === 'inactive') return 'inaktiv'
-  return 'aufgelöst'
 }
 
 function statusVariant(status: FansubGroup['status']): 'success' | 'warning' | 'muted' {
@@ -91,7 +85,7 @@ export function FansubHeroSection({
 }: FansubHeroSectionProps) {
   const logoURL = resolveApiUrl(group.logo_url || '')
   const bannerURL = resolveApiUrl(group.banner_url || '')
-  const factSummary = buildFansubFactSummary(group)
+  const factSummary = buildFansubFactSummary(group, { includeStatus: false })
   const heroStats = stats ?? []
   const heroLinks = buildHeroLinks(group, communityLinks ?? [])
 

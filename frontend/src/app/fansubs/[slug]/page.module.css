@@ -70,16 +70,12 @@
   padding-bottom: 20px;
 }
 
-/* Banner + Inhalt als EIN durchscheinender Glas-Block (Variante B) */
+/* Nur Layout-Huelle: Banner und Projektidentitaet stehen ohne sichtbare Karte im Hero. */
 .heroCard {
+  position: relative;
+  display: grid;
   margin-top: 18px;
-  border-radius: 18px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.6);
-  -webkit-backdrop-filter: blur(18px) saturate(1.5);
-  backdrop-filter: blur(18px) saturate(1.5);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  box-shadow: 0 12px 38px rgba(20, 15, 30, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .heroBannerWrap {
