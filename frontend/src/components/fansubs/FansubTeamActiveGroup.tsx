@@ -68,14 +68,14 @@ export function FansubTeamActiveGroup({ members, status }: FansubTeamActiveGroup
         {members.map((member) =>
           member.member_slug !== null ? (
             <Link
-              key={member.member_display_name}
+              key={member.id}
               href={'/members/' + member.member_slug}
               className={styles.memberRowLink}
             >
               <MemberRowInner member={member} />
             </Link>
           ) : (
-            <div key={member.member_display_name} className={styles.memberRow}>
+            <div key={member.id} className={styles.memberRow}>
               <MemberRowInner member={member} />
             </div>
           ),

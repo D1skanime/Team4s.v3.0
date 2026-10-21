@@ -109,7 +109,7 @@ export function FansubTeamHistoricalGroup({ historical }: FansubTeamHistoricalGr
           <h3 className={styles.subgroupTitle}>Ehemalige Mitglieder · {former.length}</h3>
           <div className={styles.memberGrid}>
             {formerCollapse.visible.map((member) => (
-              <HistoricalRow key={member.member_display_name} member={member} />
+              <HistoricalRow key={member.id} member={member} />
             ))}
           </div>
           {formerCollapse.isCollapsible ? (
@@ -130,7 +130,7 @@ export function FansubTeamHistoricalGroup({ historical }: FansubTeamHistoricalGr
           <h3 className={styles.subgroupTitle}>Historische Nennungen (unbestätigt) · {unconfirmed.length}</h3>
           <div className={styles.memberGrid}>
             {unconfirmedCollapse.visible.map((member) => (
-              <HistoricalRow key={member.member_display_name} member={member} />
+              <HistoricalRow key={member.id} member={member} />
             ))}
           </div>
           {unconfirmedCollapse.isCollapsible ? (
