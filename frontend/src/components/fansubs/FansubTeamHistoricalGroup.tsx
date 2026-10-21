@@ -4,7 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
-import { Badge, Button } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { useClampedOverflow } from '@/hooks/useClampedOverflow'
 import type { DomainProjectionHistoricalRow } from '@/types/domain-projection'
 
@@ -35,7 +35,7 @@ function MemberRolesAndPeriod({ member }: { member: DomainProjectionHistoricalRo
   )
 }
 
-function HistoricalRow({ member, unconfirmed }: { member: DomainProjectionHistoricalRow; unconfirmed?: boolean }) {
+function HistoricalRow({ member }: { member: DomainProjectionHistoricalRow }) {
   const isLinked = member.member_slug !== null
   const { contentRef, isExpanded, setIsExpanded, isOverflowing } = useClampedOverflow(member.member_slogan ?? '')
   const quoteClassName = isExpanded ? styles.quoteExpanded : styles.quoteClamped
@@ -48,7 +48,6 @@ function HistoricalRow({ member, unconfirmed }: { member: DomainProjectionHistor
           <span className={isLinked ? styles.memberNameLink : styles.memberName}>
             {member.member_display_name}
           </span>
-          {unconfirmed ? <Badge variant="muted">unbestätigt</Badge> : null}
         </span>
         <MemberRolesAndPeriod member={member} />
         {member.member_slogan ? (
@@ -128,10 +127,10 @@ export function FansubTeamHistoricalGroup({ historical }: FansubTeamHistoricalGr
 
       {unconfirmed.length > 0 ? (
         <div>
-          <h3 className={styles.subgroupTitle}>Historische Nennungen · {unconfirmed.length}</h3>
+          <h3 className={styles.subgroupTitle}>Historische Nennungen (unbestätigt) · {unconfirmed.length}</h3>
           <div className={styles.memberGrid}>
             {unconfirmedCollapse.visible.map((member) => (
-              <HistoricalRow key={member.member_display_name} member={member} unconfirmed />
+              <HistoricalRow key={member.member_display_name} member={member} />
             ))}
           </div>
           {unconfirmedCollapse.isCollapsible ? (

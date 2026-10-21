@@ -37,7 +37,7 @@ describe('FansubTeamHistoricalGroup', () => {
     expect(screen.getByText('2008–2011')).toBeTruthy()
   })
 
-  it('zeigt "seit JJJJ" ohne Enddatum und behält das unbestätigt-Badge', () => {
+  it('zeigt "seit JJJJ" ohne Enddatum und den unbestätigt-Hinweis einmalig in der Überschrift', () => {
     render(
       <FansubTeamHistoricalGroup
         historical={[
@@ -53,7 +53,9 @@ describe('FansubTeamHistoricalGroup', () => {
     )
 
     expect(screen.getByText('seit 2015')).toBeTruthy()
-    expect(screen.getByText('unbestätigt')).toBeTruthy()
+    expect(
+      screen.getByRole('heading', { name: /Historische Nennungen \(unbestätigt\)/ }),
+    ).toBeTruthy()
   })
 
   it('klappt eine lange historische Liste ein und zeigt "X weitere anzeigen"', () => {
