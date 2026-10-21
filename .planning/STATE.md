@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 190-05-PLAN.md
-last_updated: "2026-10-21T12:23:14.898Z"
+stopped_at: Completed 190-07-PLAN.md
+last_updated: "2026-10-21T12:29:34.728Z"
 last_activity: 2026-10-21
 progress:
   total_phases: 55
   completed_phases: 49
   total_plans: 493
-  completed_plans: 487
+  completed_plans: 488
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 190 (ffentliche-fansub-gruppenseite-berarbeiten-fansubs-slug) — EXECUTING
-Plan: 6 of 9
+Plan: 7 of 9
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
@@ -1460,6 +1460,7 @@ Last activity: 2026-10-21
 - [Phase 190]: 190-05: FansubPublicSections.module.css vor dem D-k-Inhaltswechsel in FansubHistoryTimeline.module.css aufgeteilt (611->280 Zeilen) — CLAUDE.md 450-Zeilen-Regel, reiner Umbau-Commit vor Verhaltensaenderung
 - [Phase 190]: 190-05: resolveFansubMediaTitle nimmt media_type gar nicht als Parameter an — D-i-Regression (generischer image-Titel) durch Typsystem ausgeschlossen statt per Konvention
 - [Phase 190-06]: D-t: role_definitions.label_de fuer code='editor' per append-only Migration 0186 von 'Edit' auf 'Editing' korrigiert; 0149 unveraendert gelassen; kein Frontend-Codepfad verzweigt auf den Label-String 'Edit'.
+- [Phase 190]: D-u: HeroMetrics-Mobil-Fix als flex: 1 1 140px auf .heroMetricItem im bestehenden 767px-Media-Query, siteweit ueber die gemeinsame Komponente, keine per-Call-Site-Overrides
 
 ### Pending Todos
 
@@ -2180,11 +2181,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 190 P04 | ~25min | 3 tasks | 6 files |
 | Phase 190 P05 | 20min | 3 tasks | 7 files |
 | Phase 190 P06 | 5min | 2 tasks | 2 files |
+| Phase 190 P07 | 8min | 2 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-10-21T12:23:07.467Z
-Stopped at: Completed 190-05-PLAN.md
+Last session: 2026-10-21T12:29:34.700Z
+Stopped at: Completed 190-07-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
