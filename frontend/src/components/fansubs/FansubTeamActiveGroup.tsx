@@ -1,6 +1,10 @@
+'use client'
+
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
+import { Button } from '@/components/ui'
+import { useClampedOverflow } from '@/hooks/useClampedOverflow'
 import type { DomainProjectionMemberRow } from '@/types/domain-projection'
 import type { FansubStatus } from '@/types/fansub'
 import { resolveMemberSectionLabel } from '@/lib/fansub-team-labels'
@@ -17,6 +21,8 @@ function MemberRowInner({ member }: { member: DomainProjectionMemberRow }) {
   const roles = member.role_labels.join(' · ') || 'Rolle nicht hinterlegt'
   const historicalRoles = (member.historical_role_labels ?? []).join(' - ')
   const isLinked = member.member_slug !== null
+  const { contentRef, isExpanded, setIsExpanded, isOverflowing } = useClampedOverflow(member.member_slogan ?? '')
+  const quoteClassName = isExpanded ? styles.quoteExpanded : styles.quoteClamped
 
   return (
     <>
@@ -27,7 +33,23 @@ function MemberRowInner({ member }: { member: DomainProjectionMemberRow }) {
         </span>
         <span className={styles.memberRoles}>{roles}</span>
         {historicalRoles ? <span className={styles.memberRoles}>Früher: {historicalRoles}</span> : null}
-        {member.member_slogan ? <span className={styles.memberSlogan}>„{member.member_slogan}“</span> : null}
+        {member.member_slogan ? (
+          <>
+            <div ref={contentRef} className={quoteClassName}>
+              <span className={styles.memberSlogan}>„{member.member_slogan}“</span>
+            </div>
+            {isOverflowing ? (
+              <Button
+                type="button"
+                variant="subtle"
+                size="sm"
+                onClick={() => setIsExpanded((current) => !current)}
+              >
+                {isExpanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+              </Button>
+            ) : null}
+          </>
+        ) : null}
       </span>
       {isLinked ? <ChevronRight size={16} className={styles.chevron} aria-hidden="true" /> : null}
     </>

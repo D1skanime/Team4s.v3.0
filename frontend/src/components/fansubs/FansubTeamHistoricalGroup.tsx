@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 import { Badge, Button } from '@/components/ui'
+import { useClampedOverflow } from '@/hooks/useClampedOverflow'
 import type { DomainProjectionHistoricalRow } from '@/types/domain-projection'
 
 import { FansubMemberAvatar } from './FansubMemberAvatar'
@@ -36,6 +37,8 @@ function MemberRolesAndPeriod({ member }: { member: DomainProjectionHistoricalRo
 
 function HistoricalRow({ member, unconfirmed }: { member: DomainProjectionHistoricalRow; unconfirmed?: boolean }) {
   const isLinked = member.member_slug !== null
+  const { contentRef, isExpanded, setIsExpanded, isOverflowing } = useClampedOverflow(member.member_slogan ?? '')
+  const quoteClassName = isExpanded ? styles.quoteExpanded : styles.quoteClamped
 
   const inner = (
     <>
@@ -48,7 +51,23 @@ function HistoricalRow({ member, unconfirmed }: { member: DomainProjectionHistor
           {unconfirmed ? <Badge variant="muted">unbestätigt</Badge> : null}
         </span>
         <MemberRolesAndPeriod member={member} />
-        {member.member_slogan ? <span className={styles.memberSlogan}>„{member.member_slogan}“</span> : null}
+        {member.member_slogan ? (
+          <>
+            <div ref={contentRef} className={quoteClassName}>
+              <span className={styles.memberSlogan}>„{member.member_slogan}“</span>
+            </div>
+            {isOverflowing ? (
+              <Button
+                type="button"
+                variant="subtle"
+                size="sm"
+                onClick={() => setIsExpanded((current) => !current)}
+              >
+                {isExpanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+              </Button>
+            ) : null}
+          </>
+        ) : null}
       </span>
       {isLinked ? <ChevronRight size={16} className={styles.chevron} aria-hidden="true" /> : null}
     </>
