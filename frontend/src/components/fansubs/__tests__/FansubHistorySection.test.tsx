@@ -20,7 +20,7 @@ vi.mock('next/image', () => ({
   },
 }))
 
-import { FansubHistorySection } from '../FansubHistorySection'
+import { FansubHistorySection, sortHistory } from '../FansubHistorySection'
 import type { PublicFansubHistory } from '@/types/fansub'
 
 const history: PublicFansubHistory[] = [
@@ -52,6 +52,49 @@ const countHistory: PublicFansubHistory[] = [
     status: 'confirmed',
   },
 ]
+
+describe('sortHistory', () => {
+  const entry = (overrides: Partial<PublicFansubHistory>): PublicFansubHistory => ({
+    id: 0,
+    year: null,
+    event_type: 'milestone',
+    title: null,
+    note: null,
+    status: 'confirmed',
+    ...overrides,
+  })
+
+  it('sortiert nach Jahr aufsteigend', () => {
+    const result = sortHistory([entry({ id: 1, year: 2020 }), entry({ id: 2, year: 2010 })])
+    expect(result.map((item) => item.id)).toEqual([2, 1])
+  })
+
+  it('stellt Eintraege ohne Jahr ans Ende, hinter alle datierten Eintraege', () => {
+    const result = sortHistory([
+      entry({ id: 1, year: null }),
+      entry({ id: 2, year: 2015 }),
+      entry({ id: 3, year: 2010 }),
+    ])
+    expect(result.map((item) => item.id)).toEqual([3, 2, 1])
+  })
+
+  it('bricht ein Gleichstand im Jahr per id auf', () => {
+    const result = sortHistory([entry({ id: 5, year: 2020 }), entry({ id: 3, year: 2020 })])
+    expect(result.map((item) => item.id)).toEqual([3, 5])
+  })
+
+  it('ordnet mehrere Eintraege ohne Jahr stabil nach id, nicht per Zufall der Eingabereihenfolge', () => {
+    // Regression: die urspruengliche Implementierung gab fuer zwei jahrlose Eintraege immer "a
+    // sortiert nach b" zurueck, unabhaengig davon, welches Element tatsaechlich als a/b uebergeben
+    // wurde -- das ist kein gueltiger Komparator und Array.prototype.sort garantiert dafuer keine
+    // bestimmte Reihenfolge. Mit vertauschter Eingabereihenfolge muss trotzdem dieselbe,
+    // id-aufsteigende Ausgabe entstehen.
+    const a = entry({ id: 7, year: null })
+    const b = entry({ id: 2, year: null })
+    expect(sortHistory([a, b]).map((item) => item.id)).toEqual([2, 7])
+    expect(sortHistory([b, a]).map((item) => item.id)).toEqual([2, 7])
+  })
+})
 
 describe('FansubHistorySection', () => {
   it('rendert bestätigte Historie getrennt von Gruppenleitung, mit Artwork-Slot statt rohem Bildpfad', () => {

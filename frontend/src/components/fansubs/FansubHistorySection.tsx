@@ -42,11 +42,12 @@ function publicHistoryTitle(item: PublicFansubHistory, presentation: GroupHistor
   return title
 }
 
-function sortHistory(history: PublicFansubHistory[]): PublicFansubHistory[] {
+export function sortHistory(history: PublicFansubHistory[]): PublicFansubHistory[] {
   return [...history].sort((a, b) => {
-    if (a.year === null || a.year === undefined) return 1
-    if (b.year === null || b.year === undefined) return -1
-    if (a.year !== b.year) return a.year - b.year
+    const aHasYear = a.year !== null && a.year !== undefined
+    const bHasYear = b.year !== null && b.year !== undefined
+    if (aHasYear && bHasYear && a.year !== b.year) return a.year! - b.year!
+    if (aHasYear !== bHasYear) return aHasYear ? -1 : 1
     return a.id - b.id
   })
 }
