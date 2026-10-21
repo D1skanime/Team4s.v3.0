@@ -60,11 +60,13 @@ describe('FansubProjectsGrid', () => {
       '/fansubs/c-subs/fansubprojekt/projekt-1',
     )
     expect(screen.queryByRole('button', { name: /Projekte anzeigen/ })).toBeNull()
-    // D-h/D-r: bei genau einem Projekt soll dieselbe Grid-Behandlung wie bei mehreren Projekten
-    // gelten (kein FocalCarousel-"quiet"-Modus), nicht die ruhige Grosskarten-Darstellung ohne
-    // Navigationspfeile, die FocalCarousel sonst fuer exakt ein sichtbares Element aktiviert.
-    expect(screen.getByRole('button', { name: 'Vorherige Projekte' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Weitere Projekte' })).toBeTruthy()
+    // D-h/D-r (korrigiert nach Live-UAT 190-09): bei genau einem Projekt soll die Karte normal
+    // grossgross/-positioniert wie im Mehr-Projekte-Fall erscheinen UND ohne Navigationspfeile,
+    // da es bei einem sichtbaren Element nichts zu navigieren gibt. Pfeile mit disabled-Zustand
+    // fuer ein Einzelelement sahen im Live-Checkpoint weiterhin wie ein Karussell aus, nicht wie
+    // ein normales Grid -- siehe 190-09-SUMMARY.md.
+    expect(screen.queryByRole('button', { name: 'Vorherige Projekte' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Weitere Projekte' })).toBeNull()
   })
 
   it('zeigt bei mehr als 20 Projekten die ersten 20 + Zaehler-Card und klappt beim Klick alle aus', () => {

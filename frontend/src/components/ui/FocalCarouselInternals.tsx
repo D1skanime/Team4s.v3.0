@@ -275,6 +275,12 @@ export function CollapsedCarousel<T>({
   onNext,
   trackHandlers,
 }: CollapsedCarouselProps<T>) {
+  // Navigation chrome (arrows/counter) is pointless with 0-1 visible items regardless of
+  // singleItemLayout -- there is nothing to navigate to. `quiet` alone cannot gate this once
+  // singleItemLayout="grid" sets quiet=false for a single item (190-08 live-UAT finding): that
+  // combination must still hide the arrows, it just skips the oversized/centered "quiet" styling.
+  const hasMultipleItems = items.length > 1
+
   return (
     <div
       ref={activationRef}
@@ -282,7 +288,7 @@ export function CollapsedCarousel<T>({
       style={style}
     >
       <div className={classNames(styles.controls, quiet && styles.controlsQuiet)}>
-        {!quiet ? (
+        {hasMultipleItems ? (
           <NavArrow
             direction="previous"
             label={previousLabel}
@@ -331,7 +337,7 @@ export function CollapsedCarousel<T>({
             ))}
           </div>
         </div>
-        {!quiet ? (
+        {hasMultipleItems ? (
           <NavArrow
             direction="next"
             label={nextLabel}
@@ -341,7 +347,7 @@ export function CollapsedCarousel<T>({
           />
         ) : null}
       </div>
-      {showCounter && !quiet ? (
+      {showCounter && hasMultipleItems ? (
         <output className={styles.counter} aria-live="polite">
           {formatCounter(
             activeIndex + 1,
