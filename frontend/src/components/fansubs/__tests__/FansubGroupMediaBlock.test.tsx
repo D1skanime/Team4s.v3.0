@@ -76,15 +76,14 @@ describe('FansubGroupMediaBlock', () => {
     expect(screen.getByText('Noch keine Medien hinterlegt')).toBeTruthy()
   })
 
-  it('begrenzt die Vorschau auf 5 Kacheln mit Ueberlaufkachel und Alle-anzeigen-Button', () => {
+  it('zeigt bei Ueberlauf nur den Alle-anzeigen-Button, keine Ueberlaufkachel', () => {
     const items = Array.from({ length: 6 }, (_, index) =>
       mediaRow({ id: index + 1, title: `Medium ${index + 1}` }),
     )
     render(<FansubGroupMediaBlock media={items} />)
 
-    expect(screen.getByText('+2 weitere')).toBeTruthy()
     expect(screen.getByText('Alle 6 anzeigen')).toBeTruthy()
-    expect(screen.queryByText('Medium 5')).toBeNull()
+    expect(screen.queryByText(/^\+\d+ weitere$/)).toBeNull()
     expect(screen.queryByText('Medium 6')).toBeNull()
   })
 
@@ -98,7 +97,7 @@ describe('FansubGroupMediaBlock', () => {
 
     expect(screen.getByText('Medium 5')).toBeTruthy()
     expect(screen.getByText('Medium 6')).toBeTruthy()
-    expect(screen.queryByText('+2 weitere')).toBeNull()
+    expect(screen.queryByText(/^\+\d+ weitere$/)).toBeNull()
   })
 
   it('ruft onSelect mit dem korrekten Index beim Klick auf ein Thumbnail auf', () => {
