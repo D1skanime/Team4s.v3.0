@@ -50,8 +50,6 @@ export type FocalCarouselProps<T> = {
   showCounter?: boolean
   formatCounter?: (position: number, total: number, label: string) => ReactNode
   deferInteractionUntilNearViewport?: boolean
-  /** Layout when exactly one item is visible. Default 'quiet' preserves existing behavior. */
-  singleItemLayout?: 'quiet' | 'grid'
 }
 
 type DirectCarouselItemProps<T> = {
@@ -275,12 +273,6 @@ export function CollapsedCarousel<T>({
   onNext,
   trackHandlers,
 }: CollapsedCarouselProps<T>) {
-  // Navigation chrome (arrows/counter) is pointless with 0-1 visible items regardless of
-  // singleItemLayout -- there is nothing to navigate to. `quiet` alone cannot gate this once
-  // singleItemLayout="grid" sets quiet=false for a single item (190-08 live-UAT finding): that
-  // combination must still hide the arrows, it just skips the oversized/centered "quiet" styling.
-  const hasMultipleItems = items.length > 1
-
   return (
     <div
       ref={activationRef}
@@ -288,7 +280,7 @@ export function CollapsedCarousel<T>({
       style={style}
     >
       <div className={classNames(styles.controls, quiet && styles.controlsQuiet)}>
-        {hasMultipleItems ? (
+        {!quiet ? (
           <NavArrow
             direction="previous"
             label={previousLabel}
@@ -337,7 +329,7 @@ export function CollapsedCarousel<T>({
             ))}
           </div>
         </div>
-        {hasMultipleItems ? (
+        {!quiet ? (
           <NavArrow
             direction="next"
             label={nextLabel}
@@ -347,7 +339,7 @@ export function CollapsedCarousel<T>({
           />
         ) : null}
       </div>
-      {showCounter && hasMultipleItems ? (
+      {showCounter && !quiet ? (
         <output className={styles.counter} aria-live="polite">
           {formatCounter(
             activeIndex + 1,

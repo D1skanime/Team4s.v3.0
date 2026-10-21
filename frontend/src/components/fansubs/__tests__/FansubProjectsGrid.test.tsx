@@ -52,7 +52,7 @@ describe('FansubProjectsGrid', () => {
     expect(screen.queryByRole('button', { name: /Projekte anzeigen/ })).toBeNull()
   })
 
-  it('zeigt bei genau einem Projekt dieses als normale Karte ohne Zaehler-Card', () => {
+  it('zeigt bei genau einem Projekt eine kleinere, linksbuendige Karte ohne FocalCarousel', () => {
     render(<FansubProjectsGrid items={makeItems(1)} groupId={5} groupSlug="c-subs" />)
 
     expect(screen.getByText('Projekt 1')).toBeTruthy()
@@ -60,11 +60,12 @@ describe('FansubProjectsGrid', () => {
       '/fansubs/c-subs/fansubprojekt/projekt-1',
     )
     expect(screen.queryByRole('button', { name: /Projekte anzeigen/ })).toBeNull()
-    // D-h/D-r (korrigiert nach Live-UAT 190-09): bei genau einem Projekt soll die Karte normal
-    // grossgross/-positioniert wie im Mehr-Projekte-Fall erscheinen UND ohne Navigationspfeile,
-    // da es bei einem sichtbaren Element nichts zu navigieren gibt. Pfeile mit disabled-Zustand
-    // fuer ein Einzelelement sahen im Live-Checkpoint weiterhin wie ein Karussell aus, nicht wie
-    // ein normales Grid -- siehe 190-09-SUMMARY.md.
+    // D-h (zweite Korrektur nach Live-UAT 190-09, Nutzer-Variante B): bei genau einem Projekt
+    // wird FocalCarousel komplett umgangen (keine Karussell-Region, keine Navigationspfeile,
+    // keine Grosskarte) -- die Karte landet stattdessen im bestehenden .bannerGrid-Raster
+    // (kleinere, linksbuendige Standardkartengroesse). Mehrere Projekte bleiben unveraendert im
+    // FocalCarousel, siehe die Tests unten.
+    expect(screen.queryByRole('region', { name: 'Projekt-Vorschau' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Vorherige Projekte' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Weitere Projekte' })).toBeNull()
   })
