@@ -12,7 +12,7 @@ export interface FansubStoryFacts {
   status?: FansubStatus | null
 }
 
-function statusLabel(status: FansubStoryFacts['status']): string | null {
+export function statusLabel(status: FansubStoryFacts['status']): string | null {
   if (status === 'active') return 'aktiv'
   if (status === 'inactive') return 'inaktiv'
   if (status === 'dissolved') return 'aufgelöst'
@@ -32,10 +32,20 @@ function foundedLabel(group: FansubStoryFacts): string | null {
   return null
 }
 
-export function buildFansubFactSummary(group: FansubStoryFacts): string | null {
-  const parts = [foundedLabel(group), group.country?.trim() || null, statusLabel(group.status)].filter(
-    (value): value is string => Boolean(value && value.trim()),
-  )
+export interface FansubFactSummaryOptions {
+  includeStatus?: boolean
+}
+
+export function buildFansubFactSummary(
+  group: FansubStoryFacts,
+  options: FansubFactSummaryOptions = {},
+): string | null {
+  const includeStatus = options.includeStatus ?? true
+  const parts = [
+    foundedLabel(group),
+    group.country?.trim() || null,
+    includeStatus ? statusLabel(group.status) : null,
+  ].filter((value): value is string => Boolean(value && value.trim()))
 
   if (parts.length === 0) return null
   return parts.join(' • ')

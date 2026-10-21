@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 
 import type { AnimeFansubRelation } from '@/types/fansub'
 
-import { buildFansubStoryGroups, buildFansubStoryPreview, resolveActiveFansubSlug } from './fansub-summary'
+import {
+  buildFansubFactSummary,
+  buildFansubStoryGroups,
+  buildFansubStoryPreview,
+  resolveActiveFansubSlug,
+  statusLabel,
+} from './fansub-summary'
 
 function makeRelation(overrides: Partial<AnimeFansubRelation> = {}): AnimeFansubRelation {
   return {
@@ -142,5 +148,44 @@ describe('buildFansubStoryPreview mit FansubGroupSummary-artigem Minimalobjekt',
     }
 
     expect(buildFansubStoryPreview(summary)).toBe('gegründet 2008 • Schweiz • aktiv')
+  })
+})
+
+describe('statusLabel', () => {
+  it('liefert die drei bekannten Status-Label-Varianten', () => {
+    expect(statusLabel('active')).toBe('aktiv')
+    expect(statusLabel('inactive')).toBe('inaktiv')
+    expect(statusLabel('dissolved')).toBe('aufgelöst')
+  })
+
+  it('liefert null fuer einen unbekannten Status-Wert', () => {
+    expect(statusLabel(null)).toBeNull()
+    expect(statusLabel(undefined)).toBeNull()
+  })
+})
+
+describe('buildFansubFactSummary mit includeStatus-Option', () => {
+  it('enthaelt das Status-Segment weiterhin, wenn kein zweites Argument uebergeben wird (Regressionsschutz)', () => {
+    const group = { founded_year: 2008, country: 'Schweiz', status: 'active' as const }
+
+    expect(buildFansubFactSummary(group)).toBe('gegründet 2008 • Schweiz • aktiv')
+  })
+
+  it('laesst das Status-Segment bei includeStatus:false fuer alle drei Status-Werte weg', () => {
+    const base = { founded_year: 2008, country: 'Schweiz' }
+
+    expect(buildFansubFactSummary({ ...base, status: 'active' }, { includeStatus: false })).toBe(
+      'gegründet 2008 • Schweiz',
+    )
+    expect(buildFansubFactSummary({ ...base, status: 'inactive' }, { includeStatus: false })).toBe(
+      'gegründet 2008 • Schweiz',
+    )
+    expect(buildFansubFactSummary({ ...base, status: 'dissolved' }, { includeStatus: false })).toBe(
+      'gegründet 2008 • Schweiz',
+    )
+  })
+
+  it('liefert null, wenn bei includeStatus:false keine anderen Teile uebrig bleiben', () => {
+    expect(buildFansubFactSummary({ status: 'dissolved' }, { includeStatus: false })).toBeNull()
   })
 })
