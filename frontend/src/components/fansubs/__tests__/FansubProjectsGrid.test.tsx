@@ -52,6 +52,21 @@ describe('FansubProjectsGrid', () => {
     expect(screen.queryByRole('button', { name: /Projekte anzeigen/ })).toBeNull()
   })
 
+  it('zeigt bei genau einem Projekt dieses als normale Karte ohne Zaehler-Card', () => {
+    render(<FansubProjectsGrid items={makeItems(1)} groupId={5} groupSlug="c-subs" />)
+
+    expect(screen.getByText('Projekt 1')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Projekt 1/ }).getAttribute('href')).toBe(
+      '/fansubs/c-subs/fansubprojekt/projekt-1',
+    )
+    expect(screen.queryByRole('button', { name: /Projekte anzeigen/ })).toBeNull()
+    // D-h/D-r: bei genau einem Projekt soll dieselbe Grid-Behandlung wie bei mehreren Projekten
+    // gelten (kein FocalCarousel-"quiet"-Modus), nicht die ruhige Grosskarten-Darstellung ohne
+    // Navigationspfeile, die FocalCarousel sonst fuer exakt ein sichtbares Element aktiviert.
+    expect(screen.getByRole('button', { name: 'Vorherige Projekte' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Weitere Projekte' })).toBeTruthy()
+  })
+
   it('zeigt bei mehr als 20 Projekten die ersten 20 + Zaehler-Card und klappt beim Klick alle aus', () => {
     render(<FansubProjectsGrid items={makeItems(25)} groupId={5} groupSlug="c-subs" />)
 
