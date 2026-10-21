@@ -1,0 +1,330 @@
+/* ── Achievement-Tone-Tokens (dynamisch über styles[variable] referenziert) ── */
+.achGold {
+  --ach-color: var(--ach-gold);
+  --ach-grad: var(--ach-gold-grad);
+  --ach-soft: var(--ach-gold-soft);
+}
+
+.achAccent {
+  --ach-color: var(--ach-accent);
+  --ach-grad: var(--ach-accent-grad);
+  --ach-soft: var(--ach-accent-soft);
+}
+
+.achGreen {
+  --ach-color: var(--ach-green);
+  --ach-grad: var(--ach-green-grad);
+  --ach-soft: var(--ach-green-soft);
+}
+
+.achPink {
+  --ach-color: var(--ach-pink);
+  --ach-grad: var(--ach-pink-grad);
+  --ach-soft: var(--ach-pink-soft);
+}
+
+.achMuted {
+  --ach-color: var(--ach-muted);
+  --ach-grad: var(--ach-muted-grad);
+  --ach-soft: var(--ach-muted-soft);
+}
+
+.achBlue {
+  --ach-color: #2563eb;
+  --ach-grad: linear-gradient(135deg, #dbeafe, #60a5fa);
+  --ach-soft: #dbeafe;
+}
+
+.achViolet {
+  --ach-color: #7c3aed;
+  --ach-grad: linear-gradient(135deg, #ede9fe, #a78bfa);
+  --ach-soft: #ede9fe;
+}
+
+.achRed {
+  --ach-color: #be123c;
+  --ach-grad: linear-gradient(135deg, #ffe4e6, #fb7185);
+  --ach-soft: #ffe4e6;
+}
+
+.achLegendary {
+  --ach-color: #a16207;
+  --ach-grad: linear-gradient(135deg, #fef3c7, #c4b5fd 52%, #67e8f9);
+  --ach-soft: #fef3c7;
+}
+
+.historyTimeline {
+  position: relative;
+  display: grid;
+  gap: clamp(30px, 4vw, 58px);
+  margin: 0;
+  padding: 10px 0;
+  list-style: none;
+}
+
+.historyTimeline::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 50%;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--accent-primary) 30%, var(--color-border)) 10%,
+    color-mix(in srgb, var(--accent-primary) 30%, var(--color-border)) 90%,
+    transparent
+  );
+  transform: translateX(-50%);
+}
+
+.historyTimelineItem {
+  --history-card-overlap: clamp(10px, 1.3vw, 18px);
+
+  position: relative;
+  isolation: isolate;
+}
+
+.historyTimelinePair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  min-height: 240px;
+}
+
+.historyTimelineBadge {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  z-index: 5;
+  filter:
+    drop-shadow(0 18px 28px color-mix(in srgb, var(--ach-color) 25%, transparent))
+    drop-shadow(0 16px 26px rgba(18, 24, 38, 0.15));
+}
+
+.historyTimelineAxisYear {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  justify-self: center;
+  min-width: 58px;
+  margin-top: -12px;
+  padding: 5px 10px;
+  border: 1px solid color-mix(in srgb, var(--ach-color) 24%, var(--color-border));
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--ach-color) 18%, transparent), transparent 60%),
+    var(--surface-card);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--ach-color) 8%, transparent),
+    0 10px 22px rgba(24, 21, 18, 0.12);
+  color: color-mix(in srgb, var(--ach-color) 72%, var(--text-primary));
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  z-index: 6;
+}
+
+.historyTimelineBadge::before {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border-radius: 999px;
+  background: var(--ach-soft);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--ach-color) 10%, transparent);
+  z-index: -1;
+}
+
+.historyTimelineCard {
+  grid-row: 1;
+  position: relative;
+  display: grid;
+  align-self: center;
+  gap: 6px;
+  min-width: 0;
+  width: min(400px, 92%);
+  padding: 18px 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--ach-color) 22%, transparent), transparent 48%),
+    var(--surface-card);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ach-color) 10%, transparent),
+    0 14px 30px rgba(24, 21, 18, 0.11),
+    0 0 42px color-mix(in srgb, var(--ach-color) 20%, transparent);
+  text-align: left;
+  z-index: 3;
+}
+
+.historyTimelineItemLeft .historyTimelineCard {
+  grid-column: 1;
+  justify-self: end;
+  margin-right: calc(var(--history-card-overlap) * -1);
+}
+
+.historyTimelineItemRight .historyTimelineCard {
+  grid-column: 3;
+  justify-self: start;
+  margin-left: calc(var(--history-card-overlap) * -1);
+}
+
+.historyTimelineCard strong {
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.historyTimelineYear {
+  color: var(--text-tertiary, var(--text-secondary));
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.historyTimelineType {
+  justify-self: start;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--ach-soft);
+  color: color-mix(in srgb, var(--ach-color) 76%, var(--text-primary));
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.historyTimelineNote {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.historyTimelineActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+@media (min-width: 1200px) {
+  .historyTimeline {
+    gap: clamp(38px, 4.6vw, 70px);
+  }
+
+  .historyTimelineItem {
+    --history-card-overlap: clamp(16px, 1.4vw, 24px);
+  }
+
+  .historyTimelineCard {
+    width: min(420px, 92%);
+  }
+}
+
+@media (min-width: 1500px) {
+  .historyTimelineItem {
+    --history-card-overlap: 24px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .historyTimeline {
+    gap: 28px;
+    padding-left: 0;
+  }
+
+  .historyTimeline::before {
+    left: 50%;
+  }
+
+  .historyTimelineItem {
+    padding-left: 0;
+  }
+
+  .historyTimelinePair {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    min-height: 0;
+  }
+
+  .historyTimelineBadge {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: center;
+    margin-left: 0;
+  }
+
+  .historyTimelineAxisYear {
+    grid-column: 1;
+    grid-row: auto;
+    align-self: auto;
+    margin: 0 0 -8px;
+  }
+
+  .historyTimelineCard,
+  .historyTimelineItemLeft .historyTimelineCard,
+  .historyTimelineItemRight .historyTimelineCard {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: center;
+    width: min(560px, 92vw);
+    margin: -10px 0 0;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .historyTimelineType,
+  .historyTimelineItemLeft .historyTimelineType {
+    justify-self: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .historyTimeline {
+    gap: 24px;
+  }
+
+  .historyTimelineCard,
+  .historyTimelineItemLeft .historyTimelineCard,
+  .historyTimelineItemRight .historyTimelineCard {
+    width: min(100%, 92vw);
+  }
+}
+
+/* Beide vormals bespoke "legendary"-Glow-Behandlungen (projects_500, releases_10000) teilen
+   sich jetzt eine token-gespeiste Darstellung ueber --ach-color/--ach-grad/--ach-soft
+   (bereits von .achLegendary auf demselben <li> gesetzt) statt eigener Hex-Werte. */
+.historyTimelineEmphasisLegendary .historyTimelineBadge {
+  filter:
+    drop-shadow(0 0 36px color-mix(in srgb, var(--ach-color) 42%, transparent))
+    drop-shadow(0 18px 34px color-mix(in srgb, var(--ach-color) 34%, transparent))
+    drop-shadow(0 18px 30px rgba(18, 24, 38, 0.16));
+}
+
+.historyTimelineEmphasisLegendary .historyTimelineBadge::before {
+  inset: 8%;
+  background:
+    radial-gradient(circle, color-mix(in srgb, white 60%, transparent), transparent 26%),
+    var(--ach-grad);
+  box-shadow:
+    0 0 0 11px color-mix(in srgb, var(--ach-color) 8%, transparent),
+    0 0 52px color-mix(in srgb, var(--ach-color) 26%, transparent),
+    0 0 78px color-mix(in srgb, var(--ach-color) 20%, transparent);
+}
+
+.historyTimelineEmphasisLegendary .historyTimelineCard {
+  border-color: color-mix(in srgb, var(--ach-color) 30%, var(--color-border));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ach-color) 13%, transparent),
+    0 17px 36px rgba(24, 21, 18, 0.12),
+    0 0 52px color-mix(in srgb, var(--ach-color) 22%, transparent);
+}

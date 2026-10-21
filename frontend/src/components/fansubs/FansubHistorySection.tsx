@@ -9,7 +9,7 @@ import { getGroupHistoryEventPresentation } from '@/lib/group-history-events'
 import type { GroupHistoryEventPresentation } from '@/lib/group-history-events'
 import type { PublicFansubHistory } from '@/types/fansub'
 
-import styles from './FansubPublicSections.module.css'
+import styles from './FansubHistoryTimeline.module.css'
 
 interface FansubHistorySectionProps {
   history: PublicFansubHistory[]
