@@ -67,8 +67,17 @@
     gap: 16px 22px;
   }
 
-  .heroMetricItem {
-    flex: 1 1 140px;
+  /* Nicht-inline Kennzahlen bleiben auf Mobil in EINER Zeile, gleich breite
+     Spalten (Bezeichnung darf innerhalb der Spalte umbrechen) -- die
+     Inline-Variante (ProjectMemberHero) behaelt ihr eigenes, unveraendertes
+     Layout (separat per :not() ausgeschlossen). */
+  .heroMetrics:not(.heroMetricsInline) {
+    flex-wrap: nowrap;
+  }
+
+  .heroMetrics:not(.heroMetricsInline) .heroMetricItem {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .heroMetricItem dt {
@@ -77,5 +86,21 @@
 
   .heroMetricItem dd {
     font-size: 20px;
+  }
+}
+
+/* Sehr schmale Viewports: mehr Kennzahlen, als nebeneinander noch lesbar
+   Platz haben, brechen gleichmaessig auf eine zweite Zeile um (2 Spalten)
+   statt die Spalten immer weiter zu stauchen. Bei ungerader Anzahl spannt
+   die letzte Kennzahl beide Spalten, damit nie eine einzelne verwaiste
+   Kennzahl schmal allein steht. */
+@media (max-width: 339px) {
+  .heroMetrics:not(.heroMetricsInline) {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .heroMetrics:not(.heroMetricsInline) .heroMetricItem:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 }
