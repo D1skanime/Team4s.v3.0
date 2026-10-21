@@ -41,7 +41,7 @@ function mediaRow(overrides: Partial<PublicFansubMediaItem> = {}): PublicFansubM
 }
 
 describe('FansubGroupMediaBlock', () => {
-  it('zeigt Titel, Beschreibung und deutschen Typ-Tag pro Medium', () => {
+  it('zeigt Titel und Beschreibung pro Medium, ohne Kategorie-Badge auf der Kachel', () => {
     render(
       <FansubGroupMediaBlock
         media={[
@@ -56,8 +56,9 @@ describe('FansubGroupMediaBlock', () => {
 
     expect(screen.getByText('Galerie-Highlight')).toBeTruthy()
     expect(screen.getByText('Ein besonderer Moment aus der Gruppenarbeit.')).toBeTruthy()
-    // "Galerie" erscheint jetzt zweimal (D-k Kategorie-Zwischenueberschrift + Typ-Tag).
-    expect(screen.getAllByText('Galerie').length).toBeGreaterThan(0)
+    // 190-09 (zweite Runde): "Galerie" erscheint nur noch EINMAL als Kategorie-
+    // Zwischenueberschrift, das Badge auf der Kachel selbst entfaellt (sonst doppelt).
+    expect(screen.getAllByText('Galerie')).toHaveLength(1)
   })
 
   it('setzt loading="lazy" und sizes auf Bild-Elementen', () => {
@@ -76,28 +77,43 @@ describe('FansubGroupMediaBlock', () => {
     expect(screen.getByText('Noch keine Medien hinterlegt')).toBeTruthy()
   })
 
-  it('zeigt bei Ueberlauf nur den Alle-anzeigen-Button, keine Ueberlaufkachel', () => {
-    const items = Array.from({ length: 6 }, (_, index) =>
+  it('zeigt ab mehr als 6 Elementen einer Kategorie deren eigenes "Mehr anzeigen", keinen globalen Button', () => {
+    const items = Array.from({ length: 7 }, (_, index) =>
       mediaRow({ id: index + 1, title: `Medium ${index + 1}` }),
     )
     render(<FansubGroupMediaBlock media={items} />)
 
-    expect(screen.getByText('Alle 6 anzeigen')).toBeTruthy()
+    expect(screen.getByText('1 weitere anzeigen')).toBeTruthy()
+    expect(screen.queryByText(/^Alle \d+ anzeigen$/)).toBeNull()
     expect(screen.queryByText(/^\+\d+ weitere$/)).toBeNull()
-    expect(screen.queryByText('Medium 6')).toBeNull()
+    expect(screen.queryByText('Medium 7')).toBeNull()
   })
 
-  it('zeigt nach Klick auf Alle anzeigen alle Kacheln', () => {
-    const items = Array.from({ length: 6 }, (_, index) =>
+  it('zeigt nach Klick auf "Mehr anzeigen" alle Kacheln dieser Kategorie', () => {
+    const items = Array.from({ length: 7 }, (_, index) =>
       mediaRow({ id: index + 1, title: `Medium ${index + 1}` }),
     )
     render(<FansubGroupMediaBlock media={items} />)
 
-    fireEvent.click(screen.getByText('Alle 6 anzeigen'))
+    fireEvent.click(screen.getByText('1 weitere anzeigen'))
 
-    expect(screen.getByText('Medium 5')).toBeTruthy()
     expect(screen.getByText('Medium 6')).toBeTruthy()
-    expect(screen.queryByText(/^\+\d+ weitere$/)).toBeNull()
+    expect(screen.getByText('Medium 7')).toBeTruthy()
+    expect(screen.getByText('Weniger anzeigen')).toBeTruthy()
+  })
+
+  it('begrenzt jede Kategorie unabhaengig voneinander auf 6 Elemente', () => {
+    const items = [
+      ...Array.from({ length: 7 }, (_, index) => mediaRow({ id: index + 1, title: `Galerie ${index + 1}`, category: 'gallery' })),
+      ...Array.from({ length: 2 }, (_, index) => mediaRow({ id: 100 + index, title: `Forum ${index + 1}`, category: 'forum' })),
+    ]
+    render(<FansubGroupMediaBlock media={items} />)
+
+    // Galerie (7 Elemente) ist begrenzt, Forum (2 Elemente) zeigt alle ohne eigenes "Mehr anzeigen".
+    expect(screen.getByText('1 weitere anzeigen')).toBeTruthy()
+    expect(screen.getByText('Forum 1')).toBeTruthy()
+    expect(screen.getByText('Forum 2')).toBeTruthy()
+    expect(screen.queryByText('Galerie 7')).toBeNull()
   })
 
   it('ruft onSelect mit dem korrekten Index beim Klick auf ein Thumbnail auf', () => {

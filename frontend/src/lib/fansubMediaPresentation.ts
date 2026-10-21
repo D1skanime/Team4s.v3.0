@@ -53,3 +53,34 @@ export function groupFansubMediaByCategory(media: PublicFansubMediaItem[]): Fans
     items: buckets.get(category)!,
   }))
 }
+
+/** 190-09 (D-k, zweite Runde): Vorschau-Limit pro Kategorie -- 2 Zeilen a 3 Kacheln im
+ * Desktop-Dreispalter-Raster. */
+export const MEDIA_CATEGORY_PREVIEW_LIMIT = 6
+
+export interface FansubMediaCategoryPreview {
+  category: string
+  visibleItems: PublicFansubMediaItem[]
+  hasMore: boolean
+  remainingCount: number
+}
+
+/**
+ * 190-09 (D-k, zweite Runde): begrenzt EINE Kategorie-Gruppe unabhaengig von allen anderen auf
+ * `limit` Kacheln, solange sie nicht explizit aufgeklappt ist (`expanded`). Jede Kategorie hat
+ * ihr eigenes "Mehr anzeigen" statt eines einzigen globalen Overflow-Elements fuer den gesamten
+ * Medienbereich.
+ */
+export function previewFansubMediaCategoryGroup(
+  group: FansubMediaCategoryGroup,
+  expanded: boolean,
+  limit: number = MEDIA_CATEGORY_PREVIEW_LIMIT,
+): FansubMediaCategoryPreview {
+  const hasMore = group.items.length > limit
+  return {
+    category: group.category,
+    visibleItems: expanded || !hasMore ? group.items : group.items.slice(0, limit),
+    hasMore,
+    remainingCount: Math.max(0, group.items.length - limit),
+  }
+}

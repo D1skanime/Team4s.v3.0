@@ -81,39 +81,30 @@
   gap: 12px;
 }
 
-/* 190-05 (D-k): Zwischenueberschrift pro Medien-Kategorie-Gruppe, identische
-   Werte wie .subgroupTitle in FansubTeamSection.module.css -- CSS Modules
-   sind datei-skaliert, daher bewusste Wertedoppelung statt Cross-File-Import. */
-.mediaCategoryTitle {
-  margin: 16px 0 4px;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 600;
-}
-
 /* Galerie: feste Spaltenzahl mit 1fr -> Thumbnails skalieren mit der Breite
-   (echtes Bild kommt erst per Klick in der Lightbox). */
+   (echtes Bild kommt erst per Klick in der Lightbox). 190-09 (zweite Runde): 3 Spalten auf
+   Desktop, analog dem Release-Raster (ReleaseGallery.module.css), responsiv weniger. */
 .mediaItemGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
 @media (min-width: 1600px) {
   .mediaItemGrid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (max-width: 999px) {
   .mediaItemGrid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 639px) {
   .mediaItemGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 }
 
@@ -159,13 +150,6 @@
   gap: 6px;
 }
 
-.mediaCardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
 .mediaLabel {
   display: block;
 }
@@ -179,56 +163,6 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.mediaTag {
-  display: inline-block;
-  flex: none;
-  padding: 2px 9px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.tagGallery {
-  background: var(--tag-gallery-bg);
-  color: var(--tag-gallery-fg);
-}
-
-.tagHistory {
-  background: var(--tag-history-bg);
-  color: var(--tag-history-fg);
-}
-
-.tagOldweb {
-  background: var(--tag-oldweb-bg);
-  color: var(--tag-oldweb-fg);
-}
-
-.tagForum {
-  background: var(--tag-forum-bg);
-  color: var(--tag-forum-fg);
-}
-
-.tagIrc {
-  background: var(--tag-irc-bg);
-  color: var(--tag-irc-fg);
-}
-
-.tagEvent {
-  background: var(--tag-event-bg);
-  color: var(--tag-event-fg);
-}
-
-.tagArtwork {
-  background: var(--tag-artwork-bg);
-  color: var(--tag-artwork-fg);
-}
-
-.tagOther {
-  background: var(--tag-other-bg);
-  color: var(--tag-other-fg);
 }
 
 .mediaThumbTrigger {
