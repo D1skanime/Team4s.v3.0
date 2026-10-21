@@ -81,31 +81,46 @@
   gap: 12px;
 }
 
-/* Galerie: feste Spaltenzahl mit 1fr -> Thumbnails skalieren mit der Breite
-   (echtes Bild kommt erst per Klick in der Lightbox). 190-09 (zweite Runde): 3 Spalten auf
-   Desktop, analog dem Release-Raster (ReleaseGallery.module.css), responsiv weniger. */
+/* Galerie: feste Spaltenzahl, Spalten teilen sich die volle Sektionsbreite gleichmaessig
+   (echtes Bild kommt erst per Klick in der Lightbox). 190-09 (dritte Runde): IMMER genau 3
+   gleich breite Spalten auf Desktop (analog dem Release-Raster, ReleaseGallery.module.css) --
+   bewusst KEINE Eskalation auf mehr Spalten bei sehr breiten Viewports, da das bei Kategorien
+   mit weniger als 4 Elementen eine leere, asymmetrisch wirkende Spalte rechts erzeugt hat.
+   minmax(0, 1fr) statt 1fr verhindert zusaetzlich, dass ein einzelnes breites Bild eine Spalte
+   ueber ihren Anteil hinaus aufbläht. */
 .mediaItemGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-}
-
-@media (min-width: 1600px) {
-  .mediaItemGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 @media (max-width: 999px) {
   .mediaItemGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 639px) {
   .mediaItemGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* 190-09 (dritte Runde): Kategorie-Zwischenueberschrift als erkennbare Unterebene der
+   Hauptueberschrift "Medien" -- kleinere Schrift (identische Werte wie das etablierte
+   .subgroupTitle-Muster in FansubTeamSection.module.css) und eine duennere, gedaemmpfte Linie
+   (--border-subtle statt der kraeftigen --ui-line-Hauptlinie), kein SectionHeader-"underline"-
+   Prop. Beide Werte sind bestehende Tokens/Groessen, keine neuen Variablen. */
+.mediaCategoryHeader {
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mediaCategoryTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .mediaCard {

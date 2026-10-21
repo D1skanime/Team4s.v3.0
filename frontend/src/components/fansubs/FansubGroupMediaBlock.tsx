@@ -69,7 +69,13 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
 
         return (
           <div key={group.category} className={styles.compactStack}>
-            <SectionHeader title={getFansubMediaCategoryLabel(group.category)} level={3} underline />
+            <div className={styles.mediaCategoryHeader}>
+              <SectionHeader
+                title={getFansubMediaCategoryLabel(group.category)}
+                level={3}
+                titleClassName={styles.mediaCategoryTitle}
+              />
+            </div>
             <div className={styles.mediaItemGrid}>
               {preview.visibleItems.map((item) => {
                 const globalIndex = indexById.get(item.id)!
