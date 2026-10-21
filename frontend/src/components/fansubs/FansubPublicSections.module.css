@@ -81,6 +81,16 @@
   gap: 12px;
 }
 
+/* 190-05 (D-k): Zwischenueberschrift pro Medien-Kategorie-Gruppe, identische
+   Werte wie .subgroupTitle in FansubTeamSection.module.css -- CSS Modules
+   sind datei-skaliert, daher bewusste Wertedoppelung statt Cross-File-Import. */
+.mediaCategoryTitle {
+  margin: 16px 0 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* Galerie: feste Spaltenzahl mit 1fr -> Thumbnails skalieren mit der Breite
    (echtes Bild kommt erst per Klick in der Lightbox). */
 .mediaItemGrid {

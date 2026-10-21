@@ -56,7 +56,8 @@ describe('FansubGroupMediaBlock', () => {
 
     expect(screen.getByText('Galerie-Highlight')).toBeTruthy()
     expect(screen.getByText('Ein besonderer Moment aus der Gruppenarbeit.')).toBeTruthy()
-    expect(screen.getByText('Galerie')).toBeTruthy()
+    // "Galerie" erscheint jetzt zweimal (D-k Kategorie-Zwischenueberschrift + Typ-Tag).
+    expect(screen.getAllByText('Galerie').length).toBeGreaterThan(0)
   })
 
   it('setzt loading="lazy" und sizes auf Bild-Elementen', () => {

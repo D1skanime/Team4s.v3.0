@@ -7,6 +7,7 @@ import { Button, EmptyState } from '@/components/ui'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
 import { getFansubMediaCategoryLabel } from '@/lib/fansub-labels'
+import { groupFansubMediaByCategory, resolveFansubMediaTitle } from '@/lib/fansubMediaPresentation'
 import type { PublicFansubMediaItem } from '@/types/fansub'
 
 import { FansubMediaLightbox } from './FansubMediaLightbox'
@@ -79,6 +80,8 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
   const cardSlots = hasOverflow ? visibleCount - 1 : visibleCount
   const visibleItems = media.slice(0, cardSlots)
   const overflowCount = media.length - cardSlots
+  const indexById = new Map(visibleItems.map((item, index) => [item.id, index]))
+  const mediaGroups = groupFansubMediaByCategory(visibleItems)
 
   function revealMore() {
     setVisibleCount((current) => Math.min(media.length, current + MEDIA_BATCH))
@@ -90,67 +93,74 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
 
   return (
     <div className={styles.compactStack}>
-      <div className={styles.mediaItemGrid}>
-        {visibleItems.map((item, globalIndex) => {
-          const imageUrl = item.display_url || item.thumbnail_url || item.original_url
-          const resolvedImageUrl = imageUrl ? resolveApiUrl(imageUrl) : null
-          const showImage = Boolean(resolvedImageUrl) && isImage(item)
-          const title = item.title?.trim() || item.caption?.trim() || item.media_type
-          const description = item.description?.trim()
+      {mediaGroups.map(({ category, items }) => (
+        <div key={category} className={styles.compactStack}>
+          <h3 className={styles.mediaCategoryTitle}>{getFansubMediaCategoryLabel(category)}</h3>
+          <div className={styles.mediaItemGrid}>
+            {items.map((item) => {
+              const globalIndex = indexById.get(item.id)!
+              const imageUrl = item.display_url || item.thumbnail_url || item.original_url
+              const resolvedImageUrl = imageUrl ? resolveApiUrl(imageUrl) : null
+              const showImage = Boolean(resolvedImageUrl) && isImage(item)
+              const title = resolveFansubMediaTitle(item)
+              const ariaLabel = title ?? item.caption?.trim() ?? 'Medium öffnen'
+              const description = item.description?.trim()
 
-          return (
-            <div key={item.id} className={styles.mediaCard}>
-              {showImage && resolvedImageUrl ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className={styles.mediaThumbTrigger}
-                  aria-label={title}
-                  onClick={() => openLightbox(globalIndex)}
-                >
-                  <div className={styles.mediaThumbFrame}>
-                    <ResponsiveImage
-                      src={resolvedImageUrl}
-                      alt=""
-                      fill
-                      sizes={MEDIA_IMAGE_SIZES}
-                      loading="lazy"
-                      className={styles.mediaImage}
-                      quality={85}
-                    />
-                    <span className={styles.mediaMaximize} aria-hidden="true">
-                      <Maximize2 size={14} />
-                    </span>
+              return (
+                <div key={item.id} className={styles.mediaCard}>
+                  {showImage && resolvedImageUrl ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className={styles.mediaThumbTrigger}
+                      aria-label={ariaLabel}
+                      onClick={() => openLightbox(globalIndex)}
+                    >
+                      <div className={styles.mediaThumbFrame}>
+                        <ResponsiveImage
+                          src={resolvedImageUrl}
+                          alt=""
+                          fill
+                          sizes={MEDIA_IMAGE_SIZES}
+                          loading="lazy"
+                          className={styles.mediaImage}
+                          quality={85}
+                        />
+                        <span className={styles.mediaMaximize} aria-hidden="true">
+                          <Maximize2 size={14} />
+                        </span>
+                      </div>
+                    </Button>
+                  ) : (
+                    <div className={styles.mediaThumbFrame}>
+                      <div className={styles.mediaThumbSkeleton} aria-hidden="true" />
+                    </div>
+                  )}
+                  <div className={styles.mediaCardBody}>
+                    <div className={styles.mediaCardHeader}>
+                      {title ? <strong className={styles.mediaLabel}>{title}</strong> : null}
+                      <span className={`${styles.mediaTag} ${styles[categoryTagClass(item.category)]}`}>
+                        {getFansubMediaCategoryLabel(item.category)}
+                      </span>
+                    </div>
+                    {description ? <p className={styles.mediaDescription}>{description}</p> : null}
+                    {item.original_url && !isImage(item) ? (
+                      <a href={resolveApiUrl(item.original_url)} className={styles.inlineLink}>
+                        Medium öffnen
+                      </a>
+                    ) : null}
                   </div>
-                </Button>
-              ) : (
-                <div className={styles.mediaThumbFrame}>
-                  <div className={styles.mediaThumbSkeleton} aria-hidden="true" />
                 </div>
-              )}
-              <div className={styles.mediaCardBody}>
-                <div className={styles.mediaCardHeader}>
-                  <strong className={styles.mediaLabel}>{title}</strong>
-                  <span className={`${styles.mediaTag} ${styles[categoryTagClass(item.category)]}`}>
-                    {getFansubMediaCategoryLabel(item.category)}
-                  </span>
-                </div>
-                {description ? <p className={styles.mediaDescription}>{description}</p> : null}
-                {item.original_url && !isImage(item) ? (
-                  <a href={resolveApiUrl(item.original_url)} className={styles.inlineLink}>
-                    Medium öffnen
-                  </a>
-                ) : null}
-              </div>
-            </div>
-          )
-        })}
-        {hasOverflow ? (
-          <Button type="button" variant="ghost" className={styles.mediaOverflowTile} onClick={revealMore}>
-            +{overflowCount} weitere
-          </Button>
-        ) : null}
-      </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+      {hasOverflow ? (
+        <Button type="button" variant="ghost" className={styles.mediaOverflowTile} onClick={revealMore}>
+          +{overflowCount} weitere
+        </Button>
+      ) : null}
       {hasOverflow ? (
         <div className={styles.mediaShowAll}>
           <Button type="button" variant="subtle" onClick={revealAll}>
