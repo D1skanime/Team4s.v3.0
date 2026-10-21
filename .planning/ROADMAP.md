@@ -2958,10 +2958,10 @@ Mobilgeräten.
 **Requirements**: TBD (additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-a bis D-u in
 190-CONTEXT.md, siehe Plan-Frontmatter `requirements`)
 **Depends on:** Phase 189
-**Plans:** 9 plans in 5 Waves
+**Plans:** 1/9 plans executed
 
 Plans:
-- [ ] 190-01-PLAN.md — Hero ohne Rahmen-Karte + Status nur einmal, für alle Status (D-a, D-d, D-o).
+- [x] 190-01-PLAN.md — Hero ohne Rahmen-Karte + Status nur einmal, für alle Status (D-a, D-d, D-o).
 - [ ] 190-02-PLAN.md — Blockierender Live-Checkpoint: D-a/D-o zeigen, Banner-Entscheidung (D-b/D-p) einholen.
 - [ ] 190-03-PLAN.md — "Releases"-Label, status-abhängige Mitglieder-Überschrift, Zitat-Clamp, Badge-Bereinigung (D-c, D-e, D-q, D-f, D-g).
 - [ ] 190-04-PLAN.md — Banner-Höhe (Checkpoint-Ergebnis), Geschichte zentrieren, FocalCarousel-Einzelprojekt-Fix (D-b, D-l, D-h, D-r).

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 189 was final phase)
-last_updated: 2026-10-20T22:21:26.680Z
-last_activity: 2026-10-20
+status: executing
+stopped_at: Completed 190-01-PLAN.md
+last_updated: "2026-10-21T08:55:31.419Z"
+last_activity: 2026-10-21
 progress:
-  total_phases: 54
+  total_phases: 55
   completed_phases: 49
-  total_plans: 484
-  completed_plans: 535
-  percent: 91
+  total_plans: 493
+  completed_plans: 482
+  percent: 89
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -431,15 +431,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 190 — ffentliche-fansub-gruppenseite-berarbeiten-fansubs-slug
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 189
-Plan: Not started
-Status: Milestone complete
+Phase: 190 (ffentliche-fansub-gruppenseite-berarbeiten-fansubs-slug) — EXECUTING
+Plan: 2 of 9
+Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -578,7 +578,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-20
+Last activity: 2026-10-21
 
 ## Accumulated Context
 
@@ -1451,6 +1451,8 @@ Last activity: 2026-10-20
   `.planning/todos/completed/` verschoben. Phase 189 vollständig abgeschlossen — letzte Phase der
   aktuellen Roadmap, keine neue Phase geplant.
 
+- [Phase 190]: 190-01: Badge bleibt alleiniger Status-Indikator, Meta-Zeile verliert ihr Status-Segment via includeStatus:false statt umgekehrt — Badge nutzt bereits farbcodiertes statusVariant und ist die bestehende, staerker gestylte Darstellung; die drei unveraenderten Aufrufstellen von buildFansubFactSummary (ReadinessTab, FansubProfileTabs, episode-helpers) behalten ihr Verhalten unveraendert bei
+
 ### Pending Todos
 
 - Eleven pending todo files include the future project-wide member media gallery; it is explicitly outside Phase 142.
@@ -2165,11 +2167,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 189 P05 | 25min | 2 tasks | 8 files |
 | Phase 189 P06 | ~30min | 2 tasks | 16 files |
 | Phase 189 P07 | ~50min | 2 tasks | 5 files |
+| Phase 190 P01 | 15min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-20T14:38:52.054Z
-Stopped at: Completed 189-07-PLAN.md
+Last session: 2026-10-21T08:55:31.392Z
+Stopped at: Completed 190-01-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
