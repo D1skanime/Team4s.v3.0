@@ -109,7 +109,6 @@ export function FansubHeroSection({
                 width={1200}
                 height={200}
                 className={styles.heroBannerImg}
-                sizes="1200px"
                 loading="eager"
                 priority
               />
