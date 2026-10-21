@@ -595,8 +595,19 @@ Last activity: 2026-10-20
   Geschichte-Textblock mittig mit Lesebreite und linksbündigem Text. Reihenfolge der Abschnitte und
   Kennzahl „Mitglieder"/Zeitleiste bleiben unverändert. Explizit nicht enthalten: Inhalte/Testdaten
   (Test-Text, Tippfehler, inhaltliche Widersprüche) — das sind Daten, keine UI. Additiv angelegt,
-  kein neues Milestone, kein Reset. Nur add-phase — noch nicht geplant; Ist-Analyse + CONTEXT.md mit
-  offenen Fragen folgt direkt im Anschluss.
+  kein neues Milestone, kein Reset.
+
+- Phase 190 Umfang finalisiert (2026-10-21, zweite Entscheidungsrunde): Alle sieben offenen Fragen
+  aus der Ist-Analyse beantwortet (D-o bis D-u in `190-CONTEXT.md`), teils abweichend von den
+  Empfehlungen, mit einer Scope-Erweiterung. Abweichend: Status-Entdoppelung (D-d) gilt für alle
+  drei Status-Werte, nicht nur „aufgelöst" (D-o); Rollen-Label für `editor` wird „Editing" statt
+  „Editor" (D-t, passend zur bereits im Code etablierten Konvention); Mitglieder-Bezeichnung
+  einheitlich „Mitglieder" für `dissolved`/`inactive` (D-q). NEU in Scope (Erweiterung): die
+  Kennzahlen-Zeile `HeroMetrics` wird siteweit auf Mobil-Umbruch korrigiert, mit Live-Prüfung aller
+  sechs Verwendungsstellen (D-u), statt wie empfohlen als separates Folge-Todo liegen zu bleiben.
+  Verfahrenszusatz: die Bannergröße (D-b) bekommt keinen vorab festgelegten Zahlenwert, sondern
+  einen expliziten Live-Checkpoint im Ausführungsplan nach Umsetzung von D-a/D-o (D-p). Umfang ist
+  damit final; nächster Schritt: `/gsd:plan-phase 190`.
 
 - Phase 189 added (2026-10-20): Bugfix-Bündel — Coop-Partner, Projektnotizen-Recht,
   Gruppen-Merge-Guard. Quellen: `.planning/todos/pending/2026-10-20-bug-projektseite-coop-partner.md`,

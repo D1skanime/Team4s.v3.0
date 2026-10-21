@@ -2,9 +2,10 @@
 
 **Quelle des Auftrags:** Gemeinsame Live-Durchsicht mit dem Nutzer am 20./21.10.2026 auf
 `/fansubs/new-subs` (Desktop 1440 px). Additiv an die bestehende ROADMAP angehängt (nach
-Phase 189), kein neues Milestone, kein Reset. Dieses Dokument ist reine Ist-Analyse +
-Entscheidungen — **keine Produktcode-Änderung** in diesem Schritt, **keine Planung** (kein
-PLAN.md), **keine Ausführung**.
+Phase 189), kein neues Milestone, kein Reset. **Stand 2026-10-21 (zweite Entscheidungsrunde): Alle
+sieben offenen Fragen OF-01 bis OF-07 sind beantwortet (D-o bis D-u unten), Umfang ist final.**
+Dieses Dokument bleibt bis hierhin reine Ist-Analyse + Entscheidungen — **keine
+Produktcode-Änderung** in diesem Schritt. Nächster Schritt ist `/gsd:plan-phase 190`.
 
 ## Problem (laut Live-Durchsicht)
 
@@ -30,18 +31,16 @@ Komponenten/Styles der Projektseite (HeroSection/HeroMetrics usw.) wiederverwend
 nutzen statt nachbauen.
 
 ### D-b — Banner größer
-Etwa in der Breite/Wirkung wie auf der Projektseite statt des heutigen schmalen Streifens.
-**Siehe Ist-Befund unten — die aktuellen CSS-Werte beider Seiten sind für die Banner-Höhe
-identisch; offene Frage OF-02 klärt das konkrete Zielmaß.**
+Etwa in der Breite/Wirkung wie auf der Projektseite statt des heutigen schmalen Streifens. Konkrete
+Umsetzung: **siehe D-p** — kein Zahlenwert vorab, Beurteilung nach D-a per Live-Checkpoint.
 
 ### D-c — Kennzahl „Release-Versionen" → „Releases"
 
-### D-d — „aufgelöst" nur einmal anzeigen (heute Badge UND Meta-Zeile)
-**Siehe Ist-Befund — die Dopplung ist strukturell für JEDEN Status, nicht nur „aufgelöst"; siehe
-OF-01.**
+### D-d — Status nur einmal anzeigen (heute Badge UND Meta-Zeile)
+**Siehe D-o** — gilt final für alle drei Status-Werte, nicht nur „aufgelöst".
 
 ### D-e — Aufgelöste Gruppe: nicht „Aktive Mitglieder", sondern eine passende Bezeichnung
-Regel abhängig vom Gruppenstatus. Vorschlag in diesem Dokument, siehe OF-03.
+Regel abhängig vom Gruppenstatus. **Siehe D-q** für die final gesetzte Bezeichnung.
 
 ### D-f — Team-Karten einheitlich hoch
 Zitate gekürzt (z. B. 2–3 Zeilen) und aufklappbar, damit das Raster nicht ausfranst.
@@ -50,7 +49,7 @@ Zitate gekürzt (z. B. 2–3 Zeilen) und aufklappbar, damit das Raster nicht aus
 Höchstens ein Hinweis in der Abschnittsüberschrift.
 
 ### D-h — Einzelnes Projekt in normaler Kartengröße im selben Raster, nicht als Großkarte
-Linksbündig, wie bei mehreren Projekten.
+Linksbündig, wie bei mehreren Projekten. Technischer Weg: **siehe D-r**.
 
 ### D-i — Medien: generische Titel wie „image" (Dateiname/Platzhalter) nicht anzeigen
 
@@ -72,6 +71,65 @@ links über volle Breite.
 ### D-n — Bleibt unverändert
 Kennzahl „Mitglieder" (Zählweise), Zeitleiste „Historie & Erfolge" (vorerst keine Änderung).
 
+## Nutzerentscheidungen — zweite Runde (2026-10-21, beantwortet alle offenen Fragen, final — nicht
+neu verhandeln)
+
+### D-o — Status-Dopplung: für ALLE Status entfernen (ersetzt OF-01)
+Abweichend vom wörtlichen D-d-Wortlaut („aufgelöst"): Die Entdoppelung von Badge und
+Meta-Zeilen-Klartext gilt für alle drei Status-Werte (`active`/`inactive`/`dissolved`), nicht nur
+für „aufgelöst" — entspricht der Empfehlung, da der Code die Dopplung strukturell für jeden Status
+erzeugt (live an `dragon-subs`/„aktiv" bestätigt).
+
+### D-p — Banner-Größe: kein Zahlenwert vorab, Live-Checkpoint nach D-a (ersetzt OF-02)
+Zunächst D-a (Rahmen-Karte entfernen) umsetzen. Erst danach wird die Bannergröße gemeinsam mit dem
+Nutzer in einer Live-Session neu beurteilt — kein `clamp`-Zielwert wird vorab festgelegt. **Für die
+Planung:** Der Ausführungsplan muss dafür einen expliziten Live-Checkpoint vorsehen (Plan hält nach
+Umsetzung von D-a/D-o an, zeigt das Ergebnis live, der Nutzer entscheidet dann, ob und wie die
+Banner-Höhe angepasst wird, bevor der Rest der Phase fortgesetzt wird).
+
+### D-q — Mitglieder-Bezeichnung je Status (ersetzt OF-03)
+„Mitglieder" bei `dissolved` UND bei `inactive`; „Aktive Mitglieder" nur bei `active`. (Die in der
+Empfehlung genannte Alternative „Letzte Mitglieder" für `dissolved` wird NICHT gewählt — beide
+nicht-aktiven Status erhalten einheitlich „Mitglieder".)
+
+### D-r — FocalCarousel: optionaler, rückwärtskompatibler Prop statt Duplikation (ersetzt OF-04)
+`FocalCarousel` bekommt einen neuen optionalen Prop (z. B. `singleItemLayout: 'quiet' | 'grid'`,
+Default bleibt `'quiet'`), den nur `FansubProjectsGrid` auf `'grid'` setzt. Profil-Verwendungen
+(`MemberBadgeChain`, `RoleAchievementCard`, `ThumbnailStrip`, `AchievementBadgeShowcase`) bleiben
+unverändert beim bisherigen `'quiet'`-Verhalten. Keine Komponenten-Kopie.
+
+### D-s — Leere Abschnitte bleiben ausgeblendet, keine Empty-States (ersetzt OF-05)
+Unverändertes Verhalten wie heute (Abschnitte ohne Daten rendern `null`) — kein neuer Scope für
+generische Empty-States bei datenarmen Gruppen wie `dragon-subs`.
+
+### D-t — Rollen-Label für `editor` wird „Editing" (ersetzt OF-06)
+`role_definitions.label_de` für den Rollen-Code `editor` wird per **append-only** Migration von
+„Edit" auf „Editing" korrigiert. **Vor der Migration prüfen** (Planungsschritt, kein Rätselraten):
+wo das Label überall erscheint (öffentliche Team-Karten, Admin-UI, Badge-System) und ob am
+Code-Wert `editor` selbst (nicht nur am Label) noch etwas anderes hängt, das von der
+Label-Änderung unbeabsichtigt mitbetroffen sein könnte. **Ist-Hinweis für die Planung:** Mehrere
+bestehende Frontend-Testfixtures nutzen bereits `label_de: 'Editing'` für `editor`
+(`frontend/src/app/admin/fansubs/[id]/edit/FansubAppMembersSection.test.tsx:9`,
+`frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx:32`,
+`frontend/src/app/admin/fansubs/[id]/edit/ReleaseContributionDrawer.test.tsx:28`,
+`frontend/src/app/dev/ui-system/showcase/achievementBadgeGalleryFixtures.ts:30`) und
+`frontend/src/components/profile/memberBadgeLabels.ts:86` verwendet bereits „Erstes **Editing**"
+als Badge-Label für dieselbe Rolle — „Editing" ist also bereits die im Code etablierte Konvention;
+der Live-DB-Wert „Edit" ist der Ausreißer.
+
+### D-u — NEU in Scope: Kennzahlen-Zeile (`HeroMetrics`) auf Mobil 375 px sauber umbrechen
+(ersetzt OF-07, Scope-Erweiterung)
+Abweichend von der ursprünglichen Empfehlung („nicht in dieser Phase"): Der Nutzer entscheidet,
+das Umbruchverhalten doch in Phase 190 zu beheben, siteweit über die gemeinsame Komponente
+`frontend/src/components/ui/HeroMetrics.tsx`, nicht lokal pro Seite. **Alle Verwendungsstellen**
+müssen live auf Mobil (375 px) geprüft werden, nicht nur die Fansub-Gruppenseite:
+- `frontend/src/app/anime/[id]/group/[groupId]/sections/ProjectStats.tsx` (Projektseite)
+- `frontend/src/components/fansubs/FansubHeroSection.tsx` (diese Phase)
+- `frontend/src/components/profile/MemberProfileHero.tsx`
+- `frontend/src/components/fansubs/projectMember/ProjectMemberHero.tsx`
+- `frontend/src/app/me/dashboard/components/DashboardMetrics.tsx`
+- `frontend/src/app/dev/ui-system/page.tsx` (Showcase — zur Abnahme, kein Produktionsort)
+
 ## Verbindliche Vorgaben für alle späteren Schritte (Planung + Ausführung)
 
 - **Globale UI-Primitives** aus `@/components/ui` und **Design-Tokens** (keine eigenen
@@ -84,6 +142,12 @@ Kennzahl „Mitglieder" (Zählweise), Zeitleiste „Historie & Erfolge" (vorerst
 - **Deutsche Texte mit echten Umlauten.**
 - **Live-UAT am Ende mit echten Bestandsgruppen** (keine Testdaten nötig) — mindestens
   `new-subs`, `strawhat-subs`, `dragon-subs`.
+- **Live-Checkpoint nach D-a/D-o (siehe D-p):** Der Plan muss nach Umsetzung der Rahmen-Karten-
+  Entfernung und der Status-Entdoppelung anhalten, das Ergebnis live mit dem Nutzer zeigen und erst
+  danach über die Bannergröße entscheiden, bevor die restliche Phase fortgesetzt wird.
+- **D-u (HeroMetrics-Mobil-Fix) ist eine siteweite Komponentenänderung** — alle sechs oben unter
+  D-u gelisteten Verwendungsstellen müssen live auf Mobil (375 px) geprüft werden, nicht nur die
+  Fansub-Gruppenseite.
 
 ---
 
@@ -314,77 +378,67 @@ sichtbar; Status-Dopplung (D-d) bei `dragon-subs` mit Status „aktiv" reproduzi
 
 ---
 
-## Offene Fragen an den Nutzer
+## Offene Fragen an den Nutzer — BEANTWORTET (2026-10-21)
+
+Alle sieben Fragen sind vom Nutzer beantwortet, teils abweichend von den ursprünglichen
+Empfehlungen und mit einer Scope-Erweiterung (D-u). Verbindlich festgehalten oben als D-o bis D-u.
+Die ursprünglichen Fragen bleiben hier zur Nachvollziehbarkeit stehen, jeweils mit Verweis auf die
+zugehörige Entscheidung.
 
 ### OF-01 — Status-Dopplung: nur „aufgelöst" oder alle Status-Werte?
 D-d benennt wörtlich „aufgelöst". Der Code erzeugt die Dopplung (Badge + Meta-Zeile-Klartext)
 aber strukturell für JEDEN Status — am Beispiel `dragon-subs` (Status „aktiv") live bestätigt.
-*Empfehlung:* Für alle drei Status-Werte entdoppeln (einfacher, konsistenter, passt zum
-beobachteten Verhalten) statt eine Sonderregel nur für „aufgelöst" einzubauen.
+*Empfehlung:* Für alle drei Status-Werte entdoppeln.
+→ **Beantwortet: D-o (wie empfohlen).**
 
 ### OF-02 — Banner „größer": konkretes Zielmaß?
 Die aktuelle Banner-Höhe (`max-height: clamp(140px, 17vw, 200px)`) ist auf Gruppenseite UND
 Projektseite bereits identisch definiert — es gibt also aktuell keinen CSS-Unterschied, den man
-„von der Projektseite übernehmen" könnte. Der optische Eindruck „schmaler Streifen" auf der
-Gruppenseite entsteht vermutlich im Zusammenspiel mit der entfernten Rahmen-Karte (D-a) und/oder
-dem seitlichen Padding (`heroBannerWrap`), nicht aus einem abweichenden Höhenwert.
-*Empfehlung:* Zunächst D-a (Rahmen-Karte entfernen) umsetzen und das Banner danach erneut im
-Kontext beurteilen, statt vorab einen neuen Zahlenwert festzulegen — falls es dann immer noch zu
-klein wirkt, konkretes Zielmaß (z. B. größere `clamp`-Obergrenze) in der Planung nachschärfen.
+„von der Projektseite übernehmen" könnte.
+*Empfehlung:* Zunächst D-a umsetzen und das Banner danach erneut im Kontext beurteilen, statt
+vorab einen Zahlenwert festzulegen.
+→ **Beantwortet, mit Verfahrenszusatz: D-p.** Wie empfohlen kein Zahlenwert vorab — zusätzlich
+verbindlich: ein expliziter Live-Checkpoint im Ausführungsplan nach D-a/D-o, bevor über die
+Bannergröße entschieden wird.
 
 ### OF-03 — Bezeichnung für „Aktive Mitglieder" je Gruppenstatus
 D-e verlangt eine passende Bezeichnung für aufgelöste Gruppen, ohne sie festzulegen.
-*Empfehlung:* „Mitglieder" für `dissolved` (neutral, kein Aktivitätsanspruch), „Mitglieder" auch
-für `inactive` (pausiert ist nicht dasselbe wie aufgelöst, aber „aktiv" wäre ebenfalls irreführend)
-und „Aktive Mitglieder" nur für `active`. Alternative: „Letzte Mitglieder" für `dissolved`, um den
-historischen Charakter stärker zu betonen — bitte eine der beiden Varianten bestätigen oder eigene
-Formulierung vorgeben.
+*Empfehlung:* „Mitglieder" für `dissolved`/`inactive`, „Aktive Mitglieder" nur für `active`.
+Alternative: „Letzte Mitglieder" für `dissolved`.
+→ **Beantwortet: D-q (wie empfohlen, erste Variante — „Mitglieder" für beide nicht-aktiven
+Status, nicht „Letzte Mitglieder").**
 
 ### OF-04 — Technischer Weg für D-h (kein Großkarten-Modus bei 1 Projekt)
 `FocalCarousel`s „quiet"-Einzelitem-Modus wird auch von Profil-Komponenten (`MemberBadgeChain`,
-`RoleAchievementCard`, `ThumbnailStrip`) genutzt, wo ein zentriertes Einzelabzeichen plausibel
-gewünscht ist. Soll das generische Primitive einen neuen, optionalen Prop bekommen (z. B.
-`singleItemLayout: 'quiet' | 'grid'`, Default bleibt `'quiet'` → kein Verhaltenswechsel für
-bestehende Nutzer), den nur `FansubProjectsGrid` auf `'grid'` setzt? Oder soll
-`FansubProjectsGrid` bei genau einem Projekt `FocalCarousel` gar nicht verwenden und die Karte
-direkt rendern?
-*Empfehlung:* Neuer optionaler Prop am Primitive mit rückwärtskompatiblem Default — vermeidet
-Komponenten-Duplikation und hält die Karte im selben Grid-Layout-Pfad wie bei mehreren Projekten
-(entspricht der ursprünglichen Absicht aus dem Code-Kommentar in `FansubProjectsSection.tsx:53-57`).
+`RoleAchievementCard`, `ThumbnailStrip`) genutzt.
+*Empfehlung:* Neuer optionaler Prop am Primitive mit rückwärtskompatiblem Default.
+→ **Beantwortet: D-r (wie empfohlen).**
 
 ### OF-05 — Leere Abschnitte bei datenarmen Gruppen (Beispiel `dragon-subs`)
 Nicht in der D-Liste, aber live beobachtet: Gruppen ohne Geschichte/Team/Historie/Medien zeigen
-diese Abschnitte heute komplett ausgeblendet (kein Platzhalter) — die Seite endet abrupt nach dem
-Projekte-Abschnitt. Ist das weiterhin das gewünschte Verhalten (nur vorhandene Abschnitte zeigen),
-oder soll Phase 190 das mitbehandeln (z. B. generische Empty-States wie bereits bei Medien
-vorhanden, `EmptyState`-Primitive)?
-*Empfehlung:* Unverändert lassen (kein neuer Scope) — die Phase ist bereits mit 14 Entscheidungen
-klar umrissen; leere Abschnitte ausblenden ist ein verbreitetes, bewusstes Muster im Repo
-(z. B. `FansubMediaSection`/`FansubTeamSection` geben bei 0 Einträgen `null` zurück) und keines
-der D-a bis D-n Themen berührt das.
+diese Abschnitte heute komplett ausgeblendet (kein Platzhalter).
+*Empfehlung:* Unverändert lassen (kein neuer Scope).
+→ **Beantwortet: D-s (wie empfohlen).**
 
 ### OF-06 — Rollen-Label „Edit" statt korrektem deutschen Begriff für `editor`
-Sitzweiter Katalog-Datensatz (`role_definitions.label_de = 'Edit'` für Rollen-Code `editor`),
-sichtbar genau auf den Team-Karten, die D-f umbaut. Technisch eine Daten-/Katalogkorrektur
-(ein Zeilenupdate per Migration), kein UI-Strukturproblem — aber anders als die explizit
-ausgeschlossenen Testdaten (Phase-Beschreibung) ist das hier ein siteweites Label, keine
-gruppenspezifische Testbefüllung.
-*Empfehlung:* Mitbeheben (eine Zeile, z. B. `label_de = 'Editor'`, via append-only Migration) — der
-Aufwand ist minimal und die Karten werden in dieser Phase ohnehin inhaltlich angefasst; sonst
-bleibt ein sichtbarer Fehler exakt auf der neu gestalteten Fläche stehen.
+Siteweiter Katalog-Datensatz (`role_definitions.label_de = 'Edit'` für Rollen-Code `editor`),
+sichtbar genau auf den Team-Karten, die D-f umbaut.
+*Empfehlung:* Mitbeheben via append-only Migration.
+→ **Beantwortet, mit abweichendem Zielwert: D-t.** Mitbeheben wie empfohlen, aber Zielwert
+„Editing" (nicht „Editor") — passend zur bereits im Code etablierten Konvention für diese Rolle.
 
 ### OF-07 — Kennzahlen-Zeile auf Mobil: Umbruchverhalten
-Bei 375 px bricht die dreispaltige Kennzahlen-Zeile (Anime-Projekte/Releases/Mitglieder) auf zwei
-Zeilen um, der dritte Wert steht dann allein. Das ist ein von `HeroMetrics` (bereits geteiltes
-Primitive) geerbtes Verhalten, nicht fansub-spezifisch.
-*Empfehlung:* Nicht in dieser Phase beheben, da es `HeroMetrics` siteweit betrifft (auch die
-Projektseite) und damit über den Scope „Fansub-Gruppenseite" hinausgeht — als separates
-Folge-Todo festhalten, falls gewünscht.
+Bei 375 px bricht die dreispaltige Kennzahlen-Zeile auf zwei Zeilen um, der dritte Wert steht dann
+allein. Von `HeroMetrics` (bereits geteiltes Primitive) geerbtes Verhalten, nicht fansub-spezifisch.
+*Empfehlung:* Nicht in dieser Phase beheben, als separates Folge-Todo festhalten.
+→ **Beantwortet, abweichend von der Empfehlung: D-u.** Doch IN dieser Phase beheben, siteweit über
+`HeroMetrics` selbst, mit Live-Mobil-Prüfung aller sechs Verwendungsstellen (nicht nur der
+Fansub-Gruppenseite).
 
 ---
 
 ## Nächster Schritt
 
-Dieses Dokument wartet auf Antworten zu OF-01 bis OF-07. Danach: `/gsd:discuss-phase 190` bzw.
-`/gsd:plan-phase 190`, um die Entscheidungen in einen ausführbaren Plan zu überführen. Keine
-Planung, keine Ausführung, keine Produktcode-Änderung vor diesem Punkt.
+Alle Fragen sind beantwortet (D-o bis D-u), Umfang ist final. Nächster Schritt: `/gsd:plan-phase
+190`, um die Entscheidungen in einen ausführbaren Plan zu überführen. Keine Planung, keine
+Ausführung, keine Produktcode-Änderung vor diesem Punkt.
