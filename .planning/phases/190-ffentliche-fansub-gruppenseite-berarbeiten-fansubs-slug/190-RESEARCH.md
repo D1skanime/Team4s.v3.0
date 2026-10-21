@@ -292,7 +292,7 @@ enforced site-wide for public GET routes.
 **If this table is empty:** N/A — see entries above; all are low-risk/easily-rechecked-at-plan-time
 assumptions, none touch security, compliance, or irreversible decisions.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 None outstanding — CONTEXT.md confirms all 7 original open questions (OF-01 through OF-07) are
 answered (D-o through D-u). This research found no new open questions requiring user input beyond
