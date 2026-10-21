@@ -1,5 +1,6 @@
 import { SectionHeader } from '@/components/ui'
 import type { DomainProjectionHistoricalRow, DomainProjectionMemberRow } from '@/types/domain-projection'
+import type { FansubStatus } from '@/types/fansub'
 
 import { FansubTeamActiveGroup } from './FansubTeamActiveGroup'
 import { FansubTeamHistoricalGroup } from './FansubTeamHistoricalGroup'
@@ -9,6 +10,7 @@ import styles from './FansubTeamSection.module.css'
 interface FansubTeamSectionProps {
   members: DomainProjectionMemberRow[]
   historical: DomainProjectionHistoricalRow[]
+  status: FansubStatus
 }
 
 export function countVisibleTeamMembers(
@@ -23,7 +25,7 @@ export function countVisibleTeamMembers(
   return activeMembers.length + historicalNonMemorial.length + memorialMembers.length + memorialHistorical.length
 }
 
-export function FansubTeamSection({ members, historical }: FansubTeamSectionProps) {
+export function FansubTeamSection({ members, historical, status }: FansubTeamSectionProps) {
   const activeMembers = members.filter((member) => member.profile_status !== 'memorial')
   const memorialMembers = members.filter((member) => member.profile_status === 'memorial')
   const historicalNonMemorial = historical.filter((member) => member.profile_status !== 'memorial')
@@ -37,7 +39,7 @@ export function FansubTeamSection({ members, historical }: FansubTeamSectionProp
   return (
     <section id="team" className={styles.teamSection}>
       <SectionHeader title="Team & Mitglieder" underline />
-      <FansubTeamActiveGroup members={activeMembers} />
+      <FansubTeamActiveGroup members={activeMembers} status={status} />
       <FansubTeamHistoricalGroup historical={historicalNonMemorial} />
       <FansubTeamMemorialBlock memorial={allMemorial} />
     </section>

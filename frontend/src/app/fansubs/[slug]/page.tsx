@@ -72,7 +72,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
   const visibleTeamCount = countVisibleTeamMembers(domainProjection.members, domainProjection.historical)
   const heroStats = [
     { label: 'Anime-Projekte', value: profile.projects.length },
-    { label: 'Release-Versionen', value: group.release_versions_count },
+    { label: 'Releases', value: group.release_versions_count },
     { label: 'Mitglieder', value: visibleTeamCount },
   ]
   const storyAvailable = hasStoriesContent(profile.stories)
@@ -108,7 +108,11 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
 
       {hasTeam ? (
         <div className={styles.gridSection}>
-          <FansubTeamSection members={domainProjection.members} historical={domainProjection.historical} />
+          <FansubTeamSection
+            members={domainProjection.members}
+            historical={domainProjection.historical}
+            status={group.status}
+          />
         </div>
       ) : null}
 

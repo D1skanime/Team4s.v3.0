@@ -44,12 +44,13 @@ function historicalMember(overrides: Partial<DomainProjectionHistoricalRow> = {}
 describe('FansubTeamSection', () => {
   it('nutzt dieselbe sichtbare Team-Zählung wie die öffentliche Seite', () => {
     expect(countVisibleTeamMembers([activeMember()], [historicalMember()])).toBe(2)
-    expect(renderToStaticMarkup(<FansubTeamSection members={[]} historical={[]} />)).toBe('')
+    expect(renderToStaticMarkup(<FansubTeamSection members={[]} historical={[]} status="active" />)).toBe('')
   })
 
   it('trennt aktive, historische und Memorial-Mitglieder', () => {
     const html = renderToStaticMarkup(
       <FansubTeamSection
+        status="active"
         members={[
           activeMember(),
           activeMember({

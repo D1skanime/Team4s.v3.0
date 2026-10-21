@@ -30,7 +30,7 @@ function activeMember(overrides: Partial<DomainProjectionMemberRow> = {}): Domai
 
 describe('FansubTeamActiveGroup', () => {
   it('verlinkt Mitglieder mit oeffentlichem Profil klar erkennbar (Akzent + Chevron)', () => {
-    const { container } = render(<FansubTeamActiveGroup members={[activeMember()]} />)
+    const { container } = render(<FansubTeamActiveGroup members={[activeMember()]} status="active" />)
 
     const link = screen.getByRole('link', { name: /Aktives Mitglied/ })
     expect(link.getAttribute('href')).toBe('/members/aktives-mitglied')
@@ -41,6 +41,7 @@ describe('FansubTeamActiveGroup', () => {
     const { container } = render(
       <FansubTeamActiveGroup
         members={[activeMember({ member_slug: null, member_display_name: 'Ohne Profil' })]}
+        status="active"
       />,
     )
 

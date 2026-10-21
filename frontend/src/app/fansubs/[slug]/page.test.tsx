@@ -297,6 +297,6 @@ describe('FansubProfilePage composition (152-06)', () => {
     })
 
     const metrics = screen.getByLabelText('Gruppenkennzahlen')
-    expect(metrics.textContent).toBe('Anime-Projekte2Release-Versionen12Mitglieder3')
+    expect(metrics.textContent).toBe('Anime-Projekte2Releases12Mitglieder3')
   })
 })

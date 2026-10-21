@@ -2,12 +2,15 @@ import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 import type { DomainProjectionMemberRow } from '@/types/domain-projection'
+import type { FansubStatus } from '@/types/fansub'
+import { resolveMemberSectionLabel } from '@/lib/fansub-team-labels'
 
 import { FansubMemberAvatar } from './FansubMemberAvatar'
 import styles from './FansubTeamSection.module.css'
 
 interface FansubTeamActiveGroupProps {
   members: DomainProjectionMemberRow[]
+  status: FansubStatus
 }
 
 function MemberRowInner({ member }: { member: DomainProjectionMemberRow }) {
@@ -31,14 +34,14 @@ function MemberRowInner({ member }: { member: DomainProjectionMemberRow }) {
   )
 }
 
-export function FansubTeamActiveGroup({ members }: FansubTeamActiveGroupProps) {
+export function FansubTeamActiveGroup({ members, status }: FansubTeamActiveGroupProps) {
   if (members.length === 0) {
     return null
   }
 
   return (
     <div>
-      <h3 className={styles.subgroupTitle}>Aktive Mitglieder · {members.length}</h3>
+      <h3 className={styles.subgroupTitle}>{resolveMemberSectionLabel(status, members.length)}</h3>
       <div className={styles.memberGrid}>
         {members.map((member) =>
           member.member_slug !== null ? (

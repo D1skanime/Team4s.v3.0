@@ -450,7 +450,7 @@ export function PublicFansubSurfacesShowcase() {
         </PublicSurfaceFrame>
 
         <PublicSurfaceFrame title="Team & Mitwirkende" width="1180px">
-          <FansubTeamSection members={showcaseMembers} historical={showcaseHistorical} />
+          <FansubTeamSection members={showcaseMembers} historical={showcaseHistorical} status="active" />
         </PublicSurfaceFrame>
       </div>
     </Card>
