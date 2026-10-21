@@ -50,6 +50,8 @@ export type FocalCarouselProps<T> = {
   showCounter?: boolean
   formatCounter?: (position: number, total: number, label: string) => ReactNode
   deferInteractionUntilNearViewport?: boolean
+  /** Layout when exactly one item is visible. Default 'quiet' preserves existing behavior. */
+  singleItemLayout?: 'quiet' | 'grid'
 }
 
 type DirectCarouselItemProps<T> = {

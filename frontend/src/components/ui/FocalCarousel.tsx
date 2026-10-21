@@ -36,6 +36,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
     carouselItems,
     showLessLabel = 'Weniger anzeigen',
     deferInteractionUntilNearViewport = false,
+    singleItemLayout = 'quiet',
   } = props
   const [activeIndex, setActiveIndex] = useState(0)
   const [isNavigating, setIsNavigating] = useState(false)
@@ -352,7 +353,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
   }
 
   if (items.length === 0) return null
-  const quiet = visibleItems.length === 1
+  const quiet = visibleItems.length === 1 && singleItemLayout !== 'grid'
   const collapsedTrackHandlers: CollapsedTrackHandlers = {
     onKeyDown: handleKeyDown,
     onScroll: handleScroll,

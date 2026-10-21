@@ -70,6 +70,7 @@ export function FansubProjectsGrid({ items, groupId, groupSlug }: FansubProjects
         ) : renderProject(item)
       }
       showLessLabel="Weniger anzeigen"
+      singleItemLayout="grid"
     />
   )
 }
