@@ -65,9 +65,13 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
   let domainProjection: DomainProjectionResponse = { members: [], historical: [], contributors: [] }
   try {
     domainProjection = await getFansubGroupDomainProjection(group.id)
-  } catch {
+  } catch (error) {
     // Domain projection is best-effort; the page still renders Hero/Story/Projects/History/Media
     // without a Team section if this fails (unchanged fallback behavior, now explicit).
+    console.error('[fansub-profile] domain projection load failed', {
+      groupID: group.id,
+      message: error instanceof Error ? error.message : String(error),
+    })
   }
   const visibleTeamCount = countVisibleTeamMembers(domainProjection.members, domainProjection.historical)
   const heroStats = [
