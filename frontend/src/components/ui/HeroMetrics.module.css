@@ -67,6 +67,10 @@
     gap: 16px 22px;
   }
 
+  .heroMetricItem {
+    flex: 1 1 140px;
+  }
+
   .heroMetricItem dt {
     font-size: 11px;
   }
