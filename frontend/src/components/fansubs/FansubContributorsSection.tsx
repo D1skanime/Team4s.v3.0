@@ -18,6 +18,18 @@ function renderContributorName(contributor: DomainProjectionContributorRow) {
   return <span>{contributor.member_display_name}</span>
 }
 
+/**
+ * Anders als beim Memorial-Block (siehe fansub-memorial-key.ts) ist
+ * `contributors` eine einzige, nicht gemischte Liste mit eigenem,
+ * eindeutigem Primärschlüssel-Feld `id`. Es gibt keine zweite Datenquelle
+ * mit überlappendem id-Raum, daher reicht ein reiner id-Key aus -- der
+ * Quelle+id-Mechanismus (buildFansubMemorialKey) würde hier unnötige
+ * Komplexität ohne Zusatznutzen einführen.
+ */
+export function selectFansubContributorKey(contributor: DomainProjectionContributorRow): number {
+  return contributor.id
+}
+
 export function FansubContributorsSection({ contributors, teamMemberNames }: FansubContributorsSectionProps) {
   const visibleContributors = contributors.filter(
     (c) => c.visibility === 'public' && c.review_status === 'approved',
@@ -39,7 +51,7 @@ export function FansubContributorsSection({ contributors, teamMemberNames }: Fan
           {visibleContributors.map((contributor) => {
             const isAlsoMember = teamSet.has(contributor.member_display_name.toLowerCase())
             return (
-              <Card key={contributor.member_display_name} variant="flat" className={styles.contributorCard}>
+              <Card key={selectFansubContributorKey(contributor)} variant="flat" className={styles.contributorCard}>
                 <strong>{renderContributorName(contributor)}</strong>
                 {isAlsoMember ? (
                   <Badge variant="muted" className={styles.inlineBadge}>auch Mitglied</Badge>
