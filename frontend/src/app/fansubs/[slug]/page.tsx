@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import { PublicHeaderBackdrop } from '@/components/public/PublicHeaderBackdrop'
 import { FansubHistorySection } from '@/components/fansubs/FansubHistorySection'
 import { FansubHeroSection } from '@/components/fansubs/FansubHeroSection'
 import { FansubMediaSection } from '@/components/fansubs/FansubMediaSection'
@@ -97,13 +98,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
 
       {profile.projects.length > 0 ? (
         <div className={styles.sectionBand}>
-          {bannerBackdrop ? (
-            <div
-              className={styles.sectionBandBackdrop}
-              style={{ backgroundImage: `url("${bannerBackdrop}")` }}
-              aria-hidden="true"
-            />
-          ) : null}
+          <PublicHeaderBackdrop imageUrl={bannerBackdrop} className={styles.sectionBandBackdropTuning} />
           <div className={styles.gridSection}>
             <FansubProjectsSection projects={profile.projects} groupId={group.id} groupSlug={group.slug} />
           </div>
@@ -128,13 +123,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
 
       {hasMedia ? (
         <div className={styles.sectionBand}>
-          {bannerBackdrop ? (
-            <div
-              className={styles.sectionBandBackdrop}
-              style={{ backgroundImage: `url("${bannerBackdrop}")` }}
-              aria-hidden="true"
-            />
-          ) : null}
+          <PublicHeaderBackdrop imageUrl={bannerBackdrop} className={styles.sectionBandBackdropTuning} />
           <div className={styles.gridSection}>
             <FansubMediaSection media={profile.media} />
           </div>

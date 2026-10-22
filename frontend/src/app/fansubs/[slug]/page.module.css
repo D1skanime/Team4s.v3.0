@@ -2,7 +2,6 @@
   width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));
   min-width: 0;
   max-width: 100%;
-  overflow-x: clip;
   margin: 0 auto;
   padding: 0 0 64px;
 }
@@ -42,20 +41,16 @@
   border-top: 3px solid var(--accent-deep);
 }
 
-.heroBackdrop {
-  position: absolute;
+.heroBackdropTuning.heroBackdropTuning {
   top: 0;
   bottom: 0;
-  left: calc(50% - 50vw);
-  width: 100vw;
-  z-index: 0;
   background-size: cover;
   background-position: center;
   filter: blur(34px) brightness(0.72) saturate(1.25);
   transform: scale(1.15);
 }
 
-.heroBackdrop::after {
+.heroBackdropTuning.heroBackdropTuning::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -275,16 +270,11 @@
   isolation: isolate;
   min-width: 0;
   max-width: 100%;
-  overflow-x: clip;
 }
 
-.sectionBandBackdrop {
-  position: absolute;
+.sectionBandBackdropTuning.sectionBandBackdropTuning {
   top: -24px;
   bottom: -24px;
-  left: calc(50% - 50vw);
-  width: 100vw;
-  z-index: 0;
   background-size: cover;
   background-position: center;
   filter: blur(44px) saturate(1.3);

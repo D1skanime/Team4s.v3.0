@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import { PublicHeaderBackdrop } from '@/components/public/PublicHeaderBackdrop'
 import { Badge, HeroMetrics } from '@/components/ui'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
@@ -91,13 +92,7 @@ export function FansubHeroSection({
 
   return (
     <section id="hero" className={styles.hero}>
-      {bannerURL ? (
-        <div
-          className={styles.heroBackdrop}
-          style={{ backgroundImage: `url("${bannerURL}")` }}
-          aria-hidden="true"
-        />
-      ) : null}
+      <PublicHeaderBackdrop imageUrl={bannerURL} className={styles.heroBackdropTuning} />
 
       <div className={styles.heroFg}>
         <div className={styles.heroCard}>

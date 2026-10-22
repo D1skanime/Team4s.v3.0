@@ -35,11 +35,16 @@ describe('public page desktop width contract', () => {
     expect(fansubStyles).not.toContain('@media (min-width: 1600px)')
   })
 
-  it('contains full-bleed decoration without clipping internal carousel scrolling', () => {
+  it('contains full-bleed decoration without a redundant local overflow-x:clip that would clip the full-bleed header backdrop (quick-261022-g17)', () => {
+    // .page/.sectionBand intentionally no longer declare their own overflow-x:clip --
+    // that redundant local clip was shadowing the full-bleed calc(50% - 50vw)/100vw
+    // header backdrop, clipping it back down to the width-capped ancestor. The global
+    // `body { overflow-x: clip }` (frontend/src/styles/globals.css) remains the single
+    // scrollbar-safety net relied on instead.
     expect(basePageRule(fansubStyles)).toContain('min-width: 0;')
     expect(basePageRule(fansubStyles)).toContain('max-width: 100%;')
-    expect(basePageRule(fansubStyles)).toContain('overflow-x: clip;')
-    expect(fansubStyles).toMatch(/\.sectionBand\s*\{[^}]*overflow-x:\s*clip;/s)
+    expect(basePageRule(fansubStyles)).not.toContain('overflow-x: clip;')
+    expect(fansubStyles).not.toMatch(/\.sectionBand\s*\{[^}]*overflow-x:\s*clip;/s)
     expect(focalCarouselStyles).toMatch(/\.track\s*\{[^}]*overflow-x:\s*auto;/s)
   })
 
