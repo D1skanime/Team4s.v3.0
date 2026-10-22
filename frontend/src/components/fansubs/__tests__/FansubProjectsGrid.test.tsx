@@ -60,11 +60,11 @@ describe('FansubProjectsGrid', () => {
       '/fansubs/c-subs/fansubprojekt/projekt-1',
     )
     expect(screen.queryByRole('button', { name: /Projekte anzeigen/ })).toBeNull()
-    // D-h (zweite Korrektur nach Live-UAT 190-09, Nutzer-Variante B): bei genau einem Projekt
-    // wird FocalCarousel komplett umgangen (keine Karussell-Region, keine Navigationspfeile,
-    // keine Grosskarte) -- die Karte landet stattdessen im bestehenden .bannerGrid-Raster
-    // (kleinere, linksbuendige Standardkartengroesse). Mehrere Projekte bleiben unveraendert im
-    // FocalCarousel, siehe die Tests unten.
+    // quick-261022-dwe: bei genau einem Projekt wird FocalCarousel komplett umgangen (keine
+    // Karussell-Region, keine Navigationspfeile, keine Grosskarte) -- die Karte landet
+    // stattdessen im .projectTileGrid-Raster (Medien-Kachelgroesse der Gruppenseite statt der
+    // vorherigen festen 240-320px-Groesse). Mehrere Projekte bis zur jeweiligen Spaltenzahl
+    // landen seit diesem Plan ebenfalls im Raster, siehe die Breakpoint-Tests unten.
     expect(screen.queryByRole('region', { name: 'Projekt-Vorschau' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Vorherige Projekte' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Weitere Projekte' })).toBeNull()
@@ -113,5 +113,29 @@ describe('FansubProjectsGrid Phase 119 carousel regression', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alle 25 Projekte anzeigen' }))
     expect(screen.getByRole('link', { name: 'Fansub-Projekt öffnen: Projekt 25' }).getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/projekt-25')
     expect(screen.queryByText(/Badge|Auszeichnung/)).toBeNull()
+  })
+})
+
+describe('FansubProjectsGrid Breakpoint-Raster/Karussell-Wechsel (quick-261022-dwe)', () => {
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 })
+  })
+
+  it('zeigt bei 2 Projekten auf Mobile-Breite weiterhin das Karussell (Projekt-Vorschau)', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 })
+    render(<FansubProjectsGrid items={makeItems(2)} groupId={5} groupSlug="c-subs" />)
+    fireEvent(window, new Event('resize'))
+
+    expect(screen.getByRole('region', { name: 'Projekt-Vorschau' })).toBeTruthy()
+  })
+
+  it('zeigt bei 2 Projekten auf Desktop-Breite (jsdom-Default 1024) das Raster statt des Karussells', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 })
+    render(<FansubProjectsGrid items={makeItems(2)} groupId={5} groupSlug="c-subs" />)
+    fireEvent(window, new Event('resize'))
+
+    expect(screen.queryByRole('region', { name: 'Projekt-Vorschau' })).toBeNull()
+    expect(screen.getByText('Projekt 1')).toBeTruthy()
+    expect(screen.getByText('Projekt 2')).toBeTruthy()
   })
 })

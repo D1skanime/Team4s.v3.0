@@ -1,8 +1,12 @@
 'use client'
 
+import type { CSSProperties } from 'react'
+
 import { Button, FocalCarousel } from '@/components/ui'
 import type { PublicFansubProject } from '@/types/fansub'
 
+import { decideProjectsLayout } from './fansubProjectsLayout'
+import { useFansubProjectsBreakpoint } from './useFansubProjectsBreakpoint'
 import { FansubProjectBannerCard } from './FansubProjectBannerCard'
 import styles from './FansubProjectsSection.module.css'
 
@@ -21,10 +25,18 @@ interface FansubProjectsGridProps {
 const PREVIEW_COUNT = 20
 
 export function FansubProjectsGrid({ items, groupId, groupSlug }: FansubProjectsGridProps) {
+  // Rule 1 (Bugfix): useFansubProjectsBreakpoint() muss vor jedem bedingten Return
+  // aufgerufen werden (Rules of Hooks) -- ein Aufruf erst nach dem items.length===0-Check
+  // wuerde die Hook-Aufrufreihenfolge zerstoeren, sobald items.length zwischen Renders
+  // derselben Komponenteninstanz von 0 auf >0 wechselt.
+  const breakpoint = useFansubProjectsBreakpoint()
   if (items.length === 0) return null
 
-  const renderProject = (item: FansubProjectsGridItem) => (
+  const layout = decideProjectsLayout(items.length, breakpoint)
+
+  const renderProject = (item: FansubProjectsGridItem, key?: string | number) => (
     <FansubProjectBannerCard
+      key={key}
       project={item.project}
       groupId={groupId}
       fansubSlug={groupSlug}
@@ -33,13 +45,18 @@ export function FansubProjectsGrid({ items, groupId, groupSlug }: FansubProjects
     />
   )
 
-  // 190-09 (D-h, zweite Korrektur nach Live-UAT): bei genau einem Projekt keine
-  // FocalCarousel-Grosskarte (718px, zentriert, Navigationspfeile) -- stattdessen dieselbe
-  // kleinere, linksbuendige Kartengroesse wie das bestehende .bannerGrid-Raster (240-320px),
-  // ohne Karussell. Mehrere Projekte bleiben unveraendert im FocalCarousel (Groesse/Verhalten
-  // dort ist noch nicht final entschieden, siehe 190-09-SUMMARY.md).
-  if (items.length === 1) {
-    return <div className={styles.bannerGrid}>{renderProject(items[0])}</div>
+  // quick-261022-dwe: Passen alle Projekte nebeneinander in die Spaltenzahl des
+  // Medien-Kachelrasters derselben Seite, wird ein reines, linksbuendiges CSS-Raster in
+  // Medien-Kachelgroesse gerendert -- kein FocalCarousel, keine Navigationspfeile. Das
+  // deckt sowohl den bisherigen Einzelprojekt-Sonderfall (190-09) als auch 2-3 Projekte
+  // auf Desktop bzw. 2 Projekte auf Tablet ab. Passt die Anzahl nicht (Mobile mit 2+ oder
+  // Ueberlauf auf Desktop/Tablet), bleibt das bestehende FocalCarousel erhalten.
+  if (layout.mode === 'grid') {
+    return (
+      <div className={styles.projectTileGrid}>
+        {items.map((item) => renderProject(item, item.project.id))}
+      </div>
+    )
   }
 
   const hasMore = items.length > PREVIEW_COUNT
@@ -49,10 +66,24 @@ export function FansubProjectsGrid({ items, groupId, groupSlug }: FansubProjects
     ? [...previewItems, { more: true }]
     : previewItems
 
+  // 'carousel-peek' (Mobile, 2+ Projekte) bleibt exakt wie heute: presentation/style
+  // bleiben undefined, also Default-"focal"-Zentrierung mit Anriss der naechsten Karte.
+  // 'scroll-strip' (Ueberlauf auf Desktop/Tablet) nutzt die additive grid-scroll-Praesentation
+  // aus FocalCarousel: linksbuendig, keine Abdunklung, Kachelgroesse ueber die CSS-Variable.
+  const isScrollStrip = layout.mode === 'scroll-strip'
+
   return (
     <FocalCarousel
       items={items}
       carouselItems={carouselItems}
+      presentation={isScrollStrip ? 'grid-scroll' : undefined}
+      style={
+        isScrollStrip
+          ? ({
+              '--grid-scroll-item-size': `calc((100% - 12px * ${layout.columns - 1}) / ${layout.columns})`,
+            } as CSSProperties)
+          : undefined
+      }
       getItemKey={(item) => ('more' in item ? 'more-projects' : item.project.id)}
       regionLabel="Projekt-Vorschau"
       itemSingularLabel="Projekt"

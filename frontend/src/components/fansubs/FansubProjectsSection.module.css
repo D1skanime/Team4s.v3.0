@@ -3,10 +3,13 @@
   gap: 16px;
 }
 
-.bannerGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 320px));
-  gap: 16px;
+/* quick-261022-dwe: ersetzt das vorherige feste .bannerGrid (240-320px-Karten) -- Projektkarten
+   teilen sich jetzt dieselbe Spaltendefinition wie das Medien-Kachelraster derselben Seite
+   (.mediaItemGrid/.tileColumnGrid in FansubPublicSections.module.css) statt einer eigenen,
+   kleineren Fixgroesse. */
+.projectTileGrid {
+  composes: tileColumnGrid from './FansubPublicSections.module.css';
+  gap: 12px;
 }
 
 .bannerCard {
