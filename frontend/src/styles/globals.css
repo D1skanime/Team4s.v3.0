@@ -207,6 +207,15 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  /* Full-Bleed-Elemente (100vw, z. B. Hero-Backdrop) duerfen keine Horizontalscrollbar erzeugen.
+     'clip' statt 'hidden' -> erzeugt keinen Scroll-Container, bricht kein position: sticky.
+     MUSS auf BEIDEN Elementen stehen (quick-261022-g17, live per Playwright verifiziert):
+     body { overflow-x: clip } allein genuegt NICHT, wenn ein Full-Bleed-Kind zusaetzlich
+     transform:scale(...) traegt (z. B. der Hero-Backdrop-Zoom-Effekt) -- der Browser
+     propagiert dessen Overflow nicht zuverlaessig auf <html>/den Viewport herunter, sodass
+     document.documentElement.scrollWidth trotzdem waechst und die Seite real horizontal
+     scrollbar wird. Mit overflow-x:clip auf <html> selbst bleibt scrollWidth === clientWidth. */
+  overflow-x: clip;
 }
 
 body {
@@ -215,9 +224,6 @@ body {
   color: var(--text-primary);
   background: var(--bg-primary);
   line-height: 1.5;
-  /* Full-Bleed-Elemente (100vw, z. B. Hero-Backdrop) duerfen keine Horizontalscrollbar erzeugen.
-     'clip' statt 'hidden' -> erzeugt keinen Scroll-Container, bricht kein position: sticky. */
-  overflow-x: clip;
 }
 
 a {

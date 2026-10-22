@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import type { CSSProperties } from 'react'
 import { ArrowLeft } from 'lucide-react'
 
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
@@ -85,7 +86,13 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
     { label: `Episode ${detail.episode_number}` },
   ]
 
-  return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`}>
+  // --release-page-backdrop wird NICHT mehr fuer den Full-Bleed-Hero-Hintergrund gebraucht
+  // (der laeuft jetzt ueber PublicHeaderBackdrop mit eigenem Inline-background-image) --
+  // sie bleibt hier ausschliesslich fuer den unveraenderten, bereits korrekt gescopten
+  // [data-release-atmosphere-band]-Glow-Effekt erhalten (page.module.css, vererbt an das
+  // verschachtelte ::before, das denselben Bildwert braucht).
+  const pageStyle = atmosphereUrl ? ({ '--release-page-backdrop': `url("${atmosphereUrl}")` } as CSSProperties) : undefined
+  return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`} style={pageStyle}>
     <PublicHeaderBackdrop imageUrl={atmosphereUrl} className={styles.releaseHeroBackdropTuning} />
     {atmosphereUrl && (
       <svg className={styles.atmosphereFilter} aria-hidden="true" focusable="false">

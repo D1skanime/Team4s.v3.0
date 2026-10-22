@@ -137,9 +137,13 @@ describe('ReleaseDetailPageContent Phase 105 composition', () => {
     expect(screen.getByTestId('release-hero').getAttribute('data-anime-id')).toBe('9')
     expect(screen.getByTestId('release-hero').getAttribute('data-group-id')).toBe('4')
     expect(screen.getByTestId('release-hero').getAttribute('data-canonical-project-path')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed')
-    // Full-bleed Kopf-Hintergrund (quick-261022-g17): kein CSS-Custom-Property mehr am
-    // <main>, sondern ein PublicHeaderBackdrop-Element mit eigenem Inline-background-image.
+    // Full-bleed Kopf-Hintergrund (quick-261022-g17): laeuft jetzt ueber ein
+    // PublicHeaderBackdrop-Element mit eigenem Inline-background-image statt der frueheren
+    // --release-page-backdrop-Variable auf <main>. Die Variable selbst bleibt auf <main>
+    // gesetzt, da das unveraenderte [data-release-atmosphere-band]-Glow-::before (page.module.css)
+    // weiterhin denselben Bildwert per var(--release-page-backdrop) erbt.
     expect(screen.getByTestId('public-header-backdrop').style.backgroundImage).toContain('/release-preview-thumb.jpg')
+    expect(document.querySelector('main')?.style.getPropertyValue('--release-page-backdrop')).toBe('url("/release-preview-thumb.jpg")')
   })
 
   it('uses the Anime logo as atmosphere only when no release preview exists', async () => {
@@ -149,6 +153,7 @@ describe('ReleaseDetailPageContent Phase 105 composition', () => {
     await renderComposer()
 
     expect(screen.getByTestId('public-header-backdrop').style.backgroundImage).toContain('/anime-logo.png')
+    expect(document.querySelector('main')?.style.getPropertyValue('--release-page-backdrop')).toBe('url("/anime-logo.png")')
   })
 
   it('omits empty child sections completely without headings, dividers, or reserved sections', async () => {
