@@ -9,6 +9,15 @@ const VIEWPORTS = [
 ]
 const SHOT_DIR = '/tmp/public-header-backdrop-evidence'
 
+const IMAGE_CARD_CASES = [
+  { name: 'release-transparent-logo', path: '/fansubs/new-subs/fansubprojekt/buddy-complex/releases/49' },
+  { name: 'release-normal-image', path: '/fansubs/new-subs/fansubprojekt/buddy-complex/releases/27' },
+]
+const IMAGE_CARD_VIEWPORTS = [
+  { width: 1440, height: 900, label: '1440x900' },
+  { width: 375, height: 812, label: '375x812' },
+]
+
 async function resolveReleasePath(page) {
   const projectPath = '/fansubs/strawhat-subs/fansubprojekt/11eyes'
   const fallback = `${projectPath}/releases/164`
@@ -128,6 +137,58 @@ async function main() {
         failures.push(
           `${target.name}@${viewport.label}: content width ${measurement.contentWidth} != expected ${measurement.expectedContentWidth}`,
         )
+      }
+    }
+  }
+
+  // Image-card regression checks (quick-261022-g17 addendum): the release hero image must no
+  // longer carry a box-shadow "card" behind it, while a normal (non-transparent) image keeps
+  // its own border-radius corner rounding.
+  for (const viewport of IMAGE_CARD_VIEWPORTS) {
+    for (const target of IMAGE_CARD_CASES) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height })
+      await page.goto(`${BASE}${target.path}`, { waitUntil: 'networkidle' })
+
+      const imageMeasurement = await page.evaluate(() => {
+        // img[class*="heroImage"], NICHT nur [class*="heroImage"]: der Wrapper-Div
+        // .heroImageShell (ReleaseDetailHero.tsx) enthaelt "heroImage" ebenfalls als Teilstring
+        // seines CSS-Modules-Klassennamens und steht im DOM VOR dem eigentlichen <img
+        // class={styles.heroImage}>. Ein ungezielter Attribut-Selektor traefe faelschlich den
+        // Wrapper (der selbst kein border-radius/box-shadow setzt) statt des Bilds.
+        const img = document.querySelector('img[class*="heroImage"]')
+        if (!img) return null
+        const cs = getComputedStyle(img)
+        return { boxShadow: cs.boxShadow, borderRadius: cs.borderRadius }
+      })
+
+      const shotPath = `${SHOT_DIR}/${target.name}-${viewport.label}.png`
+      await page.screenshot({ path: shotPath, fullPage: false })
+
+      results.push({
+        viewport: viewport.label,
+        page: target.name,
+        path: target.path,
+        imageMeasurement,
+        screenshot: shotPath,
+      })
+
+      if (!imageMeasurement) {
+        failures.push(`${target.name}@${viewport.label}: no [class*="heroImage"] element found`)
+        continue
+      }
+      const noShadow = imageMeasurement.boxShadow === 'none'
+      if (!noShadow) {
+        failures.push(
+          `${target.name}@${viewport.label}: heroImage still has a box-shadow (${imageMeasurement.boxShadow}) -- the card effect was not removed`,
+        )
+      }
+      if (target.name === 'release-normal-image') {
+        const hasRadius = imageMeasurement.borderRadius !== '0px' && imageMeasurement.borderRadius !== ''
+        if (!hasRadius) {
+          failures.push(
+            `${target.name}@${viewport.label}: heroImage lost its own corner rounding (border-radius: ${imageMeasurement.borderRadius})`,
+          )
+        }
       }
     }
   }
