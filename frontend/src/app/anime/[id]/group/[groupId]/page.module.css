@@ -41,20 +41,16 @@
 }
 
 /* Gleiche Backdrop-Mechanik wie die Public-Fansubseite: Full-Bleed, weich auslaufend, nicht geclippt. */
-.heroBackdrop {
-  position: absolute;
+.heroBackdropTuning.heroBackdropTuning {
   top: 0;
   bottom: 0;
-  left: calc(50% - 50vw);
-  width: 100vw;
-  z-index: 0;
   background-size: cover;
   background-position: center;
   filter: blur(34px) saturate(1.25);
   transform: scale(1.15);
 }
 
-.heroBackdrop::after {
+.heroBackdropTuning.heroBackdropTuning::after {
   content: "";
   position: absolute;
   inset: 0;

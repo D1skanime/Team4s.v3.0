@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
+import { PublicHeaderBackdrop } from "@/components/public/PublicHeaderBackdrop";
 import { AdjacentNavigation } from "@/components/ui";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import type { FansubProjectNavigation } from "@/lib/fansubProjectNavigation";
@@ -80,13 +81,7 @@ export function HeroSection({
       </p>
 
       <section className={styles.heroShell}>
-        {backdropUrl ? (
-          <div
-            className={styles.heroBackdrop}
-            style={{ backgroundImage: `url("${backdropUrl}")` }}
-            aria-hidden="true"
-          />
-        ) : null}
+        <PublicHeaderBackdrop imageUrl={backdropUrl} className={styles.heroBackdropTuning} />
         <div className={styles.heroFg}>
           <div className={styles.heroCard}>
             {heroImageUrl && heroImageIsBanner ? (

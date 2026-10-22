@@ -8,11 +8,6 @@
   isolation: isolate;
 }
 
-.pageWithBackdrop {
-  overflow-x: clip;
-  overflow-clip-margin: 50vw;
-}
-
 .atmosphereFilter {
   position: absolute;
   width: 0;
@@ -20,30 +15,22 @@
   pointer-events: none;
 }
 
-.pageWithBackdrop::before {
-  content: "";
-  position: absolute;
-  z-index: -2;
+.releaseHeroBackdropTuning.releaseHeroBackdropTuning {
   top: -28px;
-  left: calc(50% - 50vw);
-  width: 100vw;
+  bottom: auto;
   height: min(700px, 82vh);
-  background: var(--release-page-backdrop) center / 112% auto no-repeat;
+  background-position: center;
+  background-size: 112% auto;
+  background-repeat: no-repeat;
   filter: url(#release-atmosphere-distortion) blur(50px) brightness(0.7) saturate(0.78) contrast(0.92);
   transform: scale(1.045);
   transform-origin: center top;
-  clip-path: inset(0);
-  contain: paint;
 }
 
-.pageWithBackdrop::after {
+.releaseHeroBackdropTuning.releaseHeroBackdropTuning::after {
   content: "";
   position: absolute;
-  z-index: -1;
-  top: -28px;
-  left: calc(50% - 50vw);
-  width: 100vw;
-  height: min(700px, 82vh);
+  inset: 0;
   background: linear-gradient(180deg, rgba(15, 12, 25, 0.2) 0%, rgba(15, 12, 25, 0.38) 56%, var(--surface-canvas) 100%);
 }
 
@@ -345,7 +332,7 @@
   .heroHeading { grid-column: 1; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 14px; padding: 14px 16px 16px; }
   .heroNavigation { margin: 0 16px; padding-bottom: 12px; }
   .hero + section { margin-top: -12px; }
-  .pageWithBackdrop::before { background-size: auto 108%; filter: url(#release-atmosphere-distortion) blur(34px) brightness(0.72) saturate(0.82) contrast(0.94); transform: scale(1.035); }
+  .releaseHeroBackdropTuning.releaseHeroBackdropTuning { background-size: auto 108%; filter: url(#release-atmosphere-distortion) blur(34px) brightness(0.72) saturate(0.82) contrast(0.94); transform: scale(1.035); }
   .pageWithBackdrop > [data-release-atmosphere-band="true"]::before { background-size: auto 108%; filter: url(#release-atmosphere-distortion) blur(36px) brightness(0.8) saturate(0.84) contrast(0.95); transform: scale(1.025); opacity: 0.22; }
   .technicalGrid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .contributorsGrid { grid-template-columns: 1fr; }

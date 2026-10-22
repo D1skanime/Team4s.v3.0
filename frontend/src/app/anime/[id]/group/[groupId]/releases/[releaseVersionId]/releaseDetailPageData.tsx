@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import type { CSSProperties } from 'react'
 import { ArrowLeft } from 'lucide-react'
 
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
+import { PublicHeaderBackdrop } from '@/components/public/PublicHeaderBackdrop'
 import { Button } from '@/components/ui'
 import { ApiError, getAnimeBackdrops, getAnimeByID, getGroupDetail, getGroupReleaseDetail } from '@/lib/api'
 import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
@@ -85,8 +85,8 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
     { label: `Episode ${detail.episode_number}` },
   ]
 
-  const pageStyle = atmosphereUrl ? ({ '--release-page-backdrop': `url("${atmosphereUrl}")` } as CSSProperties) : undefined
-  return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`} style={pageStyle}>
+  return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`}>
+    <PublicHeaderBackdrop imageUrl={atmosphereUrl} className={styles.releaseHeroBackdropTuning} />
     {atmosphereUrl && (
       <svg className={styles.atmosphereFilter} aria-hidden="true" focusable="false">
         <defs>

@@ -29,6 +29,8 @@ const projectContentSectionsStyles = () =>
     join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/sections/ProjectContentSections.module.css'),
     'utf8',
   )
+const publicHeaderBackdropStyles = () =>
+  readFileSync(join(process.cwd(), 'src/components/public/PublicHeaderBackdrop.module.css'), 'utf8')
 
 vi.mock('next/image', () => {
   const MockNextImage = forwardRef<
@@ -125,29 +127,34 @@ describe('ProjectPage removed section surfaces (102-06)', () => {
 describe('ProjectPage public hero styling', () => {
   it('keeps the project backdrop soft like the public fansub hero instead of clipping the blur edge', () => {
     const css = projectPageStyles()
+    const backdropPrimitiveCss = publicHeaderBackdropStyles()
     const heroShellBlock = css.match(/\.heroShell\s*\{[\s\S]*?\}/)?.[0] ?? ''
-    const heroBackdropBlock = css.match(/\.heroBackdrop\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const heroBackdropTuningBlock =
+      css.match(/\.heroBackdropTuning\.heroBackdropTuning\s*\{[\s\S]*?\}/)?.[0] ?? ''
 
     expect(heroShellBlock).not.toContain('overflow: hidden')
     expect(heroShellBlock).not.toContain('width: 100vw')
     expect(heroShellBlock).not.toContain('margin-left: calc(50% - 50vw)')
-    expect(heroBackdropBlock).toContain('left: calc(50% - 50vw)')
-    expect(heroBackdropBlock).toContain('width: 100vw')
-    expect(heroBackdropBlock).toContain('filter: blur(34px) saturate(1.25)')
+    // Die Full-Bleed-Mechanik (calc(50% - 50vw)/100vw) lebt jetzt zentral im geteilten
+    // PublicHeaderBackdrop-Baustein, nicht mehr in der seiten-eigenen *Tuning-Klasse.
+    expect(backdropPrimitiveCss).toContain('left: calc(50% - 50vw)')
+    expect(backdropPrimitiveCss).toContain('width: 100vw')
+    expect(heroBackdropTuningBlock).toContain('filter: blur(34px) saturate(1.25)')
   })
 
   it('starts the reused fansub section band only at Alle Releases', () => {
     const pageSource = projectPageSource()
     const sectionSource = releasesSectionSource()
     const css = projectContentSectionsStyles()
-    const releaseBackdropBlock = css.match(/\.releaseBandBackdrop\.releaseBandBackdrop\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const releaseBackdropBlock =
+      css.match(/\.releaseBandBackdropTuning\.releaseBandBackdropTuning\s*\{[\s\S]*?\}/)?.[0] ?? ''
 
     expect(pageSource).not.toContain('fansubSurfaceStyles.sectionBand')
     expect(pageSource).toContain('releaseBackdropUrl={data.heroBackdropUrl}')
     expect(sectionSource).toContain('fansubSurfaceStyles.sectionBand')
-    expect(sectionSource).toContain('fansubSurfaceStyles.sectionBandBackdrop')
-    expect(sectionSource).toContain('styles.releaseBandBackdrop')
-    expect(sectionSource).toContain('style={{ backgroundImage: `url("${releaseBackdropUrl}")` }}')
+    expect(sectionSource).toContain('<PublicHeaderBackdrop')
+    expect(sectionSource).toContain('imageUrl={releaseBackdropUrl}')
+    expect(sectionSource).toContain('styles.releaseBandBackdropTuning')
     expect(sectionSource.indexOf('<PublicReleaseBlock')).toBeLessThan(sectionSource.indexOf('data-project-release-band'))
     expect(releaseBackdropBlock).toContain('background-repeat: repeat-y')
     expect(releaseBackdropBlock).toContain('background-size: 200% 560px')

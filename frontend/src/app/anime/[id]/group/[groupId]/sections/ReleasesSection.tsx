@@ -1,5 +1,6 @@
 import fansubSurfaceStyles from '@/app/fansubs/[slug]/page.module.css'
 import { PublicReleaseBlock, type PublicReleasePreview } from '@/components/fansubs/PublicReleaseBlock'
+import { PublicHeaderBackdrop } from '@/components/public/PublicHeaderBackdrop'
 
 import styles from './ProjectContentSections.module.css'
 import { OlderReleasesList } from './OlderReleasesList'
@@ -38,13 +39,7 @@ export function ReleasesSection({
         <PublicReleaseBlock latestRelease={latestRelease} releases={[]} fallbackImageUrl={releaseFallbackImageUrl} />
       ) : null}
       <div className={fansubSurfaceStyles.sectionBand} data-project-release-band>
-        {releaseBackdropUrl ? (
-          <div
-            className={`${fansubSurfaceStyles.sectionBandBackdrop} ${styles.releaseBandBackdrop}`}
-            style={{ backgroundImage: `url("${releaseBackdropUrl}")` }}
-            aria-hidden="true"
-          />
-        ) : null}
+        <PublicHeaderBackdrop imageUrl={releaseBackdropUrl} className={styles.releaseBandBackdropTuning} />
         <div className={styles.releaseBandContent}>
           <OlderReleasesList
             animeID={animeID}
