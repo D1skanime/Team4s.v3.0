@@ -578,7 +578,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-21
+Last activity: 2026-10-22 - Completed quick task 261022-ap1: Gruppenseite React-Key im Block "In Erinnerung" eindeutig gemacht
 
 ## Accumulated Context
 
@@ -1497,6 +1497,7 @@ Last activity: 2026-10-21
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 261022-ap1 | Gruppenseite "In Erinnerung"-Block: React-Key-Kollision behoben (Rest aus Phase 190 Review WR-01) -- pure Funktion `buildFansubMemorialKey(source, id)` kombiniert Quelle+id statt nur `member_display_name`, da `DomainProjectionMemberRow`/`HistoricalRow`-ids tabellenübergreifend kollidieren können; Quelle wird in `FansubTeamSection.tsx` getaggt, wo sie eindeutig bekannt ist. Grep-Sweep auf ähnliche `key={...display_name}`-Stellen dokumentiert (`FansubContributorsSection.tsx` als Folge-Ticket-Kandidat), nicht geändert | 2026-10-22 | 8ab04e3b8 | [261022-ap1-gruppenseite-react-key-im-block-in-erinn](./quick/261022-ap1-gruppenseite-react-key-im-block-in-erinn/) |
 | 261020-cmi | Öffentliches Mitgliederprofil: Auflistung einzelner Folgen/Releases unter "Fansub-Projekte" entfernt (nur Animetitel/Gruppe/Rollen-Chips bleiben); dazugehörige tote Backend-Batch-Ladelogik (`loadCurrentProjectReleaseVersionsBatch`/`sameMemberRoleSets`), Contract-Feld und Repository-Datei entfernt, da ausschließlich dort genutzt -- Query-Budget-Test entsprechend von 16 auf 15 gemessen angepasst. Live per curl auf /members/founder und /members/uebersetzung verifiziert | 2026-10-20 | 24a50c646 | [261020-cmi-ffentliches-mitgliederprofil-keine-aufli](./quick/261020-cmi-ffentliches-mitgliederprofil-keine-aufli/) |
 | 261019-lcz | Anime-Detailseite: weicher Hintergrundbild-Wechsel statt Flackern -- zwei persistente Bild-Ebenen mit Opacity-Crossfade (~1,5s), Pflicht-Vorladen+Decode vor jedem Bildwechsel, dezenter Ken-Burns-Zoom, weicher Video-Ende-Uebergang (sofortiger Navigations-Stopp aus 261019-kq9 unveraendert); reine Rotations-/Preload-Logik in AnimeBackdropRotator.logic.ts ausgelagert, 11 neue Tests. Tasks 1-3 automatisiert gruen; Task 4 (Live-Checkpoint) wartet auf Nutzerbestaetigung im Browser | 2026-10-19 | 890d6db4d | [261019-lcz-anime-detailseite-weicher-hintergrundbil](./quick/261019-lcz-anime-detailseite-weicher-hintergrundbil/) |
 | 261019-kq9 | Theme-Hintergrundvideo auf der Anime-Detailseite: navigierende Klicks/Enter-Tastendrücke aktivieren den Ton nicht mehr; laufendes Theme-Video wird bei Navigationsbeginn, Unmount und `pagehide` sofort gemutet, pausiert und entladen (themeVideoAudio.ts: reine Navigationserkennung + stopThemeVideoPlayback, 19 neue Tests) | 2026-10-19 | e8c9f36f8 | [261019-kq9-theme-hintergrundvideo-auf-der-anime-det](./quick/261019-kq9-theme-hintergrundvideo-auf-der-anime-det/) |
