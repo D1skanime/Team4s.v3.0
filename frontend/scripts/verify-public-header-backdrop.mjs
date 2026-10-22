@@ -18,6 +18,57 @@ const IMAGE_CARD_VIEWPORTS = [
   { width: 375, height: 812, label: '375x812' },
 ]
 
+const STACKING_CHECK_VIEWPORT = { width: 1440, height: 900, label: '1440x900' }
+const STACKING_TARGETS = [
+  {
+    name: 'group',
+    path: '/fansubs/new-subs',
+    headImageSelectors: ['img[class*="heroBannerImg"]', 'img[class*="heroLogoImage"]'],
+    contentProbes: [{ label: 'group hero title', selector: '[class*="heroFg"] h1' }],
+  },
+  {
+    name: 'project',
+    path: '/fansubs/strawhat-subs/fansubprojekt/11eyes',
+    headImageSelectors: ['img[class*="heroBannerImg"]', 'img[class*="poster"]'],
+    contentProbes: [
+      { label: 'project breadcrumb', selector: 'nav[aria-label="Breadcrumb"]' },
+      { label: 'project back link', selector: '[class*="backLink"] a' },
+      { label: 'project hero title', selector: '[class*="heroFg"] h1' },
+    ],
+  },
+  // path for 'release' is filled in from resolveReleasePath() at run time, see main().
+  {
+    name: 'release',
+    path: null,
+    headImageSelectors: ['img[class*="heroImage"]'],
+    contentProbes: [
+      { label: 'release breadcrumb', selector: 'nav[aria-label="Breadcrumb"]' },
+      { label: 'release back button', selector: '[class*="pageHeaderRow"] a, [class*="pageHeaderRow"] button' },
+      { label: 'release episode heading', selector: '[class*="heroHeading"]' },
+    ],
+  },
+  {
+    name: 'release-transparent-logo',
+    path: '/fansubs/new-subs/fansubprojekt/buddy-complex/releases/49',
+    headImageSelectors: ['img[class*="heroImage"]'],
+    contentProbes: [
+      { label: 'release-transparent-logo breadcrumb', selector: 'nav[aria-label="Breadcrumb"]' },
+      { label: 'release-transparent-logo back button', selector: '[class*="pageHeaderRow"] a, [class*="pageHeaderRow"] button' },
+      { label: 'release-transparent-logo episode heading', selector: '[class*="heroHeading"]' },
+    ],
+  },
+  {
+    name: 'release-normal-image',
+    path: '/fansubs/new-subs/fansubprojekt/buddy-complex/releases/27',
+    headImageSelectors: ['img[class*="heroImage"]'],
+    contentProbes: [
+      { label: 'release-normal-image breadcrumb', selector: 'nav[aria-label="Breadcrumb"]' },
+      { label: 'release-normal-image back button', selector: '[class*="pageHeaderRow"] a, [class*="pageHeaderRow"] button' },
+      { label: 'release-normal-image episode heading', selector: '[class*="heroHeading"]' },
+    ],
+  },
+]
+
 async function resolveReleasePath(page) {
   const projectPath = '/fansubs/strawhat-subs/fansubprojekt/11eyes'
   const fallback = `${projectPath}/releases/164`
@@ -189,6 +240,81 @@ async function main() {
             `${target.name}@${viewport.label}: heroImage lost its own corner rounding (border-radius: ${imageMeasurement.borderRadius})`,
           )
         }
+      }
+    }
+  }
+
+  // Stacking/reachability checks (quick-261022-i0i): proves the backdrop paints BEHIND page
+  // content by checking that elementFromPoint at the head image's and key content elements' own
+  // centers resolves to that element itself (or its image/container), never to the backdrop.
+  for (const target of STACKING_TARGETS) {
+    const targetPath = target.path ?? releasePath
+    await page.setViewportSize(STACKING_CHECK_VIEWPORT)
+    await page.goto(`${BASE}${targetPath}`, { waitUntil: 'networkidle' })
+
+    const stacking = await page.evaluate(({ headImageSelectors, contentProbes }) => {
+      const backdropEl = document.querySelector('[data-testid="public-header-backdrop"]')
+      const findFirst = (selectors) => selectors.map((sel) => document.querySelector(sel)).find(Boolean) || null
+
+      const headImageEl = findFirst(headImageSelectors)
+      let headImage = null
+      if (headImageEl) {
+        const r = headImageEl.getBoundingClientRect()
+        const cs = getComputedStyle(headImageEl)
+        const topEl = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+        const isImageOrContainer = !!topEl && (
+          topEl === headImageEl
+          || headImageEl.contains(topEl)
+          || (headImageEl.parentElement && (topEl === headImageEl.parentElement || headImageEl.parentElement.contains(topEl)))
+        )
+        const isBackdrop = !!topEl && !!backdropEl && (topEl === backdropEl || backdropEl.contains(topEl))
+        headImage = {
+          width: r.width,
+          height: r.height,
+          opacity: cs.opacity,
+          visible: r.width > 0 && r.height > 0 && cs.opacity === '1',
+          topElementIsImageOrContainer: isImageOrContainer,
+          topElementIsBackdrop: isBackdrop,
+        }
+      }
+
+      const probes = contentProbes.map(({ label, selector }) => {
+        const el = document.querySelector(selector)
+        if (!el) return { label, selector, found: false }
+        const r = el.getBoundingClientRect()
+        if (r.width === 0 || r.height === 0) return { label, selector, found: true, zeroSize: true }
+        const topEl = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+        const reachable = !!topEl && (topEl === el || el.contains(topEl))
+        const isBackdrop = !!topEl && !!backdropEl && (topEl === backdropEl || backdropEl.contains(topEl))
+        return { label, selector, found: true, reachable, topElementIsBackdrop: isBackdrop }
+      })
+
+      return { headImage, probes }
+    }, { headImageSelectors: target.headImageSelectors, contentProbes: target.contentProbes })
+
+    const shotPath = `${SHOT_DIR}/stacking-${target.name}-${STACKING_CHECK_VIEWPORT.label}.png`
+    await page.screenshot({ path: shotPath, fullPage: false })
+
+    results.push({ check: 'stacking', page: target.name, path: targetPath, ...stacking, screenshot: shotPath })
+
+    if (stacking.headImage) {
+      if (!stacking.headImage.visible) {
+        failures.push(`${target.name}: head image not visible (width=${stacking.headImage.width}, height=${stacking.headImage.height}, opacity=${stacking.headImage.opacity})`)
+      }
+      if (stacking.headImage.topElementIsBackdrop) {
+        failures.push(`${target.name}: head image center is covered by the backdrop (elementFromPoint returned the backdrop, not the image)`)
+      }
+      if (!stacking.headImage.topElementIsImageOrContainer && !stacking.headImage.topElementIsBackdrop) {
+        failures.push(`${target.name}: head image center resolved to neither the image nor the backdrop -- unexpected overlay, investigate`)
+      }
+    }
+    for (const probe of stacking.probes) {
+      if (!probe.found) continue // selector not present on this page/fixture -- informational only
+      if (probe.zeroSize) continue
+      if (probe.topElementIsBackdrop) {
+        failures.push(`${target.name}: "${probe.label}" (${probe.selector}) is covered by the backdrop (elementFromPoint returned the backdrop)`)
+      } else if (!probe.reachable) {
+        failures.push(`${target.name}: "${probe.label}" (${probe.selector}) is not reachable at its own position (elementFromPoint returned an unexpected element)`)
       }
     }
   }
