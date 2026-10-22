@@ -1,0 +1,10 @@
+/* Full-Bleed Kopf-Hintergrund-Baustein. Bewusst MINIMAL: nur die Full-Bleed-Mechanik.
+   Enthaelt absichtlich KEIN top/bottom/overflow/filter -- das variiert je Seite und
+   lebt in deren eigenem *Tuning-Modifier (siehe PublicHeaderBackdrop.tsx). */
+.backdrop {
+  position: absolute;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  z-index: 0;
+  pointer-events: none;
+}
