@@ -4,7 +4,7 @@ import type { FansubStatus } from '@/types/fansub'
 
 import { FansubTeamActiveGroup } from './FansubTeamActiveGroup'
 import { FansubTeamHistoricalGroup } from './FansubTeamHistoricalGroup'
-import { FansubTeamMemorialBlock } from './FansubTeamMemorialBlock'
+import { FansubTeamMemorialBlock, type FansubTeamMemorialEntry } from './FansubTeamMemorialBlock'
 import styles from './FansubTeamSection.module.css'
 
 interface FansubTeamSectionProps {
@@ -30,7 +30,10 @@ export function FansubTeamSection({ members, historical, status }: FansubTeamSec
   const memorialMembers = members.filter((member) => member.profile_status === 'memorial')
   const historicalNonMemorial = historical.filter((member) => member.profile_status !== 'memorial')
   const memorialHistorical = historical.filter((member) => member.profile_status === 'memorial')
-  const allMemorial = [...memorialMembers, ...memorialHistorical]
+  const allMemorial: FansubTeamMemorialEntry[] = [
+    ...memorialMembers.map((row) => ({ source: 'member' as const, row })),
+    ...memorialHistorical.map((row) => ({ source: 'historical' as const, row })),
+  ]
 
   if (countVisibleTeamMembers(members, historical) === 0) {
     return null

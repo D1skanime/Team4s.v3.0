@@ -1,12 +1,18 @@
 import Link from 'next/link'
 
 import { Card } from '@/components/ui'
+import { buildFansubMemorialKey, type FansubMemorialSource } from '@/lib/fansub-memorial-key'
 import type { DomainProjectionHistoricalRow, DomainProjectionMemberRow } from '@/types/domain-projection'
 
 import styles from './FansubTeamSection.module.css'
 
+export interface FansubTeamMemorialEntry {
+  source: FansubMemorialSource
+  row: DomainProjectionMemberRow | DomainProjectionHistoricalRow
+}
+
 interface FansubTeamMemorialBlockProps {
-  memorial: Array<DomainProjectionMemberRow | DomainProjectionHistoricalRow>
+  memorial: FansubTeamMemorialEntry[]
 }
 
 function renderMemorialName(member: DomainProjectionMemberRow | DomainProjectionHistoricalRow) {
@@ -30,10 +36,10 @@ export function FansubTeamMemorialBlock({ memorial }: FansubTeamMemorialBlockPro
     <div className={styles.memorialSection}>
       <h3 className={styles.subgroupTitle}>In Erinnerung</h3>
       <div className={styles.historicalList}>
-        {memorial.map((member) => (
-          <Card key={member.member_display_name} variant="flat">
-            {renderMemorialName(member)}
-            <p className={styles.memberRoles}>{member.role_labels.join(', ') || 'Rolle nicht hinterlegt'}</p>
+        {memorial.map((entry) => (
+          <Card key={buildFansubMemorialKey(entry.source, entry.row.id)} variant="flat">
+            {renderMemorialName(entry.row)}
+            <p className={styles.memberRoles}>{entry.row.role_labels.join(', ') || 'Rolle nicht hinterlegt'}</p>
           </Card>
         ))}
       </div>
