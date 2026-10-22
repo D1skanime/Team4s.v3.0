@@ -21,6 +21,7 @@ import {
   nearestOwnedItemIndex,
   ownedItemClickHandler,
   positionOwnedItem,
+  startAlignedScrollLeft,
   ExpandedCarousel,
   type CollapsedTrackHandlers,
   type FocalCarouselProps,
@@ -37,6 +38,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
     showLessLabel = 'Weniger anzeigen',
     deferInteractionUntilNearViewport = false,
   } = props
+  const align: 'center' | 'start' = props.presentation === 'grid-scroll' ? 'start' : 'center'
   const [activeIndex, setActiveIndex] = useState(0)
   const [isNavigating, setIsNavigating] = useState(false)
   const gridId = useId()
@@ -90,9 +92,18 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
       trackRef.current = track
       cancelPendingInteractionRef.current(false)
       if (!track) return
-      positionOwnedItem(track, Math.min(activeIndexRef.current, Math.max(0, renderedItemCount - 1)))
+      const index = Math.min(activeIndexRef.current, Math.max(0, renderedItemCount - 1))
+      if (align === 'start') {
+        const element = directItemElements(track)[index]
+        if (!element) return
+        const left = startAlignedScrollLeft(track, element)
+        track.scrollTo?.({ left, behavior: 'auto' })
+        if (typeof track.scrollTo !== 'function') track.scrollLeft = left
+        return
+      }
+      positionOwnedItem(track, index)
     },
-    [renderedItemCount],
+    [renderedItemCount, align],
   )
 
   useEffect(() => {
@@ -169,7 +180,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
 
     cancelPendingInteraction()
 
-    const targetLeft = centeredScrollLeft(track, element)
+    const targetLeft = align === 'start' ? startAlignedScrollLeft(track, element) : centeredScrollLeft(track, element)
     const startLeft = track.scrollLeft
     const adjacentTarget = Math.abs(boundedIndex - previousIndex) === 1
     const shouldAnimate =
@@ -180,7 +191,12 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
       typeof requestAnimationFrame === 'function'
 
     if (!shouldAnimate) {
-      positionOwnedItem(track, boundedIndex)
+      // Rule 1 bugfix: positionOwnedItem always recomputes centeredScrollLeft
+      // internally, which ignored `align` for the grid-scroll (start-aligned)
+      // presentation on non-animated jumps (reduced motion, non-adjacent, no
+      // rAF). Reuse the already align-aware `targetLeft` instead.
+      track.scrollTo?.({ left: targetLeft, behavior: 'auto' })
+      if (typeof track.scrollTo !== 'function') track.scrollLeft = targetLeft
       setIsNavigating(false)
       return
     }

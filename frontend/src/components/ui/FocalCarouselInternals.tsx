@@ -29,8 +29,9 @@ export type FocalCarouselItemState = {
 export type FocalCarouselProps<T> = {
   items: readonly T[]
   carouselItems?: readonly T[]
-  /** Full-width cards with navigation below; focal keeps neighboring previews. */
-  presentation?: 'focal' | 'full-width'
+  /** Full-width cards with navigation below; focal keeps neighboring previews;
+   * grid-scroll keeps tile-sized items left-aligned without a dimmed center focus. */
+  presentation?: 'focal' | 'full-width' | 'grid-scroll'
   getItemKey: (item: T) => string | number
   renderItem: (item: T, state: FocalCarouselItemState) => ReactNode
   regionLabel: string
@@ -160,6 +161,17 @@ export function centeredScrollLeft(track: HTMLDivElement, element: HTMLElement) 
   return Math.max(0, Math.min(unclampedLeft, maxScroll))
 }
 
+export function startAlignedScrollLeft(track: HTMLDivElement, element: HTMLElement) {
+  const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
+  const trackRect = track.getBoundingClientRect()
+  const elementRect = element.getBoundingClientRect()
+  const unclampedLeft =
+    trackRect.width > 0
+      ? track.scrollLeft + elementRect.left - trackRect.left
+      : element.offsetLeft
+  return Math.max(0, Math.min(unclampedLeft, maxScroll))
+}
+
 export function positionOwnedItem(track: HTMLDivElement | null, index: number) {
   if (!track) return
   const element = directItemElements(track)[index]
@@ -276,7 +288,12 @@ export function CollapsedCarousel<T>({
   return (
     <div
       ref={activationRef}
-      className={classNames(styles.root, presentation === 'full-width' && styles.fullWidth, className)}
+      className={classNames(
+        styles.root,
+        presentation === 'full-width' && styles.fullWidth,
+        presentation === 'grid-scroll' && styles.gridScroll,
+        className,
+      )}
       style={style}
     >
       <div className={classNames(styles.controls, quiet && styles.controlsQuiet)}>

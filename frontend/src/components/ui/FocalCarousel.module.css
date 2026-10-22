@@ -223,6 +223,27 @@
   grid-column: 3;
 }
 
+/* Additive left-aligned presentation (no center focus, no dimmed neighbors):
+   used by FansubProjectsGrid's scroll-strip mode for tile-sized project cards. */
+.gridScroll .items {
+  gap: 12px;
+}
+
+.gridScroll .track {
+  --focal-item-size: var(--grid-scroll-item-size, min(72%, 720px));
+}
+
+.gridScroll .items::before,
+.gridScroll .items::after {
+  content: none;
+}
+
+.gridScroll .itemWindow {
+  scroll-snap-align: start;
+  opacity: 1;
+  filter: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .track {
     scroll-behavior: auto;

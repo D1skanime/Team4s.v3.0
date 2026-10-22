@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 
 import { FocalCarousel } from './FocalCarousel'
+import styles from './FocalCarousel.module.css'
 const focalCarouselCss = readFileSync('src/components/ui/FocalCarousel.module.css', 'utf8')
 
 const items = ['Alpha', 'Beta', 'Gamma']
@@ -1190,6 +1191,100 @@ describe('Quick 260812-rps responsive carousel contract', () => {
     expect(focalCarouselCss).toMatch(/\.arrow\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s)
     expect(focalCarouselCss).toContain('@container focal-carousel (min-width: 1100px)')
     expect(focalCarouselCss).not.toContain('@media (min-width: 1100px)')
+  })
+})
+
+describe('FocalCarousel grid-scroll presentation (additive, left-aligned, undimmed)', () => {
+  function renderWithPresentation(presentation?: 'focal' | 'grid-scroll') {
+    return render(
+      <FocalCarousel
+        items={items}
+        presentation={presentation}
+        getItemKey={(item) => item}
+        renderItem={(item) => <button type="button">{item}</button>}
+        regionLabel="Beispiel-Karussell"
+        itemSingularLabel="Karte"
+        itemPluralLabel="Karten"
+        previousLabel="Vorherige Karte"
+        nextLabel="Nächste Karte"
+        deferInteractionUntilNearViewport
+      />,
+    )
+  }
+
+  // trackWidth (600) deliberately differs from itemWidth (300) -- two items fit in
+  // the viewport. With equal track/item width (as in mockBrowserCarouselGeometry
+  // elsewhere in this file) centered and left-aligned scroll targets collapse to the
+  // same number, which would make this test unable to distinguish the two modes.
+  function configureTiledGeometry(region: HTMLDivElement, cards: readonly HTMLElement[]) {
+    const trackWidth = 600
+    const itemWidth = 300
+    Object.defineProperties(region, {
+      clientWidth: { configurable: true, value: trackWidth },
+      scrollWidth: { configurable: true, value: cards.length * itemWidth },
+      scrollLeft: { configurable: true, writable: true, value: 0 },
+      getBoundingClientRect: { configurable: true, value: () => mockRect(0, trackWidth) },
+    })
+    cards.forEach((card, index) => Object.defineProperties(card, {
+      offsetLeft: { configurable: true, value: index * itemWidth },
+      offsetWidth: { configurable: true, value: itemWidth },
+      getBoundingClientRect: {
+        configurable: true,
+        value: () => mockRect(index * itemWidth - region.scrollLeft, itemWidth),
+      },
+    }))
+    const scrollTo = vi.fn(({ left }: ScrollToOptions) => { region.scrollLeft = Number(left) })
+    region.scrollTo = scrollTo as typeof region.scrollTo
+    return scrollTo
+  }
+
+  function stubImmediateReducedMotion() {
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+  }
+
+  it('rendert keine Abdunklung inaktiver Items unter dem gridScroll-Wurzelstil', () => {
+    expect(focalCarouselCss).toMatch(/\.gridScroll \.itemWindow\s*\{[^}]*opacity:\s*1;[^}]*filter:\s*none;/s)
+
+    renderWithPresentation('grid-scroll')
+    const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+    expect(region.closest(`.${styles.gridScroll}`)).not.toBeNull()
+  })
+
+  it('richtet den "Weiter"-Sprung linksbündig statt zentriert aus -- abweichend vom Default-"focal"-Modus', () => {
+    stubImmediateReducedMotion()
+    try {
+      renderWithPresentation('grid-scroll')
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const cards = Array.from(region.querySelectorAll<HTMLElement>('[data-focal-item]'))
+      configureTiledGeometry(region, cards)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+
+      expect(region.scrollLeft).toBe(300)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('weicht vom zentrierten Default-"focal"-Ziel ab, wenn dieselbe Geometrie ohne presentation gerendert wird', () => {
+    stubImmediateReducedMotion()
+    try {
+      renderWithPresentation(undefined)
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const cards = Array.from(region.querySelectorAll<HTMLElement>('[data-focal-item]'))
+      configureTiledGeometry(region, cards)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+
+      expect(region.scrollLeft).toBe(150)
+      expect(region.scrollLeft).not.toBe(300)
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })
 
