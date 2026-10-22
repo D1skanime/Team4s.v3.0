@@ -24,6 +24,11 @@ const releasesSectionSource = () =>
   readFileSync(join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/sections/ReleasesSection.tsx'), 'utf8')
 const projectPageStyles = () =>
   readFileSync(join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/page.module.css'), 'utf8')
+const projectContentSectionsStyles = () =>
+  readFileSync(
+    join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/sections/ProjectContentSections.module.css'),
+    'utf8',
+  )
 
 vi.mock('next/image', () => {
   const MockNextImage = forwardRef<
@@ -134,7 +139,7 @@ describe('ProjectPage public hero styling', () => {
   it('starts the reused fansub section band only at Alle Releases', () => {
     const pageSource = projectPageSource()
     const sectionSource = releasesSectionSource()
-    const css = projectPageStyles()
+    const css = projectContentSectionsStyles()
     const releaseBackdropBlock = css.match(/\.releaseBandBackdrop\.releaseBandBackdrop\s*\{[\s\S]*?\}/)?.[0] ?? ''
 
     expect(pageSource).not.toContain('fansubSurfaceStyles.sectionBand')

@@ -2,7 +2,7 @@ import { ProjectMemberRows } from '@/components/fansubs/ProjectMemberRows'
 import { SectionHeader } from '@/components/ui'
 import type { GroupExternalContributor, GroupTeamMember } from '@/types/groupContributors'
 
-import styles from '../page.module.css'
+import styles from './ProjectContentSections.module.css'
 
 interface TeamSectionProps {
   teamMembers: GroupTeamMember[]

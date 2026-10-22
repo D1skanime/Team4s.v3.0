@@ -1,7 +1,7 @@
 import fansubSurfaceStyles from '@/app/fansubs/[slug]/page.module.css'
 import { PublicReleaseBlock, type PublicReleasePreview } from '@/components/fansubs/PublicReleaseBlock'
 
-import styles from '../page.module.css'
+import styles from './ProjectContentSections.module.css'
 import { OlderReleasesList } from './OlderReleasesList'
 
 interface ReleasesSectionProps {

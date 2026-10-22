@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { Button, SectionHeader } from '@/components/ui'
 
-import styles from '../page.module.css'
+import styles from './ProjectContentSections.module.css'
 
 interface StorySectionProps {
   story: string | null | undefined

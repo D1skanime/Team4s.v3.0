@@ -1,7 +1,7 @@
 import { Card, EmptyState, SectionHeader } from '@/components/ui'
 import type { PublicReleaseMediaItem } from '@/types/groupContributors'
 
-import styles from '../page.module.css'
+import styles from './ProjectContentSections.module.css'
 
 interface MediaSectionProps {
   items: PublicReleaseMediaItem[]

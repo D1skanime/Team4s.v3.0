@@ -6,7 +6,7 @@ import { getOtherGroupsHeading } from '@/lib/fansub-labels'
 import { buildFansubProjectPath } from '@/lib/fansubProjectRoutes'
 import type { FansubGroupSummary } from '@/types/fansub'
 
-import styles from '../page.module.css'
+import styles from './ProjectContentSections.module.css'
 
 interface BacklinksSectionProps {
   fansubSlug: string

@@ -1,7 +1,7 @@
 import { Badge, Card, EmptyState, SectionHeader } from '@/components/ui'
 import type { PublicGroupTheme } from '@/types/groupContributors'
 
-import styles from '../page.module.css'
+import styles from './ProjectContentSections.module.css'
 
 interface ThemesSectionProps {
   themes: PublicGroupTheme[]
