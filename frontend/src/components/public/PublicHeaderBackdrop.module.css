@@ -1,10 +1,14 @@
 /* Full-Bleed Kopf-Hintergrund-Baustein. Bewusst MINIMAL: nur die Full-Bleed-Mechanik.
    Enthaelt absichtlich KEIN top/bottom/overflow/filter -- das variiert je Seite und
-   lebt in deren eigenem *Tuning-Modifier (siehe PublicHeaderBackdrop.tsx). */
+   lebt in deren eigenem *Tuning-Modifier (siehe PublicHeaderBackdrop.tsx).
+   z-index MUSS negativ bleiben, damit der Backdrop immer HINTER einfachem,
+   nicht-positioniertem (position: static) Seiteninhalt malt, ohne dass jeder Aufrufer
+   einen eigenen position: relative; z-index: 1; Wrapper braucht (siehe quick-261022-i0i
+   fuer die Regression auf der Release-Seite, als diese Invariante verletzt wurde). */
 .backdrop {
   position: absolute;
   left: calc(50% - 50vw);
   width: 100vw;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
 }
