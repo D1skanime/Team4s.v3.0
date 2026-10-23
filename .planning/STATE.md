@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 191-05-PLAN.md
-last_updated: "2026-10-23T13:45:43.144Z"
+stopped_at: Completed 191-07-PLAN.md
+last_updated: "2026-10-23T14:12:58.435Z"
 last_activity: 2026-10-23
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 503
-  completed_plans: 496
+  completed_plans: 497
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 191 (hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen) — EXECUTING
-Plan: 7 of 10
+Plan: 8 of 10
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
@@ -1499,6 +1499,8 @@ Last activity: 2026-10-23
 - [Phase 191]: Plattform-Admin-Audit-Eintraege fuer fansub_group_hint.confirmed/.rejected nutzen ScopeType=Global statt Group — requirePlatformAdminIdentity prueft keine gruppenbezogene Berechtigung
 - [Phase 191-06]: TDD RED->GREEN fuer API-Client-Funktionen eingehalten (test(...) vor feat(...) Commit).
 - [Phase 191-06]: Feldnamen in FansubGroupHint/CreateFansubGroupHintRequest 1:1 gegen shared/contracts/fansub-group-hints.yaml verifiziert, keine Abweichung gefunden.
+- [Phase 191]: Submit routet nach (hintType, groupScope), nicht nur hintType: Korrektur+Andere-Gruppe laeuft ueber createFansubGroupHint statt createContributionProposal, da fansub_group_member_id fuer fremde Gruppen nicht existiert.
+- [Phase 191]: fansub_group-Kontext-Rollen fuer das D-07-Rollenfeld werden in MyProposalsSection.tsx aufgeloest und an ProposalForm durchgereicht statt per useRoleCatalog direkt in ProposalForm.tsx, um den Provider-Test-Aufwand nicht in ProposalForm.test.tsx zu tragen.
 
 ### Pending Todos
 
@@ -2231,11 +2233,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P04 | 50min | 2 tasks | 3 files |
 | Phase 191 P05 | 50min | 2 tasks | 8 files |
 | Phase 191 P06 | ~20min | 2 tasks | 4 files |
+| Phase 191 P07 | 75min | 3 tasks | 13 files |
 
 ## Session Continuity
 
-Last session: 2026-10-23T13:44:58.578Z
-Stopped at: Completed 191-05-PLAN.md
+Last session: 2026-10-23T14:12:58.409Z
+Stopped at: Completed 191-07-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None

@@ -2985,7 +2985,7 @@ bauen), keine Captchas, keine Punkte/Badges für den Hinweis selbst, kein eigene
 **Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01..D-08 aus
 191-CONTEXT.md, siehe jeweiliges Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 6/10 plans executed
+**Plans:** 7/10 plans executed
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -2994,7 +2994,7 @@ Plans:
 - [x] 191-04-PLAN.md — Backend: Leader-Review (gruppen-gescoped List/Confirm/Reject, D-01/D-03)
 - [x] 191-05-PLAN.md — Backend: Plattform-Admin-Review (`fansub_lead`-Fall) + Contract + Backend-Doku (D-01/D-07/D-08)
 - [x] 191-06-PLAN.md — Frontend: Typen + API-Client für alle sieben Endpunkte
-- [ ] 191-07-PLAN.md — Frontend: Hinweis-Formular-Erweiterung (Hinweisart/Gruppen-Scope/Rollenfeld, A6-Fix)
+- [x] 191-07-PLAN.md — Frontend: Hinweis-Formular-Erweiterung (Hinweisart/Gruppen-Scope/Rollenfeld, A6-Fix)
 - [ ] 191-08-PLAN.md — Frontend: Leader-Review-Section (Fansub-Members-Tab)
 - [ ] 191-09-PLAN.md — Frontend: Plattform-Admin-Liste `/admin/fansub-group-hints` + Nav-Eintrag
 - [ ] 191-10-PLAN.md — Phasenabschluss: DECISIONS.md, Todo-Verschiebung, Regressionsgate, Live-UAT (blockierender Checkpoint)
