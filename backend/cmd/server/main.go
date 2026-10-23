@@ -648,7 +648,7 @@ func main() {
 	// Datenpfad ohne Ownership-Gate, reuse von histGroupMemberRolesRepo fuer die
 	// Rollenvalidierung und einer zweiten, taeglichen CommentRateLimiter-Instanz (D-04(2)).
 	fansubGroupHintsRepo := repository.NewFansubGroupHintsRepository(dbPool)
-	fansubGroupHintsMeHandler := handlers.NewFansubGroupHintsMeHandler(fansubGroupHintsRepo, histGroupMemberRolesRepo, dbPool)
+	fansubGroupHintsMeHandler := handlers.NewFansubGroupHintsMeHandler(fansubGroupHintsRepo, dbPool)
 	v1.POST(
 		"/me/fansub-group-hints",
 		authMiddleware,

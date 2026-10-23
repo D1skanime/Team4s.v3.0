@@ -4,12 +4,15 @@ package handlers
 // Hinweises an eine EIGENE ODER FREMDE Fansub-Gruppe bereit:
 // POST /api/v1/me/fansub-group-hints
 //
-// Ein Hinweis ist nur eine Information an die Zielgruppe (Korrektur an einem bestehenden
-// Projekt-Eintrag ODER Anfrage auf Mitgliedschaft mit optionalem Rollenwunsch) — keine
-// Behauptung tatsächlicher Mitwirkung. Deshalb gibt es hier, anders als beim regulären
-// Beitrags-Vorschlag (contribution_proposals_me_handler.go), bewusst KEINEN
-// Mitgliedschafts-/Ownership-Check: ein Mitglied darf an JEDE Fansub-Gruppe einen Hinweis
-// schicken.
+// Nach D-09 ist ein Hinweis ausschließlich ein Korrektur-Hinweis an einem bestehenden
+// Projekt-Eintrag ("hier ist etwas falsch/fehlt") — die frühere zweite Hinweisart
+// "Anfrage auf Mitgliedschaft" entfiel ersatzlos, weil "Hinweis senden" ohnehin nur
+// Mitgliedern mit Mitgliedsprofil UND Projekt-Zuordnung offensteht und der bereits
+// bestehende Mitglieds-Claim-Weg (member_claims, Phase 81/135) diesen Fall längst abdeckt.
+// Ein Hinweis ist nur eine Information an die Zielgruppe, keine Behauptung tatsächlicher
+// Mitwirkung. Deshalb gibt es hier, anders als beim regulären Beitrags-Vorschlag
+// (contribution_proposals_me_handler.go), bewusst KEINEN Mitgliedschafts-/Ownership-Check:
+// ein Mitglied darf an JEDE Fansub-Gruppe einen Hinweis schicken.
 
 import (
 	"context"
@@ -23,14 +26,8 @@ import (
 )
 
 const (
-	fansubGroupHintTypeCorrection         = "correction"
-	fansubGroupHintTypeMembershipRequest  = "membership_request"
-	fansubGroupHintRoleContext            = "fansub_group"
-	fansubGroupHintConflictMessage        = "Du hast dazu bereits einen offenen Hinweis."
-	fansubGroupHintUnknownTypeMessage     = "Unbekannter Hinweis-Typ. Erlaubt sind 'correction' oder 'membership_request'."
-	fansubGroupHintMissingAnimeMessage    = "Bei einem Korrektur-Hinweis muss ein Projekt angegeben werden."
-	fansubGroupHintUnexpectedAnimeMessage = "Eine Mitgliedschaftsanfrage darf kein Projekt enthalten."
-	fansubGroupHintUnexpectedRoleMessage  = "Ein Korrektur-Hinweis kann keine gewünschte Rolle enthalten."
+	fansubGroupHintConflictMessage     = "Du hast dazu bereits einen offenen Hinweis."
+	fansubGroupHintMissingAnimeMessage = "Bei einem Korrektur-Hinweis muss ein Projekt angegeben werden."
 )
 
 // HintRepository ist das Interface, das FansubGroupHintsMeHandler für die Persistenz
@@ -47,18 +44,16 @@ type HintRepository interface {
 // Handler reicht nur den gemappten repository.ErrConflict weiter.
 type FansubGroupHintsMeHandler struct {
 	hintRepo       HintRepository
-	rolesRepo      RolesRepository
 	memberResolver MemberResolver
 }
 
 // NewFansubGroupHintsMeHandler erstellt einen neuen Handler mit echter DB-Anbindung.
-// rolesRepo wird wiederverwendet (histGroupMemberRolesRepo in main.go, implementiert
-// bereits RoleCodeIsAssignableForContext für den anime_contribution-Kontext) — keine
-// zweite, parallele Rollen-Validierungslogik.
-func NewFansubGroupHintsMeHandler(hintRepo HintRepository, rolesRepo RolesRepository, db *pgxpool.Pool) *FansubGroupHintsMeHandler {
+// Seit D-09 gibt es keine Rollenvalidierung mehr in diesem Handler (das war nur für die
+// gestrichene Mitgliedschaftsanfrage mit Rollenwunsch nötig) — der Konstruktor braucht
+// deshalb kein RolesRepository mehr.
+func NewFansubGroupHintsMeHandler(hintRepo HintRepository, db *pgxpool.Pool) *FansubGroupHintsMeHandler {
 	return &FansubGroupHintsMeHandler{
 		hintRepo:       hintRepo,
-		rolesRepo:      rolesRepo,
 		memberResolver: &dbMemberResolver{db: db},
 	}
 }
@@ -66,20 +61,19 @@ func NewFansubGroupHintsMeHandler(hintRepo HintRepository, rolesRepo RolesReposi
 // createFansubGroupHintRequest ist der Request-Body für POST /api/v1/me/fansub-group-hints.
 // Bewusst KEIN sender_app_user_id-Feld — die Absenderidentität kommt ausschließlich aus
 // der verifizierten Auth-Identität (identity.AppUserID), niemals aus dem Request-Body
-// (BOLA-Schutz: ein Client kann sich so niemals als ein anderer App-User ausgeben).
+// (BOLA-Schutz: ein Client kann sich so niemals als ein anderer App-User ausgeben). Seit
+// D-09 gibt es nur noch einen Hinweistyp (Korrektur-Hinweis), deshalb entfielen
+// `hint_type` und `requested_role_code` komplett aus diesem DTO.
 type createFansubGroupHintRequest struct {
-	HintType            string  `json:"hint_type"`
-	TargetFansubGroupID int64   `json:"target_fansub_group_id"`
-	RelatedAnimeID      *int64  `json:"related_anime_id"`
-	RequestedRoleCode   *string `json:"requested_role_code"`
-	Note                *string `json:"note"`
+	TargetFansubGroupID int64  `json:"target_fansub_group_id"`
+	RelatedAnimeID       *int64 `json:"related_anime_id"`
+	Note                 *string `json:"note"`
 }
 
 // CreateHint verarbeitet POST /api/v1/me/fansub-group-hints.
-// Sicherheitskette: Auth → Pflichtfelder (je Hinweistyp) → kein Ownership-Check (bewusste
-// Abweichung von contribution_proposals_me_handler.go, siehe D-02) → Rollenvalidierung
-// (nur bei Mitgliedschaftsanfrage mit Rollenwunsch) → Rate-Limit lief bereits als
-// Middleware vor diesem Handler → DB-Insert mit 409/404-Mapping.
+// Sicherheitskette: Auth → Pflichtfeld related_anime_id → kein Ownership-Check (bewusste
+// Abweichung von contribution_proposals_me_handler.go, siehe D-02) → Rate-Limit lief
+// bereits als Middleware vor diesem Handler → DB-Insert mit 409/404-Mapping.
 func (h *FansubGroupHintsMeHandler) CreateHint(c *gin.Context) {
 	identity, ok := requireMeIdentityForProposals(c)
 	if !ok {
@@ -92,28 +86,13 @@ func (h *FansubGroupHintsMeHandler) CreateHint(c *gin.Context) {
 		return
 	}
 
-	if req.HintType != fansubGroupHintTypeCorrection && req.HintType != fansubGroupHintTypeMembershipRequest {
-		badRequest(c, fansubGroupHintUnknownTypeMessage)
+	// Pflichtfeld-Check spiegelt die DB-NOT-NULL-Constraint der Migration 0188 — hier als
+	// saubere 422-Antwort statt einer rohen DB-Constraint-Verletzung (500). Jeder
+	// verbleibende Hinweis ist nach D-09 ein Korrektur-Hinweis mit Projektbezug, daher ist
+	// related_anime_id ausnahmslos Pflicht.
+	if req.RelatedAnimeID == nil {
+		unprocessable(c, fansubGroupHintMissingAnimeMessage)
 		return
-	}
-
-	// Pflichtfeld-Check je Hinweistyp spiegelt exakt die DB-CHECK-Constraints der
-	// Migration (chk_fansub_group_hints_anime_scope/chk_fansub_group_hints_role_scope) —
-	// hier als saubere 422-Antwort statt einer rohen DB-Constraint-Verletzung (500).
-	if req.HintType == fansubGroupHintTypeCorrection {
-		if req.RelatedAnimeID == nil {
-			unprocessable(c, fansubGroupHintMissingAnimeMessage)
-			return
-		}
-		if req.RequestedRoleCode != nil {
-			unprocessable(c, fansubGroupHintUnexpectedRoleMessage)
-			return
-		}
-	} else {
-		if req.RelatedAnimeID != nil {
-			unprocessable(c, fansubGroupHintUnexpectedAnimeMessage)
-			return
-		}
 	}
 
 	memberID, err := h.memberResolver.ResolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
@@ -125,26 +104,18 @@ func (h *FansubGroupHintsMeHandler) CreateHint(c *gin.Context) {
 		internalError(c, "interner Serverfehler")
 		return
 	}
-	_ = memberID // nur Identitäts-Nachweis — kein Ownership-Check, siehe D-02.
-
-	if req.RequestedRoleCode != nil {
-		assignable, err := h.rolesRepo.RoleCodeIsAssignableForContext(c.Request.Context(), *req.RequestedRoleCode, fansubGroupHintRoleContext)
-		if err != nil {
-			internalError(c, "interner Serverfehler")
-			return
-		}
-		if !assignable {
-			badRequest(c, "Diese Rolle kann nicht zugewiesen werden: "+*req.RequestedRoleCode)
-			return
-		}
-	}
+	// ResolveVerifiedMemberID läuft hier NUR als Identitäts-Nachweis (beweist, dass der
+	// Absender einen echten, verifizierten Member-Account hat und damit kein
+	// unverifizierter Account Hinweise spammen kann) — bewusst OHNE anschließenden
+	// Ownership-Check gegen die Zielgruppe. Das ist exakt der fachliche Kernpunkt von
+	// D-02: ein Hinweis darf an JEDE Fansub-Gruppe gehen, nicht nur an die eigene(n), also
+	// darf memberID hier nicht gegen TargetFansubGroupID geprüft werden.
+	_ = memberID
 
 	input := repository.HintInput{
 		SenderAppUserID:     identity.AppUserID,
 		TargetFansubGroupID: req.TargetFansubGroupID,
-		HintType:            req.HintType,
 		RelatedAnimeID:      req.RelatedAnimeID,
-		RequestedRoleCode:   req.RequestedRoleCode,
 		Note:                req.Note,
 	}
 
