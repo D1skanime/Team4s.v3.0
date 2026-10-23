@@ -68,6 +68,7 @@ export function ReportHintEntryPoint({
     // auszuloesen, bevor der Auth-Zustand ueberhaupt feststeht.
     if (!isClientInitialized) return
     if (!hasAuthSession) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEligibility('ineligible')
       return
     }

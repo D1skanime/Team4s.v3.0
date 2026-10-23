@@ -1,5 +1,6 @@
 'use client'
 
+import { ReportHintEntryPoint } from '@/components/contributions/ReportHintEntryPoint'
 import type { ReleaseDetailResponse } from '@/types/releaseDetail'
 
 import { ReleaseNavigation } from './ReleaseNavigation'
@@ -59,6 +60,20 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
             <span className={styles.heroHaloForeground}>{groupLine}</span>
           </span>
         </p>
+        {/* D-12 (191-UI-SPEC.md Contract D3): derselbe dezente "Fehler melden"-Einstiegspunkt
+            wie auf der Projektseite -- nur bei genau einer Zielgruppe gemountet, weil eine
+            Coop-Release mit mehreren Gruppen keine eindeutige Zielgruppe fuer einen Hinweis
+            hat (bewusste Scope-Grenze dieses Plans, keine Mehrfachauswahl gebaut). */}
+        {props.groups.length === 1 ? (
+          <div style={{ marginTop: 'var(--space-2)' }}>
+            <ReportHintEntryPoint
+              fansubGroupId={props.groupID}
+              fansubGroupName={props.groups[0].name}
+              animeId={props.animeID}
+              animeTitle={props.episode_title ?? props.title}
+            />
+          </div>
+        ) : null}
         <ReleaseVersionSwitcher animeID={props.animeID} releases={props.other_releases ?? []} />
       </div>
     </div>

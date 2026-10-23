@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
+import { ReportHintEntryPoint } from "@/components/contributions/ReportHintEntryPoint";
 import { PublicHeaderBackdrop } from "@/components/public/PublicHeaderBackdrop";
 import { AdjacentNavigation } from "@/components/ui";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
@@ -70,6 +71,19 @@ export function HeroSection({
     <>
       <p className={styles.eyebrow}>{group.fansub.name}</p>
       <h1 className={styles.title}>{anime.title}</h1>
+      {/* D-12 (191-UI-SPEC.md Contract D3): dezenter zweiter Einstiegspunkt ins
+          "Hinweis senden"-Formular, direkt dem Projekttitel untergeordnet -- rendert
+          selbst nichts fuer nicht berechtigte/nicht angemeldete Besucher (siehe
+          ReportHintEntryPoint). Inline-Abstand statt eines neuen page.module.css-
+          Eintrags, da diese Datei nicht in den files_modified dieses Plans steht. */}
+      <div style={{ marginTop: "var(--space-2)" }}>
+        <ReportHintEntryPoint
+          fansubGroupId={groupID}
+          fansubGroupName={group.fansub.name}
+          animeId={animeID}
+          animeTitle={anime.title}
+        />
+      </div>
     </>
   );
   return (
