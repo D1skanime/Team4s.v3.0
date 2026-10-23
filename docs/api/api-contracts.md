@@ -11,7 +11,7 @@ Das Ziel ist, Vertrags-Drift zu verhindern: Backend, Frontend-Helfer, UI-Zustand
 Diese Quellen in dieser Reihenfolge nutzen:
 
 1. `shared/contracts/openapi.yaml` - kanonischer, übergreifender OpenAPI-Vertrag.
-2. Domänenspezifische YAML-Dateien neben `openapi.yaml` unter `shared/contracts/`, zum Beispiel `admin-content.yaml`, `admin-capabilities.yaml`, `anime-backdrops.yaml`, `anime-detail.yaml`, `anime-list.yaml`, `asset-stream.yaml`, `auth.yaml`, `comments.yaml`, `contributions.yaml`, `episodes.yaml`, `episode-versions.yaml`, `fansubs.yaml` und `watchlist.yaml` - fokussierte Verträge für den jeweiligen Bereich, soweit vorhanden.
+2. Domänenspezifische YAML-Dateien neben `openapi.yaml` unter `shared/contracts/`, zum Beispiel `admin-content.yaml`, `admin-capabilities.yaml`, `anime-backdrops.yaml`, `anime-detail.yaml`, `anime-list.yaml`, `asset-stream.yaml`, `auth.yaml`, `comments.yaml`, `contributions.yaml`, `episodes.yaml`, `episode-versions.yaml`, `fansubs.yaml`, `fansub-group-hints.yaml` und `watchlist.yaml` - fokussierte Verträge für den jeweiligen Bereich, soweit vorhanden.
 3. Backend-Handler-, Service-, Repository- und Validierungscode - Laufzeit-Wahrheit, wenn Verträge veraltet sind.
 4. `frontend/src/types/*` - Frontend-DTOs und Antwort-/Request-Formen.
 5. `frontend/src/lib/api.ts` und feature-lokale API-Helfer-Dateien - Browser- und Server-API-Aufrufstellen.

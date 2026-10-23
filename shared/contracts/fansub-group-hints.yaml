@@ -1,0 +1,546 @@
+openapi: 3.0.3
+info:
+  title: Team4s Fansub Group Hints API
+  version: 1.0.0
+  description: |
+    OpenAPI contract for "Hinweis senden" (Phase 191): ein Member kann einen Hinweis an die
+    eigene ODER eine fremde Fansub-Gruppe schicken — entweder einen Korrektur-Hinweis zu
+    einem bestehenden Projekt-Eintrag oder eine Anfrage auf Mitgliedschaft mit optionalem
+    Rollenwunsch. Ein Hinweis ist reine Information, kein automatischer Mitgliedschafts-
+    oder Rollen-Zuweisungsvorgang (D-03): wer ihn entscheidet, entscheidet serverseitig nach
+    dem gewünschten Rollencode (D-01/D-07) — bei requested_role_code = fansub_lead
+    ausschließlich ein Plattform-Admin, sonst der Leader der Zielgruppe.
+
+tags:
+  - name: FansubGroupHints
+    description: Member hint submission and the two role-dependent review surfaces (Leader vs. Plattform-Admin).
+
+paths:
+  /api/v1/me/fansub-group-hints:
+    post:
+      tags: [FansubGroupHints]
+      summary: Send a hint to any fansub group (own or foreign)
+      description: |
+        Legt einen neuen Hinweis an (status='open'). Bewusst KEIN Ownership-Check wie beim
+        regulären Beitrags-Vorschlag — ein Mitglied darf an JEDE Fansub-Gruppe einen Hinweis
+        schicken, nicht nur an die eigene(n) (D-02). sender_app_user_id stammt ausschließlich
+        aus der verifizierten Auth-Identität, niemals aus dem Request-Body.
+        Spam-Schutz (D-04): (1) höchstens EIN offener Hinweis pro Person + Zielgruppe + Thema
+        (DB-Partial-Unique-Index, 409 bei Verstoß), (2) Tageslimit ca. 10 Hinweise/Person/24h
+        über FansubGroupHintDailyLimitMiddleware (429 bei Überschreitung).
+      operationId: createFansubGroupHint
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFansubGroupHintRequest"
+      responses:
+        "201":
+          description: Hinweis erfolgreich angelegt
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/FansubGroupHint"
+        "400":
+          description: Ungültiger Request-Body oder unbekannter hint_type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unknownType:
+                  value:
+                    error:
+                      message: "Unbekannter Hinweis-Typ. Erlaubt sind 'correction' oder 'membership_request'."
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Kein verifizierter Member-Account verknüpft, oder Zielgruppe/Projekt/Rolle nicht gefunden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Bereits ein offener Hinweis zum selben Thema vorhanden (D-04(1))
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                duplicate:
+                  value:
+                    error:
+                      message: "Du hast dazu bereits einen offenen Hinweis."
+        "422":
+          description: Pflichtfeld-Verstoß je Hinweistyp (z. B. Anime fehlt bei correction, Rolle bei correction angegeben)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Tageslimit erreicht (D-04(2), ca. 10 Hinweise/Person/24h, Redis-Fixed-Window)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                rateLimited:
+                  value:
+                    error:
+                      message: "zu viele anfragen, bitte spaeter erneut versuchen"
+
+  /api/v1/admin/fansubs/{fansubId}/group-hints:
+    get:
+      tags: [FansubGroupHints]
+      summary: List incoming hints for a target group (Leader-der-Zielgruppe)
+      description: |
+        Gibt dem Leader der ZIELGRUPPE (nicht der Gruppe des Absenders) alle Hinweise an
+        seine Gruppe zurück, über alle Status hinweg. Filtert serverseitig jede
+        Mitgliedschaftsanfrage mit requested_role_code = fansub_lead heraus (D-01: diese
+        Entscheidung gehört ausschließlich der Plattform-Admin-Liste unten). Autorisierung:
+        CanForFansubGroup mit ActionFansubGroupMembersManage — exakt dasselbe Recht wie beim
+        bestehenden gruppen-gescopten Beitrags-Review (D-06, kein neues Recht).
+      operationId: listGroupHints
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fansubId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Liste der Hinweise an die Zielgruppe (fansub_lead-Anfragen ausgefiltert)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FansubGroupHint"
+        "400":
+          description: Ungültige fansub id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient group permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/admin/fansubs/{fansubId}/group-hints/{hid}/confirm:
+    post:
+      tags: [FansubGroupHints]
+      summary: Confirm an incoming hint (Leader-der-Zielgruppe)
+      description: |
+        Bestätigt einen offenen Hinweis: status='acknowledged'. Setzt KEINE Mitgliedschaft
+        und keine Rollen-/Punkte-/Badge-Zuweisung als Seiteneffekt (D-03/D-05) — der Leader
+        entscheidet separat über die bestehenden, unveränderten Zuweisungswege, ob und wie
+        er auf den Hinweis reagiert. Nutzt denselben decideFansubGroupHint-Helfer wie der
+        Plattform-Admin-Pfad unten, damit beide Oberflächen beweisbar identisch entscheiden.
+      operationId: confirmGroupHint
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fansubId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: hid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Hinweis bestätigt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Hinweis wurde bestätigt."
+        "400":
+          description: Ungültige fansub id oder hinweis-id
+        "401":
+          description: Authentication required
+        "403":
+          description: Insufficient group permissions
+        "404":
+          description: Hinweis nicht gefunden oder bereits bearbeitet
+
+  /api/v1/admin/fansubs/{fansubId}/group-hints/{hid}/reject:
+    post:
+      tags: [FansubGroupHints]
+      summary: Reject an incoming hint (Leader-der-Zielgruppe)
+      description: |
+        Lehnt einen offenen Hinweis ab: status='rejected', optionale decision_note. Kein
+        Hard-Delete (D-04(3)) — der Datensatz bleibt erhalten, verschwindet aber aus der
+        "nur offene anzeigen"-Ansicht.
+      operationId: rejectGroupHint
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fansubId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: hid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                decision_note:
+                  type: string
+                  nullable: true
+                  description: Optionale Ablehnungsbegründung.
+                  example: "Bitte zuerst die bestehende Mitgliedschaft prüfen."
+      responses:
+        "200":
+          description: Hinweis abgelehnt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Hinweis wurde abgelehnt."
+        "400":
+          description: Ungültige fansub id/hinweis-id oder ungültiger Request-Body
+        "401":
+          description: Authentication required
+        "403":
+          description: Insufficient group permissions
+        "404":
+          description: Hinweis nicht gefunden oder bereits bearbeitet
+
+  /api/v1/admin/fansub-group-hints:
+    get:
+      tags: [FansubGroupHints]
+      summary: List all fansub_lead-requested hints across all groups (Plattform-Admin)
+      description: |
+        Plattform-weite Liste, die AUSSCHLIESSLICH Mitgliedschaftsanfragen mit
+        requested_role_code = fansub_lead zeigt — serverseitig über ein WHERE im Repository
+        erzwungen (gebunden an die Konstante permissions.RoleFansubLead), nicht als
+        clientseitiger Filter auf einer generischen "alle Hinweise"-Liste (D-01/D-07:
+        eine Leader-Nachfolge soll nicht von der betroffenen Gruppe selbst entschieden
+        werden). Autorisierung: requirePlatformAdminIdentity — unabhängig von jeder
+        gruppenbezogenen Berechtigung des Aufrufers, strukturell analog zu
+        AdminClaimsListHandler.ListClaims.
+      operationId: listAdminFansubGroupHints
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: fansub_group_id
+          in: query
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Geclampte, gefilterte Liste der fansub_lead-Mitgliedschaftsanfragen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FansubGroupHint"
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      limit:
+                        type: integer
+                      offset:
+                        type: integer
+        "401":
+          description: Authentication required
+        "403":
+          description: Kein Plattform-Admin (auch nicht der Leader der betroffenen Zielgruppe)
+
+  /api/v1/admin/fansub-group-hints/{hid}/confirm:
+    post:
+      tags: [FansubGroupHints]
+      summary: Confirm a fansub_lead membership request (Plattform-Admin)
+      description: |
+        Bestätigt eine fansub_lead-Mitgliedschaftsanfrage: status='acknowledged'. Nutzt
+        denselben decideFansubGroupHint-Helfer wie der Leader-Pfad oben — identisches
+        Verhalten (kein Mitgliedschafts- oder Punkte-/Badge-Seiteneffekt, D-03/D-05), nur
+        ein anderer Autorisierungsweg (requirePlatformAdminIdentity statt
+        CanForFansubGroup). Der Audit-Eintrag vermerkt
+        "actor_path": "platform_admin_fansub_lead_route".
+      operationId: confirmAdminFansubGroupHint
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: hid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Hinweis bestätigt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Hinweis wurde bestätigt."
+        "400":
+          description: Ungültige hinweis-id
+        "401":
+          description: Authentication required
+        "403":
+          description: Kein Plattform-Admin
+        "404":
+          description: Hinweis nicht gefunden oder bereits bearbeitet
+
+  /api/v1/admin/fansub-group-hints/{hid}/reject:
+    post:
+      tags: [FansubGroupHints]
+      summary: Reject a fansub_lead membership request (Plattform-Admin)
+      description: |
+        Lehnt eine fansub_lead-Mitgliedschaftsanfrage ab: status='rejected', optionale
+        decision_note. Gleiches Raw-Body-Optional-JSON-Muster wie der Leader-Pfad, kein
+        Hard-Delete.
+      operationId: rejectAdminFansubGroupHint
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: hid
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                decision_note:
+                  type: string
+                  nullable: true
+                  example: "Bitte zuerst Rückfrage an den Absender stellen."
+      responses:
+        "200":
+          description: Hinweis abgelehnt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Hinweis wurde abgelehnt."
+        "400":
+          description: Ungültige hinweis-id oder ungültiger Request-Body
+        "401":
+          description: Authentication required
+        "403":
+          description: Kein Plattform-Admin
+        "404":
+          description: Hinweis nicht gefunden oder bereits bearbeitet
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: SignedToken
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message]
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+
+    CreateFansubGroupHintRequest:
+      type: object
+      required: [hint_type, target_fansub_group_id]
+      properties:
+        hint_type:
+          type: string
+          enum: [correction, membership_request]
+          description: "correction = Korrektur-Hinweis zu einem bestehenden Projekt-Eintrag; membership_request = Anfrage auf Mitgliedschaft in der Zielgruppe."
+        target_fansub_group_id:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Darf jede beliebige Fansub-Gruppe sein, nicht nur eine eigene (D-02).
+        related_anime_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Pflicht bei hint_type=correction, verboten bei membership_request.
+        requested_role_code:
+          type: string
+          nullable: true
+          description: >-
+            Nur bei membership_request erlaubt. Optionaler Rollenwunsch aus den
+            fansub_group-Kontext-Rollen (D-07). Default "keine bestimmte Rolle" (null).
+            Bei requested_role_code = fansub_lead entscheidet ausschließlich ein
+            Plattform-Admin (D-01), bei jedem anderen Wert bzw. null der Leader der
+            Zielgruppe.
+        note:
+          type: string
+          nullable: true
+
+    FansubGroupHint:
+      type: object
+      required:
+        - id
+        - sender_app_user_id
+        - sender_display_name
+        - target_fansub_group_id
+        - target_fansub_group_name
+        - hint_type
+        - status
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        sender_app_user_id:
+          type: integer
+          format: int64
+        sender_display_name:
+          type: string
+        target_fansub_group_id:
+          type: integer
+          format: int64
+        target_fansub_group_name:
+          type: string
+        hint_type:
+          type: string
+          enum: [correction, membership_request]
+        related_anime_id:
+          type: integer
+          format: int64
+          nullable: true
+        related_anime_title:
+          type: string
+          nullable: true
+        requested_role_code:
+          type: string
+          nullable: true
+        requested_role_label:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [open, acknowledged, rejected]
+        decided_by:
+          type: integer
+          format: int64
+          nullable: true
+        decided_at:
+          type: string
+          format: date-time
+          nullable: true
+        decision_note:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        sender_own_group_name:
+          type: string
+          nullable: true
+          description: >-
+            UI-Kontext "Mitglied bei: {Gruppe}" — best-effort über eine verifizierte
+            member_claims-Mitgliedschaft des Absenders ermittelt. Null, wenn keine oder
+            mehrdeutige verifizierte Mitgliedschaft vorliegt; nie fehlerauslösend.

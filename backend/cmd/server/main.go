@@ -667,6 +667,14 @@ func main() {
 	v1.GET("/admin/fansubs/:id/group-hints", authMiddleware, fansubGroupHintsReviewHandler.ListHints)
 	v1.POST("/admin/fansubs/:id/group-hints/:hid/confirm", authMiddleware, fansubGroupHintsReviewHandler.ConfirmHint)
 	v1.POST("/admin/fansubs/:id/group-hints/:hid/reject", authMiddleware, fansubGroupHintsReviewHandler.RejectHint)
+	// Phase 191-05: Plattform-Admin-Entscheidungsflaeche fuer den D-01/D-07-Sonderfall
+	// (Mitgliedschaftsanfragen mit gewuenschter Rolle fansub_lead) — wiederverwendet exakt
+	// fansubGroupHintsRepo (keine zweite Repository-Instanz) und authzRepo/auditLogRepo, die
+	// bereits oben fuer adminClaimsListHandler konstruiert sind.
+	adminFansubGroupHintsHandler := handlers.NewAdminFansubGroupHintsHandler(authzRepo, fansubGroupHintsRepo, auditLogRepo)
+	v1.GET("/admin/fansub-group-hints", authMiddleware, adminFansubGroupHintsHandler.ListHints)
+	v1.POST("/admin/fansub-group-hints/:hid/confirm", authMiddleware, adminFansubGroupHintsHandler.ConfirmHint)
+	v1.POST("/admin/fansub-group-hints/:hid/reject", authMiddleware, adminFansubGroupHintsHandler.RejectHint)
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           router,
