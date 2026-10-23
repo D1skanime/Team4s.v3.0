@@ -301,12 +301,15 @@ interface Step3Props {
   endedYear: string
   hasInvalidYearRange: boolean
   /**
-   * Von/Bis-Jahr und das 90-Tage-Infopanel sind eine anime_contributions-spezifische
-   * Mechanik (Selbst-Veroeffentlichung nach Inaktivitaet) — fuer fansub_group_hints
-   * existiert dieser Automatismus nicht (191-UI-SPEC.md Component Contract A2), deshalb
-   * steuert der Aufrufer die Sichtbarkeit explizit statt sie an ownGroups zu koppeln.
+   * Von/Bis-Jahr sind fuer JEDEN verbleibenden Hinweis universell und werden deshalb
+   * unconditioned gerendert (D-20/Plan 191-21 braucht die Angabe auch fuer Hinweise an
+   * fremde Gruppen). Nur der Infopanel-Satz darunter haengt vom groupScope ab: der
+   * 90-Tage-Selbst-Veroeffentlichungs-Automatismus existiert ausschliesslich fuer den
+   * Eigengruppen-Weg (anime_contributions-Mechanik) -- bei einer fremden Gruppe gibt es
+   * stattdessen nur eine Entscheidung durch deren Leitung (bzw. den Plattform-Admin, falls
+   * keine aktive Leitung existiert), ohne jeden Automatismus (D-19, 191-UI-SPEC.md A2).
    */
-  showYearAndInfoPanel: boolean
+  groupScope: GroupScope
   onNoteChange: (value: string) => void
   onStartedYearChange: (value: string) => void
   onEndedYearChange: (value: string) => void
@@ -317,7 +320,7 @@ export function Step3NoteRange({
   startedYear,
   endedYear,
   hasInvalidYearRange,
-  showYearAndInfoPanel,
+  groupScope,
   onNoteChange,
   onStartedYearChange,
   onEndedYearChange,
@@ -344,41 +347,39 @@ export function Step3NoteRange({
         </span>
       </FormField>
 
-      {showYearAndInfoPanel ? (
-        <>
-          <div className={styles.yearFields}>
-            <FormField label="Von Jahr" htmlFor="proposal-started">
-              <YearPicker
-                id="proposal-started"
-                label="Von Jahr auswählen"
-                value={startedYear}
-                minYear={MIN_YEAR}
-                maxYear={currentYear}
-                onChange={onStartedYearChange}
-              />
-            </FormField>
-            <FormField label="Bis Jahr" htmlFor="proposal-ended">
-              <YearPicker
-                id="proposal-ended"
-                label="Bis Jahr auswählen"
-                value={endedYear}
-                minYear={MIN_YEAR}
-                maxYear={currentYear}
-                onChange={onEndedYearChange}
-              />
-            </FormField>
-          </div>
-          {hasInvalidYearRange ? (
-            <p className={styles.rangeHint} role="status">
-              Das Bis-Jahr darf nicht vor dem Von-Jahr liegen.
-            </p>
-          ) : null}
-
-          <div className={styles.infoPanel}>
-            Keine Reaktion nach 90 Tagen: Vorschlag kann selbst öffentlich geschaltet werden.
-          </div>
-        </>
+      <div className={styles.yearFields}>
+        <FormField label="Von Jahr" htmlFor="proposal-started">
+          <YearPicker
+            id="proposal-started"
+            label="Von Jahr auswählen"
+            value={startedYear}
+            minYear={MIN_YEAR}
+            maxYear={currentYear}
+            onChange={onStartedYearChange}
+          />
+        </FormField>
+        <FormField label="Bis Jahr" htmlFor="proposal-ended">
+          <YearPicker
+            id="proposal-ended"
+            label="Bis Jahr auswählen"
+            value={endedYear}
+            minYear={MIN_YEAR}
+            maxYear={currentYear}
+            onChange={onEndedYearChange}
+          />
+        </FormField>
+      </div>
+      {hasInvalidYearRange ? (
+        <p className={styles.rangeHint} role="status">
+          Das Bis-Jahr darf nicht vor dem Von-Jahr liegen.
+        </p>
       ) : null}
+
+      <div className={styles.infoPanel}>
+        {groupScope === 'own'
+          ? 'Keine Reaktion nach 90 Tagen: Vorschlag kann selbst öffentlich geschaltet werden.'
+          : 'Der Hinweis geht an die Leitung der Zielgruppe — oder, falls diese aktuell keine Leitung hat, an den Plattform-Admin. Es passiert nichts automatisch.'}
+      </div>
     </div>
   )
 }

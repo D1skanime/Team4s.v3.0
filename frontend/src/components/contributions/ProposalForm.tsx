@@ -434,7 +434,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
                 startedYear={startedYear}
                 endedYear={endedYear}
                 hasInvalidYearRange={hasInvalidYearRange}
-                showYearAndInfoPanel={true}
+                groupScope={groupScope}
                 onNoteChange={setNote}
                 onStartedYearChange={setStartedYear}
                 onEndedYearChange={setEndedYear}
