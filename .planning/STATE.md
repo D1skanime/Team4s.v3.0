@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 191-03-PLAN.md
-last_updated: "2026-10-23T13:13:55.195Z"
+last_updated: "2026-10-23T13:26:15.358Z"
 last_activity: 2026-10-23
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 503
-  completed_plans: 493
+  completed_plans: 494
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 191 (hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
@@ -1494,6 +1494,7 @@ Last activity: 2026-10-23
 - [Phase 191-01]: related_anime_id (nicht related_release_version_id) ist der Thema-Schluessel des Partial-Unique-Index fuer die Dopplungssperre — UI dieser Phase bietet keine Release-Versions-Auswahl fuer den Korrektur-Hinweis an
 - [Phase 191]: useFansubGroupSearch zentral unter frontend/src/hooks/ statt feature-colokiert, weil Release-Editor und das kuenftige Hinweis-Formular dieselbe Debounce-Suche nutzen — D-02 verlangt einen gemeinsamen Hook statt Parallel-Implementierung; Release-Editor-Verhalten bleibt dabei unveraendert
 - [Phase 191]: 191-03: ResolveVerifiedMemberID bleibt als reiner Identitaetsnachweis im CreateHint-Handler, ohne Ownership-Check (D-02)
+- [Phase 191]: FansubGroupHintsReviewHandler reuses ActionFansubGroupMembersManage (D-06); Confirm is a pure status transition with no membership/points side effect (D-03/D-05)
 
 ### Pending Todos
 
@@ -2223,10 +2224,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P01 | 20min | 2 tasks | 6 files |
 | Phase 191 P02 | 70min | 2 tasks | 4 files |
 | Phase 191 P03 | 45min | 2 tasks | 6 files |
+| Phase 191 P04 | 50min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-23T13:13:55.155Z
+Last session: 2026-10-23T13:26:07.868Z
 Stopped at: Completed 191-03-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
