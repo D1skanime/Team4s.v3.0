@@ -117,6 +117,10 @@ func main() {
 	commentRepo := repository.NewCommentRepository(dbPool)
 	commentHandler := handlers.NewCommentHandler(commentRepo)
 	commentCreateLimiter := middleware.NewCommentRateLimiter(redisClient, 5, time.Minute)
+	// D-04(2): Spam-Schutz fuer "Hinweis senden" (max. 10 Hinweise pro App-User und Tag),
+	// dieselbe Redis-Fixed-Window-Mechanik wie commentCreateLimiter, nur anderer Schluessel
+	// (AppUserID statt ClientIP) und anderes Limit/Fenster.
+	fansubHintDailyLimiter := middleware.NewCommentRateLimiter(redisClient, 10, 24*time.Hour)
 	authRepo := repository.NewAuthRepository(redisClient)
 	appAuthRepo := repository.NewAppAuthRepository(dbPool)
 	memberProfileRepo := repository.NewMemberProfileRepository(dbPool, cfg.MediaPublicBaseURL)
@@ -640,6 +644,17 @@ func main() {
 	v1.GET("/me/memberships", authMiddleware, proposalsMeHandler.ListMemberships)
 	v1.POST("/me/contribution-proposals", authMiddleware, proposalsMeHandler.CreateProposal)
 	v1.POST("/me/anime-contributions/:contributionId/self-publish", authMiddleware, proposalsMeHandler.SelfPublish)
+	// Phase 191: "Hinweis senden" auch an fremde Fansub-Gruppen (D-02/D-06) — eigener
+	// Datenpfad ohne Ownership-Gate, reuse von histGroupMemberRolesRepo fuer die
+	// Rollenvalidierung und einer zweiten, taeglichen CommentRateLimiter-Instanz (D-04(2)).
+	fansubGroupHintsRepo := repository.NewFansubGroupHintsRepository(dbPool)
+	fansubGroupHintsMeHandler := handlers.NewFansubGroupHintsMeHandler(fansubGroupHintsRepo, histGroupMemberRolesRepo, dbPool)
+	v1.POST(
+		"/me/fansub-group-hints",
+		authMiddleware,
+		middleware.FansubGroupHintDailyLimitMiddleware(fansubHintDailyLimiter),
+		fansubGroupHintsMeHandler.CreateHint,
+	)
 	v1.GET("/admin/fansubs/:id/contribution-proposals", authMiddleware, reviewHandler.ListProposals)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/confirm", authMiddleware, reviewHandler.ConfirmProposal)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/reject", authMiddleware, reviewHandler.RejectProposal)
