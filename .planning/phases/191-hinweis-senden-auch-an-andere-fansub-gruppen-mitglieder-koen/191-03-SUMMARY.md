@@ -127,6 +127,12 @@ None - keine externe Service-Konfiguration nötig.
 - Backend-Container (`team4sv30-backend`) wurde neu gebaut und läuft gesund; `go build`/`go vet`/volle `scripts/test-backend.sh`-Suite (`GATE: GREEN (0)`) bestätigt ohne Regression.
 - Kein Blocker: Die offene UI-SPEC-Frage zu Contract A6 (Trigger-Button-Gating im Frontend) bleibt für den zuständigen Frontend-Plan (191-07) dokumentiert, berührt diesen Backend-Plan nicht.
 
+## Self-Check: PASSED
+
+Alle in dieser Summary genannten Dateien existieren auf der Festplatte und alle genannten
+Commit-Hashes sind im Git-Verlauf auffindbar (geprüft per `[ -f ... ]` und
+`git log --oneline --all | grep`).
+
 ---
 *Phase: 191-hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen*
 *Completed: 2026-10-23*
