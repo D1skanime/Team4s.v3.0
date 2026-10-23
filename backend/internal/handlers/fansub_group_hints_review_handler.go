@@ -153,7 +153,7 @@ func (h *FansubGroupHintsReviewHandler) ConfirmHint(c *gin.Context) {
 		return
 	}
 
-	if err := h.reviewRepo.Confirm(c.Request.Context(), hintID, identity.AppUserID); err != nil {
+	if err := decideFansubGroupHint(c.Request.Context(), h.reviewRepo, hintID, identity.AppUserID, "confirm", nil); err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "Hinweis nicht gefunden oder bereits bearbeitet"}})
 			return
@@ -225,7 +225,7 @@ func (h *FansubGroupHintsReviewHandler) RejectHint(c *gin.Context) {
 		}
 	}
 
-	if err := h.reviewRepo.Reject(c.Request.Context(), hintID, identity.AppUserID, req.DecisionNote); err != nil {
+	if err := decideFansubGroupHint(c.Request.Context(), h.reviewRepo, hintID, identity.AppUserID, "reject", req.DecisionNote); err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "Hinweis nicht gefunden oder bereits bearbeitet"}})
 			return
