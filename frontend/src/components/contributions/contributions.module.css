@@ -665,25 +665,38 @@
   gap: 6px;
 }
 
+/* D-14 (Live-UAT-Bugfix): .groupSearchItem erbt von Button variant="secondary" einen dunklen
+   Verlauf-Hintergrund samt heller Textfarbe (Button.module.css) -- die vorherige Fassung setzte
+   DARAUF zusaetzlich dunkle strong/span-Farben, was dunklen Text auf dunklem Grund ergab und
+   live als schlecht lesbar reproduziert wurde. Diese Fassung ueberschreibt Hintergrund/Rahmen
+   lokal auf das helle Formular-Muster (Vorbild: EpisodeVersionEditor.module.css) -- !important
+   ist noetig, weil Button variant="secondary" --button-bg/--button-border als CSS-Custom-
+   Properties auf demselben Element setzt und ohne !important die Bundling-Reihenfolge der
+   CSS-Module entscheidet, welche Regel gewinnt. Gleiches Override-Muster bereits etabliert bei
+   .disclosureButton oben in dieser Datei -- hier wiederverwendet statt neu erfunden. */
 .groupSearchItem {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  display: grid;
+  gap: var(--space-1);
+  justify-items: start;
   width: 100%;
   min-height: 0;
-  padding: 9px 12px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 12px;
+  background: var(--surface-card) !important;
   text-align: left;
 }
 
 .groupSearchItem strong {
-  color: #1c2541;
-  font-size: 0.86rem;
+  color: var(--text-strong);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .groupSearchItem span {
-  color: #6b7190;
-  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .selectionBreadcrumb {

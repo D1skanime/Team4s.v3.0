@@ -29,7 +29,6 @@ function step1Props(overrides: Partial<Parameters<typeof Step1GroupProject>[0]> 
     foreignResults: [],
     isSearchingForeign: false,
     foreignSearchMessage: null,
-    foreignGroup: null,
     onForeignGroupPick: vi.fn(),
     activeGroupName: null,
     hasActiveGroup: false,
@@ -88,7 +87,6 @@ describe('Step1GroupProject — Gruppen-Bereich-Umschalter (D-02)', () => {
           groupScope: 'foreign',
           hasActiveGroup: true,
           activeGroupName: 'RedHeartFansub',
-          foreignGroup: FOREIGN_RESULT[0],
         })}
       />,
     )
@@ -98,6 +96,20 @@ describe('Step1GroupProject — Gruppen-Bereich-Umschalter (D-02)', () => {
   it('zeigt den Anime/Projekt-Schritt immer (D-09: jeder verbleibende Hinweis ist ein Korrektur-Hinweis mit Projektbezug)', () => {
     render(<Step1GroupProject {...step1Props()} />)
     expect(screen.getByText('Bei welchem Anime/Projekt dieser Gruppe?')).toBeTruthy()
+  })
+
+  // D-13 (Live-UAT-Bugfix): der gewaehlte Gruppenname erschien bisher dreifach (Suchergebnis-
+  // Zeile, eine separate "Ausgewaehlt: {name}"-Zeile, die selectionBreadcrumb-Pille). Die
+  // separate Zeile entfaellt ersatzlos -- die Pille unten trägt dieselbe Information bereits.
+  it('rendert nach Auswahl einer fremden Gruppe keine separate "Ausgewählt: ..."-Zeile mehr (D-13)', () => {
+    render(
+      <Step1GroupProject
+        {...step1Props({ groupScope: 'foreign', hasActiveGroup: true, activeGroupName: 'RedHeartFansub' })}
+      />,
+    )
+    expect(screen.queryByText(/Ausgewählt:/)).toBeNull()
+    // Die Information bleibt einzig ueber die Breadcrumb-Pille erhalten.
+    expect(screen.getByLabelText('Ausgewählter Kontext').textContent).toContain('RedHeartFansub')
   })
 })
 

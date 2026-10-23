@@ -336,7 +336,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
                 foreignResults={foreignSearch.results}
                 isSearchingForeign={foreignSearch.isSearching}
                 foreignSearchMessage={foreignSearch.message}
-                foreignGroup={foreignGroup}
                 onForeignGroupPick={pickForeignGroup}
                 activeGroupName={activeGroupName}
                 hasActiveGroup={hasActiveGroup}

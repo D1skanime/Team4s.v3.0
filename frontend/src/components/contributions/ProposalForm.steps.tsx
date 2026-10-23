@@ -130,7 +130,6 @@ interface Step1Props {
   foreignResults: FansubGroup[]
   isSearchingForeign: boolean
   foreignSearchMessage: string | null
-  foreignGroup: FansubGroup | null
   onForeignGroupPick: (group: FansubGroup) => void
   activeGroupName: string | null
   hasActiveGroup: boolean
@@ -158,7 +157,6 @@ export function Step1GroupProject({
   foreignResults,
   isSearchingForeign,
   foreignSearchMessage,
-  foreignGroup,
   onForeignGroupPick,
   activeGroupName,
   hasActiveGroup,
@@ -212,7 +210,6 @@ export function Step1GroupProject({
               ))}
             </div>
           ) : null}
-          {foreignGroup ? <span className={styles.metaText}>Ausgewählt: {foreignGroup.name}</span> : null}
         </div>
       )}
 
