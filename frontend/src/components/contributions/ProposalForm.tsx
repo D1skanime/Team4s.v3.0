@@ -4,13 +4,19 @@ import { Check } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
-import { Button, FormField, Modal } from '@/components/ui'
-import { ApiError, createContributionProposal, getAdminFansubAnime } from '@/lib/api'
+import { Button, Modal } from '@/components/ui'
+import { getAdminFansubAnime } from '@/lib/api'
+import { useFansubGroupSearch } from '@/hooks/useFansubGroupSearch'
 import type { AdminFansubAnimeEntry } from '@/types/admin'
-import type { MembershipEntry, ProposalFormData } from '@/types/contributions'
+import type { FansubGroup } from '@/types/fansub'
+import type { MembershipEntry } from '@/types/contributions'
 
+import { Step0HintType, StepRoleOptional } from './ProposalForm.extraSteps'
 import { Step1GroupProject, Step2Role, Step3NoteRange } from './ProposalForm.steps'
 import type { RoleDefinition } from './ProposalForm.steps'
+import type { GroupScope, HintType } from './ProposalForm.toggles'
+import { stepsForHintType, useProposalFormSubmit } from './ProposalForm.useSubmit'
+import type { SubmittedSummary, WizardStep } from './ProposalForm.useSubmit'
 import styles from './contributions.module.css'
 
 export type { RoleDefinition }
@@ -19,45 +25,48 @@ interface ProposalFormProps {
   onSuccess: () => void
   onClose: () => void
   ownGroups: MembershipEntry[]
+  /** anime_contribution-Kontext-Rollen (Korrektur-Hinweis, Step2Role) — unverändert. */
   roleDefinitions: RoleDefinition[]
+  /** fansub_group-Kontext-Rollen (Mitgliedschaftsanfrage, optional, D-07) — eigene Quelle. */
+  fansubGroupRoles: RoleDefinition[]
 }
-
-interface SubmittedSummary {
-  groupName: string
-  animeTitle: string
-  roleLabel: string
-}
-
-type WizardStep = 1 | 2 | 3
 
 const FORM_ID = 'proposal-form'
 
-const STEPS: Array<{ id: WizardStep; title: string }> = [
-  { id: 1, title: 'Gruppe & Projekt' },
-  { id: 2, title: 'Rolle' },
-  { id: 3, title: 'Hinweis & Zeitraum' },
-]
-
-export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }: ProposalFormProps) {
+export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, fansubGroupRoles }: ProposalFormProps) {
   const [step, setStep] = useState<WizardStep>(1)
+  const [hintType, setHintType] = useState<HintType | ''>('')
+  const [hintTypeError, setHintTypeError] = useState<string | null>(null)
+  const [groupScope, setGroupScope] = useState<GroupScope>('own')
   const [selectedGroupId, setSelectedGroupId] = useState<number | ''>('')
+  const [foreignGroup, setForeignGroup] = useState<FansubGroup | null>(null)
   const [selectedAnimeId, setSelectedAnimeId] = useState<number | ''>('')
   const [groupAnime, setGroupAnime] = useState<AdminFansubAnimeEntry[]>([])
   const [isLoadingGroupAnime, setIsLoadingGroupAnime] = useState(false)
   const [groupAnimeError, setGroupAnimeError] = useState<string | null>(null)
   const [selectedRoleCode, setSelectedRoleCode] = useState('')
+  const [requestedRoleCode, setRequestedRoleCode] = useState('')
   const [note, setNote] = useState('')
   const [startedYear, setStartedYear] = useState('')
   const [endedYear, setEndedYear] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [roleError, setRoleError] = useState<string | null>(null)
+
+  const { submit: submitHint, isSubmitting, error: submitError, resetError } = useProposalFormSubmit()
   const [submittedSummary, setSubmittedSummary] = useState<SubmittedSummary | null>(null)
 
-  const selectedGroup = useMemo(
+  const isCorrection = hintType === 'correction'
+  const STEPS = useMemo(() => stepsForHintType(hintType), [hintType])
+  const displayError = error ?? submitError
+
+  const selectedOwnGroup = useMemo(
     () => ownGroups.find((group) => group.fansub_group_id === selectedGroupId) ?? null,
     [ownGroups, selectedGroupId],
   )
+  const activeGroupId = groupScope === 'own' ? selectedOwnGroup?.fansub_group_id : foreignGroup?.id
+  const activeGroupName = groupScope === 'own' ? selectedOwnGroup?.group_name ?? null : foreignGroup?.name ?? null
+  const hasActiveGroup = activeGroupId != null
+
   const selectedAnime = useMemo(
     () => groupAnime.find((anime) => anime.id === selectedAnimeId) ?? null,
     [groupAnime, selectedAnimeId],
@@ -65,6 +74,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
   const selectedRole = useMemo(
     () => roleDefinitions.find((role) => role.code === selectedRoleCode) ?? null,
     [roleDefinitions, selectedRoleCode],
+  )
+  const requestedRole = useMemo(
+    () => fansubGroupRoles.find((role) => role.code === requestedRoleCode) ?? null,
+    [fansubGroupRoles, requestedRoleCode],
   )
   const hasInvalidYearRange = useMemo(() => {
     if (!startedYear || !endedYear) return false
@@ -83,16 +96,22 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     () => groupAnime.map((anime) => ({
       value: anime.id,
       label: anime.title,
-      subtitle: selectedGroup?.group_name,
+      subtitle: activeGroupName ?? undefined,
     })),
-    [groupAnime, selectedGroup?.group_name],
+    [groupAnime, activeGroupName],
   )
+
+  // excludeIds muss referenzstabil sein, sonst laeuft useFansubGroupSearch's Debounce bei
+  // jedem Render neu an (siehe Hook-Doku) -- eigene Gruppen sind aus der Fremd-Suche
+  // ausgeschlossen, weil dieser Pfad fuer "Eigene Gruppe" bereits existiert (191-UI-SPEC.md A3).
+  const excludeOwnGroupIds = useMemo(() => ownGroups.map((group) => group.fansub_group_id), [ownGroups])
+  const foreignSearch = useFansubGroupSearch({ excludeIds: excludeOwnGroupIds })
 
   useEffect(() => {
     let cancelled = false
 
     async function loadGroupAnime() {
-      if (!selectedGroup) {
+      if (!isCorrection || !activeGroupId) {
         setGroupAnime([])
         setSelectedAnimeId('')
         setGroupAnimeError(null)
@@ -103,7 +122,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
         setIsLoadingGroupAnime(true)
         setGroupAnimeError(null)
         setSelectedAnimeId('')
-        const response = await getAdminFansubAnime(selectedGroup.fansub_group_id)
+        const response = await getAdminFansubAnime(activeGroupId)
         if (!cancelled) setGroupAnime(response.data)
       } catch (loadError) {
         if (!cancelled) {
@@ -119,19 +138,26 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     return () => {
       cancelled = true
     }
-  }, [selectedGroup])
+  }, [isCorrection, activeGroupId])
 
   function resetAndClose() {
     setStep(1)
+    setHintType('')
+    setHintTypeError(null)
+    setGroupScope('own')
     setSelectedGroupId('')
+    setForeignGroup(null)
+    foreignSearch.setQuery('')
     setSelectedAnimeId('')
     setGroupAnime([])
     setSelectedRoleCode('')
+    setRequestedRoleCode('')
     setNote('')
     setStartedYear('')
     setEndedYear('')
     setError(null)
     setRoleError(null)
+    resetError()
     setSubmittedSummary(null)
     onClose()
   }
@@ -139,7 +165,14 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
   function goNext() {
     setError(null)
     setRoleError(null)
-    setStep((current) => (current < 3 ? (current + 1) as WizardStep : current))
+    if (step === 1) {
+      if (!hintType) {
+        setHintTypeError('Bitte wähle eine Hinweisart aus.')
+        return
+      }
+      setHintTypeError(null)
+    }
+    setStep((current) => (current < 4 ? (current + 1) as WizardStep : current))
   }
 
   function goBack() {
@@ -150,6 +183,23 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
 
   function requestFinalSubmit() {
     void submitProposal()
+  }
+
+  function selectHintType(value: HintType) {
+    setHintTypeError(null)
+    setHintType(value)
+  }
+
+  function selectGroupScope(scope: GroupScope) {
+    setGroupScope(scope)
+    setSelectedGroupId('')
+    setForeignGroup(null)
+    foreignSearch.setQuery('')
+  }
+
+  function pickForeignGroup(group: FansubGroup) {
+    setForeignGroup(group)
+    foreignSearch.addGroup(group)
   }
 
   function selectRole(code: string) {
@@ -165,59 +215,55 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
   async function submitProposal() {
     setError(null)
     setRoleError(null)
+    resetError()
 
-    if (ownGroups.length === 0) {
+    if (!hintType) {
       setStep(1)
-      setError('Für einen Hinweis brauchst du zuerst eine verifizierte Gruppenmitgliedschaft.')
+      setHintTypeError('Bitte wähle eine Hinweisart aus.')
       return
     }
-    if (!selectedGroupId || !selectedGroup) {
-      setStep(1)
+    if (!hasActiveGroup) {
+      setStep(2)
       setError('Bitte wähle eine Gruppe aus.')
       return
     }
-    if (!selectedAnimeId || !selectedAnime) {
-      setStep(1)
-      setError('Bitte wähle ein Anime/Projekt dieser Gruppe aus.')
-      return
-    }
-    if (!selectedRoleCode || !selectedRole) {
-      setStep(2)
-      setRoleError('Bitte wähle eine Rolle aus.')
-      return
-    }
-    if (hasInvalidYearRange) {
-      setStep(3)
-      return
-    }
-
-    const body: ProposalFormData = {
-      fansub_group_id: selectedGroup.fansub_group_id,
-      anime_id: selectedAnimeId,
-      fansub_group_member_id: selectedGroup.fansub_group_member_id,
-      role_codes: [selectedRoleCode],
-      note: note.trim() || null,
-      started_year: startedYear ? parseInt(startedYear, 10) : null,
-      ended_year: endedYear ? parseInt(endedYear, 10) : null,
+    if (isCorrection) {
+      if (!selectedAnimeId || !selectedAnime) {
+        setStep(2)
+        setError('Bitte wähle ein Anime/Projekt dieser Gruppe aus.')
+        return
+      }
+      if (!selectedRoleCode || !selectedRole) {
+        setStep(3)
+        setRoleError('Bitte wähle eine Rolle aus.')
+        return
+      }
+      if (hasInvalidYearRange) {
+        setStep(4)
+        return
+      }
     }
 
     try {
-      setIsSubmitting(true)
-      await createContributionProposal(body)
-      setSubmittedSummary({
-        groupName: selectedGroup.group_name,
-        animeTitle: selectedAnime.title,
-        roleLabel: selectedRole.label_de,
+      const summary = await submitHint({
+        hintType,
+        groupScope,
+        ownGroup: groupScope === 'own' ? selectedOwnGroup : null,
+        foreignGroup: groupScope === 'foreign' ? foreignGroup : null,
+        anime: isCorrection ? selectedAnime : null,
+        roleCode: selectedRoleCode,
+        roleLabel: selectedRole?.label_de ?? null,
+        requestedRoleCode,
+        requestedRoleLabel: requestedRole?.label_de ?? null,
+        note,
+        startedYear,
+        endedYear,
       })
+      setSubmittedSummary(summary)
       onSuccess()
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
-        setError(err.message || 'Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag.')
-      } else {
-        setError(err instanceof Error ? err.message : 'Der Vorschlag konnte nicht eingereicht werden. Bitte versuche es erneut.')
-      }
-    } finally {
-      setIsSubmitting(false)
+    } catch {
+      // Fehlertext ist bereits im Hook gesetzt (409/429-Mapping, Korrektur-Konfliktfall oder
+      // generischer Fallback) -- hier nichts weiter zu tun, displayError rendert ihn.
     }
   }
 
@@ -237,10 +283,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
       <Button
         type="button"
         variant="primary"
-        onClick={step === 3 ? requestFinalSubmit : goNext}
-        disabled={isSubmitting || ownGroups.length === 0}
+        onClick={step === 4 ? requestFinalSubmit : goNext}
+        disabled={isSubmitting}
       >
-        {step === 3 ? (isSubmitting ? 'Wird gesendet...' : 'Hinweis senden') : 'Weiter'}
+        {step === 4 ? (isSubmitting ? 'Wird gesendet...' : 'Hinweis senden') : 'Weiter'}
       </Button>
     </div>
   )
@@ -249,7 +295,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     <Modal
       open={true}
       onClose={resetAndClose}
-      title="Ich war in diesem Projekt dabei"
+      title="Hinweis an eine Fansub-Gruppe senden"
       description={undefined}
       footer={footer}
     >
@@ -267,19 +313,25 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
               <dt>Gruppe</dt>
               <dd>{submittedSummary.groupName}</dd>
             </div>
+            {submittedSummary.hintType === 'correction' ? (
+              <div>
+                <dt>Projekt</dt>
+                <dd>{submittedSummary.animeTitle}</dd>
+              </div>
+            ) : null}
             <div>
-              <dt>Projekt</dt>
-              <dd>{submittedSummary.animeTitle}</dd>
-            </div>
-            <div>
-              <dt>Rolle</dt>
-              <dd>{submittedSummary.roleLabel}</dd>
+              <dt>{submittedSummary.hintType === 'correction' ? 'Rolle' : 'Gewünschte Rolle'}</dt>
+              <dd>
+                {submittedSummary.hintType === 'correction'
+                  ? submittedSummary.roleLabel
+                  : submittedSummary.roleLabel ?? 'Keine bestimmte Rolle'}
+              </dd>
             </div>
           </dl>
         </div>
       ) : (
         <>
-          <div className={styles.wizardProgress} aria-label={`Schritt ${step} von 3`}>
+          <div className={styles.wizardProgress} aria-label={`Schritt ${step} von ${STEPS.length}`}>
             <div className={styles.progressSegments} aria-hidden="true">
               {STEPS.map((item) => (
                 <span
@@ -289,54 +341,70 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
               ))}
             </div>
             <div className={styles.progressMeta}>
-              <span>Schritt {step} von 3</span>
+              <span>Schritt {step} von {STEPS.length}</span>
               <strong>{STEPS[step - 1].title}</strong>
             </div>
           </div>
 
-          {ownGroups.length === 0 ? (
-            <div role="status" className={styles.warningPanel}>
-              Du brauchst zuerst eine verifizierte Mitgliedschaft in einer Fansubgruppe. Prüfe dein Profil oder bitte deine Gruppe,
-              deine Mitgliedschaft zu bestätigen.
-            </div>
-          ) : null}
-          {error ? <div role="alert" className={styles.errorPanel}>{error}</div> : null}
+          {displayError ? <div role="alert" className={styles.errorPanel}>{displayError}</div> : null}
 
           <form id={FORM_ID} onSubmit={(event) => void handleSubmit(event)} className={styles.proposalForm}>
             {step === 1 ? (
+              <Step0HintType hintType={hintType} hintTypeError={hintTypeError} onSelect={selectHintType} />
+            ) : null}
+
+            {step === 2 ? (
               <Step1GroupProject
+                hintType={hintType || 'correction'}
+                groupScope={groupScope}
+                onGroupScopeChange={selectGroupScope}
                 ownGroups={ownGroups}
                 groupOptions={groupOptions}
-                animeOptions={animeOptions}
                 selectedGroupId={selectedGroupId}
+                onGroupChange={setSelectedGroupId}
+                foreignQuery={foreignSearch.query}
+                onForeignQueryChange={foreignSearch.setQuery}
+                foreignResults={foreignSearch.results}
+                isSearchingForeign={foreignSearch.isSearching}
+                foreignSearchMessage={foreignSearch.message}
+                foreignGroup={foreignGroup}
+                onForeignGroupPick={pickForeignGroup}
+                activeGroupName={activeGroupName}
+                hasActiveGroup={hasActiveGroup}
+                animeOptions={animeOptions}
                 selectedAnimeId={selectedAnimeId}
-                selectedGroup={selectedGroup}
                 selectedAnime={selectedAnime}
                 isLoadingGroupAnime={isLoadingGroupAnime}
                 groupAnime={groupAnime}
                 groupAnimeError={groupAnimeError}
-                onGroupChange={setSelectedGroupId}
                 onAnimeChange={setSelectedAnimeId}
               />
             ) : null}
 
-            {step === 2 ? (
-              <Step2Role
-                roleDefinitions={roleDefinitions}
-                selectedRoleCode={selectedRoleCode}
-                roleError={roleError}
-                ownGroups={ownGroups}
-                onSelectRole={selectRole}
-              />
+            {step === 3 ? (
+              isCorrection ? (
+                <Step2Role
+                  roleDefinitions={roleDefinitions}
+                  selectedRoleCode={selectedRoleCode}
+                  roleError={roleError}
+                  onSelectRole={selectRole}
+                />
+              ) : (
+                <StepRoleOptional
+                  roles={fansubGroupRoles}
+                  requestedRoleCode={requestedRoleCode}
+                  onSelectRequestedRole={setRequestedRoleCode}
+                />
+              )
             ) : null}
 
-            {step === 3 ? (
+            {step === 4 ? (
               <Step3NoteRange
                 note={note}
                 startedYear={startedYear}
                 endedYear={endedYear}
                 hasInvalidYearRange={hasInvalidYearRange}
-                ownGroups={ownGroups}
+                showYearAndInfoPanel={isCorrection}
                 onNoteChange={setNote}
                 onStartedYearChange={setStartedYear}
                 onEndedYearChange={setEndedYear}

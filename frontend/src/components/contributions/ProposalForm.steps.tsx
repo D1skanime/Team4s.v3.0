@@ -3,10 +3,13 @@
 import { Check, ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 
-import { Button, FormField, Textarea, YearPicker } from '@/components/ui'
+import { Badge, Button, FormField, Input, Textarea, YearPicker } from '@/components/ui'
 import type { AdminFansubAnimeEntry } from '@/types/admin'
 import type { MembershipEntry } from '@/types/contributions'
+import type { FansubGroup } from '@/types/fansub'
 
+import type { GroupScope, HintType } from './ProposalForm.toggles'
+import { GroupScopeToggle } from './ProposalForm.toggles'
 import styles from './contributions.module.css'
 
 export interface RoleDefinition {
@@ -112,40 +115,70 @@ export function ChoiceSelect<T extends number | string>({
   )
 }
 
-// ---- Step 1: Gruppe & Projekt ----
+// ---- Step 1: Gruppe (+ Projekt bei Korrektur) ----
 
 interface Step1Props {
+  hintType: HintType
+  groupScope: GroupScope
+  onGroupScopeChange: (scope: GroupScope) => void
   ownGroups: MembershipEntry[]
   groupOptions: Array<{ value: number; label: string; subtitle?: string }>
-  animeOptions: Array<{ value: number; label: string; subtitle?: string }>
   selectedGroupId: number | ''
+  onGroupChange: (value: number | '') => void
+  // Fremd-Gruppen-Suche (D-02, geteilter useFansubGroupSearch-Hook aus Plan 191-02)
+  foreignQuery: string
+  onForeignQueryChange: (value: string) => void
+  foreignResults: FansubGroup[]
+  isSearchingForeign: boolean
+  foreignSearchMessage: string | null
+  foreignGroup: FansubGroup | null
+  onForeignGroupPick: (group: FansubGroup) => void
+  activeGroupName: string | null
+  hasActiveGroup: boolean
+  // Anime/Projekt — nur fuer Korrektur relevant (D-06b)
+  animeOptions: Array<{ value: number; label: string; subtitle?: string }>
   selectedAnimeId: number | ''
-  selectedGroup: MembershipEntry | null
   selectedAnime: AdminFansubAnimeEntry | null
   isLoadingGroupAnime: boolean
   groupAnime: AdminFansubAnimeEntry[]
   groupAnimeError: string | null
-  onGroupChange: (value: number | '') => void
   onAnimeChange: (value: number | '') => void
 }
 
 export function Step1GroupProject({
+  hintType,
+  groupScope,
+  onGroupScopeChange,
   ownGroups,
   groupOptions,
-  animeOptions,
   selectedGroupId,
+  onGroupChange,
+  foreignQuery,
+  onForeignQueryChange,
+  foreignResults,
+  isSearchingForeign,
+  foreignSearchMessage,
+  foreignGroup,
+  onForeignGroupPick,
+  activeGroupName,
+  hasActiveGroup,
+  animeOptions,
   selectedAnimeId,
-  selectedGroup,
   selectedAnime,
   isLoadingGroupAnime,
   groupAnime,
   groupAnimeError,
-  onGroupChange,
   onAnimeChange,
 }: Step1Props) {
+  const isCorrection = hintType === 'correction'
+
   return (
     <div className={styles.wizardStepPanel}>
-      <FormField label="Welche Gruppe soll prüfen?" required>
+      <FormField label="Welche Gruppe?" required>
+        <GroupScopeToggle value={groupScope} onSelect={onGroupScopeChange} />
+      </FormField>
+
+      {groupScope === 'own' ? (
         <ChoiceSelect
           label="Welche Gruppe soll prüfen?"
           value={selectedGroupId}
@@ -154,61 +187,92 @@ export function Step1GroupProject({
           disabled={ownGroups.length === 0}
           onChange={(value) => onGroupChange(value === '' ? '' : Number(value))}
         />
-      </FormField>
+      ) : (
+        <div className={styles.foreignGroupSearch}>
+          <Input
+            value={foreignQuery}
+            onChange={(event) => onForeignQueryChange(event.target.value)}
+            placeholder="Name oder Alias..."
+            aria-label="Andere Gruppe suchen"
+          />
+          {isSearchingForeign ? <p className={styles.metaText}>Suche läuft...</p> : null}
+          {foreignSearchMessage ? <p className={styles.metaText}>{foreignSearchMessage}</p> : null}
+          {foreignResults.length > 0 ? (
+            <div className={styles.groupSearchList}>
+              {foreignResults.map((group) => (
+                <Button
+                  key={group.id}
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className={styles.groupSearchItem}
+                  onClick={() => onForeignGroupPick(group)}
+                >
+                  <strong>{group.name}</strong>
+                  <span>{group.slug}</span>
+                </Button>
+              ))}
+            </div>
+          ) : null}
+          {foreignGroup ? <span className={styles.metaText}>Ausgewählt: {foreignGroup.name}</span> : null}
+        </div>
+      )}
 
-      <FormField
-        label="Bei welchem Anime/Projekt dieser Gruppe?"
-        error={groupAnimeError ?? undefined}
-        required
-      >
-        <ChoiceSelect
+      {isCorrection ? (
+        <FormField
           label="Bei welchem Anime/Projekt dieser Gruppe?"
-          value={selectedAnimeId}
-          options={animeOptions}
-          placeholder={
-            !selectedGroup
-              ? 'Erst Gruppe auswählen'
-              : isLoadingGroupAnime
-                ? 'Anime/Projekte werden geladen'
-                : groupAnime.length === 0
-                  ? 'Keine Anime/Projekte für diese Gruppe'
-                  : 'Anime/Projekt auswählen'
-          }
-          disabled={!selectedGroup || groupAnime.length === 0}
-          loading={isLoadingGroupAnime}
-          emptyLabel="Keine Anime/Projekte für diese Gruppe"
-          onChange={(value) => onAnimeChange(value === '' ? '' : Number(value))}
-        />
-      </FormField>
+          error={groupAnimeError ?? undefined}
+          required
+        >
+          <ChoiceSelect
+            label="Bei welchem Anime/Projekt dieser Gruppe?"
+            value={selectedAnimeId}
+            options={animeOptions}
+            placeholder={
+              !hasActiveGroup
+                ? 'Erst Gruppe auswählen'
+                : isLoadingGroupAnime
+                  ? 'Anime/Projekte werden geladen'
+                  : groupAnime.length === 0
+                    ? 'Keine Anime/Projekte für diese Gruppe'
+                    : 'Anime/Projekt auswählen'
+            }
+            disabled={!hasActiveGroup || groupAnime.length === 0}
+            loading={isLoadingGroupAnime}
+            emptyLabel="Keine Anime/Projekte für diese Gruppe"
+            onChange={(value) => onAnimeChange(value === '' ? '' : Number(value))}
+          />
+        </FormField>
+      ) : null}
 
-      {selectedGroup && selectedAnime ? (
+      {hasActiveGroup && activeGroupName ? (
         <div className={styles.selectionBreadcrumb} aria-label="Ausgewählter Kontext">
-          <span>{selectedGroup.group_name}</span>
-          <span aria-hidden="true">·</span>
-          <span>{selectedAnime.title}</span>
+          <span>{activeGroupName}</span>
+          <Badge variant={groupScope === 'own' ? 'muted' : 'info'}>
+            {groupScope === 'own' ? 'Eigene Gruppe' : 'Andere Gruppe'}
+          </Badge>
+          {isCorrection && selectedAnime ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{selectedAnime.title}</span>
+            </>
+          ) : null}
         </div>
       ) : null}
     </div>
   )
 }
 
-// ---- Step 2: Rolle ----
+// ---- Step 2: Rolle (Korrektur: Pflichtrolle aus anime_contribution-Kontext) ----
 
 interface Step2Props {
   roleDefinitions: RoleDefinition[]
   selectedRoleCode: string
   roleError: string | null
-  ownGroups: MembershipEntry[]
   onSelectRole: (code: string) => void
 }
 
-export function Step2Role({
-  roleDefinitions,
-  selectedRoleCode,
-  roleError,
-  ownGroups,
-  onSelectRole,
-}: Step2Props) {
+export function Step2Role({ roleDefinitions, selectedRoleCode, roleError, onSelectRole }: Step2Props) {
   return (
     <FormField label="Welche Rolle soll geprüft werden?" error={roleError ?? undefined} required>
       <div role="radiogroup" aria-label="Rolle auswählen" className={styles.rolePicker}>
@@ -222,7 +286,6 @@ export function Step2Role({
               aria-checked={selected}
               className={selected ? styles.roleChoiceActive : styles.roleChoice}
               onClick={() => onSelectRole(role.code)}
-              disabled={ownGroups.length === 0}
             >
               {selected ? <Check size={15} aria-hidden="true" /> : null}
               <span>{role.label_de}</span>
@@ -234,7 +297,7 @@ export function Step2Role({
   )
 }
 
-// ---- Step 3: Hinweis & Zeitraum ----
+// ---- Step 3: Hinweis (+ Zeitraum/90-Tage-Hinweis nur bei Korrektur) ----
 
 const MIN_YEAR = 1990
 const MAX_NOTE_LENGTH = 280
@@ -244,7 +307,13 @@ interface Step3Props {
   startedYear: string
   endedYear: string
   hasInvalidYearRange: boolean
-  ownGroups: MembershipEntry[]
+  /**
+   * Von/Bis-Jahr und das 90-Tage-Infopanel sind eine anime_contributions-spezifische
+   * Mechanik (Selbst-Veroeffentlichung nach Inaktivitaet) — fuer fansub_group_hints
+   * existiert dieser Automatismus nicht (191-UI-SPEC.md Component Contract A2), deshalb
+   * steuert der Aufrufer die Sichtbarkeit explizit statt sie an ownGroups zu koppeln.
+   */
+  showYearAndInfoPanel: boolean
   onNoteChange: (value: string) => void
   onStartedYearChange: (value: string) => void
   onEndedYearChange: (value: string) => void
@@ -255,7 +324,7 @@ export function Step3NoteRange({
   startedYear,
   endedYear,
   hasInvalidYearRange,
-  ownGroups,
+  showYearAndInfoPanel,
   onNoteChange,
   onStartedYearChange,
   onEndedYearChange,
@@ -276,46 +345,47 @@ export function Step3NoteRange({
           rows={4}
           maxLength={MAX_NOTE_LENGTH}
           placeholder="Kurze Erläuterung, z. B. welche Folgen, Releases oder Zeitraum betroffen sind."
-          disabled={ownGroups.length === 0}
         />
         <span className={styles.characterCounter} aria-live="polite">
           {note.length}/{MAX_NOTE_LENGTH}
         </span>
       </FormField>
 
-      <div className={styles.yearFields}>
-        <FormField label="Von Jahr" htmlFor="proposal-started">
-          <YearPicker
-            id="proposal-started"
-            label="Von Jahr auswählen"
-            value={startedYear}
-            minYear={MIN_YEAR}
-            maxYear={currentYear}
-            disabled={ownGroups.length === 0}
-            onChange={onStartedYearChange}
-          />
-        </FormField>
-        <FormField label="Bis Jahr" htmlFor="proposal-ended">
-          <YearPicker
-            id="proposal-ended"
-            label="Bis Jahr auswählen"
-            value={endedYear}
-            minYear={MIN_YEAR}
-            maxYear={currentYear}
-            disabled={ownGroups.length === 0}
-            onChange={onEndedYearChange}
-          />
-        </FormField>
-      </div>
-      {hasInvalidYearRange ? (
-        <p className={styles.rangeHint} role="status">
-          Das Bis-Jahr darf nicht vor dem Von-Jahr liegen.
-        </p>
-      ) : null}
+      {showYearAndInfoPanel ? (
+        <>
+          <div className={styles.yearFields}>
+            <FormField label="Von Jahr" htmlFor="proposal-started">
+              <YearPicker
+                id="proposal-started"
+                label="Von Jahr auswählen"
+                value={startedYear}
+                minYear={MIN_YEAR}
+                maxYear={currentYear}
+                onChange={onStartedYearChange}
+              />
+            </FormField>
+            <FormField label="Bis Jahr" htmlFor="proposal-ended">
+              <YearPicker
+                id="proposal-ended"
+                label="Bis Jahr auswählen"
+                value={endedYear}
+                minYear={MIN_YEAR}
+                maxYear={currentYear}
+                onChange={onEndedYearChange}
+              />
+            </FormField>
+          </div>
+          {hasInvalidYearRange ? (
+            <p className={styles.rangeHint} role="status">
+              Das Bis-Jahr darf nicht vor dem Von-Jahr liegen.
+            </p>
+          ) : null}
 
-      <div className={styles.infoPanel}>
-        Keine Reaktion nach 90 Tagen: Vorschlag kann selbst öffentlich geschaltet werden.
-      </div>
+          <div className={styles.infoPanel}>
+            Keine Reaktion nach 90 Tagen: Vorschlag kann selbst öffentlich geschaltet werden.
+          </div>
+        </>
+      ) : null}
     </div>
   )
 }

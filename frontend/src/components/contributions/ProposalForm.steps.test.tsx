@@ -1,0 +1,140 @@
+// @vitest-environment jsdom
+
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import type { FansubGroup } from '@/types/fansub'
+
+import { Step1GroupProject, Step3NoteRange } from './ProposalForm.steps'
+
+afterEach(() => {
+  cleanup()
+})
+
+const OWN_GROUP_OPTIONS = [{ value: 10, label: 'Testgruppe', subtitle: 'Eigene Gruppe' }]
+const FOREIGN_RESULT: FansubGroup[] = [
+  { id: 99, slug: 'redheart', name: 'RedHeartFansub' } as FansubGroup,
+]
+
+function step1Props(overrides: Partial<Parameters<typeof Step1GroupProject>[0]> = {}) {
+  return {
+    hintType: 'correction' as const,
+    groupScope: 'own' as const,
+    onGroupScopeChange: vi.fn(),
+    ownGroups: [{ fansub_group_member_id: 1, fansub_group_id: 10, group_name: 'Testgruppe' }],
+    groupOptions: OWN_GROUP_OPTIONS,
+    selectedGroupId: '' as number | '',
+    onGroupChange: vi.fn(),
+    foreignQuery: '',
+    onForeignQueryChange: vi.fn(),
+    foreignResults: [],
+    isSearchingForeign: false,
+    foreignSearchMessage: null,
+    foreignGroup: null,
+    onForeignGroupPick: vi.fn(),
+    activeGroupName: null,
+    hasActiveGroup: false,
+    animeOptions: [],
+    selectedAnimeId: '' as number | '',
+    selectedAnime: null,
+    isLoadingGroupAnime: false,
+    groupAnime: [],
+    groupAnimeError: null,
+    onAnimeChange: vi.fn(),
+    ...overrides,
+  }
+}
+
+describe('Step1GroupProject — Gruppen-Bereich-Umschalter (D-02)', () => {
+  it('rendert bei groupScope="own" das ChoiceSelect ueber die eigenen Gruppen, keine Fremd-Suche', () => {
+    render(<Step1GroupProject {...step1Props()} />)
+
+    expect(screen.getByRole('button', { name: 'Welche Gruppe soll prüfen?' })).toBeTruthy()
+    expect(screen.queryByRole('textbox', { name: 'Andere Gruppe suchen' })).toBeNull()
+  })
+
+  it('rendert bei groupScope="foreign" die Suche statt des ChoiceSelect und die Ergebnisliste', () => {
+    render(
+      <Step1GroupProject
+        {...step1Props({ groupScope: 'foreign', foreignResults: FOREIGN_RESULT })}
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: 'Welche Gruppe soll prüfen?' })).toBeNull()
+    expect(screen.getByRole('textbox', { name: 'Andere Gruppe suchen' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /RedHeartFansub/ })).toBeTruthy()
+  })
+
+  it('ruft onForeignGroupPick auf, wenn ein Suchergebnis angeklickt wird', () => {
+    const onForeignGroupPick = vi.fn()
+    render(
+      <Step1GroupProject
+        {...step1Props({ groupScope: 'foreign', foreignResults: FOREIGN_RESULT, onForeignGroupPick })}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /RedHeartFansub/ }))
+    expect(onForeignGroupPick).toHaveBeenCalledWith(FOREIGN_RESULT[0])
+  })
+
+  it('zeigt den Kontext-Chip mit Badge "Eigene Gruppe" (muted) bei own, "Andere Gruppe" (info) bei foreign', () => {
+    const { rerender } = render(
+      <Step1GroupProject {...step1Props({ hasActiveGroup: true, activeGroupName: 'Testgruppe' })} />,
+    )
+    expect(screen.getByLabelText('Ausgewählter Kontext').textContent).toContain('Eigene Gruppe')
+
+    rerender(
+      <Step1GroupProject
+        {...step1Props({
+          groupScope: 'foreign',
+          hasActiveGroup: true,
+          activeGroupName: 'RedHeartFansub',
+          foreignGroup: FOREIGN_RESULT[0],
+        })}
+      />,
+    )
+    expect(screen.getByLabelText('Ausgewählter Kontext').textContent).toContain('Andere Gruppe')
+  })
+
+  it('zeigt den Anime/Projekt-Schritt nur bei hintType="correction", nie bei "membership_request"', () => {
+    const { rerender } = render(<Step1GroupProject {...step1Props({ hintType: 'correction' })} />)
+    expect(screen.getByText('Bei welchem Anime/Projekt dieser Gruppe?')).toBeTruthy()
+
+    rerender(<Step1GroupProject {...step1Props({ hintType: 'membership_request' })} />)
+    expect(screen.queryByText('Bei welchem Anime/Projekt dieser Gruppe?')).toBeNull()
+  })
+})
+
+describe('Step3NoteRange — showYearAndInfoPanel (D-06b: anime_contributions-spezifische Mechanik)', () => {
+  function step3Props(overrides: Partial<Parameters<typeof Step3NoteRange>[0]> = {}) {
+    return {
+      note: '',
+      startedYear: '',
+      endedYear: '',
+      hasInvalidYearRange: false,
+      showYearAndInfoPanel: true,
+      onNoteChange: vi.fn(),
+      onStartedYearChange: vi.fn(),
+      onEndedYearChange: vi.fn(),
+      ...overrides,
+    }
+  }
+
+  it('zeigt Von/Bis-Jahr und das 90-Tage-Infopanel, wenn showYearAndInfoPanel=true (Korrektur)', () => {
+    render(<Step3NoteRange {...step3Props({ showYearAndInfoPanel: true })} />)
+
+    expect(screen.getByLabelText('Von Jahr auswählen')).toBeTruthy()
+    expect(screen.getByLabelText('Bis Jahr auswählen')).toBeTruthy()
+    expect(screen.getByText(/Keine Reaktion nach 90 Tagen/)).toBeTruthy()
+  })
+
+  it('blendet Von/Bis-Jahr und das 90-Tage-Infopanel komplett aus, wenn showYearAndInfoPanel=false (Mitgliedschaftsanfrage)', () => {
+    render(<Step3NoteRange {...step3Props({ showYearAndInfoPanel: false })} />)
+
+    expect(screen.queryByLabelText('Von Jahr auswählen')).toBeNull()
+    expect(screen.queryByLabelText('Bis Jahr auswählen')).toBeNull()
+    expect(screen.queryByText(/Keine Reaktion nach 90 Tagen/)).toBeNull()
+    // Das Notizfeld bleibt bei beiden Hinweisarten unveraendert sichtbar.
+    expect(screen.getByLabelText('Hinweis für den Gruppenleader')).toBeTruthy()
+  })
+})
