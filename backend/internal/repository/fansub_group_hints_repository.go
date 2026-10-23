@@ -1,13 +1,17 @@
 package repository
 
 // FansubGroupHintsRepository persistiert Hinweise, die ein Mitglied an eine EIGENE ODER
-// FREMDE Fansub-Gruppe schickt (Migration 0187): entweder ein Korrektur-Hinweis zu einem
-// Projekt-Eintrag oder eine Anfrage auf Mitgliedschaft mit optionalem Rollenwunsch. Anders
-// als beim regulären Beitrags-Vorschlag (anime_contributions_proposal_repository.go) gibt
-// es hier bewusst KEINEN Ownership-Check wie MemberBelongsToFansub: ein Hinweis darf an
-// jede Gruppe gehen, nicht nur an die eigene — das ist der fachliche Kernunterschied. Die
-// Dopplungssperre (höchstens ein offener Hinweis pro Person+Zielgruppe+Thema) wird nicht
-// hier im Go-Code geprüft, sondern ausschließlich über den Partial-Unique-Index
+// FREMDE Fansub-Gruppe schickt (Migration 0187, nach dem D-09-Schema-Schnitt der Migration
+// 0188 ausschließlich noch Korrektur-Hinweise zu einem Projekt-Eintrag -- die frühere
+// zweite Hinweisart "Anfrage auf Mitgliedschaft" entfiel ersatzlos, weil "Hinweis senden"
+// ohnehin nur Mitgliedern mit Mitgliedsprofil UND Projekt-Zuordnung offensteht und der
+// bereits bestehende Mitglieds-Claim-Weg (member_claims, Phase 81/135) diesen Fall längst
+// abdeckt). Anders als beim regulären Beitrags-Vorschlag
+// (anime_contributions_proposal_repository.go) gibt es hier bewusst KEINEN
+// Ownership-Check wie MemberBelongsToFansub: ein Hinweis darf an jede Gruppe gehen, nicht
+// nur an die eigene — das ist der fachliche Kernunterschied. Die Dopplungssperre
+// (höchstens ein offener Hinweis pro Person+Zielgruppe+Projekt) wird nicht hier im
+// Go-Code geprüft, sondern ausschließlich über den Partial-Unique-Index
 // `uq_fansub_group_hints_open_topic` der Migration — vermeidet eine
 // SELECT-dann-INSERT-Race (TOCTOU) bei gleichzeitigen Anfragen.
 
@@ -24,25 +28,22 @@ import (
 )
 
 // FansubGroupHintRow ist die angereicherte Lesesicht auf eine fansub_group_hints-Zeile,
-// inklusive Anzeige-Kontext (Absendername, Zielgruppenname, Projekttitel, Rollenlabel), der
-// von den Review-Oberflächen (Leader- und Plattform-Admin-Liste) benötigt wird.
+// inklusive Anzeige-Kontext (Absendername, Zielgruppenname, Projekttitel), der von den
+// Review-Oberflächen (Leader- und Plattform-Admin-Liste) benötigt wird.
 type FansubGroupHintRow struct {
-	ID                     int64      `json:"id"`
-	SenderAppUserID        int64      `json:"sender_app_user_id"`
-	SenderDisplayName      string     `json:"sender_display_name"`
-	TargetFansubGroupID    int64      `json:"target_fansub_group_id"`
-	TargetFansubGroupName  string     `json:"target_fansub_group_name"`
-	HintType               string     `json:"hint_type"`
-	RelatedAnimeID         *int64     `json:"related_anime_id"`
-	RelatedAnimeTitle      *string    `json:"related_anime_title"`
-	RequestedRoleCode      *string    `json:"requested_role_code"`
-	RequestedRoleLabel     *string    `json:"requested_role_label"`
-	Note                   *string    `json:"note"`
-	Status                 string     `json:"status"`
-	DecidedBy              *int64     `json:"decided_by"`
-	DecidedAt              *time.Time `json:"decided_at"`
-	DecisionNote           *string    `json:"decision_note"`
-	CreatedAt              time.Time  `json:"created_at"`
+	ID                    int64      `json:"id"`
+	SenderAppUserID       int64      `json:"sender_app_user_id"`
+	SenderDisplayName     string     `json:"sender_display_name"`
+	TargetFansubGroupID   int64      `json:"target_fansub_group_id"`
+	TargetFansubGroupName string     `json:"target_fansub_group_name"`
+	RelatedAnimeID        *int64     `json:"related_anime_id"`
+	RelatedAnimeTitle     *string    `json:"related_anime_title"`
+	Note                  *string    `json:"note"`
+	Status                string     `json:"status"`
+	DecidedBy             *int64     `json:"decided_by"`
+	DecidedAt             *time.Time `json:"decided_at"`
+	DecisionNote          *string    `json:"decision_note"`
+	CreatedAt             time.Time  `json:"created_at"`
 	// SenderOwnGroupName ist der UI-Kontext "Mitglied bei: {Gruppe}" — best-effort über
 	// eine verifizierte member_claims-Mitgliedschaft des Absenders ermittelt. Bleibt NULL,
 	// wenn der Absender keine verifizierte Mitgliedschaft hat oder mehrdeutig mehreren
@@ -53,20 +54,20 @@ type FansubGroupHintRow struct {
 
 // HintInput enthält die Eingabefelder für einen neuen Hinweis. SenderAppUserID stammt
 // immer aus der verifizierten Identität des Aufrufers (niemals aus dem Request-Body) —
-// das wird vom aufrufenden Handler sichergestellt, nicht hier. RelatedReleaseVersionID
-// ist bewusst NICHT Teil dieses Typs: die Migration reserviert die Spalte für eine
-// spätere, feinere Release-Versions-Korrektur, die diese Phase nicht anbietet.
+// das wird vom aufrufenden Handler sichergestellt, nicht hier. RelatedAnimeID ist nach
+// D-09 immer Pflicht (jeder verbleibende Hinweis ist ein Korrektur-Hinweis mit
+// Projektbezug, von der Migration über NOT NULL erzwungen). RelatedReleaseVersionID ist
+// bewusst NICHT Teil dieses Typs: die Migration reserviert die Spalte für eine spätere,
+// feinere Release-Versions-Korrektur, die diese Phase nicht anbietet.
 type HintInput struct {
 	SenderAppUserID     int64
 	TargetFansubGroupID int64
-	HintType            string
 	RelatedAnimeID      *int64
-	RequestedRoleCode   *string
 	Note                *string
 }
 
 // AdminHintListFilter trägt die optionalen, UND-verknüpften Filter für
-// ListForFansubLeadRole. Alle Felder sind optional; ein nil/leerer Wert bedeutet "kein
+// ListWithoutActiveLead. Alle Felder sind optional; ein nil/leerer Wert bedeutet "kein
 // Filter".
 type AdminHintListFilter struct {
 	Status              *string
@@ -93,11 +94,8 @@ const fansubGroupHintSelectCols = `
 	COALESCE(NULLIF(au.display_name, ''), au.email, ''),
 	h.target_fansub_group_id,
 	COALESCE(fg.name, ''),
-	h.hint_type,
 	h.related_anime_id,
 	a.title,
-	h.requested_role_code,
-	rd.label_de,
 	h.note,
 	h.status,
 	h.decided_by,
@@ -125,7 +123,6 @@ const fansubGroupHintFromJoins = `
 	JOIN app_users au ON au.id = h.sender_app_user_id
 	JOIN fansub_groups fg ON fg.id = h.target_fansub_group_id
 	LEFT JOIN anime a ON a.id = h.related_anime_id
-	LEFT JOIN role_definitions rd ON rd.code = h.requested_role_code
 `
 
 func scanFansubGroupHintRow(row pgx.Row) (*FansubGroupHintRow, error) {
@@ -136,11 +133,8 @@ func scanFansubGroupHintRow(row pgx.Row) (*FansubGroupHintRow, error) {
 		&r.SenderDisplayName,
 		&r.TargetFansubGroupID,
 		&r.TargetFansubGroupName,
-		&r.HintType,
 		&r.RelatedAnimeID,
 		&r.RelatedAnimeTitle,
-		&r.RequestedRoleCode,
-		&r.RequestedRoleLabel,
 		&r.Note,
 		&r.Status,
 		&r.DecidedBy,
@@ -157,7 +151,7 @@ func scanFansubGroupHintRow(row pgx.Row) (*FansubGroupHintRow, error) {
 // CreateHint legt einen neuen Hinweis an (status='open'). Gibt ErrConflict zurück, wenn
 // bereits ein offener Hinweis zum selben Thema existiert (erzwungen über den
 // Partial-Unique-Index der Migration, nicht über eine SELECT-dann-INSERT-Prüfung hier),
-// und ErrNotFound bei ungültiger Zielgruppen-/Anime-/Rollen-Referenz.
+// und ErrNotFound bei ungültiger Zielgruppen-/Anime-Referenz.
 //
 // Bewusst KEIN Ownership-Check wie AnimeContributionsRepository.MemberBelongsToFansub:
 // ein Hinweis ist eine reine Information an eine Gruppe, keine Behauptung tatsächlicher
@@ -171,18 +165,14 @@ func (r *FansubGroupHintsRepository) CreateHint(ctx context.Context, input HintI
 		INSERT INTO fansub_group_hints (
 			sender_app_user_id,
 			target_fansub_group_id,
-			hint_type,
 			related_anime_id,
-			requested_role_code,
 			note
-		) VALUES ($1, $2, $3, $4, $5, $6)
+		) VALUES ($1, $2, $3, $4)
 		RETURNING id
 	`,
 		input.SenderAppUserID,
 		input.TargetFansubGroupID,
-		input.HintType,
 		input.RelatedAnimeID,
-		input.RequestedRoleCode,
 		input.Note,
 	).Scan(&newID)
 	if err != nil {
@@ -246,17 +236,59 @@ func (r *FansubGroupHintsRepository) ListByTargetGroup(ctx context.Context, targ
 	return result, nil
 }
 
-// ListForFansubLeadRole gibt NUR Mitgliedschaftsanfragen mit explizitem Rollenwunsch
-// 'fansub_lead' zurück (D-01: diese Entscheidung trifft der Plattform-Admin, nicht der
-// Leader der Zielgruppe). Der Rollencode wird als parametrisierter Query-Wert aus der
-// Konstante permissions.RoleFansubLead gebunden — niemals als rohes String-Literal, damit
-// dieser Wert nicht an zwei Stellen (Konstante und Literal) auseinanderlaufen kann.
-func (r *FansubGroupHintsRepository) ListForFansubLeadRole(ctx context.Context, filter AdminHintListFilter) ([]FansubGroupHintRow, int, error) {
+// HasActiveLead beantwortet D-11s sicherheitskritische Frage "hat diese Fansub-Gruppe
+// aktuell eine aktive Leitung?" ausschließlich serverseitig aus fansub_group_members/
+// fansub_group_member_roles -- niemals aus einem vom Aufrufer übergebenen Feld. Die
+// Rolle wird als parametrisierter Query-Wert aus der Konstante permissions.RoleFansubLead
+// gebunden (kein rohes Rollencode-String-Literal im Code), damit dieser Wert nicht an zwei
+// Stellen auseinanderlaufen kann. Das Ergebnis entscheidet, ob ein Korrektur-Hinweis an
+// diese Gruppe beim Leader der Gruppe landet (hat eine aktive Leitung) oder bei der
+// Plattform-Admin-Liste (hat keine). ListWithoutActiveLead kodiert absichtlich dieselbe
+// Prädikat-Formel (dort als NOT-EXISTS-Subquery direkt in die Listen-SQL eingebaut statt
+// pro Zeile HasActiveLead aufzurufen, um ein N+1-Abfragemuster über eine potenziell große
+// Ergebnismenge zu vermeiden) -- ändert sich die Formel, müssen beide Stellen zusammen
+// angepasst werden.
+func (r *FansubGroupHintsRepository) HasActiveLead(ctx context.Context, fansubGroupID int64) (bool, error) {
+	var hasLead bool
+	err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM fansub_group_members fgm
+			JOIN fansub_group_member_roles fgr ON fgr.fansub_group_member_id = fgm.id
+			WHERE fgm.fansub_group_id = $1
+			  AND fgm.status = 'active'
+			  AND fgr.role = $2
+		)
+	`, fansubGroupID, permissions.RoleFansubLead).Scan(&hasLead)
+	if err != nil {
+		return false, fmt.Errorf("aktive leitung pruefen: %w", err)
+	}
+	return hasLead, nil
+}
+
+// ListWithoutActiveLead gibt NUR Hinweise zurück, deren Zielgruppe aktuell KEINE aktive
+// Leitung hat (D-11: diese Entscheidung trifft der Plattform-Admin, nicht der Leader der
+// Zielgruppe, weil es dort niemanden mit dieser Rolle gibt). Die "hat keine aktive
+// Leitung"-Prüfung ist dieselbe Formel wie HasActiveLead, hier als NOT-EXISTS-Subquery
+// direkt in die Listen-SQL eingebaut statt pro Zeile HasActiveLead aufzurufen -- vermeidet
+// eine N+1-Abfrage über eine potenziell große Ergebnismenge. Die Rolle wird als
+// parametrisierter Query-Wert aus der Konstante permissions.RoleFansubLead gebunden,
+// niemals als rohes String-Literal.
+func (r *FansubGroupHintsRepository) ListWithoutActiveLead(ctx context.Context, filter AdminHintListFilter) ([]FansubGroupHintRow, int, error) {
 	limit, offset := ClampAdminListPage(filter.Limit, filter.Offset)
 
 	args := []any{permissions.RoleFansubLead}
 	paramIdx := 2
-	whereClauses := []string{"h.requested_role_code = $1"}
+	whereClauses := []string{`
+		NOT EXISTS (
+			SELECT 1
+			FROM fansub_group_members fgm
+			JOIN fansub_group_member_roles fgr ON fgr.fansub_group_member_id = fgm.id
+			WHERE fgm.fansub_group_id = h.target_fansub_group_id
+			  AND fgm.status = 'active'
+			  AND fgr.role = $1
+		)
+	`}
 
 	if filter.Status != nil && *filter.Status != "" {
 		args = append(args, *filter.Status)
@@ -294,7 +326,7 @@ func (r *FansubGroupHintsRepository) ListForFansubLeadRole(ctx context.Context, 
 
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("hinweise fuer fansub-lead-rolle: %w", err)
+		return nil, 0, fmt.Errorf("hinweise ohne aktive leitung: %w", err)
 	}
 	defer rows.Close()
 
@@ -308,11 +340,8 @@ func (r *FansubGroupHintsRepository) ListForFansubLeadRole(ctx context.Context, 
 			&row.SenderDisplayName,
 			&row.TargetFansubGroupID,
 			&row.TargetFansubGroupName,
-			&row.HintType,
 			&row.RelatedAnimeID,
 			&row.RelatedAnimeTitle,
-			&row.RequestedRoleCode,
-			&row.RequestedRoleLabel,
 			&row.Note,
 			&row.Status,
 			&row.DecidedBy,
@@ -322,12 +351,12 @@ func (r *FansubGroupHintsRepository) ListForFansubLeadRole(ctx context.Context, 
 			&row.SenderOwnGroupName,
 			&total,
 		); err != nil {
-			return nil, 0, fmt.Errorf("hinweise fuer fansub-lead-rolle: scan: %w", err)
+			return nil, 0, fmt.Errorf("hinweise ohne aktive leitung: scan: %w", err)
 		}
 		items = append(items, row)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("hinweise fuer fansub-lead-rolle: iterate: %w", err)
+		return nil, 0, fmt.Errorf("hinweise ohne aktive leitung: iterate: %w", err)
 	}
 
 	return items, total, nil
