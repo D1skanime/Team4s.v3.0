@@ -296,6 +296,123 @@ Verhalten ändert, zieht **im selben Auftrag** nach:
 
 ---
 
+## Nutzerentscheidungen — dritte Runde (2026-10-23, Live-UAT-Nachbesserung, final — nicht neu verhandeln)
+
+**Quelle:** Live-UAT von Plan 191-10/Task 2 durch den Nutzer (mit mir gemeinsam) auf dem
+Live-Dev-Stack. Ergebnis: **nicht bestanden** — ein echter Daten-/Permission-Bug (D-11) und drei
+vom Nutzer freigegebene Konzept-/UI-Korrekturen (D-09, D-12, D-13/D-14/D-15). Die betroffenen
+Pläne 191-01 bis 191-09 sind bereits ausgeführt und committet; diese Runde erzeugt
+**zusätzliche Nachbesserungspläne** (191-11 ff.), keine Neuplanung der bereits gebauten Teile.
+
+### D-09 — „Anfrage für Mitgliedschaft" vollständig gestrichen (ersetzt Teile von D-06/D-07)
+Die zweite Hinweisart entfällt **komplett**: kein `hint_type`-Unterschied mehr (nur noch
+Korrektur-Hinweis existiert), kein optionales Rollenfeld, keine `fansub_lead`-Sonderfreigabe durch
+den Plattform-Admin für eine Mitgliedschaftsanfrage. **Begründung (Nutzer):** „Hinweis senden" ist
+ohnehin nur erreichbar, wer ein Mitgliedsprofil UND eine Projekt-Zuordnung hat
+(`isEligibleForContributions`, `frontend/src/app/me/contributions/page.tsx:39-41`) — die
+Fansub-Szene ist für Neuzugänge ohne Projekt kaum noch relevant, „ich war früher dabei" läuft über
+den **bereits bestehenden** Weg der historischen Nennungen (Mitglieds-Claim, Phase 81/135,
+`member_claims`) und darf nicht doppelt gebaut werden. **Schema (append-only Migration 0188):**
+Spalten `requested_role_code` und `hint_type` aus `fansub_group_hints` entfernen (nur noch ein
+Hinweistyp = die Spalte trägt keine Information mehr), `related_anime_id` wird NOT NULL (jeder
+verbleibende Hinweis ist ein Korrektur-Hinweis mit Projektbezug), `chk_fansub_group_hints_type`/
+`chk_fansub_group_hints_role_scope`/`chk_fansub_group_hints_anime_scope` entfallen oder vereinfachen
+sich entsprechend, `idx_fansub_group_hints_role_status` entfällt, der Unique-Index
+`uq_fansub_group_hints_open_topic` verkürzt sich auf `(sender_app_user_id,
+target_fansub_group_id, COALESCE(related_anime_id, -1))`. Tabelle ist zum Zeitpunkt dieser
+Entscheidung leer (geprüft) — keine Datenmigration nötig. **Vollständig zu entfernen:**
+`HintTypeToggle`, `Step0HintType`, `StepRoleOptional`, `ListForFansubLeadRole` (Repository),
+die rollenbezogene Validierung in `fansub_group_hints_me_handler.go`, die
+`RequestedRoleCode`-Filterung in `fansub_group_hints_review_handler.go`, alle
+membership_request-/fansub_lead-spezifischen Felder in `shared/contracts/fansub-group-hints.yaml`
+und den Frontend-Typen/API-Client. **NICHT entfernen, sondern umgewidmet — siehe D-11:** der
+Plattform-Admin-Listen-Mechanismus (`admin_fansub_group_hints_handler.go`,
+`frontend/src/app/admin/fansub-group-hints/`, Nav-Eintrag) bleibt bestehen, wechselt aber sein
+Filterkriterium.
+
+### D-10 — Bugfix: Projektliste für fremde Gruppe aus öffentlicher Quelle statt Admin-Endpunkt
+**Bug (live reproduziert):** Schritt 2 „Gruppe & Projekt" lädt die Projektliste bei JEDER Auswahl
+über `getAdminFansubAnime` (`GET /api/v1/admin/fansubs/:id/anime`,
+`ProposalForm.tsx:125`) — ein gruppen-gescopter Endpunkt, der `ActionReleaseView`-Mitgliedschaft in
+der Zielgruppe voraussetzt. Bei „Andere Gruppe" schlägt das mit 403 fehl → keine Projekte wählbar,
+exakt der im Live-UAT beobachtete Fehler. **Fix:** Bei `groupScope === 'foreign'` die Projektliste
+stattdessen aus der **öffentlichen** Quelle laden, die auch `/fansubs/<slug>` nutzt
+(`getPublicFansubProfileBySlug` → `GET /api/v1/fansub-slugs/:slug/public-profile` →
+`FansubRepository.GetPublicProfileBySlug`, `backend/internal/repository/
+fansub_repository_public_profile.go:24` — kein Permission-Check, nur öffentlich sichtbare
+Projekte). Bei `groupScope === 'own'` bleibt der bestehende Admin-Endpunkt-Aufruf unverändert
+(Mitgliedschaft ist dort ja vorhanden, kein Bug).
+
+### D-11 — Routing bei fehlender Gruppenleitung: Admin-Liste wiederverwenden statt neu bauen
+Ein Korrektur-Hinweis an eine fremde Gruppe geht an den **Leader der Zielgruppe**, unverändert über
+die bestehende `CanForFansubGroup(actor, permissions.ActionFansubGroupMembersManage, fansubID)`-
+Prüfung (`fansub_group_hints_review_handler.go`) — **keine neue Berechtigungslogik**, dieser Check
+lässt Plattform-Admins für JEDE Gruppe ohnehin bereits zu. Hat die Zielgruppe **aktuell keine
+Person mit der Rolle `fansub_lead`** (Normalfall bei aufgelösten Gruppen) — ermittelt über eine
+neue, schmale Repository-Methode nach dem Muster von `loadGuardState`'s `active_lead_count`
+(`backend/internal/repository/fansub_group_app_members_repository.go:921-934`, Query gegen
+`fansub_group_member_roles` mit `role = 'fansub_lead'`, über die bestehende
+`permissions.RoleFansubLead`-Konstante, **kein String-Literal**) —, erscheint der Hinweis **nicht**
+in einer (nicht existierenden) Leader-Liste, sondern in der bereits gebauten, jetzt **umbenannten**
+Plattform-Admin-Liste `/admin/fansub-group-hints` (vormals für den gestrichenen
+`fansub_lead`-Mitgliedschaftsfall gebaut, D-01/D-07 alt — jetzt mit geändertem Filterkriterium:
+„Zielgruppe hat keine aktive Leitung" statt „Rollenwunsch = fansub_lead"). Nav-Label ändert sich von
+„Hinweise (Leitung)" auf „Hinweise ohne Leitung" (oder vergleichbar, finale Wortwahl via UI-SPEC-
+Nachtrag). Die bestehende `fansub_group_hints_decide.go`-Hilfsfunktion (geteilter Confirm/Reject,
+D-03/D-05) bleibt unverändert die einzige Entscheidungs-Implementierung für beide Listen.
+
+### D-12 — Kontext-Einstieg „Fehler melden" auf öffentlicher Projekt- und Release-Seite
+Auf der öffentlichen Projektseite (`/fansubs/<slug>/fansubprojekt/<anime>`,
+`frontend/src/app/anime/[id]/group/[groupId]/page.tsx`) und der öffentlichen Release-Seite
+(`.../releases/[releaseVersionId]/page.tsx`) erscheint ein **dezenter** „Fehler melden"-Link/Knopf
+für angemeldete Mitglieder mit Mitgliedsprofil UND Projekt-Zuordnung (dieselbe Prüfung wie
+`isEligibleForContributions`, `frontend/src/app/me/contributions/page.tsx:39-41` — als
+wiederverwendbare Funktion/Hook extrahieren statt lokal zu duplizieren), der **dasselbe**
+`ProposalForm` öffnet mit Hinweisart=Korrektur (die einzig verbleibende Art, D-09), Zielgruppe und
+Projekt (bzw. Release) **vorausgewählt**. Für nicht angemeldete Nutzer oder Nutzer ohne
+Mitgliedsprofil/Projekt-Zuordnung: Knopf **ausblenden** (kein Fehlertext für normale Besucher,
+unkritischer Umsetzungsentscheid, Details in der Planung). Der bestehende „Hinweis senden"-Knopf
+auf `/me/contributions` bleibt unverändert zusätzlich bestehen — kein Ersatz, zweiter
+Einstiegspunkt.
+
+### D-13 — Gruppenname im Formular nur einmal anzeigen
+Schritt 2 „Gruppe & Projekt" zeigt bei „Andere Gruppe" den gewählten Gruppennamen aktuell
+**dreifach**: Suchergebnis-Zeile (Name + Slug, `ProposalForm.steps.tsx:211-212`), „Ausgewählt:
+{name}"-Zeile (`:217`), und die `selectionBreadcrumb`-Pille „{name} · Andere Gruppe" (`:248-261`).
+**Fix:** Name nur einmal prominent zeigen — die separate „Ausgewählt: {name}"-Zeile entfällt
+komplett (die Breadcrumb-Pille trägt dieselbe Information bereits), der Slug im Suchergebnis wird
+höchstens dezent/sekundär dargestellt, nicht als zweite gleichwertige Zeile.
+
+### D-14 — Suchergebnis-Element farblich an das helle Formular-Muster angleichen
+Das Suchergebnis-Element in Schritt 2 ist aktuell ein dunkler `Button variant="secondary"`
+(`.groupSearchItem`, `contributions.module.css:668-687`) mit zusätzlich dunkel eingefärbtem Text
+(`strong`/`span`-Farben `:679-687`) — dunkler Text auf dunklem Button-Hintergrund, schlecht lesbar
+und nicht im Team4s-Hell-Muster. **Fix:** `.groupSearchItem` analog zum bereits bestehenden, hellen
+Muster der Gruppensuche im Release-Editor angleichen
+(`frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditor.module.css:279-295`
+— setzt explizit `background: #ffffff`, `border`, dunkle Schrift auf hellem Grund). Design-Tokens
+statt eigener Hex-Werte verwenden, wo das Zielmuster das zulässt.
+
+### D-15 — Phasen-/D-Verweis-Kommentare in Phase-191-Code fachlich umformulieren (D-08-Nachzug)
+Die Ist-Analyse hat konkrete Fundstellen mit reinen Phasen-/Entscheidungsverweisen ohne begleitende
+fachliche Erklärung identifiziert (u. a. `ProposalForm.extraSteps.tsx:13,31`,
+`ProposalForm.useSubmit.ts:111`, `fansub_group_hints_me_handler.go:128`, sowie mehrere
+`describe()`-Testbeschreibungen mit bloßen D-Tags). **Alle** diese Stellen UND jede weitere, die
+beim Umsetzen von D-09 bis D-14 ohnehin angefasste Datei betrifft, werden fachlich umformuliert
+(WAS die Regel inhaltlich ist, nicht nur ihr Bezeichner) — konsistent mit D-08/CLAUDE.md. Kein
+separater Rundgang durch unveränderte Dateien.
+
+### D-16 — Pflicht-Vorabprüfung vor dem nächsten Live-Checkpoint
+Vor dem nächsten blockierenden Live-Checkpoint führt der ausführende Agent **selbst** einen
+echten Ablauf über die API (mit einem Konto, das Mitgliedsprofil UND Projekt-Zuordnung hat, z. B.
+Mitglied von New-Subs mit Buddy-Complex-Rolle) bis zum erfolgreichen Absenden eines
+Korrektur-Hinweises an eine **fremde** Gruppe durch — nicht nur Unit-Tests. Geprüft wird: der
+Hinweis erscheint korrekt bei der Zielgruppen-Leitung (`ueber@team4s.de`, Strawhat Subs) bzw. — für
+eine Zielgruppe ohne aktive Leitung — in `/admin/fansub-group-hints`. Die exakt genutzten Konten
+und der Ablauf werden im Checkpoint-Bericht an den Nutzer wörtlich genannt.
+
+---
+
 ## Wiederverwendungsinventar (Zusammenfassung für die Planung)
 
 - `backend/internal/repository/anime_contributions_repository.go:55-70` (`MemberBelongsToFansub`)
@@ -319,5 +436,9 @@ Verhalten ändert, zieht **im selben Auftrag** nach:
 
 ## Nächster Schritt
 
-Alle Fragen sind beantwortet (D-01 bis D-08), Umfang ist final. Nächster Schritt: `/gsd:plan-phase
-191`, um die Entscheidungen in einen ausführbaren Plan zu überführen.
+Alle Fragen sind beantwortet (D-01 bis D-16), Umfang ist final. **Stand 2026-10-23 (dritte
+Runde):** Pläne 191-01 bis 191-09 sind ausgeführt; Plan 191-10 Task 1 (DECISIONS.md/Todo-Archivierung/
+Regressionsgate) ist ausgeführt, Task 2 (Live-Checkpoint) ist **nicht bestanden** — D-09 bis D-16
+oben sind die freigegebene Nachbesserung. Nächster Schritt: zusätzliche Nachbesserungspläne
+(191-11 ff.) für D-09 bis D-15 erstellen, Plan-Checker, Ausführung, dann erneut der Live-Checkpoint
+aus Plan 191-10 Task 2 (D-16 beachten).
