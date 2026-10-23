@@ -4,12 +4,12 @@ import { Check, ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 
 import { Badge, Button, FormField, Input, Textarea, YearPicker } from '@/components/ui'
-import type { AdminFansubAnimeEntry } from '@/types/admin'
 import type { MembershipEntry } from '@/types/contributions'
 import type { FansubGroup } from '@/types/fansub'
 
 import type { GroupScope } from './ProposalForm.toggles'
 import { GroupScopeToggle } from './ProposalForm.toggles'
+import type { ProposalAnimeOption } from './ProposalForm.useSubmit'
 import styles from './contributions.module.css'
 
 export interface RoleDefinition {
@@ -134,12 +134,14 @@ interface Step1Props {
   onForeignGroupPick: (group: FansubGroup) => void
   activeGroupName: string | null
   hasActiveGroup: boolean
-  // Anime/Projekt — nur fuer Korrektur relevant (D-06b)
+  // Anime/Projekt -- die einzig verbleibende Hinweisart (Korrektur, D-09) braucht immer ein
+  // Projekt; die Optionen stammen je nach groupScope aus zwei verschiedenen Quellen (D-10), die
+  // UI kennt hier nur noch die gemeinsame schmale Form (id/title), nicht deren Herkunft.
   animeOptions: Array<{ value: number; label: string; subtitle?: string }>
   selectedAnimeId: number | ''
-  selectedAnime: AdminFansubAnimeEntry | null
+  selectedAnime: ProposalAnimeOption | null
   isLoadingGroupAnime: boolean
-  groupAnime: AdminFansubAnimeEntry[]
+  groupAnime: ProposalAnimeOption[]
   groupAnimeError: string | null
   onAnimeChange: (value: number | '') => void
 }

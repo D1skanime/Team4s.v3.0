@@ -5,9 +5,8 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
 import { Button, Modal } from '@/components/ui'
-import { getAdminFansubAnime } from '@/lib/api'
+import { getAdminFansubAnime, getPublicFansubProfileBySlug } from '@/lib/api'
 import { useFansubGroupSearch } from '@/hooks/useFansubGroupSearch'
-import type { AdminFansubAnimeEntry } from '@/types/admin'
 import type { FansubGroup } from '@/types/fansub'
 import type { MembershipEntry } from '@/types/contributions'
 
@@ -15,7 +14,7 @@ import { Step1GroupProject, Step2Role, Step3NoteRange } from './ProposalForm.ste
 import type { RoleDefinition } from './ProposalForm.steps'
 import type { GroupScope } from './ProposalForm.toggles'
 import { WIZARD_STEPS, useProposalFormSubmit } from './ProposalForm.useSubmit'
-import type { SubmittedSummary, WizardStep } from './ProposalForm.useSubmit'
+import type { ProposalAnimeOption, SubmittedSummary, WizardStep } from './ProposalForm.useSubmit'
 import styles from './contributions.module.css'
 
 export type { RoleDefinition }
@@ -36,7 +35,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
   const [selectedGroupId, setSelectedGroupId] = useState<number | ''>('')
   const [foreignGroup, setForeignGroup] = useState<FansubGroup | null>(null)
   const [selectedAnimeId, setSelectedAnimeId] = useState<number | ''>('')
-  const [groupAnime, setGroupAnime] = useState<AdminFansubAnimeEntry[]>([])
+  const [groupAnime, setGroupAnime] = useState<ProposalAnimeOption[]>([])
   const [isLoadingGroupAnime, setIsLoadingGroupAnime] = useState(false)
   const [groupAnimeError, setGroupAnimeError] = useState<string | null>(null)
   const [selectedRoleCode, setSelectedRoleCode] = useState('')
@@ -110,8 +109,26 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
         setIsLoadingGroupAnime(true)
         setGroupAnimeError(null)
         setSelectedAnimeId('')
-        const response = await getAdminFansubAnime(activeGroupId)
-        if (!cancelled) setGroupAnime(response.data)
+        // D-10 (Live-UAT-Bugfix): bei "Andere Gruppe" hat der Absender keine Mitgliedschaft in
+        // der Zielgruppe -- der admin-gescopte Endpunkt setzt genau diese Mitgliedschaft voraus
+        // und lieferte deshalb immer 403 (live reproduziert). Die oeffentliche Profil-Quelle
+        // (dieselbe, die /fansubs/<slug> fuer anonyme Besucher bedient) hat keinen
+        // Mitgliedschafts-Check und zeigt exakt die oeffentlich sichtbaren Projekte der Gruppe.
+        // Bei "Eigene Gruppe" bleibt der Admin-Endpunkt unveraendert, dort besteht die
+        // Mitgliedschaft tatsaechlich und es gibt keinen Bug zu beheben.
+        if (groupScope === 'foreign') {
+          if (!foreignGroup) {
+            if (!cancelled) setGroupAnime([])
+            return
+          }
+          const response = await getPublicFansubProfileBySlug(foreignGroup.slug)
+          if (!cancelled) {
+            setGroupAnime(response.data.projects.map((project) => ({ id: project.id, title: project.title })))
+          }
+        } else {
+          const response = await getAdminFansubAnime(activeGroupId)
+          if (!cancelled) setGroupAnime(response.data)
+        }
       } catch (loadError) {
         if (!cancelled) {
           setGroupAnime([])
@@ -126,7 +143,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     return () => {
       cancelled = true
     }
-  }, [activeGroupId])
+  }, [activeGroupId, groupScope, foreignGroup])
 
   function resetAndClose() {
     setStep(1)

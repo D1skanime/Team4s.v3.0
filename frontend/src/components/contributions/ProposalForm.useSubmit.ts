@@ -17,13 +17,24 @@
 import { useState } from 'react'
 
 import { ApiError, createContributionProposal, createFansubGroupHint } from '@/lib/api'
-import type { AdminFansubAnimeEntry } from '@/types/admin'
 import type { MembershipEntry, ProposalFormData } from '@/types/contributions'
 import type { FansubGroup } from '@/types/fansub'
 import type { CreateFansubGroupHintRequest } from '@/types/fansub-group-hints'
 
 export type GroupScope = 'own' | 'foreign'
 export type WizardStep = 1 | 2 | 3
+
+/**
+ * D-10 (Live-UAT-Bugfix): das Anime/Projekt-Feld des Hinweis-Formulars bezieht seine Optionen
+ * je nach `groupScope` aus zwei strukturell verschiedenen Endpunkten -- dem admin-gescopten
+ * `getAdminFansubAnime` (eigene Gruppe, Mitgliedschaft vorhanden) oder dem oeffentlichen
+ * `getPublicFansubProfileBySlug` (fremde Gruppe, keine Mitgliedschaft). Beide Antworten liefern
+ * fachlich mehr Felder (Typ, Cover etc.), das Formular braucht aber nur `id`/`title` -- dieser
+ * schmale, quellen-neutrale Typ ersetzt die bisher admin-spezifische `AdminFansubAnimeEntry` als
+ * gemeinsame Formular-interne Sicht, damit die UI nicht wissen muss, aus welcher Quelle eine
+ * Option stammt.
+ */
+export type ProposalAnimeOption = { id: number; title: string }
 
 export interface SubmittedSummary {
   groupName: string
@@ -77,7 +88,7 @@ export interface SubmitTarget {
   groupScope: GroupScope
   ownGroup: MembershipEntry | null
   foreignGroup: FansubGroup | null
-  anime: AdminFansubAnimeEntry | null
+  anime: ProposalAnimeOption | null
   roleCode: string
   roleLabel: string | null
   note: string
@@ -86,7 +97,7 @@ export interface SubmitTarget {
 }
 
 /** Baut exakt das heutige ProposalFormData-Payload — byte-identisch zum Vor-191-Verhalten. */
-function buildCorrectionOwnPayload(target: SubmitTarget, ownGroup: MembershipEntry, anime: AdminFansubAnimeEntry): ProposalFormData {
+function buildCorrectionOwnPayload(target: SubmitTarget, ownGroup: MembershipEntry, anime: ProposalAnimeOption): ProposalFormData {
   return {
     fansub_group_id: ownGroup.fansub_group_id,
     anime_id: anime.id,
