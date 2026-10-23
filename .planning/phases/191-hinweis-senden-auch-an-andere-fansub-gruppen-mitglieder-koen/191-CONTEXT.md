@@ -442,3 +442,79 @@ Regressionsgate) ist ausgeführt, Task 2 (Live-Checkpoint) ist **nicht bestanden
 oben sind die freigegebene Nachbesserung. Nächster Schritt: zusätzliche Nachbesserungspläne
 (191-11 ff.) für D-09 bis D-15 erstellen, Plan-Checker, Ausführung, dann erneut der Live-Checkpoint
 aus Plan 191-10 Task 2 (D-16 beachten).
+
+---
+
+## Nutzerentscheidungen — vierte Runde (2026-10-23, zweiter Live-UAT-Durchlauf, final — nicht neu verhandeln)
+
+**Quelle:** Zweiter Live-UAT-Durchlauf durch den Nutzer (Konto `timer@team4s.de`) nach Ausführung
+der Pläne 191-11 bis 191-19/Task 1+2. Ergebnis: **wieder nicht bestanden** — fünf reale Bugs plus
+ein Kommentar-Nachzug. Punkt 5 der Rückmeldung korrigiert zudem einen Fehler in meinem eigenen
+Checkpoint-Bericht (ich hatte Bloody-Shadow/Gruppe 24 nicht unter den geprüften leitungslosen
+Gruppen — per echtem Admin-API-Call jetzt nachträglich bestätigt: Hinweis-ID 3 erscheint korrekt in
+`/admin/fansub-group-hints`, D-11 funktioniert bereits richtig). **Echte Live-Testdaten aus beiden
+UAT-Durchläufen (`fansub_group_hints`-Zeilen ID 1, 2, 3) bleiben unverändert stehen — nicht
+löschen, der Nutzer verwendet sie zur Abnahme.**
+
+### D-17 — Erfolgsansicht muss sichtbar bleiben (Bug, beide Einstiege)
+`ProposalForm.tsx` selbst ist korrekt (zeigt die Erfolgsansicht via `submittedSummary`-State), aber
+beide Aufrufer entfernen das Formular, bevor der Nutzer sie sieht: `ReportHintEntryPoint.tsx:116`s
+`onSuccess={() => setIsOpen(false)}` unmounted `ProposalForm` sofort; `MyProposalsSection.tsx`s
+`handleFormSuccess` löst über `onReload()` einen Seiten-`isLoading`-Zustand aus
+(`frontend/src/app/me/contributions/page.tsx`), der die ganze Section inkl. offenem Formular durch
+einen Lade-Screen ersetzt. **Fix:** `onSuccess` darf in keinem der beiden Aufrufer ein
+Schließen/Unmounten/Reload auslösen — die Erfolgsansicht bleibt stehen, bis der Nutzer aktiv
+„Fertig" klickt (= `onClose`). Reload/Schließen wird an `onClose` gekoppelt, nicht an `onSuccess`.
+Logik-Test UND Live-Nachprüfung Pflicht (D-22).
+
+### D-18 — Fremd-Hinweise erscheinen beim Absender unter „Eingereichte Hinweise"
+Ein Hinweis an eine fremde Gruppe (`fansub_group_hints`) ist für den Absender heute nirgends
+sichtbar. **Fix:** Neuer Endpunkt `GET /api/v1/me/fansub-group-hints` (Repository-Methode
+`ListBySender`, analog zum bestehenden `ListByTargetGroup`-Muster in
+`fansub_group_hints_repository.go:213-237`), Contract-Ergänzung in
+`shared/contracts/fansub-group-hints.yaml`. Frontend: `/me/contributions` lädt diese Liste
+zusätzlich und zeigt sie unter „Eingereichte Hinweise" mit Zielgruppe, Projekt, Status
+(offen/bestätigt/abgelehnt) und Ablehnungsgrund (falls vorhanden); sie zählt in die Kopfzeilen-
+Anzahl „(n)" mit hinein (`MyProposalsSection.tsx:74`, `total` muss beide Quellen summieren). Der
+veraltete Leertext „…für ein Projekt einer Gruppe ein, in der du Mitglied bist."
+(`MyProposalsSection.tsx:174`) wird angepasst, da Hinweise jetzt auch an fremde Gruppen gehen
+(exakter Wortlaut in der Planung/UI-SPEC-Nachtrag final).
+
+### D-19 — 90-Tage-Text nur beim Weg zur eigenen Gruppe
+Der Text „Keine Reaktion nach 90 Tagen: Vorschlag kann selbst öffentlich geschaltet werden."
+(`ProposalForm.steps.tsx:378`, gesteuert über die hart auf `true` gesetzte Prop
+`showYearAndInfoPanel` in `ProposalForm.tsx:437`) gilt nur für den bestehenden
+Eigengruppen-Weg (`anime_contributions`-Mechanismus) und ist bei fremden Gruppen fachlich falsch
+(es gibt dort keinen 90-Tage-Automatismus). **Fix:** `showYearAndInfoPanel={groupScope === 'own'}`.
+Bei `groupScope === 'foreign'` wird der Panel-Bereich durch einen zutreffenden Informationssatz
+ersetzt (nicht nur ausgeblendet) — Inhalt: wer den Hinweis entscheidet (Leitung der Zielgruppe bzw.
+Plattform-Admin, falls die Gruppe keine aktive Leitung hat, D-11) und dass nichts automatisch
+passiert (D-03). Exakter Wortlaut wird im UI-SPEC-Nachtrag festgelegt.
+
+### D-20 — Zeitraum (Von/Bis-Jahr) bei fremden Gruppen nicht verlieren
+`buildHintSubmitPayload` (`ProposalForm.useSubmit.ts:73-82`) liest `startedYear`/`endedYear` aus
+`SubmitTarget` nie — die Angabe geht bei `groupScope === 'foreign'` komplett verloren, da
+`fansub_group_hints` kein Zeitraum-Feld hat. **Fix:** analog zum bestehenden Rollen-Klartext-Muster
+(„Rolle: {label}", Zeile 75) wird ein `yearContext` vor die eigentliche Notiz gestellt: beide Jahre
+gesetzt → „Zeitraum: {von}–{bis}"; nur `von` gesetzt → „Zeitraum: ab {von}"; nur `bis` gesetzt →
+„Zeitraum: bis {bis}"; keines gesetzt → kein Zeitraum-Text (keine leere „Zeitraum:"-Zeile).
+
+### D-21 — Kommentar-Nachzug, zweite Runde (D-15 fortgesetzt)
+`backend/cmd/server/main.go:647-649` und `:670-673` beschreiben noch das durch D-09 gestrichene
+Mitgliedschaftsanfrage-/`fansub_lead`-Konzept bzw. eine durch D-09 entfallene
+`histGroupMemberRolesRepo`-Wiederverwendung — beide Kommentare werden auf den tatsächlichen,
+aktuellen D-09/D-11-Stand umgeschrieben. `ProposalForm.useSubmit.ts:28` und `ProposalForm.tsx:162`
+behalten ihre fachliche Erklärung, aber „D-10 (Live-UAT-Bugfix)" bzw. „live reproduziert" wird
+nicht mehr als alleinige Begründung vorangestellt — die fachliche Regel selbst (zwei
+unterschiedliche Datenquellen je Mitgliedschaftsstatus) steht im Vordergrund, der Bugfix-Rahmen
+kann als Zusatz stehen bleiben, nicht als einzige Erklärung.
+
+### D-22 — Pflicht-Vorabprüfung, verschärft (ersetzt/ergänzt D-16)
+Jeder der obigen Punkte wird vor dem nächsten Live-Checkpoint über ECHTE Wege geprüft (echte
+API-Aufrufe mit passendem Konto, wo möglich der echte UI-Ablauf) — **vollständig, nicht
+stichprobenhaft.** Lehre aus dieser Runde: Eine unvollständige Prüfung (nur 5 von mehreren
+leitungslosen Gruppen abgefragt, ohne die tatsächlich vom Nutzer getestete Gruppe 24 einzuschließen)
+führte zu einer falschen Aussage im letzten Checkpoint-Bericht. Vor jeder Behauptung im nächsten
+Checkpoint-Bericht: die konkret betroffene Entität (Gruppe/Konto/Hinweis-ID) direkt und vollständig
+gegen die echte DB/API prüfen, nicht gegen eine Stichprobe. Bestehende Live-Testdaten
+(`fansub_group_hints` ID 1, 2, 3) bleiben unverändert erhalten.
