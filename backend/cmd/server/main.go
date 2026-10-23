@@ -644,9 +644,12 @@ func main() {
 	v1.GET("/me/memberships", authMiddleware, proposalsMeHandler.ListMemberships)
 	v1.POST("/me/contribution-proposals", authMiddleware, proposalsMeHandler.CreateProposal)
 	v1.POST("/me/anime-contributions/:contributionId/self-publish", authMiddleware, proposalsMeHandler.SelfPublish)
-	// Phase 191: "Hinweis senden" auch an fremde Fansub-Gruppen (D-02/D-06) — eigener
-	// Datenpfad ohne Ownership-Gate, reuse von histGroupMemberRolesRepo fuer die
-	// Rollenvalidierung und einer zweiten, taeglichen CommentRateLimiter-Instanz (D-04(2)).
+	// Verdrahtet den Endpunkt, ueber den ein Mitglied einen Korrektur-Hinweis an jede
+	// Fansub-Gruppe senden kann -- die eigene ODER eine fremde (D-06) -- ohne den
+	// Ownership-Gate des regulaeren Beitragsvorschlags. Es findet in diesem Pfad KEINE
+	// Rollenvalidierung statt (D-09 hat die fruehere Mitgliedschaftsanfrage samt
+	// Rollenwunsch vollstaendig gestrichen); als Spam-Schutz dient nur eine zweite,
+	// taegliche CommentRateLimiter-Instanz (D-04(2)).
 	fansubGroupHintsRepo := repository.NewFansubGroupHintsRepository(dbPool)
 	fansubGroupHintsMeHandler := handlers.NewFansubGroupHintsMeHandler(fansubGroupHintsRepo, dbPool)
 	v1.POST(
@@ -671,10 +674,12 @@ func main() {
 	v1.GET("/admin/fansubs/:id/group-hints", authMiddleware, fansubGroupHintsReviewHandler.ListHints)
 	v1.POST("/admin/fansubs/:id/group-hints/:hid/confirm", authMiddleware, fansubGroupHintsReviewHandler.ConfirmHint)
 	v1.POST("/admin/fansubs/:id/group-hints/:hid/reject", authMiddleware, fansubGroupHintsReviewHandler.RejectHint)
-	// Phase 191-05: Plattform-Admin-Entscheidungsflaeche fuer den D-01/D-07-Sonderfall
-	// (Mitgliedschaftsanfragen mit gewuenschter Rolle fansub_lead) — wiederverwendet exakt
-	// fansubGroupHintsRepo (keine zweite Repository-Instanz) und authzRepo/auditLogRepo, die
-	// bereits oben fuer adminClaimsListHandler konstruiert sind.
+	// Plattform-weite Entscheidungsflaeche fuer Korrektur-Hinweise, deren Zielgruppe
+	// aktuell KEINE aktive Leitung (Rolle fansub_lead) hat (D-11) -- fuer diese Gruppen
+	// existiert keine Leader-Entscheidungsflaeche, deshalb entscheidet hier der
+	// Plattform-Admin. Wiederverwendet exakt fansubGroupHintsRepo (keine zweite
+	// Repository-Instanz) und authzRepo/auditLogRepo, die bereits oben fuer
+	// adminClaimsListHandler konstruiert sind.
 	adminFansubGroupHintsHandler := handlers.NewAdminFansubGroupHintsHandler(authzRepo, fansubGroupHintsRepo, auditLogRepo)
 	v1.GET("/admin/fansub-group-hints", authMiddleware, adminFansubGroupHintsHandler.ListHints)
 	v1.POST("/admin/fansub-group-hints/:hid/confirm", authMiddleware, adminFansubGroupHintsHandler.ConfirmHint)

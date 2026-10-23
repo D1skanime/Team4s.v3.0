@@ -25,12 +25,12 @@ export type GroupScope = 'own' | 'foreign'
 export type WizardStep = 1 | 2 | 3
 
 /**
- * D-10 (Live-UAT-Bugfix): das Anime/Projekt-Feld des Hinweis-Formulars bezieht seine Optionen
- * je nach `groupScope` aus zwei strukturell verschiedenen Endpunkten -- dem admin-gescopten
- * `getAdminFansubAnime` (eigene Gruppe, Mitgliedschaft vorhanden) oder dem oeffentlichen
- * `getPublicFansubProfileBySlug` (fremde Gruppe, keine Mitgliedschaft). Beide Antworten liefern
- * fachlich mehr Felder (Typ, Cover etc.), das Formular braucht aber nur `id`/`title` -- dieser
- * schmale, quellen-neutrale Typ ersetzt die bisher admin-spezifische `AdminFansubAnimeEntry` als
+ * Das Anime/Projekt-Feld des Hinweis-Formulars bezieht seine Optionen je nach `groupScope`
+ * aus zwei strukturell verschiedenen Endpunkten -- dem admin-gescopten `getAdminFansubAnime`
+ * (eigene Gruppe, Mitgliedschaft vorhanden) oder dem oeffentlichen `getPublicFansubProfileBySlug`
+ * (fremde Gruppe, keine Mitgliedschaft, D-10). Beide Antworten liefern fachlich mehr Felder
+ * (Typ, Cover etc.), das Formular braucht aber nur `id`/`title` -- dieser schmale,
+ * quellen-neutrale Typ ersetzt die bisher admin-spezifische `AdminFansubAnimeEntry` als
  * gemeinsame Formular-interne Sicht, damit die UI nicht wissen muss, aus welcher Quelle eine
  * Option stammt.
  */

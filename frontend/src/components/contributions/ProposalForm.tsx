@@ -159,13 +159,12 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
         setIsLoadingGroupAnime(true)
         setGroupAnimeError(null)
         setSelectedAnimeId('')
-        // D-10 (Live-UAT-Bugfix): bei "Andere Gruppe" hat der Absender keine Mitgliedschaft in
-        // der Zielgruppe -- der admin-gescopte Endpunkt setzt genau diese Mitgliedschaft voraus
-        // und lieferte deshalb immer 403 (live reproduziert). Die oeffentliche Profil-Quelle
-        // (dieselbe, die /fansubs/<slug> fuer anonyme Besucher bedient) hat keinen
-        // Mitgliedschafts-Check und zeigt exakt die oeffentlich sichtbaren Projekte der Gruppe.
-        // Bei "Eigene Gruppe" bleibt der Admin-Endpunkt unveraendert, dort besteht die
-        // Mitgliedschaft tatsaechlich und es gibt keinen Bug zu beheben.
+        // Bei "Andere Gruppe" hat der Absender keine Mitgliedschaft in der Zielgruppe -- der
+        // admin-gescopte Endpunkt setzt genau diese Mitgliedschaft voraus und liefert ohne sie
+        // 403 (D-10). Die oeffentliche Profil-Quelle (dieselbe, die /fansubs/<slug> fuer anonyme
+        // Besucher bedient) hat keinen Mitgliedschafts-Check und zeigt exakt die oeffentlich
+        // sichtbaren Projekte der Gruppe. Bei "Eigene Gruppe" bleibt der Admin-Endpunkt
+        // unveraendert, dort besteht die Mitgliedschaft tatsaechlich.
         if (groupScope === 'foreign') {
           if (!foreignGroup) {
             if (!cancelled) setGroupAnime([])
