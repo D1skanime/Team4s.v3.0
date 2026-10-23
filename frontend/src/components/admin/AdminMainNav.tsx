@@ -9,6 +9,13 @@ const ADMIN_NAV_LINKS = [
   { label: 'Gruppen', href: '/admin/groups' },
   { label: 'Rollen', href: '/admin/roles' },
   { label: 'Claims', href: '/admin/claims' },
+  // 191-09 (D-01/D-07): eigene Seite statt eines Filters in /admin/claims, weil die
+  // Datenquelle eine komplett andere ist — Claims speisen sich aus member_claims
+  // (historische Mitgliedsidentität bestätigen), während diese Liste serverseitig
+  // bereits auf requested_role_code = 'fansub_lead'-Hinweise aus der neuen
+  // fansub_group_hints-Tabelle vorgefiltert ist. Es gibt kein gemeinsames
+  // Datenmodell, über das ein Filter innerhalb von /admin/claims funktionieren könnte.
+  { label: 'Hinweise (Leitung)', href: '/admin/fansub-group-hints' },
   { label: 'Änderungen', href: '/admin/changes' },
 ]
 
