@@ -2,9 +2,11 @@
 
 **Quelle des Auftrags:** `.planning/todos/pending/2026-10-19-hinweis-senden-fremde-gruppen.md`
 (Nutzerbefund 19.10.2026, alle sechs offenen Fragen darin bereits entschieden). Additiv an die
-bestehende ROADMAP angehängt (nach Phase 190), kein neues Milestone, kein Reset. Dieses Dokument
-ist reine Ist-Analyse + übernommene Entscheidungen — **keine Produktcode-Änderung** in diesem
-Schritt. Nächster Schritt ist `/gsd:plan-phase 191`.
+bestehende ROADMAP angehängt (nach Phase 190), kein neues Milestone, kein Reset. **Stand
+2026-10-23 (zweite Entscheidungsrunde): OF-01 ist beantwortet (D-07), zusätzlich gilt ab dieser
+Phase die neue, projektweite Doku-Pflicht aus CLAUDE.md/AGENTS.md (D-08).** Dieses Dokument bleibt
+bis hierhin reine Ist-Analyse + Entscheidungen — **keine Produktcode-Änderung** in diesem Schritt.
+Nächster Schritt ist `/gsd:plan-phase 191`.
 
 ## Problem (laut Nutzerbefund)
 
@@ -74,6 +76,10 @@ Nur eine Anfrage/ein Hinweis an die Fansub-Gruppe, kein eigenes Recht. (a) **Kor
 - **Deutsche Texte mit echten Umlauten.**
 - **Live-UAT am Ende mit echten Konten** — Testdaten nur über echte Anlegepfade, vorher selbst
   geprüft (keine direkten INSERTs für Demo-Hinweise).
+- **Doku-Pflicht im selben Auftrag (D-08):** fachliche Code-Kommentare statt Phasen-Verweise,
+  `docs/BACKEND_ARCHITEKTUR.md`/`docs/FRONTEND_ARCHITEKTUR.md`/`shared/contracts/` nachziehen,
+  neue gemeinsame Bausteine (Gruppensuch-Hook) dort aufführen, historische Begründung in
+  `DECISIONS.md`. Jeder Plan enthält einen Doku-Task/Doku-Akzeptanzkriterien.
 - Die Quelle-Todo-Datei (`.planning/todos/pending/2026-10-19-hinweis-senden-fremde-gruppen.md`)
   wird nach Phasenabschluss nach `completed` verschoben, nicht gelöscht.
 
@@ -254,30 +260,39 @@ siehe OF-01.
 
 ---
 
-## Offene Frage an den Nutzer
+## Nutzerentscheidungen — zweite Runde (2026-10-23, beantwortet OF-01 + neue Projektregel, final — nicht neu verhandeln)
 
-### OF-01 — Hat die Mitgliedschaftsanfrage ein Rollenfeld, und bezieht sich D-01 ausschließlich auf `fansub_lead`?
+### D-07 — Rollenfeld bei der Mitgliedschaftsanfrage, Plattform-Admin-Freigabe nur bei `fansub_lead` (ersetzt OF-01)
+**Beantwortet wie empfohlen.** Die Mitgliedschaftsanfrage (Hinweisart b) bekommt ein **optionales**
+Rollenfeld — Dropdown aus den `fansub_group`-Kontext-Rollen (`fansub_lead`, `co_leader`, `founder`,
+`techadmin`, `gfxler`, `timer` usw.), **Default „keine bestimmte Rolle"**. Die Plattform-Admin-
+Freigabe nach D-01 greift **ausschließlich**, wenn ausdrücklich der Rollencode `fansub_lead`
+gewählt wird; bei jeder anderen Auswahl (inkl. `co_leader`) UND bei „keine bestimmte Rolle"
+entscheidet ganz normal der Leader der Zielgruppe. Korrektur-Hinweise (Hinweisart a) sind von D-01
+damit praktisch nie betroffen — `fansub_lead` kann dort schon datenmodell-bedingt nicht als Rolle
+vorkommen (siehe Ist-Zustand 7), auch `project_lead`-Korrekturen bleiben beim Leader der
+Zielgruppe.
 
-Das Todo entscheidet (D-01), dass bei „Leader-Rolle" der Plattform-Admin statt des Zielgruppen-
-Leaders bestätigt, legt aber nicht fest, *wie* eine Rolle bei einer Mitgliedschaftsanfrage überhaupt
-zustande kommt. Die Live-Rollendaten (Ist-Zustand 7) zeigen: `fansub_lead` ist ausschließlich eine
-Gruppenrolle (nie Teil eines Korrektur-Hinweises zu einem Projekt/Release), `project_lead` ist eine
-eigenständige, davon verschiedene Projekt-/Beitragsrolle. Zwei Anschlussfragen hängen daran:
-
-1. Bekommt die Mitgliedschaftsanfrage ein optionales „gewünschte Rolle"-Feld (Dropdown aus den
-   `fansub_group`-Kontext-Rollen: `fansub_lead`, `co_leader`, `founder`, `techadmin`, `gfxler`,
-   `timer` usw.), oder ist sie rollenlos („ich möchte generell Mitglied werden", der Leader
-   entscheidet anschließend über die Rolle via bestehende Wege)?
-2. Falls ja: Löst nur die explizite Wahl `fansub_lead` die Plattform-Admin-Freigabe nach D-01 aus,
-   während alle anderen gewünschten Rollen (inkl. `co_leader`) ganz normal vom Leader der
-   Zielgruppe entschieden werden?
-
-**Empfehlung:** Rollenfeld bei der Mitgliedschaftsanfrage optional anbieten (Default „keine
-Präferenz"), D-01-Routing an Plattform-Admin ausschließlich bei explizit gewähltem Rollencode
-`fansub_lead` auslösen. Korrektur-Hinweise sind von D-01 damit praktisch nie betroffen (auch bei
-`project_lead` entscheidet weiterhin der Leader der Zielgruppe, da `project_lead` ≠ `fansub_lead`).
-Das hält die Regel einfach, konsistent mit den Live-Rollendaten und erfordert keine Sonderfall-Logik
-im Korrektur-Hinweis-Formular.
+### D-08 — Doku-Pflicht im selben Auftrag (neue projektweite Regel, CLAUDE.md/AGENTS.md Commit `21ce1f1c3`, Abschnitt „Dokumentation wächst mit dem Code")
+Ab dieser Phase gilt verbindlich für den Ausführungsplan: Jede Plan-Aufgabe, die Code baut oder
+Verhalten ändert, zieht **im selben Auftrag** nach:
+- **Fachliche Code-Kommentare** an der verantwortlichen Klasse/Funktion/Komponente — was sie
+  fachlich tut, welche Regeln gelten, warum. Reine Planungsverweise wie „Phase 191 D-03" sind als
+  Erklärung VERBOTEN (dürfen höchstens zusätzlich zu einer fachlichen Erklärung stehen). Bestehende
+  Phasen-Verweis-Kommentare in Dateien, die diese Phase ohnehin anfasst, werden beim Anfassen
+  fachlich umformuliert (kein eigener Aufräum-Task).
+- **`docs/BACKEND_ARCHITEKTUR.md`** bei neuen/geänderten Backend-Schichten, Datenflüssen,
+  Rechte-/Auth-Verträgen, Routen (z. B. neuer Hinweis-Endpunkt, gelockerter Ownership-Pfad,
+  Plattform-Admin-Routing für `fansub_lead`).
+- **`docs/FRONTEND_ARCHITEKTUR.md`** bei neuen/geänderten zentralen Bausteinen — insbesondere der
+  aus D-02 extrahierte gemeinsame Gruppensuch-Hook (`useFansubGroupSearch` o. ä.) muss dort als
+  wiederverwendbarer Baustein aufgeführt werden, damit er künftig gefunden statt neu gebaut wird.
+- **`shared/contracts/`** bei neuen/geänderten API-Verträgen (neuer Hinweis-Endpunkt, neue
+  Request-/Response-Felder wie das optionale Rollenfeld aus D-07).
+- **`DECISIONS.md`** für die historischen Entscheidungen dieser Phase (D-01 bis D-08), nicht in
+  Code-Kommentaren.
+- Der Ausführungsplan braucht dafür einen expliziten Doku-Task bzw. Doku-Akzeptanzkriterien pro
+  Plan; der Plan-Checker prüft das mit.
 
 ---
 
@@ -304,6 +319,5 @@ im Korrektur-Hinweis-Formular.
 
 ## Nächster Schritt
 
-Eine offene Frage (OF-01) steht noch aus, mit klarer Empfehlung. Sobald beantwortet:
-`/gsd:plan-phase 191`, um die Entscheidungen in einen ausführbaren Plan zu überführen. Keine
-Planung, keine Ausführung, keine Produktcode-Änderung vor diesem Punkt.
+Alle Fragen sind beantwortet (D-01 bis D-08), Umfang ist final. Nächster Schritt: `/gsd:plan-phase
+191`, um die Entscheidungen in einen ausführbaren Plan zu überführen.
