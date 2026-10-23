@@ -152,6 +152,38 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   Altlast, die künftig behoben werden soll — kein Vorbild zum Weiterkopieren.
 - Siehe `.planning/notes/2026-09-02-altlasten-cr01-wr02.md` (WR-02) für den
   nachgemessenen Umfang und den Bearbeitungsstand.
+### Dokumentation wächst mit dem Code (Pflicht bei jeder Änderung)
+
+- **Grundregel:** Wer Code neu baut, umbaut oder Verhalten ändert, aktualisiert im
+  SELBEN Auftrag (Phase oder Quick-Task) auch die zugehörige Beschreibung. Keine
+  nachträglichen „Doku-Nachbesserungsphasen“ mehr.
+- **Code-Kommentare erklären fachlich, nicht historisch:** An der verantwortlichen
+  Klasse, Funktion oder Komponente steht, WAS sie fachlich tut, welche Regeln
+  gelten und warum (z. B. „Verwaltet persönliche Berechtigungsausnahmen innerhalb
+  einer Fansub-Gruppe. Änderungen erfordern eine Verwaltungsberechtigung, werden
+  transaktional gespeichert und bei tatsächlichen Änderungen revisionssicher
+  protokolliert.“).
+- **Verboten in Code-Kommentaren:** Reine Planungs-Verweise als Erklärung wie
+  „Phase 137, D-06–D-08“, „Plan 188-05“, „Quick 261022-ap1“, „Gap-08“. Solche
+  Verweise dürfen höchstens ZUSÄTZLICH zu einer fachlichen Erklärung stehen,
+  nie stattdessen.
+- **Historische Entscheidungen** (warum etwas so entschieden wurde, verworfene
+  Alternativen) gehören in `DECISIONS.md` bzw. die Planungsartefakte, nicht in
+  den Code.
+- **Architektur-Dokumentation aktuell halten:** Ändern sich Schichten,
+  Datenflüsse, zentrale Bausteine, Rechte-/Auth-Verträge, Routen oder
+  wiederverwendbare Komponenten, werden `docs/BACKEND_ARCHITEKTUR.md`,
+  `docs/FRONTEND_ARCHITEKTUR.md` (und betroffene Dateien unter `docs/`) sowie
+  `shared/contracts/` im selben Auftrag nachgezogen. Neue gemeinsame Bausteine
+  (z. B. ein geteilter Hook oder eine geteilte Komponente) werden dort kurz
+  aufgeführt, damit sie wiederverwendet statt neu gebaut werden.
+- **Bestand:** Bestehende Kommentare mit reinen Phasen-/D-Verweisen werden beim
+  Anfassen der Datei fachlich umformuliert (wie beim Datei-Split: beim Anfassen,
+  keine eigene Aufräumphase).
+- **Prüfung:** Pläne enthalten einen Doku-Task bzw. Doku-Akzeptanzkriterien;
+  Review und Verifikation prüfen, ob Kommentare fachlich sind und die
+  Architektur-Doku zum geänderten Code passt.
+
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
