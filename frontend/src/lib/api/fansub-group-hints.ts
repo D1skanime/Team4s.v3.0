@@ -49,6 +49,30 @@ export async function createFansubGroupHint(
 }
 
 /**
+ * Absender-seitiger Spiegel zu listGroupHints: alle Hinweise, die der eingeloggte Member
+ * JEMALS selbst verschickt hat -- an eigene UND fremde Gruppen, alle Status (D-18). Die
+ * Absender-Identität kommt serverseitig ausschließlich aus dem Auth-Token
+ * (`requireMeIdentityForProposals`, Plan 191-22) -- kein Pfad-/Query-Parameter hier, der
+ * einen anderen Absender erzwingen könnte.
+ */
+export async function listMyFansubGroupHints(): Promise<FansubGroupHintListResponse> {
+  const response = await authorizedFetch(
+    `${getApiBaseUrl()}/api/v1/me/fansub-group-hints`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+
+  return response.json() as Promise<FansubGroupHintListResponse>;
+}
+
+/**
  * Liste der eingehenden Hinweise an die ZIELGRUPPE für den Leader der
  * Zielgruppe (nicht die Gruppe des Absenders) — liefert ausnahmslos ALLE
  * Hinweise an diese Gruppe zurück, ohne serverseitige Filterung. Ob eine

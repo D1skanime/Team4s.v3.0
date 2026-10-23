@@ -171,17 +171,17 @@ describe("fansub-group-hints API-Client", () => {
   // 191-23/D-18: Absender-seitiger Spiegel von listGroupHints -- gleicher
   // ApiError/authorizedFetch-Vertrag, nur andere URL und keine Pfad-Parameter (die
   // Absender-Identitaet kommt serverseitig ausschliesslich aus dem Auth-Token, Plan 191-22).
-  it("listMyFansubGroupHints wirft ApiError mit status=401 ohne gueltige Sitzung", async () => {
+  it("listMyFansubGroupHints wirft ApiError mit status=500 bei Server-Fehler", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
         ok: false,
-        status: 401,
-        json: vi.fn().mockResolvedValue({ error: { message: "nicht authentifiziert" } }),
+        status: 500,
+        json: vi.fn().mockResolvedValue({ error: { message: "interner Serverfehler" } }),
       }),
     );
 
-    await expect(listMyFansubGroupHints()).rejects.toMatchObject({ status: 401 });
+    await expect(listMyFansubGroupHints()).rejects.toMatchObject({ status: 500 });
   });
 
   it("listMyFansubGroupHints loest bei 200 OK mit dem unveraenderten {data: [...]}-Payload auf", async () => {

@@ -45,9 +45,18 @@ import {
   rejectAdminFansubGroupHint,
 } from '@/lib/api'
 import { formatDateDeOrIso } from '@/lib/formatDate'
+import { hintStatusLabel, hintStatusVariant } from '@/lib/fansubGroupHintStatus'
 import type { FansubGroupHint, FansubGroupHintStatus } from '@/types/fansub-group-hints'
 
 import { useFansubGroupHintsListFilters } from './useFansubGroupHintsListFilters'
+
+// 191-23/D-18: hintStatusLabel/hintStatusVariant leben jetzt in genau einem gemeinsamen
+// Modul (src/lib/fansubGroupHintStatus.ts), damit die neue member-seitige Sicht auf eigene
+// gesendete Hinweise (MyProposalsSection.tsx) dieselbe Status-Darstellung wiederverwendet
+// statt sie ein zweites Mal zu definieren -- re-exportiert statt neu implementiert, damit
+// diese Datei UND ihr bestehender Test (FansubGroupHintsAdminClient.test.tsx, importiert
+// beide Namen weiterhin direkt von hier) unveraendert funktionieren.
+export { hintStatusLabel, hintStatusVariant } from '@/lib/fansubGroupHintStatus'
 
 export type HintRowAction = 'confirm' | 'reject'
 
@@ -58,34 +67,6 @@ export type HintRowAction = 'confirm' | 'reject'
  */
 export function rowActionsForStatus(status: FansubGroupHintStatus): HintRowAction[] {
   return status === 'open' ? ['confirm', 'reject'] : []
-}
-
-/** Deutsches Anzeige-Label je Hinweis-Status (Select-Optionen: Alle/Offen/Bestätigt/Abgelehnt). */
-export function hintStatusLabel(status: FansubGroupHintStatus): string {
-  switch (status) {
-    case 'open':
-      return 'Offen'
-    case 'acknowledged':
-      return 'Bestätigt'
-    case 'rejected':
-      return 'Abgelehnt'
-    default:
-      return status
-  }
-}
-
-/** Badge-Variante je Hinweis-Status. */
-export function hintStatusVariant(status: FansubGroupHintStatus): 'warning' | 'success' | 'danger' | 'neutral' {
-  switch (status) {
-    case 'open':
-      return 'warning'
-    case 'acknowledged':
-      return 'success'
-    case 'rejected':
-      return 'danger'
-    default:
-      return 'neutral'
-  }
 }
 
 /**
