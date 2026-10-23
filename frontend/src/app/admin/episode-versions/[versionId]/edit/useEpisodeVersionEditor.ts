@@ -6,11 +6,11 @@ import { useParams, useRouter } from 'next/navigation'
 import {
   deleteEpisodeVersion,
   getEpisodeVersionEditorContext,
-  getFansubList,
   scanEpisodeVersionFolder,
   updateEpisodeVersion,
 } from '@/lib/api'
 import { useConfirmDialog } from '@/components/ui'
+import { useFansubGroupSearch } from '@/hooks/useFansubGroupSearch'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { EpisodeVersionEditorContext, EpisodeVersionMediaFile, EpisodeVersionPatchRequest, FansubGroupDependents } from '@/types/episodeVersion'
 import { FansubGroup, FansubGroupSummary } from '@/types/fansub'
@@ -60,19 +60,28 @@ export function useEpisodeVersionEditor() {
   const selectedFileInvalidated = useRef(false)
   const [showFilePanel, setShowFilePanel] = useState(false)
   const [advancedMode, setAdvancedMode] = useState(false)
-  const [groupQuery, setGroupQuery] = useState('')
-  const [groupResults, setGroupResults] = useState<FansubGroup[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isScanning, setIsScanning] = useState(false)
-  const [isSearching, setIsSearching] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [searchMessage, setSearchMessage] = useState<string | null>(null)
   const baselineRef = useRef('')
   const contextGeneration = useRef(0)
   const loadedRouteVersionId = useRef<number | null>(null)
+
+  // Referenzstabile excludeIds-Liste (nur bei echter Auswahländerung neu berechnet) — die
+  // Debounce-Suche im Hook läuft sonst bei jedem Render dieser Komponente neu an, nicht nur
+  // bei einer tatsächlichen Änderung der ausgewählten Gruppen.
+  const selectedGroupIds = useMemo(() => selectedGroups.map((group) => group.id), [selectedGroups])
+  const {
+    query: groupQuery,
+    setQuery: setGroupQuery,
+    results: groupResults,
+    isSearching,
+    message: searchMessage,
+    addGroup: clearGroupSearch,
+  } = useFansubGroupSearch({ excludeIds: selectedGroupIds })
 
   const chapterHints = contextData && loadedRouteVersionId.current === versionID &&
     !selectedFileInvalidated.current && !hasPendingFileSelection &&
@@ -134,8 +143,6 @@ export function useEpisodeVersionEditor() {
         setShowFilePanel(false)
         setAdvancedMode(false)
         setGroupQuery('')
-        setGroupResults([])
-        setSearchMessage(null)
         setSuccessMessage(null)
         baselineRef.current = buildSnapshot(nextFormState, nextContext.selected_groups)
       } catch (error) {
@@ -150,41 +157,10 @@ export function useEpisodeVersionEditor() {
       cancelled = true
       contextGeneration.current += 1
     }
-  }, [hasAuthSession, isClientInitialized, versionID])
-
-  useEffect(() => {
-    const query = groupQuery.trim()
-    if (!hasAuthSession || query.length < 1) {
-      setGroupResults([])
-      setSearchMessage(null)
-      setIsSearching(false)
-      return
-    }
-
-    let cancelled = false
-    const timeoutID = window.setTimeout(async () => {
-      setIsSearching(true)
-      setSearchMessage(null)
-      try {
-        const response = await getFansubList({ q: query, page: 1, per_page: 10 })
-        if (cancelled) return
-
-        const selectedIDs = new Set(selectedGroups.map((group) => group.id))
-        const nextResults = response.data.filter((group) => !selectedIDs.has(group.id))
-        setGroupResults(nextResults)
-        if (nextResults.length === 0) setSearchMessage('Keine passende Gruppe oder kein passender Alias gefunden.')
-      } catch (error) {
-        if (!cancelled) setSearchMessage(formatError(error))
-      } finally {
-        if (!cancelled) setIsSearching(false)
-      }
-    }, 180)
-
-    return () => {
-      cancelled = true
-      window.clearTimeout(timeoutID)
-    }
-  }, [groupQuery, hasAuthSession, selectedGroups])
+    // setGroupQuery ist der stabile State-Setter aus useFansubGroupSearch (wie ein normaler
+    // useState-Setter referenzkonstant über die Lebensdauer dieser Komponente) — Aufnahme in
+    // die Abhängigkeitsliste löst keine zusätzlichen Effekt-Läufe aus.
+  }, [hasAuthSession, isClientInitialized, setGroupQuery, versionID])
 
   async function handleScanFolder() {
     if (!hasAuthSession || !versionID) {
@@ -248,9 +224,10 @@ export function useEpisodeVersionEditor() {
       if (current.some((item) => item.id === group.id)) return current
       return [...current, { id: group.id, slug: group.slug, name: group.name, logo_url: group.logo_url }]
     })
-    setGroupQuery('')
-    setGroupResults([])
-    setSearchMessage(null)
+    // Übernahme einer Gruppe aus der Trefferliste ist eine Auswahl im Sinne des
+    // Such-Hooks — leert dessen Eingabe/Treffer/Meldung, ohne die Auswahlliste selbst
+    // zu kennen (die bleibt bei dieser Komponente).
+    clearGroupSearch(group)
   }
 
   function removeGroup(groupID: number) {

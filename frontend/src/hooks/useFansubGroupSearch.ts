@@ -69,10 +69,13 @@ export function useFansubGroupSearch({ excludeIds }: { excludeIds: number[] }) {
   }, [query, excludeIds])
 
   // `addGroup` räumt nur die Such-Interaktion auf (Eingabe/Treffer/Meldung leeren), nachdem
-  // der Aufrufer eine Gruppe übernommen hat. Es gibt bewusst KEIN `removeGroup` auf diesem
-  // Hook: Entfernen einer bereits getroffenen Auswahl betrifft ausschließlich die vom
-  // Aufrufer gehaltene Auswahl-Liste, die Suche selbst hat dabei nichts aufzuräumen.
-  function addGroup(_group: FansubGroup) {
+  // der Aufrufer eine Gruppe übernommen hat. Der Parameter wird bewusst nicht ausgewertet —
+  // die API-Form (Gruppe als Argument) bleibt erhalten, damit Aufrufer unverändert
+  // `addGroup(group)` schreiben können. Es gibt bewusst KEIN `removeGroup` auf diesem Hook:
+  // Entfernen einer bereits getroffenen Auswahl betrifft ausschließlich die vom Aufrufer
+  // gehaltene Auswahl-Liste, die Suche selbst hat dabei nichts aufzuräumen.
+  function addGroup(group: FansubGroup) {
+    void group
     setQuery('')
     setResults([])
     setMessage(null)
