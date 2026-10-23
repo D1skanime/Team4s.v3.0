@@ -1,5 +1,50 @@
 # DECISIONS
 
+## 2026-10-23 - Zweite Live-UAT-Nachbesserung: Erfolgsansicht, Hinweise an fremde Gruppen sichtbar, Zeitraum erhalten
+
+### Decision
+Der zweite Live-UAT-Durchlauf von Plan 191-19 fiel erneut nicht bestanden durch — fünf echte,
+vom Nutzer bestätigte Bugs (D-17 bis D-21) plus ein eigener Checkpoint-Bericht-Fehler (D-22).
+**D-17:** Beide "Hinweis senden"-Einstiege (`/me/contributions` und das neue "Fehler
+melden") warten jetzt aktiv auf einen "Fertig"-Klick, bevor sie schließen/neu laden —
+vorher riss `onSuccess` die bereits in `ProposalForm` vorhandene Erfolgsansicht
+(`submittedSummary`-State) sofort wieder ein, weil beide Aufrufer bei Erfolg selbst ein
+Schließen/Reload auslösten, statt das dem Nutzer zu überlassen. **D-18:** Ein neuer,
+identitätsscoped `GET /me/fansub-group-hints`-Endpunkt (`ListBySender`, IDOR-sicher
+ausschließlich über `identity.AppUserID`) plus eine neue "Eingereichte Hinweise"-Liste auf
+`/me/contributions` machen einen Fremdgruppen-Hinweis jetzt für seinen eigenen Absender
+sichtbar — vorher verschwand er für den Absender spurlos. **D-19:** Der 90-Tage-Text ist jetzt
+strikt auf den Eigengruppen-Pfad beschränkt (`groupScope === 'own'`); ein Fremdgruppen-Hinweis
+zeigt stattdessen einen Satz, wer tatsächlich entscheidet (Leitung der Zielgruppe bzw.
+Plattform-Admin bei fehlender Leitung, D-11) — die Von-/Bis-Jahr-Felder bleiben in beiden Fällen
+sichtbar. **D-20:** Ein bei einem Fremdgruppen-Hinweis eingegebener Von-/Bis-Jahr-Zeitraum wird
+jetzt als "Zeitraum: ..."-Notiz-Fragment erhalten statt kommentarlos verworfen zu werden
+(`fansub_group_hints` hat keine eigenen Jahresspalten). **D-21:** Vier veraltete
+Phasen-/Entscheidungsverweis-Kommentare (`main.go`, `ProposalForm.useSubmit.ts`,
+`ProposalForm.tsx`) sind auf den tatsächlichen aktuellen D-09/D-11-Stand umgeschrieben, die
+fachliche Regel steht jetzt vor dem reinen Verweis, nicht umgekehrt. **D-22:** Die
+Vorabprüfung dieser Runde (`191-24-HUMAN-UAT.md`) ist erschöpfend über jede der 15 Fansub-Gruppen
+ohne aktive Leitung einzeln gelaufen statt über eine Stichprobe — explizit einschließlich Gruppe
+24 (Bloody-Shadow), die der vorherigen Runde fehlte und zu einer falschen Aussage im
+Checkpoint-Bericht führte.
+
+### Why This Won
+D-17 bis D-21 waren reale, vom Nutzer im zweiten echten Live-UAT-Durchlauf selbst beobachtete
+Befunde, keine spekulative Nacharbeit — jeder einzelne wurde vor dieser Dokumentation erneut über
+echte API-Aufrufe bzw. tatsächlich ausgeführte Komponententests nachgeprüft
+(`191-24-HUMAN-UAT.md`). D-22s verschärfter Prozess existiert, weil die eigene unvollständige
+Vorabprüfung der vorherigen Runde (nur 5 von mehreren leitungslosen Gruppen abgefragt) selbst zu
+einer materiell falschen Aussage im letzten Checkpoint-Bericht führte — die einzige
+vertrauenswürdige Korrektur ist eine vollständige, nicht gesampelte Prüfung jeder betroffenen
+Entität, nicht eine größere Stichprobe.
+
+### Consequences
+Die absender-seitige Hinweis-Sichtbarkeit (D-18) und das dafür extrahierte gemeinsame
+Status-Label-Modul (`hintStatusLabel`/`hintStatusVariant`) sind das Muster, das jede künftige
+hinweis-nahe Liste wiederverwenden muss, statt die Status-Zuordnung ein drittes Mal eigenständig
+nachzubauen. Die D-22-Disziplin ("jede Entität einzeln prüfen, nie stichprobenhaft") gilt für
+jede künftige Vorabprüfung in dieser und folgenden Phasen, nicht nur für diese Runde.
+
 ## 2026-10-23 - Live-UAT-Nachbesserung: Mitgliedschaftsanfrage gestrichen, Fremdgruppen-Bug behoben, "Fehler melden" ergänzt
 
 ### Decision
