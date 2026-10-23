@@ -2970,3 +2970,22 @@ Plans:
 - [x] 190-07-PLAN.md — HeroMetrics-Mobil-Umbruch-Fix, siteweit (D-u, Teil 1).
 - [x] 190-08-PLAN.md — Blockierender Live-Checkpoint: HeroMetrics-Sweep an allen sechs Verwendungsstellen (D-u, Teil 2).
 - [x] 190-09-PLAN.md — Abschliessendes Phasen-Gate + Live-UAT (D-m, D-n, D-s).
+
+### Phase 191: „Hinweis senden“ auch an andere Fansub-Gruppen
+
+**Goal:** Mitglieder können einen Hinweis (Korrektur-Hinweis oder Mitgliedschaftsanfrage) auch an
+fremde Fansub-Gruppen senden, nicht nur an die eigene(n). Freigabe je nach Zielrolle (Leader-Rolle
+→ Plattform-Admin, alle anderen Rollen → Leader der Zielgruppe). Gruppensuche aus
+`useEpisodeVersionEditor.ts` als gemeinsamer Hook/Baustein herausgezogen, genutzt im Release-Editor
+UND im Hinweis-Formular, mit Kennzeichnung „Eigene Gruppe“/„Andere Gruppe“. Spam-Schutz: kein
+Doppel-Hinweis pro Person+Zielgruppe+Thema, Tageslimit ca. 10 pro Person (bestehende
+Rate-Limit-Middleware wiederverwenden), Ablehnen/Schließen mit einem Klick optional mit Begründung.
+Keine automatische Mitgliedschaft, keine neuen Zuweisungs-Flows, kein Stummschalten (noch nicht
+bauen), keine Captchas, keine Punkte/Badges für den Hinweis selbst, kein eigenes Recht.
+**Requirements**: TBD (additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-NN in
+191-CONTEXT.md, siehe Plan-Frontmatter `requirements`)
+**Depends on:** Phase 190
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 191 to break down)

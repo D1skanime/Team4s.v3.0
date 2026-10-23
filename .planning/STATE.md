@@ -584,6 +584,20 @@ Last activity: 2026-10-22 - Completed quick task 261022-i0i: Regression-Fix Publ
 
 ### Roadmap Evolution
 
+- Phase 191 added (2026-10-23): „Hinweis senden“ auch an andere Fansub-Gruppen. Quelle:
+  `.planning/todos/pending/2026-10-19-hinweis-senden-fremde-gruppen.md`. Alle sechs offenen Fragen
+  aus dem Todo waren bereits vom Nutzer entschieden (19.10.2026): Freigabe Leader-Rolle →
+  Plattform-Admin, sonst Leader der Zielgruppe; Gruppenauswahl = alle Gruppen über die bestehende
+  Gruppensuche (`getFansubList` aus `useEpisodeVersionEditor.ts`), als gemeinsamer Hook/Baustein
+  herausgezogen und im Release-Editor UND im Hinweis-Formular genutzt, mit Kennzeichnung „Eigene
+  Gruppe“/„Andere Gruppe“; keine automatische Mitgliedschaft, keine neuen Zuweisungs-Flows — der
+  Leader entscheidet über bestehende Wege; Spam-Schutz über Doppel-Hinweis-Sperre + Tageslimit
+  (bestehende Rate-Limit-Middleware prüfen) + Ablehnen/Schließen mit Begründung; Stummschalten
+  explizit NICHT bauen (erst bei echtem Missbrauch); keine Captchas, keine Punkte/Badges für den
+  Hinweis selbst, kein eigenes Recht. Zwei Hinweisarten: (a) Korrektur-Hinweis, (b) Anfrage für
+  Mitgliedschaft. Additiv angelegt, kein neues Milestone, kein Reset. Nur add-phase — noch nicht
+  geplant; Ist-Analyse + CONTEXT.md folgt direkt im Anschluss.
+
 - Phase 190 added (2026-10-20): Öffentliche Fansub-Gruppenseite überarbeiten (`/fansubs/<slug>`).
   Quelle: gemeinsame Live-Durchsicht mit dem Nutzer am 20./21.10.2026 auf `/fansubs/new-subs`
   (Desktop 1440 px). Umfang laut Nutzervorgabe (D-a bis D-n): Kopfbereich an die öffentliche
