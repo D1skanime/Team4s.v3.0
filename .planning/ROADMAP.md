@@ -2985,7 +2985,7 @@ bauen), keine Captchas, keine Punkte/Badges für den Hinweis selbst, kein eigene
 **Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01..D-08 aus
 191-CONTEXT.md, siehe jeweiliges Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 21/30 plans executed (191-25..191-30 added: vierte Nachbesserung D-23..D-28)
+**Plans:** 21/31 plans executed (191-25..191-31 added: vierte Nachbesserung D-23..D-28 + D-27-Repointing/D-25-Rest)
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -3014,7 +3014,8 @@ Plans:
 - [ ] 191-24-PLAN.md — Phasenabschluss zweite Nachbesserung: D-22-Vorabprüfung (vollständig), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
 - [ ] 191-25-PLAN.md — Backend: D-23 Server-Validierung (anime_fansub_groups-Check) + D-25-Sweep (6 Backend-Dateien)
 - [ ] 191-26-PLAN.md — Backend: D-26 main.go-Split (738 Zeilen, keine Ausnahme) + D-25-Sweep main.go
-- [ ] 191-27-PLAN.md — Frontend: D-27 contributions.module.css-Split (902 Zeilen, keine Ausnahme) + D-25-Sweep (5 Dateien)
+- [ ] 191-27-PLAN.md — Frontend: D-27 contributions.module.css-Split (902 Zeilen, keine Ausnahme) + D-25-Sweep (contributions.module.css, 3 Kommentarbloecke) — Import-Umstellung der 12 Verbraucher-Dateien + restlicher D-25-Sweep (4 Dateien) liegt in 191-31
 - [ ] 191-28-PLAN.md — Frontend: D-25-Sweep Admin-/Review-Oberflaeche (5 Dateien)
 - [ ] 191-29-PLAN.md — Frontend: D-25-Sweep oeffentliche/Mitglieder-Oberflaeche (8 Dateien)
 - [ ] 191-30-PLAN.md — Phasenabschluss vierte Nachbesserung: D-23/D-24-Vorabpruefung (echter API-Check + Loeschung), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
+- [ ] 191-31-PLAN.md — Frontend: D-27 Import-Repointing der 12 CSS-Modul-Verbraucher + Doku-Update + D-25-Sweep (page.tsx, MyProposalsSection.tsx, ProposalForm.tsx, ProposalForm.steps.tsx)
