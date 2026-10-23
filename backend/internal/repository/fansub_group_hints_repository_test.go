@@ -191,6 +191,51 @@ func TestFansubGroupHint_ListByTargetGroup_ReturnsAllStatuses_OrderedByCreatedAt
 	}
 }
 
+// TestFansubGroupHint_ListBySender_OnlyOwnHints_OrderedByCreatedAt prüft D-18: ListBySender
+// gibt ausschließlich Hinweise des übergebenen Absenders zurück -- über ALLE Status hinweg,
+// nie die eines anderen Absenders, geordnet nach created_at aufsteigend über mehrere
+// eigene Treffer hinweg.
+func TestFansubGroupHint_ListBySender_OnlyOwnHints_OrderedByCreatedAt(t *testing.T) {
+	pool := testsupport.OpenPhase191Postgres(t)
+	ctx := context.Background()
+	repo := NewFansubGroupHintsRepository(pool)
+
+	seedPhase191AppUser(t, pool, 1300, "sender-a@example.test", "Sender A")
+	seedPhase191AppUser(t, pool, 1301, "sender-b@example.test", "Sender B")
+	seedPhase191FansubGroup(t, pool, 2300, "Zielgruppe X")
+	seedPhase191FansubGroup(t, pool, 2301, "Zielgruppe Y")
+	seedPhase191Anime(t, pool, 3300, "Projekt X")
+	seedPhase191Anime(t, pool, 3301, "Projekt X Zwei")
+	seedPhase191Anime(t, pool, 3302, "Projekt Y")
+	animeX := int64(3300)
+	animeXTwo := int64(3301)
+	animeY := int64(3302)
+
+	hintA1, err := repo.CreateHint(ctx, HintInput{SenderAppUserID: 1300, TargetFansubGroupID: 2300, RelatedAnimeID: &animeX})
+	require.NoError(t, err)
+	hintA2, err := repo.CreateHint(ctx, HintInput{SenderAppUserID: 1300, TargetFansubGroupID: 2300, RelatedAnimeID: &animeXTwo})
+	require.NoError(t, err)
+	hintB, err := repo.CreateHint(ctx, HintInput{SenderAppUserID: 1301, TargetFansubGroupID: 2301, RelatedAnimeID: &animeY})
+	require.NoError(t, err)
+
+	rows, err := repo.ListBySender(ctx, 1300)
+	require.NoError(t, err)
+	require.Len(t, rows, 2, "sender A's result must contain exactly A's own two hints, never B's")
+
+	ids := map[int64]bool{}
+	for _, row := range rows {
+		ids[row.ID] = true
+		assert.EqualValues(t, 1300, row.SenderAppUserID)
+	}
+	assert.True(t, ids[hintA1.ID])
+	assert.True(t, ids[hintA2.ID])
+	assert.False(t, ids[hintB.ID], "sender B's hint must never appear in sender A's result set")
+
+	for i := 1; i < len(rows); i++ {
+		assert.False(t, rows[i].CreatedAt.Before(rows[i-1].CreatedAt), "rows must be ordered by created_at ascending")
+	}
+}
+
 // TestFansubGroupHint_HasActiveLead_ReflectsFansubGroupMemberRoles prüft D-11 unabhängig von
 // ListWithoutActiveLead: HasActiveLead muss ausschließlich aus fansub_group_member_roles
 // berechnet werden (gebunden über permissions.RoleFansubLead, niemals ein String-Literal)

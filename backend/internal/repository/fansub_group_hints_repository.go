@@ -236,6 +236,42 @@ func (r *FansubGroupHintsRepository) ListByTargetGroup(ctx context.Context, targ
 	return result, nil
 }
 
+// ListBySender gibt alle Hinweise zurück, die der übergebene Absender jemals verschickt
+// hat -- an die eigene(n) UND an fremde Gruppen, über ALLE Status hinweg (D-18: der
+// Absender-seitige Spiegel von ListByTargetGroup, dieselben Spalten/Joins, nur die
+// WHERE-Spalte wechselt von h.target_fansub_group_id auf h.sender_app_user_id). Keine
+// Status-Einschränkung, aus demselben Grund wie ListByTargetGroup: das Frontend
+// entscheidet per Anzeige/Filter, welche Teilmenge sichtbar ist, nicht das Repository.
+// senderAppUserID MUSS vom Aufrufer immer aus einer verifizierten Auth-Identität stammen
+// (niemals aus einem Request-Parameter) -- das Repository selbst prüft/erzwingt das
+// nicht, das ist Aufgabe des aufrufenden Handlers (siehe
+// FansubGroupHintsMeHandler.ListSentHints, die hier EINZIGE Aufrufstelle).
+func (r *FansubGroupHintsRepository) ListBySender(ctx context.Context, senderAppUserID int64) ([]FansubGroupHintRow, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT `+fansubGroupHintSelectCols+`
+		`+fansubGroupHintFromJoins+`
+		WHERE h.sender_app_user_id = $1
+		ORDER BY h.created_at ASC
+	`, senderAppUserID)
+	if err != nil {
+		return nil, fmt.Errorf("hinweise nach absender: %w", err)
+	}
+	defer rows.Close()
+
+	result := make([]FansubGroupHintRow, 0)
+	for rows.Next() {
+		row, err := scanFansubGroupHintRow(rows)
+		if err != nil {
+			return nil, fmt.Errorf("hinweise nach absender: scan: %w", err)
+		}
+		result = append(result, *row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("hinweise nach absender: iterate: %w", err)
+	}
+	return result, nil
+}
+
 // HasActiveLead beantwortet D-11s sicherheitskritische Frage "hat diese Fansub-Gruppe
 // aktuell eine aktive Leitung?" ausschließlich serverseitig aus fansub_group_members/
 // fansub_group_member_roles -- niemals aus einem vom Aufrufer übergebenen Feld. Die
