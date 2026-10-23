@@ -24,9 +24,9 @@ import {
   getOwnProfile,
   rejectAnimeContributionWithReason,
 } from '@/lib/api'
+import { isEligibleForContributions } from '@/lib/contributionsEligibility'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MeAnimeContribution, MembershipEntry } from '@/types/contributions'
-import type { MemberProfileData } from '@/types/profile'
 
 const MEMBER_PROFILE_REQUIRED_CODE = 'MEMBER_PROFILE_REQUIRED'
 
@@ -34,13 +34,6 @@ function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
   if (error instanceof Error) return error.message
   return fallback
-}
-
-// D-06/D-09: the only authoritative eligibility source is the own-profile aggregate.
-// has_member_profile alone is never sufficient — a verified Member without any real
-// project/contribution assignment must still be treated as non-entitled.
-function isEligibleForContributions(profile: Pick<MemberProfileData, 'has_member_profile' | 'has_project_assignments'> | null): boolean {
-  return Boolean(profile?.has_member_profile && profile?.has_project_assignments)
 }
 
 function isMemberProfileRequiredError(error: unknown): boolean {
