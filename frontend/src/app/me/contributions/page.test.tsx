@@ -15,6 +15,7 @@ const getMyAnimeContributionsMock = vi.hoisted(() => vi.fn())
 const getMyMembershipsMock = vi.hoisted(() => vi.fn())
 const confirmAnimeContributionMock = vi.hoisted(() => vi.fn())
 const rejectAnimeContributionWithReasonMock = vi.hoisted(() => vi.fn())
+const listMyFansubGroupHintsMock = vi.hoisted(() => vi.fn())
 
 const MockApiError = vi.hoisted(() => {
   return class MockApiError extends Error {
@@ -43,6 +44,7 @@ vi.mock('@/lib/api', () => ({
   getMyMemberships: (...args: unknown[]) => getMyMembershipsMock(...args),
   confirmAnimeContribution: (...args: unknown[]) => confirmAnimeContributionMock(...args),
   rejectAnimeContributionWithReason: (...args: unknown[]) => rejectAnimeContributionWithReasonMock(...args),
+  listMyFansubGroupHints: (...args: unknown[]) => listMyFansubGroupHintsMock(...args),
 }))
 
 vi.mock('@/components/contributions/ContributionInbox', () => ({
@@ -101,6 +103,7 @@ beforeEach(() => {
   getOwnProfileMock.mockResolvedValue(makeProfileResponse())
   getMyAnimeContributionsMock.mockResolvedValue({ data: [] })
   getMyMembershipsMock.mockResolvedValue({ data: [] })
+  listMyFansubGroupHintsMock.mockResolvedValue({ data: [] })
 })
 
 afterEach(() => {
