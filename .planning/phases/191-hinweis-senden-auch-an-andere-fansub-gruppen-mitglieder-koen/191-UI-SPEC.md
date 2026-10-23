@@ -1,7 +1,7 @@
 ---
 phase: 191
 slug: hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-10-23
@@ -16,7 +16,7 @@ amended: 2026-10-23 (Live-UAT-Nachbesserung — D-09, D-11, D-12, D-13, D-14 aus
 > re-open any of those decisions. Covers exactly the two UI surfaces named in the orchestrator
 > brief: (1) the extended „Hinweis senden"-Formular (`ProposalForm.tsx` +
 > `ProposalForm.steps.tsx`), and (2) the two review surfaces for decision-makers (extended
-> `ContributionsReviewSection.tsx`-pattern for the Zielgruppen-Leader, plus a NEW
+> `ContributionsReviewSection.tsx`-pattern for die Zielgruppen-Leader, plus a NEW
 > `/admin/claims`-pattern platform-admin list for the `fansub_lead`-Sonderfall).
 
 > **Amendment (2026-10-23, nach gescheitertem Live-UAT):** Pläne 191-01 bis 191-09 wurden
@@ -573,21 +573,21 @@ contracts above assume these shapes:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS — note: Hinweisart-/Rollenfeld-Strings sind vollständig
+- [x] Dimension 1 Copywriting: PASS — note: Hinweisart-/Rollenfeld-Strings sind vollständig
   entfernt (D-09), Admin-Liste-Strings auf „ohne Leitung" umgestellt (D-11), zwei neue Strings
   für Contract D (D-12) ergänzt.
-- [ ] Dimension 2 Visuals: PASS — note: D-13 (Dreifach-Namen-Bug) und D-14 (dunkler-Text-auf-
+- [x] Dimension 2 Visuals: PASS — note: D-13 (Dreifach-Namen-Bug) und D-14 (dunkler-Text-auf-
   dunklem-Grund-Bug) sind mit konkreten, token-basierten CSS-Werten behoben; Contract D's
   „Fehler melden"-Link ist explizit als `variant="text"`, nicht `"primary"`, spezifiziert, um
   seinen Nebenfeature-Charakter visuell zu sichern.
-- [ ] Dimension 3 Color: PASS — note: D-14-Fix nutzt ausschließlich bestehende Tokens
+- [x] Dimension 3 Color: PASS — note: D-14-Fix nutzt ausschließlich bestehende Tokens
   (`--surface-card`, `--border-subtle`, `--text-strong`, `--text-muted`), keine neuen Hex-Werte.
-- [ ] Dimension 4 Typography: PASS — note: der D-14-Fix führt keine neue Schriftgröße ein (Slug
+- [x] Dimension 4 Typography: PASS — note: der D-14-Fix führt keine neue Schriftgröße ein (Slug
   bleibt bei 14px, nicht kleiner); die 700-Gewichtung des neuen Contract-D-Textlinks ist als
   geerbte `Button`-Primitive-Eigenschaft deklariert, nicht als neu autorisiertes drittes Gewicht.
-- [ ] Dimension 5 Spacing: PASS — note: `--space-3`/`--space-4` für den D-14-CSS-Fix sind
+- [x] Dimension 5 Spacing: PASS — note: `--space-3`/`--space-4` für den D-14-CSS-Fix sind
   pre-existing Tokens (siehe Spacing-Fußnote), `--space-2` für den Contract-D-Link-Abstand
   ebenso.
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (ui-checker, 2026-10-23 Amendment-Review)
