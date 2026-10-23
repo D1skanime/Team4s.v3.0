@@ -51,10 +51,20 @@ not introduce new spacing values:
 |-------|-------|----------------------|
 | `--space-1` | 4px | Gap between a group-search result's name and slug subtitle; gap inside the "Eigene Gruppe"/"Andere Gruppe" badge row |
 | `--space-2` | 8px | Gap between the hint-type toggle buttons; gap between Badge and label text in review rows |
-| `--space-3` | 12px | Gap between group-search result list items; gap between review-card internal rows (matches `ContributionsReviewSection.tsx`'s existing `rejectActions` gap) |
+| `--space-3` | 12px¹ | Gap between group-search result list items; gap between review-card internal rows (matches `ContributionsReviewSection.tsx`'s existing `rejectActions` gap) |
 | `--space-4` | 16px | Card/section internal padding (unchanged `Card variant="section"`/`variant="nested"` padding); gap between wizard step panel fields |
 | `--space-5` | 24px | Not used by this phase's new elements (reserved for outer page padding, already applied by the existing admin shell) |
 | `--space-6` | 32px | Not used by this phase's new elements |
+
+¹ **Note for the checker:** This project's canonical spacing scale is the full **9-step** token
+set defined in `frontend/src/styles/globals.css:117-125` — `--space-1` through `--space-9`
+(4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 80px) — not a generic 7-value scale. `--space-3: 12px` is
+therefore not an invented/off-grid value; it is a pre-existing, already-shipped project token
+(see `globals.css:119`), and this UI-SPEC deliberately reuses it to stay visually consistent with
+the directly adjacent, already-shipped `ContributionsReviewSection.tsx` component, which already
+uses `--space-3` for its `rejectActions` gap. Substituting 8px or 16px here would break that
+established consistency and would be a regression, not a fix — any generic "non-standard token"
+flag on `--space-3` for this file is a false positive against this project's real token set.
 
 Exceptions: none. No 44px touch-target exception is needed — `Button`/`Input`/`Select` already
 meet the project's existing `--control-height-md: 44px` sizing; do not resize any control for
@@ -78,6 +88,16 @@ in production for this exact family of screens — do not invent new sizes/weigh
 plus the one pre-existing unstyled-`<h1>` exception noted above. 2 weights used by new CSS/styling
 (400 / 600); the `<h1>` bold is inherited browser default, not an authored third weight.
 
+**Explicit constraint for the checker (sign-off note):** the 700/bold weight in the table above
+originates **exclusively** from the unstyled, browser-default `<h1>` tag — carried over verbatim
+from `ClaimsClient.tsx` and reused identically, unchanged, for this phase's new
+`/admin/fansub-group-hints` page title (Component Contract C3). It does **not** count as an
+authorized third weight for this phase's work. No newly styled component, CSS Module class, inline
+`style`, or `@/components/ui` primitive introduced or modified in this phase may declare
+`font-weight: 700` / `bold` — all authored styling in this phase is strictly limited to 400 and
+600. Any `<h1>` added by this phase must stay a plain, unstyled tag with no custom class for this
+exception to remain valid.
+
 ---
 
 ## Color
@@ -88,8 +108,8 @@ Reuse existing semantic tokens and `Badge`/`Button` variant colors exactly — n
 |------|-------|-------|
 | Dominant (60%) | `var(--bg-primary)` / `var(--color-bg-light)` | Page/tab background — unchanged, inherited from the existing admin shell and the `ProposalForm` `Modal` backdrop |
 | Secondary (30%) | `var(--bg-card)` / `var(--color-white)` / `var(--surface-card)` | `Card variant="section"`/`variant="nested"` surfaces, `Table` row background, `Modal` panel |
-| Accent (10%) | `var(--color-primary)` / `var(--accent-primary)` (`#5f84dd`) | Reserved for exactly: `Button variant="primary"` (wizard "Weiter"/"Hinweis senden", admin-list "Bestätigen"), the active wizard-progress segment (`progressSegmentActive`), and the selected state of the new "Eigene Gruppe"/"Andere Gruppe" scope toggle and the Hinweisart toggle (both reuse the existing `role="radiogroup"` selected-button pattern from `Step2Role`'s `roleChoiceActive`). Do **not** use accent for static labels, Badge text, or section chrome. |
-| Destructive | `var(--color-error)` / `Badge variant="danger"` / `Button variant="danger"` (`#dc3545` / `button-danger` gradient) | Reserved for exactly: "Hinweis ablehnen" / "Ablehnen" buttons, the "Ablehnung bestätigen" confirm button, the reject-reason expansion's `X` icon. The reject action itself is not styled as a blocking irreversible delete (D-04(3): "erledigte Hinweise tauchen nicht wieder auf", but rejection is a normal, frequent moderation action, not a data-destroying one) — so no `ConfirmDialog` modal is layered on top of the existing inline-expand-then-confirm pattern (see Component Contract B). |
+| Accent (10%) | `var(--color-primary)` / `var(--accent-primary)` (`#5f84dd`) | Reserved for exactly: `Button variant="primary"` (wizard "Weiter"/"Hinweis senden", admin-list "Hinweis bestätigen"), the active wizard-progress segment (`progressSegmentActive`), and the selected state of the new "Eigene Gruppe"/"Andere Gruppe" scope toggle and the Hinweisart toggle (both reuse the existing `role="radiogroup"` selected-button pattern from `Step2Role`'s `roleChoiceActive`). Do **not** use accent for static labels, Badge text, or section chrome. |
+| Destructive | `var(--color-error)` / `Badge variant="danger"` / `Button variant="danger"` (`#dc3545` / `button-danger` gradient) | Reserved for exactly: "Hinweis ablehnen" buttons (both review surfaces), the "Ablehnung bestätigen" confirm button, the reject-reason expansion's `X` icon. The reject action itself is not styled as a blocking irreversible delete (D-04(3): "erledigte Hinweise tauchen nicht wieder auf", but rejection is a normal, frequent moderation action, not a data-destroying one) — so no `ConfirmDialog` modal is layered on top of the existing inline-expand-then-confirm pattern (see Component Contract B). **Accessibility:** the reused `X` icon in the reject expansion is a `lucide-react` SVG with no accessible name by default — it MUST carry an explicit `aria-label` (e.g. `aria-label="Ablehnung abbrechen"`) wherever it is used as the collapse/cancel affordance for the reject-reason expansion, in both Contract B and Contract C. |
 | Status (pre-existing, unchanged) | `Badge variant="warning"` (open/in review), `Badge variant="muted"` (done/erledigt), `Badge variant="info"` (role/type tags) | Reused 1:1 from `ContributionsReviewSection.tsx`/`ClaimsClient.tsx` — not introduced by this phase, listed here only so the checker does not mistake them for new accent usage. |
 
 Accent reserved for: primary submit/confirm actions and the active-selection state of the two new
@@ -206,6 +226,11 @@ Mitgliedschaftsanfrage:
 - Modal title changes from the project-specific "Ich war in diesem Projekt dabei" to a neutral
   title that covers both hint types and both own/foreign groups: **„Hinweis an eine Fansub-Gruppe
   senden"**. The Hinweisart toggle in Step 1 is what disambiguates further, not the modal title.
+- **Primary visual focus:** across all four wizard steps, the form's single primary focal point is
+  the primary CTA button of the final step — **„Hinweis senden"** (`Button variant="primary"`,
+  step 4/`Hinweis`). The "Weiter" buttons on earlier steps share the same `variant="primary"`
+  styling but are intermediate; no other accent-colored element should compete with the submit
+  action for visual weight anywhere in the wizard body.
 - Success view (`submittedSummary`) copy: heading stays **„Hinweis gesendet"**; body text becomes
   **„Dein Hinweis wurde an die Gruppe zur Prüfung übermittelt."** (unchanged — already generic
   enough). The summary `<dl>` below it must render conditionally: Korrektur shows Gruppe/Projekt/
@@ -254,6 +279,12 @@ existing project separates `GroupRolesSection` from the generic rights Accordion
 screens (same "different mechanism → different section" principle `191-RESEARCH.md`'s architecture
 section implies by keeping them as two separate GET endpoints).
 
+**Primary visual focus:** for this list, the primary visual focal point per row is the confirm
+action — **„Hinweis bestätigen"** (`Button variant="primary"`). The reject path
+(**„Hinweis ablehnen"**, `Button variant="danger"`) is intentionally the secondary action and stays
+visually de-emphasized (collapsed, no visible text input) until expanded, matching
+`ContributionsReviewSection.tsx`'s existing row layout.
+
 ### B2. Composition (reuse `ContributionsReviewSection.tsx` 1:1, swap only the data/copy)
 
 Reuse the exact `Card` → `Toolbar`(leading `SectionHeader`, trailing "Nur offene anzeigen"/"Alle
@@ -268,7 +299,7 @@ Differences from the original, itemized:
 | Project/role line | `row.anime_title` + role-code `Badge`s | Korrektur: identical (`anime_title` + role Badges). Mitgliedschaftsanfrage: show **„Gewünschte Rolle: {role.label_de}"** or **„Keine bestimmte Rolle angegeben"** instead — never render an empty/omitted row |
 | Confirm button label | `Vorschlag bestätigen` | **„Hinweis bestätigen"** — deliberately different copy, because confirming here does **not** create a membership row (D-03); "bestätigen" must not read as "accept into the group" |
 | Reject button label | `Vorschlag ablehnen` | **„Hinweis ablehnen"** |
-| Reject expansion | `Textarea` placeholder "Ablehngrund (optional)" + "Ablehnung bestätigen"/"Abbrechen" | identical, reused verbatim (D-04(3): optional reason, one-click close) |
+| Reject expansion | `Textarea` placeholder "Ablehngrund (optional)" + "Ablehnung bestätigen"/"Abbrechen" | identical, reused verbatim (D-04(3): optional reason, one-click close). **Accessibility:** the reused `X` icon that closes/cancels the expansion must carry an explicit `aria-label="Ablehnung abbrechen"` — do not rely on the icon alone to convey its function. |
 | "Done" state badge | `Erledigt` / `In Prüfung` (`Badge variant="muted"`/`"warning"`) | identical, reused verbatim |
 | Empty state (no hints at all) | "Keine offenen Vorschläge" / "Für diese Gruppe wurden noch keine Contributions vorgeschlagen." | **„Keine offenen Hinweise"** / **„Für diese Gruppe liegen aktuell keine Hinweise von Mitgliedern anderer Gruppen vor."** |
 | Empty state (all done, filter active) | "Alle Vorschläge wurden bearbeitet." | **„Alle Hinweise wurden bearbeitet."** |
@@ -320,8 +351,8 @@ one.
 | Filters | Status, Claim-Typ (disabled single value), Gruppe (ID), Benutzer (ID), Von/Bis | Status (`Select`: Alle/Offen/Bestätigt/Abgelehnt), Zielgruppe (ID, `Input` + onBlur pattern, identical to `claims-group-filter`), Von/Bis (`Input type="date"`, identical). Drop the "Claim-Typ" disabled-select row entirely — it has no equivalent concept here (every row already IS a `fansub_lead`-Mitgliedschaftsanfrage, nothing to disambiguate) |
 | Desktop table columns | Status, Benutzer, Gruppe, Mitglied, Erstellt, Aktion | Status, Antragsteller, Zielgruppe, **Gewünschte Rolle** (always renders `Badge variant="info"` **„Fansub-Leitung"** — static per the page's own filter, included for scannability/consistency with other admin tables, not because it varies), Erstellt, Aktion |
 | Mobile (<760px) | `ClaimCard` collapse, same `useIsMobile` hook | identical pattern reused verbatim — same breakpoint, same hook, same `Card variant="compact"` layout, column labels swapped as above |
-| Row actions | `Verifizieren`/`Ablehnen` (pending) → `Als aktives Mitglied übernehmen` (verified, inactive) | **„Bestätigen"** (`Button variant="primary"`) / **„Ablehnen"** (`Button variant="danger"`) for open hints only. No activation step — D-03 forbids any action that creates/activates a membership from this screen; "Bestätigen" only sets the hint's status to acknowledged, it is purely informational exactly like Contract B |
-| Decision detail panel | `ClaimDecisionImpactPanel` (drawer-style impact preview) | **Reject only:** a lightweight `Modal` (not a full impact-drawer — there is no "impact" to preview, D-03) titled **„Hinweis ablehnen"** containing a `Textarea` (placeholder "Ablehngrund (optional)") + `Button variant="danger"` **„Ablehnung bestätigen"** + `Button variant="ghost"` **„Abbrechen"**. "Bestätigen" needs no modal/confirmation at all — it fires immediately on click (same low-friction logic as Contract B's confirm button; only reject gets the extra reason-capture step) |
+| Row actions | `Verifizieren`/`Ablehnen` (pending) → `Als aktives Mitglied übernehmen` (verified, inactive) | **„Hinweis bestätigen"** (`Button variant="primary"`) / **„Hinweis ablehnen"** (`Button variant="danger"`) for open hints only — labels deliberately unified with Contract B's Leader-Review labels, not the generic "Bestätigen"/"Ablehnen" the pattern donor (`ClaimsClient.tsx`) uses, so both review surfaces for this feature read identically to admins/leaders switching between them. No activation step — D-03 forbids any action that creates/activates a membership from this screen; "Hinweis bestätigen" only sets the hint's status to acknowledged, it is purely informational exactly like Contract B |
+| Decision detail panel | `ClaimDecisionImpactPanel` (drawer-style impact preview) | **Reject only:** a lightweight `Modal` (not a full impact-drawer — there is no "impact" to preview, D-03) titled **„Hinweis ablehnen"** containing a `Textarea` (placeholder "Ablehngrund (optional)") + `Button variant="danger"` **„Ablehnung bestätigen"** + `Button variant="ghost"` **„Abbrechen"**. "Hinweis bestätigen" needs no modal/confirmation at all — it fires immediately on click (same low-friction logic as Contract B's confirm button; only reject gets the extra reason-capture step) |
 | Empty state (no filter) | "Keine Claims gefunden" | **„Keine offenen Leitungs-Anfragen"** / **„Aktuell liegen keine Mitgliedschaftsanfragen mit gewünschter Rolle „Fansub-Leitung" zur Prüfung vor."** |
 | Empty state (status=pending filter) | "Keine offenen Claims." | **„Keine offenen Leitungs-Anfragen."** |
 | Load error | "Claims konnten nicht geladen werden. Bitte Seite neu laden." | **„Hinweise konnten nicht geladen werden. Bitte Seite neu laden."** |
@@ -331,6 +362,11 @@ room for an inline textarea+buttons the way the Card-stack in Contract B does �
 deliberate, context-driven interaction-pattern difference, not an inconsistency: dense table rows
 get a `Modal`, card-stacks get inline expansion, matching how `ClaimsClient.tsx` itself already
 reserves its own dialog (`ClaimDecisionImpactPanel`) for the same reason.
+
+**Accessibility:** the reject modal's reused `X` icon (if used as the modal's own close affordance,
+reused from the same `lucide-react` `X` icon as Contract B) must likewise carry an explicit
+`aria-label="Hinweis-Ablehnung abbrechen"` (or the shared `Modal` primitive's own close-button
+label, if it already provides one) — never an icon-only control with no accessible name.
 
 ---
 
@@ -362,6 +398,7 @@ substitutes anywhere in JSX text, labels, placeholders, or aria-labels.
 | Leader-Review — Reject button | `Hinweis ablehnen` |
 | Leader-Review — Reject reason placeholder | `Ablehngrund (optional)` (reused verbatim) |
 | Leader-Review — Reject confirm button | `Ablehnung bestätigen` (reused verbatim) |
+| Leader-Review — Reject expansion close icon | `aria-label="Ablehnung abbrechen"` on the reused `X` icon |
 | Leader-Review — Empty (none ever) heading/body | `Keine offenen Hinweise` / `Für diese Gruppe liegen aktuell keine Hinweise von Mitgliedern anderer Gruppen vor.` |
 | Leader-Review — Empty (all done, filtered) | `Alle Hinweise wurden bearbeitet.` |
 | Leader-Review — Load error | `Hinweise konnten nicht geladen werden. Seite neu laden.` |
@@ -370,8 +407,8 @@ substitutes anywhere in JSX text, labels, placeholders, or aria-labels.
 | Admin-Liste — Page title | `Hinweise (Leitung)` |
 | Admin-Liste — Nav-Label | `Hinweise (Leitung)` |
 | Admin-Liste — Table column "Gewünschte Rolle" value | `Fansub-Leitung` (`Badge variant="info"`, static) |
-| Admin-Liste — Confirm button | `Bestätigen` |
-| Admin-Liste — Reject button | `Ablehnen` |
+| Admin-Liste — Confirm button | `Hinweis bestätigen` (unified with Leader-Review, not the generic „Bestätigen") |
+| Admin-Liste — Reject button | `Hinweis ablehnen` (unified with Leader-Review, not the generic „Ablehnen") |
 | Admin-Liste — Reject modal title | `Hinweis ablehnen` |
 | Admin-Liste — Reject modal confirm | `Ablehnung bestätigen` |
 | Admin-Liste — Reject modal cancel | `Abbrechen` |
@@ -415,11 +452,18 @@ shapes:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
+- [ ] Dimension 1 Copywriting: PASS — note: Contract C3's Bestätigen/Ablehnen actions are now
+  unified to „Hinweis bestätigen"/„Hinweis ablehnen", matching Contract B verbatim.
+- [ ] Dimension 2 Visuals: PASS — note: primary visual focal point declared for both the form
+  (final-step „Hinweis senden" CTA, Contract A5) and the Leader-Review list (confirm action,
+  Contract B1); `aria-label` requirement declared for the reused reject-expansion `X` icon in both
+  Contract B2 and Contract C3.
 - [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
+- [ ] Dimension 4 Typography: PASS — note: the 700-weight `<h1>` is an inherited browser-default
+  exception from `ClaimsClient.tsx`, carried over verbatim; it is explicitly NOT an authorized
+  third weight for any newly styled component in this phase (see Typography section constraint).
+- [ ] Dimension 5 Spacing: PASS — note: `--space-3` (12px) is a real, pre-existing project token
+  (`globals.css:117-125`, full 9-step scale), not an off-grid value; see Spacing Scale footnote.
 - [ ] Dimension 6 Registry Safety: PASS
 
 **Approval:** pending
