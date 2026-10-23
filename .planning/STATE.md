@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-22-PLAN.md
-last_updated: "2026-10-23T22:38:33.287Z"
+stopped_at: Completed 191-21-PLAN.md
+last_updated: "2026-10-23T22:46:27.304Z"
 last_activity: 2026-10-23
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 517
-  completed_plans: 509
+  completed_plans: 510
   percent: 89
 ---
 
@@ -1520,6 +1520,8 @@ Last activity: 2026-10-23
 - [Phase 191]: D-19: Step3NoteRange nutzt groupScope statt showYearAndInfoPanel — Von/Bis-Jahr bleiben fuer own UND foreign sichtbar (Regressionsschutz D-20), nur der Infopanel-Satz unterscheidet sich faktisch korrekt je Scope
 - [Phase 191]: 191-22: ListBySender filtert alle Status (keine serverseitige Einschraenkung), mirroring ListByTargetGroup
 - [Phase 191]: 191-22: GET /me/fansub-group-hints ohne Tageslimit -- bremst nur das Erstellen, nicht das Lesen eigener Hinweise
+- [Phase 191-21]: yearContext als drittes Notiz-Fragment zwischen Rolle und freier Notiz (D-20) — Haelt Rolle- und Zeitraum-Kontext unabhaengig testbar, analog zum bestehenden roleContext-Muster
+- [Phase 191-21]: D-21-Kommentare behalten D-Nummern als sekundaeren Verweis, nur die alleinige Incident-Begruendung wurde entfernt — CLAUDE.md erlaubt D-Verweise zusaetzlich zur fachlichen Erklaerung, nicht als Ersatz dafuer
 
 ### Pending Todos
 
@@ -2265,11 +2267,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P18 | ~35min | 2 tasks | 7 files |
 | Phase 191 P20 | 35min | 2 tasks | 8 files |
 | Phase 191 P22 | ~10min | 2 tasks | 7 files |
+| Phase 191 P21 | 25min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-23T22:38:33.261Z
-Stopped at: Completed 191-22-PLAN.md
+Last session: 2026-10-23T22:46:27.287Z
+Stopped at: Completed 191-21-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
