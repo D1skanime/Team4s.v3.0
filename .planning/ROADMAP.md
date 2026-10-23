@@ -2985,7 +2985,7 @@ bauen), keine Captchas, keine Punkte/Badges für den Hinweis selbst, kein eigene
 **Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01..D-08 aus
 191-CONTEXT.md, siehe jeweiliges Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 16/19 plans executed
+**Plans:** 17/19 plans executed
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -3005,5 +3005,5 @@ Plans:
 - [x] 191-15-PLAN.md — Frontend: Fremdgruppen-Projektliste-Bugfix (D-10) + Namens-/Farb-Fixes (D-13/D-14)
 - [x] 191-16-PLAN.md — Frontend: Admin-Liste "Hinweise ohne Leitung" + Leader-Review-Badge entfernt (D-11)
 - [x] 191-17-PLAN.md — Frontend: Eligibility-Util extrahiert + ProposalForm-prefill-Unterstützung (D-12)
-- [ ] 191-18-PLAN.md — Frontend: "Fehler melden"-Einstiegspunkt auf Projekt-/Release-Seite (D-12)
+- [x] 191-18-PLAN.md — Frontend: "Fehler melden"-Einstiegspunkt auf Projekt-/Release-Seite (D-12)
 - [ ] 191-19-PLAN.md — Phasenabschluss Nachbesserung: D-16-Vorabprüfung, DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
