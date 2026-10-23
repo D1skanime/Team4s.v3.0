@@ -65,6 +65,71 @@ describe('buildHintSubmitPayload', () => {
 
     expect(payload.note).toBeNull()
   })
+
+  it('bettet Von UND Bis als "Zeitraum: {von}–{bis}" ein (D-20)', () => {
+    const payload = buildHintSubmitPayload({
+      targetFansubGroupId: 7,
+      relatedAnimeId: 99,
+      roleLabelForNote: null,
+      note: '',
+      startedYear: '2019',
+      endedYear: '2021',
+    })
+
+    expect(payload.note).toBe('Zeitraum: 2019–2021')
+  })
+
+  it('bettet nur Von als "Zeitraum: ab {von}" ein, wenn Bis leer ist (D-20)', () => {
+    const payload = buildHintSubmitPayload({
+      targetFansubGroupId: 7,
+      relatedAnimeId: 99,
+      roleLabelForNote: null,
+      note: '',
+      startedYear: '2019',
+      endedYear: '',
+    })
+
+    expect(payload.note).toBe('Zeitraum: ab 2019')
+  })
+
+  it('bettet nur Bis als "Zeitraum: bis {bis}" ein, wenn Von leer ist (D-20)', () => {
+    const payload = buildHintSubmitPayload({
+      targetFansubGroupId: 7,
+      relatedAnimeId: 99,
+      roleLabelForNote: null,
+      note: '',
+      startedYear: '',
+      endedYear: '2021',
+    })
+
+    expect(payload.note).toBe('Zeitraum: bis 2021')
+  })
+
+  it('fuegt keinen "Zeitraum:"-Text ein, wenn Von UND Bis leer sind (D-20)', () => {
+    const payload = buildHintSubmitPayload({
+      targetFansubGroupId: 7,
+      relatedAnimeId: 99,
+      roleLabelForNote: null,
+      note: '',
+      startedYear: '',
+      endedYear: '',
+    })
+
+    expect(payload.note).toBeNull()
+  })
+
+  it('ordnet Rolle, Zeitraum und Notiz in der Reihenfolge Rolle — Zeitraum — Notiz an (D-20)', () => {
+    const payload = buildHintSubmitPayload({
+      targetFansubGroupId: 7,
+      relatedAnimeId: 99,
+      roleLabelForNote: 'X',
+      note: 'note text',
+      startedYear: 'Y',
+      endedYear: 'Z',
+    })
+
+    expect(payload.note).toBe('Rolle: X — Zeitraum: Y–Z — note text')
+  })
 })
 
 describe('errorMessageForHintStatus', () => {
@@ -237,6 +302,29 @@ describe('useProposalFormSubmit — Korrektur an eine fremde Gruppe (fansub_grou
     })
 
     expect(result.current.error).toBe('Du hast heute bereits zu viele Hinweise gesendet. Versuche es morgen wieder.')
+  })
+
+  it('forwardet startedYear/endedYear als "Zeitraum: ..."-Fragment in die Notiz (D-20)', async () => {
+    apiMocks.createFansubGroupHint.mockResolvedValue({ data: {} })
+    const { result } = renderHook(() => useProposalFormSubmit())
+
+    await act(async () => {
+      await result.current.submit({
+        groupScope: 'foreign',
+        ownGroup: null,
+        foreignGroup: { id: 99, name: 'RedHeartFansub', slug: 'redheart' } as never,
+        anime: { id: 5, title: 'One Piece' } as never,
+        roleCode: 'timer',
+        roleLabel: null,
+        note: '',
+        startedYear: '2019',
+        endedYear: '2021',
+      })
+    })
+
+    expect(apiMocks.createFansubGroupHint).toHaveBeenCalledWith(
+      expect.objectContaining({ note: expect.stringContaining('Zeitraum: 2019–2021') }),
+    )
   })
 
   it('priorisiert die 409-Konfliktmeldung des Eigene-Gruppe-Pfads VOR der generischen D-04(1)-Zuordnung', async () => {
