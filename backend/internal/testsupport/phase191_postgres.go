@@ -19,10 +19,12 @@ var (
 )
 
 // OpenPhase191Postgres opens the dedicated Phase-191 fixture and applies the REAL
-// migration 0187 (fansub_group_hints) against an isolated schema, on top of minimal
-// real-column stand-ins for the tables migration 0187 references as foreign keys
-// (anime, hist_fansub_group_members) and a few additional display-context columns the
-// repository's enrichment query needs (app_users.display_name/email, fansub_groups.name).
+// migrations 0187 (fansub_group_hints) and 0188 (D-09 schema cut: drops hint_type/
+// requested_role_code, related_anime_id becomes NOT NULL) against an isolated schema,
+// on top of minimal real-column stand-ins for the tables these migrations reference as
+// foreign keys (anime, hist_fansub_group_members, fansub_group_member_roles) and a few
+// additional display-context columns the repository's enrichment query needs
+// (app_users.display_name/email, fansub_groups.name).
 func OpenPhase191Postgres(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	return openPhasePostgres(
@@ -56,7 +58,14 @@ func validatePhase191SchemaName(name string) error {
 // enrichment query reads (app_users.display_name/email, fansub_groups.name), adds the
 // anime and hist_fansub_group_members stand-ins migration 0187 needs as FK targets, then
 // applies the REAL migration 0187 file via ApplySQLFile — the actual migration under test,
-// not a hand-copied inline SQL string.
+// not a hand-copied inline SQL string. Additionally adds a fansub_group_member_roles
+// stand-in (real production shape from migration 0073/0106, matching
+// phase137_postgres.go's identical precedent) because the D-11 "hat die Gruppe eine
+// aktive Leitung" predicate (HasActiveLead/ListWithoutActiveLead, Plan 191-11) needs a
+// real join target with that exact column layout to prove the predicate is computed
+// from fansub_group_member_roles rather than trusted as a client-supplied flag. Finally
+// applies the REAL migration 0188 file (D-09 schema cut) so every test built on this
+// fixture runs against the final, post-0188 schema.
 func createPhase191Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 	t.Helper()
 	createPhase107Prerequisites(t, pool)
@@ -73,15 +82,21 @@ CREATE TABLE hist_fansub_group_members (
     id BIGINT PRIMARY KEY,
     fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE RESTRICT,
     member_id BIGINT NOT NULL REFERENCES members(id) ON DELETE RESTRICT
+);
+CREATE TABLE fansub_group_member_roles (
+    fansub_group_member_id BIGINT NOT NULL REFERENCES fansub_group_members(id) ON DELETE CASCADE,
+    role TEXT NOT NULL REFERENCES role_definitions(code) ON DELETE RESTRICT,
+    PRIMARY KEY (fansub_group_member_id, role)
 );`
 	if err := validatePhase106SQL(standInSQL); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := pool.Exec(context.Background(), standInSQL); err != nil {
-		t.Fatalf("create Phase-191 anime/hist_fansub_group_members stand-ins: %v", err)
+		t.Fatalf("create Phase-191 anime/hist_fansub_group_members/fansub_group_member_roles stand-ins: %v", err)
 	}
 
 	ApplySQLFile(t, pool, phase191MigrationPath(t, "0187_fansub_group_hints.up.sql"))
+	ApplySQLFile(t, pool, phase191MigrationPath(t, "0188_fansub_group_hints_drop_membership_request.up.sql"))
 }
 
 func phase191MigrationPath(t testing.TB, name string) string {
