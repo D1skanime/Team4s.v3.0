@@ -123,9 +123,8 @@ describe('ReportHintEntryPoint (D-12, Sichtbarkeits-Gate)', () => {
 
     render(<ReportHintEntryPoint {...PREFILL_PROPS} />)
 
-    const button = await screen.findByRole('button', { name: 'Fehler melden' })
+    await screen.findByRole('button', { name: 'Fehler melden' })
     expect(screen.getAllByRole('button', { name: 'Fehler melden' })).toHaveLength(1)
-    expect(button).toBeInTheDocument()
   })
 
   it('oeffnet ProposalForm bei Klick mit der korrekten Vorauswahl und den eigenen Gruppen', async () => {
@@ -140,7 +139,7 @@ describe('ReportHintEntryPoint (D-12, Sichtbarkeits-Gate)', () => {
     const button = await screen.findByRole('button', { name: 'Fehler melden' })
     fireEvent.click(button)
 
-    await waitFor(() => expect(screen.getByTestId('proposal-form-mock')).toBeInTheDocument())
+    await waitFor(() => screen.getByTestId('proposal-form-mock'))
 
     expect(proposalFormMock).toHaveBeenCalled()
     const lastCallProps = proposalFormMock.mock.calls[proposalFormMock.mock.calls.length - 1][0] as Record<string, unknown>
