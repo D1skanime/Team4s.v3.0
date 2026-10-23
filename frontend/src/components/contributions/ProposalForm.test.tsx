@@ -9,6 +9,7 @@ import { ProposalForm } from './ProposalForm'
 
 const apiMocks = vi.hoisted(() => ({
   getAdminFansubAnime: vi.fn(),
+  getPublicFansubProfileBySlug: vi.fn(),
   createContributionProposal: vi.fn(),
   createFansubGroupHint: vi.fn(),
   getFansubList: vi.fn(),
@@ -26,6 +27,7 @@ vi.mock('@/lib/api', () => ({
   createContributionProposal: apiMocks.createContributionProposal,
   createFansubGroupHint: apiMocks.createFansubGroupHint,
   getAdminFansubAnime: apiMocks.getAdminFansubAnime,
+  getPublicFansubProfileBySlug: apiMocks.getPublicFansubProfileBySlug,
   getFansubList: apiMocks.getFansubList,
 }))
 
@@ -287,5 +289,66 @@ describe('ProposalForm — Drei-Schritte-Assistent (D-09: keine Hinweisart-Wahl 
 
     expect((screen.getByRole('button', { name: 'Weiter' }) as HTMLButtonElement).disabled).toBe(false)
     expect(screen.queryByText(/verifizierte Mitgliedschaft/)).toBeNull()
+  })
+})
+
+// D-10 (Live-UAT-Bugfix): Schritt 2 lud die Projektliste bisher bei JEDER Gruppenwahl ueber den
+// admin-gescopten, mitgliedschaftspflichtigen Endpunkt -- bei "Andere Gruppe" hat der Absender
+// nie eine solche Mitgliedschaft, der Aufruf schlug deshalb live reproduzierbar immer mit 403
+// fehl. Diese Tests beweisen, dass "Andere Gruppe" stattdessen die oeffentliche Profil-Quelle
+// nutzt (kein Mitgliedschafts-Check), waehrend "Eigene Gruppe" unveraendert den Admin-Endpunkt
+// ruft.
+describe('ProposalForm — Projektliste-Quelle nach groupScope (D-10)', () => {
+  const FOREIGN_GROUP = { id: 99, slug: 'redheart-subs', name: 'RedHeartFansub' }
+
+  async function pickForeignGroupViaSearch() {
+    apiMocks.getFansubList.mockResolvedValue({ data: [FOREIGN_GROUP] })
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Andere Gruppe' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Andere Gruppe suchen' }), {
+      target: { value: 'redheart' },
+    })
+
+    const resultButton = await screen.findByRole('button', { name: /RedHeartFansub/ })
+    fireEvent.click(resultButton)
+  }
+
+  it('ruft bei "Andere Gruppe" getPublicFansubProfileBySlug statt getAdminFansubAnime auf', async () => {
+    apiMocks.getPublicFansubProfileBySlug.mockResolvedValue({
+      data: { projects: [{ id: 7, title: 'Demon Slayer' }] },
+    })
+    renderForm()
+
+    await pickForeignGroupViaSearch()
+
+    await waitFor(() => {
+      expect(apiMocks.getPublicFansubProfileBySlug).toHaveBeenCalledWith('redheart-subs')
+    })
+    expect(apiMocks.getAdminFansubAnime).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }))
+    expect(screen.getByRole('option', { name: /Demon Slayer/ })).toBeTruthy()
+  })
+
+  it('zeigt die "Keine Anime/Projekte"-Leermeldung, wenn die fremde Gruppe keine oeffentlichen Projekte hat', async () => {
+    apiMocks.getPublicFansubProfileBySlug.mockResolvedValue({ data: { projects: [] } })
+    renderForm()
+
+    await pickForeignGroupViaSearch()
+
+    await waitFor(() => {
+      expect(apiMocks.getPublicFansubProfileBySlug).toHaveBeenCalledWith('redheart-subs')
+    })
+    expect(
+      (screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }) as HTMLButtonElement).disabled,
+    ).toBe(true)
+  })
+
+  it('bleibt bei "Eigene Gruppe" unveraendert auf getAdminFansubAnime, ruft getPublicFansubProfileBySlug nicht auf', async () => {
+    renderForm()
+    await chooseGroupAndAnime()
+
+    expect(apiMocks.getAdminFansubAnime).toHaveBeenCalledWith(10)
+    expect(apiMocks.getPublicFansubProfileBySlug).not.toHaveBeenCalled()
   })
 })
