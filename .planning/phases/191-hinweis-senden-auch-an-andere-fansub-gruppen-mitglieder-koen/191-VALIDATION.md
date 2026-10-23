@@ -58,7 +58,31 @@ created: 2026-10-23
 | 191-09 Task 1 | 191-09 | 6 | D-01/D-08 | typecheck + unit | `npm --prefix frontend run typecheck && npm --prefix frontend run test -- useFansubGroupHintsListFilters` | ⬜ pending |
 | 191-09 Task 2 | 191-09 | 6 | D-01/D-03/D-07 | unit (logic-level, extracted pure functions) | `npm --prefix frontend run test -- FansubGroupHintsAdminClient` | ⬜ pending |
 | 191-10 Task 1 | 191-10 | 7 | D-08 | full-suite regression | `scripts/test-backend.sh && npm --prefix frontend run test && npm --prefix frontend run typecheck` | ⬜ pending |
-| 191-10 Task 2 | 191-10 | 7 | D-01/D-03/D-04/D-07 | manual (blocking checkpoint, live UAT) | see Manual-Only Verifications below | ⬜ pending |
+| 191-10 Task 2 | 191-10 | 7 | D-01/D-03/D-04/D-07 | manual (blocking checkpoint, live UAT) | see Manual-Only Verifications below | ❌ nicht bestanden — siehe Gap-Closure 191-11..191-19 |
+
+### Gap-Closure (Live-UAT-Nachbesserung, D-09 bis D-16)
+
+| Task ID | Plan | Wave | Requirement/D-NN | Test-Typ | Automatisiertes Kommando | Status |
+|---|---|---|---|---|---|---|
+| 191-11 Task 1 | 191-11 | 1 | D-09/D-11/D-15 | integration (migrate up/down) | `docker compose exec team4sv30-backend sh -c "cd /app && go build ./..."` | ⬜ pending |
+| 191-11 Task 2 | 191-11 | 1 | D-09/D-11/D-15 | integration (real Postgres fixture) | `docker compose exec team4sv30-backend go test ./internal/repository/... -run FansubGroupHint -v` | ⬜ pending |
+| 191-12 Task 1 | 191-12 | 2 | D-09/D-15 | integration (httptest + Fake-Repo) | `docker compose exec team4sv30-backend go test ./internal/handlers/... -run FansubGroupHint -v` | ⬜ pending |
+| 191-12 Task 2 | 191-12 | 2 | D-09/D-11/D-15/D-08 | integration (httptest + Fake-Repo) | `docker compose exec team4sv30-backend go test ./internal/handlers/... -run "FansubGroupHintsReview\|AdminFansubGroupHints" -v` | ⬜ pending |
+| 191-12 Task 3 | 191-12 | 2 | D-08 | build + YAML-parse | `python3 -c "import yaml; yaml.safe_load(open('shared/contracts/fansub-group-hints.yaml'))" && echo OK` | ⬜ pending |
+| 191-13 Task 1 | 191-13 | 3 | D-09/D-15 | unit (mocked fetch) | `npm --prefix frontend run test -- fansub-group-hints` | ⬜ pending |
+| 191-14 Task 1 | 191-14 | 4 | D-09/D-15 | unit (logic-level) | `npm --prefix frontend run test -- ProposalForm.useSubmit ProposalForm.toggles` | ⬜ pending |
+| 191-14 Task 2 | 191-14 | 4 | D-09/D-15 | unit + typecheck | `npm --prefix frontend run test -- ProposalForm MyProposalsSection` | ⬜ pending |
+| 191-16 Task 1 | 191-16 | 4 | D-11/D-15 | unit | `npm --prefix frontend run test -- fansub-group-hints AdminMainNav` | ⬜ pending |
+| 191-16 Task 2 | 191-16 | 4 | D-11/D-15 | unit (logic-level) | `npm --prefix frontend run test -- FansubGroupHintsReviewSection` | ⬜ pending |
+| 191-15 Task 1 | 191-15 | 5 | D-10/D-15 | unit | `npm --prefix frontend run test -- ProposalForm` | ⬜ pending |
+| 191-15 Task 2 | 191-15 | 5 | D-13/D-14/D-15 | unit | `npm --prefix frontend run test -- ProposalForm.steps` | ⬜ pending |
+| 191-17 Task 1 | 191-17 | 6 | D-12/D-15 | unit | `npm --prefix frontend run test -- contributionsEligibility` | ⬜ pending |
+| 191-17 Task 2 | 191-17 | 6 | D-12/D-15 | unit + file-size gate | `npm --prefix frontend run test -- ProposalForm && wc -l frontend/src/components/contributions/ProposalForm.tsx` | ⬜ pending |
+| 191-18 Task 1 | 191-18 | 7 | D-12/D-08/D-15 | unit (logic-level) | `npm --prefix frontend run test -- ReportHintEntryPoint` | ⬜ pending |
+| 191-18 Task 2 | 191-18 | 7 | D-12 | typecheck + composition check | `npm --prefix frontend run typecheck` | ⬜ pending |
+| 191-19 Task 1 | 191-19 | 8 | D-16/D-08 | manual pre-check (real API flow, selbst durchzuführen) | `test -f .../191-19-HUMAN-UAT.md` (nach Durchführung) | ⬜ pending |
+| 191-19 Task 2 | 191-19 | 8 | D-08 | full-suite regression | `scripts/test-backend.sh && npm --prefix frontend run test && npm --prefix frontend run typecheck` | ⬜ pending |
+| 191-19 Task 3 | 191-19 | 8 | D-01/D-03/D-04/D-07/D-09..D-16 | manual (blocking checkpoint, live UAT, aktualisierte Checkliste) | see Manual-Only Verifications below | ⬜ pending |
 
 Nyquist-Prüfung: Jede Task hat ein funktionierendes `<automated>`-Kommando außer der letzten
 Task (191-10 Task 2), die ein explizit deklariertes, blockierendes
