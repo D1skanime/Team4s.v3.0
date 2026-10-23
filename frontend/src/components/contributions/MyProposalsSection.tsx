@@ -64,7 +64,14 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
     }
   }
 
-  function handleFormSuccess() {
+  // D-17 (Plan 191-20): ProposalForm zeigt seine Erfolgsansicht ("Hinweis gesendet") selbst
+  // ueber internen submittedSummary-State -- ein onReload() bei onSuccess loest hier
+  // frueher den Seiten-isLoading-Zustand aus (frontend/src/app/me/contributions/page.tsx),
+  // der diese ganze Section inkl. offenem Formular durch einen Lade-Screen ersetzt, bevor der
+  // Nutzer die Erfolgsansicht je sieht. Reload gehoert deshalb an den aktiven "Fertig"-Klick
+  // (onClose), nicht an den Submit-Erfolg selbst.
+  function handleFormClose() {
+    setShowForm(false)
     onReload()
   }
 
@@ -135,8 +142,8 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
     <>
       {showForm && (
         <ProposalForm
-          onSuccess={handleFormSuccess}
-          onClose={() => setShowForm(false)}
+          onSuccess={() => {}}
+          onClose={handleFormClose}
           ownGroups={ownGroups}
           roleDefinitions={contributionRoles}
         />

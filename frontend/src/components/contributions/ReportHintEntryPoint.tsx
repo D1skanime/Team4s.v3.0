@@ -113,7 +113,12 @@ export function ReportHintEntryPoint({
       </Button>
       {isOpen ? (
         <ProposalForm
-          onSuccess={() => setIsOpen(false)}
+          // D-17 (Plan 191-20): ProposalForm zeigt seine Erfolgsansicht ("Hinweis gesendet")
+          // selbst ueber internen submittedSummary-State -- schliesst der Aufrufer hier
+          // zusaetzlich bei onSuccess, verschwindet das Formular, bevor der Nutzer die
+          // Erfolgsansicht je sieht. onSuccess bleibt deshalb ein No-op; nur ein aktiver
+          // Klick auf "Fertig" (onClose) unmountet das Formular.
+          onSuccess={() => {}}
           onClose={() => setIsOpen(false)}
           ownGroups={ownGroups ?? []}
           roleDefinitions={roleDefinitions}
