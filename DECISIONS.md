@@ -1,5 +1,58 @@
 # DECISIONS
 
+## 2026-10-23 - Live-UAT-Nachbesserung: Mitgliedschaftsanfrage gestrichen, Fremdgruppen-Bug behoben, "Fehler melden" ergänzt
+
+### Decision
+Die erste Live-UAT-Runde von Plan 191-10 fiel durch (echter Daten-/Permission-Bug plus drei vom
+Nutzer freigegebene Korrekturen); diese Nachbesserungsrunde (D-09 bis D-16) schließt die Lücken,
+ohne die bereits ausgeführten Pläne 191-01 bis 191-09 neu zu planen. **D-09:** Die zweite
+Hinweisart „Anfrage für Mitgliedschaft" entfällt vollständig — kein `hint_type`-Unterschied mehr,
+kein optionales Rollenfeld, keine `fansub_lead`-Sonderfreigabe durch den Plattform-Admin für diesen
+Fall. Migration 0188 entfernt die Spalten `requested_role_code` und `hint_type` aus
+`fansub_group_hints` ersatzlos (die Tabelle war zu diesem Zeitpunkt leer), macht
+`related_anime_id` `NOT NULL` und vereinfacht die zugehörigen Constraints/Indizes entsprechend.
+`member_claims` (Phase 81/135) bleibt der alleinige „ich war früher dabei"-Weg. **D-10:** Die
+Projektliste für eine fremde Zielgruppe im Hinweis-Formular wird jetzt aus der **öffentlichen**
+Quelle geladen (`GET /fansub-slugs/:slug/public-profile`) statt aus dem gruppen-gescopten
+Admin-Endpunkt `GET /admin/fansubs/:id/anime`, der bei fremder Gruppenmitgliedschaft mit 403
+fehlschlug — genau der im Live-UAT reproduzierte Blocker. **D-11:** Die bereits gebaute
+plattformweite Admin-Liste (`admin_fansub_group_hints_handler.go`,
+`/admin/fansub-group-hints`) wird umgewidmet statt neu gebaut — sie zeigt jetzt Hinweise an
+Zielgruppen **ohne aktive `fansub_lead`-Rolle** (serverseitig über eine schmale
+Repository-Abfrage gegen `fansub_group_member_roles` ermittelt, nie über ein Client-Feld), statt
+vormals Hinweise mit Rollenwunsch `fansub_lead`. Der bestehende, gruppen-gescopte Leader-Pfad
+(`CanForFansubGroup`/`ActionFansubGroupMembersManage`) bleibt für Zielgruppen mit aktiver Leitung
+unverändert die einzige Entscheidungsinstanz. **D-12:** Ein zweiter, eligibility-gegateter
+Einstiegspunkt „Fehler melden" erscheint dezent auf der öffentlichen Projekt- und Release-Seite für
+Mitglieder mit Mitgliedsprofil UND Projekt-Zuordnung, öffnet dasselbe `ProposalForm` mit
+vorausgewählter Gruppe/Projekt und ist für alle anderen Betrachter unsichtbar (kein Platzhalter,
+kein Fehlertext). **D-13/D-14:** Der im Live-UAT gefundene doppelte Gruppenname (Suchergebnis +
+„Ausgewählt:"-Zeile + Breadcrumb-Pille) ist auf eine einzige Anzeige reduziert, und das
+Suchergebnis-Element folgt jetzt dem bestehenden hellen Formular-Muster statt dunklem Text auf
+dunklem Button-Hintergrund.
+
+### Why This Won
+Die Streichung der Mitgliedschaftsanfrage (D-09) war keine spekulative Aufräumaktion, sondern eine
+direkte Konsequenz der Nutzungsrealität: „Hinweis senden" ist ohnehin nur erreichbar, wer bereits
+Mitgliedsprofil UND Projekt-Zuordnung hat, und der historische „ich war früher dabei"-Fall läuft
+seit Phase 81/135 bereits über `member_claims` — eine zweite, parallele Beitrittsanfrage hätte
+diesen Weg dupliziert statt ihn zu ergänzen. Der Fremdgruppen-Bug (D-10) war ein echter,
+live-reproduzierter 403-Fehler, kein theoretisches Risiko — der naheliegende Fix war, die bereits
+für die öffentliche Profilseite bestehende, permission-freie Datenquelle wiederzuverwenden statt
+eine neue Berechtigungsausnahme in den Admin-Endpunkt einzubauen. Die Admin-Listen-Umwidmung
+(D-11) vermeidet einen Parallel-Neubau einer zweiten Liste für denselben strukturellen Fall
+(„niemand mit Entscheidungsbefugnis vorhanden"). D-12 bis D-14 waren direkt vom Nutzer im
+Live-Checkpoint beobachtete, konkrete UX-Mängel, keine Ermessensentscheidungen.
+
+### Consequences
+`fansub_group_hints` ist jetzt eine strikt eingleisige Tabelle (ausschließlich Korrektur-Hinweise)
+— eine künftige Funktion „Beitritt zu einer Gruppe anfragen" bräuchte entweder eine neue,
+eigenständige Tabelle oder eine Erweiterung von `member_claims`, nicht die Wiederbelebung des
+gestrichenen Spaltenpaars `hint_type`/`requested_role_code`. Die Admin-Liste trägt dauerhaft ein
+serverseitig berechnetes, nicht client-gesteuertes Filterkriterium („Zielgruppe ohne aktive
+Leitung") — jede künftige Erweiterung dieser Liste muss dieselbe serverseitige Berechnung
+respektieren, statt ein Client-Flag einzuführen.
+
 ## 2026-10-23 - Hinweise an fremde Fansub-Gruppen: Rollenbasierte Freigabe, kein neues Recht, eigene Tabelle
 
 ### Decision
