@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 190 was final phase)
-last_updated: 2026-10-21T15:02:42.636Z
-last_activity: 2026-10-21
+status: executing
+stopped_at: Completed 191-01-PLAN.md
+last_updated: "2026-10-23T12:33:03.760Z"
+last_activity: 2026-10-23
 progress:
-  total_phases: 55
-  completed_phases: 49
-  total_plans: 493
-  completed_plans: 544
+  total_phases: 56
+  completed_phases: 50
+  total_plans: 503
+  completed_plans: 491
   percent: 89
 ---
 
@@ -431,15 +431,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 191 — hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 190
-Plan: Not started
-Status: Milestone complete
+Phase: 191 (hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen) — EXECUTING
+Plan: 2 of 10
+Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -578,7 +578,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-22 - Completed quick task 261022-i0i: Regression-Fix PublicHeaderBackdrop-Stacking (z-index) aus 261022-g17 behoben
+Last activity: 2026-10-23
 
 ## Accumulated Context
 
@@ -1491,6 +1491,8 @@ Last activity: 2026-10-22 - Completed quick task 261022-i0i: Regression-Fix Publ
   190-HUMAN-UAT.md auf `status: approved` gesetzt. Phase 190 vollstaendig abgeschlossen — additiv
   an die v1.4-Roadmap angehaengt, kein neues Milestone, letzte Phase der aktuellen Roadmap.
 
+- [Phase 191-01]: related_anime_id (nicht related_release_version_id) ist der Thema-Schluessel des Partial-Unique-Index fuer die Dopplungssperre — UI dieser Phase bietet keine Release-Versions-Auswahl fuer den Korrektur-Hinweis an
+
 ### Pending Todos
 
 - Eleven pending todo files include the future project-wide member media gallery; it is explicitly outside Phase 142.
@@ -2216,11 +2218,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 190 P05 | 20min | 3 tasks | 7 files |
 | Phase 190 P06 | 5min | 2 tasks | 2 files |
 | Phase 190 P07 | 8min | 2 tasks | 1 files |
+| Phase 191 P01 | 20min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-21T12:29:34.700Z
-Stopped at: Completed 190-07-PLAN.md
+Last session: 2026-10-23T12:33:03.725Z
+Stopped at: Completed 191-01-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
