@@ -2985,7 +2985,7 @@ bauen), keine Captchas, keine Punkte/Badges für den Hinweis selbst, kein eigene
 **Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01..D-08 aus
 191-CONTEXT.md, siehe jeweiliges Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 17/24 plans executed
+**Plans:** 18/24 plans executed
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -3007,7 +3007,7 @@ Plans:
 - [x] 191-17-PLAN.md — Frontend: Eligibility-Util extrahiert + ProposalForm-prefill-Unterstützung (D-12)
 - [x] 191-18-PLAN.md — Frontend: "Fehler melden"-Einstiegspunkt auf Projekt-/Release-Seite (D-12)
 - [ ] 191-19-PLAN.md — Phasenabschluss Nachbesserung: D-16-Vorabprüfung, DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
-- [ ] 191-20-PLAN.md — Frontend: Erfolgsansicht bleibt sichtbar (D-17) + 90-Tage-Text nur bei eigener Gruppe (D-19)
+- [x] 191-20-PLAN.md — Frontend: Erfolgsansicht bleibt sichtbar (D-17) + 90-Tage-Text nur bei eigener Gruppe (D-19)
 - [ ] 191-21-PLAN.md — Frontend: Zeitraum in Hinweis-Notiz erhalten (D-20) + Kommentar-Nachzug (D-21)
 - [ ] 191-22-PLAN.md — Backend: `GET /me/fansub-group-hints` (D-18, Absender-Sicht)
 - [ ] 191-23-PLAN.md — Frontend: Gesendete Fremdgruppen-Hinweise auf /me/contributions (D-18)

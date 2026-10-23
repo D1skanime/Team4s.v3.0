@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-18-PLAN.md
-last_updated: "2026-10-23T21:13:59.187Z"
+stopped_at: Completed 191-20-PLAN.md
+last_updated: "2026-10-23T22:31:01.249Z"
 last_activity: 2026-10-23
 progress:
   total_phases: 56
   completed_phases: 50
-  total_plans: 512
-  completed_plans: 507
+  total_plans: 517
+  completed_plans: 508
   percent: 89
 ---
 
@@ -1516,6 +1516,8 @@ Last activity: 2026-10-23
 - [Phase 191]: 191-15: D-10-Fix nutzt getPublicFansubProfileBySlug statt getAdminFansubAnime bei groupScope='foreign' (403-Bug behoben); ProposalAnimeOption ersetzt AdminFansubAnimeEntry in der ProposalForm-Familie; contributions.module.css (902 Zeilen) wird trotz CLAUDE.md-450-Regel nicht gesplittet, da 11 Komponenten denselben CSS-Modul-Import teilen (Rule-4-Architekturaenderung ausserhalb des Scopes).
 - [Phase 191]: 191-17: useProposalFormPrefill.ts nicht angelegt, da ProposalForm.tsx nach der Prefill-Implementierung bei 448 Zeilen liegt (File-Size-Gate unterschritten)
 - [Phase 191]: ReportHintEntryPoint laedt ownGroups lazy erst beim Klick auf 'Fehler melden', nicht eager mit der Eligibility-Pruefung — Wortgetreu nach der Behavior-Vorgabe von Plan 191-18; vermeidet einen unnoetigen getMyMemberships-Aufruf fuer jeden Seitenbesucher, der den Knopf nie anklickt.
+- [Phase 191]: D-17: ProposalForm-Aufrufer uebergeben onSuccess als No-op, Reload/Unmount nur ueber onClose — ProposalForm rendert die Erfolgsansicht selbst ueber internen State -- Aufrufer-seitiges Schliessen bei onSuccess hat sie vorher unsichtbar gemacht
+- [Phase 191]: D-19: Step3NoteRange nutzt groupScope statt showYearAndInfoPanel — Von/Bis-Jahr bleiben fuer own UND foreign sichtbar (Regressionsschutz D-20), nur der Infopanel-Satz unterscheidet sich faktisch korrekt je Scope
 
 ### Pending Todos
 
@@ -2259,11 +2261,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P15 | 55min | 2 tasks | 6 files |
 | Phase 191 P17 | 45min | 2 tasks | 7 files |
 | Phase 191 P18 | ~35min | 2 tasks | 7 files |
+| Phase 191 P20 | 35min | 2 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-10-23T21:13:59.156Z
-Stopped at: Completed 191-18-PLAN.md
+Last session: 2026-10-23T22:31:01.221Z
+Stopped at: Completed 191-20-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
