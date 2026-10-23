@@ -36,8 +36,8 @@ describe("fansub-group-hints API-Client", () => {
 
     await expect(
       createFansubGroupHint({
-        hint_type: "membership_request",
         target_fansub_group_id: 5,
+        related_anime_id: 42,
       }),
     ).rejects.toMatchObject({
       status: 409,
@@ -61,7 +61,6 @@ describe("fansub-group-hints API-Client", () => {
 
     await expect(
       createFansubGroupHint({
-        hint_type: "correction",
         target_fansub_group_id: 5,
         related_anime_id: 42,
       }),

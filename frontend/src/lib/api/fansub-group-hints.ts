@@ -1,8 +1,8 @@
 // Sieben dedizierte, schmal benannte API-Client-Funktionen statt eines generischen
 // REST-Clients: jede der drei unabhängigen UI-Konsumenten (Mitglied-Formular zum
 // Absenden eines Hinweises, gruppen-gescopte Leader-Review-Liste, plattform-weite
-// Admin-Liste für fansub_lead-Mitgliedschaftsanfragen, D-01/D-07) braucht eine
-// eigene, vertraglich festgelegte Request-/Response-Form aus
+// Admin-Liste für Zielgruppen ohne aktive Leitung, D-11) braucht eine eigene,
+// vertraglich festgelegte Request-/Response-Form aus
 // shared/contracts/fansub-group-hints.yaml (Plan 191-05). Ein generischer Client
 // würde diese Pro-Endpunkt-Typsicherheit wieder aufgeben und genau das
 // Ad-hoc-Response-Form-Problem erneut öffnen, das die Typdatei
@@ -50,9 +50,12 @@ export async function createFansubGroupHint(
 
 /**
  * Liste der eingehenden Hinweise an die ZIELGRUPPE für den Leader der
- * Zielgruppe (nicht die Gruppe des Absenders) — fansub_lead-Mitgliedschafts-
- * anfragen sind hier serverseitig ausgefiltert (D-01, siehe Plattform-Admin-
- * Liste unten).
+ * Zielgruppe (nicht die Gruppe des Absenders) — liefert ausnahmslos ALLE
+ * Hinweise an diese Gruppe zurück, ohne serverseitige Filterung. Ob eine
+ * Zielgruppe stattdessen über die plattform-weite Liste unten entschieden
+ * wird, hängt ausschließlich davon ab, ob sie aktuell eine aktive
+ * `fansub_lead`-Rolle hat (D-11) — keine clientseitig sichtbare Eigenschaft
+ * des einzelnen Hinweises.
  */
 export async function listGroupHints(
   fansubId: number,
@@ -121,9 +124,10 @@ export async function rejectGroupHint(
 }
 
 /**
- * Plattform-weite Liste AUSSCHLIESSLICH der fansub_lead-Mitgliedschaftsanfragen
- * (D-01/D-07) — Autorisierung unabhängig von jeder gruppenbezogenen Berechtigung
- * des Aufrufers, strukturell analog zu listClaims.
+ * Plattform-weite Liste AUSSCHLIESSLICH der Hinweise, deren Zielgruppe aktuell
+ * KEINE aktive `fansub_lead`-Rolle hat (D-11, typischerweise aufgelöste/
+ * inaktive Gruppen) — Autorisierung unabhängig von jeder gruppenbezogenen
+ * Berechtigung des Aufrufers, strukturell analog zu listClaims.
  */
 export async function listAdminFansubGroupHints(
   params: AdminFansubGroupHintListParams = {},
@@ -154,7 +158,7 @@ export async function listAdminFansubGroupHints(
   return response.json() as Promise<AdminFansubGroupHintListResponse>;
 }
 
-/** Bestätigt eine fansub_lead-Mitgliedschaftsanfrage als Plattform-Admin (status='acknowledged'). */
+/** Bestätigt einen Hinweis ohne aktive Zielgruppen-Leitung als Plattform-Admin (status='acknowledged', D-11). */
 export async function confirmAdminFansubGroupHint(
   hintId: number,
 ): Promise<{ message: string }> {
@@ -174,7 +178,7 @@ export async function confirmAdminFansubGroupHint(
   return response.json() as Promise<{ message: string }>;
 }
 
-/** Lehnt eine fansub_lead-Mitgliedschaftsanfrage als Plattform-Admin ab (status='rejected'). */
+/** Lehnt einen Hinweis ohne aktive Zielgruppen-Leitung als Plattform-Admin ab (status='rejected', D-11). */
 export async function rejectAdminFansubGroupHint(
   hintId: number,
   decisionNote?: string,
