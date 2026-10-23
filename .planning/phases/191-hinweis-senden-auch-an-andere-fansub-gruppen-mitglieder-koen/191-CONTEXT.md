@@ -518,3 +518,94 @@ führte zu einer falschen Aussage im letzten Checkpoint-Bericht. Vor jeder Behau
 Checkpoint-Bericht: die konkret betroffene Entität (Gruppe/Konto/Hinweis-ID) direkt und vollständig
 gegen die echte DB/API prüfen, nicht gegen eine Stichprobe. Bestehende Live-Testdaten
 (`fansub_group_hints` ID 1, 2, 3) bleiben unverändert erhalten.
+
+---
+
+## Nutzerentscheidungen — fünfte Runde (2026-10-23, dritter Live-UAT-Durchlauf, final — nicht neu verhandeln)
+
+**Quelle:** Dritter Live-UAT-Durchlauf durch den Nutzer (Konto `timer@team4s.de`) nach Ausführung
+der Pläne 191-20 bis 191-24/Task 1+2. D-17 bis D-21 sind laut Nutzer live bestätigt („gut"). Ein
+echter Datenintegritäts-Bug (D-23) plus vier Nachzug-Punkte.
+
+### D-23 — Serverseitige Prüfung: Projekt muss zur Zielgruppe gehören (Bug)
+`POST /api/v1/me/fansub-group-hints` prüft `related_anime_id` aktuell nur gegen die FK-Existenz
+von `anime(id)`, NICHT gegen die tatsächliche Gruppen-Projekt-Zuordnung
+(`anime_fansub_groups`-Tabelle) — Beleg: der eigene Test-Hinweis ID 4 verknüpfte AnimeOwnage
+(Gruppe 29) mit 11eyes (anime 2), obwohl `anime_fansub_groups` für Gruppe 29 keinen Eintrag mit
+anime_id=2 hat. **Fix:** vor dem Insert serverseitig prüfen, dass
+`(target_fansub_group_id, related_anime_id)` in `anime_fansub_groups` existiert — dafür den
+BEREITS BESTEHENDEN, exakt dafür gebauten Helper
+`ensureAnimeFansubProjectContextExistsInDB`/`ErrInvalidAnimeFansubContext`
+(`backend/internal/repository/anime_project_notes_repository.go:19-39`, bereits paketintern
+wiederverwendbar aus `fansub_group_hints_repository.go`, selbes Package `repository`)
+wiederverwenden statt neu zu bauen — exakt das etablierte Projektmuster für diesen Check
+(siehe `admin_content_anime_project_timeline.go:50-53`: `404` + deutsche Meldung „Anime-Fansub-
+Zuordnung nicht gefunden"). `related_release_version_id` wird aktuell NICHT vom Request-DTO
+akzeptiert (bewusst reservierte, ungenutzte Spalte seit Migration 0187) — dafür entsteht KEINE
+zusätzliche Prüfung in dieser Runde, da es kein Eingabefeld dafür gibt. Integrationstest UND
+echter Live-API-Gegencheck Pflicht (D-28).
+
+### D-24 — Testdaten aufräumen (echte Löschung, kein Code)
+Hinweis-ID 1 (ASCII-Notiztext aus meinem eigenen Vorab-Check, verstößt gegen die Umlaut-Konvention
+für sichtbare Texte) und ID 4 (die durch D-23 jetzt ungültige Gruppe-Projekt-Kombination, mein
+eigener D-20-Test) werden per echtem `DELETE FROM fansub_group_hints WHERE id IN (1, 4)` entfernt
+— IDs 2, 3 und 5 (Nutzer-eigene Live-Testdaten) bleiben für die Abnahme unverändert stehen. Diese
+Löschung geschieht NACH Abschluss aller Code-Änderungen dieser Runde, dokumentiert mit
+Vorher-/Nachher-Snapshot im Checkpoint-Vorab-Check (D-28).
+
+### D-25 — Kommentar-Sweep, dritte Runde: alle 24 von Phase 191 tatsächlich geänderten Zeilen
+`git diff 72fc7c0f6..HEAD` (Start der Phase) zeigt in folgenden Dateien NEU hinzugefügte
+Kommentarzeilen mit `D-NN`/„Plan 191-xx"/„Phase 191" als alleinige oder vorangestellte Erklärung
+statt einer fachlichen Beschreibung — **nur diese tatsächlich von Phase 191 hinzugefügten Zeilen**
+werden umformuliert, keine vorbestehenden, phasenfremden Kommentare in denselben (teils geteilten)
+Dateien (z. B. die „Phase 78"/„Phase 87"/„Phase 138-xx"-Kommentare in `main.go` sind NICHT Teil
+dieser Phase und bleiben unberührt):
+`backend/cmd/server/main.go`, `backend/internal/handlers/admin_fansub_group_hints_handler.go`,
+`backend/internal/handlers/fansub_group_hints_decide.go`,
+`backend/internal/handlers/fansub_group_hints_me_handler.go`,
+`backend/internal/handlers/fansub_group_hints_review_handler.go`,
+`backend/internal/repository/fansub_group_hints_repository.go`,
+`backend/internal/testsupport/phase191_postgres.go`,
+`frontend/src/app/admin/fansub-group-hints/FansubGroupHintsAdminClient.tsx`,
+`frontend/src/app/admin/fansub-group-hints/useFansubGroupHintsListFilters.ts`,
+`frontend/src/app/admin/fansubs/[id]/edit/FansubDetailsTab.tsx`,
+`frontend/src/app/admin/fansubs/[id]/edit/FansubGroupHintsReviewSection.tsx`,
+`frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseDetailHero.tsx`,
+`frontend/src/app/anime/[id]/group/[groupId]/sections/HeroSection.tsx`,
+`frontend/src/app/me/contributions/page.tsx`, `frontend/src/components/admin/AdminMainNav.tsx`,
+`frontend/src/components/contributions/contributions.module.css`,
+`frontend/src/components/contributions/MyProposalsSection.tsx`,
+`frontend/src/components/contributions/ProposalForm.steps.tsx`,
+`frontend/src/components/contributions/ProposalForm.tsx`,
+`frontend/src/components/contributions/ProposalForm.useSubmit.ts`,
+`frontend/src/components/contributions/ReportHintEntryPoint.tsx`,
+`frontend/src/lib/api/fansub-group-hints.ts`, `frontend/src/lib/contributionsEligibility.ts`,
+`frontend/src/lib/fansubGroupHintStatus.ts`, `frontend/src/types/fansub-group-hints.ts`. Jeder
+Kommentar beschreibt danach WAS/WARUM fachlich, D-Verweise dürfen höchstens zusätzlich daneben
+stehen.
+
+### D-26 — Kein Ausnahme: `backend/cmd/server/main.go` wird gesplittet
+**Endgültige Nutzerentscheidung, keine weitere Diskussion:** Die 450-Zeilen-Regel aus CLAUDE.md
+gilt ausnahmslos. `backend/cmd/server/main.go` (738 Zeilen) wird in fachlich sinnvolle Module im
+selben Package (`main`, mehrere `.go`-Dateien im selben Verzeichnis `backend/cmd/server/`) nach
+Fachbereich aufgeteilt (z. B. Routen-/Handler-Verdrahtung nach Domäne gruppiert, etwa „Fansub-
+Gruppen-Routen", „Admin-Routen", „Me-Routen" — exakte Gruppierung in der Planung festlegen).
+Verhalten bleibt vollständig unverändert (reiner Struktur-Split, kein Verhalten-Commit). Reihenfolge
+laut Projektkonvention: zuerst der reine Umbau-Commit (grün gegen volle Backend-Suite), danach
+etwaige inhaltliche D-23-Änderung als separater Commit.
+
+### D-27 — Kein Ausnahme: `contributions.module.css` wird gesplittet
+`frontend/src/components/contributions/contributions.module.css` (902 Zeilen, 119
+Top-Level-Klassen, geteilt von 11 Komponenten) wird nach Komponente/Bereich aufgeteilt (z. B. je
+eine `*.module.css` pro Komponente, die bereits heute eigene Klassen darauf referenziert — exakte
+Aufteilung in der Planung anhand der tatsächlichen Klassenverwendung je Komponente festlegen).
+Optik bleibt pixelgleich — reiner Struktur-Split.
+
+### D-28 — Pflicht-Vorabprüfung, dritte Verschärfung (ersetzt/ergänzt D-22)
+Vor dem nächsten Live-Checkpoint: D-23 über einen echten API-Aufruf gegenprüfen (ungültige
+Gruppe-Projekt-Kombination senden → erwartete Fehlerantwort erhalten, dann eine gültige
+Kombination senden → 201). D-24s Löschung mit Vorher-/Nachher-Snapshot von `fansub_group_hints`
+dokumentieren (IDs 2/3/5 unverändert, IDs 1/4 weg). Nach D-26/D-27: volle Backend-Suite +
+Frontend-Tests/Typecheck/Lint grün UND visuelle Live-Prüfung, dass `/me/contributions`,
+`/admin/fansub-group-hints` und die Fansub-Gruppen-Bearbeitung optisch unverändert aussehen
+(Screenshot-Vergleich oder gleichwertige Live-Durchsicht, keine Annahme „sollte gleich aussehen").
