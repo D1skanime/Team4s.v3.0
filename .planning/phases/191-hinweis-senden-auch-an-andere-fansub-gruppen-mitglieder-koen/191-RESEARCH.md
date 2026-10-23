@@ -278,7 +278,7 @@ hineinmischen), plus Eintrag im Dach-`openapi.yaml`.
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
+|---------|-------------|--------------|-----|
 | Tageslimit pro Person | eigenes Redis-Skript/eigene Zähler-Logik | `middleware.NewCommentRateLimiter(redisClient, 10, 24*time.Hour)` mit `AppUserID`-Key | Bestehende, getestete Lua-Fixed-Window-Implementierung, nur Parameter ändern |
 | Gruppen-weite Freigabe-Prüfung | eigenen Capability-Check | `permissionSvc.CanForFansubGroup(actor, permissions.ActionFansubGroupMembersManage, groupID)` | Bereits die kanonische Prüfung für gruppen-gescopte Leader-Aktionen |
 | Plattform-weite Admin-Liste | eigenen Freiform-Admin-Flow | `PlatformAdminGate` + Muster `ClaimsClient.tsx` | Bereits etabliertes, getestetes Muster für genau diesen Fall |
@@ -377,7 +377,7 @@ explizit zur Diskussion stellen.
 ## Open Questions
 
 1. **Muss die Rate-Limit-Middleware-Factory umgebaut werden, um nach AuthMiddleware auf die
-   `Identity`/`AppUserID` zuzugreifen?**
+   `Identity`/`AppUserID` zuzugreifen?** (RESOLVED — siehe Plan 191-03)
    - Was wir wissen: `CommentCreateRateLimitMiddleware` bindet aktuell an `c.ClientIP()`
      (Zeile 118 in `comment_rate_limit.go`), nicht an eine Identity.
    - Was unklar ist: Ob eine neue Middleware-Variante nötig ist oder ob die bestehende Funktion
@@ -386,9 +386,13 @@ explizit zur Diskussion stellen.
      vollständig liest und entscheidet, ob eine Key-Funktion als Parameter ergänzt wird (additiv,
      kein Verhaltensbruch für den bestehenden Kommentar-Limiter) oder eine zweite,
      identity-gebundene Variante daneben entsteht.
+   - **Antwort (Plan 191-03):** Eine zweite, dedizierte, identity-gebundene Middleware-Variante
+     (`FansubGroupHintDailyLimitMiddleware`) entsteht additiv neben der bestehenden
+     `CommentCreateRateLimitMiddleware` — kein Umbau der bestehenden ClientIP-gebundenen Factory.
 
 2. **Soll die Admin-Startseite (`admin/page.tsx`) einen neuen Navigationseintrag „Eingehende
    Hinweise“ bekommen, oder reicht die Integration in bestehende Fansub-Edit-/Claims-Seiten?**
+   (RESOLVED — siehe Plan 191-09)
    - Was wir wissen: 191-CONTEXT.md Ist-Zustand 2 empfiehlt bereits einen neuen Eintrag für den
      Plattform-Admin-Fall (analog „Benutzer & Rechte“/„Fansubs“).
    - Was unklar ist: Ob der Leader-Fall zusätzlich einen sichtbaren Hinweis-Zähler im
@@ -396,6 +400,11 @@ explizit zur Diskussion stellen.
      Tab-Erweiterung in `ContributionsReviewSection.tsx`-Analogie genügt.
    - Empfehlung: Planer entscheidet UX-Detail; technisch reicht die bestehende
      `ContributionsReviewSection.tsx`-Analogie als Minimalversion.
+   - **Antwort (Plan 191-09):** Ein neuer, sichtbarer Navigationseintrag „Hinweise (Leitung)“
+     wird in `AdminMainNav.tsx`'s `ADMIN_NAV_LINKS` ergänzt (platform-weiter Plattform-Admin-Fall).
+     Der Leader-Fall braucht keinen zusätzlichen Zähler/Badge — die
+     `ContributionsReviewSection.tsx`-Analogie (Plan 191-08, mountiert im `collaboration`-Tab)
+     genügt als Minimalversion.
 
 ## Environment Availability
 
