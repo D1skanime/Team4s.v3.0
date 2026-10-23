@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 // D-12/191-18: ReportHintEntryPoint ist der zweite, kontextuelle Einstiegspunkt in dasselbe
@@ -156,5 +156,33 @@ describe('ReportHintEntryPoint (D-12, Sichtbarkeits-Gate)', () => {
       { code: 'translator', label_de: 'Übersetzung' },
       { code: 'timer', label_de: 'Timing' },
     ])
+  })
+
+  // D-17 (Plan 191-20): ProposalForm zeigt die Erfolgsansicht selbst ueber internen
+  // submittedSummary-State -- der Aufrufer darf das Formular deshalb NICHT beim Erfolg
+  // (onSuccess) schliessen, sonst sieht der Nutzer die Erfolgsansicht nie. Nur ein aktiver
+  // Klick auf "Fertig" (onClose) darf das Formular unmounten.
+  it('onSuccess ist ein No-op -- das Formular bleibt nach einem erfolgreichen Submit gemountet (D-17)', async () => {
+    mockAuthSession({ initialized: true, access: true })
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    getMyMembershipsMock.mockResolvedValue({ data: [] })
+
+    render(<ReportHintEntryPoint {...PREFILL_PROPS} />)
+
+    const button = await screen.findByRole('button', { name: 'Fehler melden' })
+    fireEvent.click(button)
+
+    await waitFor(() => screen.getByTestId('proposal-form-mock'))
+
+    const lastCallProps = proposalFormMock.mock.calls[proposalFormMock.mock.calls.length - 1][0] as {
+      onSuccess: () => void
+      onClose: () => void
+    }
+
+    act(() => lastCallProps.onSuccess())
+    expect(screen.getByTestId('proposal-form-mock')).toBeTruthy()
+
+    act(() => lastCallProps.onClose())
+    expect(screen.queryByTestId('proposal-form-mock')).toBeNull()
   })
 })
