@@ -28,10 +28,8 @@ afterEach(() => {
 })
 
 function renderSection(ownGroups: MembershipEntry[], proposals: MeAnimeContribution[] = []) {
-  roleCatalogMocks.useRoleCatalog.mockImplementation((context: string) => ({
-    roles: context === 'fansub_group'
-      ? [{ code: 'fansub_lead', label_de: 'Fansub-Leitung', assignable: true }]
-      : [{ code: 'translator', label_de: 'Übersetzung', assignable: true }],
+  roleCatalogMocks.useRoleCatalog.mockImplementation(() => ({
+    roles: [{ code: 'translator', label_de: 'Übersetzung', assignable: true }],
     error: null,
   }))
 

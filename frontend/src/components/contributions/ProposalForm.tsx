@@ -11,11 +11,10 @@ import type { AdminFansubAnimeEntry } from '@/types/admin'
 import type { FansubGroup } from '@/types/fansub'
 import type { MembershipEntry } from '@/types/contributions'
 
-import { Step0HintType, StepRoleOptional } from './ProposalForm.extraSteps'
 import { Step1GroupProject, Step2Role, Step3NoteRange } from './ProposalForm.steps'
 import type { RoleDefinition } from './ProposalForm.steps'
-import type { GroupScope, HintType } from './ProposalForm.toggles'
-import { stepsForHintType, useProposalFormSubmit } from './ProposalForm.useSubmit'
+import type { GroupScope } from './ProposalForm.toggles'
+import { WIZARD_STEPS, useProposalFormSubmit } from './ProposalForm.useSubmit'
 import type { SubmittedSummary, WizardStep } from './ProposalForm.useSubmit'
 import styles from './contributions.module.css'
 
@@ -25,18 +24,14 @@ interface ProposalFormProps {
   onSuccess: () => void
   onClose: () => void
   ownGroups: MembershipEntry[]
-  /** anime_contribution-Kontext-Rollen (Korrektur-Hinweis, Step2Role) — unverändert. */
+  /** anime_contribution-Kontext-Rollen (Step2Role) — unverändert. */
   roleDefinitions: RoleDefinition[]
-  /** fansub_group-Kontext-Rollen (Mitgliedschaftsanfrage, optional, D-07) — eigene Quelle. */
-  fansubGroupRoles: RoleDefinition[]
 }
 
 const FORM_ID = 'proposal-form'
 
-export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, fansubGroupRoles }: ProposalFormProps) {
+export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }: ProposalFormProps) {
   const [step, setStep] = useState<WizardStep>(1)
-  const [hintType, setHintType] = useState<HintType | ''>('')
-  const [hintTypeError, setHintTypeError] = useState<string | null>(null)
   const [groupScope, setGroupScope] = useState<GroupScope>('own')
   const [selectedGroupId, setSelectedGroupId] = useState<number | ''>('')
   const [foreignGroup, setForeignGroup] = useState<FansubGroup | null>(null)
@@ -45,7 +40,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
   const [isLoadingGroupAnime, setIsLoadingGroupAnime] = useState(false)
   const [groupAnimeError, setGroupAnimeError] = useState<string | null>(null)
   const [selectedRoleCode, setSelectedRoleCode] = useState('')
-  const [requestedRoleCode, setRequestedRoleCode] = useState('')
   const [note, setNote] = useState('')
   const [startedYear, setStartedYear] = useState('')
   const [endedYear, setEndedYear] = useState('')
@@ -55,8 +49,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
   const { submit: submitHint, isSubmitting, error: submitError, resetError } = useProposalFormSubmit()
   const [submittedSummary, setSubmittedSummary] = useState<SubmittedSummary | null>(null)
 
-  const isCorrection = hintType === 'correction'
-  const STEPS = useMemo(() => stepsForHintType(hintType), [hintType])
   const displayError = error ?? submitError
 
   const selectedOwnGroup = useMemo(
@@ -74,10 +66,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
   const selectedRole = useMemo(
     () => roleDefinitions.find((role) => role.code === selectedRoleCode) ?? null,
     [roleDefinitions, selectedRoleCode],
-  )
-  const requestedRole = useMemo(
-    () => fansubGroupRoles.find((role) => role.code === requestedRoleCode) ?? null,
-    [fansubGroupRoles, requestedRoleCode],
   )
   const hasInvalidYearRange = useMemo(() => {
     if (!startedYear || !endedYear) return false
@@ -111,7 +99,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
     let cancelled = false
 
     async function loadGroupAnime() {
-      if (!isCorrection || !activeGroupId) {
+      if (!activeGroupId) {
         setGroupAnime([])
         setSelectedAnimeId('')
         setGroupAnimeError(null)
@@ -138,12 +126,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
     return () => {
       cancelled = true
     }
-  }, [isCorrection, activeGroupId])
+  }, [activeGroupId])
 
   function resetAndClose() {
     setStep(1)
-    setHintType('')
-    setHintTypeError(null)
     setGroupScope('own')
     setSelectedGroupId('')
     setForeignGroup(null)
@@ -151,7 +137,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
     setSelectedAnimeId('')
     setGroupAnime([])
     setSelectedRoleCode('')
-    setRequestedRoleCode('')
     setNote('')
     setStartedYear('')
     setEndedYear('')
@@ -165,14 +150,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
   function goNext() {
     setError(null)
     setRoleError(null)
-    if (step === 1) {
-      if (!hintType) {
-        setHintTypeError('Bitte wähle eine Hinweisart aus.')
-        return
-      }
-      setHintTypeError(null)
-    }
-    setStep((current) => (current < 4 ? (current + 1) as WizardStep : current))
+    setStep((current) => (current < 3 ? (current + 1) as WizardStep : current))
   }
 
   function goBack() {
@@ -183,11 +161,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
 
   function requestFinalSubmit() {
     void submitProposal()
-  }
-
-  function selectHintType(value: HintType) {
-    setHintTypeError(null)
-    setHintType(value)
   }
 
   function selectGroupScope(scope: GroupScope) {
@@ -217,44 +190,34 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
     setRoleError(null)
     resetError()
 
-    if (!hintType) {
-      setStep(1)
-      setHintTypeError('Bitte wähle eine Hinweisart aus.')
-      return
-    }
     if (!hasActiveGroup) {
-      setStep(2)
+      setStep(1)
       setError('Bitte wähle eine Gruppe aus.')
       return
     }
-    if (isCorrection) {
-      if (!selectedAnimeId || !selectedAnime) {
-        setStep(2)
-        setError('Bitte wähle ein Anime/Projekt dieser Gruppe aus.')
-        return
-      }
-      if (!selectedRoleCode || !selectedRole) {
-        setStep(3)
-        setRoleError('Bitte wähle eine Rolle aus.')
-        return
-      }
-      if (hasInvalidYearRange) {
-        setStep(4)
-        return
-      }
+    if (!selectedAnimeId || !selectedAnime) {
+      setStep(1)
+      setError('Bitte wähle ein Anime/Projekt dieser Gruppe aus.')
+      return
+    }
+    if (!selectedRoleCode || !selectedRole) {
+      setStep(2)
+      setRoleError('Bitte wähle eine Rolle aus.')
+      return
+    }
+    if (hasInvalidYearRange) {
+      setStep(3)
+      return
     }
 
     try {
       const summary = await submitHint({
-        hintType,
         groupScope,
         ownGroup: groupScope === 'own' ? selectedOwnGroup : null,
         foreignGroup: groupScope === 'foreign' ? foreignGroup : null,
-        anime: isCorrection ? selectedAnime : null,
+        anime: selectedAnime,
         roleCode: selectedRoleCode,
         roleLabel: selectedRole?.label_de ?? null,
-        requestedRoleCode,
-        requestedRoleLabel: requestedRole?.label_de ?? null,
         note,
         startedYear,
         endedYear,
@@ -262,7 +225,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
       setSubmittedSummary(summary)
       onSuccess()
     } catch {
-      // Fehlertext ist bereits im Hook gesetzt (409/429-Mapping, Korrektur-Konfliktfall oder
+      // Fehlertext ist bereits im Hook gesetzt (409/429-Mapping, Konfliktfall oder
       // generischer Fallback) -- hier nichts weiter zu tun, displayError rendert ihn.
     }
   }
@@ -283,10 +246,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
       <Button
         type="button"
         variant="primary"
-        onClick={step === 4 ? requestFinalSubmit : goNext}
+        onClick={step === 3 ? requestFinalSubmit : goNext}
         disabled={isSubmitting}
       >
-        {step === 4 ? (isSubmitting ? 'Wird gesendet...' : 'Hinweis senden') : 'Weiter'}
+        {step === 3 ? (isSubmitting ? 'Wird gesendet...' : 'Hinweis senden') : 'Weiter'}
       </Button>
     </div>
   )
@@ -313,27 +276,21 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
               <dt>Gruppe</dt>
               <dd>{submittedSummary.groupName}</dd>
             </div>
-            {submittedSummary.hintType === 'correction' ? (
-              <div>
-                <dt>Projekt</dt>
-                <dd>{submittedSummary.animeTitle}</dd>
-              </div>
-            ) : null}
             <div>
-              <dt>{submittedSummary.hintType === 'correction' ? 'Rolle' : 'Gewünschte Rolle'}</dt>
-              <dd>
-                {submittedSummary.hintType === 'correction'
-                  ? submittedSummary.roleLabel
-                  : submittedSummary.roleLabel ?? 'Keine bestimmte Rolle'}
-              </dd>
+              <dt>Projekt</dt>
+              <dd>{submittedSummary.animeTitle}</dd>
+            </div>
+            <div>
+              <dt>Rolle</dt>
+              <dd>{submittedSummary.roleLabel}</dd>
             </div>
           </dl>
         </div>
       ) : (
         <>
-          <div className={styles.wizardProgress} aria-label={`Schritt ${step} von ${STEPS.length}`}>
+          <div className={styles.wizardProgress} aria-label={`Schritt ${step} von ${WIZARD_STEPS.length}`}>
             <div className={styles.progressSegments} aria-hidden="true">
-              {STEPS.map((item) => (
+              {WIZARD_STEPS.map((item) => (
                 <span
                   key={item.id}
                   className={item.id <= step ? styles.progressSegmentActive : styles.progressSegment}
@@ -341,8 +298,8 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
               ))}
             </div>
             <div className={styles.progressMeta}>
-              <span>Schritt {step} von {STEPS.length}</span>
-              <strong>{STEPS[step - 1].title}</strong>
+              <span>Schritt {step} von {WIZARD_STEPS.length}</span>
+              <strong>{WIZARD_STEPS[step - 1].title}</strong>
             </div>
           </div>
 
@@ -350,12 +307,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
 
           <form id={FORM_ID} onSubmit={(event) => void handleSubmit(event)} className={styles.proposalForm}>
             {step === 1 ? (
-              <Step0HintType hintType={hintType} hintTypeError={hintTypeError} onSelect={selectHintType} />
-            ) : null}
-
-            {step === 2 ? (
               <Step1GroupProject
-                hintType={hintType || 'correction'}
                 groupScope={groupScope}
                 onGroupScopeChange={selectGroupScope}
                 ownGroups={ownGroups}
@@ -381,30 +333,22 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, f
               />
             ) : null}
 
-            {step === 3 ? (
-              isCorrection ? (
-                <Step2Role
-                  roleDefinitions={roleDefinitions}
-                  selectedRoleCode={selectedRoleCode}
-                  roleError={roleError}
-                  onSelectRole={selectRole}
-                />
-              ) : (
-                <StepRoleOptional
-                  roles={fansubGroupRoles}
-                  requestedRoleCode={requestedRoleCode}
-                  onSelectRequestedRole={setRequestedRoleCode}
-                />
-              )
+            {step === 2 ? (
+              <Step2Role
+                roleDefinitions={roleDefinitions}
+                selectedRoleCode={selectedRoleCode}
+                roleError={roleError}
+                onSelectRole={selectRole}
+              />
             ) : null}
 
-            {step === 4 ? (
+            {step === 3 ? (
               <Step3NoteRange
                 note={note}
                 startedYear={startedYear}
                 endedYear={endedYear}
                 hasInvalidYearRange={hasInvalidYearRange}
-                showYearAndInfoPanel={isCorrection}
+                showYearAndInfoPanel={true}
                 onNoteChange={setNote}
                 onStartedYearChange={setStartedYear}
                 onEndedYearChange={setEndedYear}

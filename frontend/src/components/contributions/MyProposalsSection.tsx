@@ -47,14 +47,6 @@ interface MyProposalsSectionProps {
 export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposalsSectionProps) {
   const { roles } = useRoleCatalog('anime_contribution')
   const contributionRoles = contributionRoleDefinitions(roles)
-  // D-07: Mitgliedschaftsanfragen duerfen ausschliesslich fansub_group-Kontext-Rollen zeigen
-  // (nie die anime_contribution-Rollen oben) -- separate Quelle, separater Filter auf
-  // assignable, damit nicht-zuweisbare/reservierte Rollen (z. B. rein historische Codes)
-  // nicht im optionalen Rollenfeld der Mitgliedschaftsanfrage auftauchen koennen.
-  const { roles: fansubGroupRoleRows } = useRoleCatalog('fansub_group')
-  const fansubGroupRoles = fansubGroupRoleRows
-    .filter((role) => role.assignable !== false)
-    .map(({ code, label_de }) => ({ code, label_de }))
   const [showForm, setShowForm] = useState(false)
   const [selfPublishConfirming, setSelfPublishConfirming] = useState<number | null>(null)
   const [selfPublishError, setSelfPublishError] = useState<string | null>(null)
@@ -147,7 +139,6 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
           onClose={() => setShowForm(false)}
           ownGroups={ownGroups}
           roleDefinitions={contributionRoles}
-          fansubGroupRoles={fansubGroupRoles}
         />
       )}
 
@@ -156,12 +147,14 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
           <SectionHeader
             title={`Eingereichte Hinweise (${total})`}
           />
-          {/* A6-Fix (191-UI-SPEC.md): der Button darf NICHT an ownGroups.length>0 haengen --
-              die Mitgliedschaftsanfrage (D-06b) existiert gerade fuer Mitglieder ohne jede
-              eigene verifizierte Gruppe. Diese Seite rendert MyProposalsSection ohnehin erst
-              nach erfolgreichem, authentifiziertem Profil-/Mitgliedschafts-Load (siehe
-              frontend/src/app/me/contributions/page.tsx), es gibt also keinen verbleibenden
-              Fall, in dem der Trigger hier blockiert werden muesste. */}
+          {/* Der "Hinweis senden"-Knopf muss unabhaengig davon erscheinen, ob das Mitglied
+              irgendeine EIGENE verifizierte Gruppe hat: ein Hinweis kann sich auch auf eine
+              fremde Gruppe beziehen, in der das Mitglied gar keine Mitgliedschaft besitzt
+              (D-02) -- ownGroups.length>0 waere deshalb die falsche Gating-Bedingung. Diese
+              Seite rendert MyProposalsSection ohnehin erst NACH dem bereits bestandenen
+              isEligibleForContributions-Gate (Mitgliedsprofil + Projekt-Zuordnung, siehe
+              frontend/src/app/me/contributions/page.tsx) -- es gibt also keinen verbleibenden
+              Zustand, in dem der Knopf hier verfrueht waere. */}
           <Button type="button" onClick={() => setShowForm(true)}>
             Hinweis senden
           </Button>

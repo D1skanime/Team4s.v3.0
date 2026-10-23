@@ -18,7 +18,6 @@ const FOREIGN_RESULT: FansubGroup[] = [
 
 function step1Props(overrides: Partial<Parameters<typeof Step1GroupProject>[0]> = {}) {
   return {
-    hintType: 'correction' as const,
     groupScope: 'own' as const,
     onGroupScopeChange: vi.fn(),
     ownGroups: [{ fansub_group_member_id: 1, fansub_group_id: 10, group_name: 'Testgruppe' }],
@@ -96,16 +95,13 @@ describe('Step1GroupProject — Gruppen-Bereich-Umschalter (D-02)', () => {
     expect(screen.getByLabelText('Ausgewählter Kontext').textContent).toContain('Andere Gruppe')
   })
 
-  it('zeigt den Anime/Projekt-Schritt nur bei hintType="correction", nie bei "membership_request"', () => {
-    const { rerender } = render(<Step1GroupProject {...step1Props({ hintType: 'correction' })} />)
+  it('zeigt den Anime/Projekt-Schritt immer (D-09: jeder verbleibende Hinweis ist ein Korrektur-Hinweis mit Projektbezug)', () => {
+    render(<Step1GroupProject {...step1Props()} />)
     expect(screen.getByText('Bei welchem Anime/Projekt dieser Gruppe?')).toBeTruthy()
-
-    rerender(<Step1GroupProject {...step1Props({ hintType: 'membership_request' })} />)
-    expect(screen.queryByText('Bei welchem Anime/Projekt dieser Gruppe?')).toBeNull()
   })
 })
 
-describe('Step3NoteRange — showYearAndInfoPanel (D-06b: anime_contributions-spezifische Mechanik)', () => {
+describe('Step3NoteRange — showYearAndInfoPanel', () => {
   function step3Props(overrides: Partial<Parameters<typeof Step3NoteRange>[0]> = {}) {
     return {
       note: '',
@@ -120,7 +116,7 @@ describe('Step3NoteRange — showYearAndInfoPanel (D-06b: anime_contributions-sp
     }
   }
 
-  it('zeigt Von/Bis-Jahr und das 90-Tage-Infopanel, wenn showYearAndInfoPanel=true (Korrektur)', () => {
+  it('zeigt Von/Bis-Jahr und das 90-Tage-Infopanel, wenn showYearAndInfoPanel=true (immer bei D-09)', () => {
     render(<Step3NoteRange {...step3Props({ showYearAndInfoPanel: true })} />)
 
     expect(screen.getByLabelText('Von Jahr auswählen')).toBeTruthy()
@@ -128,13 +124,13 @@ describe('Step3NoteRange — showYearAndInfoPanel (D-06b: anime_contributions-sp
     expect(screen.getByText(/Keine Reaktion nach 90 Tagen/)).toBeTruthy()
   })
 
-  it('blendet Von/Bis-Jahr und das 90-Tage-Infopanel komplett aus, wenn showYearAndInfoPanel=false (Mitgliedschaftsanfrage)', () => {
+  it('blendet Von/Bis-Jahr und das 90-Tage-Infopanel komplett aus, wenn showYearAndInfoPanel=false', () => {
     render(<Step3NoteRange {...step3Props({ showYearAndInfoPanel: false })} />)
 
     expect(screen.queryByLabelText('Von Jahr auswählen')).toBeNull()
     expect(screen.queryByLabelText('Bis Jahr auswählen')).toBeNull()
     expect(screen.queryByText(/Keine Reaktion nach 90 Tagen/)).toBeNull()
-    // Das Notizfeld bleibt bei beiden Hinweisarten unveraendert sichtbar.
+    // Das Notizfeld bleibt bei beiden Konfigurationen unveraendert sichtbar.
     expect(screen.getByLabelText('Hinweis für den Gruppenleader')).toBeTruthy()
   })
 })

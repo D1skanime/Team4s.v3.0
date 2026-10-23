@@ -8,7 +8,7 @@ import type { AdminFansubAnimeEntry } from '@/types/admin'
 import type { MembershipEntry } from '@/types/contributions'
 import type { FansubGroup } from '@/types/fansub'
 
-import type { GroupScope, HintType } from './ProposalForm.toggles'
+import type { GroupScope } from './ProposalForm.toggles'
 import { GroupScopeToggle } from './ProposalForm.toggles'
 import styles from './contributions.module.css'
 
@@ -115,10 +115,9 @@ export function ChoiceSelect<T extends number | string>({
   )
 }
 
-// ---- Step 1: Gruppe (+ Projekt bei Korrektur) ----
+// ---- Step 1: Gruppe & Projekt ----
 
 interface Step1Props {
-  hintType: HintType
   groupScope: GroupScope
   onGroupScopeChange: (scope: GroupScope) => void
   ownGroups: MembershipEntry[]
@@ -146,7 +145,6 @@ interface Step1Props {
 }
 
 export function Step1GroupProject({
-  hintType,
   groupScope,
   onGroupScopeChange,
   ownGroups,
@@ -170,8 +168,6 @@ export function Step1GroupProject({
   groupAnimeError,
   onAnimeChange,
 }: Step1Props) {
-  const isCorrection = hintType === 'correction'
-
   return (
     <div className={styles.wizardStepPanel}>
       <FormField label="Welche Gruppe?" required>
@@ -218,32 +214,30 @@ export function Step1GroupProject({
         </div>
       )}
 
-      {isCorrection ? (
-        <FormField
+      <FormField
+        label="Bei welchem Anime/Projekt dieser Gruppe?"
+        error={groupAnimeError ?? undefined}
+        required
+      >
+        <ChoiceSelect
           label="Bei welchem Anime/Projekt dieser Gruppe?"
-          error={groupAnimeError ?? undefined}
-          required
-        >
-          <ChoiceSelect
-            label="Bei welchem Anime/Projekt dieser Gruppe?"
-            value={selectedAnimeId}
-            options={animeOptions}
-            placeholder={
-              !hasActiveGroup
-                ? 'Erst Gruppe auswählen'
-                : isLoadingGroupAnime
-                  ? 'Anime/Projekte werden geladen'
-                  : groupAnime.length === 0
-                    ? 'Keine Anime/Projekte für diese Gruppe'
-                    : 'Anime/Projekt auswählen'
-            }
-            disabled={!hasActiveGroup || groupAnime.length === 0}
-            loading={isLoadingGroupAnime}
-            emptyLabel="Keine Anime/Projekte für diese Gruppe"
-            onChange={(value) => onAnimeChange(value === '' ? '' : Number(value))}
-          />
-        </FormField>
-      ) : null}
+          value={selectedAnimeId}
+          options={animeOptions}
+          placeholder={
+            !hasActiveGroup
+              ? 'Erst Gruppe auswählen'
+              : isLoadingGroupAnime
+                ? 'Anime/Projekte werden geladen'
+                : groupAnime.length === 0
+                  ? 'Keine Anime/Projekte für diese Gruppe'
+                  : 'Anime/Projekt auswählen'
+          }
+          disabled={!hasActiveGroup || groupAnime.length === 0}
+          loading={isLoadingGroupAnime}
+          emptyLabel="Keine Anime/Projekte für diese Gruppe"
+          onChange={(value) => onAnimeChange(value === '' ? '' : Number(value))}
+        />
+      </FormField>
 
       {hasActiveGroup && activeGroupName ? (
         <div className={styles.selectionBreadcrumb} aria-label="Ausgewählter Kontext">
@@ -251,7 +245,7 @@ export function Step1GroupProject({
           <Badge variant={groupScope === 'own' ? 'muted' : 'info'}>
             {groupScope === 'own' ? 'Eigene Gruppe' : 'Andere Gruppe'}
           </Badge>
-          {isCorrection && selectedAnime ? (
+          {selectedAnime ? (
             <>
               <span aria-hidden="true">·</span>
               <span>{selectedAnime.title}</span>
