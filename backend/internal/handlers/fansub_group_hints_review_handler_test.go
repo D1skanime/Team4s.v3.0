@@ -105,16 +105,6 @@ func buildHintReviewHandler(perm *reviewPermissionSvcStub, repo HintReviewReposi
 	return NewFansubGroupHintsReviewHandler(repo, perm, audit)
 }
 
-func fansubLeadRole() *string {
-	v := "fansub_lead"
-	return &v
-}
-
-func timerRole() *string {
-	v := "timer"
-	return &v
-}
-
 // --- ListHints ---
 
 func TestFansubGroupHintsReview_ListHints_RequiresLeaderOrAdmin(t *testing.T) {
@@ -143,13 +133,18 @@ func TestFansubGroupHintsReview_ListHints_RequiresLeaderOrAdmin(t *testing.T) {
 	}
 }
 
-func TestFansubGroupHintsReview_ListHints_ExcludesFansubLeadRequests(t *testing.T) {
+// TestFansubGroupHintsReview_ListHints_ReturnsAllRowsUnfiltered belegt den D-11-
+// Regressionsschutz: dieser Handler filtert selbst NICHTS heraus — auch nicht eine Zeile,
+// deren Zielgruppe (aus Sicht eines hypothetischen Aufrufers) aktuell keine aktive Leitung
+// hätte. Diese Unterscheidung ist ausschließlich Aufgabe von
+// `FansubGroupHintsRepository.ListWithoutActiveLead` (Plan 191-11), niemals dieses Handlers.
+func TestFansubGroupHintsReview_ListHints_ReturnsAllRowsUnfiltered(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	rows := []repository.FansubGroupHintRow{
-		{ID: 1, Status: "open", RequestedRoleCode: nil},
-		{ID: 2, Status: "open", RequestedRoleCode: timerRole()},
-		{ID: 3, Status: "open", RequestedRoleCode: fansubLeadRole()},
+		{ID: 1, Status: "open"},
+		{ID: 2, Status: "open"},
+		{ID: 3, Status: "acknowledged"},
 	}
 	audit := &auditReviewStub{}
 	handler := buildHintReviewHandler(
@@ -176,13 +171,8 @@ func TestFansubGroupHintsReview_ListHints_ExcludesFansubLeadRequests(t *testing.
 	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
 		t.Fatalf("JSON dekodieren: %v", err)
 	}
-	if len(resp.Data) != 2 {
-		t.Fatalf("erwartet 2 sichtbare Hinweise (fansub_lead ausgefiltert), erhalten %d: %+v", len(resp.Data), resp.Data)
-	}
-	for _, row := range resp.Data {
-		if row.RequestedRoleCode != nil && *row.RequestedRoleCode == "fansub_lead" {
-			t.Fatalf("fansub_lead-Hinweis (id=%d) ist nicht aus der Leader-Liste ausgefiltert worden", row.ID)
-		}
+	if len(resp.Data) != 3 {
+		t.Fatalf("erwartet alle 3 Hinweise unveraendert, erhalten %d: %+v", len(resp.Data), resp.Data)
 	}
 }
 

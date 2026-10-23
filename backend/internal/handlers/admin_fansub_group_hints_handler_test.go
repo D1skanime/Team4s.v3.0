@@ -21,21 +21,21 @@ import (
 // Erfolgs-/Fehler-Faelle. callLog protokolliert, welche Methoden tatsaechlich aufgerufen
 // wurden — derselbe laufzeitgestuetzte D-03/D-05-Regressionsbeweis wie beim Leader-Pfad
 // (hintReviewRepoStub in fansub_group_hints_review_handler_test.go): der Typ besitzt NUR
-// ListForFansubLeadRole/Confirm/Reject und bewusst KEINE Methode, die einer
+// ListWithoutActiveLead/Confirm/Reject und bewusst KEINE Methode, die einer
 // Mitgliedschafts-/Rollenzuweisung oder einer Punkte-/Badge-Vergabe aehnelt.
 type adminHintsRepoStub struct {
-	listResult []repository.FansubGroupHintRow
-	listTotal  int
-	listErr    error
-	confirmErr error
-	rejectErr  error
+	listResult     []repository.FansubGroupHintRow
+	listTotal      int
+	listErr        error
+	confirmErr     error
+	rejectErr      error
 	capturedFilter repository.AdminHintListFilter
 	capturedNote   *string
 	callLog        []string
 }
 
-func (s *adminHintsRepoStub) ListForFansubLeadRole(ctx context.Context, filter repository.AdminHintListFilter) ([]repository.FansubGroupHintRow, int, error) {
-	s.callLog = append(s.callLog, "ListForFansubLeadRole")
+func (s *adminHintsRepoStub) ListWithoutActiveLead(ctx context.Context, filter repository.AdminHintListFilter) ([]repository.FansubGroupHintRow, int, error) {
+	s.callLog = append(s.callLog, "ListWithoutActiveLead")
 	s.capturedFilter = filter
 	return s.listResult, s.listTotal, s.listErr
 }
@@ -102,7 +102,7 @@ func TestAdminFansubGroupHints_ListHints_RequiresPlatformAdmin(t *testing.T) {
 		t.Fatalf("erwartet 403, erhalten %d — body: %s", rec.Code, rec.Body.String())
 	}
 	if len(repo.callLog) != 0 {
-		t.Fatalf("ListForFansubLeadRole darf bei 403 nicht aufgerufen werden, callLog=%v", repo.callLog)
+		t.Fatalf("ListWithoutActiveLead darf bei 403 nicht aufgerufen werden, callLog=%v", repo.callLog)
 	}
 }
 
@@ -112,10 +112,9 @@ func TestAdminFansubGroupHints_ListHints_RequiresPlatformAdmin(t *testing.T) {
 func TestAdminFansubGroupHints_ListHints_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	role := "fansub_lead"
 	rows := []repository.FansubGroupHintRow{
-		{ID: 1, Status: "open", RequestedRoleCode: &role},
-		{ID: 2, Status: "open", RequestedRoleCode: &role},
+		{ID: 1, Status: "open"},
+		{ID: 2, Status: "open"},
 	}
 	repo := &adminHintsRepoStub{listResult: rows, listTotal: 2}
 	handler := buildAdminFansubGroupHintsHandler(true, repo, &auditReviewStub{})
@@ -146,7 +145,7 @@ func TestAdminFansubGroupHints_ListHints_Success(t *testing.T) {
 		t.Fatalf("erwartet 2 Zeilen mit total=2, erhalten data=%d total=%d", len(resp.Data), resp.Meta.Total)
 	}
 	if repo.capturedFilter.Status == nil || *repo.capturedFilter.Status != "open" {
-		t.Fatalf("status-Filter wurde nicht korrekt an ListForFansubLeadRole weitergegeben: %+v", repo.capturedFilter)
+		t.Fatalf("status-Filter wurde nicht korrekt an ListWithoutActiveLead weitergegeben: %+v", repo.capturedFilter)
 	}
 	if repo.capturedFilter.TargetFansubGroupID == nil || *repo.capturedFilter.TargetFansubGroupID != 5 {
 		t.Fatalf("fansub_group_id-Filter wurde nicht korrekt weitergegeben: %+v", repo.capturedFilter)

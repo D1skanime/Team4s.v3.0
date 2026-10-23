@@ -21,11 +21,12 @@ type hintDecideRepository interface {
 // decideFansubGroupHint fuehrt die Entscheidung ueber einen Hinweis aus (Bestaetigen oder
 // Ablehnen) und wird von genau zwei Handlern mit unterschiedlichen Autorisierungswegen
 // aufgerufen: dem Leader-der-Zielgruppe-Pfad (fansub_group_hints_review_handler.go, Gate
-// CanForFansubGroup/ActionFansubGroupMembersManage) und dem Plattform-Admin-Pfad fuer
-// Mitgliedschaftsanfragen mit gewuenschter Rolle fansub_lead
-// (admin_fansub_group_hints_handler.go, Gate requirePlatformAdminIdentity). Beide
+// CanForFansubGroup/ActionFansubGroupMembersManage, entscheidet ALLE Hinweise seiner
+// Zielgruppe) und dem Plattform-Admin-Pfad fuer Zielgruppen OHNE aktive Leitung
+// (admin_fansub_group_hints_handler.go, Gate requirePlatformAdminIdentity, D-11). Beide
 // Oberflaechen entscheiden fachlich dasselbe ("dieser Hinweis ist jetzt bearbeitet"), nur
-// WER entscheiden darf unterscheidet sich je nach betroffener Rolle (D-01/D-07) — deshalb
+// WER entscheiden darf unterscheidet sich nach D-11s "hat die Zielgruppe aktuell eine aktive
+// Leitung?"-Split — nicht (mehr) nach einer vom Hinweis selbst gewuenschten Rolle — deshalb
 // lebt die Entscheidungslogik genau einmal hier statt zweimal kopiert zu werden, und beide
 // Handler sind dadurch beweisbar identisch im Verhalten (kein Mitgliedschafts- oder
 // Punkte-/Badge-Seiteneffekt, siehe hintDecideRepository-Kommentar).

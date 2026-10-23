@@ -25,16 +25,18 @@ type HintReviewRepository interface {
 }
 
 // FansubGroupHintsReviewHandler gibt dem Leader der ZIELGRUPPE (nicht der Gruppe des
-// Absenders) eine Entscheidungsoberfläche für eingehende Hinweise: Korrektur-Hinweise und
-// Mitgliedschaftsanfragen ohne bzw. mit einer anderen gewünschten Rolle als `fansub_lead`.
-// Mitgliedschaftsanfragen mit gewünschter Rolle `fansub_lead` gehören ausschließlich der
-// Plattform-Admin-Liste (siehe Plan 191-05) — dieser Handler filtert sie serverseitig aus der
-// Liste heraus, unabhängig davon, ob der aufrufende Leader diese Zeile sehen könnte, wenn sie
-// nicht gefiltert würde. Confirm ist eine reine Status-Änderung ohne jeden
-// Mitgliedschafts-, Rollen- oder Punkte-/Badge-Seiteneffekt: ein Hinweis ist laut
-// Produktentscheidung nur Information, keine automatische Zuweisung — der Leader entscheidet
-// nach einem Confirm separat und über die bestehenden, unveränderten Wege (Mitglied
-// hinzufügen, Projekt-/Release-Crew zuweisen), ob und wie er reagiert.
+// Absenders) eine undifferenzierte Entscheidungsoberfläche über JEDEN Korrektur-Hinweis, der
+// an diese Gruppe geschickt wurde — ohne jede Sonderfall-Ausnahme. Ob ein Hinweis stattdessen
+// auf der plattform-weiten Liste (`AdminFansubGroupHintsHandler`,
+// GET /api/v1/admin/fansub-group-hints) erscheint, entscheidet sich NICHT hier durch einen
+// Filter dieses Handlers, sondern ist eine strukturelle Eigenschaft der ZIELGRUPPE selbst
+// (D-11: hat die Gruppe aktuell eine aktive `fansub_lead`-Rolle oder nicht) — berechnet
+// vollständig serverseitig in Plan 191-11s Repository-Query (`ListWithoutActiveLead`). Dieser
+// Handler filtert also grundsätzlich nichts selbst aus seiner Liste heraus. Confirm ist eine
+// reine Status-Änderung ohne jeden Mitgliedschafts-, Rollen- oder Punkte-/Badge-Seiteneffekt:
+// ein Hinweis ist laut Produktentscheidung nur Information, keine automatische Zuweisung —
+// der Leader entscheidet nach einem Confirm separat und über die bestehenden, unveränderten
+// Wege (Mitglied hinzufügen, Projekt-/Release-Crew zuweisen), ob und wie er reagiert.
 type FansubGroupHintsReviewHandler struct {
 	reviewRepo    HintReviewRepository
 	permissionSvc reviewPermissionChecker
@@ -59,11 +61,12 @@ type hintRejectRequest struct {
 	DecisionNote *string `json:"decision_note"`
 }
 
-// ListHints gibt alle Hinweise an die Zielgruppe zurück, mit Ausnahme der
-// Mitgliedschaftsanfragen für die Rolle `fansub_lead` (die gehören ausschließlich der
-// Plattform-Admin-Liste, D-01). Die Ausschluss-Prüfung bindet die Konstante
-// permissions.RoleFansubLead, niemals ein String-Literal, damit Rollenname und
-// Routing-Entscheidung nicht auseinanderlaufen können.
+// ListHints gibt AUSNAHMSLOS alle Hinweise an die Zielgruppe zurück, egal welchen Status
+// sie haben. Es gibt hier keine Ausschluss-Logik mehr: ob eine Zeile stattdessen (zusätzlich
+// oder exklusiv) auf der plattform-weiten Admin-Liste sichtbar ist, entscheidet sich über
+// D-11s "hat die Zielgruppe eine aktive Leitung?"-Prädikat, das ausschließlich in
+// `FansubGroupHintsRepository.ListWithoutActiveLead` (Plan 191-11) berechnet wird — niemals
+// durch einen Filter in diesem Handler.
 // GET /api/v1/admin/fansubs/:id/group-hints
 //
 // Autorisierung: CanForFansubGroup mit ActionFansubGroupMembersManage — exakt dasselbe Recht
@@ -102,15 +105,7 @@ func (h *FansubGroupHintsReviewHandler) ListHints(c *gin.Context) {
 		return
 	}
 
-	visible := make([]repository.FansubGroupHintRow, 0, len(rows))
-	for _, row := range rows {
-		if row.RequestedRoleCode != nil && *row.RequestedRoleCode == permissions.RoleFansubLead {
-			continue
-		}
-		visible = append(visible, row)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": visible})
+	c.JSON(http.StatusOK, gin.H{"data": rows})
 }
 
 // ConfirmHint bestätigt einen offenen Hinweis: status='acknowledged', decided_by/decided_at
