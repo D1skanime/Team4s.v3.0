@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-10-23
+amended: 2026-10-23 (Live-UAT-Nachbesserung — D-09, D-11, D-12, D-13, D-14 aus 191-CONTEXT.md)
 ---
 
 # Phase 191 — UI Design Contract
@@ -17,6 +18,18 @@ created: 2026-10-23
 > `ProposalForm.steps.tsx`), and (2) the two review surfaces for decision-makers (extended
 > `ContributionsReviewSection.tsx`-pattern for the Zielgruppen-Leader, plus a NEW
 > `/admin/claims`-pattern platform-admin list for the `fansub_lead`-Sonderfall).
+
+> **Amendment (2026-10-23, nach gescheitertem Live-UAT):** Pläne 191-01 bis 191-09 wurden
+> gebaut und committet (siehe `191-07/08/09-SUMMARY.md`), der anschließende Live-Checkpoint
+> (Plan 191-10 Task 2) ist **nicht bestanden**. Dieser Abschnitt amendiert die betroffenen
+> Component Contracts auf Basis der dritten Entscheidungsrunde in `191-CONTEXT.md`
+> (D-09 bis D-16). **Geändert:** Component Contract A (D-09 Hinweisart-Streichung, D-13
+> Dreifach-Namen-Bug, D-14 Hell-Muster-Fix), Component Contract B (nur der
+> Hinweisart-Badge entfällt), Component Contract C (D-11 Umwidmung auf „Gruppen ohne
+> aktive Leitung"). **Neu:** Component Contract D (D-12 „Fehler melden"-Einstiegspunkt).
+> **Unverändert:** Design System/Spacing/Color-Grundsätze, D-01..D-08-Ableitungen, die hier
+> nicht explizit genannt sind. D-10/D-15/D-16 sind reine Backend-/Doku-/Prozess-Entscheidungen
+> ohne eigenen UI-Vertrags-Bedarf und werden hier nicht separat behandelt.
 
 ---
 
@@ -50,9 +63,9 @@ not introduce new spacing values:
 | Token | Value | Usage in this phase |
 |-------|-------|----------------------|
 | `--space-1` | 4px | Gap between a group-search result's name and slug subtitle; gap inside the "Eigene Gruppe"/"Andere Gruppe" badge row |
-| `--space-2` | 8px | Gap between the hint-type toggle buttons; gap between Badge and label text in review rows |
-| `--space-3` | 12px¹ | Gap between group-search result list items; gap between review-card internal rows (matches `ContributionsReviewSection.tsx`'s existing `rejectActions` gap) |
-| `--space-4` | 16px | Card/section internal padding (unchanged `Card variant="section"`/`variant="nested"` padding); gap between wizard step panel fields |
+| `--space-2` | 8px | Gap between review-row internal elements; gap between the new „Fehler melden"-Link (Contract D) and the element it sits next to (page title / breadcrumb row) |
+| `--space-3` | 12px¹ | Gap between group-search result list items; gap between review-card internal rows (matches `ContributionsReviewSection.tsx`'s existing `rejectActions` gap); vertical+horizontal padding of the amended light `.groupSearchItem` (D-14, see Component Contract A3 below) |
+| `--space-4` | 16px | Card/section internal padding (unchanged `Card variant="section"`/`variant="nested"` padding); horizontal padding of the amended `.groupSearchItem` (D-14) |
 | `--space-5` | 24px | Not used by this phase's new elements (reserved for outer page padding, already applied by the existing admin shell) |
 | `--space-6` | 32px | Not used by this phase's new elements |
 
@@ -80,23 +93,28 @@ in production for this exact family of screens — do not invent new sizes/weigh
 | Role | Size | Weight | Line Height | Source |
 |------|------|--------|-------------|--------|
 | Body / form text | 16px (`1rem`) | 400 | 1.5 | Global body rule (`globals.css`); `Textarea`/`Input` control text, wizard step copy, review-card note text |
-| Label / meta caption | 14px (`0.875rem`) | 600 | 1.4 | `FormField` label row, `Badge` text, table header cells, "Eingereicht am …" meta line (matches `ContributionsReviewSection.tsx`'s existing `fontSize: '0.875rem'` convention) |
+| Label / meta caption | 14px (`0.875rem`) | 600 | 1.4 | `FormField` label row, `Badge` text, table header cells, "Eingereicht am …" meta line, **the amended `.groupSearchItem` group name (D-14, Component Contract A3)** |
+| Secondary / muted caption | 14px (`0.875rem`) | 400 | 1.4 | **New for this amendment:** the `.groupSearchItem` slug subtitle (D-13/D-14) — same 14px size as the label role above, differentiated only by color (`var(--text-muted)`) and weight (400 vs. 600), not by introducing a new, smaller font-size. This keeps the phase at exactly 2 numeric sizes (14/16), not 3. |
 | Section heading | 16px (`1rem`) | 600 | 1.3 | `SectionHeader`/`Card` section title — e.g. "Eingehende Hinweise ({openCount})", `Modal` title |
-| Page heading (admin list only) | browser-default `<h1>` (≈32px) | 700 (browser bold) | normal | Exact reuse of `ClaimsClient.tsx`'s literal `<h1>Claims</h1>` pattern (unstyled tag, no module.css override) — documented pre-existing exception to the 2-weight rule below, not a new weight choice made by this phase. The new admin page's `<h1>` must be written the same way (plain tag, no custom class), so it inherits identically and introduces zero new weight/size values. |
+| Page heading (admin list only) | browser-default `<h1>` (≈32px) | 700 (browser bold) | normal | Exact reuse of `ClaimsClient.tsx`'s literal `<h1>Claims</h1>` pattern (unstyled tag, no module.css override) — documented pre-existing exception to the 2-weight rule below, not a new weight choice made by this phase. The amended admin page's `<h1>Hinweise ohne Leitung</h1>` (D-11, Component Contract C3) must be written the same way (plain tag, no custom class), so it inherits identically and introduces zero new weight/size values. |
+| „Fehler melden"-Link (Contract D, new) | 14px (`0.875rem`) | 700 (inherited, see note) | 1 | `Button variant="text"` — reuses the shared `Button` primitive's base `.button` class font-size/weight (`frontend/src/components/ui/Button.module.css:16-17`), unmodified. **Explicit exception note:** `Button`'s base class sets `font-weight: 700` platform-wide for every variant including `variant="text"`; this is a pre-existing, already-shipped primitive default, not a new weight introduced by this phase (same category of exception as the admin `<h1>` row above) — do not attempt to override it with a one-off `font-weight: 400/600` just for this one link, that would fork the shared primitive's visual identity for a single call site. |
 
 3 distinct *component-styled* sizes (16 / 14 / 16-bold-heading, i.e. 2 numeric values: 14 and 16)
-plus the one pre-existing unstyled-`<h1>` exception noted above. 2 weights used by new CSS/styling
-(400 / 600); the `<h1>` bold is inherited browser default, not an authored third weight.
+plus the two pre-existing unstyled/primitive-inherited exceptions noted above (`<h1>` bold,
+`Button variant="text"` bold). 2 weights used by newly-authored CSS/styling in this phase
+(400 / 600); the `<h1>` bold and the `Button` primitive's bold are inherited defaults, not
+authored third weights.
 
 **Explicit constraint for the checker (sign-off note):** the 700/bold weight in the table above
-originates **exclusively** from the unstyled, browser-default `<h1>` tag — carried over verbatim
-from `ClaimsClient.tsx` and reused identically, unchanged, for this phase's new
-`/admin/fansub-group-hints` page title (Component Contract C3). It does **not** count as an
-authorized third weight for this phase's work. No newly styled component, CSS Module class, inline
-`style`, or `@/components/ui` primitive introduced or modified in this phase may declare
-`font-weight: 700` / `bold` — all authored styling in this phase is strictly limited to 400 and
-600. Any `<h1>` added by this phase must stay a plain, unstyled tag with no custom class for this
-exception to remain valid.
+originates **exclusively** from (a) the unstyled, browser-default `<h1>` tag — carried over
+verbatim from `ClaimsClient.tsx` and reused identically for the amended
+`/admin/fansub-group-hints` page title (Component Contract C3, now titled **„Hinweise ohne
+Leitung"**) — and (b) the shared `Button` primitive's own base class, reused unmodified for the
+new Contract D "Fehler melden" link. Neither counts as an authorized third weight for this
+phase's newly-authored styling. No newly styled component, CSS Module class, inline `style`, or
+`@/components/ui` primitive **override** introduced or modified in this phase may declare
+`font-weight: 700` / `bold` of its own — all authored styling in this phase (including the D-14
+`.groupSearchItem` fix) is strictly limited to 400 and 600.
 
 ---
 
@@ -107,266 +125,362 @@ Reuse existing semantic tokens and `Badge`/`Button` variant colors exactly — n
 | Role | Value | Usage |
 |------|-------|-------|
 | Dominant (60%) | `var(--bg-primary)` / `var(--color-bg-light)` | Page/tab background — unchanged, inherited from the existing admin shell and the `ProposalForm` `Modal` backdrop |
-| Secondary (30%) | `var(--bg-card)` / `var(--color-white)` / `var(--surface-card)` | `Card variant="section"`/`variant="nested"` surfaces, `Table` row background, `Modal` panel |
-| Accent (10%) | `var(--color-primary)` / `var(--accent-primary)` (`#5f84dd`) | Reserved for exactly: `Button variant="primary"` (wizard "Weiter"/"Hinweis senden", admin-list "Hinweis bestätigen"), the active wizard-progress segment (`progressSegmentActive`), and the selected state of the new "Eigene Gruppe"/"Andere Gruppe" scope toggle and the Hinweisart toggle (both reuse the existing `role="radiogroup"` selected-button pattern from `Step2Role`'s `roleChoiceActive`). Do **not** use accent for static labels, Badge text, or section chrome. |
+| Secondary (30%) | `var(--bg-card)` / `var(--color-white)` / `var(--surface-card)` | `Card variant="section"`/`variant="nested"` surfaces, `Table` row background, `Modal` panel, **the amended light `.groupSearchItem` background (D-14, `var(--surface-card)` = `#ffffff`)** |
+| Accent (10%) | `var(--color-primary)` / `var(--accent-primary)` (`#5f84dd`) | Reserved for exactly: `Button variant="primary"` (wizard "Weiter"/"Hinweis senden", admin-list "Hinweis bestätigen"), the active wizard-progress segment (`progressSegmentActive`), and the selected state of the "Eigene Gruppe"/"Andere Gruppe" scope toggle (reuses the existing `role="radiogroup"` selected-button pattern from `Step2Role`'s `roleChoiceActive`). Do **not** use accent for static labels, Badge text, section chrome, or the new Contract D "Fehler melden" link (that link stays link-colored/muted per its `variant="text"` default, never accent-bold). |
 | Destructive | `var(--color-error)` / `Badge variant="danger"` / `Button variant="danger"` (`#dc3545` / `button-danger` gradient) | Reserved for exactly: "Hinweis ablehnen" buttons (both review surfaces), the "Ablehnung bestätigen" confirm button, the reject-reason expansion's `X` icon. The reject action itself is not styled as a blocking irreversible delete (D-04(3): "erledigte Hinweise tauchen nicht wieder auf", but rejection is a normal, frequent moderation action, not a data-destroying one) — so no `ConfirmDialog` modal is layered on top of the existing inline-expand-then-confirm pattern (see Component Contract B). **Accessibility:** the reused `X` icon in the reject expansion is a `lucide-react` SVG with no accessible name by default — it MUST carry an explicit `aria-label` (e.g. `aria-label="Ablehnung abbrechen"`) wherever it is used as the collapse/cancel affordance for the reject-reason expansion, in both Contract B and Contract C. |
 | Status (pre-existing, unchanged) | `Badge variant="warning"` (open/in review), `Badge variant="muted"` (done/erledigt), `Badge variant="info"` (role/type tags) | Reused 1:1 from `ContributionsReviewSection.tsx`/`ClaimsClient.tsx` — not introduced by this phase, listed here only so the checker does not mistake them for new accent usage. |
+| Light search-result text (D-14, new) | `var(--text-strong)` (`#171513`, group name) / `var(--text-muted)` (`#6b6b70`, slug) | Exactly the two text colors used by the target light pattern (`EpisodeVersionEditor.module.css:279-295`'s `#1c1c1e`/`#6b6b70`), mapped onto this project's equivalent design tokens rather than re-typing new hex literals — `var(--text-muted)` already resolves to the identical `#6b6b70` (`globals.css:11`). |
 
-Accent reserved for: primary submit/confirm actions and the active-selection state of the two new
-toggle controls (hint-type, group-scope). Never used for static text, section headers, or Badge
-backgrounds.
+Accent reserved for: primary submit/confirm actions and the active-selection state of the
+group-scope toggle. Never used for static text, section headers, Badge backgrounds, or the new
+Contract D entry-point link.
 
 ---
 
 ## Component Contract A — Formular-Erweiterung (`ProposalForm.tsx` + `.steps.tsx`)
 
-### A1. Shared hook extraction (D-02, D-08 — mandatory prerequisite)
+> **Amendment-Hinweis:** A2 ("Neuer Schritt 0 — Hinweisart") und A4 ("Optionales Rollenfeld bei
+> Mitgliedschaftsanfrage") aus der ursprünglichen Fassung dieses Contracts sind **ersatzlos
+> gestrichen** (D-09) — der zweite Hinweistyp existiert nicht mehr, folglich gibt es weder einen
+> Hinweisart-Umschalter noch den davon abhängigen optionalen Rollenfeld-Schritt. A1 (gemeinsamer
+> Gruppensuch-Hook) und A3 (Eigene/Andere-Gruppe-Kennzeichnung, D-02) bleiben inhaltlich
+> bestehen, A3 wird unten um die D-13/D-14-Bugfixes ergänzt. A5/A6/A7 werden an die gestrichene
+> Hinweisart angepasst.
 
-- Extract `useFansubGroupSearch` from `useEpisodeVersionEditor.ts:155-187` into
-  `frontend/src/hooks/useFansubGroupSearch.ts` (central placement — per `191-RESEARCH.md`, this
-  hook is explicitly used by **two** unrelated features, which is exactly the bar
-  `docs/FRONTEND_ARCHITEKTUR.md` Abschnitt 12 sets for central vs. feature-colocated hooks).
-  Signature: `useFansubGroupSearch({ excludeIds }) → { query, setQuery, results, isSearching,
-  message, addGroup, removeGroup }`, internally calling `getFansubList({ q, page: 1, per_page: 10
-  })` with the existing 180ms debounce — **no behavior change** for the Release-Editor call site.
-- Both call sites (`FansubGroupsSection.tsx`/`useEpisodeVersionEditor.ts` and the new fremd-Gruppen
-  picker inside `ProposalForm`) consume the same hook instance shape — no copy, no parallel
-  debounce implementation (CLAUDE.md "Übergroße Dateien"-adjacent rule: this extraction is the
-  reiner Umbau-Commit required before the Release-Editor file grows past 450 lines, done first,
-  verified behavior-identical, then the Hinweis-Formular change lands as a separate commit).
-- Reuse the exact visual building blocks already in `FansubGroupsSection.tsx`: `Input` (search
-  field, placeholder `Name oder Alias...`), result list as a column of `Button variant="secondary"
-  size="sm"` rows (group name bold + slug subtitle), "Suche läuft..."/empty-result message as plain
-  helper text. Do not invent a new search-result visual — this is the one and only place this
-  pattern is designed once and reused twice.
+### A1. Shared hook extraction (D-02, D-08 — bereits umgesetzt, unverändert)
 
-### A2. New Step 0 — Hinweisart (D-06)
+- `useFansubGroupSearch` (`frontend/src/hooks/useFansubGroupSearch.ts`) ist bereits extrahiert
+  und wird von `FansubGroupsSection.tsx` (Release-Editor) UND `ProposalForm.steps.tsx`
+  (Hinweis-Formular) geteilt genutzt — keine Änderung durch dieses Amendment.
+- Reuse der visuellen Bausteine (`Input`, Ergebnis-Liste) bleibt bestehen; die konkrete
+  Ergebnis-Darstellung wird in A3 unten korrigiert (D-13/D-14).
 
-Insert a new first wizard step, before "Gruppe & Projekt". `STEPS` array becomes:
+### A2. ~~Neuer Schritt 0 — Hinweisart~~ — ENTFÄLLT (D-09)
+
+Diese Komponente/dieser Schritt wird **vollständig entfernt**, nicht nur ausgeblendet:
+
+- `HintTypeToggle` (`ProposalForm.toggles.tsx`) — Export entfernen. `GroupScopeToggle` im
+  selben File bleibt unverändert bestehen (D-02 ist von D-09 nicht betroffen).
+- `Step0HintType` (`ProposalForm.extraSteps.tsx`) — Export entfernen. Falls `StepRoleOptional`
+  (siehe A4 unten) der einzige verbleibende Export derselben Datei wäre, nach dessen Entfernung
+  prüfen, ob `ProposalForm.extraSteps.tsx` komplett entfällt (leere Datei vermeiden) — das ist
+  eine Dateistruktur-Entscheidung für den Plan, keine neue visuelle Vorgabe.
+- Die radiogroup-Markup-Referenz („✓ Korrektur-Hinweis" / „Anfrage für Mitgliedschaft") aus der
+  gestrichenen Fassung dieses Contracts ist obsolet und darf in keinem Code-Kommentar mehr als
+  aktuelle Vorgabe zitiert werden (D-15: fachliche statt Phasen-Verweis-Kommentare, hier zusätzlich
+  schlicht falsch, da die UI nicht mehr existiert).
+- `STEPS` kehrt auf **drei** Schritte zurück (die Hinweisart-Dimension fällt aus der
+  Schritt-Berechnung komplett heraus):
 
 | # | Title | Visible fields |
 |---|-------|------------------|
-| 1 | `Hinweisart` | Hinweisart-Toggle (new) |
-| 2 | `Gruppe` (Korrektur: `Gruppe & Projekt`) | Eigene/Andere-Gruppe-Scope-Toggle + Gruppensuche/`ChoiceSelect` + (Korrektur only) Anime/Projekt-`ChoiceSelect` |
-| 3 | `Rolle` | Korrektur: unchanged `Step2Role` rolePicker. Mitgliedschaftsanfrage: new optional role `Select` (D-07) |
-| 4 | `Hinweis` (Korrektur: `Hinweis & Zeitraum`) | Textarea note (both); Von/Bis-Jahr + 90-Tage-Infopanel (Korrektur only — this auto-publish rule is `anime_contributions`-specific and does not apply to the new `fansub_group_hints` table per `191-RESEARCH.md`'s data model, so it must not render for Mitgliedschaftsanfrage) |
+| 1 | `Gruppe & Projekt` | Eigene/Andere-Gruppe-Scope-Toggle (D-02, unverändert) + Gruppensuche/`ChoiceSelect` + Anime/Projekt-`ChoiceSelect` (jetzt immer sichtbar — jeder verbleibende Hinweis ist ein Korrektur-Hinweis mit Projektbezug, D-09 macht `related_anime_id` serverseitig `NOT NULL`) |
+| 2 | `Rolle` | `Step2Role`'s bestehender, unveränderter Pflicht-Rollenpicker (`anime_contribution`-Kontext) — keine Bedingung mehr, läuft immer |
+| 3 | `Hinweis & Zeitraum` | Textarea note + Von/Bis-Jahr + 90-Tage-Infopanel — immer sichtbar, keine Hinweisart-Bedingung mehr |
 
-Visual pattern for the Hinweisart toggle: reuse the exact `role="radiogroup"` +
-`role="radio"`/`aria-checked` + `Check`-icon-when-selected pattern from `Step2Role`'s `rolePicker`
-— two buttons, not a `Select`, because there are exactly two mutually exclusive, always-visible
-options (matches the existing project convention: binary/small-N choices get the button-radiogroup
-treatment, large/searchable choices get `Select`/search-input):
+Die pure Function `stepsForHintType` (aus Plan 191-07) wird entweder entfernt (wenn es nur noch
+einen Pfad gibt, braucht es keine Verzweigungsfunktion mehr) oder auf eine Konstante reduziert —
+Entscheidung liegt beim Plan, solange das Ergebnis exakt der obigen 3-Schritte-Tabelle entspricht.
 
-```
-role="radiogroup" aria-label="Hinweisart"
-[ ✓ Korrektur-Hinweis ]   [ Anfrage für Mitgliedschaft ]
-```
+### A3. Gruppenauswahl mit Eigene/Andere-Kennzeichnung (D-02, unverändert) + Bugfixes D-13/D-14
 
-Labels verbatim from D-06: **„Korrektur-Hinweis"** and **„Anfrage für Mitgliedschaft"**.
-
-The step/field restructuring above is this UI-SPEC's own prescriptive translation of D-06/D-07
-into a concrete flow (not itself a re-litigated product decision) — the planner may collapse steps
-2–4 differently as long as every field-visibility rule in the table is preserved exactly.
-
-### A3. Gruppenauswahl mit Eigene/Andere-Kennzeichnung (D-02)
-
-Inside the "Gruppe" step, add a second, smaller toggle ABOVE the existing group-picker, same
-visual pattern as A2 (radiogroup, two buttons, `Check` icon when active):
+Der Scope-Toggle selbst bleibt unverändert bestehen:
 
 ```
 role="radiogroup" aria-label="Gruppen-Bereich"
 [ ✓ Eigene Gruppe ]   [ Andere Gruppe ]
 ```
 
-- **„Eigene Gruppe" (default/initial state):** unchanged existing behavior — `ChoiceSelect` over
-  `ownGroups` (`groupOptions`, already carries `subtitle: 'Eigene Gruppe'`).
-- **„Andere Gruppe":** replaces the `ChoiceSelect` with the `useFansubGroupSearch`-driven `Input` +
-  result-button-list from A1, **excluding** the member's own group IDs (`excludeIds: ownGroups.map(g
-  => g.fansub_group_id)` — a member picking "Andere Gruppe" should never be offered a group they
-  already belong to, since that path already exists via "Eigene Gruppe").
-- Once a group is chosen via either path, render a `Badge` tag next to the group name in the
-  existing `selectionBreadcrumb` row: `Badge variant="muted"` labeled **„Eigene Gruppe"** or
-  `Badge variant="info"` labeled **„Andere Gruppe"** (reusing the exact two variants already used
-  elsewhere for muted/informational tags — not a new Badge color).
-- For **Korrektur-Hinweis**, the Anime/Projekt-`ChoiceSelect` step still follows, scoped to
-  whichever group (own or foreign) was picked — `getAdminFansubAnime(selectedGroup.fansub_group_id)`
-  is already group-ID-driven, not ownership-driven, so no visual change needed there beyond the
-  existing loading/error states.
-- For **Mitgliedschaftsanfrage**, no Anime/Projekt field — selecting the group is the entire step.
+- **„Eigene Gruppe" (default/initial state):** unverändert — `ChoiceSelect` über `ownGroups`.
+- **„Andere Gruppe":** `useFansubGroupSearch`-driven `Input` + Ergebnis-Liste, `excludeIds` auf
+  die eigenen Gruppen-IDs — unverändert.
 
-### A4. Optionales Rollenfeld bei Mitgliedschaftsanfrage (D-07)
+**D-13-Fix — Gruppenname nur einmal anzeigen:** Der gewählte Gruppenname erscheint aktuell
+**dreifach** (Suchergebnis-Zeile, `ProposalForm.steps.tsx:211-212`; „Ausgewählt: {name}"-Zeile,
+`:217`; `selectionBreadcrumb`-Pille, `:248-261`). Verbindliche Korrektur:
 
-Replace `Step2Role`'s `rolePicker` with a `FormField` + `Select` **only when** Hinweisart =
-Mitgliedschaftsanfrage:
+- Die separate Zeile `{foreignGroup ? <span className={styles.metaText}>Ausgewählt:
+  {foreignGroup.name}</span> : null}` (`ProposalForm.steps.tsx:217`) wird **ersatzlos entfernt** —
+  die `selectionBreadcrumb`-Pille unten im selben Schritt trägt dieselbe Information bereits
+  (Gruppenname + „Eigene Gruppe"/„Andere Gruppe"-Badge) und bleibt die einzige
+  Nach-Auswahl-Bestätigung.
+- Der Slug im Suchergebnis (`<span>{group.slug}</span>`, `:212`) bleibt bestehen, wird aber laut
+  D-14 (siehe unten) visuell klar sekundär zur fett/prominent gesetzten `<strong>{group.name}
+  </strong>` dargestellt — nicht als zweite gleichwertige Zeile.
+- Ergebnis nach dem Fix: der Gruppenname ist an genau **zwei** Stellen sichtbar — einmal
+  (sekundär zum Slug kombiniert) in der anklickbaren Ergebnis-Zeile vor der Auswahl, einmal
+  (prominent, als alleinstehender Fakt) in der `selectionBreadcrumb`-Pille nach der Auswahl. Das
+  ist kein Widerspruch zu „nur einmal anzeigen" — gemeint ist: nicht dreifach **nach** der
+  Auswahl; die Ergebnis-Zeile selbst verschwindet ohnehin aus der Wahrnehmung, sobald eine Gruppe
+  gewählt ist (sie wird durch die Breadcrumb-Pille ersetzt, nicht zusätzlich dazu gezeigt).
 
-```tsx
-<FormField label="Gewünschte Rolle (optional)" htmlFor="hint-requested-role"
-  hint="Nur eine Angabe für die Gruppe — keine automatische Zuweisung.">
-  <Select id="hint-requested-role" value={requestedRoleCode} onChange={...}>
-    <option value="">Keine bestimmte Rolle</option>
-    {fansubGroupContextRoles.map(role => (
-      <option key={role.code} value={role.code}>{role.label_de}</option>
-    ))}
-  </Select>
-</FormField>
+**D-14-Fix — Suchergebnis-Element auf das helle Formular-Muster umstellen:** `.groupSearchItem`
+(`contributions.module.css:668-687`) ist aktuell ein `Button variant="secondary"` (dunkler
+Verlauf-Hintergrund, `Button.module.css:60-67`, Textfarbe `#f7f9ff`) mit **zusätzlich** dunkel
+eingefärbtem `strong`/`span`-Text (`:679-687`, Farben `#1c2541`/`#6b7190`) — dunkler Text auf
+dunklem Button-Hintergrund, schlecht lesbar. Zielmuster (`EpisodeVersionEditor.module.css:
+279-295`): heller Hintergrund `#ffffff`, `1px solid #e1e1e6`-Rahmen, `border-radius: 12px`,
+`padding: 12px 16px`, Name unauffällig dunkel, Slug `#6b6b70`. Verbindliche, token-basierte
+Übersetzung dieses Zielmusters auf die bestehende `Button`-Primitive (D-14 verlangt
+Design-Tokens statt neuer Hex-Werte, wo möglich — dieses Projekt hat exakte Token-Treffer für
+beide Zielfarben):
+
+```css
+/* .groupSearchItem overrides the dark Button variant="secondary" background/border, following
+   the same local-override-via-!important pattern this file already uses for .disclosureButton
+   (contributions.module.css:640-649) to beat the Button primitive's own CSS-var cascade. */
+.groupSearchItem {
+  display: grid;
+  gap: var(--space-1); /* 4px */
+  justify-items: start;
+  width: 100%;
+  min-height: 0;
+  padding: var(--space-3) var(--space-4); /* 12px 16px, matches the donor pattern exactly */
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 12px;
+  background: var(--surface-card) !important;
+  text-align: left;
+}
+
+.groupSearchItem strong {
+  color: var(--text-strong);
+  font-size: 14px;
+  font-weight: 600; /* reuses the Typography contract's "Label / meta caption" role */
+}
+
+.groupSearchItem span {
+  color: var(--text-muted); /* resolves to #6b6b70, exact match of the donor pattern's slug color */
+  font-size: 14px;
+  font-weight: 400; /* same 14px size as the name, differentiated by color/weight only — no new size token */
+}
 ```
 
-- `fansubGroupContextRoles` MUST come from a server-filtered `role_definitions WHERE contexts @>
-  '{fansub_group}'` query (D-07/`191-RESEARCH.md` Pitfall 2) — never a hardcoded frontend list, and
-  never the same `roleDefinitions` prop `ProposalForm` already receives for the
-  `anime_contribution`-context rolePicker (that list must NOT be reused here, it is the wrong
-  context and would let `fansub_lead` leak into the correction-hint rolePicker where it can never
-  apply).
-- Default value is the empty string / „Keine bestimmte Rolle" — matches D-07's explicit default.
-- For **Korrektur-Hinweis**, `Step2Role`'s existing rolePicker stays exactly as-is (unchanged
-  component, unchanged `anime_contribution`-context `roleDefinitions` prop).
+- Remove the old flex-row layout (`display: flex; flex-direction: column; align-items:
+  flex-start; gap: 2px;`) and the old 9px/12px padding — replace with the grid layout above.
+- `!important` on `border`/`background` is required because `Button variant="secondary"` sets
+  `--button-bg`/`--button-border` as CSS custom properties on the same element
+  (`Button.module.css:60-67`); without `!important`, which rule wins depends on unpredictable
+  CSS-module bundling order. This exact problem already has a precedent fix in the same file
+  (`.disclosureButton`, `contributions.module.css:640-649`) — reuse that established pattern,
+  do not invent a new override strategy.
+- Do not change the result list's interaction model (still a clickable `Button`, still
+  `variant="secondary"` as the base variant prop — only its visual output is overridden locally).
 
-### A5. Modal title and success view
+- Once a group is chosen via either path, the `selectionBreadcrumb` row is unchanged: `Badge
+  variant="muted"` labeled **„Eigene Gruppe"** or `Badge variant="info"` labeled **„Andere
+  Gruppe"**.
+- For the (now sole) Korrektur-Hinweis, the Anime/Projekt-`ChoiceSelect` step still follows,
+  scoped to whichever group (own or foreign) was picked, per D-10's existing data-source fix
+  (public profile endpoint for `groupScope === 'foreign'`, admin endpoint for `'own'` — unchanged
+  by this amendment, D-10 is a backend/data-wiring bugfix with no UI-visual component).
 
-- Modal title changes from the project-specific "Ich war in diesem Projekt dabei" to a neutral
-  title that covers both hint types and both own/foreign groups: **„Hinweis an eine Fansub-Gruppe
-  senden"**. The Hinweisart toggle in Step 1 is what disambiguates further, not the modal title.
-- **Primary visual focus:** across all four wizard steps, the form's single primary focal point is
-  the primary CTA button of the final step — **„Hinweis senden"** (`Button variant="primary"`,
-  step 4/`Hinweis`). The "Weiter" buttons on earlier steps share the same `variant="primary"`
-  styling but are intermediate; no other accent-colored element should compete with the submit
-  action for visual weight anywhere in the wizard body.
-- Success view (`submittedSummary`) copy: heading stays **„Hinweis gesendet"**; body text becomes
-  **„Dein Hinweis wurde an die Gruppe zur Prüfung übermittelt."** (unchanged — already generic
-  enough). The summary `<dl>` below it must render conditionally: Korrektur shows Gruppe/Projekt/
-  Rolle (unchanged); Mitgliedschaftsanfrage shows Gruppe + gewünschte Rolle (or „Keine bestimmte
-  Rolle" if none chosen) and omits the Projekt row entirely (there is no project in that flow).
+### A4. ~~Optionales Rollenfeld bei Mitgliedschaftsanfrage~~ — ENTFÄLLT (D-09)
 
-### A6. Trigger-Button-Gating (cross-reference, not a UI-only decision)
+Diese gesamte Komponente (`StepRoleOptional` in `ProposalForm.extraSteps.tsx`) wird entfernt:
+kein optionales Rollenfeld, kein `fansubGroupContextRoles`-Dropdown, keine
+`fansub_lead`-Sonderfreigabe-Logik im Formular. Schritt „Rolle" nutzt für jeden verbleibenden
+Hinweis ausschließlich `Step2Role`'s bestehenden Pflicht-Rollenpicker
+(`anime_contribution`-Kontext-Rollen) — unverändert gegenüber dem Pre-Phase-191-Zustand.
 
-`MyProposalsSection.tsx`'s trigger button currently disables "Hinweis senden" via
-`canCreateProposal = ownGroups.length > 0`. This gate was correct for the old "only your own
-group(s)" flow, but is too strict for Mitgliedschaftsanfrage (the join-request type explicitly
-exists for people who have zero prior verified group memberships). **Flagging for the planner, not
-resolving here:** the button's enabled condition likely needs to change to "always enabled if the
-member has *any* resolvable verified identity" (per `ResolveVerifiedMemberID`), independent of
-`ownGroups.length`; the disabled-state helper text below the button ("Du brauchst zuerst eine
-verifizierte Mitgliedschaft…") would then need two variants (one for Korrektur still requiring
-an own group's project context, one for Mitgliedschaftsanfrage requiring none). This is a backend-
-identity question as much as a UI one — list it as an open item in the plan, do not silently keep
-the old gate.
+### A5. Modal title and success view (angepasst)
+
+- Modal title bleibt **„Hinweis an eine Fansub-Gruppe senden"** — dieser generische Titel wurde
+  ursprünglich eingeführt, um sowohl Hinweisarten als auch Eigene/Andere-Gruppe abzudecken; da
+  weiterhin zwei Gruppen-Scopes existieren (nur die Hinweisart-Dimension entfällt), bleibt die
+  generische Formulierung zutreffend und wird **nicht** auf den alten projektspezifischen Titel
+  „Ich war in diesem Projekt dabei" zurückgesetzt.
+- **Primary visual focus:** unverändert — der finale-Schritt-CTA **„Hinweis senden"** (`Button
+  variant="primary"`, jetzt Schritt 3/`Hinweis & Zeitraum`) bleibt der alleinige primäre
+  Blickpunkt über alle drei Schritte.
+- Success view (`submittedSummary`) copy: Überschrift **„Hinweis gesendet"**, Body **„Dein
+  Hinweis wurde an die Gruppe zur Prüfung übermittelt."** — unverändert.
+- Die `<dl>`-Zusammenfassung darunter verzweigt **nicht mehr** nach Hinweisart (die
+  Mitgliedschaftsanfrage-Variante aus der gestrichenen Fassung entfällt ersatzlos) — sie zeigt
+  für jeden Hinweis unconditioned Gruppe/Projekt/Rolle, exakt wie im ursprünglichen
+  Korrektur-Hinweis-Pfad vor Phase 191.
+
+### A6. Trigger-Button-Gating (unverändert durch dieses Amendment)
+
+Der in Plan 191-07 Task 3 bereits umgesetzte Fix (Trigger-Button nicht mehr an
+`ownGroups.length > 0` gebunden) bleibt unverändert bestehen — er betraf die Zugänglichkeit des
+Formulars unabhängig von vorhandener Eigengruppe, was für einen Korrektur-Hinweis an eine fremde
+Gruppe weiterhin korrekt ist. D-09 gibt keinen Anlass, diesen Fix zurückzunehmen.
 
 ### A7. File size (CLAUDE.md 450-line cap)
 
-- `ProposalForm.tsx` (currently 350 lines) and `ProposalForm.steps.tsx` (currently 324 lines) will
-  both grow from A2–A5 (new step, new toggles, conditional field rendering). Before landing this
-  phase's changes, re-count; if either file would cross 450 lines, split `.steps.tsx` further
-  (e.g. extract the two new radiogroup toggles into a small shared `HintTypeToggle.tsx`/
-  `GroupScopeToggle.tsx` or a single `ProposalForm.toggles.tsx`) as a **separate, behavior-neutral
-  commit before** the content change lands, per the project's split-then-change convention.
-  `useEpisodeVersionEditor.ts` (420 lines) sheds ~35 lines via the A1 hook extraction, which is the
-  mandatory relief valve for that file, not an optional nicety.
+Beim Entfernen von `HintTypeToggle`/`Step0HintType`/`StepRoleOptional` (A2/A4 oben) ist
+gegenzuprüfen, ob die betroffenen Dateien dadurch *unter* das Limit fallen (sie waren laut
+Plan 191-07 ohnehin am Limit, nicht darüber) — kein Split nötig, aber die Entfernung selbst ist
+eine inhaltliche Änderung an diesen Dateien und zieht D-08/D-15's Doku-Pflicht (fachliche
+Kommentare statt Phasen-Verweise an den verbleibenden Stellen) nach sich.
 
 ---
 
 ## Component Contract B — Leader-Review (gruppen-gescoped, D-01/D-03/D-04(3))
 
-### B1. Placement and gating
+> **Amendment-Hinweis:** Nur die `hintTypeBadgeLabel`-Unterscheidung entfällt (D-09 macht sie
+> bedeutungslos, da nur noch ein Hinweistyp existiert). Alle übrigen Teile von Contract B
+> (Platzierung, Gating, Confirm/Reject-Labels, Empty-/Error-States, B3) bleiben **unverändert**
+> — siehe Original-Fassung unten, die bis auf die eine gestrichene Zeile 1:1 weiterhin gilt.
+
+### B1. Placement and gating (unverändert)
 
 New sibling component `FansubGroupHintsReviewSection.tsx`, colocated at
 `frontend/src/app/admin/fansubs/[id]/edit/` next to `ContributionsReviewSection.tsx`, mounted the
 same way (rendered only when `capabilities.can_manage_members` is true — same `CanForFansubGroup
 (ActionFansubGroupMembersManage)` capability, no new capability per D-06's "kein eigenes Recht").
 Render it as its own `Card variant="section"` directly below `ContributionsReviewSection`, not
-merged into the same card — the two lists have different data sources (`anime_contributions` vs.
-the new `fansub_group_hints` table) and must stay visually/structurally distinct, exactly as the
-existing project separates `GroupRolesSection` from the generic rights Accordion in other admin
-screens (same "different mechanism → different section" principle `191-RESEARCH.md`'s architecture
-section implies by keeping them as two separate GET endpoints).
+merged into the same card.
 
 **Primary visual focus:** for this list, the primary visual focal point per row is the confirm
 action — **„Hinweis bestätigen"** (`Button variant="primary"`). The reject path
 (**„Hinweis ablehnen"**, `Button variant="danger"`) is intentionally the secondary action and stays
-visually de-emphasized (collapsed, no visible text input) until expanded, matching
-`ContributionsReviewSection.tsx`'s existing row layout.
+visually de-emphasized (collapsed, no visible text input) until expanded.
 
 ### B2. Composition (reuse `ContributionsReviewSection.tsx` 1:1, swap only the data/copy)
 
-Reuse the exact `Card` → `Toolbar`(leading `SectionHeader`, trailing "Nur offene anzeigen"/"Alle
-anzeigen" `Button`) → `EmptyState`/`ErrorState`/`LoadingState` → card-stack composition verbatim.
-Differences from the original, itemized:
+Composition and copy table unchanged from the original Contract B2 — **with one row removed**:
 
-| Aspect | `ContributionsReviewSection` (unchanged original) | New `FansubGroupHintsReviewSection` |
-|--------|------------------------------------------------|--------------------------------------|
-| Section title | `Offene Vorschläge ({openCount})` | `Eingehende Hinweise ({openCount})` |
-| Section description | "Mitglieder-eingereichte Contributions prüfen und bestätigen oder ablehnen." | "Hinweise von Mitgliedern anderer Gruppen prüfen — reine Information, keine automatische Mitgliedschaft." (D-03 made explicit in the UI copy itself, not just in backend behavior) |
-| Card header badge for hint type | n/a | `Badge variant="info"` with **„Korrektur-Hinweis"** or **„Anfrage für Mitgliedschaft"** label, placed next to the sender's name |
-| Project/role line | `row.anime_title` + role-code `Badge`s | Korrektur: identical (`anime_title` + role Badges). Mitgliedschaftsanfrage: show **„Gewünschte Rolle: {role.label_de}"** or **„Keine bestimmte Rolle angegeben"** instead — never render an empty/omitted row |
-| Confirm button label | `Vorschlag bestätigen` | **„Hinweis bestätigen"** — deliberately different copy, because confirming here does **not** create a membership row (D-03); "bestätigen" must not read as "accept into the group" |
-| Reject button label | `Vorschlag ablehnen` | **„Hinweis ablehnen"** |
-| Reject expansion | `Textarea` placeholder "Ablehngrund (optional)" + "Ablehnung bestätigen"/"Abbrechen" | identical, reused verbatim (D-04(3): optional reason, one-click close). **Accessibility:** the reused `X` icon that closes/cancels the expansion must carry an explicit `aria-label="Ablehnung abbrechen"` — do not rely on the icon alone to convey its function. |
-| "Done" state badge | `Erledigt` / `In Prüfung` (`Badge variant="muted"`/`"warning"`) | identical, reused verbatim |
-| Empty state (no hints at all) | "Keine offenen Vorschläge" / "Für diese Gruppe wurden noch keine Contributions vorgeschlagen." | **„Keine offenen Hinweise"** / **„Für diese Gruppe liegen aktuell keine Hinweise von Mitgliedern anderer Gruppen vor."** |
-| Empty state (all done, filter active) | "Alle Vorschläge wurden bearbeitet." | **„Alle Hinweise wurden bearbeitet."** |
-| Load-failure error text | "Vorschläge konnten nicht geladen werden. Seite neu laden." | **„Hinweise konnten nicht geladen werden. Seite neu laden."** |
-| Action-failure inline error | "Aktion fehlgeschlagen. Bitte erneut versuchen." | identical, reused verbatim |
+| Aspect | Status |
+|--------|--------|
+| ~~Card header badge for hint type (`Badge variant="info"` with "Korrektur-Hinweis" or "Anfrage für Mitgliedschaft")~~ | **ENTFÄLLT (D-09).** Es gibt nur noch eine Hinweisart — ein Badge, der eine nicht mehr existierende Unterscheidung anzeigt, ist sinnlos und wird komplett entfernt, nicht durch eine statische „Korrektur-Hinweis"-Badge ersetzt (keine Information ohne Unterscheidungswert anzeigen). |
+| Project/role line | Unverändert: `row.anime_title` + role-code `Badge`s — die Mitgliedschaftsanfrage-Variante dieser Zeile aus der gestrichenen Fassung entfällt ersatzlos (es gibt keine `requested_role_code` mehr, D-09 entfernt die Spalte serverseitig). |
+| Alle übrigen Zeilen (Section title/description, Confirm/Reject-Labels, Reject-Expansion, Empty-/Error-States, "Done"-Badge) | **Unverändert** — siehe Copywriting Contract unten für die exakten, weiterhin gültigen Strings. |
 
-No `Button`/`Badge`/`Card` variant invented beyond what `ContributionsReviewSection.tsx` already
-uses — this is a copy-and-relabel reuse, not a new visual pattern.
+### B3. Sender's own-group context line (unverändert)
 
-### B3. Sender's own-group context line (optional, data-dependent)
-
-If the backend's list response includes the sender's own group membership (useful context for the
-leader deciding on a foreign-group hint, per the problem statement's own example — "Timer bei
-NewSubs, möchte auch bei RedHeartFansub angezeigt werden"), render it as one small 14px/400
-helper line under the sender name: **„Mitglied bei: {sender_own_group_name}"**. Omit the line
-entirely if the data is not available/not sent — do not render a placeholder or dash.
+Falls die Backend-Antwort die eigene Gruppenmitgliedschaft des Absenders mitliefert: **„Mitglied
+bei: {sender_own_group_name}"** als 14px/400-Hilfszeile, sonst keine Zeile rendern. Unverändert.
 
 ---
 
-## Component Contract C — Plattform-Admin-Liste (D-01/D-07, `fansub_lead`-Sonderfall)
+## Component Contract C — Plattform-Admin-Liste (D-11, Umwidmung — vormals D-01/D-07/fansub_lead)
 
-### C1. Route and gating
+> **Amendment-Hinweis:** Dieser gesamte Contract wird ersetzt. Der ursprüngliche Zweck dieser
+> Liste ("Mitgliedschaftsanfragen mit Rollenwunsch `fansub_lead`") existiert nicht mehr, weil
+> Mitgliedschaftsanfragen komplett gestrichen sind (D-09). Die bereits gebaute Route/Komponente
+> (`/admin/fansub-group-hints`, `FansubGroupHintsAdminClient.tsx`, Nav-Eintrag) wird gemäß D-11
+> **umgewidmet statt entfernt**: sie zeigt jetzt Korrektur-Hinweise an Zielgruppen **ohne aktive
+> Leitung** (kein `fansub_lead`-Rolleninhaber) — der Fall, in dem es keine erreichbare
+> Leader-Review-Liste (Contract B) gibt, an die der Hinweis sonst ginge.
 
-New route `frontend/src/app/admin/fansub-group-hints/page.tsx` + `FansubGroupHintsAdminClient.tsx`,
-wrapped in `PlatformAdminGate` exactly like `frontend/src/app/admin/claims/page.tsx` — reused 1:1
-(same gate component, same `<main>` wrapper, no new auth primitive).
+### C1. Route and gating (unverändert)
 
-### C2. Nav entry
+Route `frontend/src/app/admin/fansub-group-hints/page.tsx` + `FansubGroupHintsAdminClient.tsx`,
+wrapped in `PlatformAdminGate` — unverändert, keine neue Route, kein neuer Gate-Mechanismus.
 
-Add one entry to `ADMIN_NAV_LINKS` in `frontend/src/components/admin/AdminMainNav.tsx` (the
-existing "Benutzer & Rechte"-module nav bar that already lists `Benutzer`/`Gruppen`/`Rollen`/
-`Claims`/`Änderungen`):
+### C2. Nav entry (Label geändert)
 
 ```ts
-{ label: 'Hinweise (Leitung)', href: '/admin/fansub-group-hints' },
+{ label: 'Hinweise ohne Leitung', href: '/admin/fansub-group-hints' },
 ```
 
-Same `Button variant="ghost" size="sm"` rendering, same active-state logic (`pathname.startsWith`)
-— no new nav visual pattern. This answers `191-RESEARCH.md` Open Question 2 in favor of a visible
-nav entry, matching the existing precedent that every item in this module (including `Claims`) has
-one.
+Label ändert sich von **„Hinweise (Leitung)"** auf **„Hinweise ohne Leitung"** — gewählt, weil
+es die neue Filterbedeutung ("Zielgruppe hat keine aktive Leitung") präziser trägt als jede
+Variante, die weiterhin "Leitung" als Zielgruppe des Hinweises suggerieren könnte (das wäre nach
+der Umwidmung irreführend, da diese Liste jetzt genau die Fälle zeigt, in denen es *keine*
+Leitung gibt). Gleiche `Button variant="ghost" size="sm"`-Darstellung, gleiche
+Active-State-Logik — keine neue Nav-Visuals.
 
-### C3. Composition (reuse `ClaimsClient.tsx` pattern, with these differences)
+### C3. Composition (umgewidmet)
 
-| Aspect | `ClaimsClient.tsx` (unchanged original) | New `FansubGroupHintsAdminClient.tsx` |
-|--------|------------------------------------------|----------------------------------------|
-| Page title | plain `<h1>Claims</h1>` | plain `<h1>Hinweise (Leitung)</h1>` — same unstyled tag, no new heading component |
-| Scope | all claims | **only** rows where `requested_role_code = 'fansub_lead'` — this filter is server-side (the GET endpoint itself is scoped, per `191-RESEARCH.md`'s routing-split design), not a client-side filter toggle; there is no "show all hints" option on this page, by design (D-01: this view exists *because* the leader-rule doesn't apply) |
-| Filters | Status, Claim-Typ (disabled single value), Gruppe (ID), Benutzer (ID), Von/Bis | Status (`Select`: Alle/Offen/Bestätigt/Abgelehnt), Zielgruppe (ID, `Input` + onBlur pattern, identical to `claims-group-filter`), Von/Bis (`Input type="date"`, identical). Drop the "Claim-Typ" disabled-select row entirely — it has no equivalent concept here (every row already IS a `fansub_lead`-Mitgliedschaftsanfrage, nothing to disambiguate) |
-| Desktop table columns | Status, Benutzer, Gruppe, Mitglied, Erstellt, Aktion | Status, Antragsteller, Zielgruppe, **Gewünschte Rolle** (always renders `Badge variant="info"` **„Fansub-Leitung"** — static per the page's own filter, included for scannability/consistency with other admin tables, not because it varies), Erstellt, Aktion |
-| Mobile (<760px) | `ClaimCard` collapse, same `useIsMobile` hook | identical pattern reused verbatim — same breakpoint, same hook, same `Card variant="compact"` layout, column labels swapped as above |
-| Row actions | `Verifizieren`/`Ablehnen` (pending) → `Als aktives Mitglied übernehmen` (verified, inactive) | **„Hinweis bestätigen"** (`Button variant="primary"`) / **„Hinweis ablehnen"** (`Button variant="danger"`) for open hints only — labels deliberately unified with Contract B's Leader-Review labels, not the generic "Bestätigen"/"Ablehnen" the pattern donor (`ClaimsClient.tsx`) uses, so both review surfaces for this feature read identically to admins/leaders switching between them. No activation step — D-03 forbids any action that creates/activates a membership from this screen; "Hinweis bestätigen" only sets the hint's status to acknowledged, it is purely informational exactly like Contract B |
-| Decision detail panel | `ClaimDecisionImpactPanel` (drawer-style impact preview) | **Reject only:** a lightweight `Modal` (not a full impact-drawer — there is no "impact" to preview, D-03) titled **„Hinweis ablehnen"** containing a `Textarea` (placeholder "Ablehngrund (optional)") + `Button variant="danger"` **„Ablehnung bestätigen"** + `Button variant="ghost"` **„Abbrechen"**. "Hinweis bestätigen" needs no modal/confirmation at all — it fires immediately on click (same low-friction logic as Contract B's confirm button; only reject gets the extra reason-capture step) |
-| Empty state (no filter) | "Keine Claims gefunden" | **„Keine offenen Leitungs-Anfragen"** / **„Aktuell liegen keine Mitgliedschaftsanfragen mit gewünschter Rolle „Fansub-Leitung" zur Prüfung vor."** |
-| Empty state (status=pending filter) | "Keine offenen Claims." | **„Keine offenen Leitungs-Anfragen."** |
-| Load error | "Claims konnten nicht geladen werden. Bitte Seite neu laden." | **„Hinweise konnten nicht geladen werden. Bitte Seite neu laden."** |
+| Aspect | Alte Fassung (vormals `fansub_lead`-Mitgliedschaftsanfragen) | **Neue Fassung (D-11, Gruppen ohne aktive Leitung)** |
+|--------|------------------------------------------------------------|----------------------------------------------------|
+| Page title | plain `<h1>Hinweise (Leitung)</h1>` | plain `<h1>Hinweise ohne Leitung</h1>` — weiterhin unstyled tag, keine neue Heading-Komponente |
+| Scope | server-seitig `requested_role_code = 'fansub_lead'` | **server-seitig:** Zielgruppe hat aktuell **keine** Person mit Rolle `fansub_lead` (neue, schmale Repository-Query nach dem Muster von `loadGuardState`'s `active_lead_count`, über `permissions.RoleFansubLead` — kein String-Literal, siehe D-11). Weiterhin kein client-seitiger Filter-Umschalter — die Liste zeigt per Definition nur diesen einen Fall. |
+| Filters | Status, Claim-Typ (disabled), Zielgruppe, Von/Bis | **Status** (`Select`: Alle/Offen/Bestätigt/Abgelehnt), **Zielgruppe** (ID, `Input` + onBlur, unverändert aus der alten Fassung übernommen), **Von/Bis** (`Input type="date"`, unverändert). Die alte Fassung hatte bereits kein „Claim-Typ"-Feld (Component Contract C3 original strich es schon) — keine weitere Filter-Änderung nötig. |
+| Desktop table columns | Status, Antragsteller, Zielgruppe, **Gewünschte Rolle** (statisch „Fansub-Leitung") , Erstellt, Aktion | Status, Antragsteller, Zielgruppe, **Projekt** (ersetzt die „Gewünschte Rolle"-Spalte — jeder verbleibende Hinweis hat laut D-09 ein `related_anime_id NOT NULL`, zeigt den Anime-/Projekttitel als Klartext, keine `Badge` nötig, da es kein statischer/fester Wert mehr ist), Erstellt, Aktion |
+| Mobile (<760px) | `Card variant="compact"`, Spaltenlabels wie Desktop | identisches Muster, Spaltenlabel „Gewünschte Rolle" → „Projekt" |
+| Row actions | **„Hinweis bestätigen"** / **„Hinweis ablehnen"** | **Unverändert** — gleiche vereinheitlichte Labels wie Contract B, kein Aktivierungsschritt (D-03 gilt weiterhin unverändert) |
+| Decision detail panel | `Modal` „Hinweis ablehnen" mit `Textarea` + Confirm/Cancel | **Unverändert** |
+| Empty state (no filter) | „Keine offenen Leitungs-Anfragen" / „Aktuell liegen keine Mitgliedschaftsanfragen mit gewünschter Rolle „Fansub-Leitung" zur Prüfung vor." | **„Keine offenen Hinweise an Gruppen ohne Leitung"** / **„Aktuell liegen keine Korrektur-Hinweise an Zielgruppen ohne aktive Leitung zur Prüfung vor."** |
+| Empty state (status=pending filter) | „Keine offenen Leitungs-Anfragen." | **„Keine offenen Hinweise an Gruppen ohne Leitung."** |
+| Load error | „Hinweise konnten nicht geladen werden. Bitte Seite neu laden." | **Unverändert** — die Fehlermeldung war bereits generisch genug, keine Rollen-spezifische Formulierung enthalten |
 
-A `Modal` is used here (unlike Contract B's inline expand) because the dense `Table` row has no
-room for an inline textarea+buttons the way the Card-stack in Contract B does — this is a
-deliberate, context-driven interaction-pattern difference, not an inconsistency: dense table rows
-get a `Modal`, card-stacks get inline expansion, matching how `ClaimsClient.tsx` itself already
-reserves its own dialog (`ClaimDecisionImpactPanel`) for the same reason.
+A `Modal` for reject bleibt aus demselben Grund wie zuvor bestehen (dense `Table`-Zeile hat keinen
+Platz für Inline-Expansion) — unverändert gegenüber der alten Fassung.
 
-**Accessibility:** the reject modal's reused `X` icon (if used as the modal's own close affordance,
-reused from the same `lucide-react` `X` icon as Contract B) must likewise carry an explicit
-`aria-label="Hinweis-Ablehnung abbrechen"` (or the shared `Modal` primitive's own close-button
-label, if it already provides one) — never an icon-only control with no accessible name.
+**Accessibility:** die `X`-Icon-Vorgabe (`aria-label="Hinweis-Ablehnung abbrechen"`) bleibt
+unverändert bestehen.
+
+---
+
+## Component Contract D — „Fehler melden"-Einstiegspunkt auf öffentlichen Seiten (NEU, D-12)
+
+### D1. Zweck und Geltungsbereich
+
+Ein zweiter, kontextueller Einstiegspunkt in dasselbe `ProposalForm`-Formular (Contract A), neben
+dem bestehenden "Hinweis senden"-Knopf auf `/me/contributions` (der unverändert zusätzlich
+bestehen bleibt — kein Ersatz). Erscheint an genau zwei Stellen:
+
+1. Öffentliche Projektseite — Route `frontend/src/app/anime/[id]/group/[groupId]/page.tsx`
+   (kanonisch erreichbar unter `/fansubs/<slug>/fansubprojekt/<anime>`), gerendert von
+   `ProjectPage.tsx` → `sections/HeroSection.tsx`.
+2. Öffentliche Release-Seite — Route `frontend/src/app/anime/[id]/group/[groupId]/releases/
+   [releaseVersionId]/page.tsx`, Header-Bereich gerendert von `ReleaseDetailHero.tsx`.
+
+### D2. Sichtbarkeits-Gate (strikt, kein Fehlertext für Normalfall)
+
+Sichtbar **ausschließlich** für angemeldete Nutzer, die dieselbe Eligibility-Prüfung erfüllen wie
+der bestehende "Hinweis senden"-Knopf auf `/me/contributions`:
+
+```ts
+// isEligibleForContributions, frontend/src/app/me/contributions/page.tsx:39-44
+Boolean(profile?.has_member_profile && profile?.has_project_assignments)
+```
+
+- **Verbindlich:** diese Funktion wird aus `frontend/src/app/me/contributions/page.tsx` in einen
+  wiederverwendbaren, gemeinsam importierbaren Ort extrahiert (z. B. `frontend/src/lib/
+  contributionsEligibility.ts` oder ein kleiner Hook `useContributionsEligibility`) — **keine**
+  zweite, lokal duplizierte Kopie dieser Prüfung in den beiden neuen Seiten-Komponenten. Dies ist
+  dieselbe "keine Kopie"-Linie, die D-02 bereits für die Gruppensuche gesetzt hat.
+- Für nicht angemeldete Nutzer, Nutzer ohne Mitgliedsprofil, oder Nutzer ohne
+  Projekt-Zuordnung: der Link wird **gar nicht gerendert** (kein `disabled`-State, kein
+  Tooltip-Fehlertext, kein Platzhalter) — unkritische, aber verbindliche Vorgabe (D-12).
+
+### D3. Platzierung und Primitive (dezent, kein Primary-Button)
+
+- **Projektseite** (`HeroSection.tsx`): Link direkt unterhalb/neben der bestehenden `<h1
+  className={styles.title}>{anime.title}</h1>` + `<Breadcrumbs items={breadcrumbItems} />`-Zeile
+  (`HeroSection.tsx:72-77`) — im selben `heroIdentity`-Block, visuell dem Breadcrumb
+  untergeordnet, nicht dem `<h1>` gleichrangig.
+- **Release-Seite** (`ReleaseDetailHero.tsx`): Link im `heroIdentity`-Block, nach der
+  `heroGroupLine` (`ReleaseDetailHero.tsx:56-60`, der Gruppen-Namenszeile) — analoge Position zur
+  Projektseite (nach der zuletzt gerenderten Meta-/Navigationszeile, vor jedem größeren
+  Inhaltsblock).
+- **Primitive:** `Button variant="text" size="sm"`, **kein** Icon (kein `AlertCircle`/`Flag` o.
+  ä. — reiner Textlink, maximal unauffällig). Explizit **nicht** `variant="primary"`,
+  `"secondary"`, `"subtle"` oder `"ghost"` — diese sind alle visuell gewichtiger (Hintergrund,
+  Rahmen, oder akzentfarbener Text) als der hier verlangte „dezente Text-Link" (D-12-Formulierung
+  wörtlich). `variant="text"` ist die einzige Button-Variante dieses Design-Systems, die exakt
+  einem reinen, unterlegungsfreien Textlink entspricht (`Button.module.css:126-134` — `display:
+  inline`, kein `background`, kein `border`, Underline nur bei `:hover`).
+- Abstand zum Nachbarelement: `var(--space-2)` (8px) vertikal, kein eigener Card/Section-Wrapper.
+
+### D4. Verhalten bei Klick — Formular mit Vorauswahl, Schritt 1 übersprungen
+
+- Öffnet dasselbe `ProposalForm`-Modal wie Contract A, mit einer neuen Prop (z. B.
+  `prefill={{ fansubGroupId, animeId }}` — exakter Name liegt beim Plan) statt des normalen
+  Start-Zustands.
+- **Zielgruppe und Projekt sind vorausgewählt** — Schritt 1 (`Gruppe & Projekt`) wird dadurch
+  **nicht angezeigt**, der Wizard startet direkt bei Schritt 2 (`Rolle`). Der Fortschritts-Indikator
+  (`progressSegments`) zeigt für diesen Einstiegspunkt entsprechend nur **2** Segmente (`Rolle`,
+  `Hinweis & Zeitraum`) statt 3 — keine dritte, leere/überflüssige Segment-Anzeige für einen
+  Schritt, der gar nicht gerendert wird.
+- Um die durch das Überspringen von Schritt 1 fehlende Orientierung ("wofür melde ich das
+  gerade?") auszugleichen: eine Kontext-Zeile am Kopf des Modal-Bodies, 14px/400, Farbe
+  `var(--text-muted)` — Copy: **„Du meldest einen Fehler zu {anime.title} bei {group.name}."**
+  (beide Werte aus der Vorauswahl, nicht editierbar an dieser Stelle).
+- Ob die Zielgruppe `groupScope = 'own'` oder `'foreign'` ist, wird weiterhin serverseitig/anhand
+  der bestehenden Mitgliedschaftsprüfung ermittelt (dieselbe `(hintType, groupScope)`-Routing-Logik
+  aus `ProposalForm.useSubmit.ts`, unverändert) — der Nutzer trifft diese Unterscheidung nicht
+  manuell, sie ist aus dem Seitenkontext bereits bekannt.
+- Modal-Titel bleibt unverändert **„Hinweis an eine Fansub-Gruppe senden"** (Contract A5) — keine
+  eigene, dritte Titel-Variante für diesen Einstiegspunkt.
+
+### D5. Copy
+
+Siehe Copywriting Contract unten für die exakten, hier neu hinzugefügten Strings.
 
 ---
 
@@ -378,44 +492,43 @@ substitutes anywhere in JSX text, labels, placeholders, or aria-labels.
 | Element | Copy |
 |---------|------|
 | Modal title (Formular) | `Hinweis an eine Fansub-Gruppe senden` |
-| Hinweisart — Option A | `Korrektur-Hinweis` |
-| Hinweisart — Option B | `Anfrage für Mitgliedschaft` |
+| ~~Hinweisart — Option A/B~~ | **ENTFÄLLT (D-09)** — kein Hinweisart-Umschalter mehr |
 | Gruppen-Bereich-Toggle — Option A | `Eigene Gruppe` |
 | Gruppen-Bereich-Toggle — Option B | `Andere Gruppe` |
-| Gruppen-Tag (Badge, Korrektur + Mitgliedschaft) | `Eigene Gruppe` (`variant="muted"`) / `Andere Gruppe` (`variant="info"`) |
-| Rollenfeld-Label (Mitgliedschaftsanfrage) | `Gewünschte Rolle (optional)` |
-| Rollenfeld-Hint | `Nur eine Angabe für die Gruppe — keine automatische Zuweisung.` |
-| Rollenfeld-Default-Option | `Keine bestimmte Rolle` |
-| Primary CTA (Formular, final step) | `Hinweis senden` (unchanged — already generic) |
+| Gruppen-Tag (Badge) | `Eigene Gruppe` (`variant="muted"`) / `Andere Gruppe` (`variant="info"`) |
+| ~~Rollenfeld-Label/-Hint/-Default (Mitgliedschaftsanfrage)~~ | **ENTFÄLLT (D-09)** — kein optionales Rollenfeld mehr |
+| Primary CTA (Formular, final step) | `Hinweis senden` |
 | Success heading | `Hinweis gesendet` |
 | Success body | `Dein Hinweis wurde an die Gruppe zur Prüfung übermittelt.` |
 | Duplicate-Hinweis-Fehler (409, D-04(1), verbatim user text) | `Du hast dazu bereits einen offenen Hinweis.` |
-| Tageslimit-Fehler (429, D-04(2), discretionary exact text) | `Du hast heute bereits zu viele Hinweise gesendet. Versuche es morgen wieder.` |
+| Tageslimit-Fehler (429, D-04(2)) | `Du hast heute bereits zu viele Hinweise gesendet. Versuche es morgen wieder.` |
 | Generischer Sende-Fehler | `Der Hinweis konnte nicht eingereicht werden. Bitte versuche es erneut.` |
 | Leader-Review — Section title | `Eingehende Hinweise ({openCount})` |
 | Leader-Review — Section description | `Hinweise von Mitgliedern anderer Gruppen prüfen — reine Information, keine automatische Mitgliedschaft.` |
 | Leader-Review — Confirm button | `Hinweis bestätigen` |
 | Leader-Review — Reject button | `Hinweis ablehnen` |
-| Leader-Review — Reject reason placeholder | `Ablehngrund (optional)` (reused verbatim) |
-| Leader-Review — Reject confirm button | `Ablehnung bestätigen` (reused verbatim) |
-| Leader-Review — Reject expansion close icon | `aria-label="Ablehnung abbrechen"` on the reused `X` icon |
+| Leader-Review — Reject reason placeholder | `Ablehngrund (optional)` |
+| Leader-Review — Reject confirm button | `Ablehnung bestätigen` |
+| Leader-Review — Reject expansion close icon | `aria-label="Ablehnung abbrechen"` auf dem wiederverwendeten `X`-Icon |
 | Leader-Review — Empty (none ever) heading/body | `Keine offenen Hinweise` / `Für diese Gruppe liegen aktuell keine Hinweise von Mitgliedern anderer Gruppen vor.` |
 | Leader-Review — Empty (all done, filtered) | `Alle Hinweise wurden bearbeitet.` |
 | Leader-Review — Load error | `Hinweise konnten nicht geladen werden. Seite neu laden.` |
-| Leader-Review — Gewünschte-Rolle-Zeile (Mitgliedschaft) | `Gewünschte Rolle: {role.label_de}` / `Keine bestimmte Rolle angegeben` |
+| ~~Leader-Review — Gewünschte-Rolle-Zeile (Mitgliedschaft)~~ | **ENTFÄLLT (D-09)** |
 | Leader-Review — Sender-Kontext-Zeile (optional) | `Mitglied bei: {sender_own_group_name}` |
-| Admin-Liste — Page title | `Hinweise (Leitung)` |
-| Admin-Liste — Nav-Label | `Hinweise (Leitung)` |
-| Admin-Liste — Table column "Gewünschte Rolle" value | `Fansub-Leitung` (`Badge variant="info"`, static) |
-| Admin-Liste — Confirm button | `Hinweis bestätigen` (unified with Leader-Review, not the generic „Bestätigen") |
-| Admin-Liste — Reject button | `Hinweis ablehnen` (unified with Leader-Review, not the generic „Ablehnen") |
+| Admin-Liste — Page title | `Hinweise ohne Leitung` **(geändert von „Hinweise (Leitung)", D-11)** |
+| Admin-Liste — Nav-Label | `Hinweise ohne Leitung` **(geändert, D-11)** |
+| ~~Admin-Liste — Table column "Gewünschte Rolle"~~ | **ENTFÄLLT (D-11)** — ersetzt durch eine `Projekt`-Spalte, die den `related_anime_id`-Titel als Klartext zeigt |
+| Admin-Liste — Confirm button | `Hinweis bestätigen` (unverändert) |
+| Admin-Liste — Reject button | `Hinweis ablehnen` (unverändert) |
 | Admin-Liste — Reject modal title | `Hinweis ablehnen` |
 | Admin-Liste — Reject modal confirm | `Ablehnung bestätigen` |
 | Admin-Liste — Reject modal cancel | `Abbrechen` |
-| Admin-Liste — Empty (no filter) | `Keine offenen Leitungs-Anfragen` / `Aktuell liegen keine Mitgliedschaftsanfragen mit gewünschter Rolle „Fansub-Leitung" zur Prüfung vor.` |
-| Admin-Liste — Empty (status=pending) | `Keine offenen Leitungs-Anfragen.` |
-| Admin-Liste — Load error | `Hinweise konnten nicht geladen werden. Bitte Seite neu laden.` |
-| Destructive confirmation | Reject (both surfaces): optional reason text, one dedicated confirm click (`Ablehnung bestätigen`) — no modal/`ConfirmDialog` layered on top of Contract B's inline expand; a `Modal` is used in Contract C only because the dense table has no inline-expand space (see Component Contract C rationale), not as an extra confirmation step |
+| Admin-Liste — Empty (no filter) | **`Keine offenen Hinweise an Gruppen ohne Leitung`** / **`Aktuell liegen keine Korrektur-Hinweise an Zielgruppen ohne aktive Leitung zur Prüfung vor.`** (geändert, D-11) |
+| Admin-Liste — Empty (status=pending) | **`Keine offenen Hinweise an Gruppen ohne Leitung.`** (geändert, D-11) |
+| Admin-Liste — Load error | `Hinweise konnten nicht geladen werden. Bitte Seite neu laden.` (unverändert) |
+| Destructive confirmation | Reject (both surfaces): optional reason text, one dedicated confirm click (`Ablehnung bestätigen`) — no modal/`ConfirmDialog` layered on top of Contract B's inline expand; a `Modal` is used in Contract C only because the dense table has no inline-expand space |
+| **Contract D — „Fehler melden"-Link (NEU, D-12)** | **`Fehler melden`** |
+| **Contract D — Kontext-Zeile im Modal bei vorausgewähltem Einstieg (NEU)** | **`Du meldest einen Fehler zu {anime.title} bei {group.name}.`** |
 
 ---
 
@@ -431,39 +544,50 @@ Not applicable — no shadcn, no component registry of any kind is used in this 
 
 ## Cross-Reference to Backend Contract (for planner/executor alignment — not a UI decision)
 
-Restated from `191-RESEARCH.md` for convenience; the component contracts above assume these
-shapes:
+Restated and amended from `191-RESEARCH.md`/`191-CONTEXT.md` for convenience; the component
+contracts above assume these shapes:
 
-- Sender's own group membership context (Contract B3) and the role-context-filtered dropdown
-  options (Contract A4, `role_definitions WHERE contexts @> '{fansub_group}'`) must come from the
-  server, never be derived/hardcoded client-side (D-07, Pitfall 2).
-- The Leader-Review list (Contract B) and the Plattform-Admin list (Contract C) are two **separate**
-  GET endpoints with server-side `WHERE`-split on `requested_role_code = 'fansub_lead'` vs. not —
-  the UI never receives one unfiltered feed and filters client-side (security requirement from
-  `191-RESEARCH.md`'s Anti-Patterns: "Client-seitiges Routing… Sicherheitsrisiko").
-- 409 (duplicate open hint) and 429 (daily limit) are the two new error codes the Formular's error
-  state must branch on (Contract A, Copywriting Contract) — mirror the existing `ApiError`/`status`
-  check pattern already used in `ProposalForm.tsx`'s `submitProposal` catch block.
-- Contract A6's trigger-button gating question depends on whether `ResolveVerifiedMemberID` alone
-  (without any existing group membership) is sufficient to allow a Mitgliedschaftsanfrage — flag
-  for the planner, this UI-SPEC does not resolve it.
+- **D-09 Schema-Konsequenz (Migration 0188):** `fansub_group_hints` verliert die Spalten
+  `hint_type` und `requested_role_code`, `related_anime_id` wird `NOT NULL`. Jede Stelle in den
+  Component Contracts oben, die vormals nach `hint_type`/`requested_role_code` verzweigt hat
+  (Contract A's Hinweisart-Schritte, Contract B's `hintTypeBadgeLabel`/`roleLineForHint`,
+  Contract C's „Gewünschte Rolle"-Spalte/-Filter), muss diese Verzweigung ersatzlos entfernen,
+  nicht nur UI-seitig verstecken — das Datenfeld existiert nach der Migration serverseitig nicht
+  mehr.
+- **D-11 neue Repository-Abfrage:** die Admin-Liste (Contract C) braucht eine neue, schmale
+  Query „hat die Zielgruppe aktuell eine Person mit Rolle `fansub_lead`" (Muster:
+  `fansub_group_app_members_repository.go:921-934`'s `active_lead_count`, über die bestehende
+  `permissions.RoleFansubLead`-Konstante) als serverseitiges `WHERE`-Kriterium — kein
+  client-seitiges Filtern eines ungefilterten Feeds (unverändertes Sicherheitsprinzip aus der
+  Ursprungsfassung).
+- **D-12 Vorauswahl-Payload:** Contract D's `prefill`-Prop braucht vom aufrufenden Seiten-Context
+  mindestens `fansubGroupId` + `animeId` (Projektseite) bzw. zusätzlich die Release-Version-ID
+  (Release-Seite, falls der Hinweis release-scoped statt nur anime-scoped sein soll — Detail für
+  den Plan, in `191-CONTEXT.md` nicht abschließend spezifiziert).
+- 409 (duplicate open hint) und 429 (daily limit) bleiben die zwei Fehlercodes, auf die das
+  Formular verzweigt — unverändert durch dieses Amendment.
+- Contract A6's Trigger-Button-Gating ist bereits umgesetzt (Plan 191-07 Task 3) und von D-09
+  nicht betroffen (siehe Contract A6 oben).
 
 ---
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS — note: Contract C3's Bestätigen/Ablehnen actions are now
-  unified to „Hinweis bestätigen"/„Hinweis ablehnen", matching Contract B verbatim.
-- [ ] Dimension 2 Visuals: PASS — note: primary visual focal point declared for both the form
-  (final-step „Hinweis senden" CTA, Contract A5) and the Leader-Review list (confirm action,
-  Contract B1); `aria-label` requirement declared for the reused reject-expansion `X` icon in both
-  Contract B2 and Contract C3.
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS — note: the 700-weight `<h1>` is an inherited browser-default
-  exception from `ClaimsClient.tsx`, carried over verbatim; it is explicitly NOT an authorized
-  third weight for any newly styled component in this phase (see Typography section constraint).
-- [ ] Dimension 5 Spacing: PASS — note: `--space-3` (12px) is a real, pre-existing project token
-  (`globals.css:117-125`, full 9-step scale), not an off-grid value; see Spacing Scale footnote.
+- [ ] Dimension 1 Copywriting: PASS — note: Hinweisart-/Rollenfeld-Strings sind vollständig
+  entfernt (D-09), Admin-Liste-Strings auf „ohne Leitung" umgestellt (D-11), zwei neue Strings
+  für Contract D (D-12) ergänzt.
+- [ ] Dimension 2 Visuals: PASS — note: D-13 (Dreifach-Namen-Bug) und D-14 (dunkler-Text-auf-
+  dunklem-Grund-Bug) sind mit konkreten, token-basierten CSS-Werten behoben; Contract D's
+  „Fehler melden"-Link ist explizit als `variant="text"`, nicht `"primary"`, spezifiziert, um
+  seinen Nebenfeature-Charakter visuell zu sichern.
+- [ ] Dimension 3 Color: PASS — note: D-14-Fix nutzt ausschließlich bestehende Tokens
+  (`--surface-card`, `--border-subtle`, `--text-strong`, `--text-muted`), keine neuen Hex-Werte.
+- [ ] Dimension 4 Typography: PASS — note: der D-14-Fix führt keine neue Schriftgröße ein (Slug
+  bleibt bei 14px, nicht kleiner); die 700-Gewichtung des neuen Contract-D-Textlinks ist als
+  geerbte `Button`-Primitive-Eigenschaft deklariert, nicht als neu autorisiertes drittes Gewicht.
+- [ ] Dimension 5 Spacing: PASS — note: `--space-3`/`--space-4` für den D-14-CSS-Fix sind
+  pre-existing Tokens (siehe Spacing-Fußnote), `--space-2` für den Contract-D-Link-Abstand
+  ebenso.
 - [ ] Dimension 6 Registry Safety: PASS
 
 **Approval:** pending
