@@ -4,9 +4,9 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  WIZARD_STEPS,
   buildHintSubmitPayload,
   errorMessageForHintStatus,
-  stepsForHintType,
   useProposalFormSubmit,
 } from './ProposalForm.useSubmit'
 
@@ -32,54 +32,16 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-describe('stepsForHintType', () => {
-  it('liefert bei Korrektur die Titel "Gruppe & Projekt"/"Hinweis & Zeitraum"', () => {
-    const steps = stepsForHintType('correction')
-    expect(steps.map((step) => step.title)).toEqual(['Hinweisart', 'Gruppe & Projekt', 'Rolle', 'Hinweis & Zeitraum'])
-  })
-
-  it('liefert bei Mitgliedschaftsanfrage die schlankeren Titel "Gruppe"/"Hinweis"', () => {
-    const steps = stepsForHintType('membership_request')
-    expect(steps.map((step) => step.title)).toEqual(['Hinweisart', 'Gruppe', 'Rolle', 'Hinweis'])
-  })
-
-  it('liefert vor der Hinweisart-Wahl (leerer String) ebenfalls 4 Schritte, ohne zu werfen', () => {
-    expect(stepsForHintType('')).toHaveLength(4)
+describe('WIZARD_STEPS', () => {
+  it('besteht aus genau drei Schritten: Gruppe & Projekt, Rolle, Hinweis & Zeitraum (D-09)', () => {
+    expect(WIZARD_STEPS.map((step) => step.title)).toEqual(['Gruppe & Projekt', 'Rolle', 'Hinweis & Zeitraum'])
+    expect(WIZARD_STEPS.map((step) => step.id)).toEqual([1, 2, 3])
   })
 })
 
 describe('buildHintSubmitPayload', () => {
-  it('baut bei Mitgliedschaftsanfrage requested_role_code und note, ohne related_anime_id', () => {
+  it('baut related_anime_id und bettet die Rolle als Klartext in die Notiz ein', () => {
     const payload = buildHintSubmitPayload({
-      hintType: 'membership_request',
-      targetFansubGroupId: 42,
-      requestedRoleCode: 'fansub_lead',
-      note: '  Bitte prüfen  ',
-    })
-
-    expect(payload).toEqual({
-      hint_type: 'membership_request',
-      target_fansub_group_id: 42,
-      requested_role_code: 'fansub_lead',
-      note: 'Bitte prüfen',
-    })
-  })
-
-  it('setzt requested_role_code auf null, wenn keine Rolle gewünscht wurde', () => {
-    const payload = buildHintSubmitPayload({
-      hintType: 'membership_request',
-      targetFansubGroupId: 42,
-      requestedRoleCode: '',
-      note: '',
-    })
-
-    expect(payload.requested_role_code).toBeNull()
-    expect(payload.note).toBeNull()
-  })
-
-  it('baut bei Korrektur related_anime_id statt eines Rollenfelds und bettet die Rolle als Klartext in die Notiz ein', () => {
-    const payload = buildHintSubmitPayload({
-      hintType: 'correction',
       targetFansubGroupId: 7,
       relatedAnimeId: 99,
       roleLabelForNote: 'Timing',
@@ -87,19 +49,17 @@ describe('buildHintSubmitPayload', () => {
     })
 
     expect(payload).toEqual({
-      hint_type: 'correction',
       target_fansub_group_id: 7,
       related_anime_id: 99,
       note: 'Rolle: Timing — Folge 3 fehlt',
     })
-    expect(payload).not.toHaveProperty('requested_role_code')
   })
 
-  it('laesst die Notiz bei Korrektur ohne Rolle/Text leer (null statt leerer String)', () => {
+  it('laesst die Notiz ohne Rolle/Text leer (null statt leerer String)', () => {
     const payload = buildHintSubmitPayload({
-      hintType: 'correction',
       targetFansubGroupId: 7,
       relatedAnimeId: 99,
+      roleLabelForNote: null,
       note: '',
     })
 
@@ -124,7 +84,7 @@ describe('errorMessageForHintStatus', () => {
   })
 })
 
-describe('useProposalFormSubmit — Regression: unveraenderter Korrektur/Eigene-Gruppe-Pfad', () => {
+describe('useProposalFormSubmit — Regression: unveraenderter Eigene-Gruppe-Pfad', () => {
   it('ruft createContributionProposal mit dem identischen Payload-Shape wie vor Plan 191-07 auf', async () => {
     apiMocks.createContributionProposal.mockResolvedValue(undefined)
     const { result } = renderHook(() => useProposalFormSubmit())
@@ -132,15 +92,12 @@ describe('useProposalFormSubmit — Regression: unveraenderter Korrektur/Eigene-
     let summary
     await act(async () => {
       summary = await result.current.submit({
-        hintType: 'correction',
         groupScope: 'own',
         ownGroup: { fansub_group_id: 10, fansub_group_member_id: 1, group_name: 'Testgruppe' },
         foreignGroup: null,
         anime: { id: 3, title: 'Naruto' } as never,
         roleCode: 'translator',
         roleLabel: 'Übersetzung',
-        requestedRoleCode: '',
-        requestedRoleLabel: null,
         note: '',
         startedYear: '',
         endedYear: '',
@@ -158,7 +115,6 @@ describe('useProposalFormSubmit — Regression: unveraenderter Korrektur/Eigene-
     })
     expect(apiMocks.createFansubGroupHint).not.toHaveBeenCalled()
     expect(summary).toEqual({
-      hintType: 'correction',
       groupName: 'Testgruppe',
       animeTitle: 'Naruto',
       roleLabel: 'Übersetzung',
@@ -166,22 +122,20 @@ describe('useProposalFormSubmit — Regression: unveraenderter Korrektur/Eigene-
   })
 })
 
-describe('useProposalFormSubmit — neue Pfade ueber fansub_group_hints', () => {
-  it('Korrektur an eine fremde Gruppe ruft createFansubGroupHint statt createContributionProposal', async () => {
+describe('useProposalFormSubmit — Korrektur an eine fremde Gruppe (fansub_group_hints)', () => {
+  it('ruft createFansubGroupHint statt createContributionProposal auf', async () => {
     apiMocks.createFansubGroupHint.mockResolvedValue({ data: {} })
     const { result } = renderHook(() => useProposalFormSubmit())
 
+    let summary
     await act(async () => {
-      await result.current.submit({
-        hintType: 'correction',
+      summary = await result.current.submit({
         groupScope: 'foreign',
         ownGroup: null,
         foreignGroup: { id: 99, name: 'RedHeartFansub', slug: 'redheart' } as never,
         anime: { id: 5, title: 'One Piece' } as never,
         roleCode: 'timer',
         roleLabel: 'Timing',
-        requestedRoleCode: '',
-        requestedRoleLabel: null,
         note: 'Episode 12 fehlt',
         startedYear: '',
         endedYear: '',
@@ -190,46 +144,14 @@ describe('useProposalFormSubmit — neue Pfade ueber fansub_group_hints', () => 
 
     expect(apiMocks.createContributionProposal).not.toHaveBeenCalled()
     expect(apiMocks.createFansubGroupHint).toHaveBeenCalledWith({
-      hint_type: 'correction',
       target_fansub_group_id: 99,
       related_anime_id: 5,
       note: 'Rolle: Timing — Episode 12 fehlt',
     })
-  })
-
-  it('Mitgliedschaftsanfrage ruft createFansubGroupHint mit requested_role_code auf', async () => {
-    apiMocks.createFansubGroupHint.mockResolvedValue({ data: {} })
-    const { result } = renderHook(() => useProposalFormSubmit())
-
-    let summary
-    await act(async () => {
-      summary = await result.current.submit({
-        hintType: 'membership_request',
-        groupScope: 'foreign',
-        ownGroup: null,
-        foreignGroup: { id: 7, name: 'NewSubs', slug: 'newsubs' } as never,
-        anime: null,
-        roleCode: '',
-        roleLabel: null,
-        requestedRoleCode: 'fansub_lead',
-        requestedRoleLabel: 'Fansub-Leitung',
-        note: '',
-        startedYear: '',
-        endedYear: '',
-      })
-    })
-
-    expect(apiMocks.createFansubGroupHint).toHaveBeenCalledWith({
-      hint_type: 'membership_request',
-      target_fansub_group_id: 7,
-      requested_role_code: 'fansub_lead',
-      note: null,
-    })
     expect(summary).toEqual({
-      hintType: 'membership_request',
-      groupName: 'NewSubs',
-      animeTitle: null,
-      roleLabel: 'Fansub-Leitung',
+      groupName: 'RedHeartFansub',
+      animeTitle: 'One Piece',
+      roleLabel: 'Timing',
     })
   })
 
@@ -241,15 +163,12 @@ describe('useProposalFormSubmit — neue Pfade ueber fansub_group_hints', () => 
     await act(async () => {
       await expect(
         result.current.submit({
-          hintType: 'membership_request',
           groupScope: 'foreign',
           ownGroup: null,
           foreignGroup: { id: 7, name: 'NewSubs', slug: 'newsubs' } as never,
-          anime: null,
-          roleCode: '',
-          roleLabel: null,
-          requestedRoleCode: '',
-          requestedRoleLabel: null,
+          anime: { id: 1, title: 'Bleach' } as never,
+          roleCode: 'timer',
+          roleLabel: 'Timing',
           note: '',
           startedYear: '',
           endedYear: '',
@@ -268,15 +187,12 @@ describe('useProposalFormSubmit — neue Pfade ueber fansub_group_hints', () => 
     await act(async () => {
       await expect(
         result.current.submit({
-          hintType: 'membership_request',
-          groupScope: 'own',
-          ownGroup: { fansub_group_id: 10, fansub_group_member_id: 1, group_name: 'Testgruppe' },
-          foreignGroup: null,
-          anime: null,
-          roleCode: '',
-          roleLabel: null,
-          requestedRoleCode: '',
-          requestedRoleLabel: null,
+          groupScope: 'foreign',
+          ownGroup: null,
+          foreignGroup: { id: 7, name: 'NewSubs', slug: 'newsubs' } as never,
+          anime: { id: 1, title: 'Bleach' } as never,
+          roleCode: 'timer',
+          roleLabel: 'Timing',
           note: '',
           startedYear: '',
           endedYear: '',
@@ -285,5 +201,31 @@ describe('useProposalFormSubmit — neue Pfade ueber fansub_group_hints', () => 
     })
 
     expect(result.current.error).toBe('Du hast heute bereits zu viele Hinweise gesendet. Versuche es morgen wieder.')
+  })
+
+  it('priorisiert die 409-Konfliktmeldung des Eigene-Gruppe-Pfads VOR der generischen D-04(1)-Zuordnung', async () => {
+    const { ApiError } = await import('@/lib/api')
+    apiMocks.createContributionProposal.mockRejectedValue(
+      new ApiError(409, 'Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag.'),
+    )
+    const { result } = renderHook(() => useProposalFormSubmit())
+
+    await act(async () => {
+      await expect(
+        result.current.submit({
+          groupScope: 'own',
+          ownGroup: { fansub_group_id: 10, fansub_group_member_id: 1, group_name: 'Testgruppe' },
+          foreignGroup: null,
+          anime: { id: 3, title: 'Naruto' } as never,
+          roleCode: 'translator',
+          roleLabel: 'Übersetzung',
+          note: '',
+          startedYear: '',
+          endedYear: '',
+        }),
+      ).rejects.toBeInstanceOf(ApiError)
+    })
+
+    expect(result.current.error).toBe('Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag.')
   })
 })

@@ -4,7 +4,6 @@ import { Check } from 'lucide-react'
 
 import styles from './contributions.module.css'
 
-export type HintType = 'correction' | 'membership_request'
 export type GroupScope = 'own' | 'foreign'
 
 interface RadioOption<T extends string> {
@@ -50,21 +49,6 @@ function RadioToggle<T extends string>({
       })}
     </div>
   )
-}
-
-const HINT_TYPE_OPTIONS: RadioOption<HintType>[] = [
-  { value: 'correction', label: 'Korrektur-Hinweis' },
-  { value: 'membership_request', label: 'Anfrage für Mitgliedschaft' },
-]
-
-export function HintTypeToggle({
-  value,
-  onSelect,
-}: {
-  value: HintType | ''
-  onSelect: (value: HintType) => void
-}) {
-  return <RadioToggle ariaLabel="Hinweisart" value={value} options={HINT_TYPE_OPTIONS} onSelect={onSelect} />
 }
 
 const GROUP_SCOPE_OPTIONS: RadioOption<GroupScope>[] = [

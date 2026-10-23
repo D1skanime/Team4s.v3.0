@@ -1,23 +1,19 @@
 'use client'
 
-// Trennt die reine Wizard-Zustandsmaschine (ProposalForm.tsx) von der Sende-Logik, weil
-// zwei Hinweisarten/Gruppen-Konstellationen auf ZWEI strukturell unterschiedliche
-// Backend-Tabellen zielen, nicht auf einen gemeinsamen Endpunkt:
+// Trennt die reine Wizard-Zustandsmaschine (ProposalForm.tsx) von der Sende-Logik, weil die
+// einzig verbleibende Hinweisart (Korrektur, D-09) je nach Gruppen-Zugehörigkeit auf ZWEI
+// strukturell unterschiedliche Backend-Tabellen zielt, nicht auf einen gemeinsamen Endpunkt:
 //
-// 1. Korrektur-Hinweis an die EIGENE Gruppe läuft unverändert über die bestehende
+// 1. Ein Korrektur-Hinweis an die EIGENE Gruppe läuft unverändert über die bestehende
 //    anime_contributions-Tabelle (createContributionProposal) — dieser Pfad braucht eine
 //    verifizierte Mitgliedschaft (fansub_group_member_id), die die Tabelle als Pflichtfeld
 //    fordert (Ist-Zustand 1, 191-CONTEXT.md). Zero Verhaltensänderung ist hier der
 //    wichtigste Regressionsschutz dieses Plans.
-// 2. Jede andere Kombination — Korrektur-Hinweis an eine FREMDE Gruppe oder eine
-//    Mitgliedschaftsanfrage an eine beliebige Gruppe — hat KEINE solche Mitgliedschaft und
-//    läuft über die neue, ownership-freie fansub_group_hints-Tabelle
-//    (createFansubGroupHint, Plan 191-01/191-03). Diese Tabelle hat strukturell weder eine
-//    Mitgliedschafts-Spalte noch ein role_codes-Array, nur ein einzelnes optionales
-//    requested_role_code-Feld für Mitgliedschaftsanfragen (D-07) — die DB-Constraint
-//    chk_fansub_group_hints_role_scope lehnt eine gesetzte Rolle bei hint_type='correction'
-//    sogar mit 422 ab. Die im Rolle-Schritt gewählte Rolle wird für diesen Fall deshalb als
-//    Klartext-Kontext in die Hinweis-Notiz übernommen, statt verworfen zu werden.
+// 2. Ein Korrektur-Hinweis an eine FREMDE Gruppe hat keine solche Mitgliedschaft und läuft
+//    über die ownership-freie fansub_group_hints-Tabelle (createFansubGroupHint). Diese
+//    Tabelle hat kein role_codes-Array und kein eigenes Rollenfeld — die im Rolle-Schritt
+//    gewählte Rolle wird deshalb als Klartext-Kontext in die Hinweis-Notiz übernommen, statt
+//    verworfen zu werden.
 import { useState } from 'react'
 
 import { ApiError, createContributionProposal, createFansubGroupHint } from '@/lib/api'
@@ -26,65 +22,44 @@ import type { MembershipEntry, ProposalFormData } from '@/types/contributions'
 import type { FansubGroup } from '@/types/fansub'
 import type { CreateFansubGroupHintRequest } from '@/types/fansub-group-hints'
 
-export type HintType = 'correction' | 'membership_request'
 export type GroupScope = 'own' | 'foreign'
-export type WizardStep = 1 | 2 | 3 | 4
+export type WizardStep = 1 | 2 | 3
 
 export interface SubmittedSummary {
-  hintType: HintType
   groupName: string
-  /** null nur bei Mitgliedschaftsanfrage — dort gibt es kein Projekt (D-06b). */
-  animeTitle: string | null
-  /** null bei Mitgliedschaftsanfrage ohne Rollenwunsch; Anzeige „Keine bestimmte Rolle" obliegt der UI. */
+  animeTitle: string
   roleLabel: string | null
 }
 
-/** Schritt-Titel je Hinweisart (191-UI-SPEC.md Component Contract A2). */
-export function stepsForHintType(hintType: HintType | ''): Array<{ id: WizardStep; title: string }> {
-  const isCorrection = hintType === 'correction'
-  return [
-    { id: 1, title: 'Hinweisart' },
-    { id: 2, title: isCorrection ? 'Gruppe & Projekt' : 'Gruppe' },
-    { id: 3, title: 'Rolle' },
-    { id: 4, title: isCorrection ? 'Hinweis & Zeitraum' : 'Hinweis' },
-  ]
-}
+/** Die drei festen Wizard-Schritte (191-UI-SPEC.md Component Contract A2, D-09: keine Hinweisart-Wahl mehr). */
+export const WIZARD_STEPS: Array<{ id: WizardStep; title: string }> = [
+  { id: 1, title: 'Gruppe & Projekt' },
+  { id: 2, title: 'Rolle' },
+  { id: 3, title: 'Hinweis & Zeitraum' },
+]
 
 interface BuildHintPayloadParams {
-  hintType: HintType
   targetFansubGroupId: number
-  relatedAnimeId?: number | null
-  requestedRoleCode?: string | null
-  /** Siehe Datei-Kommentar: bei Korrektur gibt es kein Rollenfeld im Ziel-Endpunkt. */
-  roleLabelForNote?: string | null
+  relatedAnimeId: number
+  /** Siehe Datei-Kommentar: fansub_group_hints hat kein eigenes Rollenfeld für Korrekturen. */
+  roleLabelForNote: string | null
   note: string
 }
 
-/** Baut den Request-Body für createFansubGroupHint (Korrektur/fremde Gruppe ODER Mitgliedschaftsanfrage). */
+/** Baut den Request-Body für createFansubGroupHint (Korrektur-Hinweis an eine fremde Gruppe). */
 export function buildHintSubmitPayload(params: BuildHintPayloadParams): CreateFansubGroupHintRequest {
   const trimmedNote = params.note.trim()
-
-  if (params.hintType === 'correction') {
-    const roleContext = params.roleLabelForNote ? `Rolle: ${params.roleLabelForNote}` : null
-    const combinedNote = [roleContext, trimmedNote].filter(Boolean).join(' — ')
-    return {
-      hint_type: 'correction',
-      target_fansub_group_id: params.targetFansubGroupId,
-      related_anime_id: params.relatedAnimeId ?? null,
-      note: combinedNote || null,
-    }
-  }
-
+  const roleContext = params.roleLabelForNote ? `Rolle: ${params.roleLabelForNote}` : null
+  const combinedNote = [roleContext, trimmedNote].filter(Boolean).join(' — ')
   return {
-    hint_type: 'membership_request',
     target_fansub_group_id: params.targetFansubGroupId,
-    requested_role_code: params.requestedRoleCode || null,
-    note: trimmedNote || null,
+    related_anime_id: params.relatedAnimeId,
+    note: combinedNote || null,
   }
 }
 
 /**
- * Mappt die beiden neuen Fehlercodes des fansub_group_hints-Endpunkts auf die verbindlichen
+ * Mappt die beiden Fehlercodes des fansub_group_hints-Endpunkts auf die verbindlichen
  * deutschen Texte aus D-04 (191-UI-SPEC.md Copywriting Contract). Gibt null für jeden
  * anderen Status zurück — der Aufrufer fällt dann auf err.message/den generischen
  * Fallbacktext zurück.
@@ -99,18 +74,12 @@ const GENERIC_SEND_ERROR = 'Der Hinweis konnte nicht eingereicht werden. Bitte v
 const CORRECTION_CONFLICT_FALLBACK = 'Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag.'
 
 export interface SubmitTarget {
-  hintType: HintType
   groupScope: GroupScope
   ownGroup: MembershipEntry | null
   foreignGroup: FansubGroup | null
-  /** Nur für Korrektur relevant — Mitgliedschaftsanfrage hat keinen Anime/Projekt-Schritt. */
   anime: AdminFansubAnimeEntry | null
-  /** Korrektur-Rolle (anime_contribution-Kontext, Step2Role). */
   roleCode: string
   roleLabel: string | null
-  /** Mitgliedschaftsanfrage-Rolle (fansub_group-Kontext, optional, D-07). */
-  requestedRoleCode: string
-  requestedRoleLabel: string | null
   note: string
   startedYear: string
   endedYear: string
@@ -137,46 +106,41 @@ export function useProposalFormSubmit() {
     setError(null)
     setIsSubmitting(true)
     try {
-      if (target.hintType === 'correction' && target.groupScope === 'own') {
+      if (target.groupScope === 'own') {
         if (!target.ownGroup || !target.anime) throw new Error('Formularzustand unvollständig.')
         await createContributionProposal(buildCorrectionOwnPayload(target, target.ownGroup, target.anime))
         return {
-          hintType: 'correction',
           groupName: target.ownGroup.group_name,
           animeTitle: target.anime.title,
           roleLabel: target.roleLabel,
         }
       }
 
-      const targetGroupId = target.groupScope === 'own' ? target.ownGroup?.fansub_group_id : target.foreignGroup?.id
-      const targetGroupName = target.groupScope === 'own' ? target.ownGroup?.group_name : target.foreignGroup?.name
-      if (!targetGroupId || !targetGroupName) throw new Error('Bitte wähle eine Gruppe aus.')
+      if (!target.foreignGroup || !target.anime) throw new Error('Bitte wähle eine Gruppe und ein Projekt aus.')
 
       const payload = buildHintSubmitPayload({
-        hintType: target.hintType,
-        targetFansubGroupId: targetGroupId,
-        relatedAnimeId: target.anime?.id ?? null,
-        requestedRoleCode: target.requestedRoleCode,
+        targetFansubGroupId: target.foreignGroup.id,
+        relatedAnimeId: target.anime.id,
         roleLabelForNote: target.roleLabel,
         note: target.note,
       })
       await createFansubGroupHint(payload)
 
       return {
-        hintType: target.hintType,
-        groupName: targetGroupName,
-        animeTitle: target.hintType === 'correction' ? target.anime?.title ?? null : null,
-        roleLabel: target.hintType === 'membership_request' ? target.requestedRoleLabel : target.roleLabel,
+        groupName: target.foreignGroup.name,
+        animeTitle: target.anime.title,
+        roleLabel: target.roleLabel,
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        // Reihenfolge ist entscheidend: der unveraendert gebliebene Korrektur/Eigene-Gruppe-
-        // Pfad (createContributionProposal) hat eine ANDERE 409-Bedeutung (Rollen-/Projekt-
-        // Konflikt in anime_contributions) als der neue fansub_group_hints-Endpunkt (D-04(1)
+        // Reihenfolge ist entscheidend: der unveraendert gebliebene Eigene-Gruppe-Pfad
+        // (createContributionProposal) hat eine ANDERE 409-Bedeutung (Rollen-/Projekt-
+        // Konflikt in anime_contributions) als der fansub_group_hints-Endpunkt (D-04(1)
         // "bereits ein offener Hinweis") -- die generische Hint-Status-Zuordnung darf den
         // Bestandspfad deshalb nicht ueberschreiben und muss erst NACH dieser Fallunterscheidung
-        // greifen.
-        if (target.hintType === 'correction' && target.groupScope === 'own' && err.status === 409) {
+        // greifen. groupScope==='own' impliziert hier konstruktionsbedingt den
+        // Korrektur-Pfad, da es keine zweite Hinweisart mehr gibt (D-09).
+        if (target.groupScope === 'own' && err.status === 409) {
           setError(err.message || CORRECTION_CONFLICT_FALLBACK)
           throw err
         }
