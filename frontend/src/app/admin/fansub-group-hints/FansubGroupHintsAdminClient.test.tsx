@@ -44,11 +44,8 @@ const sampleHint = {
   sender_own_group_name: 'NewSubs',
   target_fansub_group_id: 5,
   target_fansub_group_name: 'RedHeartFansub',
-  hint_type: 'membership_request' as const,
-  related_anime_id: null,
-  related_anime_title: null,
-  requested_role_code: 'fansub_lead',
-  requested_role_label: 'Fansub-Leitung',
+  related_anime_id: 7,
+  related_anime_title: 'Beispiel-Anime',
   note: null,
   status: 'open' as const,
   decided_by: null,
@@ -135,21 +132,21 @@ describe('buildRejectPayload (exakte Request-Body-Form fuer rejectAdminFansubGro
 
 describe('emptyStateCopy (Leerzustand je Filter)', () => {
   it('liefert die kurze Kopie fuer status=open', () => {
-    expect(emptyStateCopy('open')).toEqual({ title: 'Keine offenen Leitungs-Anfragen.' })
+    expect(emptyStateCopy('open')).toEqual({ title: 'Keine offenen Hinweise an Gruppen ohne Leitung.' })
   })
 
   it('liefert die lange Kopie ohne Filter', () => {
     const copy = emptyStateCopy(undefined)
-    expect(copy.title).toBe('Keine offenen Leitungs-Anfragen')
-    expect(copy.description).toContain('Fansub-Leitung')
+    expect(copy.title).toBe('Keine offenen Hinweise an Gruppen ohne Leitung')
+    expect(copy.description).toContain('ohne aktive Leitung')
   })
 })
 
 describe('FansubGroupHintsAdminClient — isolierte Render-Checks (kein Interaktions-Replay)', () => {
-  it('rendert den unveraenderten Seitentitel <h1>Hinweise (Leitung)</h1>', async () => {
+  it('rendert den unveraenderten Seitentitel <h1>Hinweise ohne Leitung</h1>', async () => {
     render(<FansubGroupHintsAdminClient />)
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1, name: 'Hinweise (Leitung)' })).not.toBeNull()
+      expect(screen.getByRole('heading', { level: 1, name: 'Hinweise ohne Leitung' })).not.toBeNull()
     })
   })
 

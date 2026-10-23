@@ -1,15 +1,20 @@
 'use client'
 
-// Plattform-Admin-Liste AUSSCHLIESSLICH fuer fansub_lead-Mitgliedschaftsanfragen (D-01/D-07).
-// Komposition 1:1 von ClaimsClient.tsx uebernommen (Filter -> Table/Mobile-Card -> Pagination
-// -> Reject-Modal), mit den Feld-/Label-Abweichungen aus 191-UI-SPEC.md Component Contract C3.
-// Zwei fachliche Unterschiede zum Donor, beide ueber das Typsystem/die Datenquelle erzwungen,
-// nicht nur durch UI-Konvention: (1) KEIN Aktivierungsschritt — "Hinweis bestätigen" setzt nur
-// den Hinweis-Status auf 'acknowledged', erzeugt nie eine Mitgliedschaft (D-03), weil
-// confirmAdminFansubGroupHint() ueberhaupt keine Mitgliedschafts-Methode aufrufen kann (siehe
-// backend/internal/handlers/fansub_group_hints_decide.go, Plan 191-05). (2) KEIN Claim-Typ-/
-// Benutzer-ID-Filter — jede Zeile ist serverseitig bereits auf requested_role_code = 'fansub_lead'
-// eingegrenzt (Plan 191-05's AdminFansubGroupHintsHandler.ListHints), es gibt nichts zu
+// Plattform-Admin-Liste fuer Korrektur-Hinweise an Zielgruppen OHNE aktive Leitung (D-11).
+// Ein Korrektur-Hinweis geht normalerweise an den Leader der Zielgruppe (gruppen-gescopte
+// Review-Liste); hat die Zielgruppe aktuell niemanden mit der Rolle fansub_lead (aufgeloeste
+// oder verwaiste Gruppe), landet der Hinweis stattdessen hier, serverseitig ermittelt ueber
+// AdminFansubGroupHintsHandler.ListWithoutActiveLead (backend/internal/handlers/
+// admin_fansub_group_hints_handler.go) — kein client-seitiger Filter auf einem ungefilterten
+// Feed. Komposition 1:1 von ClaimsClient.tsx uebernommen (Filter -> Table/Mobile-Card ->
+// Pagination -> Reject-Modal), mit den Feld-/Label-Abweichungen aus 191-UI-SPEC.md Component
+// Contract C3. Zwei fachliche Unterschiede zum Donor, beide ueber das Typsystem/die
+// Datenquelle erzwungen, nicht nur durch UI-Konvention: (1) KEIN Aktivierungsschritt —
+// "Hinweis bestätigen" setzt nur den Hinweis-Status auf 'acknowledged', erzeugt nie eine
+// Mitgliedschaft (D-03), weil confirmAdminFansubGroupHint() ueberhaupt keine
+// Mitgliedschafts-Methode aufrufen kann (siehe backend/internal/handlers/
+// fansub_group_hints_decide.go). (2) KEIN Claim-Typ-/Benutzer-ID-Filter — jede Zeile ist
+// serverseitig bereits auf "Zielgruppe ohne aktive Leitung" eingegrenzt, es gibt nichts zu
 // disambiguieren.
 import { useCallback, useEffect, useState } from 'react'
 
@@ -97,12 +102,12 @@ export function buildRejectPayload(decisionNote: string): string | undefined {
 /** Leerzustand-Text je aktivem Status-Filter (191-UI-SPEC.md Component Contract C3). */
 export function emptyStateCopy(status?: string): { title: string; description?: string } {
   if (status === 'open') {
-    return { title: 'Keine offenen Leitungs-Anfragen.' }
+    return { title: 'Keine offenen Hinweise an Gruppen ohne Leitung.' }
   }
   return {
-    title: 'Keine offenen Leitungs-Anfragen',
+    title: 'Keine offenen Hinweise an Gruppen ohne Leitung',
     description:
-      'Aktuell liegen keine Mitgliedschaftsanfragen mit gewünschter Rolle „Fansub-Leitung" zur Prüfung vor.',
+      'Aktuell liegen keine Korrektur-Hinweise an Zielgruppen ohne aktive Leitung zur Prüfung vor.',
   }
 }
 
@@ -211,9 +216,9 @@ export function FansubGroupHintsAdminClient() {
 
   return (
     <div>
-      <h1>Hinweise (Leitung)</h1>
+      <h1>Hinweise ohne Leitung</h1>
 
-      {/* Filter-Bereich (D-01/D-07): Status/Zielgruppe/Zeitraum — bewusst kein Claim-Typ- und
+      {/* Filter-Bereich (D-11): Status/Zielgruppe/Zeitraum — bewusst kein Claim-Typ- und
           kein Benutzer-ID-Filter, siehe useFansubGroupHintsListFilters.ts und die Doku dort. */}
       <div
         style={{
@@ -298,7 +303,7 @@ export function FansubGroupHintsAdminClient() {
               <TableHeaderCell>Status</TableHeaderCell>
               <TableHeaderCell>Antragsteller</TableHeaderCell>
               <TableHeaderCell>Zielgruppe</TableHeaderCell>
-              <TableHeaderCell>Gewünschte Rolle</TableHeaderCell>
+              <TableHeaderCell>Projekt</TableHeaderCell>
               <TableHeaderCell>Erstellt</TableHeaderCell>
               <TableHeaderCell>Aktion</TableHeaderCell>
             </TableRow>
@@ -311,9 +316,7 @@ export function FansubGroupHintsAdminClient() {
                 </TableCell>
                 <TableCell>{hint.sender_display_name}</TableCell>
                 <TableCell>{hint.target_fansub_group_name}</TableCell>
-                <TableCell>
-                  <Badge variant="info">Fansub-Leitung</Badge>
-                </TableCell>
+                <TableCell>{hint.related_anime_title}</TableCell>
                 <TableCell>{formatDateDeOrIso(hint.created_at)}</TableCell>
                 <TableCell>
                   <HintActionButtons
@@ -411,7 +414,7 @@ function HintCard({ hint, onConfirm, onReject }: HintCardProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', alignItems: 'flex-start' }}>
         <strong>{hint.sender_display_name}</strong>
         <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{hint.target_fansub_group_name}</span>
-        <Badge variant="info">Fansub-Leitung</Badge>
+        <span style={{ fontSize: '13px' }}>{hint.related_anime_title}</span>
       </div>
       <div style={{ marginTop: 'var(--space-2)' }}>
         <HintActionButtons hint={hint} onConfirm={onConfirm} onReject={onReject} />

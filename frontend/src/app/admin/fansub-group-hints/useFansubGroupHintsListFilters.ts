@@ -24,12 +24,13 @@ interface FilterPatch {
 }
 
 /**
- * Synchronisiert die Filter der plattform-weiten fansub_lead-Hinweisliste (Status/Zielgruppe/
- * Zeitraum, D-01/D-07) über die URL — exakte Struktur wie useClaimsListFilters.ts
- * (useRouter/usePathname/useSearchParams, `router.replace(..., { scroll: false })`, nie
- * `router.push`). Bewusst OHNE `app_user_id`- und `claim_type`-Felder: diese Liste hat weder
- * einen Benutzer-ID-Filter (191-UI-SPEC.md Component Contract C3) noch ein Claim-Typ-Konzept,
- * da jede Zeile serverseitig bereits eine `fansub_lead`-Mitgliedschaftsanfrage ist.
+ * Synchronisiert die Filter der plattform-weiten Admin-Liste "Hinweise ohne Leitung"
+ * (Status/Zielgruppe/Zeitraum, D-11) über die URL — exakte Struktur wie
+ * useClaimsListFilters.ts (useRouter/usePathname/useSearchParams,
+ * `router.replace(..., { scroll: false })`, nie `router.push`). Bewusst OHNE
+ * `app_user_id`- und `claim_type`-Felder: diese Liste hat weder einen Benutzer-ID-Filter
+ * (191-UI-SPEC.md Component Contract C3) noch ein Claim-Typ-Konzept, da jede Zeile
+ * serverseitig bereits ein Korrektur-Hinweis an eine Zielgruppe ohne aktive Leitung ist.
  */
 export function useFansubGroupHintsListFilters(limit = DEFAULT_LIMIT): UseFansubGroupHintsListFiltersResult {
   const router = useRouter()
