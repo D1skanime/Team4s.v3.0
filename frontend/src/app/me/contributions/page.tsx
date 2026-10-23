@@ -22,11 +22,13 @@ import {
   getMyAnimeContributions,
   getMyMemberships,
   getOwnProfile,
+  listMyFansubGroupHints,
   rejectAnimeContributionWithReason,
 } from '@/lib/api'
 import { isEligibleForContributions } from '@/lib/contributionsEligibility'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MeAnimeContribution, MembershipEntry } from '@/types/contributions'
+import type { FansubGroupHint } from '@/types/fansub-group-hints'
 
 const MEMBER_PROFILE_REQUIRED_CODE = 'MEMBER_PROFILE_REQUIRED'
 
@@ -45,6 +47,7 @@ export default function MyContributionsPage() {
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const [contributions, setContributions] = useState<MeAnimeContribution[] | null>(null)
   const [ownGroups, setOwnGroups] = useState<MembershipEntry[]>([])
+  const [sentGroupHints, setSentGroupHints] = useState<FansubGroupHint[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -78,12 +81,18 @@ export default function MyContributionsPage() {
         return
       }
 
-      const [response, membershipsResponse] = await Promise.all([
+      // D-18: eigene gesendete fansub_group_hints laden sich parallel zu den bestehenden
+      // anime_contributions-Vorschlaegen -- ein Fehler hier (z. B. Netzwerk) darf die
+      // uebrige Seite nicht blockieren, deshalb derselbe .catch()-Fallback wie bei
+      // getMyMemberships.
+      const [response, membershipsResponse, groupHintsResponse] = await Promise.all([
         getMyAnimeContributions(),
         getMyMemberships().catch(() => ({ data: [] as MembershipEntry[] })),
+        listMyFansubGroupHints().catch(() => ({ data: [] as FansubGroupHint[] })),
       ])
       setContributions(response.data)
       setOwnGroups(membershipsResponse.data)
+      setSentGroupHints(groupHintsResponse.data)
     } catch (loadError) {
       // Defensive: if the account lost eligibility between the own-profile check and the
       // contribution load itself, the standardized MEMBER_PROFILE_REQUIRED code (Task 2)
@@ -245,6 +254,7 @@ export default function MyContributionsPage() {
           proposals={filteredProposals}
           ownGroups={ownGroups}
           onReload={() => void reload()}
+          sentGroupHints={sentGroupHints}
         />
 
         {showFilter ? (

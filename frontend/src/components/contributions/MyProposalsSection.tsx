@@ -5,7 +5,9 @@ import { Inbox } from 'lucide-react'
 
 import { Badge, Button, Card, ErrorState, SectionHeader } from '@/components/ui'
 import { ApiError, selfPublishContribution } from '@/lib/api'
+import { hintStatusLabel, hintStatusVariant } from '@/lib/fansubGroupHintStatus'
 import type { MeAnimeContribution, MembershipEntry } from '@/types/contributions'
+import type { FansubGroupHint } from '@/types/fansub-group-hints'
 
 import { contributionRoleDefinitions } from './contributionRoles'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
@@ -42,9 +44,12 @@ interface MyProposalsSectionProps {
   proposals: MeAnimeContribution[]
   ownGroups: MembershipEntry[]
   onReload: () => void
+  /** D-18: eigene gesendete fansub_group_hints (eigene UND fremde Zielgruppe, alle Status) --
+   *  zweite, unabhaengige Datenquelle neben den anime_contributions-Vorschlaegen oben. */
+  sentGroupHints: FansubGroupHint[]
 }
 
-export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposalsSectionProps) {
+export function MyProposalsSection({ proposals, ownGroups, onReload, sentGroupHints }: MyProposalsSectionProps) {
   const { roles } = useRoleCatalog('anime_contribution')
   const contributionRoles = contributionRoleDefinitions(roles)
   const [showForm, setShowForm] = useState(false)
@@ -78,7 +83,30 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
   const inPruefung = proposals.filter((contribution) => contribution.status === 'proposed')
   const bestaetigt = proposals.filter((contribution) => contribution.status === 'confirmed')
   const abgelehnt = proposals.filter((contribution) => contribution.status === 'disputed')
-  const total = proposals.length
+  // D-18: die Kopfzeile "Eingereichte Hinweise (n)" zaehlt beide unabhaengigen
+  // Datenquellen zusammen -- eigene anime_contributions-Vorschlaege UND gesendete
+  // fansub_group_hints, egal an welche Zielgruppe.
+  const total = proposals.length + sentGroupHints.length
+
+  function renderHintCard(hint: FansubGroupHint) {
+    return (
+      <Card key={hint.id} variant="nestedFlat" className={styles.contributionCard}>
+        <div className={styles.contributionCardHeader}>
+          <div className={styles.contributionTitleRow}>
+            <Badge variant={hintStatusVariant(hint.status)}>{hintStatusLabel(hint.status)}</Badge>
+            <span className={styles.contributionTitle}>{hint.target_fansub_group_name}</span>
+          </div>
+          <span className={styles.metaText}>{hint.related_anime_title ?? `Anime #${hint.related_anime_id ?? '—'}`}</span>
+        </div>
+
+        {hint.status === 'rejected' && hint.decision_note ? (
+          <p className={styles.reviewNote}>
+            <strong>Ablehngrund:</strong> {hint.decision_note}
+          </p>
+        ) : null}
+      </Card>
+    )
+  }
 
   function renderProposalCard(contribution: MeAnimeContribution) {
     return (
@@ -178,7 +206,10 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
             </span>
             <span>
               <strong>Noch keine Hinweise</strong>
-              <span>Reiche den ersten Hinweis für ein Projekt einer Gruppe ein, in der du Mitglied bist.</span>
+              {/* D-18: ein Hinweis kann auch an eine fremde Gruppe gehen, in der das
+                  Mitglied gar keine Mitgliedschaft hat -- der vorherige Text implizierte
+                  faelschlich eine Mitgliedschaftspflicht. */}
+              <span>Reiche den ersten Hinweis für ein Projekt ein — auch bei einer Gruppe, der du nicht angehörst.</span>
             </span>
           </div>
         ) : null}
@@ -201,6 +232,13 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
           <div className={styles.proposalGroup}>
             <SectionHeader title={`Abgelehnt (${abgelehnt.length})`} />
             <div className={styles.proposalList}>{abgelehnt.map(renderProposalCard)}</div>
+          </div>
+        ) : null}
+
+        {sentGroupHints.length > 0 ? (
+          <div className={styles.proposalGroup}>
+            <SectionHeader title={`An andere Gruppen (${sentGroupHints.length})`} />
+            <div className={styles.proposalList}>{sentGroupHints.map(renderHintCard)}</div>
           </div>
         ) : null}
       </Card>
