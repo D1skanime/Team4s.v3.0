@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 //
 // Teststil gemaess CLAUDE.md "Teststil"-Regel: Verhaltens-Assertions ueber die
-// exportierten reinen Funktionen (isOpenHint/hintTypeBadgeLabel/roleLineForHint),
-// NICHT ueber eine volle render+fireEvent+screen Klick-Simulation wie im
-// Donor-Testfile ContributionsReviewSection.test.tsx (191-08-PLAN.md Task 1 nennt
-// diesen Donor-Teststil explizit als Negativ-Beispiel). Die Kapabilitaets-Gates
+// exportierte reine Funktion (isOpenHint), NICHT ueber eine volle
+// render+fireEvent+screen Klick-Simulation wie im Donor-Testfile
+// ContributionsReviewSection.test.tsx (191-08-PLAN.md Task 1 nennt diesen
+// Donor-Teststil explizit als Negativ-Beispiel). Die Kapabilitaets-Gates
 // (null-Rendering bei fehlender/fehlender Berechtigung) sind die einzige Stelle,
 // an der tatsaechlich gerendert wird - als isolierter render-and-assert-null
 // Check, keine Interaktionssimulation.
@@ -32,12 +32,7 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
-import {
-  FansubGroupHintsReviewSection,
-  hintTypeBadgeLabel,
-  isOpenHint,
-  roleLineForHint,
-} from './FansubGroupHintsReviewSection'
+import { FansubGroupHintsReviewSection, isOpenHint } from './FansubGroupHintsReviewSection'
 import type { FansubGroupHint } from '@/types/fansub-group-hints'
 import type { FansubGroupCapabilities } from '@/types/fansub-capabilities'
 
@@ -86,11 +81,8 @@ function makeHint(overrides: Partial<FansubGroupHint> = {}): FansubGroupHint {
     sender_own_group_name: null,
     target_fansub_group_id: 5,
     target_fansub_group_name: 'RedHeartFansub',
-    hint_type: 'correction',
     related_anime_id: 42,
     related_anime_title: 'Beispiel-Anime',
-    requested_role_code: null,
-    requested_role_label: null,
     note: 'War bei Episode 3 als Timer dabei.',
     status: 'open',
     decided_by: null,
@@ -112,42 +104,6 @@ describe('isOpenHint', () => {
 
   it('ist nicht offen bei status="rejected"', () => {
     expect(isOpenHint('rejected')).toBe(false)
-  })
-})
-
-describe('hintTypeBadgeLabel', () => {
-  it('liefert "Korrektur-Hinweis" fuer hint_type="correction"', () => {
-    expect(hintTypeBadgeLabel('correction')).toBe('Korrektur-Hinweis')
-  })
-
-  it('liefert "Anfrage für Mitgliedschaft" fuer hint_type="membership_request"', () => {
-    expect(hintTypeBadgeLabel('membership_request')).toBe('Anfrage für Mitgliedschaft')
-  })
-})
-
-describe('roleLineForHint', () => {
-  it('liefert null fuer einen Korrektur-Hinweis (kein Rollenfeld fuer diesen Typ)', () => {
-    expect(roleLineForHint(makeHint({ hint_type: 'correction', requested_role_label: null }))).toBeNull()
-  })
-
-  it('liefert "Gewünschte Rolle: {label}" wenn eine Rolle angefragt wurde', () => {
-    expect(
-      roleLineForHint(
-        makeHint({
-          hint_type: 'membership_request',
-          requested_role_code: 'translator',
-          requested_role_label: 'Übersetzer',
-        }),
-      ),
-    ).toBe('Gewünschte Rolle: Übersetzer')
-  })
-
-  it('liefert "Keine bestimmte Rolle angegeben" bei Mitgliedschaftsanfrage ohne Rolle', () => {
-    expect(
-      roleLineForHint(
-        makeHint({ hint_type: 'membership_request', requested_role_code: null, requested_role_label: null }),
-      ),
-    ).toBe('Keine bestimmte Rolle angegeben')
   })
 })
 
@@ -176,7 +132,7 @@ describe('FansubGroupHintsReviewSection Kapabilitaets-Gate', () => {
 
     expect(await screen.findByText(/Eingehende Hinweise \(1\)/)).toBeTruthy()
     expect(screen.getByText('Timer-Max')).toBeTruthy()
-    expect(screen.getByText('Korrektur-Hinweis')).toBeTruthy()
+    expect(screen.getByText('Beispiel-Anime')).toBeTruthy()
   })
 
   it('zeigt die Mitglied-bei-Zeile nur wenn sender_own_group_name vorhanden ist', async () => {

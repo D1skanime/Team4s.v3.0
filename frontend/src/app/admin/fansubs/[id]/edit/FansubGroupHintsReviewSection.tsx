@@ -8,12 +8,11 @@
 // erzeugt ausdrueklich KEINE Mitgliedschaft (D-03) — das steht auch wortwoertlich in
 // der Beschreibung unterhalb des Abschnittstitels, nicht nur im Backend-Verhalten.
 //
-// Wichtige Dateneigenschaft (siehe Plan 191-07): Ein strukturiertes Rollenfeld
-// (requested_role_code/-label) existiert in fansub_group_hints NUR bei
-// hint_type='membership_request' (DB-Constraint chk_fansub_group_hints_role_scope,
-// Migration 0187). Fuer Korrektur-Hinweise an eine fremde Gruppe steckt die vom
-// Absender gewaehlte Rolle als Klartext in `note` — roleLineForHint() liefert fuer
-// diesen Fall bewusst `null`, die Notiz wird wie gewohnt als Freitext angezeigt.
+// Dateneigenschaft (D-09): jeder Hinweis ist ausnahmslos ein Korrektur-Hinweis mit
+// Projektbezug (related_anime_id ist serverseitig Pflicht) — es gibt keine zweite
+// Hinweisart und kein strukturiertes Rollenfeld mehr. Die Zielkarte zeigt deshalb fuer
+// jede Zeile unconditioned das betroffene Projekt (related_anime_title); eine vom
+// Absender frei formulierte Rolle/Begruendung steckt wie gewohnt als Freitext in `note`.
 import { useCallback, useEffect, useState } from 'react'
 import { Check, X } from 'lucide-react'
 
@@ -30,7 +29,7 @@ import {
 } from '@/components/ui'
 import { ApiError, confirmGroupHint, listGroupHints, rejectGroupHint } from '@/lib/api'
 import { formatDateDeOrIso } from '@/lib/formatDate'
-import type { FansubGroupHint, FansubGroupHintStatus, FansubGroupHintType } from '@/types/fansub-group-hints'
+import type { FansubGroupHint, FansubGroupHintStatus } from '@/types/fansub-group-hints'
 import type { FansubGroupCapabilities } from '@/types/fansub-capabilities'
 
 import styles from './ContributionsReviewSection.module.css'
@@ -49,24 +48,6 @@ function readErrorMessage(error: unknown, fallback: string): string {
 /** Ein Hinweis ist offen, solange der Leader noch nicht entschieden hat (D-04(3)). */
 export function isOpenHint(status: FansubGroupHintStatus): boolean {
   return status === 'open'
-}
-
-/** Badge-Beschriftung je Hinweisart (D-06: Korrektur vs. Mitgliedschaftsanfrage). */
-export function hintTypeBadgeLabel(hintType: FansubGroupHintType): string {
-  return hintType === 'membership_request' ? 'Anfrage für Mitgliedschaft' : 'Korrektur-Hinweis'
-}
-
-/**
- * Zeile fuer die gewuenschte Rolle — ausschliesslich bei Mitgliedschaftsanfragen
- * (strukturelles Rollenfeld existiert laut DB-Constraint nur fuer diesen hint_type,
- * siehe Dateikommentar oben). Fuer Korrektur-Hinweise liefert die Funktion `null`,
- * damit die aufrufende Stelle stattdessen die Notiz als Freitext zeigt.
- */
-export function roleLineForHint(hint: FansubGroupHint): string | null {
-  if (hint.hint_type !== 'membership_request') return null
-  return hint.requested_role_label
-    ? `Gewünschte Rolle: ${hint.requested_role_label}`
-    : 'Keine bestimmte Rolle angegeben'
 }
 
 export function FansubGroupHintsReviewSection({ fansubId, capabilities }: FansubGroupHintsReviewSectionProps) {
@@ -177,14 +158,12 @@ function FansubGroupHintsReviewSectionInner({ fansubId }: { fansubId: number }) 
         <div className={styles.cardStack}>
           {visibleHints.map((hint) => {
             const isDone = !isOpenHint(hint.status)
-            const roleLine = roleLineForHint(hint)
             return (
               <Card key={hint.id} variant="nested">
                 <Toolbar
                   leading={
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <strong>{hint.sender_display_name}</strong>
-                      <Badge variant="info">{hintTypeBadgeLabel(hint.hint_type)}</Badge>
                       {isDone ? (
                         <Badge variant="muted">Erledigt</Badge>
                       ) : (
@@ -199,15 +178,9 @@ function FansubGroupHintsReviewSectionInner({ fansubId }: { fansubId: number }) 
                       Mitglied bei: {hint.sender_own_group_name}
                     </span>
                   ) : null}
-                  {hint.hint_type === 'correction' ? (
-                    <>
-                      {hint.related_anime_title ? (
-                        <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{hint.related_anime_title}</span>
-                      ) : null}
-                    </>
-                  ) : (
-                    <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{roleLine}</span>
-                  )}
+                  {hint.related_anime_title ? (
+                    <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{hint.related_anime_title}</span>
+                  ) : null}
                   {hint.note ? (
                     <p
                       style={{
