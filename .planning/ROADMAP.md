@@ -2982,10 +2982,19 @@ Doppel-Hinweis pro Person+Zielgruppe+Thema, Tageslimit ca. 10 pro Person (besteh
 Rate-Limit-Middleware wiederverwenden), Ablehnen/Schließen mit einem Klick optional mit Begründung.
 Keine automatische Mitgliedschaft, keine neuen Zuweisungs-Flows, kein Stummschalten (noch nicht
 bauen), keine Captchas, keine Punkte/Badges für den Hinweis selbst, kein eigenes Recht.
-**Requirements**: TBD (additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-NN in
-191-CONTEXT.md, siehe Plan-Frontmatter `requirements`)
+**Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01..D-08 aus
+191-CONTEXT.md, siehe jeweiliges Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 0 plans
+**Plans:** 10 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 191 to break down)
+- [ ] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
+- [ ] 191-02-PLAN.md — Frontend: `useFansubGroupSearch`-Hook aus `useEpisodeVersionEditor.ts` extrahiert (D-02)
+- [ ] 191-03-PLAN.md — Backend: `POST /me/fansub-group-hints` + Tageslimit-Rate-Limiter (D-04/D-07)
+- [ ] 191-04-PLAN.md — Backend: Leader-Review (gruppen-gescoped List/Confirm/Reject, D-01/D-03)
+- [ ] 191-05-PLAN.md — Backend: Plattform-Admin-Review (`fansub_lead`-Fall) + Contract + Backend-Doku (D-01/D-07/D-08)
+- [ ] 191-06-PLAN.md — Frontend: Typen + API-Client für alle sieben Endpunkte
+- [ ] 191-07-PLAN.md — Frontend: Hinweis-Formular-Erweiterung (Hinweisart/Gruppen-Scope/Rollenfeld, A6-Fix)
+- [ ] 191-08-PLAN.md — Frontend: Leader-Review-Section (Fansub-Members-Tab)
+- [ ] 191-09-PLAN.md — Frontend: Plattform-Admin-Liste `/admin/fansub-group-hints` + Nav-Eintrag
+- [ ] 191-10-PLAN.md — Phasenabschluss: DECISIONS.md, Todo-Verschiebung, Regressionsgate, Live-UAT (blockierender Checkpoint)
