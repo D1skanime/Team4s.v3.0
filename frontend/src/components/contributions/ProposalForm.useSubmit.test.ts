@@ -122,6 +122,42 @@ describe('useProposalFormSubmit — Regression: unveraenderter Eigene-Gruppe-Pfa
   })
 })
 
+// D-12 (Plan 191-18 Vorbereitung): der neue Vorauswahl-Einstiegspunkt kennt die Zielgruppe
+// nur als schmales {id, name} aus dem Seiten-Context (PrefillTargetGroup), nicht als volles
+// FansubGroup mit Slug -- useProposalFormSubmit darf dafuer keinen Slug voraussetzen.
+describe('useProposalFormSubmit — PrefillTargetGroup ohne slug (D-12-Vorbereitung)', () => {
+  it('akzeptiert ein foreignGroup-Objekt ohne slug (nur id/name) und sendet trotzdem korrekt', async () => {
+    apiMocks.createFansubGroupHint.mockResolvedValue({ data: {} })
+    const { result } = renderHook(() => useProposalFormSubmit())
+
+    let summary
+    await act(async () => {
+      summary = await result.current.submit({
+        groupScope: 'foreign',
+        ownGroup: null,
+        foreignGroup: { id: 77, name: 'StrawhatSubs' },
+        anime: { id: 42, title: 'One Piece' },
+        roleCode: 'timer',
+        roleLabel: 'Timing',
+        note: 'Folge 3 fehlt',
+        startedYear: '',
+        endedYear: '',
+      })
+    })
+
+    expect(apiMocks.createFansubGroupHint).toHaveBeenCalledWith({
+      target_fansub_group_id: 77,
+      related_anime_id: 42,
+      note: 'Rolle: Timing — Folge 3 fehlt',
+    })
+    expect(summary).toEqual({
+      groupName: 'StrawhatSubs',
+      animeTitle: 'One Piece',
+      roleLabel: 'Timing',
+    })
+  })
+})
+
 describe('useProposalFormSubmit — Korrektur an eine fremde Gruppe (fansub_group_hints)', () => {
   it('ruft createFansubGroupHint statt createContributionProposal auf', async () => {
     apiMocks.createFansubGroupHint.mockResolvedValue({ data: {} })

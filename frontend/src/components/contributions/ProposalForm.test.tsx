@@ -53,6 +53,7 @@ function renderForm(ownGroups = OWN_GROUPS, props?: Partial<Parameters<typeof Pr
       onClose={props?.onClose ?? vi.fn()}
       ownGroups={ownGroups}
       roleDefinitions={props?.roleDefinitions ?? ROLE_DEFINITIONS}
+      prefill={props?.prefill}
     />,
   )
 }
@@ -350,5 +351,81 @@ describe('ProposalForm — Projektliste-Quelle nach groupScope (D-10)', () => {
 
     expect(apiMocks.getAdminFansubAnime).toHaveBeenCalledWith(10)
     expect(apiMocks.getPublicFansubProfileBySlug).not.toHaveBeenCalled()
+  })
+})
+
+// D-12 (Plan 191-18 Vorbereitung): ein zweiter Formular-Einstiegspunkt (Fehler-melden-Link
+// auf oeffentlichen Projekt-/Release-Seiten) kennt Zielgruppe und Projekt bereits aus dem
+// Seitenkontext und uebergibt sie ueber die neue prefill-Prop -- der Wizard muss das
+// synchron aus der Prop aufloesen, OHNE die Gruppensuche/Projekt-Lade-Maschinerie der
+// interaktiven Auswahl zu beruehren (Regressionsschutz: der D-10-403-Bug darf hierueber
+// nicht erneut eingefuehrt werden, weil dieser Einstiegspunkt keinen Slug hat).
+describe('ProposalForm — vorausgewaehlter Einstieg (prefill-Prop, D-12-Vorbereitung)', () => {
+  const PREFILL_FOREIGN = {
+    fansubGroupId: 77,
+    fansubGroupName: 'StrawhatSubs',
+    animeId: 42,
+    animeTitle: 'One Piece',
+  }
+
+  it('startet direkt bei Schritt 2 (Rolle), zeigt 2 Fortschritts-Segmente und die Kontext-Zeile', () => {
+    renderForm(OWN_GROUPS, { prefill: PREFILL_FOREIGN })
+
+    expect(screen.getAllByText('Schritt 1 von 2')).toHaveLength(1)
+    expect(screen.getByText('Rolle')).toBeTruthy()
+    expect(screen.queryByText('Gruppe & Projekt')).toBeNull()
+    expect(
+      screen.getByText('Du meldest einen Fehler zu One Piece bei StrawhatSubs.'),
+    ).toBeTruthy()
+  })
+
+  it('zeigt auf der ersten sichtbaren Stufe (Schritt 2) keinen "Zurück"-Button', () => {
+    renderForm(OWN_GROUPS, { prefill: PREFILL_FOREIGN })
+
+    expect(screen.queryByRole('button', { name: 'Zurück' })).toBeNull()
+  })
+
+  it('loest Zielgruppe/Projekt synchron ohne Netzwerk-Aufruf auf und sendet mit den vorausgewaehlten IDs', async () => {
+    apiMocks.createFansubGroupHint.mockResolvedValue({ data: {} })
+    renderForm(OWN_GROUPS, { prefill: PREFILL_FOREIGN })
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(await waitForFinalSubmitButton())
+
+    await waitFor(() => {
+      expect(apiMocks.createFansubGroupHint).toHaveBeenCalledWith(
+        expect.objectContaining({
+          target_fansub_group_id: 77,
+          related_anime_id: 42,
+        }),
+      )
+    })
+    expect(apiMocks.getPublicFansubProfileBySlug).not.toHaveBeenCalled()
+    expect(apiMocks.getAdminFansubAnime).not.toHaveBeenCalled()
+  })
+
+  it('erkennt eine vorausgewaehlte eigene Gruppe als "own" und sendet ueber createContributionProposal', async () => {
+    apiMocks.createContributionProposal.mockResolvedValue(undefined)
+    const prefillOwn = { fansubGroupId: 10, fansubGroupName: 'Testgruppe', animeId: 3, animeTitle: 'Naruto' }
+    renderForm(OWN_GROUPS, { prefill: prefillOwn })
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(await waitForFinalSubmitButton())
+
+    await waitFor(() => {
+      expect(apiMocks.createContributionProposal).toHaveBeenCalledWith({
+        fansub_group_id: 10,
+        anime_id: 3,
+        fansub_group_member_id: 1,
+        role_codes: ['translator'],
+        note: null,
+        started_year: null,
+        ended_year: null,
+      })
+    })
+    expect(apiMocks.createFansubGroupHint).not.toHaveBeenCalled()
+    expect(apiMocks.getAdminFansubAnime).not.toHaveBeenCalled()
   })
 })
