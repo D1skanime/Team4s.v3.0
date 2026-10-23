@@ -23,6 +23,7 @@ export * from "./api/members-media";
 export * from "./api/projects";
 export * from "./api/contributions-admin";
 export * from "./api/contributions-me";
+export * from "./api/fansub-group-hints";
 export * from "./api/releases";
 export * from "./api/media";
 export * from "./api/auth";
