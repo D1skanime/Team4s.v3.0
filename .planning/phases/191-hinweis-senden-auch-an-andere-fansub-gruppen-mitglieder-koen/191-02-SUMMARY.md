@@ -116,3 +116,7 @@ None - keine externe Service-Konfiguration nötig.
 ---
 *Phase: 191-hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen*
 *Completed: 2026-10-23*
+
+## Self-Check: PASSED
+
+All created/modified files verified present on disk; all task/docs commit hashes (`b64fd81fd`, `74a4e1c7b`, `b1b6de93f`) verified in `git log`.

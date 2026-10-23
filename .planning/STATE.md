@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 191-01-PLAN.md
-last_updated: "2026-10-23T12:33:03.760Z"
+stopped_at: Completed 191-02-PLAN.md
+last_updated: "2026-10-23T12:59:21.730Z"
 last_activity: 2026-10-23
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 503
-  completed_plans: 491
+  completed_plans: 492
   percent: 89
 ---
 
@@ -438,7 +438,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 191 (hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
@@ -1492,6 +1492,7 @@ Last activity: 2026-10-23
   an die v1.4-Roadmap angehaengt, kein neues Milestone, letzte Phase der aktuellen Roadmap.
 
 - [Phase 191-01]: related_anime_id (nicht related_release_version_id) ist der Thema-Schluessel des Partial-Unique-Index fuer die Dopplungssperre — UI dieser Phase bietet keine Release-Versions-Auswahl fuer den Korrektur-Hinweis an
+- [Phase 191]: useFansubGroupSearch zentral unter frontend/src/hooks/ statt feature-colokiert, weil Release-Editor und das kuenftige Hinweis-Formular dieselbe Debounce-Suche nutzen — D-02 verlangt einen gemeinsamen Hook statt Parallel-Implementierung; Release-Editor-Verhalten bleibt dabei unveraendert
 
 ### Pending Todos
 
@@ -2219,11 +2220,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 190 P06 | 5min | 2 tasks | 2 files |
 | Phase 190 P07 | 8min | 2 tasks | 1 files |
 | Phase 191 P01 | 20min | 2 tasks | 6 files |
+| Phase 191 P02 | 70min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-23T12:33:03.725Z
-Stopped at: Completed 191-01-PLAN.md
+Last session: 2026-10-23T12:59:21.705Z
+Stopped at: Completed 191-02-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
