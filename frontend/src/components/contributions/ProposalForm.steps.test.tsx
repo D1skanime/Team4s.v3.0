@@ -113,14 +113,18 @@ describe('Step1GroupProject — Gruppen-Bereich-Umschalter (D-02)', () => {
   })
 })
 
-describe('Step3NoteRange — showYearAndInfoPanel', () => {
+// D-19 (Plan 191-20): Von/Bis-Jahr sind fuer JEDEN verbleibenden Hinweis universell sichtbar
+// (D-20/Plan 191-21 braucht sie auch fuer Fremdgruppen-Hinweise) -- nur der Infopanel-Satz
+// darunter haengt vom groupScope ab, weil der 90-Tage-Automatismus ausschliesslich fuer den
+// Eigengruppen-Weg (anime_contributions) gilt.
+describe('Step3NoteRange — groupScope-abhaengiger Infopanel-Satz (D-19)', () => {
   function step3Props(overrides: Partial<Parameters<typeof Step3NoteRange>[0]> = {}) {
     return {
       note: '',
       startedYear: '',
       endedYear: '',
       hasInvalidYearRange: false,
-      showYearAndInfoPanel: true,
+      groupScope: 'own' as const,
       onNoteChange: vi.fn(),
       onStartedYearChange: vi.fn(),
       onEndedYearChange: vi.fn(),
@@ -128,21 +132,30 @@ describe('Step3NoteRange — showYearAndInfoPanel', () => {
     }
   }
 
-  it('zeigt Von/Bis-Jahr und das 90-Tage-Infopanel, wenn showYearAndInfoPanel=true (immer bei D-09)', () => {
-    render(<Step3NoteRange {...step3Props({ showYearAndInfoPanel: true })} />)
+  it('zeigt bei groupScope="own" Von/Bis-Jahr und den 90-Tage-Text, nicht den Fremdgruppen-Satz', () => {
+    render(<Step3NoteRange {...step3Props({ groupScope: 'own' })} />)
 
     expect(screen.getByLabelText('Von Jahr auswählen')).toBeTruthy()
     expect(screen.getByLabelText('Bis Jahr auswählen')).toBeTruthy()
     expect(screen.getByText(/Keine Reaktion nach 90 Tagen/)).toBeTruthy()
+    expect(screen.queryByText(/Leitung der Zielgruppe/)).toBeNull()
   })
 
-  it('blendet Von/Bis-Jahr und das 90-Tage-Infopanel komplett aus, wenn showYearAndInfoPanel=false', () => {
-    render(<Step3NoteRange {...step3Props({ showYearAndInfoPanel: false })} />)
+  it('zeigt bei groupScope="foreign" weiterhin Von/Bis-Jahr (Regressionsschutz D-20) und den neuen Routing-Satz, nicht den 90-Tage-Text', () => {
+    render(<Step3NoteRange {...step3Props({ groupScope: 'foreign' })} />)
 
-    expect(screen.queryByLabelText('Von Jahr auswählen')).toBeNull()
-    expect(screen.queryByLabelText('Bis Jahr auswählen')).toBeNull()
+    expect(screen.getByLabelText('Von Jahr auswählen')).toBeTruthy()
+    expect(screen.getByLabelText('Bis Jahr auswählen')).toBeTruthy()
     expect(screen.queryByText(/Keine Reaktion nach 90 Tagen/)).toBeNull()
-    // Das Notizfeld bleibt bei beiden Konfigurationen unveraendert sichtbar.
+    expect(
+      screen.getByText(
+        'Der Hinweis geht an die Leitung der Zielgruppe — oder, falls diese aktuell keine Leitung hat, an den Plattform-Admin. Es passiert nichts automatisch.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('zeigt das Notizfeld bei beiden Scopes unveraendert', () => {
+    render(<Step3NoteRange {...step3Props({ groupScope: 'foreign' })} />)
     expect(screen.getByLabelText('Hinweis für den Gruppenleader')).toBeTruthy()
   })
 })
