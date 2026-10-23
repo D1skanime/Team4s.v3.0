@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-16-PLAN.md
-last_updated: "2026-10-23T20:26:24.366Z"
+stopped_at: Completed 191-15-PLAN.md
+last_updated: "2026-10-23T20:43:51.049Z"
 last_activity: 2026-10-23
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 512
-  completed_plans: 504
+  completed_plans: 505
   percent: 89
 ---
 
@@ -1513,6 +1513,7 @@ Last activity: 2026-10-23
 - [Phase 191-14]: WIZARD_STEPS als feste Modul-Konstante statt einer Null-Argument-Funktion exportiert -- es gibt seit D-09 nur noch eine feste Schrittfolge, eine parameterlose Funktion haette keinen Mehrwert gegenueber der direkt exportierten Konstante gehabt
 - [Phase 191-16]: Admin-Liste /admin/fansub-group-hints auf 'Hinweise ohne Leitung' umbenannt, Projekt-Spalte statt statischer Rollen-Badge (D-11)
 - [Phase 191-16]: Leader-Review-Abschnitt ohne hint_type-Badge/-Branching (D-09) - nur eine Hinweisart existiert noch
+- [Phase 191]: 191-15: D-10-Fix nutzt getPublicFansubProfileBySlug statt getAdminFansubAnime bei groupScope='foreign' (403-Bug behoben); ProposalAnimeOption ersetzt AdminFansubAnimeEntry in der ProposalForm-Familie; contributions.module.css (902 Zeilen) wird trotz CLAUDE.md-450-Regel nicht gesplittet, da 11 Komponenten denselben CSS-Modul-Import teilen (Rule-4-Architekturaenderung ausserhalb des Scopes).
 
 ### Pending Todos
 
@@ -2253,11 +2254,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P13 | ~20min | 1 tasks | 3 files |
 | Phase 191 P14 | ~35min | 2 tasks | 10 files (+2 deleted) |
 | Phase 191 P16 | 25min | 2 tasks | 6 files |
+| Phase 191 P15 | 55min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-23T20:26:24.336Z
-Stopped at: Completed 191-16-PLAN.md
+Last session: 2026-10-23T20:43:51.029Z
+Stopped at: Completed 191-15-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
