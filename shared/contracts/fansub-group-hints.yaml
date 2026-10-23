@@ -105,6 +105,40 @@ paths:
                   value:
                     error:
                       message: "zu viele anfragen, bitte spaeter erneut versuchen"
+    get:
+      tags: [FansubGroupHints]
+      summary: List hints the caller has sent (D-18, own view, any status, own or foreign group)
+      description: |
+        Gibt dem Absender AUSNAHMSLOS alle Hinweise zurück, die er selbst jemals verschickt
+        hat — an die eigene(n) UND an fremde Gruppen, über alle Status hinweg (D-18, der
+        fehlende Absender-seitige Spiegel zum gruppen-gescopten GET oben). Sicherheitskritisch
+        (T-191-28, IDOR/BOLA-Schutz): `sender_app_user_id` wird serverseitig AUSSCHLIESSLICH
+        aus der verifizierten Identität des Bearer-Tokens abgeleitet — es existiert kein
+        Pfad-, Query- oder Body-Parameter, über den ein Client die Hinweise eines anderen
+        Absenders anfordern könnte. Kein Tageslimit (die FansubGroupHintDailyLimitMiddleware
+        bremst nur das ERSTELLEN neuer Hinweise, nicht das Lesen eigener).
+      operationId: listMySentFansubGroupHints
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste aller vom Aufrufer selbst gesendeten Hinweise, unfiltriert
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FansubGroupHint"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/v1/admin/fansubs/{fansubId}/group-hints:
     get:

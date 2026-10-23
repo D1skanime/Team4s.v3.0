@@ -655,6 +655,10 @@ func main() {
 		middleware.FansubGroupHintDailyLimitMiddleware(fansubHintDailyLimiter),
 		fansubGroupHintsMeHandler.CreateHint,
 	)
+	// D-18: Absender-seitige Sicht auf eigene, bereits gesendete Hinweise (eigene UND
+	// fremde Gruppen, alle Status) — nur authMiddleware, kein Tageslimit, da das Limit nur
+	// das ERSTELLEN neuer Hinweise bremst, nicht das Lesen eigener.
+	v1.GET("/me/fansub-group-hints", authMiddleware, fansubGroupHintsMeHandler.ListSentHints)
 	v1.GET("/admin/fansubs/:id/contribution-proposals", authMiddleware, reviewHandler.ListProposals)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/confirm", authMiddleware, reviewHandler.ConfirmProposal)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/reject", authMiddleware, reviewHandler.RejectProposal)

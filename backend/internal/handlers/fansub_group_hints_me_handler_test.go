@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,6 +13,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// errListSentHintsStub ist ein generischer Repository-Fehler für den ListSentHints-500-Test.
+var errListSentHintsStub = errors.New("stub: repository-fehler")
+
 // --- Stubs für FansubGroupHintsMeHandler-Tests ---
 
 type hintRepoStub struct {
@@ -19,12 +23,26 @@ type hintRepoStub struct {
 	createErr     error
 	capturedInput repository.HintInput
 	captured      bool
+
+	// listBySenderResult/-Err stub ListBySender (D-18); capturedSenderAppUserID
+	// speichert das tatsächlich übergebene Argument, damit die Tests beweisen können,
+	// dass es exakt der Auth-Identität entspricht, niemals einem Client-Wert.
+	listBySenderResult       []repository.FansubGroupHintRow
+	listBySenderErr          error
+	capturedSenderAppUserID  int64
+	listBySenderCalled       bool
 }
 
 func (s *hintRepoStub) CreateHint(ctx context.Context, input repository.HintInput) (*repository.FansubGroupHintRow, error) {
 	s.capturedInput = input
 	s.captured = true
 	return s.createResult, s.createErr
+}
+
+func (s *hintRepoStub) ListBySender(ctx context.Context, senderAppUserID int64) ([]repository.FansubGroupHintRow, error) {
+	s.capturedSenderAppUserID = senderAppUserID
+	s.listBySenderCalled = true
+	return s.listBySenderResult, s.listBySenderErr
 }
 
 // buildTestHintHandler baut einen FansubGroupHintsMeHandler mit Stubs, ohne echte DB.
@@ -45,6 +63,71 @@ func newHintTestContext(body string, appUserID int64, setAuth bool) (*gin.Contex
 		setTestAuthIdentity(c, appUserID)
 	}
 	return c, rec
+}
+
+// newHintGetTestContext baut einen GET-Request-Kontext für ListSentHints -- bewusst ohne
+// jeden Query-/Path-Parameter für eine Absender-ID, da D-18s IDOR-Schutz genau darauf
+// beruht, dass es kein solches Feld zum Binden/Lesen gibt.
+func newHintGetTestContext(appUserID int64, setAuth bool) (*gin.Context, *httptest.ResponseRecorder) {
+	gin.SetMode(gin.TestMode)
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/me/fansub-group-hints", nil)
+	if setAuth {
+		setTestAuthIdentity(c, appUserID)
+	}
+	return c, rec
+}
+
+func TestFansubGroupHint_ListSentHints_RequiresAuth(t *testing.T) {
+	repo := &hintRepoStub{}
+	h := buildTestHintHandler(repo, &memberResolverStub{memberID: 10})
+	c, rec := newHintGetTestContext(0, false)
+
+	h.ListSentHints(c)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected %d, got %d", http.StatusUnauthorized, rec.Code)
+	}
+	if repo.listBySenderCalled {
+		t.Fatalf("expected ListBySender to never be called without auth")
+	}
+}
+
+func TestFansubGroupHint_ListSentHints_ReturnsCallersOwnHints(t *testing.T) {
+	repo := &hintRepoStub{listBySenderResult: []repository.FansubGroupHintRow{{ID: 1}, {ID: 2}}}
+	h := buildTestHintHandler(repo, &memberResolverStub{memberID: 10})
+	c, rec := newHintGetTestContext(42, true)
+
+	h.ListSentHints(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected %d, got %d (body=%s)", http.StatusOK, rec.Code, rec.Body.String())
+	}
+	if !repo.listBySenderCalled {
+		t.Fatalf("expected ListBySender to be called")
+	}
+	// Beweis des IDOR-Schutzes (T-191-28): das übergebene Argument ist exakt
+	// identity.AppUserID -- es existiert kein Request-Parameter, aus dem ein anderer Wert
+	// stammen könnte.
+	if repo.capturedSenderAppUserID != 42 {
+		t.Fatalf("expected sender_app_user_id to come from identity (42), got %d", repo.capturedSenderAppUserID)
+	}
+	if !strings.Contains(rec.Body.String(), `"id":1`) || !strings.Contains(rec.Body.String(), `"id":2`) {
+		t.Fatalf("expected response to contain the stub's rows, got %s", rec.Body.String())
+	}
+}
+
+func TestFansubGroupHint_ListSentHints_RepositoryErrorReturns500(t *testing.T) {
+	repo := &hintRepoStub{listBySenderErr: errListSentHintsStub}
+	h := buildTestHintHandler(repo, &memberResolverStub{memberID: 10})
+	c, rec := newHintGetTestContext(42, true)
+
+	h.ListSentHints(c)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected %d, got %d", http.StatusInternalServerError, rec.Code)
+	}
 }
 
 func TestFansubGroupHint_CreateHint_RequiresAuth(t *testing.T) {

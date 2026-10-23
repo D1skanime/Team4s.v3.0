@@ -31,9 +31,11 @@ const (
 )
 
 // HintRepository ist das Interface, das FansubGroupHintsMeHandler für die Persistenz
-// neuer Hinweise nutzt. Ermöglicht Stub-Tests ohne echte DB-Verbindung.
+// neuer Hinweise UND für die D-18-Absenderansicht ("Eingereichte Hinweise") nutzt.
+// Ermöglicht Stub-Tests ohne echte DB-Verbindung.
 type HintRepository interface {
 	CreateHint(ctx context.Context, input repository.HintInput) (*repository.FansubGroupHintRow, error)
+	ListBySender(ctx context.Context, senderAppUserID int64) ([]repository.FansubGroupHintRow, error)
 }
 
 // FansubGroupHintsMeHandler verwaltet den Member-seitigen "Hinweis senden"-Endpunkt.
@@ -134,6 +136,29 @@ func (h *FansubGroupHintsMeHandler) CreateHint(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"data": row})
+}
+
+// ListSentHints verarbeitet GET /api/v1/me/fansub-group-hints (D-18): zeigt dem Absender
+// alle Hinweise, die er selbst jemals verschickt hat -- an die eigene(n) UND an fremde
+// Gruppen, über alle Status hinweg. Sicherheits-Kernregel (T-191-28, IDOR/BOLA-Schutz):
+// die Absender-ID stammt AUSSCHLIESSLICH aus der verifizierten Auth-Identität
+// (identity.AppUserID) -- der Handler liest dafür keinen Pfad-, Query- oder
+// Body-Parameter, es existiert hier also strukturell kein Feld, über das ein Client die
+// Hinweise eines anderen Absenders anfordern könnte. Kein Rate-Limit nötig (das
+// Tageslimit bremst nur das ERSTELLEN neuer Hinweise, nicht das Lesen eigener).
+func (h *FansubGroupHintsMeHandler) ListSentHints(c *gin.Context) {
+	identity, ok := requireMeIdentityForProposals(c)
+	if !ok {
+		return
+	}
+
+	rows, err := h.hintRepo.ListBySender(c.Request.Context(), identity.AppUserID)
+	if err != nil {
+		internalError(c, "interner Serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": rows})
 }
 
 // unprocessable schreibt eine 422-Antwort mit dem einheitlichen Fehler-Envelope.
