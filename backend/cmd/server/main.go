@@ -658,6 +658,15 @@ func main() {
 	v1.GET("/admin/fansubs/:id/contribution-proposals", authMiddleware, reviewHandler.ListProposals)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/confirm", authMiddleware, reviewHandler.ConfirmProposal)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/reject", authMiddleware, reviewHandler.RejectProposal)
+	// Phase 191-04: Leader-der-Zielgruppe-Entscheidungsflaeche fuer eingehende Hinweise
+	// (D-01/D-06) — wiederverwendet exakt die gruppen-gescopte ActionFansubGroupMembersManage-
+	// Berechtigung des Beitrags-Reviews oben; fansubGroupHintsRepo ist bereits fuer den
+	// Member-Erstellpfad instanziiert, hier nur als zweite Rolle (Leser/Entscheider statt
+	// Ersteller) wiederverwendet.
+	fansubGroupHintsReviewHandler := handlers.NewFansubGroupHintsReviewHandler(fansubGroupHintsRepo, permissionSvc, auditLogRepo)
+	v1.GET("/admin/fansubs/:id/group-hints", authMiddleware, fansubGroupHintsReviewHandler.ListHints)
+	v1.POST("/admin/fansubs/:id/group-hints/:hid/confirm", authMiddleware, fansubGroupHintsReviewHandler.ConfirmHint)
+	v1.POST("/admin/fansubs/:id/group-hints/:hid/reject", authMiddleware, fansubGroupHintsReviewHandler.RejectHint)
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           router,
