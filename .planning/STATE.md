@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 191-09-PLAN.md
-last_updated: "2026-10-23T14:31:31.415Z"
+status: verifying
+stopped_at: Completed 191-11-PLAN.md
+last_updated: "2026-10-23T19:39:15.428Z"
 last_activity: 2026-10-23
 progress:
   total_phases: 56
   completed_phases: 50
-  total_plans: 503
-  completed_plans: 499
+  total_plans: 512
+  completed_plans: 500
   percent: 89
 ---
 
@@ -439,7 +439,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 191 (hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen) — EXECUTING
 Plan: 10 of 10
-Status: Ready to execute
+Status: Phase complete — ready for verification
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -1505,6 +1505,8 @@ Last activity: 2026-10-23
 - [Phase ?]: 191-08: Mount im collaboration-Tab statt neben dem verwaisten ContributionsReviewSection, da dieser Donor seit vorschlaege->pruefungen keine Produktions-Einbindung mehr hat
 - [Phase ?]: 191-08: roleLineForHint liefert bei hint_type=correction bewusst null, da das Rollenfeld laut DB-Constraint nur bei membership_request existiert
 - [Phase 191]: 191-09: Task-1-Commit-Reihenfolge an Dateiabhaengigkeit angepasst (Hook -> Task2 RED/GREEN -> page.tsx+Nav) — page.tsx importiert die in Task 2 gebaute Client-Komponente; ein einzelner Task-1-Commit haette typecheck gebrochen
+- [Phase ?]: [Phase 191-11]: Migration-0188-Bug: explizites DROP INDEX nach DROP COLUMN entfernt, da Postgres den Index bereits per Spalten-Cascade entfernt
+- [Phase ?]: [Phase 191-11]: D-11-Praedikat HasActiveLead/ListWithoutActiveLead bewusst zweimal eigenstaendig formuliert (EXISTS/NOT EXISTS) statt ueber geteilte Sprintf-Konstante, um Platzhalter-Fehler zu vermeiden
 
 ### Pending Todos
 
@@ -2240,11 +2242,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P07 | 75min | 3 tasks | 13 files |
 | Phase 191 P08 | 35min | 2 tasks | 4 files |
 | Phase 191 P09 | 25min | 2 tasks | 6 files |
+| Phase 191 P11 | ~25min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-10-23T14:31:31.379Z
-Stopped at: Completed 191-09-PLAN.md
+Last session: 2026-10-23T19:39:15.373Z
+Stopped at: Completed 191-11-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
