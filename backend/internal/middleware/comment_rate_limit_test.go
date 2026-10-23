@@ -221,3 +221,159 @@ func TestCommentCreateRateLimitMiddlewareInvalidConfig(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusInternalServerError, rec.Code)
 	}
 }
+
+// withFakeIdentity setzt eine AuthIdentity direkt im Gin-Kontext, bevor die Middleware
+// unter Test läuft — simuliert die vorgeschaltete authMiddleware ohne echte Keycloak-
+// Verifikation (Unit-Test-Grenze der Rate-Limit-Middleware selbst).
+func withFakeIdentity(appUserID int64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set(commentAuthIdentityContextKey, AuthIdentity{
+			UserID:      appUserID,
+			DisplayName: "Testnutzer",
+			AppUserID:   appUserID,
+		})
+		c.Next()
+	}
+}
+
+func TestFansubGroupHintRateLimitMiddlewareAllowsUpToLimit(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	now := time.Date(2026, 2, 10, 10, 0, 0, 0, time.UTC)
+	limiter := newCommentRateLimiterWithStore(&fakeCommentRateLimitStore{}, 2, 24*time.Hour)
+	limiter.nowFunc = func() time.Time {
+		return now
+	}
+
+	router := gin.New()
+	router.POST("/me/fansub-group-hints", withFakeIdentity(42), FansubGroupHintDailyLimitMiddleware(limiter), func(c *gin.Context) {
+		c.Status(http.StatusCreated)
+	})
+
+	for i := 0; i < 2; i++ {
+		req := httptest.NewRequest(http.MethodPost, "/me/fansub-group-hints", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusCreated {
+			t.Fatalf("expected request %d to be allowed (status %d), got %d", i+1, http.StatusCreated, rec.Code)
+		}
+	}
+}
+
+func TestFansubGroupHintRateLimitMiddlewareDeniesBeyondLimitWithRetryAfter(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	now := time.Date(2026, 2, 10, 10, 0, 0, 0, time.UTC)
+	limiter := newCommentRateLimiterWithStore(&fakeCommentRateLimitStore{}, 1, 24*time.Hour)
+	limiter.nowFunc = func() time.Time {
+		return now
+	}
+
+	router := gin.New()
+	router.POST("/me/fansub-group-hints", withFakeIdentity(7), FansubGroupHintDailyLimitMiddleware(limiter), func(c *gin.Context) {
+		c.Status(http.StatusCreated)
+	})
+
+	req1 := httptest.NewRequest(http.MethodPost, "/me/fansub-group-hints", nil)
+	rec1 := httptest.NewRecorder()
+	router.ServeHTTP(rec1, req1)
+	if rec1.Code != http.StatusCreated {
+		t.Fatalf("expected first request allowed, got %d", rec1.Code)
+	}
+
+	req2 := httptest.NewRequest(http.MethodPost, "/me/fansub-group-hints", nil)
+	rec2 := httptest.NewRecorder()
+	router.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusTooManyRequests {
+		t.Fatalf("expected second request denied with %d, got %d", http.StatusTooManyRequests, rec2.Code)
+	}
+	if got := rec2.Header().Get("Retry-After"); got == "" {
+		t.Fatalf("expected non-empty Retry-After header")
+	}
+	if body := rec2.Body.String(); body == "" {
+		t.Fatalf("expected non-empty response body")
+	}
+}
+
+func TestFansubGroupHintRateLimitMiddlewareDifferentAppUsersHaveIndependentLimits(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	now := time.Date(2026, 2, 10, 10, 0, 0, 0, time.UTC)
+	limiter := newCommentRateLimiterWithStore(&fakeCommentRateLimitStore{}, 1, 24*time.Hour)
+	limiter.nowFunc = func() time.Time {
+		return now
+	}
+
+	routerFor := func(appUserID int64) *gin.Engine {
+		router := gin.New()
+		router.POST("/me/fansub-group-hints", withFakeIdentity(appUserID), FansubGroupHintDailyLimitMiddleware(limiter), func(c *gin.Context) {
+			c.Status(http.StatusCreated)
+		})
+		return router
+	}
+
+	rec1 := httptest.NewRecorder()
+	routerFor(1).ServeHTTP(rec1, httptest.NewRequest(http.MethodPost, "/me/fansub-group-hints", nil))
+	if rec1.Code != http.StatusCreated {
+		t.Fatalf("expected app user 1's first request allowed, got %d", rec1.Code)
+	}
+
+	rec2 := httptest.NewRecorder()
+	routerFor(2).ServeHTTP(rec2, httptest.NewRequest(http.MethodPost, "/me/fansub-group-hints", nil))
+	if rec2.Code != http.StatusCreated {
+		t.Fatalf("expected app user 2's first request allowed despite app user 1's limit, got %d", rec2.Code)
+	}
+}
+
+func TestFansubGroupHintRateLimitMiddlewareFailsClosedWithoutIdentity(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	limiter := newCommentRateLimiterWithStore(&fakeCommentRateLimitStore{}, 10, 24*time.Hour)
+
+	router := gin.New()
+	router.POST("/me/fansub-group-hints", FansubGroupHintDailyLimitMiddleware(limiter), func(c *gin.Context) {
+		c.Status(http.StatusCreated)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/me/fansub-group-hints", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected status %d when no identity in context, got %d", http.StatusInternalServerError, rec.Code)
+	}
+}
+
+func TestFansubGroupHintRateLimitMiddlewareDegradesOnStoreError(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	before := observability.GetDegradedCounters()
+
+	limiter := newCommentRateLimiterWithStore(&fakeCommentRateLimitStore{
+		err: fmt.Errorf("%w: redis unavailable", ErrCommentRateLimitStoreUnavailable),
+	}, 10, 24*time.Hour)
+
+	router := gin.New()
+	router.POST("/me/fansub-group-hints", withFakeIdentity(99), FansubGroupHintDailyLimitMiddleware(limiter), func(c *gin.Context) {
+		c.Status(http.StatusCreated)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/me/fansub-group-hints", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("expected fail-open status %d, got %d", http.StatusCreated, rec.Code)
+	}
+	if got := rec.Header().Get(commentRateLimitDegradedHeader); got != "true" {
+		t.Fatalf("expected degraded header %q, got %q", "true", got)
+	}
+
+	after := observability.GetDegradedCounters()
+	if after.CommentRateLimitDegradedTotal < before.CommentRateLimitDegradedTotal+1 {
+		t.Fatalf(
+			"expected comment rate degraded counter to increase by at least 1 (before=%d after=%d)",
+			before.CommentRateLimitDegradedTotal,
+			after.CommentRateLimitDegradedTotal,
+		)
+	}
+}

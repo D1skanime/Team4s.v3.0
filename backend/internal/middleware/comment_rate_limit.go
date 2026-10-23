@@ -111,27 +111,87 @@ func (l *CommentRateLimiter) Allow(ctx context.Context, key string) (bool, time.
 	return false, time.Duration(retryAfterSeconds) * time.Second, nil
 }
 
+// handleRateLimitStoreError verarbeitet einen Fehler aus limiter.Allow() einheitlich für
+// alle Rate-Limit-Varianten dieser Datei (ClientIP- UND AppUserID-geschlüsselt): Ist der
+// Redis-Store nicht erreichbar, läuft die Anfrage bewusst im Degraded-Modus durch (fail-open,
+// mit sichtbarem Header + Logging/Zähler) statt Nutzer wegen einer Infrastruktur-Störung
+// auszusperren — jede andere Fehlerursache sperrt dagegen hart mit 500 (fail-closed).
+func handleRateLimitStoreError(c *gin.Context, err error) {
+	if errors.Is(err, ErrCommentRateLimitStoreUnavailable) {
+		total := observability.IncCommentRateLimitDegraded()
+		log.Printf(
+			"event=redis_comment_rate_limit_degraded component=comment_rate_limit path=%s method=%s client_ip=%s total=%d error=%v",
+			c.FullPath(),
+			c.Request.Method,
+			c.ClientIP(),
+			total,
+			err,
+		)
+		c.Header(commentRateLimitDegradedHeader, "true")
+		c.Next()
+		return
+	}
+
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"error": gin.H{
+			"message": commentRateLimitInternalErrorMessage,
+		},
+	})
+	c.Abort()
+}
+
+// writeRateLimitExceeded schreibt die einheitliche 429-Antwort (Retry-After-Header +
+// JSON-Fehler-Envelope) für alle Rate-Limit-Varianten dieser Datei — ein Aufrufer erhält
+// unabhängig vom zugrunde liegenden Schlüssel (IP oder AppUserID) dieselbe Antwortform.
+func writeRateLimitExceeded(c *gin.Context, retryAfter time.Duration) {
+	retryAfterSeconds := int(math.Ceil(retryAfter.Seconds()))
+	if retryAfterSeconds < 1 {
+		retryAfterSeconds = 1
+	}
+
+	c.Header("Retry-After", strconv.Itoa(retryAfterSeconds))
+	c.JSON(http.StatusTooManyRequests, gin.H{
+		"error": gin.H{
+			"message": commentRateLimitExceededMessage,
+		},
+	})
+	c.Abort()
+}
+
 // CommentCreateRateLimitMiddleware gibt eine Gin-Middleware zurück, die das Kommentar-Erstelllimit
 // pro Client-IP durchsetzt und bei Überschreitung HTTP 429 zurückgibt.
 func CommentCreateRateLimitMiddleware(limiter *CommentRateLimiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		allowed, retryAfter, err := limiter.Allow(c.Request.Context(), c.ClientIP())
 		if err != nil {
-			if errors.Is(err, ErrCommentRateLimitStoreUnavailable) {
-				total := observability.IncCommentRateLimitDegraded()
-				log.Printf(
-					"event=redis_comment_rate_limit_degraded component=comment_rate_limit path=%s method=%s client_ip=%s total=%d error=%v",
-					c.FullPath(),
-					c.Request.Method,
-					c.ClientIP(),
-					total,
-					err,
-				)
-				c.Header(commentRateLimitDegradedHeader, "true")
-				c.Next()
-				return
-			}
+			handleRateLimitStoreError(c, err)
+			return
+		}
 
+		if allowed {
+			c.Next()
+			return
+		}
+
+		writeRateLimitExceeded(c, retryAfter)
+	}
+}
+
+// FansubGroupHintDailyLimitMiddleware begrenzt, wie viele Hinweise ein einzelner App-User
+// pro Tag an Fansub-Gruppen senden darf (Spam-Schutz für POST /api/v1/me/fansub-group-hints,
+// ca. 10/Person/24h). Anders als beim Kommentar-Limiter ist der Schlüssel NICHT die
+// Client-IP, sondern identity.AppUserID aus der von authMiddleware weiter vorne in der
+// Kette gesetzten AuthIdentity — ein Nutzer soll das Limit nicht durch IP-Wechsel umgehen
+// können, und mehrere Nutzer hinter derselben IP sollen sich nicht gegenseitig blockieren.
+// Nutzt denselben Redis-Fixed-Window-Mechanismus wie CommentCreateRateLimitMiddleware über
+// eine eigene CommentRateLimiter-Instanz (anderes Limit/Fenster) statt eines neuen
+// Rate-Limit-Mechanismus.
+func FansubGroupHintDailyLimitMiddleware(limiter *CommentRateLimiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		identity, ok := CommentAuthIdentityFromContext(c)
+		if !ok {
+			// Sollte nach authMiddleware nie eintreten; fail-closed statt eines Panics
+			// auf fehlende Identität, falls die Middleware-Reihenfolge je verrutscht.
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": gin.H{
 					"message": commentRateLimitInternalErrorMessage,
@@ -141,22 +201,18 @@ func CommentCreateRateLimitMiddleware(limiter *CommentRateLimiter) gin.HandlerFu
 			return
 		}
 
+		key := strconv.FormatInt(identity.AppUserID, 10)
+		allowed, retryAfter, err := limiter.Allow(c.Request.Context(), key)
+		if err != nil {
+			handleRateLimitStoreError(c, err)
+			return
+		}
+
 		if allowed {
 			c.Next()
 			return
 		}
 
-		retryAfterSeconds := int(math.Ceil(retryAfter.Seconds()))
-		if retryAfterSeconds < 1 {
-			retryAfterSeconds = 1
-		}
-
-		c.Header("Retry-After", strconv.Itoa(retryAfterSeconds))
-		c.JSON(http.StatusTooManyRequests, gin.H{
-			"error": gin.H{
-				"message": commentRateLimitExceededMessage,
-			},
-		})
-		c.Abort()
+		writeRateLimitExceeded(c, retryAfter)
 	}
 }
