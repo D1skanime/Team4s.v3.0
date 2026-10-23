@@ -67,13 +67,32 @@ interface BuildHintPayloadParams {
   /** Siehe Datei-Kommentar: fansub_group_hints hat kein eigenes Rollenfeld für Korrekturen. */
   roleLabelForNote: string | null
   note: string
+  /**
+   * D-20: fansub_group_hints hat ebenfalls keine Von/Bis-Jahr-Spalten (anders als
+   * anime_contributions, siehe buildCorrectionOwnPayload unten) -- ein eingegebener
+   * Zeitraum wird deshalb, analog zur Rolle, als "Zeitraum: ..."-Klartext in die Notiz
+   * eingebettet statt ersatzlos verworfen zu werden.
+   */
+  startedYear?: string
+  endedYear?: string
+}
+
+/** Baut aus Von-/Bis-Jahr das "Zeitraum: ..."-Notiz-Fragment (D-20) oder null, wenn beide leer sind. */
+function buildYearContext(startedYear?: string, endedYear?: string): string | null {
+  const from = startedYear?.trim() || ''
+  const to = endedYear?.trim() || ''
+  if (from && to) return `Zeitraum: ${from}–${to}`
+  if (from) return `Zeitraum: ab ${from}`
+  if (to) return `Zeitraum: bis ${to}`
+  return null
 }
 
 /** Baut den Request-Body für createFansubGroupHint (Korrektur-Hinweis an eine fremde Gruppe). */
 export function buildHintSubmitPayload(params: BuildHintPayloadParams): CreateFansubGroupHintRequest {
   const trimmedNote = params.note.trim()
   const roleContext = params.roleLabelForNote ? `Rolle: ${params.roleLabelForNote}` : null
-  const combinedNote = [roleContext, trimmedNote].filter(Boolean).join(' — ')
+  const yearContext = buildYearContext(params.startedYear, params.endedYear)
+  const combinedNote = [roleContext, yearContext, trimmedNote].filter(Boolean).join(' — ')
   return {
     target_fansub_group_id: params.targetFansubGroupId,
     related_anime_id: params.relatedAnimeId,
@@ -146,6 +165,8 @@ export function useProposalFormSubmit() {
         relatedAnimeId: target.anime.id,
         roleLabelForNote: target.roleLabel,
         note: target.note,
+        startedYear: target.startedYear,
+        endedYear: target.endedYear,
       })
       await createFansubGroupHint(payload)
 
