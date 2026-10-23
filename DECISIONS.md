@@ -1,5 +1,44 @@
 # DECISIONS
 
+## 2026-10-23 - Hinweise an fremde Fansub-Gruppen: Rollenbasierte Freigabe, kein neues Recht, eigene Tabelle
+
+### Decision
+Mitglieder können einen Hinweis (Korrektur-Hinweis oder Mitgliedschaftsanfrage) auch an eine
+Fansub-Gruppe senden, der sie nicht angehören. Die Zielgruppe wird über den gemeinsamen
+`useFansubGroupSearch`-Hook ausgewählt (D-02) — dieselbe Suchlogik, die zuvor nur im
+Release-Editor für Partnergruppen existierte. Ein Hinweis bestätigt niemals automatisch eine
+Mitgliedschaft; er ist reine Information, über die der Leader der Zielgruppe selbst entscheidet,
+ob und wie er die Person über die bestehenden Wege hinzufügt (D-03). Wer den Hinweis freigibt,
+hängt von der gewünschten Rolle ab: Standardmäßig entscheidet der Leader der Zielgruppe; nur wenn
+explizit die Rolle `fansub_lead` gewählt wird, routet die Entscheidung stattdessen an den
+Plattform-Admin (D-01, D-07). Spam-Schutz besteht aus einem DB-Partial-Unique-Index (ein offener
+Hinweis pro Absender+Zielgruppe+Thema) und einem Tageslimit von ca. 10 Hinweisen pro Person, über
+den bestehenden Redis-Rate-Limiter mit einem neuen `AppUserID`-Schlüssel statt der IP (D-04).
+Ablehnen ist ein Klick mit optionaler Begründung; Stummschalten einzelner Absender ist bewusst
+nicht gebaut. Der Hinweis selbst vergibt keine Punkte oder Badges (D-05) und begründet kein neues
+Recht — Freigabe/Review laufen über die bestehende Capability `ActionFansubGroupMembersManage`
+und `requirePlatformAdminIdentity` (D-06). Das Rollenfeld bei der Mitgliedschaftsanfrage ist
+optional mit Default „keine bestimmte Rolle" (D-07).
+
+### Why This Won
+Eine neue, strukturell eigenständige Tabelle `fansub_group_hints` wurde gewählt statt die
+bestehende `anime_contributions`-Tabelle zu erweitern, weil letztere einen zwingenden
+Projekt-Bezug, einen zusammengesetzten Fremdschlüssel auf historische Mitgliedschaft und kein
+Rollenfeld für diesen Zweck hat — eine Erweiterung hätte Nullable-Hacks auf eine Tabelle
+erzwungen, deren bestehender Eigentums-Guard (`MemberBelongsToFansub`) für den normalen
+Eigengruppen-Vorschlagsfluss unverändert intakt bleiben muss. Die Wiederverwendung bestehender
+Bausteine (Gruppensuche, Rate-Limiter, Confirm/Reject-Muster aus dem gruppen-gescopten
+Review-Pfad, `/admin/claims`-Vorbild für die plattformweite Liste) hat einen Parallel-Neubau
+vermieden und hält den Code konsistent mit etablierten Mustern.
+
+### Consequences
+Es existieren jetzt bewusst zwei parallele Review-Oberflächen für diese Feature-Familie — eine
+gruppen-gescopte Leader-Liste und eine plattformweite `fansub_lead`-Liste — statt einer generischen
+Liste mit client-seitiger Filterung; das serverseitige Routing ohne Client-Flag ist eine
+Sicherheitsentscheidung, kein Zufall. Künftige Features, die „etwas an eine Gruppe senden, der man
+nicht angehört" brauchen, sollten dieses Tabellen-/Flow-Muster als wiederverwendbares Vorbild
+prüfen, bevor sie etwas Neues erfinden.
+
 ## 2026-07-31 - Linux VM Is The Canonical Development And Runtime Host
 
 ### Decision
