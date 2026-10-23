@@ -10,7 +10,7 @@
 // Check, keine Interaktionssimulation.
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 const listGroupHints = vi.fn()
 const confirmGroupHint = vi.fn()
@@ -156,7 +156,7 @@ describe('FansubGroupHintsReviewSection Kapabilitaets-Gate', () => {
     const { container } = render(
       <FansubGroupHintsReviewSection fansubId={5} capabilities={null} />,
     )
-    expect(container).toBeEmptyDOMElement()
+    expect(container.firstChild).toBeNull()
   })
 
   it('rendert null wenn can_manage_members falsy ist', () => {
@@ -166,7 +166,7 @@ describe('FansubGroupHintsReviewSection Kapabilitaets-Gate', () => {
         capabilities={{ ...fullCapabilities, can_manage_members: false }}
       />,
     )
-    expect(container).toBeEmptyDOMElement()
+    expect(container.firstChild).toBeNull()
   })
 
   it('laedt Hinweise und zeigt den Abschnitt wenn can_manage_members true ist', async () => {
@@ -190,7 +190,9 @@ describe('FansubGroupHintsReviewSection Kapabilitaets-Gate', () => {
   })
 
   it('zeigt die Fehlermeldung bei Ladefehler', async () => {
-    listGroupHints.mockRejectedValue(new Error('network down'))
+    // Keine Error-Instanz (z. B. ein roher String) -> readErrorMessage greift auf
+    // den uebergebenen Fallback-Text zurueck, identisch zum Donor-Verhalten.
+    listGroupHints.mockRejectedValue('network down')
 
     render(<FansubGroupHintsReviewSection fansubId={5} capabilities={fullCapabilities} />)
 
@@ -205,8 +207,7 @@ describe('FansubGroupHintsReviewSection Kapabilitaets-Gate', () => {
 
     render(<FansubGroupHintsReviewSection fansubId={5} capabilities={fullCapabilities} />)
 
-    const confirmButton = await screen.findByRole('button', { name: 'Hinweis bestätigen' })
-    confirmButton.click()
+    fireEvent.click(await screen.findByRole('button', { name: 'Hinweis bestätigen' }))
 
     await screen.findByText('Keine offenen Hinweise')
     expect(confirmGroupHint).toHaveBeenCalledWith(5, 1)
@@ -217,8 +218,10 @@ describe('FansubGroupHintsReviewSection Kapabilitaets-Gate', () => {
 
     render(<FansubGroupHintsReviewSection fansubId={5} capabilities={fullCapabilities} />)
 
-    const rejectButton = await screen.findByRole('button', { name: 'Hinweis ablehnen' })
-    rejectButton.click()
+    // Namens-Suche per Regex statt exaktem String: der Button traegt sowohl den
+    // sichtbaren Text "Hinweis ablehnen" als auch (ueber das Icon) das aria-label
+    // "Ablehnung abbrechen" - beides fliesst in den berechneten Accessible Name ein.
+    fireEvent.click(await screen.findByRole('button', { name: /Hinweis ablehnen/ }))
 
     expect(await screen.findByLabelText('Ablehnung abbrechen')).toBeTruthy()
   })
