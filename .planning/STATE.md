@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-13-PLAN.md
-last_updated: "2026-10-23T20:10:21.184Z"
+stopped_at: Completed 191-14-PLAN.md
+last_updated: "2026-10-23T20:30:00.000Z"
 last_activity: 2026-10-23
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 512
-  completed_plans: 502
+  completed_plans: 503
   percent: 89
 ---
 
@@ -1510,6 +1510,7 @@ Last activity: 2026-10-23
 - [Phase 191]: D-09: hint_type/requested_role_code aus dem Handler entfernt; jeder verbleibende Hinweis ist ein Korrektur-Hinweis mit Pflicht-related_anime_id
 - [Phase 191]: D-11: Admin-Liste laeuft ueber ListWithoutActiveLead; Leader-Review gibt alle Hinweise seiner Gruppe unfiltriert zurueck
 - [Phase 191-13]: related_anime_id/related_anime_title bleiben in der Lese-Form FansubGroupHint null-faehig, da FansubGroupHintRow sie per LEFT JOIN auf anime als *int64/*string scannt — nur CreateFansubGroupHintRequest.related_anime_id wurde wie geplant zur Pflichtangabe; Live-Backend-Contract hat Vorrang vor der urspruenglichen Plan-Annahme
+- [Phase 191-14]: WIZARD_STEPS als feste Modul-Konstante statt einer Null-Argument-Funktion exportiert -- es gibt seit D-09 nur noch eine feste Schrittfolge, eine parameterlose Funktion haette keinen Mehrwert gegenueber der direkt exportierten Konstante gehabt
 
 ### Pending Todos
 
@@ -2248,11 +2249,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P11 | ~25min | 2 tasks | 5 files |
 | Phase 191 P12 | 55min | 3 tasks | 10 files |
 | Phase 191 P13 | ~20min | 1 tasks | 3 files |
+| Phase 191 P14 | ~35min | 2 tasks | 10 files (+2 deleted) |
 
 ## Session Continuity
 
-Last session: 2026-10-23T20:10:21.139Z
-Stopped at: Completed 191-13-PLAN.md
+Last session: 2026-10-23T20:30:00.000Z
+Stopped at: Completed 191-14-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
