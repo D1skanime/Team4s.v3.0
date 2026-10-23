@@ -7,6 +7,7 @@ import {
   createFansubGroupHint,
   listAdminFansubGroupHints,
   listGroupHints,
+  listMyFansubGroupHints,
   rejectAdminFansubGroupHint,
   rejectGroupHint,
 } from "./fansub-group-hints";
@@ -165,5 +166,50 @@ describe("fansub-group-hints API-Client", () => {
     await expect(rejectAdminFansubGroupHint(123, "Rückfrage nötig")).rejects.toMatchObject({
       status: 404,
     });
+  });
+
+  // 191-23/D-18: Absender-seitiger Spiegel von listGroupHints -- gleicher
+  // ApiError/authorizedFetch-Vertrag, nur andere URL und keine Pfad-Parameter (die
+  // Absender-Identitaet kommt serverseitig ausschliesslich aus dem Auth-Token, Plan 191-22).
+  it("listMyFansubGroupHints wirft ApiError mit status=401 ohne gueltige Sitzung", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: vi.fn().mockResolvedValue({ error: { message: "nicht authentifiziert" } }),
+      }),
+    );
+
+    await expect(listMyFansubGroupHints()).rejects.toMatchObject({ status: 401 });
+  });
+
+  it("listMyFansubGroupHints loest bei 200 OK mit dem unveraenderten {data: [...]}-Payload auf", async () => {
+    const hint = {
+      id: 1,
+      sender_app_user_id: 9,
+      sender_display_name: "Timer",
+      sender_own_group_name: "NewSubs",
+      target_fansub_group_id: 24,
+      target_fansub_group_name: "RedHeartFansub",
+      related_anime_id: 42,
+      related_anime_title: "Beispiel-Anime",
+      note: null,
+      status: "open",
+      decided_by: null,
+      decided_at: null,
+      decision_note: null,
+      created_at: "2026-10-23T00:00:00Z",
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: vi.fn().mockResolvedValue({ data: [hint] }),
+      }),
+    );
+
+    await expect(listMyFansubGroupHints()).resolves.toEqual({ data: [hint] });
   });
 });
