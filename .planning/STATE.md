@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-11-PLAN.md
-last_updated: "2026-10-23T20:03:10.409Z"
+stopped_at: Completed 191-13-PLAN.md
+last_updated: "2026-10-23T20:10:21.184Z"
 last_activity: 2026-10-23
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 512
-  completed_plans: 501
+  completed_plans: 502
   percent: 89
 ---
 
@@ -1509,6 +1509,7 @@ Last activity: 2026-10-23
 - [Phase ?]: [Phase 191-11]: D-11-Praedikat HasActiveLead/ListWithoutActiveLead bewusst zweimal eigenstaendig formuliert (EXISTS/NOT EXISTS) statt ueber geteilte Sprintf-Konstante, um Platzhalter-Fehler zu vermeiden
 - [Phase 191]: D-09: hint_type/requested_role_code aus dem Handler entfernt; jeder verbleibende Hinweis ist ein Korrektur-Hinweis mit Pflicht-related_anime_id
 - [Phase 191]: D-11: Admin-Liste laeuft ueber ListWithoutActiveLead; Leader-Review gibt alle Hinweise seiner Gruppe unfiltriert zurueck
+- [Phase 191-13]: related_anime_id/related_anime_title bleiben in der Lese-Form FansubGroupHint null-faehig, da FansubGroupHintRow sie per LEFT JOIN auf anime als *int64/*string scannt — nur CreateFansubGroupHintRequest.related_anime_id wurde wie geplant zur Pflichtangabe; Live-Backend-Contract hat Vorrang vor der urspruenglichen Plan-Annahme
 
 ### Pending Todos
 
@@ -2246,11 +2247,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P09 | 25min | 2 tasks | 6 files |
 | Phase 191 P11 | ~25min | 2 tasks | 5 files |
 | Phase 191 P12 | 55min | 3 tasks | 10 files |
+| Phase 191 P13 | ~20min | 1 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-23T20:02:12.062Z
-Stopped at: Completed 191-11-PLAN.md
+Last session: 2026-10-23T20:10:21.139Z
+Stopped at: Completed 191-13-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
