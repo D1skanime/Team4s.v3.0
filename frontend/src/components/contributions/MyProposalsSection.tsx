@@ -47,6 +47,14 @@ interface MyProposalsSectionProps {
 export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposalsSectionProps) {
   const { roles } = useRoleCatalog('anime_contribution')
   const contributionRoles = contributionRoleDefinitions(roles)
+  // D-07: Mitgliedschaftsanfragen duerfen ausschliesslich fansub_group-Kontext-Rollen zeigen
+  // (nie die anime_contribution-Rollen oben) -- separate Quelle, separater Filter auf
+  // assignable, damit nicht-zuweisbare/reservierte Rollen (z. B. rein historische Codes)
+  // nicht im optionalen Rollenfeld der Mitgliedschaftsanfrage auftauchen koennen.
+  const { roles: fansubGroupRoleRows } = useRoleCatalog('fansub_group')
+  const fansubGroupRoles = fansubGroupRoleRows
+    .filter((role) => role.assignable !== false)
+    .map(({ code, label_de }) => ({ code, label_de }))
   const [showForm, setShowForm] = useState(false)
   const [selfPublishConfirming, setSelfPublishConfirming] = useState<number | null>(null)
   const [selfPublishError, setSelfPublishError] = useState<string | null>(null)
@@ -72,7 +80,6 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
   const bestaetigt = proposals.filter((contribution) => contribution.status === 'confirmed')
   const abgelehnt = proposals.filter((contribution) => contribution.status === 'disputed')
   const total = proposals.length
-  const canCreateProposal = ownGroups.length > 0
 
   function renderProposalCard(contribution: MeAnimeContribution) {
     return (
@@ -140,6 +147,7 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
           onClose={() => setShowForm(false)}
           ownGroups={ownGroups}
           roleDefinitions={contributionRoles}
+          fansubGroupRoles={fansubGroupRoles}
         />
       )}
 
@@ -148,16 +156,16 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
           <SectionHeader
             title={`Eingereichte Hinweise (${total})`}
           />
-          <Button type="button" onClick={() => setShowForm(true)} disabled={!canCreateProposal}>
+          {/* A6-Fix (191-UI-SPEC.md): der Button darf NICHT an ownGroups.length>0 haengen --
+              die Mitgliedschaftsanfrage (D-06b) existiert gerade fuer Mitglieder ohne jede
+              eigene verifizierte Gruppe. Diese Seite rendert MyProposalsSection ohnehin erst
+              nach erfolgreichem, authentifiziertem Profil-/Mitgliedschafts-Load (siehe
+              frontend/src/app/me/contributions/page.tsx), es gibt also keinen verbleibenden
+              Fall, in dem der Trigger hier blockiert werden muesste. */}
+          <Button type="button" onClick={() => setShowForm(true)}>
             Hinweis senden
           </Button>
         </div>
-
-        {!canCreateProposal ? (
-          <div className={styles.warningPanel}>
-            Verifizierte Gruppenmitgliedschaft erforderlich.
-          </div>
-        ) : null}
 
         {selfPublishError ? (
           <ErrorState title="Aktion fehlgeschlagen" description={selfPublishError} />
