@@ -32,6 +32,14 @@ const projectContentSectionsStyles = () =>
 const publicHeaderBackdropStyles = () =>
   readFileSync(join(process.cwd(), 'src/components/public/PublicHeaderBackdrop.module.css'), 'utf8')
 
+// D-12/191-18: ReportHintEntryPoint hat eigene, dedizierte Tests
+// (ReportHintEntryPoint.test.tsx) inklusive seines RoleCatalogProvider-Bedarfs -- hier wird
+// es gemockt, damit HeroSection-Tests nicht zusaetzlich einen Provider aufziehen muessen, der
+// fuer diese Navigations-/Layout-Assertions irrelevant ist.
+vi.mock('@/components/contributions/ReportHintEntryPoint', () => ({
+  ReportHintEntryPoint: () => null,
+}))
+
 vi.mock('next/image', () => {
   const MockNextImage = forwardRef<
     HTMLImageElement,
