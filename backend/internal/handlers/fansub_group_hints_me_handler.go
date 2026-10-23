@@ -65,9 +65,9 @@ func NewFansubGroupHintsMeHandler(hintRepo HintRepository, db *pgxpool.Pool) *Fa
 // D-09 gibt es nur noch einen Hinweistyp (Korrektur-Hinweis), deshalb entfielen
 // `hint_type` und `requested_role_code` komplett aus diesem DTO.
 type createFansubGroupHintRequest struct {
-	TargetFansubGroupID int64  `json:"target_fansub_group_id"`
-	RelatedAnimeID       *int64 `json:"related_anime_id"`
-	Note                 *string `json:"note"`
+	TargetFansubGroupID int64   `json:"target_fansub_group_id"`
+	RelatedAnimeID      *int64  `json:"related_anime_id"`
+	Note                *string `json:"note"`
 }
 
 // CreateHint verarbeitet POST /api/v1/me/fansub-group-hints.
