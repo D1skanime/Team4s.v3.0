@@ -1,0 +1,94 @@
+package testsupport
+
+import (
+	"context"
+	"fmt"
+	"path/filepath"
+	"regexp"
+	"runtime"
+	"testing"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+const phase191DSNEnv = "TEAM4S_PHASE191_TEST_DSN"
+
+var (
+	phase191DatabasePattern = regexp.MustCompile(`^team4s_phase191_test_[a-z0-9]+$`)
+	phase191SchemaPattern   = regexp.MustCompile(`^phase191_[a-z0-9_]+$`)
+)
+
+// OpenPhase191Postgres opens the dedicated Phase-191 fixture and applies the REAL
+// migration 0187 (fansub_group_hints) against an isolated schema, on top of minimal
+// real-column stand-ins for the tables migration 0187 references as foreign keys
+// (anime, hist_fansub_group_members) and a few additional display-context columns the
+// repository's enrichment query needs (app_users.display_name/email, fansub_groups.name).
+func OpenPhase191Postgres(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	return openPhasePostgres(
+		t,
+		phase191DSNEnv,
+		phase191DatabasePattern,
+		"phase191_",
+		phase191SchemaPattern,
+		createPhase191Prerequisites,
+	)
+}
+
+func validatePhase191DatabaseName(name string) error {
+	if !phase191DatabasePattern.MatchString(name) {
+		return fmt.Errorf("database name %q must match %s", name, phase191DatabasePattern)
+	}
+	return nil
+}
+
+func validatePhase191SchemaName(name string) error {
+	if !phase191SchemaPattern.MatchString(name) {
+		return fmt.Errorf("schema name %q must match %s", name, phase191SchemaPattern)
+	}
+	return nil
+}
+
+// createPhase191Prerequisites builds on top of the Phase-107 base layer
+// (members/app_users/fansub_groups/release_versions/fansub_group_members/member_claims/
+// role_definitions-with-'fansub_lead' via createPhase107Prerequisites), widens a few
+// existing stand-in tables with the display-context columns the repository's
+// enrichment query reads (app_users.display_name/email, fansub_groups.name), adds the
+// anime and hist_fansub_group_members stand-ins migration 0187 needs as FK targets, then
+// applies the REAL migration 0187 file via ApplySQLFile — the actual migration under test,
+// not a hand-copied inline SQL string.
+func createPhase191Prerequisites(t testing.TB, pool *pgxpool.Pool) {
+	t.Helper()
+	createPhase107Prerequisites(t, pool)
+
+	const standInSQL = `
+ALTER TABLE app_users ADD COLUMN email VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE app_users ADD COLUMN display_name VARCHAR(120) NOT NULL DEFAULT '';
+ALTER TABLE fansub_groups ADD COLUMN name VARCHAR(120) NOT NULL DEFAULT '';
+CREATE TABLE anime (
+    id BIGINT PRIMARY KEY,
+    title TEXT NOT NULL
+);
+CREATE TABLE hist_fansub_group_members (
+    id BIGINT PRIMARY KEY,
+    fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE RESTRICT,
+    member_id BIGINT NOT NULL REFERENCES members(id) ON DELETE RESTRICT
+);`
+	if err := validatePhase106SQL(standInSQL); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(context.Background(), standInSQL); err != nil {
+		t.Fatalf("create Phase-191 anime/hist_fansub_group_members stand-ins: %v", err)
+	}
+
+	ApplySQLFile(t, pool, phase191MigrationPath(t, "0187_fansub_group_hints.up.sql"))
+}
+
+func phase191MigrationPath(t testing.TB, name string) string {
+	t.Helper()
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("resolve Phase-191 test-support path")
+	}
+	return filepath.Join(filepath.Clean(filepath.Join(filepath.Dir(filename), "..", "..", "..")), "database", "migrations", name)
+}
