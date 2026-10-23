@@ -9,6 +9,7 @@ import { createEmptyLink } from "./fansubEditFormMapping";
 import { canUseMainTab } from "./fansubEditAccess";
 import { GroupMediaReviewSection } from "./GroupMediaReviewSection";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
+import { FansubGroupHintsReviewSection } from "./FansubGroupHintsReviewSection";
 import { FansubCommunityLinksList } from "./FansubCommunityLinksList";
 import { FansubAliasSection } from "./FansubAliasSection";
 import { FansubBasicInfoTab } from "./FansubBasicInfoTab";
@@ -170,11 +171,24 @@ export function FansubDetailsTab({
             ) : null}
 
             {activeMainTab === "collaboration" ? (
-              <FansubAppMembersSection
-                fansubId={fansubID}
-                hasAccessToken={hasAuthSession}
-                claimsLinkOut={claimsLinkOut}
-              />
+              <>
+                <FansubAppMembersSection
+                  fansubId={fansubID}
+                  hasAccessToken={hasAuthSession}
+                  claimsLinkOut={claimsLinkOut}
+                />
+                {/* Mount hier statt neben dem (aktuell nicht produktiv eingebundenen)
+                    ContributionsReviewSection: jener Donor ist seit der Konsolidierung
+                    des "vorschlaege"-Haupttabs in "pruefungen" verwaist (kein Mount-
+                    punkt mehr in Produktionscode). Diese neue Sektion nutzt stattdessen
+                    das hier bereits vorhandene can_manage_members-Gate des
+                    Collaboration-Tabs — exakt die Berechtigung, die D-06 fuer diese
+                    Review-Liste fordert. */}
+                <FansubGroupHintsReviewSection
+                  fansubId={fansubID}
+                  capabilities={capabilities}
+                />
+              </>
             ) : null}
           </div>
         ) : null}

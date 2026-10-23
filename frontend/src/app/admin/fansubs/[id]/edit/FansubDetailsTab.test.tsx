@@ -15,6 +15,10 @@ vi.mock('./FansubAppMembersSection', () => ({
   FansubAppMembersSection: () => <div data-testid="fansub-app-members-section" />,
 }))
 
+vi.mock('./FansubGroupHintsReviewSection', () => ({
+  FansubGroupHintsReviewSection: () => <div data-testid="fansub-group-hints-review-section" />,
+}))
+
 vi.mock('./FansubBasicInfoTab', () => ({
   FansubBasicInfoTab: () => <div data-testid="fansub-basic-info-tab" />,
 }))
@@ -117,5 +121,34 @@ describe('FansubDetailsTab', () => {
 
     expect(screen.getByTestId('group-media-review-section')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Speichern$/ })).toBeNull()
+  })
+
+  it('rendert FansubAppMembersSection und FansubGroupHintsReviewSection in dieser Reihenfolge im Collaboration-Tab', () => {
+    render(
+      <FansubDetailsTab
+        styles={styles}
+        details={createDetails()}
+        fansubID={88}
+        group={null}
+        capabilities={capabilities}
+        isPlatformAdmin={false}
+        hasAuthSession
+        isClientInitialized
+        activeMainTab="collaboration"
+        error={null}
+        onToast={vi.fn()}
+        isSectionOpen={() => true}
+        onSectionToggle={vi.fn()}
+      />,
+    )
+
+    const membersSection = screen.getByTestId('fansub-app-members-section')
+    const hintsSection = screen.getByTestId('fansub-group-hints-review-section')
+    expect(membersSection).toBeTruthy()
+    expect(hintsSection).toBeTruthy()
+    // Reihenfolge im DOM: Mitgliederliste zuerst, Hinweise-Review direkt danach.
+    expect(
+      membersSection.compareDocumentPosition(hintsSection) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
   })
 })
