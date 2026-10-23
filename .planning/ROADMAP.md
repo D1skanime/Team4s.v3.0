@@ -2985,7 +2985,7 @@ bauen), keine Captchas, keine Punkte/Badges für den Hinweis selbst, kein eigene
 **Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01..D-08 aus
 191-CONTEXT.md, siehe jeweiliges Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 10/19 plans executed
+**Plans:** 11/19 plans executed
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -2999,7 +2999,7 @@ Plans:
 - [x] 191-09-PLAN.md — Frontend: Plattform-Admin-Liste `/admin/fansub-group-hints` + Nav-Eintrag
 - [ ] 191-10-PLAN.md — Phasenabschluss: DECISIONS.md, Todo-Verschiebung, Regressionsgate, Live-UAT (blockierender Checkpoint)
 - [x] 191-11-PLAN.md — Backend: Migration 0188 (D-09 Schema-Cut) + Repository HasActiveLead/ListWithoutActiveLead (D-11)
-- [ ] 191-12-PLAN.md — Backend: Handler-Vereinfachung (D-09) + Admin-Liste auf "ohne aktive Leitung" umgestellt (D-11) + Contract/Doku (D-08)
+- [x] 191-12-PLAN.md — Backend: Handler-Vereinfachung (D-09) + Admin-Liste auf "ohne aktive Leitung" umgestellt (D-11) + Contract/Doku (D-08)
 - [ ] 191-13-PLAN.md — Frontend: Contract-Typen/API-Client ohne hint_type/requested_role_code (D-09)
 - [ ] 191-14-PLAN.md — Frontend: Hinweis-Formular auf 3 Schritte reduziert (D-09)
 - [ ] 191-15-PLAN.md — Frontend: Fremdgruppen-Projektliste-Bugfix (D-10) + Namens-/Farb-Fixes (D-13/D-14)
