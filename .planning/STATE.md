@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-32-PLAN.md
-last_updated: "2026-10-24T11:38:37.000Z"
+stopped_at: Completed 191-33-PLAN.md
+last_updated: "2026-10-24T11:46:27.538Z"
 last_activity: 2026-10-24
 progress:
   total_phases: 56
   completed_phases: 50
-  total_plans: 531
+  total_plans: 530
   completed_plans: 519
   percent: 89
 ---
@@ -1535,6 +1535,7 @@ Last activity: 2026-10-24
 - [Phase 191-32]: fansub_group_hints_repository_admin.go wurde beim Split direkt mit den finalen D-34-Scan-Spalten geschrieben statt per separatem Struktur-Commit -- volle Testsuite vor UND nach dem Commit gruen, keine Regression
 - [Phase 191-31]: Pre-existing repo-weite Lint-Fehler und ein in Isolation gruener Flaky-Test wurden in deferred-items.md dokumentiert statt repariert (Scope-Boundary-Regel)
 - [Phase 191-31]: Voller Test-/Typecheck-Lauf wurde im team4sv30-frontend-Container wiederholt, da Host-Testfehler auf Container-interne, vom Host nicht aufloesbare Pfade zurueckgingen
+- [Phase 191]: CursorPage<T> liefert items statt data -- vor Implementierung gegen releaseDetail.ts verifiziert
 
 ### Pending Todos
 
@@ -2289,11 +2290,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P29 | ~10min | 1 tasks | 6 files |
 | Phase 191 P31 | ~55min | 2 tasks | 14 files |
 | Phase 191 P32 | ~55min | 3 tasks | 12 files |
+| Phase 191 P33 | 25min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-24T11:38:37.000Z
-Stopped at: Completed 191-32-PLAN.md
+Last session: 2026-10-24T11:46:27.513Z
+Stopped at: Completed 191-33-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
