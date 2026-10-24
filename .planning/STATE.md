@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-26-PLAN.md
-last_updated: "2026-10-24T01:07:49.614Z"
+stopped_at: Completed 191-27-PLAN.md
+last_updated: "2026-10-24T01:16:15.825Z"
 last_activity: 2026-10-24
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 524
-  completed_plans: 513
+  completed_plans: 514
   percent: 89
 ---
 
@@ -1527,6 +1527,7 @@ Last activity: 2026-10-24
 - [Phase 191-25]: TestFansubGroupHint_CreateHint_UnknownTargetGroup_ReturnsNotFound auf ReturnsInvalidContext umgestellt, da die neue D-23-Pruefung jetzt vor dem INSERT greift (ErrInvalidAnimeFansubContext statt vorheriger FK-Verletzung/ErrNotFound); HTTP-Ergebnis bleibt 404
 - [Phase 191-26]: main.go (738 Zeilen) in wiring_infra.go/wiring_catalog.go/wiring_fansub_contributions.go/routes_public.go gesplittet (D-26) -- Wiring-Funktionen entpacken ihr catalogDeps/fansubContributionsResult-Struct-Argument vollstaendig in lokale Variablen mit Original-Namen, damit 5 bestehende substring-grep-Tests weiter funktionieren
 - [Phase 191-26]: gofmt -w via docker compose exec formatiert nur die fluechtige Container-Kopie (kein Bind-Mount fuer /app) -- Host-Datei-Fixes muessen ueber einen host-bind-gemounteten golang-Container laufen
+- [Phase 191-27]: contributions.module.css (902 Zeilen) nach dem im Plan vorgegebenen, als autoritativ markierten Class-zu-Datei-Mapping in 11 (statt der im Plan-Prosatext abweichend genannten 10) komponentenbezogene CSS-Module gesplittet (D-27); kombinierte Selektoren in eigenstaendige Regeln aufgeloest, metaText bewusst dupliziert; D-25-Kommentar-Sweep fuer die 3 bestaetigten Phase-191-Kommentarbloecke abgeschlossen; Import-Repoint der 12 Verbraucher-Dateien folgt in 191-31
 
 ### Pending Todos
 
@@ -2276,11 +2277,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P23 | 12min | 2 tasks | 10 files |
 | Phase 191 P25 | 35min | 2 tasks | 6 files |
 | Phase 191 P26 | ~75min | 2 tasks | 13 files |
+| Phase 191 P27 | 20min | 1 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-10-24T01:07:49.587Z
-Stopped at: Completed 191-26-PLAN.md
+Last session: 2026-10-24T01:16:09.495Z
+Stopped at: Completed 191-27-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
