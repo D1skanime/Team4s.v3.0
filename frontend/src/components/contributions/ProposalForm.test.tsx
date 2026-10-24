@@ -13,6 +13,7 @@ const apiMocks = vi.hoisted(() => ({
   createContributionProposal: vi.fn(),
   createFansubGroupHint: vi.fn(),
   getFansubList: vi.fn(),
+  getGroupReleaseListCursor: vi.fn(),
 }))
 
 vi.mock('@/lib/api', () => ({
@@ -29,6 +30,7 @@ vi.mock('@/lib/api', () => ({
   getAdminFansubAnime: apiMocks.getAdminFansubAnime,
   getPublicFansubProfileBySlug: apiMocks.getPublicFansubProfileBySlug,
   getFansubList: apiMocks.getFansubList,
+  getGroupReleaseListCursor: apiMocks.getGroupReleaseListCursor,
 }))
 
 const ROLE_DEFINITIONS = [
@@ -45,6 +47,10 @@ afterEach(() => {
   cleanup()
   vi.clearAllMocks()
 })
+
+// Default: keine Releases vorhanden -- die Release-Auswahl bleibt in den meisten Tests
+// unangetastet bei "Ganzes Projekt" (D-29), einzelne Tests ueberschreiben das gezielt.
+apiMocks.getGroupReleaseListCursor.mockResolvedValue({ items: [] })
 
 function renderForm(ownGroups = OWN_GROUPS, props?: Partial<Parameters<typeof ProposalForm>[0]>) {
   return render(
@@ -214,6 +220,7 @@ describe('ProposalForm — Drei-Schritte-Assistent (D-09: keine Hinweisart-Wahl 
         note: null,
         started_year: null,
         ended_year: null,
+        release_version_id: null,
       })
     })
     expect(apiMocks.createFansubGroupHint).not.toHaveBeenCalled()
@@ -279,6 +286,7 @@ describe('ProposalForm — Drei-Schritte-Assistent (D-09: keine Hinweisart-Wahl 
         note: null,
         started_year: null,
         ended_year: null,
+        release_version_id: null,
       })
     })
 
@@ -290,6 +298,129 @@ describe('ProposalForm — Drei-Schritte-Assistent (D-09: keine Hinweisart-Wahl 
 
     expect((screen.getByRole('button', { name: 'Weiter' }) as HTMLButtonElement).disabled).toBe(false)
     expect(screen.queryByText(/verifizierte Mitgliedschaft/)).toBeNull()
+  })
+})
+
+// D-29/D-34 (Plan 191-34): die in Plan 191-33 gebaute Release-Auswahl wird hier tatsaechlich
+// in den Wizard verdrahtet -- Default "Ganzes Projekt", Reset bei Projektwechsel, und beide
+// Submit-Pfade (own via release_version_id, foreign via related_release_version_id) tragen
+// die getroffene Auswahl.
+describe('ProposalForm — Release-Auswahl in Schritt 1 (D-29/D-34)', () => {
+  it('zeigt nach Gruppen-/Projektwahl die Release-Auswahl mit "Ganzes Projekt" als Default', async () => {
+    apiMocks.getGroupReleaseListCursor.mockResolvedValue({
+      items: [{ id: 152, episode_number: 12, episode_number_label: '12', title: 'Foo', version_label: 'v2' }],
+    })
+    renderForm()
+
+    await chooseGroupAndAnime()
+
+    const select = await screen.findByLabelText('Release (optional)') as HTMLSelectElement
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: /Episode 12/ })).toBeTruthy()
+    })
+    expect(select.value).toBe('')
+  })
+
+  it('sendet release_version_id auf dem Eigengruppen-Pfad, wenn ein Release gewaehlt wurde', async () => {
+    apiMocks.createContributionProposal.mockResolvedValue(undefined)
+    apiMocks.getGroupReleaseListCursor.mockResolvedValue({
+      items: [{ id: 152, episode_number: 12, episode_number_label: '12', title: 'Foo', version_label: 'v2' }],
+    })
+    renderForm()
+
+    await chooseGroupAndAnime()
+    await screen.findByLabelText('Release (optional)')
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: /Episode 12/ })).toBeTruthy()
+    })
+    fireEvent.change(screen.getByLabelText('Release (optional)'), { target: { value: '152' } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(await waitForFinalSubmitButton())
+
+    await waitFor(() => {
+      expect(apiMocks.createContributionProposal).toHaveBeenCalledWith(
+        expect.objectContaining({ release_version_id: 152 }),
+      )
+    })
+  })
+
+  it('setzt die Release-Auswahl zurueck auf "Ganzes Projekt", wenn das Projekt gewechselt wird', async () => {
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 3, title: 'Naruto' }, { id: 4, title: 'Bleach' }],
+    })
+    apiMocks.getGroupReleaseListCursor.mockResolvedValue({
+      items: [{ id: 152, episode_number: 12, episode_number_label: '12', title: 'Foo', version_label: 'v2' }],
+    })
+    renderForm()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Welche Gruppe soll prüfen?' }))
+    fireEvent.click(screen.getByRole('option', { name: /Testgruppe/ }))
+    await waitFor(() => {
+      expect((screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }) as HTMLButtonElement).disabled).toBe(false)
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }))
+    fireEvent.click(screen.getByRole('option', { name: /Naruto/ }))
+
+    await screen.findByLabelText('Release (optional)')
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: /Episode 12/ })).toBeTruthy()
+    })
+    fireEvent.change(screen.getByLabelText('Release (optional)'), { target: { value: '152' } })
+    expect((screen.getByLabelText('Release (optional)') as HTMLSelectElement).value).toBe('152')
+
+    apiMocks.getGroupReleaseListCursor.mockResolvedValue({ items: [] })
+    fireEvent.click(screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }))
+    fireEvent.click(screen.getByRole('option', { name: /Bleach/ }))
+
+    await waitFor(() => {
+      expect((screen.getByLabelText('Release (optional)') as HTMLSelectElement).value).toBe('')
+    })
+  })
+
+  it('sendet related_release_version_id auf dem Fremdgruppen-Pfad, wenn ein Release gewaehlt wurde', async () => {
+    apiMocks.createFansubGroupHint.mockResolvedValue({ data: {} })
+    apiMocks.getFansubList.mockResolvedValue({
+      data: [{ id: 99, slug: 'redheart-subs', name: 'RedHeartFansub' }],
+    })
+    apiMocks.getPublicFansubProfileBySlug.mockResolvedValue({
+      data: { projects: [{ id: 7, title: 'Demon Slayer' }] },
+    })
+    apiMocks.getGroupReleaseListCursor.mockResolvedValue({
+      items: [{ id: 300, episode_number: 1, episode_number_label: '1', title: null, version_label: null }],
+    })
+    renderForm()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Andere Gruppe' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Andere Gruppe suchen' }), {
+      target: { value: 'redheart' },
+    })
+    fireEvent.click(await screen.findByRole('button', { name: /RedHeartFansub/ }))
+
+    await waitFor(() => {
+      expect((screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }) as HTMLButtonElement).disabled).toBe(false)
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }))
+    fireEvent.click(screen.getByRole('option', { name: /Demon Slayer/ }))
+
+    await screen.findByLabelText('Release (optional)')
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: /Episode 1/ })).toBeTruthy()
+    })
+    fireEvent.change(screen.getByLabelText('Release (optional)'), { target: { value: '300' } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(await waitForFinalSubmitButton())
+
+    await waitFor(() => {
+      expect(apiMocks.createFansubGroupHint).toHaveBeenCalledWith(
+        expect.objectContaining({ related_release_version_id: 300 }),
+      )
+    })
   })
 })
 
@@ -423,6 +554,7 @@ describe('ProposalForm — vorausgewaehlter Einstieg (prefill-Prop, D-12-Vorbere
         note: null,
         started_year: null,
         ended_year: null,
+        release_version_id: null,
       })
     })
     expect(apiMocks.createFansubGroupHint).not.toHaveBeenCalled()

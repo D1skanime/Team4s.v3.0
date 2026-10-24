@@ -39,6 +39,11 @@ function step1Props(overrides: Partial<Parameters<typeof Step1GroupProject>[0]> 
     groupAnime: [],
     groupAnimeError: null,
     onAnimeChange: vi.fn(),
+    releaseOptions: [],
+    selectedReleaseVersionId: null,
+    isLoadingReleases: false,
+    releaseError: null,
+    onReleaseChange: vi.fn(),
     ...overrides,
   }
 }
@@ -110,6 +115,48 @@ describe('Step1GroupProject — Gruppen-Bereich-Umschalter (D-02)', () => {
     expect(screen.queryByText(/Ausgewählt:/)).toBeNull()
     // Die Information bleibt einzig ueber die Breadcrumb-Pille erhalten.
     expect(screen.getByLabelText('Ausgewählter Kontext').textContent).toContain('RedHeartFansub')
+  })
+
+  // D-29 (Plan 191-34): die optionale Release-Auswahl erscheint fuer BEIDE Gruppen-Szenarien
+  // (eigene/fremde Gruppe) ueber dieselbe, einzige ProposalReleaseSelect-Instanz --
+  // Step1GroupProject baut die Options-Liste selbst nicht auf, sondern reicht sie nur durch.
+  it('rendert die Release-Auswahl bei groupScope="own" mit den durchgereichten Optionen', () => {
+    render(
+      <Step1GroupProject
+        {...step1Props({
+          releaseOptions: [{ id: 152, label: 'Episode 12 — Foo · v2' }],
+          selectedReleaseVersionId: 152,
+        })}
+      />,
+    )
+    const select = screen.getByLabelText('Release (optional)') as HTMLSelectElement
+    expect(select.value).toBe('152')
+  })
+
+  it('rendert die Release-Auswahl bei groupScope="foreign" identisch (dieselbe Komponente, D-29)', () => {
+    render(
+      <Step1GroupProject
+        {...step1Props({
+          groupScope: 'foreign',
+          releaseOptions: [{ id: 152, label: 'Episode 12 — Foo · v2' }],
+        })}
+      />,
+    )
+    expect(screen.getByLabelText('Release (optional)')).toBeTruthy()
+  })
+
+  it('ruft onReleaseChange auf, wenn die Release-Auswahl geändert wird', () => {
+    const onReleaseChange = vi.fn()
+    render(
+      <Step1GroupProject
+        {...step1Props({
+          releaseOptions: [{ id: 152, label: 'Episode 12 — Foo · v2' }],
+          onReleaseChange,
+        })}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Release (optional)'), { target: { value: '152' } })
+    expect(onReleaseChange).toHaveBeenCalledWith(152)
   })
 })
 
