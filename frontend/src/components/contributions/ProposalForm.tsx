@@ -9,6 +9,7 @@ import { useFansubGroupSearch } from '@/hooks/useFansubGroupSearch'
 import type { FansubGroup } from '@/types/fansub'
 import type { MembershipEntry } from '@/types/contributions'
 
+import { ProposalReleaseSelect } from './ProposalReleaseSelect'
 import { Step1GroupProject, Step2Role, Step3NoteRange } from './ProposalForm.steps'
 import type { RoleDefinition } from './ProposalForm.steps'
 import type { GroupScope } from './ProposalForm.toggles'
@@ -32,6 +33,19 @@ export interface ProposalFormPrefill {
   fansubGroupName: string
   animeId: number
   animeTitle: string
+  /**
+   * D-30 (Plan 191-35): optionale Release-Vorauswahl, wenn der Kontext-Einstieg von einer
+   * konkreten Release-Seite kommt (siehe ReleaseDetailHero.tsx). Bleibt wie jede andere
+   * Formular-Eingabe ueber ProposalReleaseSelect aenderbar -- keine feste Server-Vorgabe,
+   * der Submit wird unabhaengig davon serverseitig re-validiert (threat_model T-191-45).
+   */
+  relatedReleaseVersionId?: number
+  /**
+   * Lesbares Label fuer genau diese Release-ID, synchron aus dem Seiten-Context bekannt --
+   * erspart dem Kontext-Satz das Warten auf den Options-Request, nur um die aktuell
+   * ausgewaehlte Release korrekt zu benennen.
+   */
+  relatedReleaseLabel?: string
 }
 
 interface ProposalFormProps {
@@ -102,13 +116,16 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
       initialAnimeId: prefill ? prefill.animeId : '',
     })
 
-  // D-29/D-34: optionale Release-Einschraenkung aus Schritt 1, fuer own/foreign identisch --
-  // derselbe geteilte Hook (Plan 191-33) bedient beide Szenarien ueber (animeId, groupId). Beim
-  // vorausgewaehlten Einstieg (D-12) wird Schritt 1 nie gemountet, also auch keine Releaseliste
-  // geladen -- Plan 191-35 verdrahtet die eigene Ladung fuer den Kontext-Einstieg separat.
+  // D-29/D-34 + D-30 (Plan 191-35): optionale Release-Einschraenkung, fuer own/foreign UND fuer
+  // den interaktiven Schritt 1 wie auch den vorausgefuellten Kontext-Einstieg identisch ueber
+  // denselben geteilten Hook (Plan 191-33) bedient. Beim Kontext-Einstieg (prefill) sind Projekt
+  // UND Gruppe schon aus der Prop bekannt -- die Releaseliste wird deshalb synchron aus
+  // prefill.animeId/prefill.fansubGroupId geladen (statt wie in Schritt 1 erst nach einer
+  // Nutzerwahl), inklusive einer moeglichen Vorauswahl ueber initialReleaseVersionId.
   const releaseSelection = useProposalFormReleaseSelection({
-    animeId: prefill || selectedAnimeId === '' ? null : selectedAnimeId,
-    groupId: prefill ? null : activeGroupId ?? null,
+    animeId: prefill ? prefill.animeId : selectedAnimeId === '' ? null : selectedAnimeId,
+    groupId: prefill ? prefill.fansubGroupId : activeGroupId ?? null,
+    initialReleaseVersionId: prefill?.relatedReleaseVersionId ?? null,
   })
 
   const selectedAnime = useMemo(() => {
@@ -326,11 +343,26 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
       ) : (
         <>
           {prefill ? (
-            // Gleicht die durch das Überspringen von Schritt 1
-            // fehlende Orientierung aus -- nicht editierbar, reine Kontext-Angabe (D-12, Contract D4).
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 400, color: 'var(--text-muted)' }}>
-              Du meldest einen Fehler zu {prefill.animeTitle} bei {prefill.fansubGroupName}.
-            </p>
+            <>
+              {/* Gleicht die durch das Überspringen von Schritt 1 fehlende Orientierung aus --
+                  reiner Kontext-Satz, nennt zusätzlich die Release, falls der Einstieg von
+                  einer konkreten Release-Seite kam (D-12/D-30, Contract D4). */}
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 400, color: 'var(--text-muted)' }}>
+                {`Du meldest einen Fehler zu ${prefill.animeTitle} bei ${prefill.fansubGroupName}` +
+                  (prefill.relatedReleaseLabel ? ` — Release: ${prefill.relatedReleaseLabel}` : '') + '.'}
+              </p>
+              {/* Anders als der reine Kontext-Satz BLEIBT die Release-Auswahl änderbar -- Schritt
+                  1 (wo dieselbe Komponente im interaktiven Flow sitzt) ist hier nie gemountet,
+                  das ist deshalb die einzige Stelle, an der dieser Kontrolltyp im
+                  vorausgefüllten Flow leben kann (D-30, Plan 191-35). */}
+              <ProposalReleaseSelect
+                options={releaseSelection.options}
+                selectedReleaseVersionId={releaseSelection.selectedReleaseVersionId}
+                isLoading={releaseSelection.isLoading}
+                error={releaseSelection.error}
+                onChange={releaseSelection.setSelectedReleaseVersionId}
+              />
+            </>
           ) : null}
 
           <div className={styles.wizardProgress} aria-label={`Schritt ${progressPosition} von ${progressTotal}`}>

@@ -41,6 +41,14 @@ export interface ReportHintEntryPointProps {
   fansubGroupName: string
   animeId: number
   animeTitle: string
+  /**
+   * D-30 (Plan 191-35): optionale Release-Vorauswahl + lesbares Label, wenn dieser Einstieg
+   * von einer konkreten Release-Seite kommt (siehe ReleaseDetailHero.tsx). Beide Felder
+   * bleiben optional -- der unveraenderte Projektseiten-Aufrufer (HeroSection.tsx, dort gibt
+   * es keine Release im Kontext) uebergibt sie gar nicht und kompiliert ohne Anpassung weiter.
+   */
+  relatedReleaseVersionId?: number
+  relatedReleaseLabel?: string
 }
 
 type EligibilityState = 'pending' | 'ineligible' | 'eligible'
@@ -50,6 +58,8 @@ export function ReportHintEntryPoint({
   fansubGroupName,
   animeId,
   animeTitle,
+  relatedReleaseVersionId,
+  relatedReleaseLabel,
 }: ReportHintEntryPointProps) {
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const hasAuthSession = hasAccessToken || hasRefreshToken
@@ -122,7 +132,14 @@ export function ReportHintEntryPoint({
           onClose={() => setIsOpen(false)}
           ownGroups={ownGroups ?? []}
           roleDefinitions={roleDefinitions}
-          prefill={{ fansubGroupId, fansubGroupName, animeId, animeTitle }}
+          prefill={{
+            fansubGroupId,
+            fansubGroupName,
+            animeId,
+            animeTitle,
+            relatedReleaseVersionId,
+            relatedReleaseLabel,
+          }}
         />
       ) : null}
     </>
