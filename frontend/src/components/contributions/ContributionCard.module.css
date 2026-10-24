@@ -1,0 +1,55 @@
+.contributionCard {
+  display: grid;
+  gap: 10px;
+}
+
+.contributionCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.contributionTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.contributionTitle {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--color-text, #0f172a);
+}
+
+.metaText {
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.85rem;
+}
+
+.roleList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reviewNote {
+  margin: 0;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inboxContainer {
+  display: grid;
+  gap: var(--space-4);
+}

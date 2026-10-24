@@ -1,0 +1,14 @@
+.contributionList {
+  display: grid;
+  gap: 14px;
+}
+
+.confirmedRolesSection {
+  display: grid;
+  gap: 8px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}

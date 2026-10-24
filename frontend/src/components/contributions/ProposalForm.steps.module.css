@@ -1,0 +1,225 @@
+.wizardStepPanel {
+  display: grid;
+  gap: 16px;
+}
+
+.choiceSelect {
+  position: relative;
+}
+
+.choiceSelectTrigger,
+.choiceOption {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 9px 11px;
+  border: 1px solid rgba(92, 105, 131, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1c2541;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    0 1px 1px rgba(33, 45, 72, 0.04);
+}
+
+.choiceSelectTrigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  background: rgba(244, 247, 251, 0.94);
+}
+
+.choiceSelectTrigger svg {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: #7c3c4f;
+}
+
+.choiceAvatar {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f3f5fa, #e3e9f4);
+  color: #4968b9;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.choiceSelectText {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.choiceSelectText span {
+  overflow: hidden;
+  color: #1c2541;
+  font-size: 0.91rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+}
+
+.choiceSelectText small {
+  color: #6b7190;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.choiceOptions {
+  position: absolute;
+  z-index: var(--z-dropdown);
+  inset-inline: 0;
+  top: calc(100% + 6px);
+  display: grid;
+  gap: 6px;
+  max-height: min(260px, 42vh);
+  overflow: auto;
+  padding: 7px;
+  border: 1px solid rgba(92, 105, 131, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 14px 34px rgba(31, 41, 82, 0.14);
+}
+
+.choiceOption {
+  min-height: 46px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.choiceOption:hover,
+.choiceOption[aria-selected='true'] {
+  background: #f3f5fa;
+}
+
+.choiceEmpty {
+  padding: 10px 12px;
+  color: #6b7190;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.yearFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.characterCounter {
+  justify-self: end;
+  color: #6b7190;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.rangeHint {
+  margin: -6px 0 0;
+  color: color-mix(in srgb, var(--button-warning-end, #6d4c13) 72%, var(--text-body));
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.infoPanel {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--surface-card));
+  color: color-mix(in srgb, var(--accent-primary) 52%, var(--text-body));
+}
+
+.metaText {
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.85rem;
+}
+
+/* Phase 191 (D-02): Fremd-Gruppen-Suche im Hinweis-Formular -- gleiche Ergebnisliste wie
+   FansubGroupsSection.tsx (Release-Editor), hier auf die contributions-Palette abgestimmt,
+   weil beide Dateien unterschiedliche CSS-Module nutzen und kein Cross-Modul-Import besteht. */
+.foreignGroupSearch {
+  display: grid;
+  gap: 8px;
+}
+
+.groupSearchList {
+  display: grid;
+  gap: 6px;
+}
+
+/* .groupSearchItem ueberschreibt lokal Hintergrund/Rahmen auf das helle Formular-Muster
+   (Vorbild: EpisodeVersionEditor.module.css), weil das Element via Button
+   variant="secondary" sonst einen dunklen Verlauf-Hintergrund samt heller Textfarbe erbt
+   (Button.module.css) -- die vorherige Fassung setzte DARAUF zusaetzlich dunkle strong/
+   span-Farben, was dunklen Text auf dunklem Grund ergab und live als schlecht lesbar
+   reproduziert wurde. !important ist noetig, weil Button variant="secondary"
+   --button-bg/--button-border als CSS-Custom-Properties auf demselben Element setzt und
+   ohne !important die Bundling-Reihenfolge der CSS-Module entscheidet, welche Regel
+   gewinnt. Gleiches Override-Muster bereits etabliert bei .disclosureButton in
+   AnimeGroupCard.module.css -- hier wiederverwendet statt neu erfunden (D-14,
+   Live-UAT-Bugfix). */
+.groupSearchItem {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: start;
+  width: 100%;
+  min-height: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 12px;
+  background: var(--surface-card) !important;
+  text-align: left;
+}
+
+.groupSearchItem strong {
+  color: var(--text-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.groupSearchItem span {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.selectionBreadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  color: #6b7190;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f3f5fa;
+}
+
+.selectionBreadcrumb span:not([aria-hidden='true']) {
+  color: #1c2541;
+}
+
+@media (max-width: 640px) {
+  .yearFields {
+    grid-template-columns: 1fr;
+  }
+
+  .choiceOptions {
+    position: static;
+    margin-top: 6px;
+    max-height: min(220px, 36dvh);
+  }
+}

@@ -1,0 +1,42 @@
+.rolePicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rolePicker > * {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.roleChoice,
+.roleChoiceActive {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 0 14px;
+  border: 1px solid rgba(92, 105, 131, 0.13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #4f5b72;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.roleChoiceActive {
+  border-color: rgba(73, 104, 185, 0.42);
+  background: linear-gradient(180deg, rgba(117, 152, 235, 0.96) 0%, rgba(72, 103, 180, 0.98) 100%);
+  color: #f9fbff;
+  box-shadow:
+    0 7px 18px rgba(67, 99, 180, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}

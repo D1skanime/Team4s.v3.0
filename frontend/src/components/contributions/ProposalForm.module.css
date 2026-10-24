@@ -1,0 +1,159 @@
+.wizardFooterActions,
+.wizardFooterActionsEnd {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.wizardFooterActions > :first-child:nth-last-child(2) {
+  margin-right: auto;
+}
+
+.proposalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wizardProgress {
+  display: grid;
+  gap: 10px;
+}
+
+.progressSegments {
+  display: grid;
+  /* Statischer Fallback fuer 4 Spalten -- ProposalForm.tsx ueberschreibt
+     grid-template-columns zur Laufzeit per Inline-Style (visibleSteps.length je nach
+     echter Schritt-Anzahl), diese Regel greift daher nur, wenn kein Inline-Style
+     gesetzt ist. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.progressSegment,
+.progressSegmentActive {
+  height: 5px;
+  border-radius: 999px;
+  background: #e8e9ff;
+}
+
+.progressSegmentActive {
+  background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.progressMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: #6b7190;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.progressMeta strong {
+  color: #1c2541;
+  font-size: 0.95rem;
+}
+
+.warningPanel {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border: 1px solid color-mix(in srgb, var(--button-warning-mid, #c99333) 34%, var(--border-subtle));
+  background: color-mix(in srgb, var(--button-warning-mid, #c99333) 12%, var(--surface-card));
+  color: color-mix(in srgb, var(--button-warning-end, #6d4c13) 72%, var(--text-body));
+}
+
+.errorPanel {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border: 1px solid color-mix(in srgb, var(--button-danger-start) 20%, var(--border-subtle));
+  background: color-mix(in srgb, var(--button-danger-start) 10%, var(--surface-card));
+  color: var(--button-danger-start);
+}
+
+.proposalSuccessView {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.successIcon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(47, 155, 121, 0.18), rgba(47, 155, 121, 0.09));
+  color: #247457;
+}
+
+.proposalSuccessView h4 {
+  margin: 0;
+  color: #1c2541;
+  font-size: 1.08rem;
+}
+
+.proposalSuccessView p {
+  margin: 6px 0 0;
+  color: #6b7190;
+  line-height: 1.45;
+}
+
+.successSummary {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f3f5fa;
+  text-align: left;
+}
+
+.successSummary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.successSummary dt,
+.successSummary dd {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.successSummary dt {
+  color: #6b7190;
+  font-weight: 800;
+}
+
+.successSummary dd {
+  color: #1c2541;
+  font-weight: 800;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .wizardFooterActions > *,
+  .wizardFooterActionsEnd > * {
+    width: 100%;
+  }
+
+  .wizardFooterActions > :first-child {
+    margin-right: 0;
+  }
+
+  .progressMeta {
+    display: grid;
+    gap: 2px;
+  }
+}

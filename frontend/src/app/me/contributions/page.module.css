@@ -1,0 +1,62 @@
+.contributionsPage {
+  width: min(100% - 16px, 430px);
+  margin: 0 auto;
+  padding: 18px 16px 28px;
+  border-radius: 24px;
+  background: #eef1f7;
+  box-shadow: 0 12px 40px rgba(20, 25, 50, 0.14);
+}
+
+.contributionsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-top: 18px;
+}
+
+@media (max-width: 640px) {
+  .contributionsPage {
+    width: min(100% - 16px, 430px);
+    padding: 16px 12px 24px;
+  }
+}
+
+@media (min-width: 641px) {
+  .contributionsPage {
+    width: min(760px, calc(100% - 48px));
+    padding: 28px 28px 34px;
+    border-radius: 20px;
+  }
+}
+
+@media (min-width: 980px) {
+  .contributionsPage {
+    width: min(1120px, calc(100% - 64px));
+  }
+
+  .contributionsStack {
+    display: grid;
+    grid-template-columns: minmax(420px, 1.14fr) minmax(280px, 0.86fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* quick-260707-jya (D-03): Projektliste (jetzt erstes Kind) bleibt die breite/prominente
+     Spalte; Inbox+Proposals (jetzt zweites/drittes Kind) ruecken in die schmalere Nebenspalte. */
+  .contributionsStack > :first-child {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .contributionsStack > :nth-child(2) {
+    grid-column: 2;
+  }
+
+  .contributionsStack > :nth-child(3) {
+    grid-column: 2;
+  }
+
+  .contributionsStack > :nth-child(n + 4) {
+    grid-column: 1 / -1;
+  }
+}
