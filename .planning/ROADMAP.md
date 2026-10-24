@@ -2973,17 +2973,23 @@ Plans:
 
 ### Phase 191: „Hinweis senden“ auch an andere Fansub-Gruppen
 
-**Goal:** Mitglieder können einen Hinweis (Korrektur-Hinweis oder Mitgliedschaftsanfrage) auch an
-fremde Fansub-Gruppen senden, nicht nur an die eigene(n). Freigabe je nach Zielrolle (Leader-Rolle
-→ Plattform-Admin, alle anderen Rollen → Leader der Zielgruppe). Gruppensuche aus
-`useEpisodeVersionEditor.ts` als gemeinsamer Hook/Baustein herausgezogen, genutzt im Release-Editor
-UND im Hinweis-Formular, mit Kennzeichnung „Eigene Gruppe“/„Andere Gruppe“. Spam-Schutz: kein
-Doppel-Hinweis pro Person+Zielgruppe+Thema, Tageslimit ca. 10 pro Person (bestehende
-Rate-Limit-Middleware wiederverwenden), Ablehnen/Schließen mit einem Klick optional mit Begründung.
-Keine automatische Mitgliedschaft, keine neuen Zuweisungs-Flows, kein Stummschalten (noch nicht
-bauen), keine Captchas, keine Punkte/Badges für den Hinweis selbst, kein eigenes Recht.
-**Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01..D-08 aus
-191-CONTEXT.md, siehe jeweiliges Plan-Frontmatter `requirements`.
+**Goal:** Mitglieder können einen Korrektur-Hinweis (die einzige Hinweisart, D-09 hat die
+ursprünglich geplante Mitgliedschaftsanfrage vollständig gestrichen) auch an fremde Fansub-Gruppen
+senden, nicht nur an die eigene(n) — über denselben Formular-Einstieg wie bisher UND über einen
+zweiten, kontextuellen „Fehler melden“-Einstieg auf öffentlichen Projekt-/Release-Seiten (D-12).
+Freigabe geht an die Leitung der Zielgruppe, bzw. bei einer Zielgruppe ohne aktive Leitung an die
+plattformweite, dafür umgewidmete Admin-Liste `/admin/fansub-group-hints` (D-11, serverseitig über
+`fansub_group_member_roles` berechnet). Gruppensuche aus `useEpisodeVersionEditor.ts` als
+gemeinsamer Hook herausgezogen (D-02). Serverseitige Prüfung, dass das referenzierte Projekt
+tatsächlich zur Zielgruppe gehört (D-23). Eigene gesendete Hinweise erscheinen auf
+`/me/contributions` (D-18). Spam-Schutz: kein Doppel-Hinweis pro Person+Zielgruppe+Thema,
+Tageslimit ca. 10 pro Person, Ablehnen mit einem Klick optional mit Begründung. Keine automatische
+Mitgliedschaft, keine neuen Zuweisungs-Flows, kein Stummschalten, keine Captchas, keine
+Punkte/Badges für den Hinweis selbst, kein eigenes Recht. `backend/cmd/server/main.go` und
+`contributions.module.css` werden ohne Ausnahme auf ≤450 Zeilen aufgeteilt (D-26/D-27).
+**Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01 bis D-28 aus
+191-CONTEXT.md (D-09 ersetzt/streicht Teile von D-01/D-06/D-07), siehe jeweiliges
+Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
 **Plans:** 21/31 plans executed (191-25..191-31 added: vierte Nachbesserung D-23..D-28 + D-27-Repointing/D-25-Rest)
 
