@@ -51,3 +51,25 @@ src/app/admin/fansubs/\[id\]/edit/DefaultCrewManager.test.tsx`) immediately afte
 passed. This file is untouched by plan 191-27/191-31 and the failure did not reproduce in
 isolation -- logged as a pre-existing flaky test (likely full-suite test-order/timing
 sensitivity), not a regression from this plan's CSS-module repoint.
+
+## Reconfirmed during Plan 191-37 Task 2 (2026-10-24, same-day re-run)
+
+The full regression gate was re-run against a freshly rebuilt backend/frontend as part of this
+round's close. Same two pre-existing, unrelated conditions reproduced identically, confirming
+they are a stable baseline state rather than something this round introduced:
+
+- `npm run lint` inside `team4sv30-frontend`: still exactly the same 5 errors in the same 4 files
+  listed above (`capture-responsive.cjs`, `useReleaseVersionMedia.ts:249`,
+  `CapabilityDetailRow.tsx:77`, `ReleasesFilterBar.tsx:69`) — none of them touched by any 191-32
+  through 191-37 commit (`git log --oneline -3` on each file still shows no Phase-191 commit).
+  DECISIONS.md (the only file Task 2 of 191-37 modifies) is not eslint-linted at all.
+- `npm run test` inside `team4sv30-frontend`: full run showed `DefaultCrewManager.test.tsx` fail
+  once (1 failed / 417 passed / 1 skipped), then pass 6/6 in isolation, then pass in a second full
+  re-run (418 passed / 1 skipped, 0 failed) — same flaky, test-order-sensitive, pre-existing
+  condition as before, not a regression.
+- All three other 191-36-documented false failures (`badgeArtwork.test.ts`,
+  `ResponsiveImage.config.test.ts`, `RoleCapabilityDetail.membershipBaselineDrift.test.ts`) were
+  reproduced on the HOST (`npm --prefix frontend run test`, not inside the container) and
+  confirmed to pass cleanly once re-run inside `team4sv30-frontend` — these three are purely a
+  host-vs-container environment artifact (missing `API_INTERNAL_URL` and the `/backend` mount on
+  the host), not a real failure, and not specific to this round.

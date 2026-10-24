@@ -1,5 +1,58 @@
 # DECISIONS
 
+## 2026-10-24 - Fuenfte Live-UAT-Nachbesserung: Release-Bezug fuer Hinweise
+
+### Decision
+Der vierte Live-UAT-Durchlauf bestätigte D-17 bis D-28 als funktional erledigt und brachte neuen
+fachlichen Umfang: Hinweise sollen optional auf ein konkretes RELEASE statt nur auf das ganze
+Projekt verweisen können (`related_release_version_id` existierte bereits als ungenutzte Spalte
+seit Migration 0187). Diese Runde (D-29 bis D-36) schließt das. **D-29:** Die „Hinweis senden"-
+Formular bekommt nach der Projektwahl ein optionales Release-Select (globales
+`@/components/ui`-Select-Primitive, Standardwert „Ganzes Projekt"), gespeist aus dem bereits
+vollständig öffentlichen, mitgliedschaftsfreien `getGroupReleaseListCursor`-Endpunkt — dieselbe
+Datenquelle dient sowohl der eigenen als auch der fremden Gruppenauswahl, anders als D-10's
+getrennte Projektlisten-Quellen. **D-30:** Die Release-Seiten-Kopfzeile von „Fehler melden"
+(`ReleaseDetailHero.tsx`) zeigte bislang fälschlich den Episode-/Release-Titel statt des echten
+Projekttitels; jetzt werden der reale `animeTitle` UND das gerade betrachtete Release bis zu
+`ReportHintEntryPoint` durchgereicht und vorausgewählt, bleiben aber änderbar. **D-31:** Der
+Server validiert ein übermitteltes Release serverseitig gegen die reale Anime-/Gruppen-Teilnahme
+(`release_versions.anime_id` muss passen, `release_version_groups` muss die Zielgruppe enthalten)
+— dieselbe Validierungs-Handschrift wie D-23's bereits etablierter Projekt-Gruppen-Check. **D-32:**
+Der partielle Unique-Index auf `fansub_group_hints` (append-only Migration) schlüsselt jetzt
+zusätzlich auf `COALESCE(related_release_version_id, -1)` — zwei offene Hinweise zu
+unterschiedlichen Releases desselben Projekts kollidieren dadurch nicht mehr fälschlich
+miteinander, während zwei Hinweise zum exakt selben Release bzw. zweimal „ganzes Projekt"
+weiterhin blockiert bleiben. **D-33:** Die 409-Konfliktmeldung unterscheidet jetzt sprachlich, ob
+sich der bereits offene Hinweis auf ein Release oder das ganze Projekt bezieht. **D-34:** Alle drei
+Hinweis-lesenden Oberflächen (Absender-Liste, Leader-Liste, Plattform-Admin-Liste) zeigen das
+gewählte Release mit an, sofern eins gesetzt ist; der bestehende Eigengruppen-Pfad
+(`anime_contributions`) blieb für diese Runde explizit unverändert, da eine schemafreie
+Release-Anzeige dort nicht möglich war. **D-35:** Der verbliebene Testdatensatz der vorherigen
+Runde (`fansub_group_hints` ID 6, FlameHaze-Testzeile aus dem D-23-Gegencheck) ist per echtem
+`DELETE FROM fansub_group_hints WHERE id = 6` entfernt — die eigenen Live-Testdaten des Nutzers
+(IDs 2, 3, 5) bleiben für die Abnahme unverändert stehen. **D-36:** Diese Runde selbst erzwang
+einen echten, sechsfachen API-Gegencheck (zwei koexistierende Releases, ein release-spezifisches
+409, ein projekt-spezifisches 409, zwei 404-Ablehnungen über falsches Anime bzw. nicht
+teilnehmende Zielgruppe) gegen den frisch neu gebauten Live-Dev-Backend, dokumentiert mit
+konkreten Konten-/Gruppen-/Projekt-/Release-IDs, sowie eine dokumentierte Vorher-/Nachher-
+Löschung für D-35 und eine echte Live-Sichtprüfung aller betroffenen Oberflächen
+(`191-37-HUMAN-UAT.md`).
+
+### Why This Won
+Die live reproduzierte UAT-Beschwerde war, dass zwei Korrektur-Hinweise zu unterschiedlichen
+Releases desselben Projekts fälschlich als Duplikate behandelt wurden — D-29/D-31/D-32 zusammen
+sind der vollständige Fix (UI + serverseitige Validierung + die tatsächliche Datenbank-
+Beschränkung), nicht nur eine einzelne Schicht davon. Eine reine UI-Ergänzung ohne die
+Index-Korrektur (D-32) hätte den eigentlichen Bug nicht behoben; eine reine Index-Korrektur ohne
+Validierung (D-31) hätte beliebige Release-Behauptungen ungeprüft akzeptiert.
+
+### Consequences
+Jede künftige Änderung an der `fansub_group_hints`-Erzeugung muss den vierspaltigen partiellen
+Unique-Index weiterhin durchlaufen und darf ihn nicht ersatzlos verkürzen; die
+Anime-/Gruppen-/Release-Konsistenzprüfung bleibt Pflicht. Jede künftige release-wählende
+Formularfläche sollte `ProposalReleaseSelect`/`ProposalForm.useReleaseOptions` wiederverwenden
+statt den Ladepfad eigenständig neu zu bauen.
+
 ## 2026-10-23 - Dritte Live-UAT-Nachbesserung: Projekt-Gruppen-Validierung, main.go- und CSS-Modul-Split
 
 ### Decision
