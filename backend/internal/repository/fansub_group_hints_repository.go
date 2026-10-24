@@ -148,10 +148,16 @@ func scanFansubGroupHintRow(row pgx.Row) (*FansubGroupHintRow, error) {
 	return &r, nil
 }
 
-// CreateHint legt einen neuen Hinweis an (status='open'). Gibt ErrConflict zurück, wenn
-// bereits ein offener Hinweis zum selben Thema existiert (erzwungen über den
-// Partial-Unique-Index der Migration, nicht über eine SELECT-dann-INSERT-Prüfung hier),
-// und ErrNotFound bei ungültiger Zielgruppen-/Anime-Referenz.
+// CreateHint legt einen neuen Hinweis an (status='open'). Vor dem Insert prüft
+// ensureHintAnimeFansubContext (fansub_group_hints_repository_validation.go, D-23), dass
+// (target_fansub_group_id, related_anime_id) real in anime_fansub_groups existiert — kein
+// Klient darf serverseitig eine erfundene Paarung behaupten (live reproduzierter
+// Datenfehler: Hinweis-ID 4 verknüpfte eine Gruppe mit einem Anime ohne passende
+// anime_fansub_groups-Zeile). Bei fehlender Paarung liefert die Prüfung
+// ErrInvalidAnimeFansubContext, ohne dass ein INSERT versucht wird. Gibt außerdem
+// ErrConflict zurück, wenn bereits ein offener Hinweis zum selben Thema existiert
+// (erzwungen über den Partial-Unique-Index der Migration), und ErrNotFound bei einer
+// Zielgruppen-/Anime-FK-Referenz, die nicht bereits durch die neue Prüfung abgefangen wurde.
 //
 // Bewusst KEIN Ownership-Check wie AnimeContributionsRepository.MemberBelongsToFansub:
 // ein Hinweis ist eine reine Information an eine Gruppe, keine Behauptung tatsächlicher
@@ -160,6 +166,10 @@ func scanFansubGroupHintRow(row pgx.Row) (*FansubGroupHintRow, error) {
 // Beitrags-Vorschlag (anime_contributions_proposal_repository.go), der eine tatsächliche
 // Mitwirkung in der Zielgruppe behauptet und deshalb weiterhin Mitgliedschaft voraussetzt.
 func (r *FansubGroupHintsRepository) CreateHint(ctx context.Context, input HintInput) (*FansubGroupHintRow, error) {
+	if err := ensureHintAnimeFansubContext(ctx, r.db, input.RelatedAnimeID, input.TargetFansubGroupID); err != nil {
+		return nil, err
+	}
+
 	var newID int64
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO fansub_group_hints (

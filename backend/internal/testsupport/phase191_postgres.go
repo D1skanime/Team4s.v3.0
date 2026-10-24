@@ -63,9 +63,13 @@ func validatePhase191SchemaName(name string) error {
 // phase137_postgres.go's identical precedent) because the D-11 "hat die Gruppe eine
 // aktive Leitung" predicate (HasActiveLead/ListWithoutActiveLead, Plan 191-11) needs a
 // real join target with that exact column layout to prove the predicate is computed
-// from fansub_group_member_roles rather than trusted as a client-supplied flag. Finally
-// applies the REAL migration 0188 file (D-09 schema cut) so every test built on this
-// fixture runs against the final, post-0188 schema.
+// from fansub_group_member_roles rather than trusted as a client-supplied flag. Also adds
+// an anime_fansub_groups stand-in (real production shape from migration 0011) because the
+// D-23 "gehört dieses Projekt tatsächlich zur Zielgruppe" check
+// (ensureHintAnimeFansubContext, called from CreateHint) needs a real join target to prove
+// the check is computed from anime_fansub_groups rather than trusted as a client-supplied
+// pairing. Finally applies the REAL migration 0188 file (D-09 schema cut) so every test
+// built on this fixture runs against the final, post-0188 schema.
 func createPhase191Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 	t.Helper()
 	createPhase107Prerequisites(t, pool)
@@ -87,12 +91,20 @@ CREATE TABLE fansub_group_member_roles (
     fansub_group_member_id BIGINT NOT NULL REFERENCES fansub_group_members(id) ON DELETE CASCADE,
     role TEXT NOT NULL REFERENCES role_definitions(code) ON DELETE RESTRICT,
     PRIMARY KEY (fansub_group_member_id, role)
+);
+CREATE TABLE anime_fansub_groups (
+    anime_id BIGINT NOT NULL REFERENCES anime(id) ON DELETE CASCADE,
+    fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (anime_id, fansub_group_id)
 );`
 	if err := validatePhase106SQL(standInSQL); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := pool.Exec(context.Background(), standInSQL); err != nil {
-		t.Fatalf("create Phase-191 anime/hist_fansub_group_members/fansub_group_member_roles stand-ins: %v", err)
+		t.Fatalf("create Phase-191 anime/hist_fansub_group_members/fansub_group_member_roles/anime_fansub_groups stand-ins: %v", err)
 	}
 
 	ApplySQLFile(t, pool, phase191MigrationPath(t, "0187_fansub_group_hints.up.sql"))

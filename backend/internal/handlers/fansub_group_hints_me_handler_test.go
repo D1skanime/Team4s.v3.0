@@ -223,6 +223,20 @@ func TestFansubGroupHint_CreateHint_RepositoryNotFoundReturns404(t *testing.T) {
 	}
 }
 
+func TestFansubGroupHint_CreateHint_InvalidAnimeFansubContextReturns404(t *testing.T) {
+	h := buildTestHintHandler(&hintRepoStub{createErr: repository.ErrInvalidAnimeFansubContext}, &memberResolverStub{memberID: 10})
+	c, rec := newHintTestContext(`{"target_fansub_group_id":29,"related_anime_id":2}`, 42, true)
+
+	h.CreateHint(c)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected %d, got %d", http.StatusNotFound, rec.Code)
+	}
+	if msg := decodeErrorMessage(t, rec.Body.Bytes()); msg != fansubGroupHintInvalidContextMessage {
+		t.Fatalf("expected message %q, got %q", fansubGroupHintInvalidContextMessage, msg)
+	}
+}
+
 func TestFansubGroupHint_CreateHint_NoVerifiedMemberReturns404(t *testing.T) {
 	h := buildTestHintHandler(&hintRepoStub{}, &memberResolverStub{err: repository.ErrNotFound})
 	c, rec := newHintTestContext(`{"target_fansub_group_id":5,"related_anime_id":9}`, 42, true)

@@ -28,6 +28,11 @@ import (
 const (
 	fansubGroupHintConflictMessage     = "Du hast dazu bereits einen offenen Hinweis."
 	fansubGroupHintMissingAnimeMessage = "Bei einem Korrektur-Hinweis muss ein Projekt angegeben werden."
+	// fansubGroupHintInvalidContextMessage wird zurückgegeben, wenn die gewählte
+	// (target_fansub_group_id, related_anime_id)-Paarung laut anime_fansub_groups gar
+	// nicht existiert (D-23) -- die Zielgruppe ist diesem Projekt serverseitig nachweislich
+	// nicht zugeordnet, unabhängig davon, ob Gruppe und Projekt für sich genommen real sind.
+	fansubGroupHintInvalidContextMessage = "Anime-Fansub-Zuordnung nicht gefunden"
 )
 
 // HintRepository ist das Interface, das FansubGroupHintsMeHandler für die Persistenz
@@ -124,6 +129,15 @@ func (h *FansubGroupHintsMeHandler) CreateHint(c *gin.Context) {
 	row, err := h.hintRepo.CreateHint(c.Request.Context(), input)
 	if errors.Is(err, repository.ErrConflict) {
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": fansubGroupHintConflictMessage}})
+		return
+	}
+	// D-23: die Repository-Prüfung ensureHintAnimeFansubContext hat festgestellt, dass
+	// (target_fansub_group_id, related_anime_id) keine reale anime_fansub_groups-Zeile
+	// hat -- derselbe 404-Fehlerstil wie das etablierte Präzedenzmuster in
+	// admin_content_anime_project_timeline.go, hier mit eigener Nachricht für diesen
+	// Endpunkt.
+	if errors.Is(err, repository.ErrInvalidAnimeFansubContext) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": fansubGroupHintInvalidContextMessage}})
 		return
 	}
 	if errors.Is(err, repository.ErrNotFound) {

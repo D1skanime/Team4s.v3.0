@@ -46,6 +46,20 @@ func seedPhase191Anime(t *testing.T, pool *pgxpool.Pool, id int64, title string)
 	require.NoError(t, err)
 }
 
+// seedPhase191AnimeFansubGroup legt die anime_fansub_groups-Zeile an, die D-23s
+// ensureHintAnimeFansubContext als Nachweis für eine reale Projekt-Gruppe-Zuordnung
+// verlangt -- jeder Test, der CreateHint mit Erfolg erwartet, muss diese Zeile für sein
+// (animeID, fansubGroupID)-Tupel vorher anlegen, sonst schlägt CreateHint seit D-23
+// zurecht mit ErrInvalidAnimeFansubContext fehl.
+func seedPhase191AnimeFansubGroup(t *testing.T, pool *pgxpool.Pool, animeID, fansubGroupID int64) {
+	t.Helper()
+	_, err := pool.Exec(context.Background(), `
+		INSERT INTO anime_fansub_groups (anime_id, fansub_group_id) VALUES ($1, $2)
+		ON CONFLICT (anime_id, fansub_group_id) DO NOTHING
+	`, animeID, fansubGroupID)
+	require.NoError(t, err)
+}
+
 // seedPhase191FansubGroupMemberWithRole legt ein fansub_group_members-Mitglied mit dem
 // übergebenen Status an und ordnet ihm optional eine fansub_group_member_roles-Rolle zu
 // (role == "" bedeutet "keine Rolle") -- die einzige Grundlage, aus der HasActiveLead/
@@ -79,6 +93,7 @@ func TestFansubGroupHint_CreateHint_NewTuple_Succeeds(t *testing.T) {
 	seedPhase191AppUser(t, pool, 1001, "sender1@example.test", "Sender Eins")
 	seedPhase191FansubGroup(t, pool, 2001, "Zielgruppe Eins")
 	seedPhase191Anime(t, pool, 3001, "Testanime Eins")
+	seedPhase191AnimeFansubGroup(t, pool, 3001, 2001)
 	animeID := int64(3001)
 
 	row, err := repo.CreateHint(ctx, HintInput{
@@ -109,6 +124,7 @@ func TestFansubGroupHint_CreateHint_DuplicateOpenHint_ReturnsConflict(t *testing
 	seedPhase191AppUser(t, pool, 1002, "sender2@example.test", "Sender Zwei")
 	seedPhase191FansubGroup(t, pool, 2002, "Zielgruppe Zwei")
 	seedPhase191Anime(t, pool, 3002, "Testanime Zwei")
+	seedPhase191AnimeFansubGroup(t, pool, 3002, 2002)
 	animeID := int64(3002)
 
 	input := HintInput{
@@ -125,10 +141,14 @@ func TestFansubGroupHint_CreateHint_DuplicateOpenHint_ReturnsConflict(t *testing
 	assert.True(t, errors.Is(err, ErrConflict), "expected ErrConflict, got %v", err)
 }
 
-// TestFansubGroupHint_CreateHint_UnknownTargetGroup_ReturnsNotFound prüft das dritte Behavior-Bullet:
-// eine target_fansub_group_id, die nicht existiert, löst den FK-Verstoß auf
-// target_fansub_group_id aus und wird zu ErrNotFound gemappt.
-func TestFansubGroupHint_CreateHint_UnknownTargetGroup_ReturnsNotFound(t *testing.T) {
+// TestFansubGroupHint_CreateHint_UnknownTargetGroup_ReturnsInvalidContext prüft das dritte
+// Behavior-Bullet: eine target_fansub_group_id, die gar nicht existiert, hat per
+// Definition auch keine anime_fansub_groups-Zeile für irgendein Anime -- D-23s
+// ensureHintAnimeFansubContext fängt diesen Fall deshalb bereits VOR dem Insert als
+// ErrInvalidAnimeFansubContext ab (vor dieser Änderung lief der Request erst bis zur
+// INSERT-FK-Verletzung durch und wurde zu ErrNotFound gemappt; das ist jetzt überholt,
+// weil die neue Prüfung strikter und früher greift).
+func TestFansubGroupHint_CreateHint_UnknownTargetGroup_ReturnsInvalidContext(t *testing.T) {
 	pool := testsupport.OpenPhase191Postgres(t)
 	ctx := context.Background()
 	repo := NewFansubGroupHintsRepository(pool)
@@ -143,7 +163,37 @@ func TestFansubGroupHint_CreateHint_UnknownTargetGroup_ReturnsNotFound(t *testin
 		RelatedAnimeID:      &animeID,
 	})
 	require.Error(t, err)
-	assert.True(t, errors.Is(err, ErrNotFound), "expected ErrNotFound, got %v", err)
+	assert.True(t, errors.Is(err, ErrInvalidAnimeFansubContext), "expected ErrInvalidAnimeFansubContext, got %v", err)
+}
+
+// TestFansubGroupHint_CreateHint_AnimeNotLinkedToTargetGroup_ReturnsInvalidContext prüft den
+// eigentlichen D-23-Bugfix: Gruppe UND Anime existieren beide real, sind aber über
+// anime_fansub_groups NICHT miteinander verknüpft (exakt der live reproduzierte Fehler von
+// Hinweis-ID 4) -- CreateHint muss ErrInvalidAnimeFansubContext liefern und darf KEINE Zeile
+// einfügen.
+func TestFansubGroupHint_CreateHint_AnimeNotLinkedToTargetGroup_ReturnsInvalidContext(t *testing.T) {
+	pool := testsupport.OpenPhase191Postgres(t)
+	ctx := context.Background()
+	repo := NewFansubGroupHintsRepository(pool)
+
+	seedPhase191AppUser(t, pool, 1004, "sender4@example.test", "Sender Vier")
+	seedPhase191FansubGroup(t, pool, 2004, "Zielgruppe Vier")
+	seedPhase191Anime(t, pool, 3004, "Testanime Vier")
+	// Bewusst KEIN seedPhase191AnimeFansubGroup-Aufruf -- die Paarung existiert nicht.
+	animeID := int64(3004)
+
+	_, err := repo.CreateHint(ctx, HintInput{
+		SenderAppUserID:     1004,
+		TargetFansubGroupID: 2004,
+		RelatedAnimeID:      &animeID,
+	})
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrInvalidAnimeFansubContext), "expected ErrInvalidAnimeFansubContext, got %v", err)
+
+	var count int
+	scanErr := pool.QueryRow(ctx, `SELECT COUNT(*) FROM fansub_group_hints WHERE sender_app_user_id = $1`, int64(1004)).Scan(&count)
+	require.NoError(t, scanErr)
+	assert.Equal(t, 0, count, "no row must have been inserted when the pairing is invalid")
 }
 
 // TestFansubGroupHint_ListByTargetGroup_ReturnsAllStatuses_OrderedByCreatedAt prüft, dass die Liste über
@@ -159,6 +209,9 @@ func TestFansubGroupHint_ListByTargetGroup_ReturnsAllStatuses_OrderedByCreatedAt
 	seedPhase191Anime(t, pool, 3005, "Testanime Fuenf")
 	seedPhase191Anime(t, pool, 3006, "Testanime Sechs")
 	seedPhase191Anime(t, pool, 3007, "Testanime Sieben")
+	seedPhase191AnimeFansubGroup(t, pool, 3005, 2005)
+	seedPhase191AnimeFansubGroup(t, pool, 3006, 2005)
+	seedPhase191AnimeFansubGroup(t, pool, 3007, 2005)
 	animeA := int64(3005)
 	animeB := int64(3006)
 	animeC := int64(3007)
@@ -207,6 +260,9 @@ func TestFansubGroupHint_ListBySender_OnlyOwnHints_OrderedByCreatedAt(t *testing
 	seedPhase191Anime(t, pool, 3300, "Projekt X")
 	seedPhase191Anime(t, pool, 3301, "Projekt X Zwei")
 	seedPhase191Anime(t, pool, 3302, "Projekt Y")
+	seedPhase191AnimeFansubGroup(t, pool, 3300, 2300)
+	seedPhase191AnimeFansubGroup(t, pool, 3301, 2300)
+	seedPhase191AnimeFansubGroup(t, pool, 3302, 2301)
 	animeX := int64(3300)
 	animeXTwo := int64(3301)
 	animeY := int64(3302)
@@ -290,6 +346,9 @@ func TestFansubGroupHint_ListWithoutActiveLead_OnlyGroupsMissingAnActiveLead_Hon
 	seedPhase191Anime(t, pool, 3100, "Projekt Eins")
 	seedPhase191Anime(t, pool, 3101, "Projekt Zwei")
 	seedPhase191Anime(t, pool, 3102, "Projekt Drei")
+	seedPhase191AnimeFansubGroup(t, pool, 3100, 2006)
+	seedPhase191AnimeFansubGroup(t, pool, 3101, 2007)
+	seedPhase191AnimeFansubGroup(t, pool, 3102, 2008)
 	anime1 := int64(3100)
 	anime2 := int64(3101)
 	anime3 := int64(3102)
@@ -358,6 +417,7 @@ func TestFansubGroupHint_Confirm_OpenHint_SetsAcknowledged_AndAlreadyDecidedRetu
 	seedPhase191AppUser(t, pool, 1007, "sender7@example.test", "Sender Sieben")
 	seedPhase191FansubGroup(t, pool, 2009, "Zielgruppe Acht")
 	seedPhase191Anime(t, pool, 3200, "Projekt Acht")
+	seedPhase191AnimeFansubGroup(t, pool, 3200, 2009)
 	animeID := int64(3200)
 
 	hint, err := repo.CreateHint(ctx, HintInput{SenderAppUserID: 1007, TargetFansubGroupID: 2009, RelatedAnimeID: &animeID})
@@ -389,6 +449,7 @@ func TestFansubGroupHint_Reject_OpenHint_SetsRejectedWithNote(t *testing.T) {
 	seedPhase191AppUser(t, pool, 1008, "sender8@example.test", "Sender Acht")
 	seedPhase191FansubGroup(t, pool, 2010, "Zielgruppe Neun")
 	seedPhase191Anime(t, pool, 3201, "Projekt Neun")
+	seedPhase191AnimeFansubGroup(t, pool, 3201, 2010)
 	animeID := int64(3201)
 
 	hint, err := repo.CreateHint(ctx, HintInput{SenderAppUserID: 1008, TargetFansubGroupID: 2010, RelatedAnimeID: &animeID})
