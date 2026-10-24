@@ -60,6 +60,36 @@ func seedPhase191AnimeFansubGroup(t *testing.T, pool *pgxpool.Pool, animeID, fan
 	require.NoError(t, err)
 }
 
+// seedPhase191ReleaseVersion legt die komplette Release-Kette an, die D-31s
+// ensureHintReleaseContext als Nachweis für eine reale (Release, Projekt, Gruppe)-
+// Kombination braucht: eine episodes-Zeile unter animeID, eine fansub_releases-Zeile
+// darunter, eine release_versions-Zeile mit ihrem echten episodeLabel als Titel, und eine
+// release_version_groups-Zeile, die fansubGroupID an diesem Release beteiligt. Jeder Test,
+// der CreateHint mit einem gesetzten related_release_version_id und Erfolg erwartet, muss
+// diese Kette für sein (releaseVersionID, animeID, fansubGroupID)-Tripel vorher anlegen.
+func seedPhase191ReleaseVersion(t *testing.T, pool *pgxpool.Pool, releaseVersionID, animeID, fansubGroupID int64, episodeLabel string) {
+	t.Helper()
+	episodeID := releaseVersionID + 900000
+	releaseID := releaseVersionID + 800000
+	_, err := pool.Exec(context.Background(), `
+		INSERT INTO episodes (id, anime_id, title) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING
+	`, episodeID, animeID, episodeLabel)
+	require.NoError(t, err)
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING
+	`, releaseID, episodeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO release_versions (id, release_id) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING
+	`, releaseVersionID, releaseID)
+	require.NoError(t, err)
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)
+		ON CONFLICT (release_version_id, fansub_group_id) DO NOTHING
+	`, releaseVersionID, fansubGroupID)
+	require.NoError(t, err)
+}
+
 // seedPhase191FansubGroupMemberWithRole legt ein fansub_group_members-Mitglied mit dem
 // übergebenen Status an und ordnet ihm optional eine fansub_group_member_roles-Rolle zu
 // (role == "" bedeutet "keine Rolle") -- die einzige Grundlage, aus der HasActiveLead/
@@ -465,4 +495,192 @@ func TestFansubGroupHint_Reject_OpenHint_SetsRejectedWithNote(t *testing.T) {
 	assert.Equal(t, note, *updated.DecisionNote)
 	require.NotNil(t, updated.DecidedBy)
 	assert.EqualValues(t, 1008, *updated.DecidedBy)
+}
+
+// TestFansubGroupHint_CreateHint_ReleaseContext_WrongAnime_ReturnsInvalidReleaseContext prüft
+// D-31s ersten Fall: das Release existiert real, gehört aber zu einem ANDEREN Anime als
+// related_anime_id -- selbst wenn target_fansub_group_id an diesem Release beteiligt ist,
+// muss CreateHint ErrInvalidReleaseVersionContext liefern und darf keine Zeile einfügen.
+func TestFansubGroupHint_CreateHint_ReleaseContext_WrongAnime_ReturnsInvalidReleaseContext(t *testing.T) {
+	pool := testsupport.OpenPhase191Postgres(t)
+	ctx := context.Background()
+	repo := NewFansubGroupHintsRepository(pool)
+
+	seedPhase191AppUser(t, pool, 1500, "sender-rc1@example.test", "Sender RC1")
+	seedPhase191FansubGroup(t, pool, 2500, "Zielgruppe RC1")
+	seedPhase191Anime(t, pool, 3500, "Projekt RC1 (gewuenscht)")
+	seedPhase191Anime(t, pool, 3501, "Projekt RC1 (tatsaechlich)")
+	seedPhase191AnimeFansubGroup(t, pool, 3500, 2500)
+	// Das Release gehoert zu Anime 3501, nicht zum gewuenschten 3500.
+	seedPhase191ReleaseVersion(t, pool, 4500, 3501, 2500, "Episode 1")
+	animeID := int64(3500)
+	releaseID := int64(4500)
+
+	_, err := repo.CreateHint(ctx, HintInput{
+		SenderAppUserID:         1500,
+		TargetFansubGroupID:     2500,
+		RelatedAnimeID:          &animeID,
+		RelatedReleaseVersionID: &releaseID,
+	})
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrInvalidReleaseVersionContext), "expected ErrInvalidReleaseVersionContext, got %v", err)
+
+	var count int
+	scanErr := pool.QueryRow(ctx, `SELECT COUNT(*) FROM fansub_group_hints WHERE sender_app_user_id = $1`, int64(1500)).Scan(&count)
+	require.NoError(t, scanErr)
+	assert.Equal(t, 0, count, "no row must have been inserted when the release belongs to a different anime")
+}
+
+// TestFansubGroupHint_CreateHint_ReleaseContext_GroupNotParticipating_ReturnsInvalidReleaseContext
+// prüft D-31s zweiten Fall: Release und Anime passen zusammen, aber target_fansub_group_id
+// hat KEINE release_version_groups-Zeile für dieses Release -- muss ebenfalls
+// ErrInvalidReleaseVersionContext liefern.
+func TestFansubGroupHint_CreateHint_ReleaseContext_GroupNotParticipating_ReturnsInvalidReleaseContext(t *testing.T) {
+	pool := testsupport.OpenPhase191Postgres(t)
+	ctx := context.Background()
+	repo := NewFansubGroupHintsRepository(pool)
+
+	seedPhase191AppUser(t, pool, 1501, "sender-rc2@example.test", "Sender RC2")
+	seedPhase191FansubGroup(t, pool, 2501, "Zielgruppe RC2 (angefragt)")
+	seedPhase191FansubGroup(t, pool, 2502, "Zielgruppe RC2 (tatsaechlich am Release)")
+	seedPhase191Anime(t, pool, 3502, "Projekt RC2")
+	seedPhase191AnimeFansubGroup(t, pool, 3502, 2501)
+	// Das Release gehoert korrekt zu Anime 3502, aber die beteiligte Gruppe ist 2502, nicht 2501.
+	seedPhase191ReleaseVersion(t, pool, 4501, 3502, 2502, "Episode 2")
+	animeID := int64(3502)
+	releaseID := int64(4501)
+
+	_, err := repo.CreateHint(ctx, HintInput{
+		SenderAppUserID:         1501,
+		TargetFansubGroupID:     2501,
+		RelatedAnimeID:          &animeID,
+		RelatedReleaseVersionID: &releaseID,
+	})
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrInvalidReleaseVersionContext), "expected ErrInvalidReleaseVersionContext, got %v", err)
+}
+
+// TestFansubGroupHint_CreateHint_ReleaseContext_Valid_SucceedsWithLabel prüft D-31s
+// Erfolgsfall UND D-34: eine korrekte (Release, Projekt, Gruppe)-Kombination legt den
+// Hinweis an, RelatedReleaseVersionID matcht, RelatedReleaseLabel ist nicht-nil.
+func TestFansubGroupHint_CreateHint_ReleaseContext_Valid_SucceedsWithLabel(t *testing.T) {
+	pool := testsupport.OpenPhase191Postgres(t)
+	ctx := context.Background()
+	repo := NewFansubGroupHintsRepository(pool)
+
+	seedPhase191AppUser(t, pool, 1502, "sender-rc3@example.test", "Sender RC3")
+	seedPhase191FansubGroup(t, pool, 2503, "Zielgruppe RC3")
+	seedPhase191Anime(t, pool, 3503, "Projekt RC3")
+	seedPhase191AnimeFansubGroup(t, pool, 3503, 2503)
+	seedPhase191ReleaseVersion(t, pool, 4502, 3503, 2503, "Episode 3")
+	animeID := int64(3503)
+	releaseID := int64(4502)
+
+	row, err := repo.CreateHint(ctx, HintInput{
+		SenderAppUserID:         1502,
+		TargetFansubGroupID:     2503,
+		RelatedAnimeID:          &animeID,
+		RelatedReleaseVersionID: &releaseID,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, row)
+	require.NotNil(t, row.RelatedReleaseVersionID)
+	assert.EqualValues(t, 4502, *row.RelatedReleaseVersionID)
+	require.NotNil(t, row.RelatedReleaseLabel)
+	assert.NotEmpty(t, *row.RelatedReleaseLabel)
+}
+
+// TestFansubGroupHint_CreateHint_OmittedRelease_SucceedsWithNilReleaseFields prüft die
+// Nicht-Regression auf dem D-23-only-Pfad: ein Hinweis ohne related_release_version_id
+// verhält sich exakt wie vor diesem Plan -- RelatedReleaseVersionID UND
+// RelatedReleaseLabel bleiben beide nil.
+func TestFansubGroupHint_CreateHint_OmittedRelease_SucceedsWithNilReleaseFields(t *testing.T) {
+	pool := testsupport.OpenPhase191Postgres(t)
+	ctx := context.Background()
+	repo := NewFansubGroupHintsRepository(pool)
+
+	seedPhase191AppUser(t, pool, 1503, "sender-rc4@example.test", "Sender RC4")
+	seedPhase191FansubGroup(t, pool, 2504, "Zielgruppe RC4")
+	seedPhase191Anime(t, pool, 3504, "Projekt RC4")
+	seedPhase191AnimeFansubGroup(t, pool, 3504, 2504)
+	animeID := int64(3504)
+
+	row, err := repo.CreateHint(ctx, HintInput{
+		SenderAppUserID:     1503,
+		TargetFansubGroupID: 2504,
+		RelatedAnimeID:      &animeID,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, row)
+	assert.Nil(t, row.RelatedReleaseVersionID)
+	assert.Nil(t, row.RelatedReleaseLabel)
+}
+
+// TestFansubGroupHint_ListByTargetGroup_ExposesReleaseLinkPerHint prüft D-34 für den
+// Leader-Listenpfad: unter mehreren Hinweisen trägt nur der mit gesetztem Release auch die
+// RelatedReleaseVersionID/RelatedReleaseLabel-Felder, der projektweite Hinweis bleibt nil.
+func TestFansubGroupHint_ListByTargetGroup_ExposesReleaseLinkPerHint(t *testing.T) {
+	pool := testsupport.OpenPhase191Postgres(t)
+	ctx := context.Background()
+	repo := NewFansubGroupHintsRepository(pool)
+
+	seedPhase191AppUser(t, pool, 1504, "sender-rc5@example.test", "Sender RC5")
+	seedPhase191FansubGroup(t, pool, 2505, "Zielgruppe RC5")
+	seedPhase191Anime(t, pool, 3505, "Projekt RC5")
+	seedPhase191AnimeFansubGroup(t, pool, 3505, 2505)
+	seedPhase191ReleaseVersion(t, pool, 4503, 3505, 2505, "Episode 4")
+	animeID := int64(3505)
+	releaseID := int64(4503)
+
+	withRelease, err := repo.CreateHint(ctx, HintInput{SenderAppUserID: 1504, TargetFansubGroupID: 2505, RelatedAnimeID: &animeID, RelatedReleaseVersionID: &releaseID})
+	require.NoError(t, err)
+	projectWide, err := repo.CreateHint(ctx, HintInput{SenderAppUserID: 1504, TargetFansubGroupID: 2505, RelatedAnimeID: &animeID})
+	require.NoError(t, err)
+
+	rows, err := repo.ListByTargetGroup(ctx, 2505)
+	require.NoError(t, err)
+	byID := map[int64]FansubGroupHintRow{}
+	for _, row := range rows {
+		byID[row.ID] = row
+	}
+
+	withReleaseRow := byID[withRelease.ID]
+	require.NotNil(t, withReleaseRow.RelatedReleaseVersionID)
+	assert.EqualValues(t, 4503, *withReleaseRow.RelatedReleaseVersionID)
+	require.NotNil(t, withReleaseRow.RelatedReleaseLabel)
+
+	projectWideRow := byID[projectWide.ID]
+	assert.Nil(t, projectWideRow.RelatedReleaseVersionID)
+	assert.Nil(t, projectWideRow.RelatedReleaseLabel)
+}
+
+// TestFansubGroupHint_CreateHint_SecondOpenHintToDifferentRelease_SucceedsAlongsideFirst
+// prüft D-32s Kernverhalten: zwei offene Hinweise zum selben Projekt, aber zu
+// UNTERSCHIEDLICHEN Releases, dürfen koexistieren -- der release-gescopte Partial-Unique-
+// Index blockiert sie nicht mehr.
+func TestFansubGroupHint_CreateHint_SecondOpenHintToDifferentRelease_SucceedsAlongsideFirst(t *testing.T) {
+	pool := testsupport.OpenPhase191Postgres(t)
+	ctx := context.Background()
+	repo := NewFansubGroupHintsRepository(pool)
+
+	seedPhase191AppUser(t, pool, 1505, "sender-rc6@example.test", "Sender RC6")
+	seedPhase191FansubGroup(t, pool, 2506, "Zielgruppe RC6")
+	seedPhase191Anime(t, pool, 3506, "Projekt RC6")
+	seedPhase191AnimeFansubGroup(t, pool, 3506, 2506)
+	seedPhase191ReleaseVersion(t, pool, 4504, 3506, 2506, "Episode 5")
+	seedPhase191ReleaseVersion(t, pool, 4505, 3506, 2506, "Episode 6")
+	animeID := int64(3506)
+	releaseA := int64(4504)
+	releaseB := int64(4505)
+
+	_, err := repo.CreateHint(ctx, HintInput{SenderAppUserID: 1505, TargetFansubGroupID: 2506, RelatedAnimeID: &animeID, RelatedReleaseVersionID: &releaseA})
+	require.NoError(t, err)
+
+	_, err = repo.CreateHint(ctx, HintInput{SenderAppUserID: 1505, TargetFansubGroupID: 2506, RelatedAnimeID: &animeID, RelatedReleaseVersionID: &releaseB})
+	require.NoError(t, err, "a second open hint to a DIFFERENT release of the same project must succeed, not conflict")
+
+	// Ein dritter Hinweis zum SELBEN Release wie der erste bleibt weiterhin ein Konflikt.
+	_, err = repo.CreateHint(ctx, HintInput{SenderAppUserID: 1505, TargetFansubGroupID: 2506, RelatedAnimeID: &animeID, RelatedReleaseVersionID: &releaseA})
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrConflict), "a second open hint to the SAME release must still conflict")
 }

@@ -10,26 +10,24 @@ package repository
 // (anime_contributions_proposal_repository.go) gibt es hier bewusst KEINEN
 // Ownership-Check wie MemberBelongsToFansub: ein Hinweis darf an jede Gruppe gehen, nicht
 // nur an die eigene — das ist der fachliche Kernunterschied. Die Dopplungssperre
-// (höchstens ein offener Hinweis pro Person+Zielgruppe+Projekt) wird nicht hier im
-// Go-Code geprüft, sondern ausschließlich über den Partial-Unique-Index
+// (höchstens ein offener Hinweis pro Person+Zielgruppe+Projekt[+Release], D-32) wird nicht
+// hier im Go-Code geprüft, sondern ausschließlich über den Partial-Unique-Index
 // `uq_fansub_group_hints_open_topic` der Migration — vermeidet eine
 // SELECT-dann-INSERT-Race (TOCTOU) bei gleichzeitigen Anfragen.
 
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
-	"team4s.v3/backend/internal/permissions"
 )
 
 // FansubGroupHintRow ist die angereicherte Lesesicht auf eine fansub_group_hints-Zeile,
-// inklusive Anzeige-Kontext (Absendername, Zielgruppenname, Projekttitel), der von den
-// Review-Oberflächen (Leader- und Plattform-Admin-Liste) benötigt wird.
+// inklusive Anzeige-Kontext (Absendername, Zielgruppenname, Projekttitel, optional
+// Release-Bezug D-34), der von den Review-Oberflächen (Leader- und
+// Plattform-Admin-Liste) benötigt wird.
 type FansubGroupHintRow struct {
 	ID                    int64      `json:"id"`
 	SenderAppUserID       int64      `json:"sender_app_user_id"`
@@ -38,12 +36,18 @@ type FansubGroupHintRow struct {
 	TargetFansubGroupName string     `json:"target_fansub_group_name"`
 	RelatedAnimeID        *int64     `json:"related_anime_id"`
 	RelatedAnimeTitle     *string    `json:"related_anime_title"`
-	Note                  *string    `json:"note"`
-	Status                string     `json:"status"`
-	DecidedBy             *int64     `json:"decided_by"`
-	DecidedAt             *time.Time `json:"decided_at"`
-	DecisionNote          *string    `json:"decision_note"`
-	CreatedAt             time.Time  `json:"created_at"`
+	// RelatedReleaseVersionID/RelatedReleaseLabel (D-34) tragen den optionalen,
+	// serverseitig gegen release_versions/release_version_groups geprüften (D-31)
+	// Release-Bezug eines Hinweises -- beide bleiben nil, wenn sich der Hinweis auf das
+	// ganze Projekt bezieht statt auf ein konkretes Release.
+	RelatedReleaseVersionID *int64     `json:"related_release_version_id"`
+	RelatedReleaseLabel     *string    `json:"related_release_label"`
+	Note                    *string    `json:"note"`
+	Status                  string     `json:"status"`
+	DecidedBy               *int64     `json:"decided_by"`
+	DecidedAt               *time.Time `json:"decided_at"`
+	DecisionNote            *string    `json:"decision_note"`
+	CreatedAt               time.Time  `json:"created_at"`
 	// SenderOwnGroupName ist der UI-Kontext "Mitglied bei: {Gruppe}" — best-effort über
 	// eine verifizierte member_claims-Mitgliedschaft des Absenders ermittelt. Bleibt NULL,
 	// wenn der Absender keine verifizierte Mitgliedschaft hat oder mehrdeutig mehreren
@@ -57,25 +61,16 @@ type FansubGroupHintRow struct {
 // das wird vom aufrufenden Handler sichergestellt, nicht hier. RelatedAnimeID ist nach
 // D-09 immer Pflicht (jeder verbleibende Hinweis ist ein Korrektur-Hinweis mit
 // Projektbezug, von der Migration über NOT NULL erzwungen). RelatedReleaseVersionID ist
-// bewusst NICHT Teil dieses Typs: die Migration reserviert die Spalte für eine spätere,
-// feinere Release-Versions-Korrektur, die diese Phase nicht anbietet.
+// seit D-31 optional nutzbar: ist es gesetzt, prüft CreateHint vor dem Insert über
+// ensureHintReleaseContext, dass das Release tatsächlich zu RelatedAnimeID gehört und
+// TargetFansubGroupID an ihm beteiligt ist -- ein Klient darf serverseitig keine
+// erfundene Release-Projekt-Gruppe-Kombination behaupten.
 type HintInput struct {
-	SenderAppUserID     int64
-	TargetFansubGroupID int64
-	RelatedAnimeID      *int64
-	Note                *string
-}
-
-// AdminHintListFilter trägt die optionalen, UND-verknüpften Filter für
-// ListWithoutActiveLead. Alle Felder sind optional; ein nil/leerer Wert bedeutet "kein
-// Filter".
-type AdminHintListFilter struct {
-	Status              *string
-	TargetFansubGroupID *int64
-	From                *time.Time
-	To                  *time.Time
-	Limit               int
-	Offset              int
+	SenderAppUserID         int64
+	TargetFansubGroupID     int64
+	RelatedAnimeID          *int64
+	RelatedReleaseVersionID *int64
+	Note                    *string
 }
 
 // FansubGroupHintsRepository bündelt alle Datenbankzugriffe auf fansub_group_hints.
@@ -88,7 +83,12 @@ func NewFansubGroupHintsRepository(db *pgxpool.Pool) *FansubGroupHintsRepository
 	return &FansubGroupHintsRepository{db: db}
 }
 
-const fansubGroupHintSelectCols = `
+// fansubGroupHintSelectCols ist seit D-34 kein reines SQL-String-Literal mehr (var statt
+// const), weil related_release_label über denselben publicReleaseTitleSQL-Baustein
+// gebildet wird, den die öffentlichen Release-Listen bereits nutzen (group_repository.go)
+// -- so bleibt die Label-Fallback-Logik ("Episode N (Gruppe) Version M") an genau einer
+// Stelle im Code gepflegt.
+var fansubGroupHintSelectCols = `
 	h.id,
 	h.sender_app_user_id,
 	COALESCE(NULLIF(au.display_name, ''), au.email, ''),
@@ -96,6 +96,8 @@ const fansubGroupHintSelectCols = `
 	COALESCE(fg.name, ''),
 	h.related_anime_id,
 	a.title,
+	h.related_release_version_id,
+	CASE WHEN h.related_release_version_id IS NULL THEN NULL ELSE ` + publicReleaseTitleSQL("rv", "rel_ep", "fg") + ` END AS related_release_label,
 	h.note,
 	h.status,
 	h.decided_by,
@@ -123,6 +125,9 @@ const fansubGroupHintFromJoins = `
 	JOIN app_users au ON au.id = h.sender_app_user_id
 	JOIN fansub_groups fg ON fg.id = h.target_fansub_group_id
 	LEFT JOIN anime a ON a.id = h.related_anime_id
+	LEFT JOIN release_versions rv ON rv.id = h.related_release_version_id
+	LEFT JOIN fansub_releases rel_fr ON rel_fr.id = rv.release_id
+	LEFT JOIN episodes rel_ep ON rel_ep.id = rel_fr.episode_id
 `
 
 func scanFansubGroupHintRow(row pgx.Row) (*FansubGroupHintRow, error) {
@@ -135,6 +140,8 @@ func scanFansubGroupHintRow(row pgx.Row) (*FansubGroupHintRow, error) {
 		&r.TargetFansubGroupName,
 		&r.RelatedAnimeID,
 		&r.RelatedAnimeTitle,
+		&r.RelatedReleaseVersionID,
+		&r.RelatedReleaseLabel,
 		&r.Note,
 		&r.Status,
 		&r.DecidedBy,
@@ -153,11 +160,13 @@ func scanFansubGroupHintRow(row pgx.Row) (*FansubGroupHintRow, error) {
 // (target_fansub_group_id, related_anime_id) real in anime_fansub_groups existiert — kein
 // Klient darf serverseitig eine erfundene Paarung behaupten (live reproduzierter
 // Datenfehler: Hinweis-ID 4 verknüpfte eine Gruppe mit einem Anime ohne passende
-// anime_fansub_groups-Zeile). Bei fehlender Paarung liefert die Prüfung
-// ErrInvalidAnimeFansubContext, ohne dass ein INSERT versucht wird. Gibt außerdem
+// anime_fansub_groups-Zeile). Zusätzlich prüft ensureHintReleaseContext (D-31), falls
+// related_release_version_id gesetzt ist, dass dieses Release tatsächlich zu
+// related_anime_id gehört UND target_fansub_group_id an ihm beteiligt ist. Gibt außerdem
 // ErrConflict zurück, wenn bereits ein offener Hinweis zum selben Thema existiert
-// (erzwungen über den Partial-Unique-Index der Migration), und ErrNotFound bei einer
-// Zielgruppen-/Anime-FK-Referenz, die nicht bereits durch die neue Prüfung abgefangen wurde.
+// (erzwungen über den Partial-Unique-Index der Migration, seit D-32 release-genau), und
+// ErrNotFound bei einer Zielgruppen-/Anime-FK-Referenz, die nicht bereits durch eine der
+// beiden Prüfungen abgefangen wurde.
 //
 // Bewusst KEIN Ownership-Check wie AnimeContributionsRepository.MemberBelongsToFansub:
 // ein Hinweis ist eine reine Information an eine Gruppe, keine Behauptung tatsächlicher
@@ -169,6 +178,9 @@ func (r *FansubGroupHintsRepository) CreateHint(ctx context.Context, input HintI
 	if err := ensureHintAnimeFansubContext(ctx, r.db, input.RelatedAnimeID, input.TargetFansubGroupID); err != nil {
 		return nil, err
 	}
+	if err := ensureHintReleaseContext(ctx, r.db, input.RelatedReleaseVersionID, input.RelatedAnimeID, input.TargetFansubGroupID); err != nil {
+		return nil, err
+	}
 
 	var newID int64
 	err := r.db.QueryRow(ctx, `
@@ -176,13 +188,15 @@ func (r *FansubGroupHintsRepository) CreateHint(ctx context.Context, input HintI
 			sender_app_user_id,
 			target_fansub_group_id,
 			related_anime_id,
+			related_release_version_id,
 			note
-		) VALUES ($1, $2, $3, $4)
+		) VALUES ($1, $2, $3, $4, $5)
 		RETURNING id
 	`,
 		input.SenderAppUserID,
 		input.TargetFansubGroupID,
 		input.RelatedAnimeID,
+		input.RelatedReleaseVersionID,
 		input.Note,
 	).Scan(&newID)
 	if err != nil {
@@ -280,132 +294,6 @@ func (r *FansubGroupHintsRepository) ListBySender(ctx context.Context, senderApp
 		return nil, fmt.Errorf("hinweise nach absender: iterate: %w", err)
 	}
 	return result, nil
-}
-
-// HasActiveLead beantwortet D-11s sicherheitskritische Frage "hat diese Fansub-Gruppe
-// aktuell eine aktive Leitung?" ausschließlich serverseitig aus fansub_group_members/
-// fansub_group_member_roles -- niemals aus einem vom Aufrufer übergebenen Feld. Die
-// Rolle wird als parametrisierter Query-Wert aus der Konstante permissions.RoleFansubLead
-// gebunden (kein rohes Rollencode-String-Literal im Code), damit dieser Wert nicht an zwei
-// Stellen auseinanderlaufen kann. Das Ergebnis entscheidet, ob ein Korrektur-Hinweis an
-// diese Gruppe beim Leader der Gruppe landet (hat eine aktive Leitung) oder bei der
-// Plattform-Admin-Liste (hat keine). ListWithoutActiveLead kodiert absichtlich dieselbe
-// Prädikat-Formel (dort als NOT-EXISTS-Subquery direkt in die Listen-SQL eingebaut statt
-// pro Zeile HasActiveLead aufzurufen, um ein N+1-Abfragemuster über eine potenziell große
-// Ergebnismenge zu vermeiden) -- ändert sich die Formel, müssen beide Stellen zusammen
-// angepasst werden.
-func (r *FansubGroupHintsRepository) HasActiveLead(ctx context.Context, fansubGroupID int64) (bool, error) {
-	var hasLead bool
-	err := r.db.QueryRow(ctx, `
-		SELECT EXISTS (
-			SELECT 1
-			FROM fansub_group_members fgm
-			JOIN fansub_group_member_roles fgr ON fgr.fansub_group_member_id = fgm.id
-			WHERE fgm.fansub_group_id = $1
-			  AND fgm.status = 'active'
-			  AND fgr.role = $2
-		)
-	`, fansubGroupID, permissions.RoleFansubLead).Scan(&hasLead)
-	if err != nil {
-		return false, fmt.Errorf("aktive leitung pruefen: %w", err)
-	}
-	return hasLead, nil
-}
-
-// ListWithoutActiveLead gibt NUR Hinweise zurück, deren Zielgruppe aktuell KEINE aktive
-// Leitung hat (D-11: diese Entscheidung trifft der Plattform-Admin, nicht der Leader der
-// Zielgruppe, weil es dort niemanden mit dieser Rolle gibt). Die "hat keine aktive
-// Leitung"-Prüfung ist dieselbe Formel wie HasActiveLead, hier als NOT-EXISTS-Subquery
-// direkt in die Listen-SQL eingebaut statt pro Zeile HasActiveLead aufzurufen -- vermeidet
-// eine N+1-Abfrage über eine potenziell große Ergebnismenge. Die Rolle wird als
-// parametrisierter Query-Wert aus der Konstante permissions.RoleFansubLead gebunden,
-// niemals als rohes String-Literal.
-func (r *FansubGroupHintsRepository) ListWithoutActiveLead(ctx context.Context, filter AdminHintListFilter) ([]FansubGroupHintRow, int, error) {
-	limit, offset := ClampAdminListPage(filter.Limit, filter.Offset)
-
-	args := []any{permissions.RoleFansubLead}
-	paramIdx := 2
-	whereClauses := []string{`
-		NOT EXISTS (
-			SELECT 1
-			FROM fansub_group_members fgm
-			JOIN fansub_group_member_roles fgr ON fgr.fansub_group_member_id = fgm.id
-			WHERE fgm.fansub_group_id = h.target_fansub_group_id
-			  AND fgm.status = 'active'
-			  AND fgr.role = $1
-		)
-	`}
-
-	if filter.Status != nil && *filter.Status != "" {
-		args = append(args, *filter.Status)
-		whereClauses = append(whereClauses, fmt.Sprintf("h.status = $%d", paramIdx))
-		paramIdx++
-	}
-	if filter.TargetFansubGroupID != nil && *filter.TargetFansubGroupID > 0 {
-		args = append(args, *filter.TargetFansubGroupID)
-		whereClauses = append(whereClauses, fmt.Sprintf("h.target_fansub_group_id = $%d", paramIdx))
-		paramIdx++
-	}
-	if filter.From != nil {
-		args = append(args, *filter.From)
-		whereClauses = append(whereClauses, fmt.Sprintf("h.created_at >= $%d", paramIdx))
-		paramIdx++
-	}
-	if filter.To != nil {
-		args = append(args, *filter.To)
-		whereClauses = append(whereClauses, fmt.Sprintf("h.created_at <= $%d", paramIdx))
-		paramIdx++
-	}
-
-	args = append(args, limit, offset)
-	limitParam := paramIdx
-	offsetParam := paramIdx + 1
-
-	query := fmt.Sprintf(`
-		SELECT `+fansubGroupHintSelectCols+`,
-			COUNT(*) OVER() AS total_count
-		`+fansubGroupHintFromJoins+`
-		WHERE %s
-		ORDER BY h.created_at DESC
-		LIMIT $%d OFFSET $%d
-	`, strings.Join(whereClauses, " AND "), limitParam, offsetParam)
-
-	rows, err := r.db.Query(ctx, query, args...)
-	if err != nil {
-		return nil, 0, fmt.Errorf("hinweise ohne aktive leitung: %w", err)
-	}
-	defer rows.Close()
-
-	items := make([]FansubGroupHintRow, 0)
-	var total int
-	for rows.Next() {
-		var row FansubGroupHintRow
-		if err := rows.Scan(
-			&row.ID,
-			&row.SenderAppUserID,
-			&row.SenderDisplayName,
-			&row.TargetFansubGroupID,
-			&row.TargetFansubGroupName,
-			&row.RelatedAnimeID,
-			&row.RelatedAnimeTitle,
-			&row.Note,
-			&row.Status,
-			&row.DecidedBy,
-			&row.DecidedAt,
-			&row.DecisionNote,
-			&row.CreatedAt,
-			&row.SenderOwnGroupName,
-			&total,
-		); err != nil {
-			return nil, 0, fmt.Errorf("hinweise ohne aktive leitung: scan: %w", err)
-		}
-		items = append(items, row)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("hinweise ohne aktive leitung: iterate: %w", err)
-	}
-
-	return items, total, nil
 }
 
 // Confirm bestätigt einen offenen Hinweis: status='acknowledged', decided_by/decided_at
