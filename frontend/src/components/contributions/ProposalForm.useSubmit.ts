@@ -37,14 +37,14 @@ export type WizardStep = 1 | 2 | 3
 export type ProposalAnimeOption = { id: number; title: string }
 
 /**
- * D-12 (Plan 191-18 Vorbereitung): die interaktive "Andere Gruppe"-Suche
- * (useFansubGroupSearch) liefert immer ein volles FansubGroup-Objekt (Slug, Status,
- * Zähler usw.), weil sie selbst aus der serverseitigen Gruppenliste stammt. Der neue
- * Vorauswahl-Einstiegspunkt (ProposalForm.tsx prefill-Prop) kennt die Zielgruppe dagegen
- * nur als schmales {id, name} aus dem aufrufenden Seiten-Context -- und lädt dafür NIE eine
- * Projektliste über das Netz, braucht also auch nie den Slug, den eine solche Suche liefern
- * würde. SubmitTarget.foreignGroup muss deshalb beide Formen annehmen können, ohne dass
- * useProposalFormSubmit mehr als .id/.name voraussetzt (sie liest nie .slug).
+ * Die interaktive "Andere Gruppe"-Suche (useFansubGroupSearch) liefert immer ein volles
+ * FansubGroup-Objekt (Slug, Status, Zähler usw.), weil sie selbst aus der serverseitigen
+ * Gruppenliste stammt. Der Vorauswahl-Einstiegspunkt (ProposalForm.tsx prefill-Prop) kennt die
+ * Zielgruppe dagegen nur als schmales {id, name} aus dem aufrufenden Seiten-Context -- und lädt
+ * dafür NIE eine Projektliste über das Netz, braucht also auch nie den Slug, den eine solche
+ * Suche liefern würde (D-12, Plan 191-18 Vorbereitung). SubmitTarget.foreignGroup muss deshalb
+ * beide Formen annehmen können, ohne dass useProposalFormSubmit mehr als .id/.name voraussetzt
+ * (sie liest nie .slug).
  */
 export type PrefillTargetGroup = Pick<FansubGroup, 'id' | 'name'>
 
@@ -68,10 +68,10 @@ interface BuildHintPayloadParams {
   roleLabelForNote: string | null
   note: string
   /**
-   * D-20: fansub_group_hints hat ebenfalls keine Von/Bis-Jahr-Spalten (anders als
+   * fansub_group_hints hat ebenfalls keine Von/Bis-Jahr-Spalten (anders als
    * anime_contributions, siehe buildCorrectionOwnPayload unten) -- ein eingegebener
    * Zeitraum wird deshalb, analog zur Rolle, als "Zeitraum: ..."-Klartext in die Notiz
-   * eingebettet statt ersatzlos verworfen zu werden.
+   * eingebettet statt ersatzlos verworfen zu werden (D-20).
    */
   startedYear?: string
   endedYear?: string

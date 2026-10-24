@@ -71,11 +71,11 @@ export function HeroSection({
     <>
       <p className={styles.eyebrow}>{group.fansub.name}</p>
       <h1 className={styles.title}>{anime.title}</h1>
-      {/* D-12 (191-UI-SPEC.md Contract D3): dezenter zweiter Einstiegspunkt ins
-          "Hinweis senden"-Formular, direkt dem Projekttitel untergeordnet -- rendert
-          selbst nichts fuer nicht berechtigte/nicht angemeldete Besucher (siehe
-          ReportHintEntryPoint). Inline-Abstand statt eines neuen page.module.css-
-          Eintrags, da diese Datei nicht in den files_modified dieses Plans steht. */}
+      {/* Dezenter zweiter Einstiegspunkt ins "Hinweis senden"-Formular, direkt dem
+          Projekttitel untergeordnet -- rendert selbst nichts fuer nicht berechtigte/nicht
+          angemeldete Besucher (siehe ReportHintEntryPoint). Inline-Abstand statt eines neuen
+          page.module.css-Eintrags, da diese Datei nicht zu den vom einfuehrenden Plan
+          geaenderten Dateien zaehlte (D-12/191-UI-SPEC.md Contract D3). */}
       <div style={{ marginTop: "var(--space-2)" }}>
         <ReportHintEntryPoint
           fansubGroupId={groupID}

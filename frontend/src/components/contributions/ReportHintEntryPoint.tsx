@@ -13,11 +13,11 @@ import { contributionRoleDefinitions } from './contributionRoles'
 import { ProposalForm } from './ProposalForm'
 
 /**
- * D-12 (191-UI-SPEC.md Component Contract D): zweiter, kontextueller Einstiegspunkt in
- * dasselbe "Hinweis senden"-Formular, direkt auf der oeffentlichen Projekt- bzw.
- * Release-Seite verankert -- Zielgruppe und Projekt sind aus dem Seiten-Context bereits
- * bekannt und werden ueber ProposalForm's `prefill`-Prop (Plan 191-17) vorausgewaehlt, der
- * Wizard startet deshalb direkt bei Schritt "Rolle".
+ * Zweiter, kontextueller Einstiegspunkt in dasselbe "Hinweis senden"-Formular, direkt auf der
+ * oeffentlichen Projekt- bzw. Release-Seite verankert -- Zielgruppe und Projekt sind aus dem
+ * Seiten-Context bereits bekannt und werden ueber ProposalForm's `prefill`-Prop (Plan 191-17)
+ * vorausgewaehlt, der Wizard startet deshalb direkt bei Schritt "Rolle" (D-12, 191-UI-SPEC.md
+ * Component Contract D).
  *
  * Sichtbarkeits-Gate (D-12 D2, strikt): diese Komponente rendert ausschliesslich fuer
  * angemeldete Nutzer, die dieselbe Berechtigung wie der bestehende "Hinweis
@@ -113,11 +113,11 @@ export function ReportHintEntryPoint({
       </Button>
       {isOpen ? (
         <ProposalForm
-          // D-17 (Plan 191-20): ProposalForm zeigt seine Erfolgsansicht ("Hinweis gesendet")
-          // selbst ueber internen submittedSummary-State -- schliesst der Aufrufer hier
-          // zusaetzlich bei onSuccess, verschwindet das Formular, bevor der Nutzer die
-          // Erfolgsansicht je sieht. onSuccess bleibt deshalb ein No-op; nur ein aktiver
-          // Klick auf "Fertig" (onClose) unmountet das Formular.
+          // ProposalForm zeigt seine Erfolgsansicht ("Hinweis gesendet") selbst ueber internen
+          // submittedSummary-State -- schliesst der Aufrufer hier zusaetzlich bei onSuccess,
+          // verschwindet das Formular, bevor der Nutzer die Erfolgsansicht je sieht. onSuccess
+          // bleibt deshalb ein No-op; nur ein aktiver Klick auf "Fertig" (onClose) unmountet
+          // das Formular (D-17, Plan 191-20).
           onSuccess={() => {}}
           onClose={() => setIsOpen(false)}
           ownGroups={ownGroups ?? []}

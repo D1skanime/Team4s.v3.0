@@ -60,10 +60,10 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
             <span className={styles.heroHaloForeground}>{groupLine}</span>
           </span>
         </p>
-        {/* D-12 (191-UI-SPEC.md Contract D3): derselbe dezente "Fehler melden"-Einstiegspunkt
-            wie auf der Projektseite -- nur bei genau einer Zielgruppe gemountet, weil eine
-            Coop-Release mit mehreren Gruppen keine eindeutige Zielgruppe fuer einen Hinweis
-            hat (bewusste Scope-Grenze dieses Plans, keine Mehrfachauswahl gebaut). */}
+        {/* Derselbe dezente "Fehler melden"-Einstiegspunkt wie auf der Projektseite -- nur bei
+            genau einer Zielgruppe gemountet, weil eine Coop-Release mit mehreren Gruppen keine
+            eindeutige Zielgruppe fuer einen Hinweis hat (bewusste Scope-Grenze, keine
+            Mehrfachauswahl gebaut, D-12/191-UI-SPEC.md Contract D3). */}
         {props.groups.length === 1 ? (
           <div style={{ marginTop: 'var(--space-2)' }}>
             <ReportHintEntryPoint
