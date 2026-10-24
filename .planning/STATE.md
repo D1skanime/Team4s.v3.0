@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: verifying
 stopped_at: Completed 191-23-PLAN.md
-last_updated: "2026-10-23T22:56:17.627Z"
-last_activity: 2026-10-23
+last_updated: "2026-10-24T00:20:20.867Z"
+last_activity: 2026-10-24
 progress:
   total_phases: 56
   completed_phases: 50
-  total_plans: 517
-  completed_plans: 511
+  total_plans: 524
+  completed_plans: 512
   percent: 89
 ---
 
@@ -578,7 +578,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-23
+Last activity: 2026-10-24
 
 ## Accumulated Context
 
@@ -1523,6 +1523,8 @@ Last activity: 2026-10-23
 - [Phase 191-21]: yearContext als drittes Notiz-Fragment zwischen Rolle und freier Notiz (D-20) — Haelt Rolle- und Zeitraum-Kontext unabhaengig testbar, analog zum bestehenden roleContext-Muster
 - [Phase 191-21]: D-21-Kommentare behalten D-Nummern als sekundaeren Verweis, nur die alleinige Incident-Begruendung wurde entfernt — CLAUDE.md erlaubt D-Verweise zusaetzlich zur fachlichen Erklaerung, nicht als Ersatz dafuer
 - [Phase 191-23]: hintStatusLabel/hintStatusVariant aus FansubGroupHintsAdminClient.tsx nach src/lib/fansubGroupHintStatus.ts extrahiert — D-18: Admin-Liste und neue Member-Sicht auf eigene gesendete Hinweise teilen dieselbe Status-Darstellung; Admin-Client re-exportiert statt zu duplizieren (Praezedenzfall contributionsEligibility.ts, Plan 191-17)
+- [Phase 191-25]: D-23: ensureAnimeFansubProjectContextExistsInDB wiederverwendet statt dupliziert; Pre-Insert-Check in fansub_group_hints_repository_validation.go ausgelagert, damit fansub_group_hints_repository.go unter 450 Zeilen bleibt
+- [Phase 191-25]: TestFansubGroupHint_CreateHint_UnknownTargetGroup_ReturnsNotFound auf ReturnsInvalidContext umgestellt, da die neue D-23-Pruefung jetzt vor dem INSERT greift (ErrInvalidAnimeFansubContext statt vorheriger FK-Verletzung/ErrNotFound); HTTP-Ergebnis bleibt 404
 
 ### Pending Todos
 
@@ -2270,10 +2272,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P22 | ~10min | 2 tasks | 7 files |
 | Phase 191 P21 | 25min | 2 tasks | 4 files |
 | Phase 191 P23 | 12min | 2 tasks | 10 files |
+| Phase 191 P25 | 35min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-23T22:56:17.603Z
+Last session: 2026-10-24T00:19:47.498Z
 Stopped at: Completed 191-23-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 

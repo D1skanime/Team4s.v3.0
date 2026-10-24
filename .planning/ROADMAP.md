@@ -2991,7 +2991,7 @@ Punkte/Badges für den Hinweis selbst, kein eigenes Recht. `backend/cmd/server/m
 191-CONTEXT.md (D-09 ersetzt/streicht Teile von D-01/D-06/D-07), siehe jeweiliges
 Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 21/31 plans executed (191-25..191-31 added: vierte Nachbesserung D-23..D-28 + D-27-Repointing/D-25-Rest)
+**Plans:** 22/31 plans executed
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -3018,7 +3018,7 @@ Plans:
 - [x] 191-22-PLAN.md — Backend: `GET /me/fansub-group-hints` (D-18, Absender-Sicht)
 - [x] 191-23-PLAN.md — Frontend: Gesendete Fremdgruppen-Hinweise auf /me/contributions (D-18)
 - [ ] 191-24-PLAN.md — Phasenabschluss zweite Nachbesserung: D-22-Vorabprüfung (vollständig), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
-- [ ] 191-25-PLAN.md — Backend: D-23 Server-Validierung (anime_fansub_groups-Check) + D-25-Sweep (6 Backend-Dateien)
+- [x] 191-25-PLAN.md — Backend: D-23 Server-Validierung (anime_fansub_groups-Check) + D-25-Sweep (6 Backend-Dateien)
 - [ ] 191-26-PLAN.md — Backend: D-26 main.go-Split (738 Zeilen, keine Ausnahme) + D-25-Sweep main.go
 - [ ] 191-27-PLAN.md — Frontend: D-27 contributions.module.css-Split (902 Zeilen, keine Ausnahme) + D-25-Sweep (contributions.module.css, 3 Kommentarbloecke) — Import-Umstellung der 12 Verbraucher-Dateien + restlicher D-25-Sweep (4 Dateien) liegt in 191-31
 - [ ] 191-28-PLAN.md — Frontend: D-25-Sweep Admin-/Review-Oberflaeche (5 Dateien)
