@@ -1,4 +1,21 @@
-# Deferred Items (out of scope for 191-31)
+# Deferred Items (out of scope for 191-31, 191-36)
+
+## `RoleCapabilityDetail.membershipBaselineDrift.test.ts` fails with an absolute host path (191-36)
+
+Full `npm run test` run (419 files, 3850 tests) during 191-36 shows 2 failed / 3842 passed / 3
+skipped / 3 todo. The 2 failures are both inside
+`src/app/admin/roles/RoleCapabilityDetail.membershipBaselineDrift.test.ts` (introduced in Phase
+188-05, `git log` confirms its most recent touch predates Phase 191): it reads
+`BACKEND_PERMISSIONS_GO_PATHS` via `readFileSync` against an absolute path starting with
+`/backend/...`, which only resolves inside the `team4sv30-backend`/`team4sv30-frontend`
+containers' mount layout, not against this host checkout's `/home/d1sk/team4s/backend/...`
+path. No file this plan touches (`MyProposalsSection.tsx`, `FansubGroupHintsReviewSection.tsx`,
+`FansubGroupHintsAdminClient.tsx`, their tests, `docs/FRONTEND_ARCHITEKTUR.md`) is anywhere near
+this anti-drift test's scope. Confirmed in-scope cleanliness: the three targeted test files for
+this plan (`MyProposalsSection FansubGroupHintsReviewSection FansubGroupHintsAdminClient`) pass
+43/43. Per the scope-boundary rule, left untouched — a future cleanup should either run the full
+suite only inside the container or make the anti-drift test resolve its path relative to the
+repo root instead of a hardcoded absolute mount path.
 
 ## Repo-wide `npm run lint` is red for reasons unrelated to this plan
 
