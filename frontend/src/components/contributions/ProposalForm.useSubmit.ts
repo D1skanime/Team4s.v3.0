@@ -75,6 +75,12 @@ interface BuildHintPayloadParams {
    */
   startedYear?: string
   endedYear?: string
+  /**
+   * D-29/D-34: optionale Einschraenkung des Hinweises auf ein einzelnes Release statt
+   * des ganzen Projekts -- "Ganzes Projekt" (keine Auswahl in Schritt 1) wird als null
+   * weitergereicht, nie als undefined, damit das Backend die Spalte eindeutig zuruecksetzt.
+   */
+  relatedReleaseVersionId?: number | null
 }
 
 /** Baut aus Von-/Bis-Jahr das "Zeitraum: ..."-Notiz-Fragment (D-20) oder null, wenn beide leer sind. */
@@ -96,18 +102,28 @@ export function buildHintSubmitPayload(params: BuildHintPayloadParams): CreateFa
   return {
     target_fansub_group_id: params.targetFansubGroupId,
     related_anime_id: params.relatedAnimeId,
+    related_release_version_id: params.relatedReleaseVersionId ?? null,
     note: combinedNote || null,
   }
 }
 
 /**
- * Mappt die beiden Fehlercodes des fansub_group_hints-Endpunkts auf die verbindlichen
- * deutschen Texte aus D-04 (191-UI-SPEC.md Copywriting Contract). Gibt null für jeden
- * anderen Status zurück — der Aufrufer fällt dann auf err.message/den generischen
- * Fallbacktext zurück.
+ * Mappt die Fehlercodes des fansub_group_hints-Endpunkts auf die verbindlichen deutschen
+ * Texte. Der 409-Fall (D-04(1)/D-33) existiert serverseitig in ZWEI Varianten, weil der
+ * Unique-Index auf (Absender, Zielgruppe, Projekt, Release) steht (Plan 191-32
+ * `ensureHintReleaseContext`): war der abgewiesene Hinweis auf ein einzelnes Release
+ * eingeschraenkt, meint der Konflikt genau dieses Release -- war er auf "Ganzes Projekt"
+ * gestellt, meint er das ganze Projekt. `isReleaseScoped` muss deshalb vom Aufrufer aus dem
+ * tatsaechlich gesendeten Payload abgeleitet werden, nicht hartcodiert sein. Für jeden
+ * anderen Status wird null zurückgegeben — der Aufrufer fällt dann auf err.message/den
+ * generischen Fallbacktext zurück.
  */
-export function errorMessageForHintStatus(status: number): string | null {
-  if (status === 409) return 'Du hast dazu bereits einen offenen Hinweis.'
+export function errorMessageForHintStatus(status: number, isReleaseScoped: boolean): string | null {
+  if (status === 409) {
+    return isReleaseScoped
+      ? 'Du hast zu diesem Release bereits einen offenen Hinweis. Sieh dir deine eingereichten Hinweise an.'
+      : 'Du hast zu diesem Projekt bereits einen offenen Hinweis. Sieh dir deine eingereichten Hinweise an.'
+  }
   if (status === 429) return 'Du hast heute bereits zu viele Hinweise gesendet. Versuche es morgen wieder.'
   return null
 }
@@ -125,6 +141,12 @@ export interface SubmitTarget {
   note: string
   startedYear: string
   endedYear: string
+  /**
+   * D-29/D-34: die in Schritt 1 getroffene Release-Auswahl (ProposalReleaseSelect) --
+   * `null` bedeutet "Ganzes Projekt" und wird auf BEIDEN Submit-Pfaden (own/foreign)
+   * unveraendert als null weitergereicht, nie verworfen.
+   */
+  releaseVersionId: number | null
 }
 
 /** Baut exakt das heutige ProposalFormData-Payload — byte-identisch zum Vor-191-Verhalten. */
@@ -137,6 +159,10 @@ function buildCorrectionOwnPayload(target: SubmitTarget, ownGroup: MembershipEnt
     note: target.note.trim() || null,
     started_year: target.startedYear ? parseInt(target.startedYear, 10) : null,
     ended_year: target.endedYear ? parseInt(target.endedYear, 10) : null,
+    // Das Backend validiert dieses Feld bereits seit Phase 67 via
+    // GroupParticipatesInReleaseVersion -- diese Zeile aendert nur, WER den Wert befuellt
+    // (die neue UI-Auswahl statt eines immer leeren Felds), kein neuer Server-Vertrag.
+    release_version_id: target.releaseVersionId ?? null,
   }
 }
 
@@ -167,6 +193,7 @@ export function useProposalFormSubmit() {
         note: target.note,
         startedYear: target.startedYear,
         endedYear: target.endedYear,
+        relatedReleaseVersionId: target.releaseVersionId,
       })
       await createFansubGroupHint(payload)
 
@@ -188,7 +215,11 @@ export function useProposalFormSubmit() {
           setError(err.message || CORRECTION_CONFLICT_FALLBACK)
           throw err
         }
-        const mapped = errorMessageForHintStatus(err.status)
+        // D-33: isReleaseScoped wird direkt aus dem tatsaechlich gesendeten Payload
+        // abgeleitet (target.releaseVersionId), nicht hartcodiert -- derselbe 409-Status
+        // bedeutet je nach Auswahl in Schritt 1 einen anderen Konflikt (siehe
+        // errorMessageForHintStatus-Doku oben).
+        const mapped = errorMessageForHintStatus(err.status, target.releaseVersionId != null)
         if (mapped) {
           setError(mapped)
           throw err
