@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-23-PLAN.md
-last_updated: "2026-10-24T00:20:20.867Z"
+stopped_at: Completed 191-26-PLAN.md
+last_updated: "2026-10-24T01:07:49.614Z"
 last_activity: 2026-10-24
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 524
-  completed_plans: 512
+  completed_plans: 513
   percent: 89
 ---
 
@@ -1525,6 +1525,8 @@ Last activity: 2026-10-24
 - [Phase 191-23]: hintStatusLabel/hintStatusVariant aus FansubGroupHintsAdminClient.tsx nach src/lib/fansubGroupHintStatus.ts extrahiert — D-18: Admin-Liste und neue Member-Sicht auf eigene gesendete Hinweise teilen dieselbe Status-Darstellung; Admin-Client re-exportiert statt zu duplizieren (Praezedenzfall contributionsEligibility.ts, Plan 191-17)
 - [Phase 191-25]: D-23: ensureAnimeFansubProjectContextExistsInDB wiederverwendet statt dupliziert; Pre-Insert-Check in fansub_group_hints_repository_validation.go ausgelagert, damit fansub_group_hints_repository.go unter 450 Zeilen bleibt
 - [Phase 191-25]: TestFansubGroupHint_CreateHint_UnknownTargetGroup_ReturnsNotFound auf ReturnsInvalidContext umgestellt, da die neue D-23-Pruefung jetzt vor dem INSERT greift (ErrInvalidAnimeFansubContext statt vorheriger FK-Verletzung/ErrNotFound); HTTP-Ergebnis bleibt 404
+- [Phase 191-26]: main.go (738 Zeilen) in wiring_infra.go/wiring_catalog.go/wiring_fansub_contributions.go/routes_public.go gesplittet (D-26) -- Wiring-Funktionen entpacken ihr catalogDeps/fansubContributionsResult-Struct-Argument vollstaendig in lokale Variablen mit Original-Namen, damit 5 bestehende substring-grep-Tests weiter funktionieren
+- [Phase 191-26]: gofmt -w via docker compose exec formatiert nur die fluechtige Container-Kopie (kein Bind-Mount fuer /app) -- Host-Datei-Fixes muessen ueber einen host-bind-gemounteten golang-Container laufen
 
 ### Pending Todos
 
@@ -2273,11 +2275,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P21 | 25min | 2 tasks | 4 files |
 | Phase 191 P23 | 12min | 2 tasks | 10 files |
 | Phase 191 P25 | 35min | 2 tasks | 6 files |
+| Phase 191 P26 | ~75min | 2 tasks | 13 files |
 
 ## Session Continuity
 
-Last session: 2026-10-24T00:19:47.498Z
-Stopped at: Completed 191-23-PLAN.md
+Last session: 2026-10-24T01:07:49.587Z
+Stopped at: Completed 191-26-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
