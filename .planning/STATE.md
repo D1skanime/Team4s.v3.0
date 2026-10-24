@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-36-PLAN.md
-last_updated: "2026-10-24T12:25:00.000Z"
+stopped_at: Completed 191-35-PLAN.md
+last_updated: "2026-10-24T12:40:00.000Z"
 last_activity: 2026-10-24
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 530
-  completed_plans: 522
+  completed_plans: 523
   percent: 89
 ---
 
@@ -438,10 +438,10 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 191 (hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen) — EXECUTING
-Plan: 36 (fünfte Gap-Closure-Runde, 37 Pläne total laut ROADMAP.md, 32 SUMMARYs)
-Status: 191-36 abgeschlossen (D-34 Release-Label in allen drei fansub_group_hints-Listen +
-schemafreie Episodenanzeige im Eigengruppen-Pfad) — 191-35 (Kontext-Einstieg) und 191-37
-(Phasenabschluss) stehen noch aus, Phase ist NICHT fertig für Verifikation
+Plan: 35 (fünfte Gap-Closure-Runde, 37 Pläne total laut ROADMAP.md, 33 SUMMARYs)
+Status: 191-35 abgeschlossen (D-30: echter Projekttitel statt Episode-Titel + Release-
+Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
+(Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -1542,6 +1542,8 @@ Last activity: 2026-10-24
 - [Phase 191-34]: Beim vorausgewaehlten Kontext-Einstieg (prefill, D-12) bleiben animeId/groupId der Release-Auswahl bewusst null, damit keine ungenutzte Netzwerkanfrage entsteht -- Plan 191-35 verdrahtet dort eine eigene Instanz
 - [Phase 191-36]: HintProjectCell (FansubGroupHintsAdminClient.tsx) ist eine neue gemeinsame Hilfskomponente statt zwei getrennter Inline-JSX-Bloecke fuer Tabelle/Mobile-Card -- erzwingt strukturell dieselbe Projekt+Release-Darstellung in beiden Breakpoints
 - [Phase 191-36]: D-34s Eigengruppen-Teilfrage wurde umgesetzt statt offen dokumentiert -- MeAnimeContribution.episode_number existierte bereits (fruehere Phase), renderProposalCard zeigte es bisher nur nie an
+- [Phase 191-35]: Abweichung von Plan 191-34s eigener Next-Phase-Notiz (zweite Hook-Instanz fuer den Kontext-Einstieg) -- stattdessen wird die EINE bestehende releaseSelection-Instanz in ProposalForm.tsx im prefill-Pfad jetzt mit echten prefill.animeId/-fansubGroupId statt bewusst null aufgerufen, wie vom PLAN.md dieses Plans explizit verlangt
+- [Phase 191-35]: Dadurch aufgedeckter Bug in useProposalFormReleaseSelection behoben -- der Reset-Effekt lief bisher auch beim allerersten Mount und haette eine per initialReleaseVersionId vorausgewaehlte Release-ID sofort wieder verworfen; ein previousAnimeIdRef unterscheidet jetzt "erster Lauf" von "echte Aenderung"
 
 ### Pending Todos
 
@@ -2299,11 +2301,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P33 | 25min | 2 tasks | 6 files |
 | Phase 191 P34 | 70min | 2 tasks | 11 files |
 | Phase 191 P36 | ~35min | 2 tasks | 8 files |
+| Phase 191 P35 | ~90min | 2 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-10-24T12:25:00.000Z
-Stopped at: Completed 191-36-PLAN.md
+Last session: 2026-10-24T12:40:00.000Z
+Stopped at: Completed 191-35-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
