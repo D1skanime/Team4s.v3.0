@@ -609,3 +609,76 @@ dokumentieren (IDs 2/3/5 unverändert, IDs 1/4 weg). Nach D-26/D-27: volle Backe
 Frontend-Tests/Typecheck/Lint grün UND visuelle Live-Prüfung, dass `/me/contributions`,
 `/admin/fansub-group-hints` und die Fansub-Gruppen-Bearbeitung optisch unverändert aussehen
 (Screenshot-Vergleich oder gleichwertige Live-Durchsicht, keine Annahme „sollte gleich aussehen").
+
+---
+
+## Nutzerentscheidungen — sechste Runde (2026-10-24, vierter Live-UAT-Durchlauf, final — nicht neu verhandeln)
+
+**Quelle:** Vierter Live-UAT-Durchlauf. D-17 bis D-28 sind laut Nutzer in der Praxis funktional
+bestätigt; neuer fachlicher Umfang: Hinweise sollen optional auf ein konkretes RELEASE statt nur
+auf das ganze Projekt verweisen können. `related_release_version_id` existiert bereits als Spalte
+(Migration 0187), wird aber von Formular UND Backend bislang nicht genutzt — der bestehende
+Doppel-Hinweis-Schutz blockiert deshalb fälschlich weitere Hinweise zum selben Projekt, auch wenn
+ein anderes Release gemeint ist.
+
+### D-29 — Optionales Release-Feld im Formular, EIN gemeinsamer Daten-Pfad für beide Gruppen-Szenarien
+Nach der Projektwahl (Schritt „Gruppe & Projekt") erscheint ein optionales Release-Select
+(globales `@/components/ui`-Select-Primitive) mit Option „Ganzes Projekt" (Standardwert, `null`)
+plus allen Releases dieser Gruppe zu diesem Projekt. **Vereinfachung gegenüber D-10:** Anders als
+bei der Projektliste braucht es hier KEINE zwei getrennten Datenquellen für eigene/fremde Gruppe —
+`getGroupReleaseListCursor(animeID, groupID)` (`GET /api/v1/anime/:id/group/:groupId/release-list`,
+`backend/internal/handlers/group_contributors_handler.go:241`, Route in `routes_public.go:83`) ist
+bereits vollständig öffentlich und mitgliedschaftsfrei — dieselbe Quelle funktioniert für BEIDE
+Szenarien, kein Admin-Endpunkt-Umweg nötig. Releases werden lesbar beschriftet (Episodennummer +
+Episodentitel/Release-Titel + Versions-Label aus `EpisodeReleaseSummary`, z. B. „Episode 12 —
+{title} · {version_label}"), nie als nackte ID.
+
+### D-30 — „Fehler melden" auf der Release-Seite: Release vorausgewählt, Kopfzeile korrekt
+**Bug-Fix:** `ReleaseDetailHero.tsx` übergibt `ReportHintEntryPoint` aktuell
+`animeTitle={props.episode_title ?? props.title}` — das ist der Episode-/Release-Titel, NICHT der
+Projekttitel; die echte `animeTitle` wird auf Seitenebene (`releaseDetailPageData.tsx:72`, via
+`getAnimeByID`) bereits geladen, aber nie durchgereicht. **Fix:** `animeTitle` (echter Projekttitel)
+UND `release_version_id` + ein lesbares Release-Label werden als neue Props bis zu
+`ReportHintEntryPoint` durchgereicht; die Kopfzeile „Du meldest einen Fehler zu …" nennt künftig
+Projekt UND Release korrekt und getrennt. Auf der Projektseite (kein spezifisches Release im
+Kontext) bleibt „Ganzes Projekt" vorausgewählt, aber im Formular änderbar.
+
+### D-31 — Serverseitige Release-Validierung (analog D-23)
+`POST /api/v1/me/fansub-group-hints` nimmt `related_release_version_id` (optional) entgegen und
+prüft serverseitig — falls gesetzt — dass `release_versions.anime_id = related_anime_id` UND ein
+`release_version_groups`-Eintrag für `(release_version_id, target_fansub_group_id)` existiert
+(Tabelle bereits bekannt aus `backend/internal/repository/admin_content_fansub_releases.go`,
+analoges Join-Muster). Kein direkt wiederverwendbarer Einzel-Helper wie bei D-23 vorhanden — neue,
+schmale Prüfung nach demselben Stil (`ensureAnimeFansubProjectContextExistsInDB`-Vorbild). Bei
+Verstoß: Fehler mit deutscher Meldung (korrekte Umlaute), kein stiller Erfolg. Contract
+(`shared/contracts/fansub-group-hints.yaml`) um das neue, optionale Feld ergänzt.
+
+### D-32 — Doppel-Hinweis-Schutz auf Release-Ebene verfeinern (append-only Migration)
+Neue Migration (nächste freie Nummer nach 0188) ersetzt den Unique-Index
+`uq_fansub_group_hints_open_topic` durch einen Schlüssel aus `sender_app_user_id,
+target_fansub_group_id, related_anime_id, COALESCE(related_release_version_id, -1)` (WHERE
+status='open'). Zwei offene Hinweise zu verschiedenen Releases desselben Projekts sind damit
+möglich; zwei zum selben Release bzw. zweimal „ganzes Projekt" weiterhin nicht.
+
+### D-33 — 409-Fehlermeldung präzisieren
+Die Konfliktmeldung unterscheidet künftig, ob sich der bereits offene Hinweis auf ein Release oder
+das ganze Projekt bezieht (z. B. „Du hast zu diesem Release bereits einen offenen Hinweis." bzw.
+„...zu diesem Projekt...") und verweist auf „Eingereichte Hinweise" als Fundort.
+
+### D-34 — Release-Anzeige in allen drei Hinweis-Listen; eigene-Gruppe-Variante nur wenn schemafrei möglich
+Absender-Liste („An andere Gruppen" auf `/me/contributions`), Leader-Liste (Collaboration-Tab) und
+`/admin/fansub-group-hints` zeigen das gewählte Release mit an, sofern eins gesetzt wurde. Für den
+bestehenden Eigengruppen-Weg (`anime_contributions`-Proposals, NICHT `fansub_group_hints`) wird die
+Release-Anzeige NUR ergänzt, falls das ohne Schema-Änderung an `anime_contributions` möglich ist
+(z. B. über eine bereits vorhandene, aktuell ungenutzte Spalte/Relation) — ist das nicht der Fall,
+bleibt dieser Teil für diese Runde explizit offen und wird im jeweiligen Plan-SUMMARY klar als
+„nicht umgesetzt, Grund: Schema-Umbau nötig" benannt, keine stillschweigende Lücke.
+
+### D-35 — Testdaten: Rest-Hinweis löschen
+Hinweis-ID 6 (FlameHaze-Testdatensatz aus dem D-23-Gegencheck der letzten Runde) wird per echtem
+`DELETE` entfernt. IDs 2, 3, 5 bleiben für die Abnahme unverändert stehen.
+
+### D-36 — Pflicht-Vorabprüfung (wie bisher, D-22/D-28 fortgesetzt)
+Vor dem nächsten Live-Checkpoint: jeden der obigen Punkte über echte API-Aufrufe UND, wo möglich,
+den echten UI-Ablauf mit einem passenden Konto prüfen — insbesondere den Doppel-Hinweis-Schutz auf
+Release-Ebene (zwei Releases desselben Projekts = beide möglich; dasselbe Release zweimal = 409).
