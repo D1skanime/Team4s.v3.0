@@ -98,7 +98,7 @@ describe('useProposalFormReleaseOptions', () => {
     const { result, rerender } = renderHook(
       ({ animeId, groupId }: { animeId: number | null; groupId: number | null }) =>
         useProposalFormReleaseOptions({ animeId, groupId }),
-      { initialProps: { animeId: 2, groupId: 24 } },
+      { initialProps: { animeId: 2, groupId: 24 } as { animeId: number | null; groupId: number | null } },
     )
 
     await act(async () => {
@@ -126,7 +126,7 @@ describe('useProposalFormReleaseOptions', () => {
     const { result, rerender } = renderHook(
       ({ animeId, groupId }: { animeId: number | null; groupId: number | null }) =>
         useProposalFormReleaseOptions({ animeId, groupId }),
-      { initialProps: { animeId: 2, groupId: 24 } },
+      { initialProps: { animeId: 2, groupId: 24 } as { animeId: number | null; groupId: number | null } },
     )
 
     await act(async () => {
