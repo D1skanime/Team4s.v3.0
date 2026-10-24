@@ -75,11 +75,18 @@ func pmHandlerSource(t *testing.T) string {
 
 func pmMainSource(t *testing.T) string {
 	t.Helper()
-	raw, err := os.ReadFile("../../cmd/server/main.go")
+	// Phase 191-26: these routes/constructors moved out of main.go into
+	// routes_public.go (registerPublicRoutesPart1) and wiring_catalog.go
+	// (bootstrapCatalog) during the main.go file split.
+	raw, err := os.ReadFile("../../cmd/server/routes_public.go")
 	if err != nil {
 		t.Fatal(err)
 	}
-	return strings.ToLower(string(raw))
+	catalog, err := os.ReadFile("../../cmd/server/wiring_catalog.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return strings.ToLower(string(raw) + string(catalog))
 }
 
 func TestProjectMemberHandler_MethodsExist(t *testing.T) {

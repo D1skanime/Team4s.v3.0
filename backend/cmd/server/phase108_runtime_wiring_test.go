@@ -1,17 +1,12 @@
 package main
 
 import (
-	"os"
 	"strings"
 	"testing"
 )
 
 func TestPhase108RuntimeWiringUsesOneSharedServiceGraph(t *testing.T) {
-	mainSource, err := os.ReadFile("main.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	source := string(mainSource)
+	source := readServerWiringSource(t)
 	for _, fragment := range []string{
 		"releaseCrewService := services.NewReleaseCrewService(dbPool, pointService)",
 		"repository.NewEpisodeVersionRepository(dbPool, releaseCrewService)",
@@ -29,15 +24,7 @@ func TestPhase108RuntimeWiringUsesOneSharedServiceGraph(t *testing.T) {
 }
 
 func TestPhase108RuntimeWiringRegistersEveryMutationOwner(t *testing.T) {
-	routes, err := os.ReadFile("admin_routes.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	mainSource, err := os.ReadFile("main.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	combined := string(routes) + string(mainSource)
+	combined := readServerWiringSource(t)
 	for _, fragment := range []string{
 		`PUT("/admin/release-versions/:versionId/contributions/effective"`,
 		`POST("/admin/fansubs/:id/anime/:animeId/contributions"`,

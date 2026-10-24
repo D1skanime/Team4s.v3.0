@@ -159,7 +159,9 @@ func TestProjectionHandlerHasNoEnvelope(t *testing.T) {
 }
 
 func TestProjectionRouteIsGetOnly(t *testing.T) {
-	content := readBackendSource(t, filepath.Join("cmd", "server", "main.go"))
+	// Phase 191-26: route registration for this path moved out of main.go into
+	// routes_public.go (registerPublicRoutesPart2) during the main.go file split.
+	content := readBackendSource(t, filepath.Join("cmd", "server", "routes_public.go"))
 	normalized := strings.ToLower(content)
 
 	route := "\"/fansubs/:id/domain-projection\""

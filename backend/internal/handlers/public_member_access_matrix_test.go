@@ -140,13 +140,14 @@ func (phase128RealProjectMemberLoader) ListReleases(context.Context, int64, int6
 }
 
 // newPhase128RealMatrixRouter builds a gin router registering the REAL production handler
-// methods behind the REAL cmd/server/main.go route paths (mirroring main.go:360-361,389-392
-// verbatim) and the REAL middleware.CommentAuthOptionalMiddlewareWithState constructor
-// (the exact function cmd/server/main.go:189 wires up on its non-Keycloak branch) -- not a
-// synthetic reimplementation. main.go has no single reusable route-registration function to
-// call directly (routes are registered inline in the startup sequence), so this test extracts
+// methods behind the REAL route paths registered in cmd/server/routes_public.go (Phase 191-26
+// moved these out of main.go into registerPublicRoutesPart1, mirrored verbatim here) and the
+// REAL middleware.CommentAuthOptionalMiddlewareWithState constructor (the exact function
+// cmd/server/wiring_catalog.go's bootstrapCatalog wires up on its non-Keycloak branch) -- not a
+// synthetic reimplementation. The production wiring has no single reusable route-registration
+// function callable in isolation outside of main()'s own startup sequence, so this test extracts
 // the minimal real call sequence: the real handler constructors, the real middleware
-// constructor, and the real route path strings, copied verbatim from main.go.
+// constructor, and the real route path strings, copied verbatim from the production wiring.
 func newPhase128RealMatrixRouter(t *testing.T, resolver *phase128RealAccessResolver) *gin.Engine {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
@@ -157,10 +158,10 @@ func newPhase128RealMatrixRouter(t *testing.T, resolver *phase128RealAccessResol
 	profileHandler := NewAppPublicProfileHandler(resolver, phase128RealProfileLoader{}, phase128RealProjectsLoader{})
 	projectMemberHandler := NewProjectMemberPublicHandler(resolver, phase128RealProjectMemberLoader{}, "")
 
-	// Mirrors cmd/server/main.go:360-361
+	// Mirrors cmd/server/routes_public.go (registerPublicRoutesPart1)
 	router.GET("/members/:slug", authOptionalMiddleware, profileHandler.GetPublicMemberProfile)
 	router.GET("/members/:slug/projects", authOptionalMiddleware, profileHandler.GetPublicMemberProjects)
-	// Mirrors cmd/server/main.go:389-392
+	// Mirrors cmd/server/routes_public.go (registerPublicRoutesPart1)
 	router.GET("/anime/:id/group/:groupId/members/:memberSlug", authOptionalMiddleware, projectMemberHandler.GetSummary)
 	router.GET("/anime/:id/group/:groupId/members/:memberSlug/notes", authOptionalMiddleware, projectMemberHandler.GetNotes)
 	router.GET("/anime/:id/group/:groupId/members/:memberSlug/media", authOptionalMiddleware, projectMemberHandler.GetMedia)
