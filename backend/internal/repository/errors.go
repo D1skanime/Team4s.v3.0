@@ -12,6 +12,13 @@ var ErrMemberProfileRequired = errors.New("member profile required")
 var ErrInvalidAnimeFansubContext = errors.New("invalid anime fansub context")
 var ErrInvalidReleaseVersionContributorContext = errors.New("invalid release version contributor context")
 
+// ErrInvalidReleaseVersionContext (D-31) wird zurückgegeben, wenn ein Client-seitig
+// angegebenes related_release_version_id entweder zu einem ANDEREN Projekt gehört als das
+// gleichzeitig übergebene related_anime_id, oder die Zielgruppe laut release_version_groups
+// gar nicht an diesem Release beteiligt ist -- derselbe ASVS-L1-Grundsatz wie
+// ErrInvalidAnimeFansubContext (D-23), nur eine Ebene tiefer (Release statt Projekt).
+var ErrInvalidReleaseVersionContext = errors.New("invalid release version context")
+
 // ErrGroupHasDependents (Phase 187, D-07/D-08) is returned when a
 // release-version-group removal is blocked because the removed group still
 // has real credit/media/note dependents. GroupHasDependentsError carries the

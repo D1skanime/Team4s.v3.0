@@ -68,8 +68,13 @@ func validatePhase191SchemaName(name string) error {
 // D-23 "gehört dieses Projekt tatsächlich zur Zielgruppe" check
 // (ensureHintAnimeFansubContext, called from CreateHint) needs a real join target to prove
 // the check is computed from anime_fansub_groups rather than trusted as a client-supplied
-// pairing. Finally applies the REAL migration 0188 file (D-09 schema cut) so every test
-// built on this fixture runs against the final, post-0188 schema.
+// pairing. Applies the REAL migration 0188 file (D-09 schema cut) so every test built on
+// this fixture runs against the post-0188 schema. Finally adds real-shaped episodes/
+// fansub_releases/release_version_groups stand-ins and widens the Phase-107 base layer's
+// minimal release_versions stand-in with release_id/version/title -- the D-31 release/anime/
+// group consistency check (ensureHintReleaseContext) and the D-34 release-label JOIN both
+// need real join targets with the real column shape, not just an opaque release_versions.id
+// -- then applies the REAL migration 0189 file (D-32 release-scoped unique index).
 func createPhase191Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 	t.Helper()
 	createPhase107Prerequisites(t, pool)
@@ -99,16 +104,37 @@ CREATE TABLE anime_fansub_groups (
     notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (anime_id, fansub_group_id)
+);
+CREATE TABLE episodes (
+    id BIGINT PRIMARY KEY,
+    anime_id BIGINT NOT NULL REFERENCES anime(id),
+    sort_index INT,
+    episode_number TEXT,
+    number_decimal DECIMAL(5,1),
+    title TEXT
+);
+CREATE TABLE fansub_releases (
+    id BIGINT PRIMARY KEY,
+    episode_id BIGINT NOT NULL REFERENCES episodes(id) ON DELETE CASCADE
+);
+ALTER TABLE release_versions ADD COLUMN release_id BIGINT NULL REFERENCES fansub_releases(id) ON DELETE CASCADE;
+ALTER TABLE release_versions ADD COLUMN version VARCHAR(20) NOT NULL DEFAULT 'v1';
+ALTER TABLE release_versions ADD COLUMN title TEXT NULL;
+CREATE TABLE release_version_groups (
+    release_version_id BIGINT NOT NULL REFERENCES release_versions(id) ON DELETE CASCADE,
+    fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
+    PRIMARY KEY (release_version_id, fansub_group_id)
 );`
 	if err := validatePhase106SQL(standInSQL); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := pool.Exec(context.Background(), standInSQL); err != nil {
-		t.Fatalf("create Phase-191 anime/hist_fansub_group_members/fansub_group_member_roles/anime_fansub_groups stand-ins: %v", err)
+		t.Fatalf("create Phase-191 anime/hist_fansub_group_members/fansub_group_member_roles/anime_fansub_groups/episodes/fansub_releases/release_version_groups stand-ins: %v", err)
 	}
 
 	ApplySQLFile(t, pool, phase191MigrationPath(t, "0187_fansub_group_hints.up.sql"))
 	ApplySQLFile(t, pool, phase191MigrationPath(t, "0188_fansub_group_hints_drop_membership_request.up.sql"))
+	ApplySQLFile(t, pool, phase191MigrationPath(t, "0189_fansub_group_hints_release_scope.up.sql"))
 }
 
 func phase191MigrationPath(t testing.TB, name string) string {
