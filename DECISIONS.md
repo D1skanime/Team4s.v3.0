@@ -1,5 +1,47 @@
 # DECISIONS
 
+## 2026-10-23 - Dritte Live-UAT-Nachbesserung: Projekt-Gruppen-Validierung, main.go- und CSS-Modul-Split
+
+### Decision
+Der dritte Live-UAT-Durchlauf von Plan 191-20 bis 191-24/Task 1+2 brachte einen echten,
+live reproduzierten Datenintegritäts-Bug (D-23) plus vier Nachzug-Punkte (D-24 bis D-28), die
+diese Runde abschließt. **D-23:** Der Server prüft vor dem Erzeugen eines Hinweises jetzt
+serverseitig, dass `(target_fansub_group_id, related_anime_id)` tatsächlich in
+`anime_fansub_groups` existiert — über den bereits bestehenden, exakt dafür gebauten Helfer
+`ensureAnimeFansubProjectContextExistsInDB`/`ErrInvalidAnimeFansubContext` wiederverwendet, statt
+jede clientseitig behauptete Paarung anzunehmen. **D-24:** Die beiden bekannten Fehl-Zeilen aus
+früheren UAT-Runden (Hinweis-ID 1, ASCII-Notiztext statt Umlaut; Hinweis-ID 4, die durch D-23 jetzt
+ungültige Gruppe-Projekt-Kombination) sind per echtem `DELETE FROM fansub_group_hints WHERE id IN
+(1, 4)` entfernt; die eigenen Live-Testdaten des Nutzers (IDs 2, 3, 5) bleiben für die Abnahme
+unverändert stehen. **D-25:** Jeder Phase-191-hinzugefügte Code-Kommentar, der bislang nur ein
+bloßer D-Tag-/Phasen-Verweis war, beschreibt jetzt zuerst die fachliche Regel, der D-Tag steht
+höchstens zusätzlich daneben — über die vollständige, per `git diff 72fc7c0f6..HEAD` ermittelte
+24-Datei-Liste geprüft. **D-26:** `backend/cmd/server/main.go` (738 Zeilen, dieser Phase größter
+eigener Verstoß gegen das 450-Zeilen-Limit) ist in mehrere gleichpaketige Dateien nach Fachbereich
+aufgeteilt, ohne jede Verhaltensänderung. **D-27:** `contributions.module.css` (902 Zeilen, von 12
+Dateien geteilt) ist in kleinere, komponenten- bzw. bereichsscoped CSS-Module aufgeteilt,
+pixelgleiche Optik. **D-28:** Diese Runde selbst erzwingt eine echte, nicht nur unit-getestete
+Vorabprüfung von D-23 (ein echter API-Aufruf, der die ungültige Kombination ablehnt UND ein
+zweiter, der eine gültige Kombination annimmt), eine dokumentierte Vorher-/Nachher-Löschung mit
+Snapshot für D-24, sowie eine echte Live-Sichtprüfung, dass die D-26/D-27-Struktur-Splits
+`/me/contributions`, `/admin/fansub-group-hints` und eine Fansub-Gruppen-Bearbeitungsseite optisch
+unverändert lassen.
+
+### Why This Won
+D-23 schloss eine reale, live reproduzierte Datenintegritätslücke (Hinweis-ID 4 verknüpfte eine
+Gruppe mit einem Projekt, das laut `anime_fansub_groups` nie zu ihr gehörte) — kein spekulativer
+Härtungsschritt, sondern ein tatsächlich beobachteter Fehlerfall. D-26/D-27 waren keine optionale
+Aufräumaktion: der Nutzer hat für genau diese beiden Dateien ausdrücklich jede 450-Zeilen-Ausnahme
+ausgeschlossen, anders als bei den dokumentierten Einzelfall-Ausnahmen früherer Phasen für andere
+Dateien.
+
+### Consequences
+Jede künftige Änderung an der `fansub_group_hints`-Erzeugung muss den
+`anime_fansub_groups`-Existenz-Check weiterhin durchlaufen — er darf nicht ersatzlos entfernt
+werden. `backend/cmd/server/` und `components/contributions/` folgen jetzt einem
+Mehrdatei-nach-Fachbereich-Muster, das künftige Ergänzungen in beiden Bereichen fortsetzen sollten,
+statt wieder in eine einzelne Datei zu kollabieren.
+
 ## 2026-10-23 - Zweite Live-UAT-Nachbesserung: Erfolgsansicht, Hinweise an fremde Gruppen sichtbar, Zeitraum erhalten
 
 ### Decision
