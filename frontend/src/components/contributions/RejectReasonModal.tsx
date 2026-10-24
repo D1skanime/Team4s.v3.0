@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { Button, FormField, Modal, Textarea } from '@/components/ui'
 import { ApiError } from '@/lib/api'
 
-import styles from './contributions.module.css'
+import styles from './RejectReasonModal.module.css'
 
 interface RejectReasonModalProps {
   open: boolean

@@ -9,7 +9,8 @@ import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type { MeAnimeContribution } from '@/types/contributions'
 
-import styles from './contributions.module.css'
+import styles from './AnimeGroupCard.module.css'
+import cardStyles from './ContributionCard.module.css'
 import { normalizeRoleCodes } from './contributionRoles'
 import { VisibilityDropdown } from './VisibilityDropdown'
 
@@ -272,7 +273,7 @@ export function AnimeGroupCard({
                     <strong>{entry.roleLabel}</strong>
                     <span>{entry.scopeLabel}</span>
                   </span>
-                  <div className={styles.actionsRow}>
+                  <div className={cardStyles.actionsRow}>
                     {entry.release_version_id !== null ? (
                       <Button
                         size="sm"

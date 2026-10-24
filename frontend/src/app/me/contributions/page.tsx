@@ -11,7 +11,7 @@ import {
   EMPTY_FILTER_STATE,
   type ContributionFilterState,
 } from '@/components/contributions/ContributionFilters'
-import styles from '@/components/contributions/contributions.module.css'
+import styles from './page.module.css'
 import { MyContributionsSection } from '@/components/contributions/MyContributionsSection'
 import { MyProposalsSection } from '@/components/contributions/MyProposalsSection'
 import { RejectReasonModal } from '@/components/contributions/RejectReasonModal'

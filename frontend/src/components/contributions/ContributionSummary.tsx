@@ -6,7 +6,8 @@ import { Button, Card } from '@/components/ui'
 import type { MeAnimeContribution } from '@/types/contributions'
 
 import { type ContributionFilterState, hasActiveFilters } from './ContributionFilters'
-import styles from './contributions.module.css'
+import cardStyles from './ContributionCard.module.css'
+import styles from './ContributionSummary.module.css'
 
 interface ContributionSummaryProps {
   contributions: MeAnimeContribution[]
@@ -86,7 +87,7 @@ export function ContributionSummary({
 
   return (
     <Card variant="section">
-      <div className={styles.actionsRow}>
+      <div className={cardStyles.actionsRow}>
         <Button
           variant="ghost"
           size="sm"
@@ -102,7 +103,7 @@ export function ContributionSummary({
         ) : null}
       </div>
       {open ? (
-        <div className={styles.inboxContainer}>
+        <div className={cardStyles.inboxContainer}>
           <ChipRow
             axisLabel="Gruppe"
             entries={Array.from(summary.byGroup.entries())}

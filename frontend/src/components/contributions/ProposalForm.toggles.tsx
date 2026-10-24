@@ -2,7 +2,7 @@
 
 import { Check } from 'lucide-react'
 
-import styles from './contributions.module.css'
+import styles from './RolePicker.module.css'
 
 export type GroupScope = 'own' | 'foreign'
 

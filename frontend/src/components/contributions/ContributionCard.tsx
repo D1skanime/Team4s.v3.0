@@ -5,7 +5,7 @@ import { ROLE_CATALOG_CHIP_CLASS, labelForRole, presentationForRole } from '@/li
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { MeAnimeContribution } from '@/types/contributions'
 
-import styles from './contributions.module.css'
+import styles from './ContributionCard.module.css'
 import { normalizeRoleCodes } from './contributionRoles'
 import { VisibilityDropdown } from './VisibilityDropdown'
 

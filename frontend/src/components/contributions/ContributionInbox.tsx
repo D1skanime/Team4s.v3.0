@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { Badge, Card, EmptyState, SectionHeader } from '@/components/ui'
 import type { MeAnimeContribution } from '@/types/contributions'
 
-import styles from './contributions.module.css'
+import styles from './ContributionCard.module.css'
 import { ContributionCard } from './ContributionCard'
 import { VisibilityDropdown } from './VisibilityDropdown'
 

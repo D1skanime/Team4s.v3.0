@@ -6,7 +6,7 @@ import { Card, EmptyState, SectionHeader } from '@/components/ui'
 import type { MeAnimeContribution } from '@/types/contributions'
 
 import { AnimeGroupCard } from './AnimeGroupCard'
-import styles from './contributions.module.css'
+import styles from './MyContributionsSection.module.css'
 
 interface MyContributionsSectionProps {
   /**

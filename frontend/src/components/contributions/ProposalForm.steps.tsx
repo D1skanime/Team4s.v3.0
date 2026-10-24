@@ -10,7 +10,8 @@ import type { FansubGroup } from '@/types/fansub'
 import type { GroupScope } from './ProposalForm.toggles'
 import { GroupScopeToggle } from './ProposalForm.toggles'
 import type { ProposalAnimeOption } from './ProposalForm.useSubmit'
-import styles from './contributions.module.css'
+import rolePickerStyles from './RolePicker.module.css'
+import styles from './ProposalForm.steps.module.css'
 
 export interface RoleDefinition {
   code: string
@@ -268,7 +269,7 @@ interface Step2Props {
 export function Step2Role({ roleDefinitions, selectedRoleCode, roleError, onSelectRole }: Step2Props) {
   return (
     <FormField label="Welche Rolle soll geprüft werden?" error={roleError ?? undefined} required>
-      <div role="radiogroup" aria-label="Rolle auswählen" className={styles.rolePicker}>
+      <div role="radiogroup" aria-label="Rolle auswählen" className={rolePickerStyles.rolePicker}>
         {roleDefinitions.map((role) => {
           const selected = selectedRoleCode === role.code
           return (
@@ -277,7 +278,7 @@ export function Step2Role({ roleDefinitions, selectedRoleCode, roleError, onSele
               type="button"
               role="radio"
               aria-checked={selected}
-              className={selected ? styles.roleChoiceActive : styles.roleChoice}
+              className={selected ? rolePickerStyles.roleChoiceActive : rolePickerStyles.roleChoice}
               onClick={() => onSelectRole(role.code)}
             >
               {selected ? <Check size={15} aria-hidden="true" /> : null}

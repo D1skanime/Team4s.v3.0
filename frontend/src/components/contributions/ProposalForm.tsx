@@ -15,7 +15,7 @@ import type { RoleDefinition } from './ProposalForm.steps'
 import type { GroupScope } from './ProposalForm.toggles'
 import { WIZARD_STEPS, useProposalFormSubmit } from './ProposalForm.useSubmit'
 import type { ProposalAnimeOption, SubmittedSummary, WizardStep } from './ProposalForm.useSubmit'
-import styles from './contributions.module.css'
+import styles from './ProposalForm.module.css'
 
 export type { RoleDefinition }
 

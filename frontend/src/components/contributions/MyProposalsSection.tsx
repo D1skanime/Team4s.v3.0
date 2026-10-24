@@ -11,7 +11,8 @@ import type { FansubGroupHint } from '@/types/fansub-group-hints'
 
 import { contributionRoleDefinitions } from './contributionRoles'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
-import styles from './contributions.module.css'
+import cardStyles from './ContributionCard.module.css'
+import styles from './MyProposalsSection.module.css'
 import { ProposalForm } from './ProposalForm'
 
 function readErrorMessage(error: unknown, fallback: string): string {
@@ -90,17 +91,17 @@ export function MyProposalsSection({ proposals, ownGroups, onReload, sentGroupHi
 
   function renderHintCard(hint: FansubGroupHint) {
     return (
-      <Card key={hint.id} variant="nestedFlat" className={styles.contributionCard}>
-        <div className={styles.contributionCardHeader}>
-          <div className={styles.contributionTitleRow}>
+      <Card key={hint.id} variant="nestedFlat" className={cardStyles.contributionCard}>
+        <div className={cardStyles.contributionCardHeader}>
+          <div className={cardStyles.contributionTitleRow}>
             <Badge variant={hintStatusVariant(hint.status)}>{hintStatusLabel(hint.status)}</Badge>
-            <span className={styles.contributionTitle}>{hint.target_fansub_group_name}</span>
+            <span className={cardStyles.contributionTitle}>{hint.target_fansub_group_name}</span>
           </div>
-          <span className={styles.metaText}>{hint.related_anime_title ?? `Anime #${hint.related_anime_id ?? '—'}`}</span>
+          <span className={cardStyles.metaText}>{hint.related_anime_title ?? `Anime #${hint.related_anime_id ?? '—'}`}</span>
         </div>
 
         {hint.status === 'rejected' && hint.decision_note ? (
-          <p className={styles.reviewNote}>
+          <p className={cardStyles.reviewNote}>
             <strong>Ablehngrund:</strong> {hint.decision_note}
           </p>
         ) : null}
@@ -110,14 +111,14 @@ export function MyProposalsSection({ proposals, ownGroups, onReload, sentGroupHi
 
   function renderProposalCard(contribution: MeAnimeContribution) {
     return (
-      <Card key={contribution.id} variant="nestedFlat" className={styles.contributionCard}>
-        <div className={styles.contributionCardHeader}>
-          <div className={styles.contributionTitleRow}>
+      <Card key={contribution.id} variant="nestedFlat" className={cardStyles.contributionCard}>
+        <div className={cardStyles.contributionCardHeader}>
+          <div className={cardStyles.contributionTitleRow}>
             <StatusBadge status={contribution.status} />
-            <span className={styles.contributionTitle}>{contributionTitle(contribution)}</span>
+            <span className={cardStyles.contributionTitle}>{contributionTitle(contribution)}</span>
           </div>
           {contribution.started_year || contribution.ended_year ? (
-            <span className={styles.metaText}>
+            <span className={cardStyles.metaText}>
               {contribution.started_year && contribution.ended_year
                 ? `${contribution.started_year}-${contribution.ended_year}`
                 : contribution.started_year
@@ -127,7 +128,7 @@ export function MyProposalsSection({ proposals, ownGroups, onReload, sentGroupHi
           ) : null}
         </div>
 
-        <div className={styles.roleList}>
+        <div className={cardStyles.roleList}>
           {contribution.role_codes.map((code, index) => (
             <Badge key={code} variant="info">
               {contributionRoleLabel(contribution, code, index)}
@@ -136,7 +137,7 @@ export function MyProposalsSection({ proposals, ownGroups, onReload, sentGroupHi
         </div>
 
         {contribution.status === 'disputed' && contribution.review_note ? (
-          <p className={styles.reviewNote}>
+          <p className={cardStyles.reviewNote}>
             <strong>Ablehngrund:</strong> {contribution.review_note}
           </p>
         ) : null}
@@ -146,7 +147,7 @@ export function MyProposalsSection({ proposals, ownGroups, onReload, sentGroupHi
             {selfPublishConfirming === contribution.id ? (
               <>
                 <span>Unverifizierter historischer Eintrag — wird öffentlich sichtbar.</span>
-                <div className={styles.actionsRow}>
+                <div className={cardStyles.actionsRow}>
                   <Button size="sm" variant="secondary" onClick={() => void handleSelfPublish(contribution.id)}>
                     Jetzt öffentlich schalten
                   </Button>

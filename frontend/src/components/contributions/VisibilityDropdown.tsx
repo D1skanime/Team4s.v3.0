@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { patchAnimeContributionVisibility } from '@/lib/api'
 
-import styles from './contributions.module.css'
+import styles from './VisibilityDropdown.module.css'
 
 interface VisibilityDropdownProps {
   contributionId: number
