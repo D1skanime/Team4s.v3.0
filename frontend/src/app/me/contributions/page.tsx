@@ -81,10 +81,10 @@ export default function MyContributionsPage() {
         return
       }
 
-      // D-18: eigene gesendete fansub_group_hints laden sich parallel zu den bestehenden
+      // Eigene gesendete fansub_group_hints laden sich parallel zu den bestehenden
       // anime_contributions-Vorschlaegen -- ein Fehler hier (z. B. Netzwerk) darf die
       // uebrige Seite nicht blockieren, deshalb derselbe .catch()-Fallback wie bei
-      // getMyMemberships.
+      // getMyMemberships (D-18).
       const [response, membershipsResponse, groupHintsResponse] = await Promise.all([
         getMyAnimeContributions(),
         getMyMemberships().catch(() => ({ data: [] as MembershipEntry[] })),

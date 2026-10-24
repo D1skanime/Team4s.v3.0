@@ -40,10 +40,10 @@ interface ProposalFormProps {
   /** anime_contribution-Kontext-Rollen (Step2Role) — unverändert. */
   roleDefinitions: RoleDefinition[]
   /**
-   * D-12: wenn gesetzt, kennt der Wizard Zielgruppe und Projekt bereits aus dem
+   * Wenn gesetzt, kennt der Wizard Zielgruppe und Projekt bereits aus dem
    * aufrufenden Seiten-Context und löst beides SYNCHRON aus dieser Prop auf -- Schritt 1
    * ("Gruppe & Projekt") wird dadurch komplett übersprungen, der Wizard startet direkt bei
-   * Schritt 2 ("Rolle"). Bewusst wird dafür NICHT die Gruppensuche/Projekt-Lade-Maschinerie
+   * Schritt 2 ("Rolle") (D-12). Bewusst wird dafür NICHT die Gruppensuche/Projekt-Lade-Maschinerie
    * der interaktiven Auswahl (foreignSearch/loadGroupAnime) angestoßen: diese bräuchte bei
    * einer Fremdgruppe einen Slug (getPublicFansubProfileBySlug, D-10), den dieser
    * Einstiegspunkt nicht hat und auch nicht braucht, weil das Projekt bereits bekannt ist.
@@ -86,8 +86,8 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
     () => ownGroups.find((group) => group.fansub_group_id === selectedGroupId) ?? null,
     [ownGroups, selectedGroupId],
   )
-  // D-12: bei vorausgewähltem Einstieg ist die Zielgruppe bereits aus der Prop bekannt --
-  // own/foreign-Herleitung über selectedOwnGroup/foreignGroup entfällt für diesen Pfad.
+  // Bei vorausgewähltem Einstieg ist die Zielgruppe bereits aus der Prop bekannt --
+  // own/foreign-Herleitung über selectedOwnGroup/foreignGroup entfällt für diesen Pfad (D-12).
   const activeGroupId = prefill
     ? prefill.fansubGroupId
     : groupScope === 'own' ? selectedOwnGroup?.fansub_group_id : foreignGroup?.id
@@ -104,10 +104,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
     () => roleDefinitions.find((role) => role.code === selectedRoleCode) ?? null,
     [roleDefinitions, selectedRoleCode],
   )
-  // D-12 (191-UI-SPEC.md Contract D4): bei vorausgewähltem Einstieg wird Schritt 1 nie
+  // Bei vorausgewähltem Einstieg wird Schritt 1 nie
   // gemountet -- der Fortschrittsbalken zeigt deshalb nur die verbleibenden 2 Segmente
   // (Rolle, Hinweis & Zeitraum) statt 3, und "Schritt X von Y" zählt relativ zu dieser
-  // verkürzten Liste (step 2 ⇒ Position 1, step 3 ⇒ Position 2).
+  // verkürzten Liste (step 2 ⇒ Position 1, step 3 ⇒ Position 2) (D-12, 191-UI-SPEC.md Contract D4).
   const visibleSteps = useMemo(() => (prefill ? WIZARD_STEPS.slice(1) : WIZARD_STEPS), [prefill])
   const progressPosition = prefill ? step - 1 : step
   const progressTotal = visibleSteps.length
@@ -144,10 +144,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
     let cancelled = false
 
     async function loadGroupAnime() {
-      // D-12: bei vorausgewähltem Einstieg ist das Projekt bereits über prefill.animeId
+      // Bei vorausgewähltem Einstieg ist das Projekt bereits über prefill.animeId
       // bekannt (siehe selectedAnime oben) -- hier darf keine Liste geladen und
       // selectedAnimeId darf NICHT zurückgesetzt werden, sonst würde die bereits korrekt
-      // gesetzte Vorauswahl durch diesen Effekt wieder verworfen.
+      // gesetzte Vorauswahl durch diesen Effekt wieder verworfen (D-12).
       if (prefill || !activeGroupId) {
         setGroupAnime([])
         if (!prefill) setSelectedAnimeId('')
@@ -280,9 +280,9 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
       const summary = await submitHint({
         groupScope,
         ownGroup: groupScope === 'own' ? selectedOwnGroup : null,
-        // D-12: bei vorausgewähltem Einstieg ist die Zielgruppe nur als schmales
+        // Bei vorausgewähltem Einstieg ist die Zielgruppe nur als schmales
         // PrefillTargetGroup ({id, name}) bekannt, nicht als volles FansubGroup mit Slug --
-        // useProposalFormSubmit liest davon ohnehin nur .id/.name (siehe Typ-Kommentar dort).
+        // useProposalFormSubmit liest davon ohnehin nur .id/.name (siehe Typ-Kommentar dort) (D-12).
         foreignGroup: groupScope === 'foreign'
           ? (prefill ? { id: prefill.fansubGroupId, name: prefill.fansubGroupName } : foreignGroup)
           : null,
@@ -309,9 +309,9 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
     </div>
   ) : (
     <div className={styles.wizardFooterActions}>
-      {/* D-12: bei vorausgewähltem Einstieg ist Schritt 1 nie gemountet (step startet bei
+      {/* Bei vorausgewähltem Einstieg ist Schritt 1 nie gemountet (step startet bei
           2) -- "Zurück" darf deshalb erst ab Schritt 3 erscheinen, nicht schon auf der
-          ersten für diesen Flow sichtbaren Stufe (Schritt 2). */}
+          ersten für diesen Flow sichtbaren Stufe (Schritt 2) (D-12). */}
       {(prefill ? step > 2 : step > 1) ? (
         <Button type="button" variant="secondary" onClick={goBack}>
           Zurück
@@ -363,8 +363,8 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
       ) : (
         <>
           {prefill ? (
-            // D-12 (Contract D4): gleicht die durch das Überspringen von Schritt 1
-            // fehlende Orientierung aus -- nicht editierbar, reine Kontext-Angabe.
+            // Gleicht die durch das Überspringen von Schritt 1
+            // fehlende Orientierung aus -- nicht editierbar, reine Kontext-Angabe (D-12, Contract D4).
             <p style={{ margin: 0, fontSize: 14, fontWeight: 400, color: 'var(--text-muted)' }}>
               Du meldest einen Fehler zu {prefill.animeTitle} bei {prefill.fansubGroupName}.
             </p>

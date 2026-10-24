@@ -45,8 +45,8 @@ interface MyProposalsSectionProps {
   proposals: MeAnimeContribution[]
   ownGroups: MembershipEntry[]
   onReload: () => void
-  /** D-18: eigene gesendete fansub_group_hints (eigene UND fremde Zielgruppe, alle Status) --
-   *  zweite, unabhaengige Datenquelle neben den anime_contributions-Vorschlaegen oben. */
+  /** Eigene gesendete fansub_group_hints (eigene UND fremde Zielgruppe, alle Status) --
+   *  zweite, unabhaengige Datenquelle neben den anime_contributions-Vorschlaegen oben (D-18). */
   sentGroupHints: FansubGroupHint[]
 }
 
@@ -84,9 +84,9 @@ export function MyProposalsSection({ proposals, ownGroups, onReload, sentGroupHi
   const inPruefung = proposals.filter((contribution) => contribution.status === 'proposed')
   const bestaetigt = proposals.filter((contribution) => contribution.status === 'confirmed')
   const abgelehnt = proposals.filter((contribution) => contribution.status === 'disputed')
-  // D-18: die Kopfzeile "Eingereichte Hinweise (n)" zaehlt beide unabhaengigen
+  // Die Kopfzeile "Eingereichte Hinweise (n)" zaehlt beide unabhaengigen
   // Datenquellen zusammen -- eigene anime_contributions-Vorschlaege UND gesendete
-  // fansub_group_hints, egal an welche Zielgruppe.
+  // fansub_group_hints, egal an welche Zielgruppe (D-18).
   const total = proposals.length + sentGroupHints.length
 
   function renderHintCard(hint: FansubGroupHint) {
