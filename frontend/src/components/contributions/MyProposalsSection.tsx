@@ -98,6 +98,11 @@ export function MyProposalsSection({ proposals, ownGroups, onReload, sentGroupHi
             <span className={cardStyles.contributionTitle}>{hint.target_fansub_group_name}</span>
           </div>
           <span className={cardStyles.metaText}>{hint.related_anime_title ?? `Anime #${hint.related_anime_id ?? '—'}`}</span>
+          {/* D-34 (Plan 191-36): das Release, auf das sich der Hinweis bezieht (optional --
+              "Release: null" darf hier nie erscheinen), server-berechnet aus Plan 191-32. */}
+          {hint.related_release_label ? (
+            <span className={cardStyles.metaText}>Release: {hint.related_release_label}</span>
+          ) : null}
         </div>
 
         {hint.status === 'rejected' && hint.decision_note ? (
@@ -125,6 +130,13 @@ export function MyProposalsSection({ proposals, ownGroups, onReload, sentGroupHi
                   ? `ab ${contribution.started_year}`
                   : `bis ${contribution.ended_year}`}
             </span>
+          ) : null}
+          {/* D-34 (Plan 191-36): schemafrei -- episode_number existiert bereits auf
+              MeAnimeContribution (Episoden-Beitraege aus einer frueheren Phase), wurde hier
+              bisher nur nie angezeigt. Anime-weite Beitraege (episode_number null) bleiben
+              unveraendert ohne diese Zeile. */}
+          {contribution.episode_number ? (
+            <span className={cardStyles.metaText}>Episode {contribution.episode_number}</span>
           ) : null}
         </div>
 

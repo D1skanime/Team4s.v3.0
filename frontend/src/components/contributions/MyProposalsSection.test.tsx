@@ -206,3 +206,65 @@ describe('MyProposalsSection — gesendete Fremd-Gruppen-Hinweise (D-18)', () =>
     expect(screen.queryByText(/in der du Mitglied bist/)).toBeNull()
   })
 })
+
+// D-34 (Plan 191-36): das vom Backend (Plan 191-32) berechnete Release-Label eines
+// gesendeten Hinweises muss fuer den Absender sichtbar sein -- UND die unabhaengige,
+// schemafreie Episodenangabe des bestehenden Eigengruppen-Vorschlagspfads
+// (anime_contributions.episode_number, nicht zu verwechseln mit related_release_label).
+describe('MyProposalsSection — Release-/Episoden-Kontext (D-34)', () => {
+  it('renderHintCard zeigt das Release-Label, wenn related_release_label gesetzt ist', () => {
+    renderSection([], [], vi.fn(), [
+      makeHint({ related_release_label: 'Episode 12 — Foo · v2' }),
+    ])
+
+    expect(screen.getByText(/Episode 12 — Foo · v2/)).toBeTruthy()
+  })
+
+  it('renderHintCard zeigt KEINE Release-Zeile, wenn related_release_label null ist', () => {
+    renderSection([], [], vi.fn(), [makeHint({ related_release_label: null })])
+
+    expect(screen.queryByText(/Release:/)).toBeNull()
+  })
+
+  it('renderProposalCard zeigt "Episode 12", wenn contribution.episode_number gesetzt ist', () => {
+    renderSection(
+      [],
+      [
+        {
+          id: 1,
+          anime_id: 1,
+          anime_title: 'Anime A',
+          fansub_group_id: 1,
+          fansub_group_name: 'Gruppe A',
+          status: 'proposed',
+          role_codes: ['translator'],
+          is_own_proposal: true,
+          episode_number: '12',
+        } as unknown as MeAnimeContribution,
+      ],
+    )
+
+    expect(screen.getByText('Episode 12')).toBeTruthy()
+  })
+
+  it('renderProposalCard zeigt KEINE Episodenzeile, wenn episode_number null/fehlt (anime-weiter Beitrag)', () => {
+    renderSection(
+      [],
+      [
+        {
+          id: 1,
+          anime_id: 1,
+          anime_title: 'Anime A',
+          fansub_group_id: 1,
+          fansub_group_name: 'Gruppe A',
+          status: 'proposed',
+          role_codes: ['translator'],
+          is_own_proposal: true,
+          episode_number: null,
+        } as unknown as MeAnimeContribution,
+      ],
+    )
+
+    expect(screen.queryByText(/^Episode /)).toBeNull()
+  })
+})
