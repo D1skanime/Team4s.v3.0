@@ -2991,7 +2991,7 @@ Punkte/Badges für den Hinweis selbst, kein eigenes Recht. `backend/cmd/server/m
 191-CONTEXT.md (D-09 ersetzt/streicht Teile von D-01/D-06/D-07), siehe jeweiliges
 Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 26/31 plans executed
+**Plans:** 27/31 plans executed
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -3024,4 +3024,4 @@ Plans:
 - [x] 191-28-PLAN.md — Frontend: D-25-Sweep Admin-/Review-Oberflaeche (5 Dateien)
 - [x] 191-29-PLAN.md — Frontend: D-25-Sweep oeffentliche/Mitglieder-Oberflaeche (8 Dateien)
 - [ ] 191-30-PLAN.md — Phasenabschluss vierte Nachbesserung: D-23/D-24-Vorabpruefung (echter API-Check + Loeschung), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
-- [ ] 191-31-PLAN.md — Frontend: D-27 Import-Repointing der 12 CSS-Modul-Verbraucher + Doku-Update + D-25-Sweep (page.tsx, MyProposalsSection.tsx, ProposalForm.tsx, ProposalForm.steps.tsx)
+- [x] 191-31-PLAN.md — Frontend: D-27 Import-Repointing der 12 CSS-Modul-Verbraucher + Doku-Update + D-25-Sweep (page.tsx, MyProposalsSection.tsx, ProposalForm.tsx, ProposalForm.steps.tsx)

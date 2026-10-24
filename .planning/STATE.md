@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-29-PLAN.md
-last_updated: "2026-10-24T01:30:00.000Z"
+stopped_at: Completed 191-31-PLAN.md
+last_updated: "2026-10-24T01:53:08.015Z"
 last_activity: 2026-10-24
 progress:
   total_phases: 56
@@ -1530,6 +1530,9 @@ Last activity: 2026-10-24
 - [Phase 191-27]: contributions.module.css (902 Zeilen) nach dem im Plan vorgegebenen, als autoritativ markierten Class-zu-Datei-Mapping in 11 (statt der im Plan-Prosatext abweichend genannten 10) komponentenbezogene CSS-Module gesplittet (D-27); kombinierte Selektoren in eigenstaendige Regeln aufgeloest, metaText bewusst dupliziert; D-25-Kommentar-Sweep fuer die 3 bestaetigten Phase-191-Kommentarbloecke abgeschlossen; Import-Repoint der 12 Verbraucher-Dateien folgt in 191-31
 - [Phase 191-28]: D-25-Sweep fuer die letzten 5 Admin/Leader-Review-Dateien (Hinweise ohne Leitung) per git-diff 72fc7c0f6..HEAD geprueft -- alle D-Tag-Bezuege waren bereits fact-first mit Tag als Nebenverweis, keine Codeaenderung noetig (gleiches Null-Befund-Ergebnis wie 191-25 Task 2)
 - [Phase 191-29]: D-25-Sweep fuer die letzten 8 Member-/oeffentlichen Hinweis-Dateien -- 6 Dateien hatten einen bare-D-NN-Lead-Kommentar und wurden auf fact-first mit D-Tag als trailing Nebenverweis umgestellt (Muster aus D-21/Plan 191-21), 2 Dateien (fansub-group-hints.ts API-Client, types/fansub-group-hints.ts) waren bereits konform
+- [Phase 191-31]: D-25-Sweep fuer page.tsx/MyProposalsSection.tsx/ProposalForm.tsx folgte der im Plan autoritativ markierten Fundstellenliste, keine eigenstaendige Erweiterung
+- [Phase 191-31]: Pre-existing repo-weite Lint-Fehler und ein in Isolation gruener Flaky-Test wurden in deferred-items.md dokumentiert statt repariert (Scope-Boundary-Regel)
+- [Phase 191-31]: Voller Test-/Typecheck-Lauf wurde im team4sv30-frontend-Container wiederholt, da Host-Testfehler auf Container-interne, vom Host nicht aufloesbare Pfade zurueckgingen
 
 ### Pending Todos
 
@@ -2282,11 +2285,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P27 | 20min | 1 tasks | 12 files |
 | Phase 191 P28 | 20min | 1 tasks | 0 files |
 | Phase 191 P29 | ~10min | 1 tasks | 6 files |
+| Phase 191 P31 | ~55min | 2 tasks | 14 files |
 
 ## Session Continuity
 
-Last session: 2026-10-24T01:30:00.000Z
-Stopped at: Completed 191-29-PLAN.md
+Last session: 2026-10-24T01:53:07.983Z
+Stopped at: Completed 191-31-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
