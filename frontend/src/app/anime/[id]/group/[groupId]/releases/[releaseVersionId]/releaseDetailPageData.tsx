@@ -116,6 +116,10 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       groupID={groupID}
       canonicalProjectPath={canonicalProjectPath}
       animeLogoFallbackUrl={animeLogoFallbackUrl}
+      // D-30 (Plan 191-35, Bugfix): animeTitle wird oben bereits ueber getAnimeByID geladen,
+      // aber nie an ReleaseDetailHero durchgereicht -- dessen "Fehler melden"-Einstieg zeigte
+      // deshalb faelschlich den Episode-/Release-Titel statt des echten Projekttitels.
+      animeTitle={animeTitle}
     />
     <ReleaseNotesList animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialNotes={detail.notes} totalCount={detail.notes_count} groups={detail.groups} />
     <section className={styles.storyStage} data-release-atmosphere-band="true">

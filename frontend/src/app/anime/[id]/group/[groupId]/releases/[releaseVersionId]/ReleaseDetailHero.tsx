@@ -8,7 +8,7 @@ import { ReleaseVersionSwitcher } from './ReleaseVersionSwitcher'
 import styles from './page.module.css'
 
 type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
-  'episode_number' | 'episode_title' | 'title' | 'version' | 'groups' |
+  'release_version_id' | 'episode_number' | 'episode_title' | 'title' | 'version' | 'groups' |
   'duration_seconds' | 'resolution' | 'container' | 'video_codec' | 'audio_codec' |
   'audio_language' | 'subtitle_tracks' | 'subtitle_type' |
   'preview_image' | 'previous' | 'next' | 'other_releases'> & {
@@ -16,7 +16,28 @@ type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
     groupID: number
     canonicalProjectPath?: string | null
     animeLogoFallbackUrl: string | null
+    /**
+     * D-30 (Plan 191-35, Bugfix): der echte Projekttitel aus releaseDetailPageData.tsx's
+     * bereits geladener getAnimeByID-Abfrage -- null nur bei deren Metadaten-Ladefehler.
+     * Ohne diese Prop fiel "Fehler melden" bisher faelschlich auf den Episode-/Release-Titel
+     * zurueck, obwohl der Hinweis sich fachlich auf das PROJEKT bezieht, nicht die Episode.
+     */
+    animeTitle: string | null
   }
+
+/**
+ * D-30 (Plan 191-35): lesbares Label fuer die konkrete, auf dieser Seite gezeigte Release-ID,
+ * mit der "Fehler melden" den Hinweis vorausgewaehlt -- Format "Episode {Nummer} — {Titel}",
+ * optional um " · {Version}" ergaenzt. Eine leere Versionsangabe haengt NIE einen leeren
+ * " · "-Trenner an (kein "Episode 12 — Schnee · ").
+ */
+function buildRelatedReleaseLabel(
+  props: Pick<ReleaseDetailHeroProps, 'episode_number' | 'episode_title' | 'title' | 'version'>,
+): string {
+  const base = `Episode ${props.episode_number} — ${props.episode_title ?? props.title}`
+  const version = props.version.trim()
+  return version ? `${base} · ${version}` : base
+}
 
 export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
   const image = props.preview_image
@@ -70,7 +91,12 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
               fansubGroupId={props.groupID}
               fansubGroupName={props.groups[0].name}
               animeId={props.animeID}
-              animeTitle={props.episode_title ?? props.title}
+              // D-30 (Plan 191-35): der echte Projekttitel -- der bisherige Fallback
+              // (episode_title ?? title) war der Bug und bleibt nur noch als Fallback fuer
+              // den Fall, dass die Projekt-Metadaten dieser Seite nicht geladen werden konnten.
+              animeTitle={props.animeTitle ?? props.episode_title ?? props.title}
+              relatedReleaseVersionId={props.release_version_id}
+              relatedReleaseLabel={buildRelatedReleaseLabel(props)}
             />
           </div>
         ) : null}
