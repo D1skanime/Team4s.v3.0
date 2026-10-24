@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-33-PLAN.md
-last_updated: "2026-10-24T11:46:27.538Z"
+stopped_at: Completed 191-34-PLAN.md
+last_updated: "2026-10-24T12:10:46.356Z"
 last_activity: 2026-10-24
 progress:
   total_phases: 56
   completed_phases: 50
   total_plans: 530
-  completed_plans: 519
+  completed_plans: 521
   percent: 89
 ---
 
@@ -438,8 +438,10 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 191 (hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen) — EXECUTING
-Plan: 10 of 10
-Status: Phase complete — ready for verification
+Plan: 34 (fünfte Gap-Closure-Runde, 37 Pläne total laut ROADMAP.md, 31 SUMMARYs)
+Status: 191-34 abgeschlossen (D-29 Release-Select im Wizard own/foreign, D-33 release-/
+projektbezogene 409-Meldung) — weitere Gap-Closure-Pläne (191-35 Kontext-Einstieg, 191-36
+Anzeige-Spalten) stehen noch aus, Phase ist NICHT fertig für Verifikation
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
 Vorher/Nachher-Screenshot-Manifest (/tmp/shots/184-10/{before,after}/, 15/18 Paare byte-identisch).
 Abschlussbericht (182-01..04, D-01..D-04 alle erfüllt, Live-Checkpoint vom Nutzer bestätigt).
@@ -1536,6 +1538,8 @@ Last activity: 2026-10-24
 - [Phase 191-31]: Pre-existing repo-weite Lint-Fehler und ein in Isolation gruener Flaky-Test wurden in deferred-items.md dokumentiert statt repariert (Scope-Boundary-Regel)
 - [Phase 191-31]: Voller Test-/Typecheck-Lauf wurde im team4sv30-frontend-Container wiederholt, da Host-Testfehler auf Container-interne, vom Host nicht aufloesbare Pfade zurueckgingen
 - [Phase 191]: CursorPage<T> liefert items statt data -- vor Implementierung gegen releaseDetail.ts verifiziert
+- [Phase 191-34]: ProposalForm.useGroupAnime.ts als eigener, verhaltensneutraler Umbau-Commit VOR dem Release-Feature-Commit extrahiert, weil die Plan-Kontingenz (Props-Objekt) allein nicht ausreichte, um unter dem 450-Zeilen-Limit zu bleiben (471 Zeilen blieben ueber dem Limit)
+- [Phase 191-34]: Beim vorausgewaehlten Kontext-Einstieg (prefill, D-12) bleiben animeId/groupId der Release-Auswahl bewusst null, damit keine ungenutzte Netzwerkanfrage entsteht -- Plan 191-35 verdrahtet dort eine eigene Instanz
 
 ### Pending Todos
 
@@ -2291,11 +2295,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P31 | ~55min | 2 tasks | 14 files |
 | Phase 191 P32 | ~55min | 3 tasks | 12 files |
 | Phase 191 P33 | 25min | 2 tasks | 6 files |
+| Phase 191 P34 | 70min | 2 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-10-24T11:46:27.513Z
-Stopped at: Completed 191-33-PLAN.md
+Last session: 2026-10-24T12:10:46.325Z
+Stopped at: Completed 191-34-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None

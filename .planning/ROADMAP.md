@@ -2991,7 +2991,7 @@ Punkte/Badges für den Hinweis selbst, kein eigenes Recht. `backend/cmd/server/m
 191-CONTEXT.md (D-09 ersetzt/streicht Teile von D-01/D-06/D-07), siehe jeweiliges
 Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 29/37 plans executed
+**Plans:** 30/37 plans executed
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -3027,7 +3027,7 @@ Plans:
 - [x] 191-31-PLAN.md — Frontend: D-27 Import-Repointing der 12 CSS-Modul-Verbraucher + Doku-Update + D-25-Sweep (page.tsx, MyProposalsSection.tsx, ProposalForm.tsx, ProposalForm.steps.tsx)
 - [x] 191-32-PLAN.md — Backend: D-31 Release-Validierung (ensureHintReleaseContext) + D-32 Migration 0189 (Release-Doppel-Hinweis-Schutz) + D-33 dynamische 409-Meldung + D-34 Release-Spalten in allen Lesepfaden
 - [x] 191-33-PLAN.md — Frontend: Typen-Spiegel (related_release_version_id/related_release_label) + useProposalFormReleaseOptions-Hook (D-29-Grundlage)
-- [ ] 191-34-PLAN.md — Frontend: ProposalReleaseSelect-Komponente + Formular-Wizard-Verdrahtung beider Sende-Pfade + D-33-Frontend-Konfliktmeldung (D-29/D-33)
+- [x] 191-34-PLAN.md — Frontend: ProposalReleaseSelect-Komponente + Formular-Wizard-Verdrahtung beider Sende-Pfade + D-33-Frontend-Konfliktmeldung (D-29/D-33)
 - [ ] 191-35-PLAN.md — Frontend: D-30 Bugfix (echter Projekttitel + Release-Vorauswahl auf der Release-Seite, ProposalFormPrefill-Erweiterung)
 - [ ] 191-36-PLAN.md — Frontend: D-34 Release-Anzeige in allen drei Hinweis-Listen + schemafreie Episodenanzeige beim Eigengruppen-Pfad
 - [ ] 191-37-PLAN.md — Phasenabschluss fuenfte Nachbesserung: D-36-Vorabpruefung (echter API-Check + D-35-Loeschung), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
