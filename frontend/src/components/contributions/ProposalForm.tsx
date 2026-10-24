@@ -1,11 +1,10 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
 import { Button, Modal } from '@/components/ui'
-import { getAdminFansubAnime, getPublicFansubProfileBySlug } from '@/lib/api'
 import { useFansubGroupSearch } from '@/hooks/useFansubGroupSearch'
 import type { FansubGroup } from '@/types/fansub'
 import type { MembershipEntry } from '@/types/contributions'
@@ -13,8 +12,9 @@ import type { MembershipEntry } from '@/types/contributions'
 import { Step1GroupProject, Step2Role, Step3NoteRange } from './ProposalForm.steps'
 import type { RoleDefinition } from './ProposalForm.steps'
 import type { GroupScope } from './ProposalForm.toggles'
+import { useProposalFormGroupAnime } from './ProposalForm.useGroupAnime'
 import { WIZARD_STEPS, useProposalFormSubmit } from './ProposalForm.useSubmit'
-import type { ProposalAnimeOption, SubmittedSummary, WizardStep } from './ProposalForm.useSubmit'
+import type { SubmittedSummary, WizardStep } from './ProposalForm.useSubmit'
 import styles from './ProposalForm.module.css'
 
 export type { RoleDefinition }
@@ -66,10 +66,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
     return match ? match.fansub_group_id : ''
   })
   const [foreignGroup, setForeignGroup] = useState<FansubGroup | null>(null)
-  const [selectedAnimeId, setSelectedAnimeId] = useState<number | ''>(() => (prefill ? prefill.animeId : ''))
-  const [groupAnime, setGroupAnime] = useState<ProposalAnimeOption[]>([])
-  const [isLoadingGroupAnime, setIsLoadingGroupAnime] = useState(false)
-  const [groupAnimeError, setGroupAnimeError] = useState<string | null>(null)
   const [selectedRoleCode, setSelectedRoleCode] = useState('')
   const [note, setNote] = useState('')
   const [startedYear, setStartedYear] = useState('')
@@ -95,6 +91,15 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
     ? prefill.fansubGroupName
     : groupScope === 'own' ? selectedOwnGroup?.group_name ?? null : foreignGroup?.name ?? null
   const hasActiveGroup = activeGroupId != null
+
+  const { selectedAnimeId, setSelectedAnimeId, groupAnime, setGroupAnime, isLoadingGroupAnime, groupAnimeError } =
+    useProposalFormGroupAnime({
+      activeGroupId,
+      groupScope,
+      foreignGroup,
+      hasPrefill: Boolean(prefill),
+      initialAnimeId: prefill ? prefill.animeId : '',
+    })
 
   const selectedAnime = useMemo(() => {
     if (prefill) return { id: prefill.animeId, title: prefill.animeTitle }
@@ -139,60 +144,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
   // ausgeschlossen, weil dieser Pfad fuer "Eigene Gruppe" bereits existiert (191-UI-SPEC.md A3).
   const excludeOwnGroupIds = useMemo(() => ownGroups.map((group) => group.fansub_group_id), [ownGroups])
   const foreignSearch = useFansubGroupSearch({ excludeIds: excludeOwnGroupIds })
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadGroupAnime() {
-      // Bei vorausgewähltem Einstieg ist das Projekt bereits über prefill.animeId
-      // bekannt (siehe selectedAnime oben) -- hier darf keine Liste geladen und
-      // selectedAnimeId darf NICHT zurückgesetzt werden, sonst würde die bereits korrekt
-      // gesetzte Vorauswahl durch diesen Effekt wieder verworfen (D-12).
-      if (prefill || !activeGroupId) {
-        setGroupAnime([])
-        if (!prefill) setSelectedAnimeId('')
-        setGroupAnimeError(null)
-        return
-      }
-
-      try {
-        setIsLoadingGroupAnime(true)
-        setGroupAnimeError(null)
-        setSelectedAnimeId('')
-        // Bei "Andere Gruppe" hat der Absender keine Mitgliedschaft in der Zielgruppe -- der
-        // admin-gescopte Endpunkt setzt genau diese Mitgliedschaft voraus und liefert ohne sie
-        // 403 (D-10). Die oeffentliche Profil-Quelle (dieselbe, die /fansubs/<slug> fuer anonyme
-        // Besucher bedient) hat keinen Mitgliedschafts-Check und zeigt exakt die oeffentlich
-        // sichtbaren Projekte der Gruppe. Bei "Eigene Gruppe" bleibt der Admin-Endpunkt
-        // unveraendert, dort besteht die Mitgliedschaft tatsaechlich.
-        if (groupScope === 'foreign') {
-          if (!foreignGroup) {
-            if (!cancelled) setGroupAnime([])
-            return
-          }
-          const response = await getPublicFansubProfileBySlug(foreignGroup.slug)
-          if (!cancelled) {
-            setGroupAnime(response.data.projects.map((project) => ({ id: project.id, title: project.title })))
-          }
-        } else {
-          const response = await getAdminFansubAnime(activeGroupId)
-          if (!cancelled) setGroupAnime(response.data)
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setGroupAnime([])
-          setGroupAnimeError(loadError instanceof Error ? loadError.message : 'Anime/Projekte konnten nicht geladen werden.')
-        }
-      } finally {
-        if (!cancelled) setIsLoadingGroupAnime(false)
-      }
-    }
-
-    void loadGroupAnime()
-    return () => {
-      cancelled = true
-    }
-  }, [activeGroupId, groupScope, foreignGroup, prefill])
 
   function resetAndClose() {
     setStep(1)
