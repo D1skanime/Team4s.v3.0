@@ -28,11 +28,12 @@ vi.mock('@/lib/api', () => ({
   getGroupReleaseDetail: mocks.getGroupReleaseDetail,
 }))
 vi.mock('./ReleaseDetailHero', () => ({
-  ReleaseDetailHero: ({ next, animeID, groupID, canonicalProjectPath }: {
+  ReleaseDetailHero: ({ next, animeID, groupID, canonicalProjectPath, animeTitle }: {
     next: { release_version_id: number } | null
     animeID: number
     groupID: number
     canonicalProjectPath?: string | null
+    animeTitle: string | null
   }) => (
     <section
       data-testid="release-hero"
@@ -40,6 +41,7 @@ vi.mock('./ReleaseDetailHero', () => ({
       data-anime-id={animeID}
       data-group-id={groupID}
       data-canonical-project-path={canonicalProjectPath ?? ''}
+      data-anime-title={animeTitle ?? ''}
     >Hero</section>
   ),
 }))
@@ -137,6 +139,10 @@ describe('ReleaseDetailPageContent Phase 105 composition', () => {
     expect(screen.getByTestId('release-hero').getAttribute('data-anime-id')).toBe('9')
     expect(screen.getByTestId('release-hero').getAttribute('data-group-id')).toBe('4')
     expect(screen.getByTestId('release-hero').getAttribute('data-canonical-project-path')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed')
+    // D-30 (Plan 191-35, Bugfix): animeTitle wurde hier schon immer geladen (getAnimeByID),
+    // aber nie an ReleaseDetailHero durchgereicht -- dieser Test beweist, dass der echte
+    // Projekttitel jetzt ankommt.
+    expect(screen.getByTestId('release-hero').getAttribute('data-anime-title')).toBe('Vipers Creed')
     // Full-bleed Kopf-Hintergrund (quick-261022-g17): laeuft jetzt ueber ein
     // PublicHeaderBackdrop-Element mit eigenem Inline-background-image statt der frueheren
     // --release-page-backdrop-Variable auf <main>. Die Variable selbst bleibt auf <main>

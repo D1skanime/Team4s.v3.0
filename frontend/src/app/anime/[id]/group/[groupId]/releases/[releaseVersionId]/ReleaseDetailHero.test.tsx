@@ -7,13 +7,23 @@ import { ReleaseTechnicalDetails } from './ReleaseTechnicalDetails'
 // D-12/191-18: ReportHintEntryPoint hat eigene, dedizierte Tests
 // (ReportHintEntryPoint.test.tsx) inklusive seines RoleCatalogProvider-Bedarfs -- hier wird
 // es gemockt, damit diese Hero-Layout-Tests nicht zusaetzlich einen Provider aufziehen
-// muessen, der fuer diese Assertions irrelevant ist.
+// muessen, der fuer diese Assertions irrelevant ist. Der Mock rendert weiterhin nichts
+// Sichtbares (bestehende Layout-Assertions bleiben unberuehrt), zeichnet aber (D-30, Plan
+// 191-35) die empfangenen Props auf, damit der Bugfix -- echter animeTitle statt
+// Episode-/Release-Titel, plus relatedReleaseVersionId/-Label -- tatsaechlich geprueft wird.
+const reportHintEntryPointMock = vi.hoisted(() => vi.fn())
 vi.mock('@/components/contributions/ReportHintEntryPoint', () => ({
-  ReportHintEntryPoint: () => null,
+  ReportHintEntryPoint: (props: Record<string, unknown>) => {
+    reportHintEntryPointMock(props)
+    return null
+  },
 }))
 
-afterEach(cleanup)
-const base = { animeID:9, groupID:2, episode_number:'7', episode_title:'Schnee', title:'Winter-Release', version:'2', groups:[{id:2,slug:'c',name:'C-Subs',logo_url:null},{id:3,slug:'d',name:'Honto',logo_url:null}], release_date:'2026-01-02', duration_seconds:1440, resolution:'1080p', container:'MKV', video_codec:'AV1', audio_codec:'AAC', audio_language:'Japanisch', subtitle_tracks:[{language:'Deutsch',label:'Vollständig',format:'ASS',forced:false,default:true},{language:'Deutsch',label:'Signs & Songs',format:'ASS',forced:true,default:false}], preview_image:null, previous:null, next:{release_version_id:88,episode_number:'8',episode_title:null,version:'2',group_id:2}, images_count:0, notes_count:2, contributors_count:3, animeLogoFallbackUrl:null }
+afterEach(() => {
+  cleanup()
+  reportHintEntryPointMock.mockClear()
+})
+const base = { animeID:9, groupID:2, release_version_id:152, episode_number:'7', episode_title:'Schnee', title:'Winter-Release', version:'2', groups:[{id:2,slug:'c',name:'C-Subs',logo_url:null},{id:3,slug:'d',name:'Honto',logo_url:null}], release_date:'2026-01-02', duration_seconds:1440, resolution:'1080p', container:'MKV', video_codec:'AV1', audio_codec:'AAC', audio_language:'Japanisch', subtitle_tracks:[{language:'Deutsch',label:'Vollständig',format:'ASS',forced:false,default:true},{language:'Deutsch',label:'Signs & Songs',format:'ASS',forced:true,default:false}], preview_image:null, previous:null, next:{release_version_id:88,episode_number:'8',episode_title:null,version:'2',group_id:2}, images_count:0, notes_count:2, contributors_count:3, animeLogoFallbackUrl:null, animeTitle:'Vipers Creed' }
 
 describe('ReleaseDetailHero', () => {
   it('renders an independent text-only identity without preview or logo', () => {
@@ -104,5 +114,46 @@ describe('ReleaseDetailHero', () => {
     expect(screen.getAllByText('Fansubgruppe: C-Subs')).toHaveLength(2)
     const nextRelease = screen.getByRole('link', { name: /Nächster Release/ })
     expect(nextRelease.getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/winter/releases/88')
+  })
+
+  // D-30 (Plan 191-35): ReleaseDetailHero gab ReportHintEntryPoint bisher faelschlich den
+  // Episode-/Release-Titel als animeTitle -- der echte Projekttitel wurde zwar schon von
+  // releaseDetailPageData.tsx geladen, aber nie durchgereicht. Zusaetzlich muss die konkrete
+  // Release vorausgewaehlt werden.
+  describe('ReportHintEntryPoint-Kontext (D-30)', () => {
+    it('reicht den echten Projekttitel durch, nicht den Episode-/Release-Titel', () => {
+      render(<ReleaseDetailHero {...base} groups={[base.groups[0]]} />)
+
+      expect(reportHintEntryPointMock).toHaveBeenCalledWith(
+        expect.objectContaining({ animeTitle: 'Vipers Creed' }),
+      )
+    })
+
+    it('faellt auf episode_title/title zurueck, wenn animeTitle null ist (Metadaten-Ladefehler der Seite)', () => {
+      render(<ReleaseDetailHero {...base} groups={[base.groups[0]]} animeTitle={null} />)
+
+      expect(reportHintEntryPointMock).toHaveBeenCalledWith(
+        expect.objectContaining({ animeTitle: 'Schnee' }),
+      )
+    })
+
+    it('reicht release_version_id und ein lesbares Label mit Versionsanhang durch', () => {
+      render(<ReleaseDetailHero {...base} groups={[base.groups[0]]} release_version_id={152} episode_number="12" episode_title="Schnee" version="2" />)
+
+      expect(reportHintEntryPointMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          relatedReleaseVersionId: 152,
+          relatedReleaseLabel: 'Episode 12 — Schnee · 2',
+        }),
+      )
+    })
+
+    it('laesst den Versionsanhang ohne dangling " · " weg, wenn version leer ist', () => {
+      render(<ReleaseDetailHero {...base} groups={[base.groups[0]]} episode_number="12" episode_title="Schnee" version="" />)
+
+      expect(reportHintEntryPointMock).toHaveBeenCalledWith(
+        expect.objectContaining({ relatedReleaseLabel: 'Episode 12 — Schnee' }),
+      )
+    })
   })
 })
