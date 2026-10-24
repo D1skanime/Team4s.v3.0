@@ -173,4 +173,45 @@ describe('FansubGroupHintsAdminClient — isolierte Render-Checks (kein Interakt
     })
     expect(screen.queryByRole('table')).toBeNull()
   })
+
+  // D-34 (Plan 191-36): related_release_label (Plan 191-32) muss sowohl in der Desktop-
+  // Tabelle als auch in der Mobile-Card sichtbar sein, ohne den Projekttitel zu verdraengen.
+  it('zeigt das Release-Label zusaetzlich zum Projekt in der Desktop-Tabelle', async () => {
+    mockListAdminFansubGroupHints.mockResolvedValue({
+      data: [{ ...sampleHint, related_release_label: 'Episode 12 — Foo · v2' }],
+      meta: { total: 1, limit: 25, offset: 0 },
+    })
+    render(<FansubGroupHintsAdminClient />)
+    await waitFor(() => {
+      expect(screen.getByRole('table')).not.toBeNull()
+    })
+    expect(screen.getByText('Beispiel-Anime')).toBeTruthy()
+    expect(screen.getByText(/Episode 12 — Foo · v2/)).toBeTruthy()
+  })
+
+  it('zeigt das Release-Label zusaetzlich zum Projekt in der Mobile-Card', async () => {
+    mockMatchMedia(true)
+    mockListAdminFansubGroupHints.mockResolvedValue({
+      data: [{ ...sampleHint, related_release_label: 'Episode 12 — Foo · v2' }],
+      meta: { total: 1, limit: 25, offset: 0 },
+    })
+    render(<FansubGroupHintsAdminClient />)
+    await waitFor(() => {
+      expect(screen.getByText('Mira')).not.toBeNull()
+    })
+    expect(screen.getByText('Beispiel-Anime')).toBeTruthy()
+    expect(screen.getByText(/Episode 12 — Foo · v2/)).toBeTruthy()
+  })
+
+  it('zeigt keine Release-Zeile, wenn related_release_label null ist', async () => {
+    mockListAdminFansubGroupHints.mockResolvedValue({
+      data: [sampleHint],
+      meta: { total: 1, limit: 25, offset: 0 },
+    })
+    render(<FansubGroupHintsAdminClient />)
+    await waitFor(() => {
+      expect(screen.getByText('Beispiel-Anime')).toBeTruthy()
+    })
+    expect(screen.queryByText(/Episode 12/)).toBeNull()
+  })
 })

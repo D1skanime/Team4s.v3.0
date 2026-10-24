@@ -297,7 +297,9 @@ export function FansubGroupHintsAdminClient() {
                 </TableCell>
                 <TableCell>{hint.sender_display_name}</TableCell>
                 <TableCell>{hint.target_fansub_group_name}</TableCell>
-                <TableCell>{hint.related_anime_title}</TableCell>
+                <TableCell>
+                  <HintProjectCell hint={hint} />
+                </TableCell>
                 <TableCell>{formatDateDeOrIso(hint.created_at)}</TableCell>
                 <TableCell>
                   <HintActionButtons
@@ -341,6 +343,25 @@ export function FansubGroupHintsAdminClient() {
         </Modal>
       ) : null}
     </div>
+  )
+}
+
+/**
+ * D-34 (Plan 191-36): Projekt-Spalte/Zeile samt optionalem Release-Bezug (Plan 191-32)
+ * -- EINE gemeinsame Darstellung fuer Tabelle UND Mobile-Card, damit beide Ansichten
+ * garantiert denselben Text zeigen statt divergierender Kopien. Zeigt nie eine leere
+ * "Release:"-Zeile, wenn der Hinweis sich auf das ganze Projekt bezieht.
+ */
+function HintProjectCell({ hint }: { hint: FansubGroupHint }) {
+  return (
+    <>
+      <span>{hint.related_anime_title}</span>
+      {hint.related_release_label ? (
+        <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block' }}>
+          {hint.related_release_label}
+        </span>
+      ) : null}
+    </>
   )
 }
 
@@ -395,7 +416,9 @@ function HintCard({ hint, onConfirm, onReject }: HintCardProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', alignItems: 'flex-start' }}>
         <strong>{hint.sender_display_name}</strong>
         <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{hint.target_fansub_group_name}</span>
-        <span style={{ fontSize: '13px' }}>{hint.related_anime_title}</span>
+        <span style={{ fontSize: '13px' }}>
+          <HintProjectCell hint={hint} />
+        </span>
       </div>
       <div style={{ marginTop: 'var(--space-2)' }}>
         <HintActionButtons hint={hint} onConfirm={onConfirm} onReject={onReject} />

@@ -181,6 +181,13 @@ function FansubGroupHintsReviewSectionInner({ fansubId }: { fansubId: number }) 
                   {hint.related_anime_title ? (
                     <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{hint.related_anime_title}</span>
                   ) : null}
+                  {/* D-34 (Plan 191-36): Release-Bezug des Hinweises (Plan 191-32), zusaetzlich
+                      zum Projekttitel -- keine Zeile, wenn der Hinweis das ganze Projekt meint. */}
+                  {hint.related_release_label ? (
+                    <span style={{ fontSize: '0.875rem', display: 'block' }}>
+                      Release: {hint.related_release_label}
+                    </span>
+                  ) : null}
                   {hint.note ? (
                     <p
                       style={{

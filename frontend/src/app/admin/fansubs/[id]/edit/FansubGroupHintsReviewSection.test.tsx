@@ -171,6 +171,28 @@ describe('FansubGroupHintsReviewSection Kapabilitaets-Gate', () => {
     expect(confirmGroupHint).toHaveBeenCalledWith(5, 1)
   })
 
+  // D-34 (Plan 191-36): das server-berechnete Release-Label (Plan 191-32) muss der Leitung
+  // sichtbar sein, ohne die Projekt-Zeile zu ersetzen -- leer bei fehlendem Release.
+  it('zeigt das Release-Label zusaetzlich zum Projekt, wenn related_release_label gesetzt ist', async () => {
+    listGroupHints.mockResolvedValue({
+      data: [makeHint({ related_release_label: 'Episode 12 — Foo · v2' })],
+    })
+
+    render(<FansubGroupHintsReviewSection fansubId={5} capabilities={fullCapabilities} />)
+
+    expect(await screen.findByText('Beispiel-Anime')).toBeTruthy()
+    expect(await screen.findByText(/Episode 12 — Foo · v2/)).toBeTruthy()
+  })
+
+  it('zeigt keine Release-Zeile, wenn related_release_label null ist', async () => {
+    listGroupHints.mockResolvedValue({ data: [makeHint({ related_release_label: null })] })
+
+    render(<FansubGroupHintsReviewSection fansubId={5} capabilities={fullCapabilities} />)
+
+    await screen.findByText('Beispiel-Anime')
+    expect(screen.queryByText(/Release:/)).toBeNull()
+  })
+
   it('das Abbrechen-Icon der Ablehnungs-Expansion hat aria-label="Ablehnung abbrechen"', async () => {
     listGroupHints.mockResolvedValue({ data: [makeHint()] })
 
