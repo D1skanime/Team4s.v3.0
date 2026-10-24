@@ -263,15 +263,15 @@ func registerPublicRoutesPart2(
 		middleware.FansubGroupHintDailyLimitMiddleware(fansubHintDailyLimiter),
 		fansubGroupHintsMeHandler.CreateHint,
 	)
-	// D-18: Absender-seitige Sicht auf eigene, bereits gesendete Hinweise (eigene UND
-	// fremde Gruppen, alle Status) — nur authMiddleware, kein Tageslimit, da das Limit nur
+	// Absender-seitige Sicht auf eigene, bereits gesendete Hinweise (eigene UND fremde
+	// Gruppen, alle Status, D-18) — nur authMiddleware, kein Tageslimit, da das Limit nur
 	// das ERSTELLEN neuer Hinweise bremst, nicht das Lesen eigener.
 	v1.GET("/me/fansub-group-hints", authMiddleware, fansubGroupHintsMeHandler.ListSentHints)
 	v1.GET("/admin/fansubs/:id/contribution-proposals", authMiddleware, reviewHandler.ListProposals)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/confirm", authMiddleware, reviewHandler.ConfirmProposal)
 	v1.POST("/admin/fansubs/:id/contribution-proposals/:cid/reject", authMiddleware, reviewHandler.RejectProposal)
-	// Phase 191-04: Leader-der-Zielgruppe-Entscheidungsflaeche fuer eingehende Hinweise
-	// (D-01/D-06) — wiederverwendet exakt die gruppen-gescopte ActionFansubGroupMembersManage-
+	// Leader-der-Zielgruppe-Entscheidungsflaeche fuer eingehende Hinweise (D-01/D-06,
+	// Phase 191-04) — wiederverwendet exakt die gruppen-gescopte ActionFansubGroupMembersManage-
 	// Berechtigung des Beitrags-Reviews oben; fansubGroupHintsRepo ist bereits fuer den
 	// Member-Erstellpfad instanziiert, hier nur als zweite Rolle (Leser/Entscheider statt
 	// Ersteller) wiederverwendet.
