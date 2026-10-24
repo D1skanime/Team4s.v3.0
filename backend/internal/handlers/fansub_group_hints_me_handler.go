@@ -26,14 +26,35 @@ import (
 )
 
 const (
-	fansubGroupHintConflictMessage     = "Du hast dazu bereits einen offenen Hinweis."
 	fansubGroupHintMissingAnimeMessage = "Bei einem Korrektur-Hinweis muss ein Projekt angegeben werden."
 	// fansubGroupHintInvalidContextMessage wird zurückgegeben, wenn die gewählte
 	// (target_fansub_group_id, related_anime_id)-Paarung laut anime_fansub_groups gar
 	// nicht existiert (D-23) -- die Zielgruppe ist diesem Projekt serverseitig nachweislich
 	// nicht zugeordnet, unabhängig davon, ob Gruppe und Projekt für sich genommen real sind.
 	fansubGroupHintInvalidContextMessage = "Anime-Fansub-Zuordnung nicht gefunden"
+	// fansubGroupHintInvalidReleaseMessage wird zurückgegeben, wenn das optional
+	// angegebene related_release_version_id laut ensureHintReleaseContext (D-31) entweder
+	// zu einem anderen Projekt gehört oder target_fansub_group_id dort gar nicht beteiligt
+	// ist -- derselbe 404-Stil wie fansubGroupHintInvalidContextMessage, nur eine Ebene
+	// tiefer (Release statt Projekt).
+	fansubGroupHintInvalidReleaseMessage = "Release-Fansub-Zuordnung nicht gefunden"
+	// fansubGroupHintConflictMessageRelease/-Project sind D-33s release- bzw.
+	// projektgescopte 409-Texte -- welcher Text verwendet wird, entscheidet
+	// fansubGroupHintConflictMessage anhand des tatsächlich übergebenen Request-Felds, nie
+	// anhand eines DB-Werts (der Partial-Unique-Index liefert nur ein generisches
+	// "Konflikt", keine Information darüber, WELCHES Feld kollidierte).
+	fansubGroupHintConflictMessageRelease = "Du hast zu diesem Release bereits einen offenen Hinweis. Sieh dir deine eingereichten Hinweise an."
+	fansubGroupHintConflictMessageProject = "Du hast zu diesem Projekt bereits einen offenen Hinweis. Sieh dir deine eingereichten Hinweise an."
 )
+
+// fansubGroupHintConflictMessage liefert D-33s release- bzw. projektgescopten 409-Text,
+// je nachdem, ob der auslösende Request ein related_release_version_id mitgeschickt hat.
+func fansubGroupHintConflictMessage(isReleaseScoped bool) string {
+	if isReleaseScoped {
+		return fansubGroupHintConflictMessageRelease
+	}
+	return fansubGroupHintConflictMessageProject
+}
 
 // HintRepository ist das Interface, das FansubGroupHintsMeHandler für die Persistenz
 // neuer Hinweise UND für die D-18-Absenderansicht ("Eingereichte Hinweise") nutzt.
@@ -74,7 +95,12 @@ func NewFansubGroupHintsMeHandler(hintRepo HintRepository, db *pgxpool.Pool) *Fa
 type createFansubGroupHintRequest struct {
 	TargetFansubGroupID int64   `json:"target_fansub_group_id"`
 	RelatedAnimeID      *int64  `json:"related_anime_id"`
-	Note                *string `json:"note"`
+	// RelatedReleaseVersionID (D-31/D-29) ist optional: ein Client darf einen
+	// Korrektur-Hinweis statt auf das ganze Projekt gezielt auf ein konkretes Release
+	// beziehen. Wird vor dem Insert serverseitig gegen die echte Release-Projekt-Gruppe-
+	// Kombination geprüft (ensureHintReleaseContext) -- niemals ungeprüft übernommen.
+	RelatedReleaseVersionID *int64  `json:"related_release_version_id"`
+	Note                    *string `json:"note"`
 }
 
 // CreateHint verarbeitet POST /api/v1/me/fansub-group-hints.
@@ -120,15 +146,20 @@ func (h *FansubGroupHintsMeHandler) CreateHint(c *gin.Context) {
 	_ = memberID
 
 	input := repository.HintInput{
-		SenderAppUserID:     identity.AppUserID,
-		TargetFansubGroupID: req.TargetFansubGroupID,
-		RelatedAnimeID:      req.RelatedAnimeID,
-		Note:                req.Note,
+		SenderAppUserID:         identity.AppUserID,
+		TargetFansubGroupID:     req.TargetFansubGroupID,
+		RelatedAnimeID:          req.RelatedAnimeID,
+		RelatedReleaseVersionID: req.RelatedReleaseVersionID,
+		Note:                    req.Note,
 	}
 
 	row, err := h.hintRepo.CreateHint(c.Request.Context(), input)
 	if errors.Is(err, repository.ErrConflict) {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": fansubGroupHintConflictMessage}})
+		// D-33: welcher Text (release- oder projektgescopt) zurückgeht, entscheidet
+		// ausschließlich das tatsächlich übergebene Request-Feld -- der Partial-Unique-
+		// Index der Migration liefert selbst keine Information darüber, WELCHES Feld
+		// kollidierte, nur dass es kollidierte.
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": fansubGroupHintConflictMessage(req.RelatedReleaseVersionID != nil)}})
 		return
 	}
 	// D-23: die Repository-Prüfung ensureHintAnimeFansubContext hat festgestellt, dass
@@ -138,6 +169,14 @@ func (h *FansubGroupHintsMeHandler) CreateHint(c *gin.Context) {
 	// Endpunkt.
 	if errors.Is(err, repository.ErrInvalidAnimeFansubContext) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": fansubGroupHintInvalidContextMessage}})
+		return
+	}
+	// D-31: die Repository-Prüfung ensureHintReleaseContext hat festgestellt, dass das
+	// optional angegebene related_release_version_id entweder zu einem anderen Projekt
+	// gehört oder target_fansub_group_id dort gar nicht beteiligt ist -- unabhängig vom
+	// D-23-Check, der nur das Projekt selbst prüft, nicht ein konkretes Release darin.
+	if errors.Is(err, repository.ErrInvalidReleaseVersionContext) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": fansubGroupHintInvalidReleaseMessage}})
 		return
 	}
 	if errors.Is(err, repository.ErrNotFound) {

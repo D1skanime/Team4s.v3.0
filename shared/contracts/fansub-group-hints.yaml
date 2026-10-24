@@ -30,10 +30,17 @@ paths:
         Hinweis schicken, nicht nur an die eigene(n) (D-02). sender_app_user_id stammt
         ausschließlich aus der verifizierten Auth-Identität, niemals aus dem Request-Body.
         related_anime_id ist nach D-09 ausnahmslos Pflicht, da jeder verbleibende Hinweis ein
-        Korrektur-Hinweis mit Projektbezug ist.
-        Spam-Schutz (D-04): (1) höchstens EIN offener Hinweis pro Person + Zielgruppe + Thema
-        (DB-Partial-Unique-Index, 409 bei Verstoß), (2) Tageslimit ca. 10 Hinweise/Person/24h
-        über FansubGroupHintDailyLimitMiddleware (429 bei Überschreitung).
+        Korrektur-Hinweis mit Projektbezug ist. related_release_version_id ist optional
+        (D-29): bezieht den Hinweis statt auf das ganze Projekt gezielt auf ein konkretes
+        Release, serverseitig gegen die echte Release-Projekt-Gruppe-Kombination geprüft
+        (D-31) -- das Release muss zu related_anime_id gehören und target_fansub_group_id
+        muss laut release_version_groups an ihm beteiligt sein, sonst 404.
+        Spam-Schutz (D-04): (1) höchstens EIN offener Hinweis pro Person + Zielgruppe +
+        Projekt + Release (DB-Partial-Unique-Index, seit D-32 release-genau statt nur
+        projekt-genau -- zwei offene Hinweise zu verschiedenen Releases desselben Projekts
+        können koexistieren), 409 bei Verstoß mit release- oder projektgescoptem Text
+        (D-33), (2) Tageslimit ca. 10 Hinweise/Person/24h über
+        FansubGroupHintDailyLimitMiddleware (429 bei Überschreitung).
       operationId: createFansubGroupHint
       security:
         - bearerAuth: []
@@ -67,13 +74,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
-          description: Kein verifizierter Member-Account verknüpft, oder Zielgruppe/Projekt nicht gefunden
+          description: >-
+            Kein verifizierter Member-Account verknüpft, oder Zielgruppe/Projekt nicht
+            gefunden (D-23), oder related_release_version_id gehört nicht zu
+            related_anime_id bzw. target_fansub_group_id ist an diesem Release nicht
+            beteiligt (D-31).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
-          description: Bereits ein offener Hinweis zum selben Thema vorhanden (D-04(1))
+          description: >-
+            Bereits ein offener Hinweis zum selben Thema vorhanden (D-04(1)); der
+            Index-Schlüssel ist seit D-32 release-genau -- die Meldung unterscheidet
+            release- von projektgescopten Konflikten (D-33).
           content:
             application/json:
               schema:
@@ -82,7 +96,11 @@ paths:
                 duplicate:
                   value:
                     error:
-                      message: "Du hast dazu bereits einen offenen Hinweis."
+                      message: "Du hast zu diesem Projekt bereits einen offenen Hinweis. Sieh dir deine eingereichten Hinweise an."
+                duplicateRelease:
+                  value:
+                    error:
+                      message: "Du hast zu diesem Release bereits einen offenen Hinweis. Sieh dir deine eingereichten Hinweise an."
         "422":
           description: related_anime_id fehlt (D-09, ausnahmslos Pflicht bei jedem Hinweis)
           content:
@@ -503,6 +521,15 @@ components:
           description: >-
             Ausnahmslos Pflicht (D-09): jeder verbleibende Hinweis ist ein Korrektur-Hinweis mit
             Projektbezug, von der Migration über eine NOT-NULL-Constraint erzwungen.
+        related_release_version_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: >-
+            Optional (D-29/D-31): bezieht den Hinweis auf ein konkretes Release statt auf das
+            ganze Projekt. Wird serverseitig geprüft -- das Release muss tatsächlich zu
+            related_anime_id gehören UND target_fansub_group_id muss laut
+            release_version_groups an ihm beteiligt sein, sonst 404.
         note:
           type: string
           nullable: true
@@ -538,6 +565,19 @@ components:
         related_anime_title:
           type: string
           nullable: true
+        related_release_version_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: >-
+            Gesetzt, wenn sich der Hinweis auf ein konkretes Release bezieht (D-29/D-31);
+            null, wenn er sich auf das ganze Projekt bezieht.
+        related_release_label:
+          type: string
+          nullable: true
+          description: >-
+            Menschenlesbares Label des referenzierten Release (D-34), z. B. "Episode 12 —
+            {Titel} · Version 2"; null, wenn related_release_version_id null ist.
         note:
           type: string
           nullable: true

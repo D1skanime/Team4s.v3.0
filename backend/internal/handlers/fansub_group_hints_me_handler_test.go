@@ -198,7 +198,7 @@ func TestFansubGroupHint_CreateHint_SenderAppUserIDAlwaysFromIdentityNeverFromBo
 	}
 }
 
-func TestFansubGroupHint_CreateHint_RepositoryConflictReturns409(t *testing.T) {
+func TestFansubGroupHint_CreateHint_RepositoryConflictReturns409_ProjectScoped(t *testing.T) {
 	h := buildTestHintHandler(&hintRepoStub{createErr: repository.ErrConflict}, &memberResolverStub{memberID: 10})
 	c, rec := newHintTestContext(`{"target_fansub_group_id":5,"related_anime_id":9}`, 42, true)
 
@@ -207,8 +207,60 @@ func TestFansubGroupHint_CreateHint_RepositoryConflictReturns409(t *testing.T) {
 	if rec.Code != http.StatusConflict {
 		t.Fatalf("expected %d, got %d", http.StatusConflict, rec.Code)
 	}
-	if msg := decodeErrorMessage(t, rec.Body.Bytes()); msg != fansubGroupHintConflictMessage {
-		t.Fatalf("expected message %q, got %q", fansubGroupHintConflictMessage, msg)
+	if msg := decodeErrorMessage(t, rec.Body.Bytes()); msg != fansubGroupHintConflictMessageProject {
+		t.Fatalf("expected message %q, got %q", fansubGroupHintConflictMessageProject, msg)
+	}
+}
+
+// TestFansubGroupHint_CreateHint_RepositoryConflictReturns409_ReleaseScoped prüft D-33: ist
+// related_release_version_id im Request gesetzt, muss der 409-Text den release-gescopten
+// Wortlaut tragen, nicht den projektgescopten.
+func TestFansubGroupHint_CreateHint_RepositoryConflictReturns409_ReleaseScoped(t *testing.T) {
+	h := buildTestHintHandler(&hintRepoStub{createErr: repository.ErrConflict}, &memberResolverStub{memberID: 10})
+	c, rec := newHintTestContext(`{"target_fansub_group_id":5,"related_anime_id":9,"related_release_version_id":77}`, 42, true)
+
+	h.CreateHint(c)
+
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("expected %d, got %d", http.StatusConflict, rec.Code)
+	}
+	if msg := decodeErrorMessage(t, rec.Body.Bytes()); msg != fansubGroupHintConflictMessageRelease {
+		t.Fatalf("expected message %q, got %q", fansubGroupHintConflictMessageRelease, msg)
+	}
+}
+
+// TestFansubGroupHint_CreateHint_InvalidReleaseVersionContextReturns404 prüft D-31s
+// Handler-Mapping: ErrInvalidReleaseVersionContext aus dem Repository wird zu 404 mit der
+// release-spezifischen Meldung, unabhängig vom D-23-Pfad.
+func TestFansubGroupHint_CreateHint_InvalidReleaseVersionContextReturns404(t *testing.T) {
+	h := buildTestHintHandler(&hintRepoStub{createErr: repository.ErrInvalidReleaseVersionContext}, &memberResolverStub{memberID: 10})
+	c, rec := newHintTestContext(`{"target_fansub_group_id":5,"related_anime_id":9,"related_release_version_id":77}`, 42, true)
+
+	h.CreateHint(c)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected %d, got %d", http.StatusNotFound, rec.Code)
+	}
+	if msg := decodeErrorMessage(t, rec.Body.Bytes()); msg != fansubGroupHintInvalidReleaseMessage {
+		t.Fatalf("expected message %q, got %q", fansubGroupHintInvalidReleaseMessage, msg)
+	}
+}
+
+// TestFansubGroupHint_CreateHint_RelatedReleaseVersionIDPassedThroughToRepository prüft, dass
+// ein im Body gesetztes related_release_version_id unverändert bis ins HintInput
+// durchgereicht wird -- keine Regression auf dem D-23-only-Pfad, wenn das Feld fehlt.
+func TestFansubGroupHint_CreateHint_RelatedReleaseVersionIDPassedThroughToRepository(t *testing.T) {
+	repo := &hintRepoStub{createResult: &repository.FansubGroupHintRow{ID: 9}}
+	h := buildTestHintHandler(repo, &memberResolverStub{memberID: 10})
+	c, rec := newHintTestContext(`{"target_fansub_group_id":5,"related_anime_id":9,"related_release_version_id":77}`, 42, true)
+
+	h.CreateHint(c)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("expected %d, got %d (body=%s)", http.StatusCreated, rec.Code, rec.Body.String())
+	}
+	if repo.capturedInput.RelatedReleaseVersionID == nil || *repo.capturedInput.RelatedReleaseVersionID != 77 {
+		t.Fatalf("expected related_release_version_id 77, got %v", repo.capturedInput.RelatedReleaseVersionID)
 	}
 }
 
