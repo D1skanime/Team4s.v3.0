@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 191-31-PLAN.md
-last_updated: "2026-10-24T01:53:08.015Z"
+stopped_at: Completed 191-32-PLAN.md
+last_updated: "2026-10-24T11:38:37.000Z"
 last_activity: 2026-10-24
 progress:
   total_phases: 56
   completed_phases: 50
-  total_plans: 524
-  completed_plans: 517
+  total_plans: 531
+  completed_plans: 519
   percent: 89
 ---
 
@@ -1531,6 +1531,8 @@ Last activity: 2026-10-24
 - [Phase 191-28]: D-25-Sweep fuer die letzten 5 Admin/Leader-Review-Dateien (Hinweise ohne Leitung) per git-diff 72fc7c0f6..HEAD geprueft -- alle D-Tag-Bezuege waren bereits fact-first mit Tag als Nebenverweis, keine Codeaenderung noetig (gleiches Null-Befund-Ergebnis wie 191-25 Task 2)
 - [Phase 191-29]: D-25-Sweep fuer die letzten 8 Member-/oeffentlichen Hinweis-Dateien -- 6 Dateien hatten einen bare-D-NN-Lead-Kommentar und wurden auf fact-first mit D-Tag als trailing Nebenverweis umgestellt (Muster aus D-21/Plan 191-21), 2 Dateien (fansub-group-hints.ts API-Client, types/fansub-group-hints.ts) waren bereits konform
 - [Phase 191-31]: D-25-Sweep fuer page.tsx/MyProposalsSection.tsx/ProposalForm.tsx folgte der im Plan autoritativ markierten Fundstellenliste, keine eigenstaendige Erweiterung
+- [Phase 191-32]: ensureHintReleaseContext behandelt animeID == nil defensiv als ErrInvalidReleaseVersionContext statt eines SQL-NULL-Vergleichsfehlers, obwohl related_anime_id seit Migration 0188 praktisch nie nil ist
+- [Phase 191-32]: fansub_group_hints_repository_admin.go wurde beim Split direkt mit den finalen D-34-Scan-Spalten geschrieben statt per separatem Struktur-Commit -- volle Testsuite vor UND nach dem Commit gruen, keine Regression
 - [Phase 191-31]: Pre-existing repo-weite Lint-Fehler und ein in Isolation gruener Flaky-Test wurden in deferred-items.md dokumentiert statt repariert (Scope-Boundary-Regel)
 - [Phase 191-31]: Voller Test-/Typecheck-Lauf wurde im team4sv30-frontend-Container wiederholt, da Host-Testfehler auf Container-interne, vom Host nicht aufloesbare Pfade zurueckgingen
 
@@ -2286,11 +2288,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P28 | 20min | 1 tasks | 0 files |
 | Phase 191 P29 | ~10min | 1 tasks | 6 files |
 | Phase 191 P31 | ~55min | 2 tasks | 14 files |
+| Phase 191 P32 | ~55min | 3 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-10-24T01:53:07.983Z
-Stopped at: Completed 191-31-PLAN.md
+Last session: 2026-10-24T11:38:37.000Z
+Stopped at: Completed 191-32-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
