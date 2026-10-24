@@ -20,6 +20,17 @@
 // Anlegen erzwungen, siehe CreateFansubGroupHintRequest unten), nicht für das
 // Ergebnis des JOINs, das bei einem fehlenden Anime-Datensatz technisch leer
 // bleiben könnte.
+//
+// related_release_version_id/related_release_label (Plan 191-32, D-29/D-31/D-34):
+// Ein Hinweis kann optional ein einzelnes Release statt des ganzen Projekts
+// betreffen. Im Request ist das Feld optional (ein Hinweis darf weiterhin das
+// gesamte Projekt meinen, "Ganzes Projekt" = kein Release gewählt). In der
+// Response sind beide Felder IMMER vorhanden (nie `undefined`), aber `null`,
+// wenn kein Release referenziert wurde — sie spiegeln
+// `FansubGroupHintRow.RelatedReleaseVersionID`/`RelatedReleaseLabel`
+// (backend/internal/repository/fansub_group_hints_repository.go, Plan 191-32)
+// 1:1. `related_release_label` wird serverseitig bereits lesbar aufbereitet
+// (kein nacktes ID-Feld im Frontend zusammenzubauen).
 export type FansubGroupHintStatus = "open" | "acknowledged" | "rejected";
 
 export interface FansubGroupHint {
@@ -31,6 +42,8 @@ export interface FansubGroupHint {
   target_fansub_group_name: string;
   related_anime_id: number | null;
   related_anime_title: string | null;
+  related_release_version_id: number | null;
+  related_release_label: string | null;
   note: string | null;
   status: FansubGroupHintStatus;
   decided_by: number | null;
@@ -42,6 +55,8 @@ export interface FansubGroupHint {
 export interface CreateFansubGroupHintRequest {
   target_fansub_group_id: number;
   related_anime_id: number;
+  /** Optional: ein Hinweis darf weiterhin das ganze Projekt meinen ("Ganzes Projekt"). */
+  related_release_version_id?: number | null;
   note?: string | null;
 }
 

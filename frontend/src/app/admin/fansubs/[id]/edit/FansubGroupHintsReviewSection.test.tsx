@@ -83,6 +83,8 @@ function makeHint(overrides: Partial<FansubGroupHint> = {}): FansubGroupHint {
     target_fansub_group_name: 'RedHeartFansub',
     related_anime_id: 42,
     related_anime_title: 'Beispiel-Anime',
+    related_release_version_id: null,
+    related_release_label: null,
     note: 'War bei Episode 3 als Timer dabei.',
     status: 'open',
     decided_by: null,
