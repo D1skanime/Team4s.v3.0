@@ -7,6 +7,8 @@ import { Badge, Button, FormField, Input, Textarea, YearPicker } from '@/compone
 import type { MembershipEntry } from '@/types/contributions'
 import type { FansubGroup } from '@/types/fansub'
 
+import { ProposalReleaseSelect } from './ProposalReleaseSelect'
+import type { ProposalReleaseOption } from './ProposalForm.useReleaseOptions'
 import type { GroupScope } from './ProposalForm.toggles'
 import { GroupScopeToggle } from './ProposalForm.toggles'
 import type { ProposalAnimeOption } from './ProposalForm.useSubmit'
@@ -144,6 +146,14 @@ interface Step1Props {
   groupAnime: ProposalAnimeOption[]
   groupAnimeError: string | null
   onAnimeChange: (value: number | '') => void
+  // Optionale Release-Einschraenkung (D-29/D-34) -- gilt fuer BEIDE Gruppen-Szenarien
+  // identisch, die Optionen/der Lade-/Auswahlzustand stammen aus dem geteilten
+  // useProposalFormReleaseOptions-Hook (Plan 191-33), der in ProposalForm.tsx haengt.
+  releaseOptions: ProposalReleaseOption[]
+  selectedReleaseVersionId: number | null
+  isLoadingReleases: boolean
+  releaseError: string | null
+  onReleaseChange: (id: number | null) => void
 }
 
 export function Step1GroupProject({
@@ -168,6 +178,11 @@ export function Step1GroupProject({
   groupAnime,
   groupAnimeError,
   onAnimeChange,
+  releaseOptions,
+  selectedReleaseVersionId,
+  isLoadingReleases,
+  releaseError,
+  onReleaseChange,
 }: Step1Props) {
   return (
     <div className={styles.wizardStepPanel}>
@@ -238,6 +253,15 @@ export function Step1GroupProject({
           onChange={(value) => onAnimeChange(value === '' ? '' : Number(value))}
         />
       </FormField>
+
+      <ProposalReleaseSelect
+        options={releaseOptions}
+        selectedReleaseVersionId={selectedReleaseVersionId}
+        isLoading={isLoadingReleases}
+        disabled={!hasActiveGroup || !selectedAnime}
+        error={releaseError}
+        onChange={onReleaseChange}
+      />
 
       {hasActiveGroup && activeGroupName ? (
         <div className={styles.selectionBreadcrumb} aria-label="Ausgewählter Kontext">

@@ -13,6 +13,7 @@ import { Step1GroupProject, Step2Role, Step3NoteRange } from './ProposalForm.ste
 import type { RoleDefinition } from './ProposalForm.steps'
 import type { GroupScope } from './ProposalForm.toggles'
 import { useProposalFormGroupAnime } from './ProposalForm.useGroupAnime'
+import { useProposalFormReleaseSelection } from './ProposalForm.useReleaseSelection'
 import { WIZARD_STEPS, useProposalFormSubmit } from './ProposalForm.useSubmit'
 import type { SubmittedSummary, WizardStep } from './ProposalForm.useSubmit'
 import styles from './ProposalForm.module.css'
@@ -101,6 +102,15 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
       initialAnimeId: prefill ? prefill.animeId : '',
     })
 
+  // D-29/D-34: optionale Release-Einschraenkung aus Schritt 1, fuer own/foreign identisch --
+  // derselbe geteilte Hook (Plan 191-33) bedient beide Szenarien ueber (animeId, groupId). Beim
+  // vorausgewaehlten Einstieg (D-12) wird Schritt 1 nie gemountet, also auch keine Releaseliste
+  // geladen -- Plan 191-35 verdrahtet die eigene Ladung fuer den Kontext-Einstieg separat.
+  const releaseSelection = useProposalFormReleaseSelection({
+    animeId: prefill || selectedAnimeId === '' ? null : selectedAnimeId,
+    groupId: prefill ? null : activeGroupId ?? null,
+  })
+
   const selectedAnime = useMemo(() => {
     if (prefill) return { id: prefill.animeId, title: prefill.animeTitle }
     return groupAnime.find((anime) => anime.id === selectedAnimeId) ?? null
@@ -160,6 +170,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
     setError(null)
     setRoleError(null)
     resetError()
+    releaseSelection.reset()
     setSubmittedSummary(null)
     onClose()
   }
@@ -243,6 +254,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
         note,
         startedYear,
         endedYear,
+        releaseVersionId: releaseSelection.selectedReleaseVersionId,
       })
       setSubmittedSummary(summary)
       onSuccess()
@@ -366,6 +378,11 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions, p
                 groupAnime={groupAnime}
                 groupAnimeError={groupAnimeError}
                 onAnimeChange={setSelectedAnimeId}
+                releaseOptions={releaseSelection.options}
+                selectedReleaseVersionId={releaseSelection.selectedReleaseVersionId}
+                isLoadingReleases={releaseSelection.isLoading}
+                releaseError={releaseSelection.error}
+                onReleaseChange={releaseSelection.setSelectedReleaseVersionId}
               />
             ) : null}
 

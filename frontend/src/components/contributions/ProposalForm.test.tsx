@@ -79,6 +79,13 @@ async function chooseGroupAndAnime(groupNamePattern: RegExp = /Testgruppe/, expe
 
   fireEvent.click(screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }))
   fireEvent.click(screen.getByRole('option', { name: /Naruto/ }))
+
+  // Die Projektwahl loest D-29/D-34s Release-Ladung aus (useProposalFormReleaseOptions) --
+  // ohne dieses Warten wuerde die danach aufgeloeste Mock-Promise ausserhalb von act()
+  // aktualisieren und Tests mit act()-Warnungen verschmutzen.
+  await waitFor(() => {
+    expect((screen.getByLabelText('Release (optional)') as HTMLSelectElement).disabled).toBe(false)
+  })
 }
 
 async function waitForFinalSubmitButton() {
