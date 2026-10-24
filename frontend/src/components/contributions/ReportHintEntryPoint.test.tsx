@@ -158,6 +158,56 @@ describe('ReportHintEntryPoint (D-12, Sichtbarkeits-Gate)', () => {
     ])
   })
 
+  // D-30 (Plan 191-35): die zwei neuen Release-Props sind end-to-end optional -- ohne sie
+  // (Projektseiten-Aufrufer, HeroSection.tsx) darf prefill sie nicht erfinden (kein
+  // Koerzieren zu null), MIT ihnen (Release-Seiten-Aufrufer, ReleaseDetailHero.tsx) muessen
+  // sie unveraendert im prefill-Objekt landen.
+  it('uebergibt relatedReleaseVersionId/relatedReleaseLabel unveraendert an ProposalForms prefill, wenn gesetzt', async () => {
+    mockAuthSession({ initialized: true, access: true })
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    getMyMembershipsMock.mockResolvedValue({ data: [] })
+
+    render(
+      <ReportHintEntryPoint
+        {...PREFILL_PROPS}
+        relatedReleaseVersionId={152}
+        relatedReleaseLabel="Episode 12 — Foo · v2"
+      />,
+    )
+
+    const button = await screen.findByRole('button', { name: 'Fehler melden' })
+    fireEvent.click(button)
+
+    await waitFor(() => screen.getByTestId('proposal-form-mock'))
+
+    const lastCallProps = proposalFormMock.mock.calls[proposalFormMock.mock.calls.length - 1][0] as Record<string, unknown>
+    expect(lastCallProps.prefill).toEqual({
+      ...PREFILL_PROPS,
+      relatedReleaseVersionId: 152,
+      relatedReleaseLabel: 'Episode 12 — Foo · v2',
+    })
+  })
+
+  it('laesst relatedReleaseVersionId/relatedReleaseLabel im prefill weg, wenn der Aufrufer sie nicht uebergibt (Rueckwaertskompatibilitaet, z. B. HeroSection.tsx)', async () => {
+    mockAuthSession({ initialized: true, access: true })
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    getMyMembershipsMock.mockResolvedValue({ data: [] })
+
+    render(<ReportHintEntryPoint {...PREFILL_PROPS} />)
+
+    const button = await screen.findByRole('button', { name: 'Fehler melden' })
+    fireEvent.click(button)
+
+    await waitFor(() => screen.getByTestId('proposal-form-mock'))
+
+    const lastCallProps = proposalFormMock.mock.calls[proposalFormMock.mock.calls.length - 1][0] as Record<string, unknown>
+    expect(lastCallProps.prefill).toEqual({
+      ...PREFILL_PROPS,
+      relatedReleaseVersionId: undefined,
+      relatedReleaseLabel: undefined,
+    })
+  })
+
   // D-17 (Plan 191-20): ProposalForm zeigt die Erfolgsansicht selbst ueber internen
   // submittedSummary-State -- der Aufrufer darf das Formular deshalb NICHT beim Erfolg
   // (onSuccess) schliessen, sonst sieht der Nutzer die Erfolgsansicht nie. Nur ein aktiver

@@ -506,7 +506,7 @@ describe('ProposalForm — vorausgewaehlter Einstieg (prefill-Prop, D-12-Vorbere
     animeTitle: 'One Piece',
   }
 
-  it('startet direkt bei Schritt 2 (Rolle), zeigt 2 Fortschritts-Segmente und die Kontext-Zeile', () => {
+  it('startet direkt bei Schritt 2 (Rolle), zeigt 2 Fortschritts-Segmente und die Kontext-Zeile', async () => {
     renderForm(OWN_GROUPS, { prefill: PREFILL_FOREIGN })
 
     expect(screen.getAllByText('Schritt 1 von 2')).toHaveLength(1)
@@ -515,17 +515,23 @@ describe('ProposalForm — vorausgewaehlter Einstieg (prefill-Prop, D-12-Vorbere
     expect(
       screen.getByText('Du meldest einen Fehler zu One Piece bei StrawhatSubs.'),
     ).toBeTruthy()
+    // D-30 (Plan 191-35): die Release-Ladung fuer den prefill-Flow laeuft synchron aus
+    // prefill.animeId/-groupId an -- hier abwarten, damit die danach aufgeloeste
+    // Mock-Promise nicht ausserhalb von act() nach Testende aktualisiert.
+    await screen.findByLabelText('Release (optional)')
   })
 
-  it('zeigt auf der ersten sichtbaren Stufe (Schritt 2) keinen "Zurück"-Button', () => {
+  it('zeigt auf der ersten sichtbaren Stufe (Schritt 2) keinen "Zurück"-Button', async () => {
     renderForm(OWN_GROUPS, { prefill: PREFILL_FOREIGN })
 
     expect(screen.queryByRole('button', { name: 'Zurück' })).toBeNull()
+    await screen.findByLabelText('Release (optional)')
   })
 
   it('loest Zielgruppe/Projekt synchron ohne Netzwerk-Aufruf auf und sendet mit den vorausgewaehlten IDs', async () => {
     apiMocks.createFansubGroupHint.mockResolvedValue({ data: {} })
     renderForm(OWN_GROUPS, { prefill: PREFILL_FOREIGN })
+    await screen.findByLabelText('Release (optional)')
 
     fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
@@ -541,6 +547,69 @@ describe('ProposalForm — vorausgewaehlter Einstieg (prefill-Prop, D-12-Vorbere
     })
     expect(apiMocks.getPublicFansubProfileBySlug).not.toHaveBeenCalled()
     expect(apiMocks.getAdminFansubAnime).not.toHaveBeenCalled()
+  })
+
+  // D-30 (Plan 191-35): die Release-Auswahl bleibt auch im vorausgefuellten Flow sichtbar
+  // UND aenderbar -- Schritt 1 (wo dieselbe Komponente im interaktiven Flow sitzt) ist hier
+  // nie gemountet.
+  it('zeigt den Kontext-Satz ohne "— Release:"-Zusatz, wenn kein Release vorausgewaehlt ist (Rueckwaertskompatibilitaet)', async () => {
+    apiMocks.getGroupReleaseListCursor.mockResolvedValue({ items: [] })
+    renderForm(OWN_GROUPS, { prefill: PREFILL_FOREIGN })
+
+    expect(
+      screen.getByText('Du meldest einen Fehler zu One Piece bei StrawhatSubs.'),
+    ).toBeTruthy()
+    await screen.findByLabelText('Release (optional)')
+  })
+
+  it('zeigt den Kontext-Satz MIT "— Release:"-Zusatz und preselektiert die Release-Auswahl, wenn relatedReleaseVersionId/-Label gesetzt sind', async () => {
+    apiMocks.getGroupReleaseListCursor.mockResolvedValue({
+      items: [{ id: 152, episode_number: 12, episode_number_label: '12', title: 'Foo', version_label: 'v2' }],
+    })
+    renderForm(OWN_GROUPS, {
+      prefill: {
+        ...PREFILL_FOREIGN,
+        relatedReleaseVersionId: 152,
+        relatedReleaseLabel: 'Episode 12 — Foo · v2',
+      },
+    })
+
+    expect(
+      screen.getByText('Du meldest einen Fehler zu One Piece bei StrawhatSubs — Release: Episode 12 — Foo · v2.'),
+    ).toBeTruthy()
+
+    const select = await screen.findByLabelText('Release (optional)') as HTMLSelectElement
+    await waitFor(() => {
+      expect(select.value).toBe('152')
+    })
+  })
+
+  it('laesst die vorausgewaehlte Release-Auswahl im prefill-Flow aenderbar und sendet die neue Auswahl beim Submit', async () => {
+    apiMocks.createFansubGroupHint.mockResolvedValue({ data: {} })
+    apiMocks.getGroupReleaseListCursor.mockResolvedValue({
+      items: [
+        { id: 152, episode_number: 12, episode_number_label: '12', title: 'Foo', version_label: 'v2' },
+        { id: 153, episode_number: 13, episode_number_label: '13', title: 'Bar', version_label: null },
+      ],
+    })
+    renderForm(OWN_GROUPS, {
+      prefill: { ...PREFILL_FOREIGN, relatedReleaseVersionId: 152, relatedReleaseLabel: 'Episode 12 — Foo · v2' },
+    })
+
+    const select = await screen.findByLabelText('Release (optional)') as HTMLSelectElement
+    await waitFor(() => expect(select.value).toBe('152'))
+
+    fireEvent.change(select, { target: { value: '153' } })
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(await waitForFinalSubmitButton())
+
+    await waitFor(() => {
+      expect(apiMocks.createFansubGroupHint).toHaveBeenCalledWith(
+        expect.objectContaining({ related_release_version_id: 153 }),
+      )
+    })
   })
 
   it('erkennt eine vorausgewaehlte eigene Gruppe als "own" und sendet ueber createContributionProposal', async () => {
