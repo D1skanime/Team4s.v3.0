@@ -2987,11 +2987,11 @@ Tageslimit ca. 10 pro Person, Ablehnen mit einem Klick optional mit Begründung.
 Mitgliedschaft, keine neuen Zuweisungs-Flows, kein Stummschalten, keine Captchas, keine
 Punkte/Badges für den Hinweis selbst, kein eigenes Recht. `backend/cmd/server/main.go` und
 `contributions.module.css` werden ohne Ausnahme auf ≤450 Zeilen aufgeteilt (D-26/D-27).
-**Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01 bis D-28 aus
+**Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01 bis D-36 aus
 191-CONTEXT.md (D-09 ersetzt/streicht Teile von D-01/D-06/D-07), siehe jeweiliges
 Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 27/31 plans executed
+**Plans:** 27/37 plans executed
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -3025,3 +3025,9 @@ Plans:
 - [x] 191-29-PLAN.md — Frontend: D-25-Sweep oeffentliche/Mitglieder-Oberflaeche (8 Dateien)
 - [ ] 191-30-PLAN.md — Phasenabschluss vierte Nachbesserung: D-23/D-24-Vorabpruefung (echter API-Check + Loeschung), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
 - [x] 191-31-PLAN.md — Frontend: D-27 Import-Repointing der 12 CSS-Modul-Verbraucher + Doku-Update + D-25-Sweep (page.tsx, MyProposalsSection.tsx, ProposalForm.tsx, ProposalForm.steps.tsx)
+- [ ] 191-32-PLAN.md — Backend: D-31 Release-Validierung (ensureHintReleaseContext) + D-32 Migration 0189 (Release-Doppel-Hinweis-Schutz) + D-33 dynamische 409-Meldung + D-34 Release-Spalten in allen Lesepfaden
+- [ ] 191-33-PLAN.md — Frontend: Typen-Spiegel (related_release_version_id/related_release_label) + useProposalFormReleaseOptions-Hook (D-29-Grundlage)
+- [ ] 191-34-PLAN.md — Frontend: ProposalReleaseSelect-Komponente + Formular-Wizard-Verdrahtung beider Sende-Pfade + D-33-Frontend-Konfliktmeldung (D-29/D-33)
+- [ ] 191-35-PLAN.md — Frontend: D-30 Bugfix (echter Projekttitel + Release-Vorauswahl auf der Release-Seite, ProposalFormPrefill-Erweiterung)
+- [ ] 191-36-PLAN.md — Frontend: D-34 Release-Anzeige in allen drei Hinweis-Listen + schemafreie Episodenanzeige beim Eigengruppen-Pfad
+- [ ] 191-37-PLAN.md — Phasenabschluss fuenfte Nachbesserung: D-36-Vorabpruefung (echter API-Check + D-35-Loeschung), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
