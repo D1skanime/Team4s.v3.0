@@ -1,5 +1,27 @@
 # DECISIONS
 
+## 2026-10-25 - Autonome Aufträge über ki-run auf Entwicklungsbranches
+
+### Decision
+Interaktive Phasen bleiben auf `main` (Eintrag 2026-06-08 gilt weiter). Zusätzlich gibt es autonome
+Aufträge über `ki-run` (`/home/d1sk/ki-run`): Sie laufen headless auf Linux auf einem eigenen Branch
+`ki/team4s-<id>` im selben Checkout (keine Worktrees), durchlaufen GSD-Planung, Umsetzung,
+deterministisches Quality Gate, unabhängigen Codex-Review und Regression ohne Zwischenfreigaben und
+enden im Zustand `wartet-auf-uat`. Die Live-Abnahme bleibt Pflicht, findet aber am Ende statt; erst
+nach ausdrücklicher Freigabe des Nutzers (`ki-run accept`) wird nach `main` gemergt und gepusht.
+
+### Why
+Mittendrin blockierende Live-Checkpoints und manuelle GSD-Zwischenschritte haben lange Aufträge
+tagelang angehalten. Ein Branch pro Auftrag hält `main` bis zur Abnahme unverändert; derselbe Checkout
+vermeidet die Probleme der früheren Worktree-Konvention (leere `node_modules`, stale Builds).
+
+### Consequences
+- Pro Projekt belegt höchstens ein Auftrag den Arbeitsbereich; währenddessen keine manuelle Arbeit
+  im Checkout (`ki-run park` für Zwischenarbeit).
+- Push, Merge, Branchwechsel auf `main`, pauschale Docker-Bereinigung und Zugriffe auf andere Projekte
+  sind für Auftragsprozesse technisch gesperrt (Guard-Hook, Git-Hooks, Docker-Shim).
+- `scripts/gsd-linux.sh` ist nur noch ein Legacy-Wrapper; Claude/Codex/GSD laufen nativ (nvm).
+
 ## 2026-10-24 - Fuenfte Live-UAT-Nachbesserung: Release-Bezug fuer Hinweise
 
 ### Decision

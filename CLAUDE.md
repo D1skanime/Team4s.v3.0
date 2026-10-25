@@ -248,6 +248,22 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 - **Disziplin auf `main`:** Niemals `git stash` bei offenen Änderungen; Artefakte gezielt per Pfad committen. Bei parallelen GSD-Schreibern auf `.planning/STATE.md` + `.planning/ROADMAP.md` vor dem nächsten Schritt Live-Writer prüfen. Details siehe `DECISIONS.md` (Eintrag 2026-06-08, der den Eintrag 2026-06-05 ablöst).
 
 <!-- GSD:profile-start -->
+### Autonome Aufträge (`ki-run`) auf Entwicklungsbranches
+
+- **Interaktive Arbeit bleibt auf `main`** (Regeln oben). **Autonome, lange Aufträge** laufen über
+  `ki-run` (`/home/d1sk/ki-run`, Anleitung `README.md` dort) auf einem eigenen Branch
+  `ki/team4s-<auftrags-id>` **im selben Checkout** (kein Worktree; Docker-Bind-Mounts bleiben gültig).
+- Ein Auftrag läuft ohne Zwischenfreigaben durch: GSD-Planung → Umsetzung → Quality Gate →
+  unabhängiger Review (Codex, nur lesend) → Regression → Cleanup → Zustand `wartet-auf-uat`.
+- **Live-UAT bleibt Pflicht, aber am Ende:** Der Mensch prüft im Browser (`ki-run uat <id>`).
+  Erst nach seiner ausdrücklichen Freigabe (`ki-run accept <id>`) wird nach `main` gemergt und gepusht.
+  Mängel gehen per `ki-run reject <id>` zurück in die Nachbesserung. Ein Auftrag mergt oder pusht
+  nie selbst (technisch gesperrt).
+- Während ein Auftrag den Arbeitsbereich belegt (`ki-run status`), keine manuelle Arbeit im Checkout;
+  `ki-run park <id>` setzt ihn für Zwischenarbeit auf `main` zurück.
+- Agenten in `ki-run`-Aufträgen legen **keine** `checkpoint:human-verify`-Halte mitten im Lauf an;
+  die menschliche Prüfung ist die Live-Abnahme am Ende.
+
 ## Developer Profile
 
 > Profile not yet configured. Run `/gsd:profile-user` to generate your developer profile.
