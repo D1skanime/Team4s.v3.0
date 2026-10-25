@@ -86,7 +86,7 @@ describe('CapabilityDetailRow Option (d) review-delegation grant split', () => {
     await renderRow({ action_code: actionCode, allowed: false })
 
     expect(screen.queryByText('Recht zusätzlich erlauben')).toBeNull()
-    expect(screen.getByText('Gewähren nur über „Prüf-/Freigabe-Rechte" oben.')).not.toBeNull()
+    expect(screen.getByText('Gewähren nur über „Prüf-/Freigabe-Rechte“ oben.')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Zu Prüf-/Freigabe-Rechte springen' })).not.toBeNull()
   })
 
@@ -94,7 +94,7 @@ describe('CapabilityDetailRow Option (d) review-delegation grant split', () => {
     await renderRow({ action_code: 'fansub_group.members.manage', allowed: false })
 
     expect(screen.getByText('Recht zusätzlich erlauben')).not.toBeNull()
-    expect(screen.queryByText('Gewähren nur über „Prüf-/Freigabe-Rechte" oben.')).toBeNull()
+    expect(screen.queryByText('Gewähren nur über „Prüf-/Freigabe-Rechte“ oben.')).toBeNull()
   })
 
   it('leaves the deny/revoke path untouched for an allowed review action', async () => {
