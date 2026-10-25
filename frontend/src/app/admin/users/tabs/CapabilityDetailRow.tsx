@@ -74,7 +74,7 @@ export function CapabilityDetailRow({
             )}
             {!state.allowed && isReviewDelegationAction(state.action_code) && (
               <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}>
-                Gewähren nur über „Prüf-/Freigabe-Rechte" oben.
+                Gewähren nur über „Prüf-/Freigabe-Rechte“ oben.
                 <Button
                   variant="ghost"
                   size="sm"
