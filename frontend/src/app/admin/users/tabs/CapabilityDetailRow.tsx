@@ -20,7 +20,10 @@ export function CapabilityDetailRow({
   onOpenRevoke: (state: EffectiveRightState, label: string) => void
   onOpenGrant: (state: EffectiveRightState, label: string) => void
 }) {
-  // D-15/D-16: nur die vier gesperrten Business-Verben, nie ein rohes Allow/Deny-Switch.
+  // Zeigt nur die vier festgelegten Business-Verben (Recht entziehen, Recht zusätzlich
+  // erlauben, Abweichung entfernen für Deny/Allow) statt eines rohen Allow/Deny/kein-
+  // Override-Schalters, damit Admins die fachliche Absicht wählen und nicht den
+  // internen Override-Mechanismus direkt bedienen.
   const showRevoke = state.allowed && !state.non_deniable
   const showGrant = !state.allowed && !isReviewDelegationAction(state.action_code)
   const showRemoveOverride = state.user_allow || state.user_deny
@@ -74,7 +77,7 @@ export function CapabilityDetailRow({
             )}
             {!state.allowed && isReviewDelegationAction(state.action_code) && (
               <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}>
-                Gewähren nur über „Prüf-/Freigabe-Rechte" oben.
+                Gewähren nur über „Prüf-/Freigabe-Rechte“ oben.
                 <Button
                   variant="ghost"
                   size="sm"
