@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 191-35-PLAN.md
-last_updated: "2026-10-24T12:40:00.000Z"
-last_activity: 2026-10-24
+status: planned
+stopped_at: Phase 191 complete — Live-Checkpoint vom Nutzer freigegeben (2026-10-26)
+last_updated: "2026-10-26T00:00:00.000Z"
+last_activity: 2026-10-26
 progress:
   total_phases: 56
   completed_phases: 50
@@ -25,6 +25,27 @@ snapshot of `ROADMAP.md`, `REQUIREMENTS.md`, `PROJECT.md`, and `STATE.md` at clo
 file, `ROADMAP.md`, and `REQUIREMENTS.md` all remain live in place (not archived/removed/reset) —
 by explicit decision no new milestone was started; future phases continue additively from here
 via `/gsd-phase add`.
+
+# Phase 191 — „Hinweis senden“ auch an andere Fansub-Gruppen — COMPLETE (2026-10-26)
+
+37 Pläne über sechs Entscheidungsrunden (D-01 bis D-36) und fünf Live-UAT-Nachbesserungsrunden —
+die ersten vier Live-Checkpoints (Pläne 191-10, 191-19, 191-24, 191-30) scheiterten jeweils an
+echten, vom Nutzer im Browser gefundenen Bugs/Konzeptproblemen; Plan 191-37s Checkpoint wurde am
+26.10.2026 final freigegeben. Kernergebnis: Mitglieder können einen Korrektur-Hinweis (die einzige
+verbleibende Hinweisart, D-09 hat die ursprünglich geplante Mitgliedschaftsanfrage noch während der
+ersten Nachbesserungsrunde ersatzlos gestrichen) an eigene UND fremde Fansub-Gruppen senden, mit
+optionalem Release-Bezug (D-29 ff., spätere Runde), serverseitiger Projekt-/Release-Zugehörigkeits-
+Validierung (D-23/D-31), release-genauem Doppel-Hinweis-Schutz (D-32) und Freigabe durch die
+Zielgruppen-Leitung bzw. — ohne aktive Leitung — die plattformweite `/admin/fansub-group-hints`-
+Liste (D-11). `backend/cmd/server/main.go` und `contributions.module.css` wurden ohne Ausnahme auf
+≤450 Zeilen gesplittet (D-26/D-27, Nutzer-Entscheidung gegen eine weitere Ausnahme für diese beiden
+Altlast-Dateien). Zusätzlich während der letzten Live-Abnahme vom Nutzer selbst gefunden und
+behoben (Commit `a7893aeaf`, außerhalb des Plan-Scopes, für den Phasenabschluss übernommen):
+`ContributionsReviewSection` (Beitragsvorschläge an die eigene Gruppe) war seit vor Phase 191
+verwaist — jetzt im Collaboration-Tab mitgemountet. Drei vom Nutzer für eine spätere Phase
+vorgemerkte Punkte siehe
+`.planning/todos/pending/2026-10-26-hinweis-fremde-gruppen-folgephase-notizen.md`. Quelle-Todo
+bereits in Plan 191-10 nach `completed/` verschoben.
 
 # Phase 186 — Episoden-Import nachschärfen (Paket A aus UX-Abgleich) — COMPLETE (2026-10-18)
 

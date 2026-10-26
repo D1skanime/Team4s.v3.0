@@ -2986,12 +2986,19 @@ tatsächlich zur Zielgruppe gehört (D-23). Eigene gesendete Hinweise erscheinen
 Tageslimit ca. 10 pro Person, Ablehnen mit einem Klick optional mit Begründung. Keine automatische
 Mitgliedschaft, keine neuen Zuweisungs-Flows, kein Stummschalten, keine Captchas, keine
 Punkte/Badges für den Hinweis selbst, kein eigenes Recht. `backend/cmd/server/main.go` und
-`contributions.module.css` werden ohne Ausnahme auf ≤450 Zeilen aufgeteilt (D-26/D-27).
+`contributions.module.css` werden ohne Ausnahme auf ≤450 Zeilen aufgeteilt (D-26/D-27). Optionaler
+Release-Bezug je Hinweis, release-genauer Doppel-Hinweis-Schutz (D-29 bis D-34).
 **Requirements**: Additiv, keine REQUIREMENTS.md-Zuordnung — Abdeckung über D-01 bis D-36 aus
 191-CONTEXT.md (D-09 ersetzt/streicht Teile von D-01/D-06/D-07), siehe jeweiliges
 Plan-Frontmatter `requirements`.
 **Depends on:** Phase 190
-**Plans:** 32/37 plans executed
+**Plans:** 37/37 plans complete — Live-Checkpoint vom Nutzer am 2026-10-26 final freigegeben nach
+fünf Nachbesserungsrunden (D-09..D-36). Zusätzlich während der letzten Live-Abnahme vom Nutzer
+selbst gefunden und behoben (Commit `a7893aeaf`, außerhalb des Plan-Scopes, für den Phasenabschluss
+übernommen): `ContributionsReviewSection` (Beitragsvorschläge an die eigene Gruppe) war seit vor
+Phase 191 verwaist (kein Mountpunkt) — jetzt im Collaboration-Tab mitgemountet. Drei vom Nutzer für
+eine spätere Phase vorgemerkte Punkte siehe
+`.planning/todos/pending/2026-10-26-hinweis-fremde-gruppen-folgephase-notizen.md`.
 
 Plans:
 - [x] 191-01-PLAN.md — Datenmodell + Repository: Migration 0187 `fansub_group_hints`, Repository (CreateHint/List/Confirm/Reject)
@@ -3003,7 +3010,7 @@ Plans:
 - [x] 191-07-PLAN.md — Frontend: Hinweis-Formular-Erweiterung (Hinweisart/Gruppen-Scope/Rollenfeld, A6-Fix)
 - [x] 191-08-PLAN.md — Frontend: Leader-Review-Section (Fansub-Members-Tab)
 - [x] 191-09-PLAN.md — Frontend: Plattform-Admin-Liste `/admin/fansub-group-hints` + Nav-Eintrag
-- [ ] 191-10-PLAN.md — Phasenabschluss: DECISIONS.md, Todo-Verschiebung, Regressionsgate, Live-UAT (blockierender Checkpoint)
+- [x] 191-10-PLAN.md — Phasenabschluss: DECISIONS.md, Todo-Verschiebung, Regressionsgate, Live-UAT (Task 1/2 abgeschlossen; Checkpoint-Checkliste durch Plan 191-19 ersetzt, da der erste Live-UAT-Durchlauf nicht bestand)
 - [x] 191-11-PLAN.md — Backend: Migration 0188 (D-09 Schema-Cut) + Repository HasActiveLead/ListWithoutActiveLead (D-11)
 - [x] 191-12-PLAN.md — Backend: Handler-Vereinfachung (D-09) + Admin-Liste auf "ohne aktive Leitung" umgestellt (D-11) + Contract/Doku (D-08)
 - [x] 191-13-PLAN.md — Frontend: Contract-Typen/API-Client ohne hint_type/requested_role_code (D-09)
@@ -3012,22 +3019,22 @@ Plans:
 - [x] 191-16-PLAN.md — Frontend: Admin-Liste "Hinweise ohne Leitung" + Leader-Review-Badge entfernt (D-11)
 - [x] 191-17-PLAN.md — Frontend: Eligibility-Util extrahiert + ProposalForm-prefill-Unterstützung (D-12)
 - [x] 191-18-PLAN.md — Frontend: "Fehler melden"-Einstiegspunkt auf Projekt-/Release-Seite (D-12)
-- [ ] 191-19-PLAN.md — Phasenabschluss Nachbesserung: D-16-Vorabprüfung, DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
+- [x] 191-19-PLAN.md — Phasenabschluss Nachbesserung: D-16-Vorabprüfung, DECISIONS.md, Regressionsgate, Live-UAT (Task 1/2 abgeschlossen; Checkpoint-Checkliste durch Plan 191-24 ersetzt, da der zweite Live-UAT-Durchlauf nicht bestand)
 - [x] 191-20-PLAN.md — Frontend: Erfolgsansicht bleibt sichtbar (D-17) + 90-Tage-Text nur bei eigener Gruppe (D-19)
 - [x] 191-21-PLAN.md — Frontend: Zeitraum in Hinweis-Notiz erhalten (D-20) + Kommentar-Nachzug (D-21)
 - [x] 191-22-PLAN.md — Backend: `GET /me/fansub-group-hints` (D-18, Absender-Sicht)
 - [x] 191-23-PLAN.md — Frontend: Gesendete Fremdgruppen-Hinweise auf /me/contributions (D-18)
-- [ ] 191-24-PLAN.md — Phasenabschluss zweite Nachbesserung: D-22-Vorabprüfung (vollständig), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
+- [x] 191-24-PLAN.md — Phasenabschluss zweite Nachbesserung: D-22-Vorabprüfung (vollständig), DECISIONS.md, Regressionsgate, Live-UAT (Task 1/2 abgeschlossen; Checkpoint-Checkliste durch Plan 191-30 ersetzt, da der dritte Live-UAT-Durchlauf nicht bestand)
 - [x] 191-25-PLAN.md — Backend: D-23 Server-Validierung (anime_fansub_groups-Check) + D-25-Sweep (6 Backend-Dateien)
 - [x] 191-26-PLAN.md — Backend: D-26 main.go-Split (738 Zeilen, keine Ausnahme) + D-25-Sweep main.go
 - [x] 191-27-PLAN.md — Frontend: D-27 contributions.module.css-Split (902 Zeilen, keine Ausnahme) + D-25-Sweep (contributions.module.css, 3 Kommentarbloecke) — Import-Umstellung der 12 Verbraucher-Dateien + restlicher D-25-Sweep (4 Dateien) liegt in 191-31
 - [x] 191-28-PLAN.md — Frontend: D-25-Sweep Admin-/Review-Oberflaeche (5 Dateien)
 - [x] 191-29-PLAN.md — Frontend: D-25-Sweep oeffentliche/Mitglieder-Oberflaeche (8 Dateien)
-- [ ] 191-30-PLAN.md — Phasenabschluss vierte Nachbesserung: D-23/D-24-Vorabpruefung (echter API-Check + Loeschung), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
+- [x] 191-30-PLAN.md — Phasenabschluss vierte Nachbesserung: D-23/D-24-Vorabpruefung (echter API-Check + Loeschung), DECISIONS.md, Regressionsgate, Live-UAT (Task 1/2 abgeschlossen; Checkpoint-Checkliste durch Plan 191-37 ersetzt, da der vierte Live-UAT-Durchlauf nicht bestand)
 - [x] 191-31-PLAN.md — Frontend: D-27 Import-Repointing der 12 CSS-Modul-Verbraucher + Doku-Update + D-25-Sweep (page.tsx, MyProposalsSection.tsx, ProposalForm.tsx, ProposalForm.steps.tsx)
 - [x] 191-32-PLAN.md — Backend: D-31 Release-Validierung (ensureHintReleaseContext) + D-32 Migration 0189 (Release-Doppel-Hinweis-Schutz) + D-33 dynamische 409-Meldung + D-34 Release-Spalten in allen Lesepfaden
 - [x] 191-33-PLAN.md — Frontend: Typen-Spiegel (related_release_version_id/related_release_label) + useProposalFormReleaseOptions-Hook (D-29-Grundlage)
 - [x] 191-34-PLAN.md — Frontend: ProposalReleaseSelect-Komponente + Formular-Wizard-Verdrahtung beider Sende-Pfade + D-33-Frontend-Konfliktmeldung (D-29/D-33)
 - [x] 191-35-PLAN.md — Frontend: D-30 Bugfix (echter Projekttitel + Release-Vorauswahl auf der Release-Seite, ProposalFormPrefill-Erweiterung)
 - [x] 191-36-PLAN.md — Frontend: D-34 Release-Anzeige in allen drei Hinweis-Listen + schemafreie Episodenanzeige beim Eigengruppen-Pfad
-- [ ] 191-37-PLAN.md — Phasenabschluss fuenfte Nachbesserung: D-36-Vorabpruefung (echter API-Check + D-35-Loeschung), DECISIONS.md, Regressionsgate, Live-UAT (blockierender Checkpoint)
+- [x] 191-37-PLAN.md — Phasenabschluss fuenfte Nachbesserung: D-36-Vorabpruefung (echter API-Check + D-35-Loeschung), DECISIONS.md, Regressionsgate, Live-UAT — **Checkpoint vom Nutzer am 2026-10-26 freigegeben, Phase 191 abgeschlossen**
