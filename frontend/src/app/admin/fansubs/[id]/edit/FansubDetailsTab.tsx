@@ -10,6 +10,7 @@ import { canUseMainTab } from "./fansubEditAccess";
 import { GroupMediaReviewSection } from "./GroupMediaReviewSection";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { FansubGroupHintsReviewSection } from "./FansubGroupHintsReviewSection";
+import { ContributionsReviewSection } from "./ContributionsReviewSection";
 import { FansubCommunityLinksList } from "./FansubCommunityLinksList";
 import { FansubAliasSection } from "./FansubAliasSection";
 import { FansubBasicInfoTab } from "./FansubBasicInfoTab";
@@ -177,17 +178,20 @@ export function FansubDetailsTab({
                   hasAccessToken={hasAuthSession}
                   claimsLinkOut={claimsLinkOut}
                 />
-                {/* Mount hier statt neben dem (aktuell nicht produktiv eingebundenen)
-                    ContributionsReviewSection: jener Donor ist seit der Konsolidierung
-                    des "vorschlaege"-Haupttabs in "pruefungen" verwaist (kein Mount-
-                    punkt mehr in Produktionscode). Diese neue Sektion nutzt stattdessen
-                    das hier bereits vorhandene can_manage_members-Gate des
-                    Collaboration-Tabs — exakt die Berechtigung, die D-06 fuer diese
-                    Review-Liste fordert. */}
+                {/* Hier laufen beide Eingänge zusammen, die ein Gruppenleiter prüft:
+                    Hinweise von Mitgliedern anderer Gruppen und Beitragsvorschläge aus
+                    der eigenen Gruppe (z. B. „Hinweis senden“ an die eigene Gruppe).
+                    Beide setzen das Recht can_manage_members voraus. */}
                 <FansubGroupHintsReviewSection
                   fansubId={fansubID}
                   capabilities={capabilities}
                 />
+                {capabilities ? (
+                  <ContributionsReviewSection
+                    fansubId={fansubID}
+                    capabilities={capabilities}
+                  />
+                ) : null}
               </>
             ) : null}
           </div>
