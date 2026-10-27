@@ -152,17 +152,47 @@ async function ensureHistoricalMemberId(adminToken, groupId) {
   const list = await api('GET', `/api/v1/admin/fansubs/${groupId}/group-members`, { token: adminToken })
   must(list, 'liste group-members')
   const found = (list.json.data || []).find((m) => m.display_name === HIST_MEMBER_DISPLAY_NAME)
+  let histMemberId
   if (found) {
     log(`historischer eintrag "${HIST_MEMBER_DISPLAY_NAME}" existiert bereits (id=${found.id})`)
-    return found.id
+    histMemberId = found.id
+  } else {
+    const create = await api('POST', `/api/v1/admin/fansubs/${groupId}/group-members`, {
+      token: adminToken,
+      body: { display_name: HIST_MEMBER_DISPLAY_NAME },
+    })
+    histMemberId = must(create, `historischer eintrag "${HIST_MEMBER_DISPLAY_NAME}" anlegen`, [201]).data.id
+    log(`historischer eintrag "${HIST_MEMBER_DISPLAY_NAME}" angelegt (id=${histMemberId})`)
   }
-  const create = await api('POST', `/api/v1/admin/fansubs/${groupId}/group-members`, {
-    token: adminToken,
-    body: { display_name: HIST_MEMBER_DISPLAY_NAME },
+
+  // Die Live-App-Mitgliedschaft (Create, siehe ensureMemberAppMember) verlangt
+  // beim Verlinken per historical_member_id eine "offene Rolle" (hist_group_member_roles
+  // ohne ended_date) auf dem historischen Eintrag - sonst 409
+  // "historical_member_not_current". Ohne das waere die historische Identitaet nur
+  // ein Name ohne jede Mitwirkung, was fachlich keine "offene Mitgliedschaft bis heute"
+  // ist. Eine einzelne, zeitlich offene "translator"-Rolle reicht als Nachweis.
+  const roles = await api('GET', `/api/v1/admin/fansubs/${groupId}/member-roles`, {
+    token: adminToken, query: { member_id: String(histMemberId) },
   })
-  const id = must(create, `historischer eintrag "${HIST_MEMBER_DISPLAY_NAME}" anlegen`, [201]).data.id
-  log(`historischer eintrag "${HIST_MEMBER_DISPLAY_NAME}" angelegt (id=${id})`)
-  return id
+  must(roles, 'liste member-roles')
+  const hasOpenRole = (roles.json.data || []).some((r) => !r.ended_date)
+  if (!hasOpenRole) {
+    const createRole = await api('POST', `/api/v1/admin/fansubs/${groupId}/member-roles`, {
+      token: adminToken,
+      body: {
+        hist_fansub_group_member_id: histMemberId,
+        role_code: 'translator',
+        status: 'confirmed',
+        visibility: 'public',
+      },
+    })
+    must(createRole, `offene rolle fuer historischen eintrag ${histMemberId} anlegen`, [201])
+    log(`historischer eintrag ${histMemberId}: offene "translator"-rolle angelegt`)
+  } else {
+    log(`historischer eintrag ${histMemberId}: offene rolle bereits vorhanden`)
+  }
+
+  return histMemberId
 }
 
 async function ensureMemberAppMember(adminToken, groupId, appUserId, historicalMemberId, existingAppUserIds) {
