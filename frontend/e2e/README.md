@@ -68,33 +68,36 @@ Playwright-Reports.
 
 - `bash scripts/e2e/reset-fixtures.sh` — setzt sowohl die DB-Fixture als auch die 5
   Keycloak-Testkonten tatsächlich zurück:
-  1. Verifiziert vor JEDER Mutation (auch vor den Keycloak-Löschungen in Schritt 2) die Zielgruppe
-     exakt: ihre ID (aus dem Manifest) MUSS zusammen mit `slug = 'e2e-gruppe-a'` UND
-     `kuerzel = 'e2e-fixture-261026-wve'` auf genau eine reale Zeile passen — dieselben festen
-     Konstanten, mit denen `provision-fixtures.mjs` die Gruppe erzeugt, nicht das, was im Manifest
-     selbst als `group_slug` steht. Fehlt ein Pflichtfeld im Manifest (`fansub_group_id`,
-     `historical_member_id`, die drei `app_user_id`-Felder), ist es nicht rein numerisch, oder
-     weicht slug/kuerzel ab, bricht das **gesamte** Skript ohne jede Mutation ab (auch Schritt 2
-     wird dann nie erreicht).
-  2. Löscht danach in **einer einzigen Transaktion**: die `app_users`-Zeilen für **alle 5**
-     erlaubten E2E-Adressen (`e2e-admin/leader/deputy/member/user@team4s.test`) — nicht nur die
-     drei Gruppenmitglieder aus dem Manifest, da `e2e-admin` nie Gruppenmitglied wird und
-     `e2e-user` seinen `app_users`-Datensatz erst durch den Playwright-Lauf selbst bekommt.
-     Identifikation ausschließlich über exakte E-Mail-Gleichheit (`= ANY(ARRAY[...])`, niemals
-     `LIKE`/Muster). Dazu ihre Legacy-Bridge-Zeile in `users` (sonst bliebe dort dauerhaft eine
-     verwaiste, per eigenem `uq_users_username` eindeutige Zeile liegen — ein Fehler, der beim
-     Entwickeln dieses Skripts selbst reproduziert wurde). Den historischen Eintrag (`scoped` auf
-     `fansub_group_id`). Und zuletzt die Fansub-Gruppe selbst — deren `DELETE`-Anweisung dieselben
-     drei verifizierten Bedingungen (`id` + `slug` + `kuerzel`) nochmal **selbst im `WHERE`** trägt,
-     atomar statt nur vorher geprüft; trifft sie entgegen der Vorab-Prüfung nicht genau eine Zeile,
-     bricht das Skript danach trotzdem mit Fehler ab. Nie ein `TRUNCATE`, nie ein schemaweiter
-     Reset, im selben Muster wie `scripts/reset-member-profile-fixture.sh`. Live-Mitgliedschaften
-     und ihre Rollen verschwinden automatisch per `ON DELETE CASCADE`. Die Admin-HTTP-API bietet für
-     die Gruppen-/Mitgliedschafts-Löschung bewusst keinen Hard-Delete (verifiziert über eine
-     vollständige Durchsicht aller registrierten Routen: keine `DELETE` für `app-members`/
-     `app_users`, kein Self-Service-Leave-Endpunkt), deshalb der direkte, aber eng begrenzte
+  1. Sucht die Fixture-Gruppe **immer** über ihre feste, verifizierte Identität —
+     `slug = 'e2e-gruppe-a'` UND `kuerzel = 'e2e-fixture-261026-wve'` (dieselben Konstanten, mit
+     denen `provision-fixtures.mjs` die Gruppe erzeugt) — **unabhängig davon, ob überhaupt ein
+     lokales Manifest existiert**. Ein Reset ohne Manifest (z. B. weil eine vorherige
+     Provisionierung abgebrochen ist, bevor sie das Manifest je schrieb, die Secrets-Datei aber
+     schon da ist) setzt dadurch trotzdem die komplette DB-Fixture zurück, statt nur die
+     Keycloak-Konten zu löschen und die DB-Zeilen liegen zu lassen.
+  2. Existiert zusätzlich ein Manifest, muss es alle fünf Pflichtfelder (`fansub_group_id`,
+     `historical_member_id`, die drei `app_user_id`-Felder) vollständig und numerisch enthalten,
+     seine `fansub_group_id` muss exakt auf die oben gefundene Gruppe passen, UND für jedes der
+     drei `app_user_id`-Felder wird **vor jeder Mutation** per `SELECT` geprüft, dass der jeweilige
+     `app_users`-Datensatz tatsächlich die für diese Rolle erwartete E-Mail trägt — ein
+     manipuliertes Manifest mit der (numerisch gültigen) ID eines fremden `app_users` bricht damit
+     ab, ohne dass diese ID je in einer Mutation verwendet wird. Bei jeder Abweichung bricht das
+     **gesamte** Skript ohne jede Mutation ab (auch die Keycloak-Löschung wird dann nie erreicht).
+  3. Löscht danach in **einer einzigen Transaktion**: die `app_users`-Zeilen für **alle 5**
+     erlaubten E2E-Adressen (`e2e-admin/leader/deputy/member/user@team4s.test`, ausschließlich über
+     exakte E-Mail-Gleichheit, niemals `LIKE`/Muster) samt ihrer Legacy-Bridge-Zeile in `users`
+     (sonst bliebe dort dauerhaft eine verwaiste, per eigenem `uq_users_username` eindeutige Zeile
+     liegen), den historischen Eintrag (`scoped` auf die verifizierte Gruppen-ID) und zuletzt die
+     Fansub-Gruppe selbst. Die Gruppen-Löschung steckt in einem PL/pgSQL-`DO`-Block, der die
+     Zeilenzahl der eigenen `DELETE`-Anweisung per `GET DIAGNOSTICS` prüft und bei `!= 1` eine
+     Exception auslöst — das bricht die **gesamte Transaktion serverseitig** ab (kein `COMMIT`
+     erreicht die vorherigen Löschungen), statt nur nachträglich clientseitig nach einem bereits
+     erfolgten `COMMIT` zu prüfen. Nie ein `TRUNCATE`, nie ein schemaweiter Reset, im selben Muster
+     wie `scripts/reset-member-profile-fixture.sh`. Die Admin-HTTP-API bietet für die
+     Gruppen-/Mitgliedschafts-Löschung bewusst keinen Hard-Delete (verifiziert über eine
+     vollständige Durchsicht aller registrierten Routen), deshalb der direkte, aber eng begrenzte
      SQL-Zugriff.
-  3. Löscht die 5 Keycloak-Konten (eigene `kcadm`-Admin-Session, unabhängig von `e2e-admin`s
+  4. Löscht die 5 Keycloak-Konten (eigene `kcadm`-Admin-Session, unabhängig von `e2e-admin`s
      eigenem Passwort) und entfernt `~/.config/team4s-e2e.env`, sodass der nächste
      `provision.sh`-Lauf eine komplett frische Fixture samt frischer Passwörter anlegt.
 
