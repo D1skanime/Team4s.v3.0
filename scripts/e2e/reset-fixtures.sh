@@ -28,6 +28,26 @@
 # Ermittlungsweg - findet sich keine Zeile, die gleichzeitig die
 # Manifest-ID UND beide Konstanten erfuellt, bricht das Skript ab.
 #
+# Reihenfolge (erst validieren, dann mutieren, zuletzt Manifest/Secrets
+# entfernen): ALLE read-only Pruefungen - sowohl die DB-seitigen
+# (Pflichtfelder, Gruppen-ID, Rollen-Referenzen, siehe Teil 1 unten) als
+# auch die Keycloak-seitigen (Existenz + exakte E-Mail aller 5 Konten) -
+# laufen VOR der ersten Mutation irgendeiner Art. Erst danach folgen die
+# eigentlichen Mutationen: zuerst die DB-Transaktion (Teil 1), danach die
+# Keycloak-Loeschung (Teil 2) anhand der bereits validierten Konten-IDs
+# (keine erneute Pruefung mehr, die mitten in der Loeschung scheitern
+# koennte). Manifest UND Secrets-Datei werden ERST entfernt, NACHDEM
+# BEIDE Mutationen vollstaendig durchgelaufen sind - vorher (z. B. nach
+# dem DB-COMMIT, aber vor der Keycloak-Loeschung) bricht das Skript ab,
+# OHNE das Manifest zu entfernen, falls irgendetwas schiefgeht. Das war
+# vor dieser Haertung anders: das Manifest wurde direkt nach dem
+# DB-COMMIT geloescht, BEVOR die Keycloak-Konten ueberhaupt geprueft
+# waren - eine abweichende E-Mail bei auch nur einem der 5 Konten (z. B.
+# e2e-user) hatte dann einen Zustand hinterlassen, in dem DB-Fixture und
+# Manifest bereits weg waren, Keycloak-Konten aber teilweise noch
+# existierten, und ein erneuter Reset wegen des fehlenden Manifests
+# sofort abgebrochen waere, ohne diesen Zustand je nachholen zu koennen.
+#
 # Teil 1 (DB, team4s_v2):
 #
 # Fuer alle drei Rollen (leader/deputy/member) werden die tatsaechliche
@@ -75,11 +95,11 @@
 # LIKE/Muster).
 #
 # Teil 2 (Keycloak): loescht die 5 Konten (ueber die eigene kcadm-Admin-
-# Session, unabhaengig von e2e-admins eigenem Passwort) und entfernt die
-# lokale Secrets-Datei. Wird nur erreicht, wenn Teil 1 vollstaendig und
-# ohne Abbruch durchgelaufen ist. Vor jeder Keycloak-Mutation wird ebenso
-# die exakt erwartete @team4s.test-E-Mail des per Username gefundenen
-# Kontos geprueft.
+# Session, unabhaengig von e2e-admins eigenem Passwort). Existenz und
+# exakte @team4s.test-E-Mail aller 5 Konten sind zu diesem Zeitpunkt
+# bereits VOR der DB-Transaktion geprueft (siehe oben) - hier wird nur
+# noch anhand der dabei gesammelten User-IDs geloescht, ohne erneute
+# Pruefung.
 #
 # Hintergrund zur fruher gewaehlten (und verworfenen) reinen Konten-Reset-
 # Variante ohne DB-Loeschung: DeleteFansub lehnt jede Loeschung ueber die
@@ -226,6 +246,47 @@ SQL
   fi
 done
 
+# ---- Keycloak-Konten vollstaendig read-only vorab validieren --------------
+# Alle 5 Konten werden JETZT geprueft (Existenz + exakte E-Mail), BEVOR
+# ueberhaupt eine Mutation (DB oder Keycloak) stattfindet. Ohne diese
+# Vorab-Pruefung konnte die DB-Transaktion unten bereits committen und das
+# Manifest bereits entfernt werden, bevor die Keycloak-Loeschung je begann
+# - scheiterte die Keycloak-Pruefung dann mitten in der spaeteren
+# Loeschschleife (z. B. e2e-user mit abweichender E-Mail), blieben
+# Keycloak-Konten teilweise bestehen, waehrend DB-Fixture und Manifest
+# bereits weg waren; ein erneuter Reset brach danach wegen fehlendem
+# Manifest ab und konnte den unvollstaendigen Zustand nie nachholen. Die
+# hier gefundenen User-IDs werden fuer die tatsaechliche Loeschung in
+# Teil 2 zwischengespeichert, damit dort keine erneute Pruefung (und damit
+# kein erneutes Abbruchrisiko mitten in der Loeschung) mehr stattfindet.
+ACCOUNTS=(
+  "admin:e2e-admin@team4s.test"
+  "leader:e2e-leader@team4s.test"
+  "deputy:e2e-deputy@team4s.test"
+  "member:e2e-member@team4s.test"
+  "user:e2e-user@team4s.test"
+)
+
+docker compose exec -T keycloak sh -c \
+  '/opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user "$KEYCLOAK_ADMIN" --password "$KEYCLOAK_ADMIN_PASSWORD"' \
+  >/dev/null
+
+declare -A KEYCLOAK_USER_ID
+for entry in "${ACCOUNTS[@]}"; do
+  email="${entry#*:}"
+  username="${email%%@*}"
+  existing=$(docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r "$REALM" -q username="$username")
+  existing_count=$(printf '%s' "$existing" | jq 'length')
+  if [[ "$existing_count" -gt 0 ]]; then
+    existing_email=$(printf '%s' "$existing" | jq -r '.[0].email // ""')
+    if [[ "$existing_email" != "$email" ]]; then
+      echo "FEHLER: Keycloak-User mit username '${username}' existiert, aber mit abweichender E-Mail '${existing_email}' (erwartet '${email}'). Kein Nicht-E2E-Konto wird geloescht - Abbruch ohne jede Mutation (weder DB noch Keycloak)." >&2
+      exit 1
+    fi
+    KEYCLOAK_USER_ID[$entry]=$(printf '%s' "$existing" | jq -r '.[0].id')
+  fi
+done
+
 # Eine einzige Transaktion fuer alles: Legacy-Bridge-Zeilen + app_users
 # (alle 5 e2e-*@team4s.test-Adressen, exakte E-Mail-Gleichheit, niemals
 # LIKE/Muster), historischer Eintrag (scoped auf die oben verifizierte
@@ -324,42 +385,23 @@ if [[ "$DELETE_STATUS" -ne 0 ]]; then
   exit 1
 fi
 
-rm -f "$MANIFEST"
-echo "DB-Fixture entfernt: Fansub-Gruppe ${REAL_GROUP_ID} (slug=${EXPECTED_SLUG}, kuerzel=${EXPECTED_KUERZEL}, inkl. historischem Eintrag und Live-Mitgliedschaften/-Rollen per CASCADE), ${#MEMBER_IDS[@]} members-Identitaet(en) samt verified member_claims (member_id(s): ${MEMBER_IDS[*]:-"keine"}) und app_users/Legacy-Bridge-Zeilen fuer alle 5 e2e-*@team4s.test-Adressen geloescht. Manifest entfernt."
+echo "DB-Fixture entfernt: Fansub-Gruppe ${REAL_GROUP_ID} (slug=${EXPECTED_SLUG}, kuerzel=${EXPECTED_KUERZEL}, inkl. historischem Eintrag und Live-Mitgliedschaften/-Rollen per CASCADE), ${#MEMBER_IDS[@]} members-Identitaet(en) samt verified member_claims (member_id(s): ${MEMBER_IDS[*]:-"keine"}) und app_users/Legacy-Bridge-Zeilen fuer alle 5 e2e-*@team4s.test-Adressen geloescht."
 
 # ---- Teil 2: Keycloak-Konten tatsaechlich zuruecksetzen --------------------
-# Nutzt dieselbe kcadm-Admin-Session wie provision-keycloak-users.sh
-# (KEYCLOAK_ADMIN/KEYCLOAK_ADMIN_PASSWORD aus der Container-Umgebung) -
-# funktioniert unabhaengig davon, ob e2e-admins eigenes Passwort noch
-# bekannt/gueltig ist, weil es NICHT ueber ein per Login erzeugtes Token
-# laeuft, sondern ueber die Keycloak-Admin-CLI selbst. Wird nur erreicht,
-# wenn Teil 1 vollstaendig und ohne Abbruch durchgelaufen ist.
-ACCOUNTS=(
-  "admin:e2e-admin@team4s.test"
-  "leader:e2e-leader@team4s.test"
-  "deputy:e2e-deputy@team4s.test"
-  "member:e2e-member@team4s.test"
-  "user:e2e-user@team4s.test"
-)
-
-docker compose exec -T keycloak sh -c \
-  '/opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user "$KEYCLOAK_ADMIN" --password "$KEYCLOAK_ADMIN_PASSWORD"' \
-  >/dev/null
-
+# Loescht ausschliesslich die oben BEREITS vollstaendig validierten
+# Konten (KEYCLOAK_USER_ID) - keine erneute Existenz-/E-Mail-Pruefung
+# hier, da diese Pruefung schon vor der DB-Mutation lief; ein Abbruch
+# mitten in dieser Schleife (z. B. durch eine Netzwerkstoerung) kann
+# dadurch nicht mehr an einer E-Mail-Abweichung scheitern, sondern
+# hoechstens an echten Infrastruktur-Fehlern - der verbleibende Rest
+# wird in diesem Fall ueber den naechsten 'provision.sh'-Lauf bereinigt
+# (idempotent: ein noch existierendes Konto mit korrekter E-Mail wird
+# dort einfach weiterverwendet, nicht abgelehnt).
 DELETED_COUNT=0
 for entry in "${ACCOUNTS[@]}"; do
   email="${entry#*:}"
-  username="${email%%@*}"
-  existing=$(docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r "$REALM" -q username="$username")
-  existing_count=$(printf '%s' "$existing" | jq 'length')
-  if [[ "$existing_count" -gt 0 ]]; then
-    existing_email=$(printf '%s' "$existing" | jq -r '.[0].email // ""')
-    if [[ "$existing_email" != "$email" ]]; then
-      echo "FEHLER: Keycloak-User mit username '${username}' existiert, aber mit abweichender E-Mail '${existing_email}' (erwartet '${email}'). Kein Nicht-E2E-Konto wird geloescht - Abbruch ohne Mutation an diesem Konto." >&2
-      exit 1
-    fi
-    user_id=$(printf '%s' "$existing" | jq -r '.[0].id')
-    docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh delete "users/${user_id}" -r "$REALM" >/dev/null
+  if [[ -n "${KEYCLOAK_USER_ID[$entry]:-}" ]]; then
+    docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh delete "users/${KEYCLOAK_USER_ID[$entry]}" -r "$REALM" >/dev/null
     echo "Keycloak-Konto ${email} geloescht."
     DELETED_COUNT=$((DELETED_COUNT + 1))
   fi
@@ -369,6 +411,13 @@ if [[ "$DELETED_COUNT" -eq 0 ]]; then
   echo "Keine der 5 e2e-*@team4s.test-Konten existierten in Keycloak - nichts zu loeschen."
 fi
 
+# Manifest UND Secrets-Datei werden ERST jetzt entfernt, NACHDEM sowohl die
+# DB- (oben, COMMIT bereits erfolgt) als auch die Keycloak-Bereinigung
+# (direkt darueber) vollstaendig durchgelaufen sind - nicht schon nach dem
+# DB-COMMIT. Scheitert irgendetwas vor dieser Zeile, bleiben Manifest und
+# Secrets-Datei erhalten.
+rm -f "$MANIFEST"
 rm -f "$SECRETS_FILE"
 echo "Secrets-Datei entfernt: ${SECRETS_FILE} (naechster provision.sh-Lauf erzeugt 5 frische Passwoerter)."
+echo "Manifest entfernt: ${MANIFEST}."
 echo "Reset abgeschlossen: ${DELETED_COUNT}/5 Keycloak-Konten geloescht, DB-Fixture entfernt (siehe oben)."
