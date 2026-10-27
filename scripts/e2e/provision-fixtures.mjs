@@ -21,7 +21,7 @@
 //   E2E_KC_BASE          default http://127.0.0.1:8081 (docker-compose.yml-Standard)
 //   E2E_PASSWORD_ADMIN / _LEADER / _DEPUTY / _MEMBER / _USER  (vom Aufrufer gesetzt, siehe provision.sh)
 
-import { writeFileSync } from 'node:fs'
+import { writeFileSync, readFileSync, existsSync } from 'node:fs'
 
 const API = (process.env.E2E_API_BASE || 'http://127.0.0.1:8092').replace(/\/+$/, '')
 const KC = (process.env.E2E_KC_BASE || 'http://127.0.0.1:8081').replace(/\/+$/, '')
@@ -107,6 +107,15 @@ function must(res, ctx, okStatuses = [200, 201]) {
 
 // ---- Idempotente Schritte --------------------------------------------------
 
+function readExistingManifest() {
+  if (!existsSync(MANIFEST_PATH)) return null
+  try {
+    return JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'))
+  } catch (err) {
+    throw new Error(`fixtures.manifest.json ist vorhanden, aber nicht lesbar/gueltiges JSON: ${err.message}`)
+  }
+}
+
 async function ensureGroup(adminToken) {
   const create = await api('POST', '/api/v1/fansubs', {
     token: adminToken,
@@ -122,7 +131,35 @@ async function ensureGroup(adminToken) {
     must(list, 'liste fansubs')
     const found = (list.json.data || []).find((g) => g.slug === GROUP.slug)
     if (!found) throw new Error(`gruppe "${GROUP.slug}" meldete 409, wurde aber nicht gefunden`)
-    log(`gruppe "${GROUP.slug}" existiert bereits (id=${found.id})`)
+
+    // Sicherheitshalt gegen Slug-Kollision: ein Treffer per Slug alleine ist
+    // KEIN Beweis, dass diese Gruppe tatsaechlich von diesem Skript erzeugt
+    // wurde - jeder andere Prozess/Mensch kann zufaellig denselben Slug
+    // vergeben haben. Nur ein vorhandenes, auf exakt diese ID lautendes
+    // Manifest zaehlt als verifizierter Fixture-Nachweis; ohne dieses
+    // Manifest MUSS vor jeder Mutation (Rollen-/Mitgliederzuweisung, siehe
+    // main()) abgebrochen werden, statt eine fremde Gruppe stillschweigend
+    // zu uebernehmen und zu veraendern.
+    const existingManifest = readExistingManifest()
+    if (!existingManifest) {
+      throw new Error(
+        `gruppe "${GROUP.slug}" (id=${found.id}) existiert bereits, aber kein Fixture-Manifest ` +
+        `(${MANIFEST_PATH.pathname}) bestaetigt, dass es sich um die von diesem Skript erzeugte ` +
+        `E2E-Fixture handelt. Abbruch vor jeder Mutation, um keine fremde Gruppe zu veraendern. ` +
+        `Pruefe manuell, ob Gruppe ${found.id} tatsaechlich eine verwaiste E2E-Fixture ist (z. B. ` +
+        `nach einem abgebrochenen frueheren Lauf) - falls ja, entweder das Manifest mit ` +
+        `{"fansub_group_id": ${found.id}} wiederherstellen oder die Gruppe ueber die Admin-UI pruefen.`
+      )
+    }
+    if (existingManifest.fansub_group_id !== found.id) {
+      throw new Error(
+        `gruppe "${GROUP.slug}" (id=${found.id}) existiert, aber das vorhandene Manifest weist eine ` +
+        `ANDERE fansub_group_id aus (${existingManifest.fansub_group_id}). Das deutet auf zwei ` +
+        `verschiedene Gruppen mit demselben Slug hin - Abbruch vor jeder Mutation, manuelle Pruefung ` +
+        `erforderlich.`
+      )
+    }
+    log(`gruppe "${GROUP.slug}" existiert bereits (id=${found.id}), durch Manifest verifiziert`)
     return found.id
   }
   throw new Error(`ensureGroup(${GROUP.slug}): unerwarteter status ${create.status}: ${JSON.stringify(create.json)}`)

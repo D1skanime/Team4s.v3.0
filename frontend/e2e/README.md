@@ -66,15 +66,24 @@ Playwright-Reports.
 
 ## Reset
 
-- `bash scripts/e2e/reset-fixtures.sh` — entfernt ausschließlich die eine Fansub-Gruppe, die im
+- `bash scripts/e2e/reset-fixtures.sh` — versucht, die eine Fansub-Gruppe zu entfernen, die im
   Manifest `scripts/e2e/fixtures.manifest.json` als von der Provisionierung erzeugt ausgewiesen
-  ist (über den bestehenden Endpunkt `DELETE /fansubs/:id`, FK-Kaskaden erledigen den Rest). Kein
-  `TRUNCATE`, kein DB-Reset — alles andere in `team4s_v2` bleibt unangetastet. Ein fehlendes
-  Manifest ist kein Fehler, sondern bedeutet "nichts zurückzusetzen".
+  ist (über den bestehenden Endpunkt `DELETE /fansubs/:id`). Kein `TRUNCATE`, kein DB-Reset —
+  alles andere in `team4s_v2` bleibt unangetastet. Ein fehlendes Manifest ist kein Fehler,
+  sondern bedeutet "nichts zurückzusetzen".
+  **Strukturelle Einschränkung:** Sobald die Gruppe Live-App-Mitgliedschaften hat (ab dem ersten
+  erfolgreichen `provision.sh`-Lauf immer der Fall), lehnt das Backend die Löschung mit 409 ab
+  (`fansub_group_has_dependents`) — die Admin-API bietet für Live-Mitgliedschaften bewusst
+  keinen Hard-Delete-Endpunkt an, nur Status-Updates. In diesem Fall **schlägt das Skript mit
+  Exit-Code 1 fehl und behält das Manifest** (es behauptet nie einen erfolgten Reset, wenn die
+  Daten tatsächlich unverändert bestehen bleiben). Ein echter Reset der Fixture-Gruppe ist mit
+  der heutigen Admin-API also nur möglich, solange noch keine Live-Mitgliedschaft besteht.
 - `bash scripts/e2e/provision.sh` — stellt die Fixtures danach (oder bei Bedarf jederzeit)
-  erneut idempotent sicher.
+  erneut idempotent sicher. Prüft bei einer Slug-Kollision (Gruppe `e2e-gruppe-a` existiert
+  bereits), ob das lokale Manifest exakt dieselbe `fansub_group_id` ausweist — fehlt das
+  Manifest oder zeigt es auf eine andere ID, bricht das Skript **vor jeder Mutation** ab, statt
+  eine möglicherweise fremde Gruppe stillschweigend zu übernehmen und zu verändern.
 - `bash scripts/e2e.sh` — kompletter, erneut idempotenter Durchlauf von Provisionierung bis
-  Testlauf.
+  Testlauf (ruft `reset-fixtures.sh` nicht auf).
 
-Die Keycloak-Testkonten selbst werden von `reset-fixtures.sh` nie gelöscht — nur ihre
-Gruppenzugehörigkeit wird zurückgesetzt.
+Die Keycloak-Testkonten selbst werden von `reset-fixtures.sh` nie gelöscht.

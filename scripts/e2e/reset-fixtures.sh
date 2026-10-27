@@ -11,15 +11,21 @@
 #
 # DeleteFansub weist jede Loeschung mit 409 "fansub_group_has_dependents"
 # zurueck, solange die Gruppe noch echte Live- oder historische
-# Mitgliedschaften hat (backend/internal/repository/fansub_repository_groups_delete.go,
-# Datenintegritaets-Sicherung D-12) - und fuer Live-Mitgliedschaften
+# Mitgliedschaften hat (backend/internal/repository/release_version_group_guard.go
+# FansubGroupDependencySummary.HasAny() zaehlt Memberships UND
+# HistoricalMembers, backend/internal/repository/fansub_repository_groups_delete.go
+# D-12 prueft das VOR jeder Loeschung). Fuer Live-Mitgliedschaften
 # (fansub_group_members) bietet die Admin-API bewusst keinen Hard-Delete-
-# Endpunkt an (nur Status/Rollen-Updates), sodass "E2E Gruppe A" nach dem
-# ersten provision.sh-Lauf nie wieder ueber diesen Endpunkt vollstaendig
-# loeschbar ist. Das ist eine beabsichtigte Schutzmassnahme des Backends,
-# keine Luecke dieses Skripts - also wird dieser 409 hier als regulaeres
-# Zielergebnis behandelt (Gruppe bleibt bestehen, naechster
-# provision.sh-Lauf erkennt sie wie gewohnt wieder), statt als Fehler.
+# Endpunkt an (nur Status-Updates zwischen 'active'/'disabled', die Zeile
+# bleibt in der Zaehlung bestehen) - "E2E Gruppe A" kann nach dem ersten
+# provision.sh-Lauf strukturell NIE wieder ueber diesen Endpunkt vollstaendig
+# geloescht werden, solange die Live-App-Mitgliedschaften bestehen. Das ist
+# eine beabsichtigte Schutzmassnahme des Backends, keine Luecke dieses
+# Skripts - ABER: dieser 409 bedeutet, dass KEIN Reset stattgefunden hat.
+# Das Skript behandelt ihn deshalb als Fehlschlag (Exit 1) und behaelt das
+# Manifest, statt einen nicht erfolgten Reset als Erfolg zu melden und die
+# einzige Quelle zu verlieren, die die verbleibenden Daten als eigene
+# Fixture ausweist (siehe provision-fixtures.mjs ensureGroup()).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -92,7 +98,8 @@ case "$STATUS" in
   409)
     REASON_CODE=$(jq -r '.error.code // ""' "$RESPONSE_FILE" 2>/dev/null || true)
     if [[ "$REASON_CODE" == "fansub_group_has_dependents" ]]; then
-      echo "Fansub-Gruppe ${GROUP_ID} hat weiterhin eigene Live-/historische Mitgliedschaften und wird vom Backend-Sicherheitsmechanismus (D-12) nicht geloescht - das ist beabsichtigt, die Gruppe bleibt bestehen."
+      echo "FEHLSCHLAG: Fansub-Gruppe ${GROUP_ID} hat weiterhin eigene Live-/historische Mitgliedschaften und wird vom Backend-Sicherheitsmechanismus (D-12) nicht geloescht. Die Admin-API bietet keinen Hard-Delete fuer Live-Mitgliedschaften an - ein vollstaendiger Reset ist strukturell nicht moeglich, solange diese bestehen. Die Fixture-Daten bleiben unveraendert, das Manifest wird NICHT entfernt (es ist weiterhin der einzige Nachweis, dass Gruppe ${GROUP_ID} diese E2E-Fixture ist)." >&2
+      exit 1
     else
       echo "DELETE /api/v1/fansubs/${GROUP_ID} lieferte unerwarteten 409 (code=${REASON_CODE})." >&2
       exit 1
