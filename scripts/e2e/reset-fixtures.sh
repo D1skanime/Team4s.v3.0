@@ -2,51 +2,55 @@
 # scripts/e2e/reset-fixtures.sh
 #
 # Setzt die 5 dedizierten E2E-Testkonten (e2e-*@team4s.test) UND die von
-# provision-fixtures.mjs angelegte DB-Fixture tatsaechlich zurueck:
+# provision-fixtures.mjs angelegte DB-Fixture tatsaechlich zurueck.
 #
-# 1. Loescht genau die manifestierten DB-Zeilen - die drei app_users-Konten
-#    (Leitung/Stellvertretung/Mitglied, per GET /me waehrend der
-#    Provisionierung entstanden und mit ihrer app_user_id ins Manifest
-#    geschrieben), den historischen Eintrag und die Fansub-Gruppe selbst -
-#    per gezielter, auf exakte IDs aus scripts/e2e/fixtures.manifest.json
-#    beschraenkter SQL-Loeschung in FK-sicherer Kind-vor-Eltern-Reihenfolge -
-#    NIE ein TRUNCATE, NIE ein schemaweiter Reset, genau wie
-#    scripts/reset-member-profile-fixture.sh es fuer seine eigene Fixture
-#    vormacht. Vor der Loeschung wird fuer jede app_user_id die tatsaechlich
-#    gespeicherte E-Mail gegen die exakt erwartete @team4s.test-Adresse
-#    geprueft - stimmt auch nur eine nicht, bricht der GESAMTE DB-Fixture-
-#    Teil ohne jede Mutation ab, statt eine fremde Identitaet zu loeschen.
-#    Die Admin-HTTP-API bietet fuer die Gruppen-/Mitgliedschafts-Loeschung
-#    bewusst keinen Hard-Delete (siehe Kommentar weiter unten) - deshalb der
-#    direkte, aber eng auf die eigenen Zeilen-IDs begrenzte SQL-Zugriff,
-#    exakt im selben Muster wie das bestehende Fixture-Reset-Skript.
-# 2. Loescht die 5 Keycloak-Konten (ueber die eigene kcadm-Admin-Session,
-#    unabhaengig von e2e-admins eigenem Passwort) und entfernt die lokale
-#    Secrets-Datei, damit scripts/e2e/provision.sh beim naechsten Lauf eine
-#    komplett frische Fixture samt frischer Passwoerter anlegt.
-#
-# Vor jeder Keycloak-Mutation (Passwort/Rolle/Loeschung) wird die exakt
-# erwartete @team4s.test-E-Mail des gefundenen Datensatzes geprueft - ein
-# Nicht-E2E-Konto mit zufaellig demselben Username (z. B. ein reales
-# "e2e-admin@team4s.de") wird dadurch NIE veraendert oder geloescht, das
-# Skript bricht statt dessen ohne jede Mutation ab.
-#
-# Hintergrund zur fruher gewaehlten (und hier verworfenen) reinen Konten-
-# Reset-Variante: DeleteFansub lehnt jede Loeschung ueber die HTTP-API mit
-# 409 ab, solange die Gruppe Live- oder historische Mitgliedschaften hat
-# (backend/internal/repository/release_version_group_guard.go
-# FansubGroupDependencySummary.HasAny() zaehlt beide unconditional), und die
-# Admin-API bietet fuer Live-Mitgliedschaften (fansub_group_members) KEINEN
-# Hard-Delete an (nur Status-Updates, verifiziert ueber eine vollstaendige
-# Durchsicht aller registrierten Routen in backend/cmd/server/
-# {admin_routes,routes_public}.go: keine DELETE-Route fuer app-members/
-# app_users, kein Self-Service-Leave-Endpunkt). Ein reiner Konten-Reset liess
-# die DB-Fixture deshalb vollstaendig unangetastet und stellte sie beim
-# naechsten Login per verifiziertem E-Mail-Resubjecting (D-07) nur wieder
-# her, statt sie zurueckzusetzen - das wurde als unzureichend zurueckgewiesen.
-# Die direkte, eng ID-beschraenkte SQL-Loeschung unten ist der tatsaechlich
-# wirksame Reset, im selben sanktionierten Muster wie
+# Teil 1 (DB, team4s_v2): Vor JEDER Mutation (auch vor den Keycloak-
+# Loeschungen in Teil 2) wird die Zielgruppe exakt verifiziert - ihre ID
+# (aus dem Manifest) MUSS zusammen mit slug = 'e2e-gruppe-a' UND
+# kuerzel = 'e2e-fixture-261026-wve' auf genau eine reale Zeile in
+# fansub_groups passen (dieselben festen Konstanten, mit denen
+# provision-fixtures.mjs die Gruppe erzeugt - siehe dortiges GROUP-Objekt).
+# Fehlt ein Pflichtfeld im Manifest, ist es nicht rein numerisch, oder
+# weicht slug/kuerzel der gefundenen Zeile ab, bricht das GESAMTE Skript
+# sofort ab (Exit 1, klare Meldung) - es findet dann ueberhaupt KEINE
+# Mutation statt, auch nicht die Keycloak-Loeschung in Teil 2. Die
+# anschliessende DELETE-Anweisung trägt dieselben drei Bedingungen zusaetzlich
+# selbst im WHERE (atomar, nicht nur vorher geprueft) - eine zwischen Pruefung
+# und Loeschung veraenderte Zeile wuerde die DELETE-Anweisung also ebenfalls
+# nicht treffen. Alles (Legacy-Bridge-Zeilen, app_users, historischer
+# Eintrag, Gruppe) laeuft in einer einzigen Transaktion. NIE ein TRUNCATE,
+# NIE ein schemaweiter Reset, im selben Muster wie
 # scripts/reset-member-profile-fixture.sh.
+#
+# app_users werden dabei fuer ALLE 5 erlaubten E2E-Adressen
+# (e2e-admin/leader/deputy/member/user@team4s.test) geloescht, nicht nur
+# fuer die drei im Manifest verzeichneten Gruppenmitglieder - e2e-admin und
+# e2e-user haben nie einen Eintrag im Manifest (admin wird nicht Mitglied
+# der Gruppe, user bekommt seinen app_users-Datensatz erst durch den
+# Playwright-Lauf selbst), hatten aber ebenso einen echten Login und damit
+# einen eigenen app_users-Datensatz. Identifikation ausschliesslich ueber
+# exakte E-Mail-Gleichheit (niemals LIKE/Muster) - eine Zeile mit
+# abweichender E-Mail wird nie angefasst.
+#
+# Teil 2 (Keycloak): loescht die 5 Konten (ueber die eigene kcadm-Admin-
+# Session, unabhaengig von e2e-admins eigenem Passwort) und entfernt die
+# lokale Secrets-Datei, damit scripts/e2e/provision.sh beim naechsten Lauf
+# eine komplett frische Fixture samt frischer Passwoerter anlegt. Vor jeder
+# Keycloak-Mutation wird ebenfalls die exakt erwartete @team4s.test-E-Mail
+# des per Username gefundenen Kontos geprueft - ein Nicht-E2E-Konto mit
+# zufaellig demselben Username (z. B. ein reales "e2e-admin@team4s.de")
+# wird dadurch NIE veraendert oder geloescht.
+#
+# Hintergrund zur fruher gewaehlten (und verworfenen) reinen Konten-Reset-
+# Variante ohne DB-Loeschung: DeleteFansub lehnt jede Loeschung ueber die
+# HTTP-API mit 409 ab, solange die Gruppe Live- oder historische
+# Mitgliedschaften hat, und die Admin-API bietet dafuer KEINEN Hard-Delete
+# an (verifiziert ueber eine vollstaendige Durchsicht aller registrierten
+# Routen in backend/cmd/server/{admin_routes,routes_public}.go). Ein reiner
+# Konten-Reset liess die DB-Fixture deshalb vollstaendig unangetastet und
+# stellte sie beim naechsten Login per verifiziertem E-Mail-Resubjecting
+# (D-07) nur wieder her, statt sie zurueckzusetzen - deshalb die direkte,
+# eng ID-beschraenkte SQL-Loeschung unten.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -55,6 +59,17 @@ cd "$SCRIPT_DIR/../.."
 MANIFEST="scripts/e2e/fixtures.manifest.json"
 SECRETS_FILE="$HOME/.config/team4s-e2e.env"
 REALM="team4s"
+
+# Dieselben festen Konstanten wie in provision-fixtures.mjs' GROUP-Objekt -
+# die Zielgruppe muss auf GENAU diese Werte passen, nicht nur auf das, was
+# im Manifest selbst steht (ein manipuliertes Manifest koennte sonst seinen
+# eigenen group_slug faelschen).
+EXPECTED_SLUG="e2e-gruppe-a"
+EXPECTED_KUERZEL="e2e-fixture-261026-wve"
+
+# Alle 5 erlaubten E2E-Adressen - fest, nicht vom Manifest abgeleitet, damit
+# auch e2e-admin/e2e-user (nie im Manifest) zuverlaessig erfasst werden.
+E2E_EMAILS_SQL_ARRAY="ARRAY['e2e-admin@team4s.test','e2e-leader@team4s.test','e2e-deputy@team4s.test','e2e-member@team4s.test','e2e-user@team4s.test']"
 
 HAVE_MANIFEST=false
 [[ -f "$MANIFEST" ]] && HAVE_MANIFEST=true
@@ -66,137 +81,110 @@ if [[ "$HAVE_MANIFEST" == false && "$HAVE_SECRETS" == false ]]; then
   exit 0
 fi
 
-# ---- Teil 1: DB-Fixture-Zeilen gezielt loeschen (NIE TRUNCATE) ------------
+# ---- Teil 1: DB-Fixture gezielt loeschen (NIE TRUNCATE) -------------------
 if [[ "$HAVE_MANIFEST" == true ]]; then
-  GROUP_ID=$(jq -r '.fansub_group_id' "$MANIFEST")
+  GROUP_ID=$(jq -r '.fansub_group_id // ""' "$MANIFEST")
   HIST_MEMBER_ID=$(jq -r '.members.member.historical_member_id // ""' "$MANIFEST")
   LEADER_APP_USER_ID=$(jq -r '.members.leader.app_user_id // ""' "$MANIFEST")
   DEPUTY_APP_USER_ID=$(jq -r '.members.deputy.app_user_id // ""' "$MANIFEST")
   MEMBER_APP_USER_ID=$(jq -r '.members.member.app_user_id // ""' "$MANIFEST")
 
-  # Alle IDs muessen rein numerisch sein, bevor sie an psql uebergeben
-  # werden - verteidigt gegen ein manuell verfaelschtes/korruptes Manifest,
-  # das sonst beliebigen Text in die SQL-Variablensubstitution einschleusen
-  # koennte.
+  # Alle fuenf Felder sind Pflicht (ein vollstaendiges, von provision-
+  # fixtures.mjs geschriebenes Manifest hat sie immer zusammen) und muessen
+  # rein numerisch sein, bevor ueberhaupt eine DB- oder Keycloak-Verbindung
+  # aufgemacht wird - ein fehlendes oder verfaelschtes Feld bricht das
+  # GESAMTE Skript ab, OHNE jede Mutation (auch Teil 2 unten wird dann nie
+  # erreicht).
   for id_check in "fansub_group_id:$GROUP_ID" "historical_member_id:$HIST_MEMBER_ID" \
-                  "leader.app_user_id:$LEADER_APP_USER_ID" "deputy.app_user_id:$DEPUTY_APP_USER_ID" \
-                  "member.app_user_id:$MEMBER_APP_USER_ID"; do
+                  "members.leader.app_user_id:$LEADER_APP_USER_ID" \
+                  "members.deputy.app_user_id:$DEPUTY_APP_USER_ID" \
+                  "members.member.app_user_id:$MEMBER_APP_USER_ID"; do
     id_label="${id_check%%:*}"
     id_value="${id_check#*:}"
-    if [[ -n "$id_value" && "$id_value" != "null" && ! "$id_value" =~ ^[0-9]+$ ]]; then
-      echo "FEHLER: ${id_label} '${id_value}' im Manifest ist nicht rein numerisch - DB-Fixture-Teil wird NICHT ausgefuehrt." >&2
+    if [[ -z "$id_value" || "$id_value" == "null" || ! "$id_value" =~ ^[0-9]+$ ]]; then
+      echo "FEHLER: Pflichtfeld '${id_label}' im Manifest fehlt oder ist nicht rein numerisch (wert='${id_value}'). Abbruch ohne jede Mutation." >&2
       exit 1
     fi
   done
 
-  if [[ -z "$GROUP_ID" || "$GROUP_ID" == "null" ]]; then
-    echo "Manifest enthaelt keine gueltige fansub_group_id - DB-Fixture-Teil wird uebersprungen." >&2
-  else
-    # Datenbank-Identitaet pruefen, bevor irgendein DELETE abgesetzt wird -
-    # dieselbe billige Absicherung wie in scripts/reset-member-profile-fixture.sh.
-    IDENTITY=$(docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 -At -c "SELECT current_database();" < /dev/null)
-    if [[ "$IDENTITY" != "team4s_v2" ]]; then
-      echo "FEHLER: unerwartete Datenbank-Identitaet '${IDENTITY}' - DB-Fixture-Teil wird NICHT ausgefuehrt." >&2
-      exit 1
-    fi
+  # Datenbank-Identitaet pruefen, bevor irgendeine Abfrage/Mutation erfolgt -
+  # dieselbe billige Absicherung wie in scripts/reset-member-profile-fixture.sh.
+  IDENTITY=$(docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 -At -c "SELECT current_database();" < /dev/null)
+  if [[ "$IDENTITY" != "team4s_v2" ]]; then
+    echo "FEHLER: unerwartete Datenbank-Identitaet '${IDENTITY}'. Abbruch ohne jede Mutation." >&2
+    exit 1
+  fi
 
-    # Vor jeder app_users-Loeschung wird die exakt erwartete E-Mail der
-    # jeweiligen ID geprueft - dieselbe Absicherung wie bei den Keycloak-
-    # Konten unten. Ein manuell verfaelschtes Manifest (oder eine ID, die
-    # inzwischen einem unabhaengigen echten Account zugewiesen wurde) darf
-    # NIE zur Loeschung eines Nicht-E2E-app_users fuehren - bei Abweichung
-    # bricht der GESAMTE DB-Fixture-Teil ohne jede Mutation ab.
-    declare -A EXPECTED_APP_USER_EMAIL=(
-      [leader]="$LEADER_APP_USER_ID:e2e-leader@team4s.test"
-      [deputy]="$DEPUTY_APP_USER_ID:e2e-deputy@team4s.test"
-      [member]="$MEMBER_APP_USER_ID:e2e-member@team4s.test"
-    )
-    APP_USER_IDS_TO_DELETE=()
-    for role_key in leader deputy member; do
-      entry="${EXPECTED_APP_USER_EMAIL[$role_key]}"
-      app_user_id="${entry%%:*}"
-      expected_email="${entry#*:}"
-      [[ -z "$app_user_id" || "$app_user_id" == "null" ]] && continue
-
-      # psqls :var-Substitution greift nur im Skriptmodus (Heredoc/Stdin),
-      # NICHT bei -c - deshalb hier wie bei den DELETE-Anweisungen unten ein
-      # Heredoc statt -c.
-      actual_email=$(docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 \
-        -At -v id="$app_user_id" <<'SQL'
-SELECT email FROM app_users WHERE id = :id;
+  # Vor JEDER Mutation (auch vor den Keycloak-Loeschungen in Teil 2) wird
+  # die Zielgruppe exakt verifiziert: id + slug + kuerzel muessen zusammen
+  # auf genau eine reale Zeile passen. psqls :var-Substitution greift nur
+  # im Skriptmodus (Heredoc/Stdin), NICHT bei -c - deshalb hier wie bei den
+  # DELETEs unten ein Heredoc.
+  GROUP_CHECK=$(docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 \
+    -At -F'|' -v group_id="$GROUP_ID" <<'SQL'
+SELECT slug, kuerzel FROM fansub_groups WHERE id = :group_id;
 SQL
 )
-      if [[ -z "$actual_email" ]]; then
-        echo "app_users ${app_user_id} (${role_key}) existiert nicht mehr - nichts zu loeschen, kein Fehler."
-        continue
-      fi
-      if [[ "$actual_email" != "$expected_email" ]]; then
-        echo "FEHLER: app_users ${app_user_id} (${role_key}) hat E-Mail '${actual_email}', erwartet '${expected_email}'. DB-Fixture-Teil wird NICHT ausgefuehrt - kein Nicht-E2E-Konto wird geloescht." >&2
-        exit 1
-      fi
-      APP_USER_IDS_TO_DELETE+=("$app_user_id")
-    done
+  if [[ -z "$GROUP_CHECK" ]]; then
+    echo "FEHLER: Gruppe ${GROUP_ID} (aus dem Manifest) existiert nicht (mehr). Abbruch ohne jede Mutation." >&2
+    exit 1
+  fi
+  ACTUAL_SLUG="${GROUP_CHECK%%|*}"
+  ACTUAL_KUERZEL="${GROUP_CHECK#*|}"
+  if [[ "$ACTUAL_SLUG" != "$EXPECTED_SLUG" || "$ACTUAL_KUERZEL" != "$EXPECTED_KUERZEL" ]]; then
+    echo "FEHLER: Gruppe ${GROUP_ID} hat slug='${ACTUAL_SLUG}' kuerzel='${ACTUAL_KUERZEL}', erwartet slug='${EXPECTED_SLUG}' kuerzel='${EXPECTED_KUERZEL}'. Das ist vermutlich nicht die eigene E2E-Fixture. Abbruch ohne jede Mutation." >&2
+    exit 1
+  fi
 
-    # hist_fansub_group_members.fansub_group_id ist ON DELETE RESTRICT -
-    # muss vor fansub_groups geloescht werden (hist_group_member_roles
-    # haengt daran per ON DELETE CASCADE und verschwindet automatisch mit).
-    # fansub_groups -> fansub_group_members -> fansub_group_member_roles
-    # sind alle ON DELETE CASCADE verkettet (Migration 0073), das einzelne
-    # DELETE FROM fansub_groups raeumt beide automatisch mit ab; app_users ->
-    # fansub_group_members ist ebenfalls ON DELETE CASCADE verkettet
-    # (dieselbe Migration), eine explizite app_users-Loeschung entfernt die
-    # zugehoerige Live-Mitgliedschaft also zusaetzlich auf diesem Weg. Alle
-    # Bedingungen binden sich zusaetzlich an die jeweilige ID, damit niemals
-    # eine Zeile geloescht wird, die (durch einen manuell verfaelschten
-    # Manifest-Inhalt) zu etwas anderem gehoert.
-    if [[ "${#APP_USER_IDS_TO_DELETE[@]}" -gt 0 ]]; then
-      APP_USER_ID_LIST=$(printf '%s,' "${APP_USER_IDS_TO_DELETE[@]}")
-      APP_USER_ID_LIST="${APP_USER_ID_LIST%,}"
-      # app_users.legacy_user_id verweist auf eine Bridge-Zeile in der
-      # Alt-Tabelle users (eigenes uq_users_username, siehe
-      # createLegacyUserBridge in backend/internal/repository/
-      # app_auth_repository.go). app_users -> users ist ON DELETE SET NULL,
-      # d. h. ein alleiniges DELETE FROM app_users wuerde diese Bridge-Zeile
-      # NIE mitentfernen - sie bliebe fuer immer als Datenmuell liegen (genau
-      # das geschah in einem frueheren Testlauf dieses Fixes und blockierte
-      # mit "duplicate key value violates unique constraint
-      # uq_users_username" eine spaetere Neuanlage, sobald derselbe Keycloak-
-      # Subject je wieder vorkaeme). Die legacy_user_id wird deshalb VOR dem
-      # Loeschen von app_users ausgelesen und in derselben Transaktion
-      # ebenfalls geloescht (alle anderen FKs auf users sind SET NULL, die
-      # Reihenfolge der beiden DELETEs ist deshalb unkritisch).
-      docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 \
-        -v app_user_ids="$APP_USER_ID_LIST" <<'SQL'
+  # Eine einzige Transaktion fuer alles: Legacy-Bridge-Zeilen + app_users
+  # (alle 5 e2e-*@team4s.test-Adressen, exakte E-Mail-Gleichheit, niemals
+  # LIKE/Muster), historischer Eintrag (scoped auf fansub_group_id) und die
+  # Gruppe selbst - deren DELETE dieselben drei verifizierten Bedingungen
+  # (id + slug + kuerzel) nochmal selbst im WHERE traegt, atomar statt nur
+  # vorher geprueft. app_users.legacy_user_id verweist auf die Alt-Tabelle
+  # users (eigenes uq_users_username, siehe createLegacyUserBridge in
+  # backend/internal/repository/app_auth_repository.go); app_users -> users
+  # ist ON DELETE SET NULL, ein alleiniges DELETE FROM app_users wuerde die
+  # Bridge-Zeile NIE mitentfernen und sie bliebe als Datenmuell liegen
+  # (reproduziert in einer frueheren Runde: "duplicate key value violates
+  # unique constraint uq_users_username" bei Wiederverwendung desselben
+  # Keycloak-Subjects). hist_fansub_group_members.fansub_group_id ist
+  # ON DELETE RESTRICT und muss daher vor fansub_groups geloescht werden;
+  # fansub_groups -> fansub_group_members -> fansub_group_member_roles sowie
+  # app_users -> fansub_group_members sind ON DELETE CASCADE verkettet
+  # (Migration 0073) und raeumen Live-Mitgliedschaften/-Rollen automatisch ab.
+  DELETE_RESULT=$(docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 \
+    -v group_id="$GROUP_ID" -v hist_id="$HIST_MEMBER_ID" \
+    -v expected_slug="$EXPECTED_SLUG" -v expected_kuerzel="$EXPECTED_KUERZEL" <<SQL
 BEGIN;
 DELETE FROM users WHERE id IN (
   SELECT legacy_user_id FROM app_users
-  WHERE id = ANY(string_to_array(:'app_user_ids', ',')::bigint[]) AND legacy_user_id IS NOT NULL
+  WHERE email = ANY(${E2E_EMAILS_SQL_ARRAY}) AND legacy_user_id IS NOT NULL
 );
-DELETE FROM app_users WHERE id = ANY(string_to_array(:'app_user_ids', ',')::bigint[]);
-COMMIT;
-SQL
-      echo "app_users (inkl. Legacy-Bridge-Zeilen) geloescht (ids: ${APP_USER_ID_LIST})."
-    fi
-
-    if [[ -n "$HIST_MEMBER_ID" && "$HIST_MEMBER_ID" != "null" ]]; then
-      docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 \
-        -v hist_id="$HIST_MEMBER_ID" -v group_id="$GROUP_ID" <<'SQL'
-BEGIN;
+DELETE FROM app_users WHERE email = ANY(${E2E_EMAILS_SQL_ARRAY});
 DELETE FROM hist_fansub_group_members WHERE id = :hist_id AND fansub_group_id = :group_id;
+DELETE FROM fansub_groups WHERE id = :group_id AND slug = :'expected_slug' AND kuerzel = :'expected_kuerzel';
 COMMIT;
 SQL
-    fi
+)
+  echo "${DELETE_RESULT}"
 
-    docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 \
-      -v group_id="$GROUP_ID" <<'SQL'
-BEGIN;
-DELETE FROM fansub_groups WHERE id = :group_id;
-COMMIT;
-SQL
-
-    rm -f "$MANIFEST"
-    echo "DB-Fixture entfernt: Fansub-Gruppe ${GROUP_ID} (inkl. Live-Mitgliedschaften/-Rollen per CASCADE), historischer Eintrag ${HIST_MEMBER_ID:-"-"} und app_users ${APP_USER_IDS_TO_DELETE[*]:-"(keine)"} geloescht. Manifest entfernt: ${MANIFEST}"
+  # Letzte "DELETE n"-Zeile gehoert zur fansub_groups-Anweisung (4. und
+  # letztes DELETE im Skript oben) - faellt sie auf 0, hat die atomare
+  # WHERE-Bedingung (id + slug + kuerzel) entgegen der soeben erfolgten
+  # Vorab-Pruefung nicht gegriffen (z. B. durch eine echte, extrem seltene
+  # Aenderung zwischen Pruefung und Loeschung). Die Transaktion ist dann
+  # bereits committed (die anderen drei DELETEs liefen durch) - das Manifest
+  # bleibt in diesem Fall trotzdem erhalten UND das Skript bricht mit
+  # Fehler ab, statt einen nicht erfolgten Gruppen-Reset zu verschweigen.
+  LAST_DELETE_COUNT=$(printf '%s\n' "$DELETE_RESULT" | grep -oE '^DELETE [0-9]+$' | tail -1 | awk '{print $2}')
+  if [[ "$LAST_DELETE_COUNT" != "1" ]]; then
+    echo "FEHLER: DELETE FROM fansub_groups traf ${LAST_DELETE_COUNT:-0} Zeilen statt der erwarteten 1 - die atomare id+slug+kuerzel-Bedingung griff nicht trotz erfolgreicher Vorab-Pruefung. Manifest bleibt erhalten." >&2
+    exit 1
   fi
+
+  rm -f "$MANIFEST"
+  echo "DB-Fixture entfernt: Fansub-Gruppe ${GROUP_ID} (slug=${EXPECTED_SLUG}, kuerzel=${EXPECTED_KUERZEL}, inkl. Live-Mitgliedschaften/-Rollen per CASCADE), historischer Eintrag ${HIST_MEMBER_ID} und app_users/Legacy-Bridge-Zeilen fuer alle 5 e2e-*@team4s.test-Adressen geloescht. Manifest entfernt: ${MANIFEST}"
 fi
 
 # ---- Teil 2: Keycloak-Konten tatsaechlich zuruecksetzen --------------------
@@ -204,7 +192,9 @@ fi
 # (KEYCLOAK_ADMIN/KEYCLOAK_ADMIN_PASSWORD aus der Container-Umgebung) -
 # funktioniert unabhaengig davon, ob e2e-admins eigenes Passwort noch
 # bekannt/gueltig ist, weil es NICHT ueber ein per Login erzeugtes Token
-# laeuft, sondern ueber die Keycloak-Admin-CLI selbst.
+# laeuft, sondern ueber die Keycloak-Admin-CLI selbst. Wird nur erreicht,
+# wenn Teil 1 (falls ein Manifest vorlag) vollstaendig und ohne Abbruch
+# durchgelaufen ist.
 ACCOUNTS=(
   "admin:e2e-admin@team4s.test"
   "leader:e2e-leader@team4s.test"
@@ -242,4 +232,4 @@ fi
 
 rm -f "$SECRETS_FILE"
 echo "Secrets-Datei entfernt: ${SECRETS_FILE} (naechster provision.sh-Lauf erzeugt 5 frische Passwoerter)."
-echo "Reset abgeschlossen: ${DELETED_COUNT}/5 Keycloak-Konten geloescht, DB-Fixture-Zeilen entfernt (siehe oben)."
+echo "Reset abgeschlossen: ${DELETED_COUNT}/5 Keycloak-Konten geloescht, DB-Fixture entfernt (siehe oben)."

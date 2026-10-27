@@ -68,23 +68,33 @@ Playwright-Reports.
 
 - `bash scripts/e2e/reset-fixtures.sh` — setzt sowohl die DB-Fixture als auch die 5
   Keycloak-Testkonten tatsächlich zurück:
-  1. Löscht gezielt genau die in `scripts/e2e/fixtures.manifest.json` referenzierten DB-Zeilen —
-     die drei `app_users`-Konten (Leitung/Stellvertretung/Mitglied, per `GET /me` während der
-     Provisionierung entstanden und mit ihrer `app_user_id` ins Manifest geschrieben) samt ihrer
-     Legacy-Bridge-Zeile in `users` (sonst bliebe dort dauerhaft eine verwaiste, per eigenem
-     `uq_users_username` eindeutige Zeile liegen), den historischen Eintrag und die Fansub-Gruppe
-     selbst — per direktem, auf exakte IDs beschränktem SQL-`DELETE` in FK-sicherer
-     Kind-vor-Eltern-Reihenfolge — **nie** ein `TRUNCATE`, **nie** ein schemaweiter Reset, genau im
-     selben Muster wie `scripts/reset-member-profile-fixture.sh`. Vor jeder `app_users`-Löschung
-     wird die tatsächlich gespeicherte E-Mail gegen die exakt erwartete `@team4s.test`-Adresse
-     geprüft — stimmt auch nur eine nicht, bricht der gesamte DB-Fixture-Teil ohne jede Mutation ab.
-     Live-Mitgliedschaften und ihre Rollen verschwinden automatisch per `ON DELETE CASCADE`. Die
-     Admin-HTTP-API bietet für die Gruppen-/Mitgliedschafts-Löschung bewusst keinen Hard-Delete
-     (`DELETE /fansubs/:id` lehnt mit 409 ab, solange Live-Mitgliedschaften bestehen — verifiziert
-     über eine vollständige Durchsicht aller registrierten Routen: keine `DELETE` für
-     `app-members`/`app_users`, kein Self-Service-Leave-Endpunkt), deshalb der direkte, aber eng
-     ID-begrenzte SQL-Zugriff.
-  2. Löscht die 5 Keycloak-Konten (eigene `kcadm`-Admin-Session, unabhängig von `e2e-admin`s
+  1. Verifiziert vor JEDER Mutation (auch vor den Keycloak-Löschungen in Schritt 2) die Zielgruppe
+     exakt: ihre ID (aus dem Manifest) MUSS zusammen mit `slug = 'e2e-gruppe-a'` UND
+     `kuerzel = 'e2e-fixture-261026-wve'` auf genau eine reale Zeile passen — dieselben festen
+     Konstanten, mit denen `provision-fixtures.mjs` die Gruppe erzeugt, nicht das, was im Manifest
+     selbst als `group_slug` steht. Fehlt ein Pflichtfeld im Manifest (`fansub_group_id`,
+     `historical_member_id`, die drei `app_user_id`-Felder), ist es nicht rein numerisch, oder
+     weicht slug/kuerzel ab, bricht das **gesamte** Skript ohne jede Mutation ab (auch Schritt 2
+     wird dann nie erreicht).
+  2. Löscht danach in **einer einzigen Transaktion**: die `app_users`-Zeilen für **alle 5**
+     erlaubten E2E-Adressen (`e2e-admin/leader/deputy/member/user@team4s.test`) — nicht nur die
+     drei Gruppenmitglieder aus dem Manifest, da `e2e-admin` nie Gruppenmitglied wird und
+     `e2e-user` seinen `app_users`-Datensatz erst durch den Playwright-Lauf selbst bekommt.
+     Identifikation ausschließlich über exakte E-Mail-Gleichheit (`= ANY(ARRAY[...])`, niemals
+     `LIKE`/Muster). Dazu ihre Legacy-Bridge-Zeile in `users` (sonst bliebe dort dauerhaft eine
+     verwaiste, per eigenem `uq_users_username` eindeutige Zeile liegen — ein Fehler, der beim
+     Entwickeln dieses Skripts selbst reproduziert wurde). Den historischen Eintrag (`scoped` auf
+     `fansub_group_id`). Und zuletzt die Fansub-Gruppe selbst — deren `DELETE`-Anweisung dieselben
+     drei verifizierten Bedingungen (`id` + `slug` + `kuerzel`) nochmal **selbst im `WHERE`** trägt,
+     atomar statt nur vorher geprüft; trifft sie entgegen der Vorab-Prüfung nicht genau eine Zeile,
+     bricht das Skript danach trotzdem mit Fehler ab. Nie ein `TRUNCATE`, nie ein schemaweiter
+     Reset, im selben Muster wie `scripts/reset-member-profile-fixture.sh`. Live-Mitgliedschaften
+     und ihre Rollen verschwinden automatisch per `ON DELETE CASCADE`. Die Admin-HTTP-API bietet für
+     die Gruppen-/Mitgliedschafts-Löschung bewusst keinen Hard-Delete (verifiziert über eine
+     vollständige Durchsicht aller registrierten Routen: keine `DELETE` für `app-members`/
+     `app_users`, kein Self-Service-Leave-Endpunkt), deshalb der direkte, aber eng begrenzte
+     SQL-Zugriff.
+  3. Löscht die 5 Keycloak-Konten (eigene `kcadm`-Admin-Session, unabhängig von `e2e-admin`s
      eigenem Passwort) und entfernt `~/.config/team4s-e2e.env`, sodass der nächste
      `provision.sh`-Lauf eine komplett frische Fixture samt frischer Passwörter anlegt.
 
