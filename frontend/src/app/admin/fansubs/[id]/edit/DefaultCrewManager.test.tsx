@@ -89,8 +89,15 @@ describe('DefaultCrewManager', () => {
 
     render(<DefaultCrewManager fansubId={5} members={TEST_MEMBERS} />)
 
+    // Der Button ist von Anfang an im DOM (disabled, solange crew leer ist) und wird erst nach
+    // dem Aufloesen von listDefaultCrew per Re-Render aktiviert - findByRole trifft daher bereits
+    // auf den anfangs deaktivierten Button, bevor das gemockte Promise durchlaeuft. Ohne waitFor
+    // raeumt die Assertion gegen einen Scheduling-abhaengigen Wettlauf (beobachtete Flakiness unter
+    // Last), nicht gegen den tatsaechlichen Endzustand.
     const btn = await screen.findByRole('button', { name: 'Standard-Team übernehmen' })
-    expect((btn as HTMLButtonElement).disabled).toBe(false)
+    await waitFor(() => {
+      expect((btn as HTMLButtonElement).disabled).toBe(false)
+    })
 
     fireEvent.click(btn)
 
