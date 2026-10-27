@@ -75,8 +75,9 @@ Playwright-Reports.
      ihre festen Konstanten (`slug = 'e2e-gruppe-a'`, `kuerzel = 'e2e-fixture-261026-wve'`)
      gesucht, wenn kein Manifest existiert. Eine abgebrochene oder unvollständige Provisionierung
      wird **ausschließlich** durch das idempotente `provision.sh` aufgeräumt bzw. fortgesetzt, nie
-     durch diesen Reset. Fehlen sowohl Manifest als auch Secrets-Datei, ist das kein Fehler,
-     sondern bedeutet "nichts zurückzusetzen" (`Exit 0`).
+     durch diesen Reset. Das gilt **ausnahmslos** — auch wenn zusätzlich keine Secrets-Datei
+     existiert (also rein gar nichts zum Zurücksetzen da wäre), bricht das Skript trotzdem mit
+     `Exit 1` ab, statt stillschweigend mit `Exit 0` "nichts zu tun" zu melden.
   2. Das vorhandene Manifest muss alle acht Pflichtfelder (`fansub_group_id`,
      `historical_member_id`, die drei `app_user_id`-Felder, die drei `member_id`-Felder)
      vollständig und numerisch enthalten — fehlt eines oder ist es nicht numerisch, bricht das
