@@ -75,25 +75,37 @@ Playwright-Reports.
      Provisionierung abgebrochen ist, bevor sie das Manifest je schrieb, die Secrets-Datei aber
      schon da ist) setzt dadurch trotzdem die komplette DB-Fixture zurück, statt nur die
      Keycloak-Konten zu löschen und die DB-Zeilen liegen zu lassen.
-  2. Existiert zusätzlich ein Manifest, muss es alle fünf Pflichtfelder (`fansub_group_id`,
-     `historical_member_id`, die drei `app_user_id`-Felder) vollständig und numerisch enthalten,
-     seine `fansub_group_id` muss exakt auf die oben gefundene Gruppe passen, UND für jedes der
-     drei `app_user_id`-Felder wird **vor jeder Mutation** per `SELECT` geprüft, dass der jeweilige
-     `app_users`-Datensatz tatsächlich die für diese Rolle erwartete E-Mail trägt — ein
-     manipuliertes Manifest mit der (numerisch gültigen) ID eines fremden `app_users` bricht damit
-     ab, ohne dass diese ID je in einer Mutation verwendet wird. Bei jeder Abweichung bricht das
+  2. Existiert zusätzlich ein Manifest, muss es alle acht Pflichtfelder (`fansub_group_id`,
+     `historical_member_id`, die drei `app_user_id`-Felder, die drei `member_id`-Felder)
+     vollständig und numerisch enthalten, seine `fansub_group_id` muss exakt auf die oben
+     gefundene Gruppe passen. Unabhängig vom Manifest werden für alle drei Rollen (leader/
+     deputy/member) die tatsächliche `app_users`-ID **und** die tatsächliche `member_id` **immer
+     live aus der Datenbank** aufgelöst — die `member_id` ausschließlich über einen
+     **verifizierten** `member_claims`-Datensatz (`claim_status='verified'`), ausgehend von der für
+     die Rolle exakt erwarteten E-Mail (dieselbe Kette, die serverseitig beim Anlegen entsteht:
+     `ensureAppUserMemberAnchorTx()`/`upsertVerifiedAppMemberClaimTx()` in
+     `backend/internal/repository/fansub_group_app_members_repository.go`). Existiert ein
+     Manifest, muss dessen `app_user_id` **und** `member_id` pro Rolle exakt dieser live
+     aufgelösten Referenzkette entsprechen — ein manipuliertes Manifest mit der (numerisch
+     gültigen) ID eines fremden `app_users` oder einer fremden `members`-Zeile bricht damit ab,
+     ohne dass diese ID je in einer Mutation verwendet wird. Bei jeder Abweichung bricht das
      **gesamte** Skript ohne jede Mutation ab (auch die Keycloak-Löschung wird dann nie erreicht).
   3. Löscht danach in **einer einzigen Transaktion**: die `app_users`-Zeilen für **alle 5**
      erlaubten E2E-Adressen (`e2e-admin/leader/deputy/member/user@team4s.test`, ausschließlich über
      exakte E-Mail-Gleichheit, niemals `LIKE`/Muster) samt ihrer Legacy-Bridge-Zeile in `users`
      (sonst bliebe dort dauerhaft eine verwaiste, per eigenem `uq_users_username` eindeutige Zeile
-     liegen), den historischen Eintrag (`scoped` auf die verifizierte Gruppen-ID) und zuletzt die
-     Fansub-Gruppe selbst. Die Gruppen-Löschung steckt in einem PL/pgSQL-`DO`-Block, der die
-     Zeilenzahl der eigenen `DELETE`-Anweisung per `GET DIAGNOSTICS` prüft und bei `!= 1` eine
-     Exception auslöst — das bricht die **gesamte Transaktion serverseitig** ab (kein `COMMIT`
-     erreicht die vorherigen Löschungen), statt nur nachträglich clientseitig nach einem bereits
-     erfolgten `COMMIT` zu prüfen. Nie ein `TRUNCATE`, nie ein schemaweiter Reset, im selben Muster
-     wie `scripts/reset-member-profile-fixture.sh`. Die Admin-HTTP-API bietet für die
+     liegen), den historischen Eintrag (`scoped` auf die verifizierte Gruppen-ID), die
+     `member_claims`- und `members`-Zeilen der drei live aufgelösten `member_id`s (sonst bliebe die
+     bei der Provisionierung über `CreateWithAutoMember` angelegte `members`-Identität samt
+     `verified`-Claim nach jedem Reset bestehen — `member_claims.app_user_id` ist `ON DELETE SET
+     NULL`, nicht `CASCADE` — und jeder `provision→reset→provision`-Zyklus würde weitere
+     E2E-Fixture-Daten anhäufen) und zuletzt die Fansub-Gruppe selbst. Die Gruppen-Löschung steckt
+     in einem PL/pgSQL-`DO`-Block, der die Zeilenzahl der eigenen `DELETE`-Anweisung per `GET
+     DIAGNOSTICS` prüft und bei `!= 1` eine Exception auslöst — das bricht die **gesamte
+     Transaktion serverseitig** ab (kein `COMMIT` erreicht die vorherigen Löschungen), statt nur
+     nachträglich clientseitig nach einem bereits erfolgten `COMMIT` zu prüfen. Nie ein
+     `TRUNCATE`, nie ein schemaweiter Reset, im selben Muster wie
+     `scripts/reset-member-profile-fixture.sh`. Die Admin-HTTP-API bietet für die
      Gruppen-/Mitgliedschafts-Löschung bewusst keinen Hard-Delete (verifiziert über eine
      vollständige Durchsicht aller registrierten Routen), deshalb der direkte, aber eng begrenzte
      SQL-Zugriff.
