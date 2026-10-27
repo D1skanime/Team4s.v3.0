@@ -96,7 +96,15 @@ Playwright-Reports.
      fremden `app_users` oder einer fremden `members`-Zeile bricht damit ab, ohne dass diese ID je
      in einer Mutation verwendet wird. Bei jeder Abweichung bricht das **gesamte** Skript ohne
      jede Mutation ab (auch die Keycloak-Löschung wird dann nie erreicht).
-  3. Löscht danach in **einer einzigen Transaktion**: die `app_users`-Zeilen für **alle 5**
+  3. **Bevor irgendeine Mutation (DB oder Keycloak) beginnt**, werden zusätzlich alle 5
+     Keycloak-Konten vollständig **read-only** geprüft (Existenz + exakte `@team4s.test`-E-Mail
+     je Username) — ein Nicht-E2E-Konto mit zufällig demselben Username (z. B. ein reales
+     `e2e-admin@team4s.de`) wird dadurch **nie** verändert oder gelöscht; bei Abweichung bricht
+     das **gesamte** Skript an dieser Stelle ab, **noch vor der DB-Transaktion** aus Schritt 4.
+     Die dabei gefundenen Konten-IDs werden für die spätere Löschung (Schritt 5) zwischengespeichert,
+     sodass dort keine erneute Prüfung mehr nötig ist, die mitten in der Löschschleife scheitern
+     könnte.
+  4. Löscht danach in **einer einzigen Transaktion**: die `app_users`-Zeilen für **alle 5**
      erlaubten E2E-Adressen (`e2e-admin/leader/deputy/member/user@team4s.test`, ausschließlich über
      exakte E-Mail-Gleichheit, niemals `LIKE`/Muster) samt ihrer Legacy-Bridge-Zeile in `users`
      (sonst bliebe dort dauerhaft eine verwaiste, per eigenem `uq_users_username` eindeutige Zeile
@@ -115,15 +123,19 @@ Playwright-Reports.
      Gruppen-/Mitgliedschafts-Löschung bewusst keinen Hard-Delete (verifiziert über eine
      vollständige Durchsicht aller registrierten Routen), deshalb der direkte, aber eng begrenzte
      SQL-Zugriff.
-  4. Löscht die 5 Keycloak-Konten (eigene `kcadm`-Admin-Session, unabhängig von `e2e-admin`s
-     eigenem Passwort) und entfernt `~/.config/team4s-e2e.env`, sodass der nächste
-     `provision.sh`-Lauf eine komplett frische Fixture samt frischer Passwörter anlegt.
-
-  Vor jeder Keycloak-Mutation (Passwort/Rolle/Löschung) prüfen sowohl `provision-keycloak-users.sh`
-  als auch `reset-fixtures.sh` die exakt erwartete `@team4s.test`-E-Mail des per Username
-  gefundenen Kontos — ein Nicht-E2E-Konto mit zufällig demselben Username (z. B. ein reales
-  `e2e-admin@team4s.de`) wird dadurch **nie** verändert oder gelöscht; bei Abweichung bricht das
-  jeweilige Skript ohne jede Mutation an diesem Konto ab.
+  5. Löscht die 5 Keycloak-Konten (anhand der in Schritt 3 bereits validierten IDs, keine erneute
+     Prüfung mehr) und entfernt **erst danach** `~/.config/team4s-e2e.env` **und** das Manifest —
+     nicht schon direkt nach dem DB-`COMMIT` aus Schritt 4. Vorher wurde das Manifest fälschlich
+     sofort nach dem DB-`COMMIT` entfernt, obwohl die Keycloak-Löschung noch gar nicht begonnen
+     hatte — scheiterte diese dann (z. B. wegen einer abweichenden E-Mail bei einem der 5 Konten),
+     blieben Keycloak-Konten teilweise bestehen, während DB-Fixture und Manifest bereits weg waren,
+     und ein erneuter Reset brach wegen des fehlenden Manifests ab, ohne den unvollständigen
+     Zustand je nachholen zu können. Durch die Vorab-Validierung aus Schritt 3 kann die
+     Löschschleife hier nur noch an echten Infrastruktur-Fehlern scheitern, nicht mehr an einer
+     E-Mail-Abweichung; ein dabei verbleibender Rest wird über den nächsten `provision.sh`-Lauf
+     bereinigt (idempotent: ein noch existierendes Konto mit korrekter E-Mail wird dort einfach
+     weiterverwendet). So legt der nächste `provision.sh`-Lauf eine komplett frische Fixture samt
+     frischer Passwörter an.
 - `bash scripts/e2e/provision.sh` — stellt die Fixtures danach (oder bei Bedarf jederzeit)
   erneut idempotent sicher, egal ob frisch oder bereits vorhanden. Die Gruppe wird bei der
   Erstellung mit einem festen `kuerzel` (`e2e-fixture-261026-wve`) markiert — **in derselben
