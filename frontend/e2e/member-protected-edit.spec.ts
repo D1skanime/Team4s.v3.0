@@ -30,7 +30,11 @@ test.describe('Einfaches Mitglied', () => {
     const accessToken = cookies.find((cookie) => cookie.name === 'team4s_access_token')?.value
     expect(accessToken, 'team4s_access_token-Cookie muss nach dem Login vorhanden sein').toBeTruthy()
 
-    const apiBase = process.env.E2E_API_BASE || 'http://127.0.0.1:18092'
+    // Fallback nur fuer einen manuellen `npx playwright test`-Aufruf ohne
+    // scripts/e2e.sh (das E2E_API_BASE bereits aus scripts/e2e/_env-defaults.sh
+    // exportiert) - deshalb derselbe reine docker-compose.yml-Standardport wie
+    // dort (8092), nicht ein host-spezifischer Override.
+    const apiBase = process.env.E2E_API_BASE || 'http://127.0.0.1:8092'
     const response = await page.request.post(
       `${apiBase}/api/v1/admin/fansubs/${groupId}/contribution-proposals/999999/confirm`,
       { headers: { Authorization: `Bearer ${accessToken}` } },

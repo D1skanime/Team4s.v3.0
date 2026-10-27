@@ -15,9 +15,15 @@ import path from 'path'
 
 const AUTH_DIR = path.join(__dirname, '.auth')
 
-type Role = 'admin' | 'leader' | 'member' | 'user'
+type Role = 'admin' | 'leader' | 'deputy' | 'member' | 'user'
 
-const ROLES: Role[] = ['admin', 'leader', 'member', 'user']
+// Alle 5 provisionierten Konten (siehe scripts/e2e/provision-keycloak-users.sh)
+// werden hier angemeldet, nicht nur die vier, fuer die es bereits eine eigene
+// Spec gibt - "deputy" hat laut CONTEXT.md bewusst keine eigene Spec in dieser
+// ersten Rollen-Abdeckung, muss aber trotzdem ueber das echte Login-Formular
+// angemeldet werden und einen eigenen storageState bekommen, damit spaetere
+// Specs ihn direkt wiederverwenden koennen.
+const ROLES: Role[] = ['admin', 'leader', 'deputy', 'member', 'user']
 
 function passwordEnvVar(role: Role): string {
   return `E2E_PASSWORD_${role.toUpperCase()}`

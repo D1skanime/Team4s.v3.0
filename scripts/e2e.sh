@@ -32,6 +32,16 @@ command -v jq >/dev/null || { echo "[e2e] FEHLER: 'jq' wird benoetigt (JSON-Pars
 command -v openssl >/dev/null || { echo "[e2e] FEHLER: 'openssl' wird benoetigt (Passwortgenerierung)." >&2; exit 1; }
 command -v curl >/dev/null || { echo "[e2e] FEHLER: 'curl' wird benoetigt (Keycloak-/Backend-API-Aufrufe)." >&2; exit 1; }
 
+# provision.sh sourced _env-defaults.sh zwar auch, aber nur innerhalb seines
+# EIGENEN Subprozesses (bash "$SCRIPT_DIR/e2e/provision.sh") - ein dort
+# exportiertes E2E_API_BASE/E2E_KC_BASE vererbt sich NICHT an dieses Skript
+# zurueck. Ohne diesen Schritt haette der spaetere `npx playwright test`-
+# Aufruf unten keine E2E_API_BASE gesetzt und der 403-Spec-Test wuerde auf
+# jedem Host mit abweichendem BACKEND_PORT (z. B. den reinen
+# docker-compose.yml-Standardports) gegen den falschen Port laufen.
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/e2e/_env-defaults.sh"
+
 bash "$SCRIPT_DIR/e2e/provision.sh"
 
 # Typecheck der E2E-Dateien VOR dem eigentlichen Testlauf: playwright.config.ts
