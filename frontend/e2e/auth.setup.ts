@@ -33,6 +33,15 @@ for (const role of ROLES) {
     expect(password, `${passwordEnvVar(role)} muss gesetzt sein (siehe scripts/e2e/provision.sh)`).toBeTruthy()
 
     await page.goto('/login')
+    // AppShell rendert links einen schmalen, ueber die volle Hoehe
+    // reichenden Hover-Streifen (`edgeStrip`), der die Navigations-Drawer
+    // oeffnet. Playwrights Mauszeiger startet auf einer frischen Seite bei
+    // (0,0) - also exakt auf diesem Streifen. Ein expliziter Zwischenschritt
+    // in die Seitenmitte, bevor der Button angeklickt wird, verhindert, dass
+    // der erste Mausweg des Tests ungewollt durch den Streifen fuehrt und
+    // die Drawer-Backdrop ueber den Anmelden-Button legt - kein echter
+    // Nutzer startet seine Maus je in der Bildschirmecke.
+    await page.mouse.move(640, 400)
     await page.getByRole('button', { name: 'Anmelden' }).click()
     await page.waitForURL(/\/realms\/team4s\/.*\/auth/, { timeout: 15000 })
 
