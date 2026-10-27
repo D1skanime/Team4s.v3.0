@@ -16,6 +16,7 @@ Alle 7 Tasks aus `261026-wve-PLAN.md` sind umgesetzt und committed (Branch `ki/t
 | 5 | `08387cc57` | 4 Rollen-Specs (Admin-Benutzerliste, Leiter-Tab-Abschnitte, Mitglied-403, Benutzer-blockiert) |
 | 6 | `a7f0fbcd9`, `f8a915244` | `scripts/e2e.sh` als einziger Einstiegspunkt; `tsconfig.json`/`tsconfig.e2e.json`-Trennung; robuster Klick-Retry gegen einen AppShell-Drawer-Flake |
 | 7 | `3e12c1810` | `frontend/e2e/README.md` + `DECISIONS.md`-Eintrag |
+| Code-Review | `38c39b630` | 0 Blocker, 4 Warnungen + 2 Infos behoben: unreachable Fehlerdiagnose in `reset-fixtures.sh` (WR-01), fehlendes `per_page` bei 3 Idempotenz-Checks (WR-02), `typecheck:e2e` jetzt verdrahtet statt nur manuell geprüft (WR-03), feste Port-Defaults gegen `_env-defaults.sh`-Ableitung aus der lokalen `.env` ersetzt (WR-04), `SCRIPT_DIR`-Reihenfolge + `jq`/`openssl`/`curl`-Vorbedingungsprüfung (IN-01/02) |
 
 ## In diesem Lauf behoben (nach wiederholten Session-Unterbrechungen)
 
@@ -26,7 +27,7 @@ Alle 7 Tasks aus `261026-wve-PLAN.md` sind umgesetzt und committed (Branch `ki/t
 
 ## Finaler Beweis (Abnahmekriterium)
 
-Nach dem Retry-Fix: **6 aufeinanderfolgende volle Läufe von `bash scripts/e2e.sh`, alle `passed=8 failed=0 skipped=0 total=8`, Exit-Code 0.** Die Provisionierung ist nachweislich idempotent (identische IDs über alle Läufe: `fansub_group_id=155`, `leader.app_user_id=13`, `deputy.app_user_id=14`, `member.app_user_id=15`).
+Nach dem Retry-Fix und vor dem Code-Review: **6 aufeinanderfolgende volle Läufe von `bash scripts/e2e.sh`, alle `passed=8 failed=0 skipped=0 total=8`, Exit-Code 0.** Nach den Code-Review-Fixes (neue `_env-defaults.sh`-Portableitung, verdrahteter `typecheck:e2e`-Vorlauf) **2 weitere volle Läufe erneut 8/8 grün**, zusätzlich `reset-fixtures.sh` gefolgt von einem erneuten `provision.sh` einzeln verifiziert (identische IDs reproduziert: `fansub_group_id=155`, `leader.app_user_id=13`, `deputy.app_user_id=14`, `member.app_user_id=15`). Insgesamt 8 unabhängige volle Durchläufe ohne einen einzigen echten Fehlschlag nach dem Retry-Fix.
 
 Zusätzlich verifiziert: `frontend`-Haupt-Typecheck (`npm run typecheck`) und der separate `tsconfig.e2e.json`-Typecheck beide fehlerfrei; `npm run lint` zeigt nur vier bereits vorbestehende, nicht mit diesem Auftrag zusammenhängende Fehler (unrelated Dateien: `capture-responsive.cjs`, ein Memoization-Hinweis, `ReleasesFilterBar.tsx`); Backend-Container lief während aller Testläufe durchgehend und akzeptierte die neue `CORS_ALLOWED_ORIGINS`-Konfiguration korrekt (bereits bestehender Config-Pfad in `backend/internal/config/config.go`, keine Go-Code-Änderung nötig).
 
