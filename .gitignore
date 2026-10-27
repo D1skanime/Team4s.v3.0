@@ -71,3 +71,10 @@ database/import/v2_full_episodes_min.tsv
 docs/audits/**
 !docs/audits/**/
 !docs/audits/**/*.md
+
+# E2E (Playwright-Testkonten)
+frontend/e2e/.auth/
+frontend/e2e/.reports/
+frontend/playwright-report/
+frontend/test-results/
+scripts/e2e/fixtures.manifest.json
