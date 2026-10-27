@@ -270,6 +270,21 @@ async function main() {
 
   const groupId = await ensureGroup(adminToken)
 
+  // Sofort ein Teil-Manifest schreiben, sobald die Gruppe sicher existiert -
+  // nicht erst am Ende von main(). Wird dieser Lauf irgendwo danach
+  // abgebrochen (Netzwerkfehler, Prozess-Kill, falsches Passwort fuer eine
+  // der verbleibenden Rollen), erkennt ensureGroup() beim naechsten Versuch
+  // ueber genau dieses (Teil-)Manifest, dass die per 409 gefundene Gruppe
+  // die eigene, bereits begonnene Fixture ist, und fuehrt die Provisionierung
+  // zu Ende, statt faelschlich eine Fremd-Kollision anzunehmen und
+  // abzubrechen. Die Mitglieder-Felder fehlen hier bewusst noch - main()
+  // ueberschreibt diese Datei am Ende mit dem vollstaendigen Manifest.
+  writeFileSync(
+    MANIFEST_PATH,
+    JSON.stringify({ manifest_version: 1, fansub_group_id: groupId, group_slug: GROUP.slug }, null, 2) + '\n',
+    'utf8',
+  )
+
   const leaderToken = await getToken('e2e-leader', ROLE_EMAILS.leader, leaderPw)
   const meLeader = must(await api('GET', '/api/v1/me', { token: leaderToken }), 'GET /me (leader)')
   const leaderAppUserId = meLeader.data.app_user_id

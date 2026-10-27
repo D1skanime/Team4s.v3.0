@@ -66,24 +66,32 @@ Playwright-Reports.
 
 ## Reset
 
-- `bash scripts/e2e/reset-fixtures.sh` — versucht, die eine Fansub-Gruppe zu entfernen, die im
-  Manifest `scripts/e2e/fixtures.manifest.json` als von der Provisionierung erzeugt ausgewiesen
-  ist (über den bestehenden Endpunkt `DELETE /fansubs/:id`). Kein `TRUNCATE`, kein DB-Reset —
-  alles andere in `team4s_v2` bleibt unangetastet. Ein fehlendes Manifest ist kein Fehler,
-  sondern bedeutet "nichts zurückzusetzen".
-  **Strukturelle Einschränkung:** Sobald die Gruppe Live-App-Mitgliedschaften hat (ab dem ersten
-  erfolgreichen `provision.sh`-Lauf immer der Fall), lehnt das Backend die Löschung mit 409 ab
-  (`fansub_group_has_dependents`) — die Admin-API bietet für Live-Mitgliedschaften bewusst
-  keinen Hard-Delete-Endpunkt an, nur Status-Updates. In diesem Fall **schlägt das Skript mit
-  Exit-Code 1 fehl und behält das Manifest** (es behauptet nie einen erfolgten Reset, wenn die
-  Daten tatsächlich unverändert bestehen bleiben). Ein echter Reset der Fixture-Gruppe ist mit
-  der heutigen Admin-API also nur möglich, solange noch keine Live-Mitgliedschaft besteht.
+- `bash scripts/e2e/reset-fixtures.sh` — setzt die 5 Keycloak-Testkonten tatsächlich zurück:
+  löscht sie aus Keycloak (eigene `kcadm`-Admin-Session, unabhängig von `e2e-admin`s eigenem
+  Passwort) und entfernt `~/.config/team4s-e2e.env`, sodass der nächste `provision.sh`-Lauf 5
+  frische Konten mit neu erzeugten Passwörtern anlegt. Kein `TRUNCATE`, kein DB-Reset — alles
+  andere in `team4s_v2` bleibt unangetastet. Fehlen sowohl Manifest als auch Secrets-Datei, ist
+  das kein Fehler, sondern bedeutet "nichts zurückzusetzen".
+  **DB-Fixture-Teil (bestes Bemühen, kein Fehler bei Fehlschlag):** Das Skript versucht zusätzlich,
+  die Fansub-Gruppe über `DELETE /fansubs/:id` zu entfernen. Das gelingt nur, solange die Gruppe
+  keine Live-Mitgliedschaften hat — danach lehnt das Backend jede Löschung mit 409 ab
+  (`fansub_group_has_dependents`), weil die Admin-API für Live-Mitgliedschaften bewusst keinen
+  Hard-Delete-Endpunkt anbietet (verifiziert über eine vollständige Durchsicht aller registrierten
+  Routen). Das ist **normal und kein Fehler**: Gruppe und Manifest bleiben in diesem Fall
+  unverändert bestehen. Das ist unschädlich, weil ein frisches Keycloak-Konto mit derselben
+  E-Mail sich beim nächsten echten Login automatisch wieder an genau denselben App-User samt
+  all seinen Gruppenrollen anhängt (`EnsureAppUserForIdentity`, verifizierte E-Mail-Übereinstimmung,
+  D-07) — der Reset der Konten ist unabhängig davon wirksam, ob die DB-Fixture-Gruppe selbst
+  gelöscht werden konnte.
 - `bash scripts/e2e/provision.sh` — stellt die Fixtures danach (oder bei Bedarf jederzeit)
-  erneut idempotent sicher. Prüft bei einer Slug-Kollision (Gruppe `e2e-gruppe-a` existiert
-  bereits), ob das lokale Manifest exakt dieselbe `fansub_group_id` ausweist — fehlt das
-  Manifest oder zeigt es auf eine andere ID, bricht das Skript **vor jeder Mutation** ab, statt
-  eine möglicherweise fremde Gruppe stillschweigend zu übernehmen und zu verändern.
+  erneut idempotent sicher, egal ob die Keycloak-Konten frisch oder bereits vorhanden sind.
+  Schreibt das Fixture-Manifest bereits direkt nach dem Anlegen/Wiederfinden der Gruppe (noch
+  ohne Mitgliederdaten) und erst am Ende vollständig — ein mitten im Lauf abgebrochener erster
+  Versuch (Keycloak-Konto teilweise angelegt, DB-Zeilen teilweise vorhanden) ist dadurch beim
+  nächsten Aufruf sauber fortsetzbar, ohne Duplikate oder Fehler. Prüft bei einer Slug-Kollision
+  (Gruppe `e2e-gruppe-a` existiert bereits) trotzdem, ob das lokale Manifest exakt dieselbe
+  `fansub_group_id` ausweist — fehlt das Manifest komplett oder zeigt es auf eine andere ID,
+  bricht das Skript **vor jeder Mutation** ab, statt eine möglicherweise fremde Gruppe
+  stillschweigend zu übernehmen und zu verändern.
 - `bash scripts/e2e.sh` — kompletter, erneut idempotenter Durchlauf von Provisionierung bis
   Testlauf (ruft `reset-fixtures.sh` nicht auf).
-
-Die Keycloak-Testkonten selbst werden von `reset-fixtures.sh` nie gelöscht.
