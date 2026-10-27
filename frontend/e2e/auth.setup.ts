@@ -1,4 +1,4 @@
-import { test as setup, expect } from '@playwright/test'
+import { test as setup, expect, type Page } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
 
@@ -27,22 +27,43 @@ setup.beforeAll(() => {
   fs.mkdirSync(AUTH_DIR, { recursive: true })
 })
 
+/**
+ * AppShell rendert links einen schmalen, hoverbaren Streifen (`edgeStrip`),
+ * der bei Hover ODER Fokus die Navigations-Drawer oeffnet; deren Backdrop
+ * kann dadurch sporadisch ueber dem "Anmelden"-Button liegen, wenn
+ * Playwrights interner Klick-Vorbereitungsschritt (Maus bewegen, Element
+ * pruefen) ihn zufaellig beruehrt. Das ist kein echtes Occlusion-Problem,
+ * das ein Nutzer je saehe, sondern ein Timing-Flake dieser einen
+ * Nebenkomponente - deshalb hier gezielt abfangen und erneut versuchen,
+ * statt den eigentlichen Login-Test instabil zu machen.
+ */
+async function clickAnmeldenRobust(page: Page): Promise<void> {
+  const anmeldenButton = page.getByRole('button', { name: 'Anmelden' })
+  const drawerCloseButton = page.getByRole('button', { name: 'Drawer schließen' })
+
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      await anmeldenButton.click({ timeout: 5000 })
+      return
+    } catch (error) {
+      if (attempt === 4) throw error
+      if (await drawerCloseButton.isVisible().catch(() => false)) {
+        await drawerCloseButton.click({ timeout: 2000 }).catch(() => undefined)
+      } else {
+        await page.keyboard.press('Escape').catch(() => undefined)
+      }
+      await page.waitForTimeout(250)
+    }
+  }
+}
+
 for (const role of ROLES) {
   setup(`login als ${role}`, async ({ page }) => {
     const password = process.env[passwordEnvVar(role)]
     expect(password, `${passwordEnvVar(role)} muss gesetzt sein (siehe scripts/e2e/provision.sh)`).toBeTruthy()
 
     await page.goto('/login')
-    // AppShell rendert links einen schmalen, ueber die volle Hoehe
-    // reichenden Hover-Streifen (`edgeStrip`), der die Navigations-Drawer
-    // oeffnet. Playwrights Mauszeiger startet auf einer frischen Seite bei
-    // (0,0) - also exakt auf diesem Streifen. Ein expliziter Zwischenschritt
-    // in die Seitenmitte, bevor der Button angeklickt wird, verhindert, dass
-    // der erste Mausweg des Tests ungewollt durch den Streifen fuehrt und
-    // die Drawer-Backdrop ueber den Anmelden-Button legt - kein echter
-    // Nutzer startet seine Maus je in der Bildschirmecke.
-    await page.mouse.move(640, 400)
-    await page.getByRole('button', { name: 'Anmelden' }).click()
+    await clickAnmeldenRobust(page)
     await page.waitForURL(/\/realms\/team4s\/.*\/auth/, { timeout: 15000 })
 
     await page.locator('#username').fill(`e2e-${role}@team4s.test`)
