@@ -16,13 +16,30 @@
 # selbst kein Fehlerzustand ist.
 set -euo pipefail
 
-cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-
+# SCRIPT_DIR muss VOR dem cd aus dem urspruenglichen Arbeitsverzeichnis
+# aufgeloest werden - sonst wuerde eine zweite Ableitung aus derselben
+# ${BASH_SOURCE[0]} nach dem cd relativ zum NEUEN Verzeichnis interpretiert
+# und bei jedem Aufruf ausser "bash scripts/e2e.sh" aus dem Repo-Root
+# (z. B. "cd scripts && bash e2e.sh") stillschweigend auf den Repo-Root
+# statt auf scripts/ zeigen.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
 REPORT_FILE="frontend/e2e/.reports/last-run.json"
 SECRETS_FILE="$HOME/.config/team4s-e2e.env"
 
+command -v jq >/dev/null || { echo "[e2e] FEHLER: 'jq' wird benoetigt (JSON-Parsing in Provisionierung und Testauswertung)." >&2; exit 1; }
+command -v openssl >/dev/null || { echo "[e2e] FEHLER: 'openssl' wird benoetigt (Passwortgenerierung)." >&2; exit 1; }
+command -v curl >/dev/null || { echo "[e2e] FEHLER: 'curl' wird benoetigt (Keycloak-/Backend-API-Aufrufe)." >&2; exit 1; }
+
 bash "$SCRIPT_DIR/e2e/provision.sh"
+
+# Typecheck der E2E-Dateien VOR dem eigentlichen Testlauf: playwright.config.ts
+# und e2e/** sind bewusst aus dem normalen frontend/tsconfig.json ausgeschlossen
+# (siehe tsconfig.e2e.json) und werden deshalb von keinem anderen automatisierten
+# Schritt erfasst - ein kaputter Typ hier wuerde sonst erst als verwirrender
+# Playwright-Laufzeitfehler auffallen statt als klare TS-Fehlermeldung.
+(cd frontend && npm run typecheck:e2e)
 
 # provision.sh laeuft als eigener Subprozess (eigene bash -c Umgebung) - die
 # dort gesourcten E2E_PASSWORD_*-Variablen vererben sich NICHT automatisch an

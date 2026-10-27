@@ -4,6 +4,12 @@ Rollenbasierte End-to-End-Tests gegen den echten Login-Pfad, damit auch autonome
 ohne manuelle Passworteingabe prüfen können, ob Berechtigungen im Frontend und Backend wirklich
 greifen.
 
+## Voraussetzungen
+
+Der laufende lokale Docker-Dev-Stack (`docker compose up`) sowie `jq`, `openssl` und `curl` auf
+dem ausführenden Host. `scripts/e2e.sh` prüft diese drei Kommandozeilenwerkzeuge selbst und
+bricht mit einer klaren Fehlermeldung ab, falls eines fehlt.
+
 ## Einstiegspunkt
 
 ```bash
@@ -17,13 +23,19 @@ Reihenfolge aus und bricht bei jedem Fehler mit einem Exit-Code ungleich 0 ab (a
 1. `scripts/e2e/provision.sh` — legt idempotent die 5 Keycloak-Testkonten an und stellt die
    DB-Fixtures für "E2E Gruppe A" sicher (siehe unten). Ein erneuter Lauf erkennt bereits
    vorhandene Konten/Mitgliedschaften und überspringt sie, statt Duplikate zu erzeugen.
-2. `npx playwright test` im `frontend/`-Verzeichnis — meldet jede Rolle über das echte,
+2. `npm run typecheck:e2e` im `frontend/`-Verzeichnis — prüft `playwright.config.ts` und
+   `frontend/e2e/**` separat vom normalen Next.js-Typecheck (siehe `tsconfig.e2e.json`), damit ein
+   kaputter Typ als klare Fehlermeldung auffällt statt als verwirrender Playwright-Laufzeitfehler.
+3. `npx playwright test` im `frontend/`-Verzeichnis — meldet jede Rolle über das echte,
    Keycloak-gehostete Login-Formular an (`frontend/e2e/auth.setup.ts`) und führt danach die
    vier Rollen-Specs aus.
 
-Das Skript läuft gegen den laufenden lokalen Docker-Dev-Stack (Frontend auf
-`http://127.0.0.1:3000`, Backend auf `http://127.0.0.1:18092`, Keycloak auf
-`http://127.0.0.1:18081` — per `E2E_BASE_URL`/`E2E_API_BASE`/`E2E_KC_BASE` überschreibbar).
+Das Skript läuft gegen den laufenden lokalen Docker-Dev-Stack. Backend- und Keycloak-Basis-URL
+(`E2E_API_BASE`/`E2E_KC_BASE`) leitet `scripts/e2e/_env-defaults.sh` automatisch aus den
+tatsächlichen `BACKEND_PORT`/`KEYCLOAK_PORT` der lokalen `.env` ab (derselben Datei, die
+`docker compose` selbst beim Start liest) — fällt kein Wert dort, greifen die reinen
+`docker-compose.yml`-Standardports `8092`/`8081`. Die Frontend-Basis-URL ist weiterhin per
+`E2E_BASE_URL` überschreibbar (Standard `http://127.0.0.1:3000`).
 
 ## Die 5 Testrollen
 

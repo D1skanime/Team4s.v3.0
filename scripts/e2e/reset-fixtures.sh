@@ -22,12 +22,13 @@
 # provision.sh-Lauf erkennt sie wie gewohnt wieder), statt als Fehler.
 set -euo pipefail
 
-cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/../.."
 
 MANIFEST="scripts/e2e/fixtures.manifest.json"
 SECRETS_FILE="$HOME/.config/team4s-e2e.env"
-E2E_KC_BASE="${E2E_KC_BASE:-http://127.0.0.1:18081}"
-E2E_API_BASE="${E2E_API_BASE:-http://127.0.0.1:18092}"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/_env-defaults.sh"
 REALM="team4s"
 KC_CLIENT="team4s-frontend"
 
@@ -56,13 +57,25 @@ set +a
 # "invalid_grant" ablehnen. jq liest das Passwort hierfuer per stdin (nicht
 # argv), damit der Wert auch beim Kodieren nie in einer Prozessliste auftaucht.
 ENCODED_PW=$(printf '%s' "$E2E_PASSWORD_ADMIN" | jq -sRr '@uri')
+# set +e um die Zuweisung, weil "set -e" + "pipefail" sonst bei einem
+# fehlschlagenden curl (falsches/veraltetes Admin-Passwort nach
+# Secrets-Rotation, Keycloak nicht erreichbar) das Skript sofort beendet,
+# BEVOR die folgende, aussagekraeftige Fehlermeldung je erreicht wird -
+# ohne jede Diagnose fuer einen autonomen Agenten/CI-Lauf.
+set +e
 TOKEN_RESPONSE=$(printf 'grant_type=password&client_id=%s&username=e2e-admin@team4s.test&password=%s' \
     "$KC_CLIENT" "$ENCODED_PW" \
   | curl -sf --data-binary @- -H "Content-Type: application/x-www-form-urlencoded" \
     "${E2E_KC_BASE}/realms/${REALM}/protocol/openid-connect/token")
+CURL_STATUS=$?
+set -e
+if [[ "$CURL_STATUS" -ne 0 ]]; then
+  echo "Konnte kein Admin-Token fuer den Reset beziehen (curl exit=${CURL_STATUS}, Keycloak unter ${E2E_KC_BASE} erreichbar? Passwort in ${SECRETS_FILE} noch gueltig?)." >&2
+  exit 1
+fi
 TOKEN=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.access_token')
 if [[ -z "$TOKEN" || "$TOKEN" == "null" ]]; then
-  echo "Konnte kein Admin-Token fuer den Reset beziehen." >&2
+  echo "Konnte kein Admin-Token fuer den Reset beziehen (Antwort ohne access_token)." >&2
   exit 1
 fi
 

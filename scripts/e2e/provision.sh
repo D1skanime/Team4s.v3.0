@@ -9,10 +9,12 @@
 # will, rufen ausschliesslich DIESES Skript auf.
 set -euo pipefail
 
-cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/../.."
+
 SECRETS_FILE="$HOME/.config/team4s-e2e.env"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/_env-defaults.sh"
 
 bash "$SCRIPT_DIR/provision-keycloak-users.sh"
 

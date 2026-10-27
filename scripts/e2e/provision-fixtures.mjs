@@ -15,15 +15,16 @@
 //
 // Node 18+, keine externen npm-Abhaengigkeiten.
 //
-// Env (alle optional):
-//   E2E_API_BASE        default http://127.0.0.1:18092
-//   E2E_KC_BASE          default http://127.0.0.1:18081
+// Env (alle optional, provision.sh exportiert E2E_API_BASE/E2E_KC_BASE bereits
+// passend zur lokalen .env ueber scripts/e2e/_env-defaults.sh):
+//   E2E_API_BASE        default http://127.0.0.1:8092 (docker-compose.yml-Standard)
+//   E2E_KC_BASE          default http://127.0.0.1:8081 (docker-compose.yml-Standard)
 //   E2E_PASSWORD_ADMIN / _LEADER / _DEPUTY / _MEMBER / _USER  (vom Aufrufer gesetzt, siehe provision.sh)
 
 import { writeFileSync } from 'node:fs'
 
-const API = (process.env.E2E_API_BASE || 'http://127.0.0.1:18092').replace(/\/+$/, '')
-const KC = (process.env.E2E_KC_BASE || 'http://127.0.0.1:18081').replace(/\/+$/, '')
+const API = (process.env.E2E_API_BASE || 'http://127.0.0.1:8092').replace(/\/+$/, '')
+const KC = (process.env.E2E_KC_BASE || 'http://127.0.0.1:8081').replace(/\/+$/, '')
 const REALM = 'team4s'
 const KC_CLIENT = 'team4s-frontend'
 
@@ -128,7 +129,9 @@ async function ensureGroup(adminToken) {
 }
 
 async function loadAppMemberIds(adminToken, groupId) {
-  const res = await api('GET', `/api/v1/admin/fansubs/${groupId}/app-members`, { token: adminToken })
+  const res = await api('GET', `/api/v1/admin/fansubs/${groupId}/app-members`, {
+    token: adminToken, query: { per_page: '500' },
+  })
   must(res, 'liste app-members')
   const set = new Set((res.json.data || []).map((m) => m.app_user_id))
   return set
@@ -149,7 +152,9 @@ async function ensureLeadAppMember(adminToken, groupId, appUserId, existingAppUs
 }
 
 async function ensureHistoricalMemberId(adminToken, groupId) {
-  const list = await api('GET', `/api/v1/admin/fansubs/${groupId}/group-members`, { token: adminToken })
+  const list = await api('GET', `/api/v1/admin/fansubs/${groupId}/group-members`, {
+    token: adminToken, query: { per_page: '500' },
+  })
   must(list, 'liste group-members')
   const found = (list.json.data || []).find((m) => m.display_name === HIST_MEMBER_DISPLAY_NAME)
   let histMemberId
@@ -172,7 +177,7 @@ async function ensureHistoricalMemberId(adminToken, groupId) {
   // ein Name ohne jede Mitwirkung, was fachlich keine "offene Mitgliedschaft bis heute"
   // ist. Eine einzelne, zeitlich offene "translator"-Rolle reicht als Nachweis.
   const roles = await api('GET', `/api/v1/admin/fansubs/${groupId}/member-roles`, {
-    token: adminToken, query: { member_id: String(histMemberId) },
+    token: adminToken, query: { member_id: String(histMemberId), per_page: '500' },
   })
   must(roles, 'liste member-roles')
   const hasOpenRole = (roles.json.data || []).some((r) => !r.ended_date)
