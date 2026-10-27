@@ -68,28 +68,34 @@ Playwright-Reports.
 
 - `bash scripts/e2e/reset-fixtures.sh` — setzt sowohl die DB-Fixture als auch die 5
   Keycloak-Testkonten tatsächlich zurück:
-  1. Sucht die Fixture-Gruppe **immer** über ihre feste, verifizierte Identität —
-     `slug = 'e2e-gruppe-a'` UND `kuerzel = 'e2e-fixture-261026-wve'` (dieselben Konstanten, mit
-     denen `provision-fixtures.mjs` die Gruppe erzeugt) — **unabhängig davon, ob überhaupt ein
-     lokales Manifest existiert**. Ein Reset ohne Manifest (z. B. weil eine vorherige
-     Provisionierung abgebrochen ist, bevor sie das Manifest je schrieb, die Secrets-Datei aber
-     schon da ist) setzt dadurch trotzdem die komplette DB-Fixture zurück, statt nur die
-     Keycloak-Konten zu löschen und die DB-Zeilen liegen zu lassen.
-  2. Existiert zusätzlich ein Manifest, muss es alle acht Pflichtfelder (`fansub_group_id`,
+  1. **Setzt ein vollständiges, lokales Manifest zwingend voraus.** Fehlt das Manifest (z. B. weil
+     nur die Secrets-Datei existiert, aber keine abgeschlossene Provisionierung), bricht das
+     Skript **vor jeder DB- oder Keycloak-Mutation** mit `Exit != 0` ab und verweist auf
+     `bash scripts/e2e/provision.sh` — die Fixture-Gruppe wird **nicht mehr** ersatzweise über
+     ihre festen Konstanten (`slug = 'e2e-gruppe-a'`, `kuerzel = 'e2e-fixture-261026-wve'`)
+     gesucht, wenn kein Manifest existiert. Eine abgebrochene oder unvollständige Provisionierung
+     wird **ausschließlich** durch das idempotente `provision.sh` aufgeräumt bzw. fortgesetzt, nie
+     durch diesen Reset. Fehlen sowohl Manifest als auch Secrets-Datei, ist das kein Fehler,
+     sondern bedeutet "nichts zurückzusetzen" (`Exit 0`).
+  2. Das vorhandene Manifest muss alle acht Pflichtfelder (`fansub_group_id`,
      `historical_member_id`, die drei `app_user_id`-Felder, die drei `member_id`-Felder)
-     vollständig und numerisch enthalten, seine `fansub_group_id` muss exakt auf die oben
-     gefundene Gruppe passen. Unabhängig vom Manifest werden für alle drei Rollen (leader/
-     deputy/member) die tatsächliche `app_users`-ID **und** die tatsächliche `member_id` **immer
-     live aus der Datenbank** aufgelöst — die `member_id` ausschließlich über einen
-     **verifizierten** `member_claims`-Datensatz (`claim_status='verified'`), ausgehend von der für
-     die Rolle exakt erwarteten E-Mail (dieselbe Kette, die serverseitig beim Anlegen entsteht:
-     `ensureAppUserMemberAnchorTx()`/`upsertVerifiedAppMemberClaimTx()` in
-     `backend/internal/repository/fansub_group_app_members_repository.go`). Existiert ein
-     Manifest, muss dessen `app_user_id` **und** `member_id` pro Rolle exakt dieser live
-     aufgelösten Referenzkette entsprechen — ein manipuliertes Manifest mit der (numerisch
-     gültigen) ID eines fremden `app_users` oder einer fremden `members`-Zeile bricht damit ab,
-     ohne dass diese ID je in einer Mutation verwendet wird. Bei jeder Abweichung bricht das
-     **gesamte** Skript ohne jede Mutation ab (auch die Keycloak-Löschung wird dann nie erreicht).
+     vollständig und numerisch enthalten — fehlt eines oder ist es nicht numerisch, bricht das
+     **gesamte** Skript ohne jede Mutation ab. Die Fixture-Gruppe wird danach **anhand der
+     Manifest-ID** gesucht; `slug = 'e2e-gruppe-a'` und `kuerzel = 'e2e-fixture-261026-wve'` sind
+     dabei nur eine **zusätzliche**, in derselben Abfrage mitgeführte Prüfung neben dieser ID, kein
+     eigenständiger Ermittlungsweg — findet sich keine Zeile, die gleichzeitig die Manifest-ID
+     **und** beide Konstanten erfüllt, bricht das Skript ab. Für alle drei Rollen (leader/
+     deputy/member) werden außerdem die tatsächliche `app_users`-ID **und** die tatsächliche
+     `member_id` **immer live aus der Datenbank** aufgelöst — die `member_id` ausschließlich über
+     einen **verifizierten** `member_claims`-Datensatz (`claim_status='verified'`), ausgehend von
+     der für die Rolle exakt erwarteten E-Mail (dieselbe Kette, die serverseitig beim Anlegen
+     entsteht: `ensureAppUserMemberAnchorTx()`/`upsertVerifiedAppMemberClaimTx()` in
+     `backend/internal/repository/fansub_group_app_members_repository.go`). Das Manifest muss
+     dessen `app_user_id` **und** `member_id` pro Rolle exakt dieser live aufgelösten
+     Referenzkette entsprechen — ein manipuliertes Manifest mit der (numerisch gültigen) ID eines
+     fremden `app_users` oder einer fremden `members`-Zeile bricht damit ab, ohne dass diese ID je
+     in einer Mutation verwendet wird. Bei jeder Abweichung bricht das **gesamte** Skript ohne
+     jede Mutation ab (auch die Keycloak-Löschung wird dann nie erreicht).
   3. Löscht danach in **einer einzigen Transaktion**: die `app_users`-Zeilen für **alle 5**
      erlaubten E2E-Adressen (`e2e-admin/leader/deputy/member/user@team4s.test`, ausschließlich über
      exakte E-Mail-Gleichheit, niemals `LIKE`/Muster) samt ihrer Legacy-Bridge-Zeile in `users`
@@ -118,9 +124,6 @@ Playwright-Reports.
   gefundenen Kontos — ein Nicht-E2E-Konto mit zufällig demselben Username (z. B. ein reales
   `e2e-admin@team4s.de`) wird dadurch **nie** verändert oder gelöscht; bei Abweichung bricht das
   jeweilige Skript ohne jede Mutation an diesem Konto ab.
-
-  Fehlen sowohl Manifest als auch Secrets-Datei, ist das kein Fehler, sondern bedeutet "nichts
-  zurückzusetzen".
 - `bash scripts/e2e/provision.sh` — stellt die Fixtures danach (oder bei Bedarf jederzeit)
   erneut idempotent sicher, egal ob frisch oder bereits vorhanden. Die Gruppe wird bei der
   Erstellung mit einem festen `kuerzel` (`e2e-fixture-261026-wve`) markiert — **in derselben
