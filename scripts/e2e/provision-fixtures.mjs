@@ -159,26 +159,38 @@ async function ensureGroup(adminToken) {
 }
 
 async function loadAppMemberIds(adminToken, groupId) {
+  // member.member_id (siehe models.FansubGroupMemberIdentity) ist dieselbe
+  // Antwort, die auch die POST-Create-Antwort unten liefert - eine zweite
+  // Live-Mitgliedschaft ensureAppUserMemberAnchorTx() (bzw. der historisch
+  // verlinkte Pfad) legt dafuer serverseitig eine eigene members-Zeile samt
+  // verified member_claims-Zeile an (backend/internal/repository/
+  // fansub_group_app_members_repository.go). reset-fixtures.sh muss diese
+  // ebenfalls abbauen - die member_id wird deshalb hier mitgelesen und am
+  // Ende ins Manifest geschrieben, nicht nur die app_user_id.
   const res = await api('GET', `/api/v1/admin/fansubs/${groupId}/app-members`, {
     token: adminToken, query: { per_page: '500' },
   })
   must(res, 'liste app-members')
-  const set = new Set((res.json.data || []).map((m) => m.app_user_id))
-  return set
+  const map = new Map((res.json.data || []).map((m) => [m.app_user_id, m.member?.member_id ?? null]))
+  return map
 }
 
 async function ensureLeadAppMember(adminToken, groupId, appUserId, existingAppUserIds, label) {
   if (existingAppUserIds.has(appUserId)) {
-    log(`${label}: bereits Live-Mitglied (app_user_id=${appUserId})`)
-    return
+    const memberId = existingAppUserIds.get(appUserId)
+    log(`${label}: bereits Live-Mitglied (app_user_id=${appUserId}, member_id=${memberId})`)
+    return memberId
   }
   const create = await api('POST', `/api/v1/admin/fansubs/${groupId}/app-members`, {
     token: adminToken,
     body: { app_user_id: appUserId, roles: ['fansub_lead'] },
   })
-  must(create, `app-member fansub_lead fuer ${label}`, [201])
-  existingAppUserIds.add(appUserId)
-  log(`${label}: als fansub_lead live verknuepft (app_user_id=${appUserId})`)
+  const data = must(create, `app-member fansub_lead fuer ${label}`, [201]).data
+  const memberId = data.member?.member_id
+  if (!memberId) throw new Error(`app-member fansub_lead fuer ${label}: Antwort enthaelt kein member.member_id`)
+  existingAppUserIds.set(appUserId, memberId)
+  log(`${label}: als fansub_lead live verknuepft (app_user_id=${appUserId}, member_id=${memberId})`)
+  return memberId
 }
 
 async function ensureHistoricalMemberId(adminToken, groupId) {
@@ -232,16 +244,20 @@ async function ensureHistoricalMemberId(adminToken, groupId) {
 
 async function ensureMemberAppMember(adminToken, groupId, appUserId, historicalMemberId, existingAppUserIds) {
   if (existingAppUserIds.has(appUserId)) {
-    log(`mitglied: bereits Live-Mitglied (app_user_id=${appUserId})`)
-    return
+    const memberId = existingAppUserIds.get(appUserId)
+    log(`mitglied: bereits Live-Mitglied (app_user_id=${appUserId}, member_id=${memberId})`)
+    return memberId
   }
   const create = await api('POST', `/api/v1/admin/fansubs/${groupId}/app-members`, {
     token: adminToken,
     body: { app_user_id: appUserId, roles: [], historical_member_id: historicalMemberId },
   })
-  must(create, 'app-member mitglied (historisch verlinkt)', [201])
-  existingAppUserIds.add(appUserId)
-  log(`mitglied: live verknuepft ueber historical_member_id=${historicalMemberId} (app_user_id=${appUserId})`)
+  const data = must(create, 'app-member mitglied (historisch verlinkt)', [201]).data
+  const memberId = data.member?.member_id
+  if (!memberId) throw new Error('app-member mitglied (historisch verlinkt): Antwort enthaelt kein member.member_id')
+  existingAppUserIds.set(appUserId, memberId)
+  log(`mitglied: live verknuepft ueber historical_member_id=${historicalMemberId} (app_user_id=${appUserId}, member_id=${memberId})`)
+  return memberId
 }
 
 // ---- Main -------------------------------------------------------------------
@@ -277,20 +293,20 @@ async function main() {
 
   const existingAppUserIds = await loadAppMemberIds(adminToken, groupId)
 
-  await ensureLeadAppMember(adminToken, groupId, leaderAppUserId, existingAppUserIds, 'e2e-leader')
-  await ensureLeadAppMember(adminToken, groupId, deputyAppUserId, existingAppUserIds, 'e2e-deputy')
+  const leaderMemberId = await ensureLeadAppMember(adminToken, groupId, leaderAppUserId, existingAppUserIds, 'e2e-leader')
+  const deputyMemberId = await ensureLeadAppMember(adminToken, groupId, deputyAppUserId, existingAppUserIds, 'e2e-deputy')
 
   const historicalMemberId = await ensureHistoricalMemberId(adminToken, groupId)
-  await ensureMemberAppMember(adminToken, groupId, memberAppUserId, historicalMemberId, existingAppUserIds)
+  const memberMemberId = await ensureMemberAppMember(adminToken, groupId, memberAppUserId, historicalMemberId, existingAppUserIds)
 
   const manifest = {
     manifest_version: 1,
     fansub_group_id: groupId,
     group_slug: GROUP.slug,
     members: {
-      leader: { app_user_id: leaderAppUserId },
-      deputy: { app_user_id: deputyAppUserId },
-      member: { app_user_id: memberAppUserId, historical_member_id: historicalMemberId },
+      leader: { app_user_id: leaderAppUserId, member_id: leaderMemberId },
+      deputy: { app_user_id: deputyAppUserId, member_id: deputyMemberId },
+      member: { app_user_id: memberAppUserId, historical_member_id: historicalMemberId, member_id: memberMemberId },
     },
   }
   writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
