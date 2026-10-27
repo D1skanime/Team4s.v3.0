@@ -68,14 +68,20 @@ Playwright-Reports.
 
 - `bash scripts/e2e/reset-fixtures.sh` — setzt sowohl die DB-Fixture als auch die 5
   Keycloak-Testkonten tatsächlich zurück:
-  1. Löscht gezielt genau die beiden in `scripts/e2e/fixtures.manifest.json` referenzierten
-     DB-Zeilen (den historischen Eintrag und die Fansub-Gruppe selbst) per direktem, auf exakte
-     IDs beschränktem SQL-`DELETE` in FK-sicherer Kind-vor-Eltern-Reihenfolge — **nie** ein
-     `TRUNCATE`, **nie** ein schemaweiter Reset, genau im selben Muster wie
-     `scripts/reset-member-profile-fixture.sh`. Live-Mitgliedschaften und ihre Rollen verschwinden
-     dabei automatisch per `ON DELETE CASCADE`. Die Admin-HTTP-API bietet dafür bewusst keinen
-     Hard-Delete (`DELETE /fansubs/:id` lehnt mit 409 ab, solange Live-Mitgliedschaften bestehen —
-     verifiziert über eine vollständige Durchsicht aller registrierten Routen: keine `DELETE` für
+  1. Löscht gezielt genau die in `scripts/e2e/fixtures.manifest.json` referenzierten DB-Zeilen —
+     die drei `app_users`-Konten (Leitung/Stellvertretung/Mitglied, per `GET /me` während der
+     Provisionierung entstanden und mit ihrer `app_user_id` ins Manifest geschrieben) samt ihrer
+     Legacy-Bridge-Zeile in `users` (sonst bliebe dort dauerhaft eine verwaiste, per eigenem
+     `uq_users_username` eindeutige Zeile liegen), den historischen Eintrag und die Fansub-Gruppe
+     selbst — per direktem, auf exakte IDs beschränktem SQL-`DELETE` in FK-sicherer
+     Kind-vor-Eltern-Reihenfolge — **nie** ein `TRUNCATE`, **nie** ein schemaweiter Reset, genau im
+     selben Muster wie `scripts/reset-member-profile-fixture.sh`. Vor jeder `app_users`-Löschung
+     wird die tatsächlich gespeicherte E-Mail gegen die exakt erwartete `@team4s.test`-Adresse
+     geprüft — stimmt auch nur eine nicht, bricht der gesamte DB-Fixture-Teil ohne jede Mutation ab.
+     Live-Mitgliedschaften und ihre Rollen verschwinden automatisch per `ON DELETE CASCADE`. Die
+     Admin-HTTP-API bietet für die Gruppen-/Mitgliedschafts-Löschung bewusst keinen Hard-Delete
+     (`DELETE /fansubs/:id` lehnt mit 409 ab, solange Live-Mitgliedschaften bestehen — verifiziert
+     über eine vollständige Durchsicht aller registrierten Routen: keine `DELETE` für
      `app-members`/`app_users`, kein Self-Service-Leave-Endpunkt), deshalb der direkte, aber eng
      ID-begrenzte SQL-Zugriff.
   2. Löscht die 5 Keycloak-Konten (eigene `kcadm`-Admin-Session, unabhängig von `e2e-admin`s
@@ -91,15 +97,15 @@ Playwright-Reports.
   Fehlen sowohl Manifest als auch Secrets-Datei, ist das kein Fehler, sondern bedeutet "nichts
   zurückzusetzen".
 - `bash scripts/e2e/provision.sh` — stellt die Fixtures danach (oder bei Bedarf jederzeit)
-  erneut idempotent sicher, egal ob frisch oder bereits vorhanden. Schreibt das Fixture-Manifest
-  synchron und unmittelbar nach einer erfolgreichen Gruppenerstellung (noch ohne Mitgliederdaten)
-  und erst am Ende vollständig — zwischen einer erfolgreichen Gruppenerstellung und dem
-  Schreibvorgang liegt dadurch kein Await/Event-Loop-Schritt mehr, in dem ein Prozess-Abbruch
-  (Netzwerkfehler, Kill, falsches Passwort für eine spätere Rolle) ein manifestloses Teilergebnis
-  hinterlassen könnte. Ein so abgebrochener erster Versuch ist beim nächsten Aufruf sauber
-  fortsetzbar, ohne Duplikate oder Fehler. Prüft bei einer Slug-Kollision (Gruppe `e2e-gruppe-a`
-  existiert bereits) trotzdem, ob das lokale Manifest exakt dieselbe `fansub_group_id` ausweist —
-  fehlt das Manifest komplett oder zeigt es auf eine andere ID, bricht das Skript **vor jeder
-  Mutation** ab, statt eine möglicherweise fremde Gruppe stillschweigend zu übernehmen.
+  erneut idempotent sicher, egal ob frisch oder bereits vorhanden. Die Gruppe wird bei der
+  Erstellung mit einem festen `kuerzel` (`e2e-fixture-261026-wve`) markiert — **in derselben
+  `POST /fansubs`-Anfrage**, die die Gruppe erzeugt, nicht in einem separaten, abbruchanfälligen
+  Schritt danach. Eine spätere Slug-Kollision (Gruppe `e2e-gruppe-a` existiert bereits) wird deshalb
+  rein serverseitig verifiziert: Stimmt das `kuerzel` der gefundenen Gruppe überein, ist sie
+  nachweislich die eigene Fixture, egal wie und wann der vorherige Lauf abgebrochen wurde (sogar
+  bei einem Abbruch unmittelbar nach der erfolgreichen `201`-Antwort, bevor irgendeine lokale Datei
+  geschrieben wurde) — kein lokales Manifest nötig, um diese Sicherheit zu erreichen. Stimmt das
+  `kuerzel` nicht überein (oder fehlt), bricht das Skript **vor jeder Mutation** ab, statt eine
+  möglicherweise fremde Gruppe stillschweigend zu übernehmen.
 - `bash scripts/e2e.sh` — kompletter, erneut idempotenter Durchlauf von Provisionierung bis
   Testlauf (ruft `reset-fixtures.sh` nicht auf).

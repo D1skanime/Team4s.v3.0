@@ -21,7 +21,7 @@
 //   E2E_KC_BASE          default http://127.0.0.1:8081 (docker-compose.yml-Standard)
 //   E2E_PASSWORD_ADMIN / _LEADER / _DEPUTY / _MEMBER / _USER  (vom Aufrufer gesetzt, siehe provision.sh)
 
-import { writeFileSync, readFileSync, existsSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
 
 const API = (process.env.E2E_API_BASE || 'http://127.0.0.1:8092').replace(/\/+$/, '')
 const KC = (process.env.E2E_KC_BASE || 'http://127.0.0.1:8081').replace(/\/+$/, '')
@@ -30,7 +30,7 @@ const KC_CLIENT = 'team4s-frontend'
 
 const MANIFEST_PATH = new URL('./fixtures.manifest.json', import.meta.url)
 
-const GROUP = { slug: 'e2e-gruppe-a', name: 'E2E Gruppe A', status: 'active' }
+const GROUP = { slug: 'e2e-gruppe-a', name: 'E2E Gruppe A', status: 'active', kuerzel: 'e2e-fixture-261026-wve' }
 const HIST_MEMBER_DISPLAY_NAME = 'E2E Mitglied'
 
 const ROLE_EMAILS = {
@@ -107,41 +107,26 @@ function must(res, ctx, okStatuses = [200, 201]) {
 
 // ---- Idempotente Schritte --------------------------------------------------
 
-function readExistingManifest() {
-  if (!existsSync(MANIFEST_PATH)) return null
-  try {
-    return JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'))
-  } catch (err) {
-    throw new Error(`fixtures.manifest.json ist vorhanden, aber nicht lesbar/gueltiges JSON: ${err.message}`)
-  }
-}
-
-function writeStubManifest(groupId) {
-  // Wird SYNCHRON und UNMITTELBAR nach einer erfolgreichen Gruppenerstellung
-  // aufgerufen - nicht erst irgendwann spaeter in main(). Zwischen einem
-  // erfolgreichen POST und einem spaeteren Schreibvorgang liegt sonst ein
-  // Abbruchfenster: stirbt der Prozess exakt dort, existiert die Gruppe ohne
-  // jedes Manifest, und der naechste Lauf haelt den eigenen 409-Treffer
-  // faelschlich fuer eine Fremd-Kollision. Da writeFileSync synchron ist und
-  // direkt auf die Create-Antwort folgt, bleibt kein Await/Event-Loop-Schritt
-  // mehr dazwischen, in dem ein Kill diesen Schreibvorgang noch verhindern
-  // koennte. Die Mitglieder-Felder fehlen hier bewusst noch - main()
-  // ueberschreibt diese Datei am Ende mit dem vollstaendigen Manifest.
-  writeFileSync(
-    MANIFEST_PATH,
-    JSON.stringify({ manifest_version: 1, fansub_group_id: groupId, group_slug: GROUP.slug }, null, 2) + '\n',
-    'utf8',
-  )
-}
-
 async function ensureGroup(adminToken) {
+  // GROUP.kuerzel wird in DERSELBEN Create-Anfrage mitgeschickt, die die
+  // Gruppe erzeugt - nicht in einem separaten Schritt danach. Ein lokaler
+  // Schreibvorgang (z. B. ein Manifest) NACH der 201-Antwort kann durch
+  // einen Prozess-Kill/Host-Abbruch jederzeit verhindert werden; eine
+  // serverseitige Eigenschaft, die bereits TEIL der erfolgreichen
+  // Create-Antwort selbst ist, kann das nicht - sie existiert exakt in dem
+  // Moment, in dem die Gruppe existiert, ohne weiteren Netzwerk-Hop oder
+  // Await-Schritt dazwischen. kuerzel hat zusaetzlich eine eigene,
+  // serverseitige Eindeutigkeitspruefung (siehe ConflictOwnerError in
+  // backend/internal/repository/fansub_repository_groups.go) und ist sowohl
+  // bei der Erstellung setzbar als auch in GET/Listen-Antworten lesbar -
+  // anders als description (im Create-Request-Modell gar nicht vorhanden)
+  // oder created_by (auf fansub_groups nicht modelliert).
   const create = await api('POST', '/api/v1/fansubs', {
     token: adminToken,
-    body: { slug: GROUP.slug, name: GROUP.name, status: GROUP.status },
+    body: { slug: GROUP.slug, name: GROUP.name, status: GROUP.status, kuerzel: GROUP.kuerzel },
   })
   if (create.status === 201) {
     const id = create.json.data.id
-    writeStubManifest(id)
     log(`gruppe "${GROUP.slug}" angelegt (id=${id})`)
     return id
   }
@@ -154,31 +139,20 @@ async function ensureGroup(adminToken) {
     // Sicherheitshalt gegen Slug-Kollision: ein Treffer per Slug alleine ist
     // KEIN Beweis, dass diese Gruppe tatsaechlich von diesem Skript erzeugt
     // wurde - jeder andere Prozess/Mensch kann zufaellig denselben Slug
-    // vergeben haben. Nur ein vorhandenes, auf exakt diese ID lautendes
-    // Manifest zaehlt als verifizierter Fixture-Nachweis; ohne dieses
-    // Manifest MUSS vor jeder Mutation (Rollen-/Mitgliederzuweisung, siehe
-    // main()) abgebrochen werden, statt eine fremde Gruppe stillschweigend
-    // zu uebernehmen und zu veraendern.
-    const existingManifest = readExistingManifest()
-    if (!existingManifest) {
+    // vergeben haben. Nur das exakt erwartete, server-persistierte kuerzel
+    // zaehlt als verifizierter Fixture-Nachweis - dieser Nachweis ist
+    // atomar MIT der Gruppenerstellung entstanden (siehe oben), nicht erst
+    // durch einen separaten, abbruchanfaelligen lokalen Schritt danach.
+    if (found.kuerzel !== GROUP.kuerzel) {
       throw new Error(
-        `gruppe "${GROUP.slug}" (id=${found.id}) existiert bereits, aber kein Fixture-Manifest ` +
-        `(${MANIFEST_PATH.pathname}) bestaetigt, dass es sich um die von diesem Skript erzeugte ` +
-        `E2E-Fixture handelt. Abbruch vor jeder Mutation, um keine fremde Gruppe zu veraendern. ` +
-        `Pruefe manuell, ob Gruppe ${found.id} tatsaechlich eine verwaiste E2E-Fixture ist (z. B. ` +
-        `nach einem abgebrochenen frueheren Lauf) - falls ja, entweder das Manifest mit ` +
-        `{"fansub_group_id": ${found.id}} wiederherstellen oder die Gruppe ueber die Admin-UI pruefen.`
+        `gruppe "${GROUP.slug}" (id=${found.id}) existiert bereits, aber ihr kuerzel ("${found.kuerzel}") ` +
+        `stimmt nicht mit dem erwarteten E2E-Fixture-Marker ("${GROUP.kuerzel}") ueberein. Abbruch vor ` +
+        `jeder Mutation, um keine fremde Gruppe zu veraendern. Falls Gruppe ${found.id} tatsaechlich ` +
+        `eine fehlerhaft angelegte E2E-Fixture ist, muss ihr kuerzel manuell auf "${GROUP.kuerzel}" ` +
+        `gesetzt oder die Gruppe ueber die Admin-UI geprueft werden.`
       )
     }
-    if (existingManifest.fansub_group_id !== found.id) {
-      throw new Error(
-        `gruppe "${GROUP.slug}" (id=${found.id}) existiert, aber das vorhandene Manifest weist eine ` +
-        `ANDERE fansub_group_id aus (${existingManifest.fansub_group_id}). Das deutet auf zwei ` +
-        `verschiedene Gruppen mit demselben Slug hin - Abbruch vor jeder Mutation, manuelle Pruefung ` +
-        `erforderlich.`
-      )
-    }
-    log(`gruppe "${GROUP.slug}" existiert bereits (id=${found.id}), durch Manifest verifiziert`)
+    log(`gruppe "${GROUP.slug}" existiert bereits (id=${found.id}), durch kuerzel verifiziert`)
     return found.id
   }
   throw new Error(`ensureGroup(${GROUP.slug}): unerwarteter status ${create.status}: ${JSON.stringify(create.json)}`)
