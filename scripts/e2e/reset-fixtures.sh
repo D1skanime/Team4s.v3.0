@@ -131,14 +131,11 @@ E2E_EMAILS_SQL_ARRAY="ARRAY['e2e-admin@team4s.test','e2e-leader@team4s.test','e2
 
 HAVE_MANIFEST=false
 [[ -f "$MANIFEST" ]] && HAVE_MANIFEST=true
-HAVE_SECRETS=false
-[[ -f "$SECRETS_FILE" ]] && HAVE_SECRETS=true
 
-if [[ "$HAVE_MANIFEST" == false && "$HAVE_SECRETS" == false ]]; then
-  echo "Kein Fixture-Manifest und keine Secrets-Datei gefunden - nichts zurueckzusetzen."
-  exit 0
-fi
-
+# Kein No-op-Zweig fuer "weder Manifest noch Secrets-Datei vorhanden": die
+# bindende Vorgabe verlangt bei JEDEM fehlenden oder ungueltigen Manifest
+# einen Abbruch mit Exit != 0 und einen Verweis auf provision.sh - ohne
+# Ausnahme fuer den Fall, dass zusaetzlich auch nichts anderes existiert.
 if [[ "$HAVE_MANIFEST" == false ]]; then
   echo "FEHLER: Kein Fixture-Manifest (${MANIFEST}) gefunden - Reset bricht ab, OHNE jede DB- oder Keycloak-Mutation. Die Fixture-Gruppe wird nicht mehr ersatzweise ueber feste slug/kuerzel-Werte ermittelt. Eine abgebrochene oder unvollstaendige Provisionierung wird ausschliesslich durch 'bash scripts/e2e/provision.sh' aufgeraeumt bzw. fortgesetzt (idempotent)." >&2
   exit 1
