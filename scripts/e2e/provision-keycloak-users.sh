@@ -75,7 +75,21 @@ for entry in "${ACCOUNTS[@]}"; do
   role_label=$(printf '%s' "$role" | sed 's/^./\U&/')
 
   existing=$(docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r "$REALM" -q username="$username")
-  if ! printf '%s' "$existing" | jq -e 'length > 0' >/dev/null 2>&1; then
+  existing_count=$(printf '%s' "$existing" | jq 'length')
+  if [[ "$existing_count" -gt 0 ]]; then
+    # Ein Treffer per Username allein ist KEIN Beweis, dass es sich um das
+    # eigene E2E-Konto handelt - ein reales, unabhaengig angelegtes Konto
+    # koennte zufaellig denselben lokalen Namensteil vor dem "@" haben (z. B.
+    # "e2e-admin@team4s.de" statt "e2e-admin@team4s.test"). Vor jeder
+    # Mutation (Passwort setzen, Rolle vergeben) wird deshalb die exakt
+    # erwartete E-Mail-Adresse geprueft; bei Abweichung bricht das Skript
+    # ohne jede Mutation an diesem Konto ab.
+    existing_email=$(printf '%s' "$existing" | jq -r '.[0].email // ""')
+    if [[ "$existing_email" != "$email" ]]; then
+      echo "FEHLER: Keycloak-User mit username '${username}' existiert bereits, aber mit abweichender E-Mail '${existing_email}' (erwartet '${email}'). Kein Nicht-E2E-Konto wird veraendert - Abbruch ohne Mutation an diesem Konto." >&2
+      exit 1
+    fi
+  else
     docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh create users -r "$REALM" \
       -s username="$username" \
       -s email="$email" \

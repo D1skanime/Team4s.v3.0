@@ -116,6 +116,24 @@ function readExistingManifest() {
   }
 }
 
+function writeStubManifest(groupId) {
+  // Wird SYNCHRON und UNMITTELBAR nach einer erfolgreichen Gruppenerstellung
+  // aufgerufen - nicht erst irgendwann spaeter in main(). Zwischen einem
+  // erfolgreichen POST und einem spaeteren Schreibvorgang liegt sonst ein
+  // Abbruchfenster: stirbt der Prozess exakt dort, existiert die Gruppe ohne
+  // jedes Manifest, und der naechste Lauf haelt den eigenen 409-Treffer
+  // faelschlich fuer eine Fremd-Kollision. Da writeFileSync synchron ist und
+  // direkt auf die Create-Antwort folgt, bleibt kein Await/Event-Loop-Schritt
+  // mehr dazwischen, in dem ein Kill diesen Schreibvorgang noch verhindern
+  // koennte. Die Mitglieder-Felder fehlen hier bewusst noch - main()
+  // ueberschreibt diese Datei am Ende mit dem vollstaendigen Manifest.
+  writeFileSync(
+    MANIFEST_PATH,
+    JSON.stringify({ manifest_version: 1, fansub_group_id: groupId, group_slug: GROUP.slug }, null, 2) + '\n',
+    'utf8',
+  )
+}
+
 async function ensureGroup(adminToken) {
   const create = await api('POST', '/api/v1/fansubs', {
     token: adminToken,
@@ -123,6 +141,7 @@ async function ensureGroup(adminToken) {
   })
   if (create.status === 201) {
     const id = create.json.data.id
+    writeStubManifest(id)
     log(`gruppe "${GROUP.slug}" angelegt (id=${id})`)
     return id
   }
@@ -269,21 +288,6 @@ async function main() {
   }
 
   const groupId = await ensureGroup(adminToken)
-
-  // Sofort ein Teil-Manifest schreiben, sobald die Gruppe sicher existiert -
-  // nicht erst am Ende von main(). Wird dieser Lauf irgendwo danach
-  // abgebrochen (Netzwerkfehler, Prozess-Kill, falsches Passwort fuer eine
-  // der verbleibenden Rollen), erkennt ensureGroup() beim naechsten Versuch
-  // ueber genau dieses (Teil-)Manifest, dass die per 409 gefundene Gruppe
-  // die eigene, bereits begonnene Fixture ist, und fuehrt die Provisionierung
-  // zu Ende, statt faelschlich eine Fremd-Kollision anzunehmen und
-  // abzubrechen. Die Mitglieder-Felder fehlen hier bewusst noch - main()
-  // ueberschreibt diese Datei am Ende mit dem vollstaendigen Manifest.
-  writeFileSync(
-    MANIFEST_PATH,
-    JSON.stringify({ manifest_version: 1, fansub_group_id: groupId, group_slug: GROUP.slug }, null, 2) + '\n',
-    'utf8',
-  )
 
   const leaderToken = await getToken('e2e-leader', ROLE_EMAILS.leader, leaderPw)
   const meLeader = must(await api('GET', '/api/v1/me', { token: leaderToken }), 'GET /me (leader)')
