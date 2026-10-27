@@ -12,6 +12,14 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
+  // `fullyParallel: false` allein verhindert nur Parallelitaet INNERHALB einer
+  // Testdatei. Ohne `workers: 1` wuerden mehrere Projekte (setup + die vier
+  // Rollen-Projekte) weiterhin in getrennten Worker-Prozessen gleichzeitig
+  // laufen - gegen denselben geteilten Dev-Stack (eine Keycloak-Instanz, eine
+  // DB) fuehrt das zu Flakes wie konkurrierenden mobilen Navigations-Drawers,
+  // die den Login-Button ueberlagern. Ein einziger Worker erzwingt die
+  // tatsaechlich gewollte strikte Sequenzialitaet.
+  workers: 1,
   reporter: [['line'], ['json', { outputFile: 'e2e/.reports/last-run.json' }]],
   use: {
     baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000',
