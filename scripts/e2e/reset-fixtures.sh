@@ -4,38 +4,47 @@
 # Setzt die 5 dedizierten E2E-Testkonten (e2e-*@team4s.test) UND die von
 # provision-fixtures.mjs angelegte DB-Fixture tatsaechlich zurueck.
 #
+# Pflicht-Manifest (keine Ermittlung ueber slug/kuerzel als Ersatz):
+#
+# Ohne ein lokal vorhandenes, vollstaendiges Manifest bricht dieses Skript
+# VOR JEDER MUTATION (weder DB noch Keycloak) mit Exit != 0 ab und verweist
+# auf 'bash scripts/e2e/provision.sh'. Die Fixture-Gruppe wird NICHT mehr
+# ersatzweise ueber ihre festen Konstanten (slug = 'e2e-gruppe-a',
+# kuerzel = 'e2e-fixture-261026-wve') gesucht, wenn kein Manifest existiert
+# - genau das war der zuvor behobene, aber nachweislich falsche Ansatz:
+# ein Reset ohne Manifest (z. B. nur die Secrets-Datei vorhanden) darf
+# NICHT auf eigene Faust eine Gruppe "erraten" und loeschen. Eine
+# abgebrochene Provisionierung wird AUSSCHLIESSLICH durch das idempotente
+# 'provision.sh' aufgeraeumt bzw. fortgesetzt, nie durch diesen Reset.
+#
+# Existiert ein Manifest, muessen alle acht Pflichtfelder (fansub_group_id,
+# historical_member_id, die drei app_user_id-Felder, die drei
+# member_id-Felder) vollstaendig und numerisch enthalten sein - fehlt eines
+# oder ist es nicht numerisch, bricht das GESAMTE Skript ab (Exit 1, keine
+# Mutation). Die Fixture-Gruppe wird danach ANHAND DER MANIFEST-ID
+# gesucht; slug = 'e2e-gruppe-a' UND kuerzel = 'e2e-fixture-261026-wve'
+# sind dabei nur eine ZUSAETZLICHE, atomar in derselben Abfrage/demselben
+# DELETE mitgefuehrte Pruefung neben dieser ID, kein eigenstaendiger
+# Ermittlungsweg - findet sich keine Zeile, die gleichzeitig die
+# Manifest-ID UND beide Konstanten erfuellt, bricht das Skript ab.
+#
 # Teil 1 (DB, team4s_v2):
 #
-# Die Fixture-Gruppe wird IMMER ueber ihre feste, verifizierte Identitaet
-# gesucht - slug = 'e2e-gruppe-a' UND kuerzel = 'e2e-fixture-261026-wve'
-# (dieselben Konstanten, mit denen provision-fixtures.mjs die Gruppe
-# erzeugt) - UNABHAENGIG davon, ob ueberhaupt ein lokales Manifest
-# existiert. Damit setzt ein Reset ohne Manifest (z. B. weil eine
-# vorherige Provisionierung abgebrochen ist, bevor sie das Manifest je
-# schrieb, die Secrets-Datei aber schon da ist) trotzdem die DB-Fixture
-# zurueck, statt nur die Keycloak-Konten zu loeschen und die DB-Zeilen
-# liegen zu lassen.
-#
-# Existiert zusaetzlich ein Manifest, muss es alle acht Pflichtfelder
-# (fansub_group_id, historical_member_id, die drei app_user_id-Felder, die
-# drei member_id-Felder) vollstaendig und numerisch enthalten, SEINE
-# fansub_group_id muss exakt auf die oben gefundene, verifizierte Gruppe
-# passen. Unabhaengig vom Manifest werden fuer alle drei Rollen (leader/
-# deputy/member) die tatsaechliche app_users-ID UND die tatsaechliche
-# member_id IMMER live aus der Datenbank aufgeloest - die member_id
-# ausschliesslich ueber einen VERIFIZIERTEN member_claims-Datensatz
-# (claim_status='verified'), ausgehend von der fuer die Rolle exakt
-# erwarteten E-Mail (dieselbe Kette wie serverseitig beim Anlegen:
+# Fuer alle drei Rollen (leader/deputy/member) werden die tatsaechliche
+# app_users-ID UND die tatsaechliche member_id IMMER live aus der
+# Datenbank aufgeloest - die member_id ausschliesslich ueber einen
+# VERIFIZIERTEN member_claims-Datensatz (claim_status='verified'),
+# ausgehend von der fuer die Rolle exakt erwarteten E-Mail (dieselbe
+# Kette wie serverseitig beim Anlegen:
 # ensureAppUserMemberAnchorTx()/upsertVerifiedAppMemberClaimTx() in
 # backend/internal/repository/fansub_group_app_members_repository.go).
-# Existiert ein Manifest, muss dessen app_user_id UND member_id pro Rolle
-# exakt dieser live aufgeloesten Referenzkette entsprechen - ein
-# manipuliertes Manifest mit der ID eines fremden app_users oder einer
-# fremden members-Zeile (egal ob numerisch gueltig) bricht damit ab, OHNE
-# dass diese ID je in einer Mutation verwendet wird. Fehlt ein Pflichtfeld,
-# ist es nicht numerisch, passt die Gruppen-ID nicht, oder stimmt auch nur
-# eine der Referenzen nicht exakt, bricht das GESAMTE Skript ab (Exit 1,
-# keine Mutation, auch nicht die Keycloak-Loeschung in Teil 2).
+# Das Manifest muss dessen app_user_id UND member_id pro Rolle exakt
+# dieser live aufgeloesten Referenzkette entsprechen - ein manipuliertes
+# Manifest mit der ID eines fremden app_users oder einer fremden
+# members-Zeile (egal ob numerisch gueltig) bricht damit ab, OHNE dass
+# diese ID je in einer Mutation verwendet wird. Stimmt auch nur eine der
+# Referenzen nicht exakt, bricht das GESAMTE Skript ab (Exit 1, keine
+# Mutation, auch nicht die Keycloak-Loeschung in Teil 2).
 #
 # Die eigentliche Loeschung (Legacy-Bridge-Zeilen, app_users fuer alle 5
 # erlaubten E2E-Adressen, historischer Eintrag, Gruppe, member_claims/
@@ -110,6 +119,11 @@ if [[ "$HAVE_MANIFEST" == false && "$HAVE_SECRETS" == false ]]; then
   exit 0
 fi
 
+if [[ "$HAVE_MANIFEST" == false ]]; then
+  echo "FEHLER: Kein Fixture-Manifest (${MANIFEST}) gefunden - Reset bricht ab, OHNE jede DB- oder Keycloak-Mutation. Die Fixture-Gruppe wird nicht mehr ersatzweise ueber feste slug/kuerzel-Werte ermittelt. Eine abgebrochene oder unvollstaendige Provisionierung wird ausschliesslich durch 'bash scripts/e2e/provision.sh' aufgeraeumt bzw. fortgesetzt (idempotent)." >&2
+  exit 1
+fi
+
 # ---- Teil 1: DB-Fixture gezielt loeschen (NIE TRUNCATE) -------------------
 
 # Datenbank-Identitaet pruefen, bevor irgendeine Abfrage/Mutation erfolgt -
@@ -120,72 +134,62 @@ if [[ "$IDENTITY" != "team4s_v2" ]]; then
   exit 1
 fi
 
-# Die Fixture-Gruppe wird IMMER ueber ihre feste Identitaet gesucht, egal
-# ob ein Manifest existiert - das ist die alleinige Quelle der Wahrheit
-# fuer "welche Gruppe ist das", nicht eine vom Manifest behauptete ID.
-REAL_GROUP_ID=$(docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 -At \
-  -v expected_slug="$EXPECTED_SLUG" -v expected_kuerzel="$EXPECTED_KUERZEL" <<'SQL'
-SELECT id FROM fansub_groups WHERE slug = :'expected_slug' AND kuerzel = :'expected_kuerzel';
-SQL
-)
+GROUP_ID=$(jq -r '.fansub_group_id // ""' "$MANIFEST")
+HIST_MEMBER_ID=$(jq -r '.members.member.historical_member_id // ""' "$MANIFEST")
+LEADER_APP_USER_ID=$(jq -r '.members.leader.app_user_id // ""' "$MANIFEST")
+DEPUTY_APP_USER_ID=$(jq -r '.members.deputy.app_user_id // ""' "$MANIFEST")
+MEMBER_APP_USER_ID=$(jq -r '.members.member.app_user_id // ""' "$MANIFEST")
+LEADER_MEMBER_ID=$(jq -r '.members.leader.member_id // ""' "$MANIFEST")
+DEPUTY_MEMBER_ID=$(jq -r '.members.deputy.member_id // ""' "$MANIFEST")
+MEMBER_MEMBER_ID=$(jq -r '.members.member.member_id // ""' "$MANIFEST")
 
-if [[ "$HAVE_MANIFEST" == true ]]; then
-  GROUP_ID=$(jq -r '.fansub_group_id // ""' "$MANIFEST")
-  HIST_MEMBER_ID=$(jq -r '.members.member.historical_member_id // ""' "$MANIFEST")
-  LEADER_APP_USER_ID=$(jq -r '.members.leader.app_user_id // ""' "$MANIFEST")
-  DEPUTY_APP_USER_ID=$(jq -r '.members.deputy.app_user_id // ""' "$MANIFEST")
-  MEMBER_APP_USER_ID=$(jq -r '.members.member.app_user_id // ""' "$MANIFEST")
-  LEADER_MEMBER_ID=$(jq -r '.members.leader.member_id // ""' "$MANIFEST")
-  DEPUTY_MEMBER_ID=$(jq -r '.members.deputy.member_id // ""' "$MANIFEST")
-  MEMBER_MEMBER_ID=$(jq -r '.members.member.member_id // ""' "$MANIFEST")
-
-  # Alle acht Felder sind Pflicht (ein vollstaendiges, von provision-
-  # fixtures.mjs geschriebenes Manifest hat sie immer zusammen) und muessen
-  # rein numerisch sein, bevor ueberhaupt eine weitere Pruefung erfolgt.
-  for id_check in "fansub_group_id:$GROUP_ID" "historical_member_id:$HIST_MEMBER_ID" \
-                  "members.leader.app_user_id:$LEADER_APP_USER_ID" \
-                  "members.deputy.app_user_id:$DEPUTY_APP_USER_ID" \
-                  "members.member.app_user_id:$MEMBER_APP_USER_ID" \
-                  "members.leader.member_id:$LEADER_MEMBER_ID" \
-                  "members.deputy.member_id:$DEPUTY_MEMBER_ID" \
-                  "members.member.member_id:$MEMBER_MEMBER_ID"; do
-    id_label="${id_check%%:*}"
-    id_value="${id_check#*:}"
-    if [[ -z "$id_value" || "$id_value" == "null" || ! "$id_value" =~ ^[0-9]+$ ]]; then
-      echo "FEHLER: Pflichtfeld '${id_label}' im Manifest fehlt oder ist nicht rein numerisch (wert='${id_value}'). Abbruch ohne jede Mutation." >&2
-      exit 1
-    fi
-  done
-
-  # Die vom Manifest behauptete Gruppen-ID muss exakt der ueber die feste
-  # Identitaet gefundenen echten Gruppe entsprechen - ein Manifest, das auf
-  # eine andere (oder keine) Gruppe zeigt, ist nicht vertrauenswuerdig.
-  if [[ -z "$REAL_GROUP_ID" || "$GROUP_ID" != "$REAL_GROUP_ID" ]]; then
-    echo "FEHLER: Manifest verweist auf fansub_group_id=${GROUP_ID}, die verifizierte E2E-Fixture-Gruppe (slug='${EXPECTED_SLUG}' kuerzel='${EXPECTED_KUERZEL}') hat aber id='${REAL_GROUP_ID:-"(keine gefunden)"}'. Abbruch ohne jede Mutation." >&2
+# Alle acht Felder sind Pflicht (ein vollstaendiges, von provision-
+# fixtures.mjs geschriebenes Manifest hat sie immer zusammen) und muessen
+# rein numerisch sein, bevor ueberhaupt eine weitere Pruefung erfolgt.
+for id_check in "fansub_group_id:$GROUP_ID" "historical_member_id:$HIST_MEMBER_ID" \
+                "members.leader.app_user_id:$LEADER_APP_USER_ID" \
+                "members.deputy.app_user_id:$DEPUTY_APP_USER_ID" \
+                "members.member.app_user_id:$MEMBER_APP_USER_ID" \
+                "members.leader.member_id:$LEADER_MEMBER_ID" \
+                "members.deputy.member_id:$DEPUTY_MEMBER_ID" \
+                "members.member.member_id:$MEMBER_MEMBER_ID"; do
+  id_label="${id_check%%:*}"
+  id_value="${id_check#*:}"
+  if [[ -z "$id_value" || "$id_value" == "null" || ! "$id_value" =~ ^[0-9]+$ ]]; then
+    echo "FEHLER: Pflichtfeld '${id_label}' im Manifest fehlt oder ist nicht rein numerisch (wert='${id_value}'). Abbruch ohne jede Mutation." >&2
     exit 1
   fi
-else
-  echo "Kein Fixture-Manifest gefunden - Fixture-Gruppe wird ausschliesslich ueber ihre feste Identitaet (slug/kuerzel) ermittelt."
+done
+
+# Die Fixture-Gruppe wird ANHAND DER MANIFEST-ID gesucht - slug/kuerzel
+# sind dabei nur eine ZUSAETZLICHE, in derselben Abfrage mitgefuehrte
+# Pruefung, kein eigenstaendiger Ermittlungsweg (siehe Header-Kommentar).
+# Findet sich keine Zeile, die gleichzeitig id=GROUP_ID UND beide
+# Konstanten erfuellt, ist das Manifest nicht (mehr) vertrauenswuerdig.
+REAL_GROUP_ID=$(docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -v ON_ERROR_STOP=1 -At \
+  -v group_id="$GROUP_ID" -v expected_slug="$EXPECTED_SLUG" -v expected_kuerzel="$EXPECTED_KUERZEL" <<'SQL'
+SELECT id FROM fansub_groups WHERE id = :'group_id' AND slug = :'expected_slug' AND kuerzel = :'expected_kuerzel';
+SQL
+)
+if [[ -z "$REAL_GROUP_ID" ]]; then
+  echo "FEHLER: Manifest verweist auf fansub_group_id=${GROUP_ID}, es existiert aber keine Zeile mit genau dieser ID UND slug='${EXPECTED_SLUG}' UND kuerzel='${EXPECTED_KUERZEL}'. Abbruch ohne jede Mutation." >&2
+  exit 1
 fi
 
-# Vor BEGIN, fuer alle drei Rollen (unabhaengig davon, ob ein Manifest
-# existiert): die tatsaechliche app_users-E-Mail UND die tatsaechliche
-# member_id werden ausschliesslich live aus der Datenbank aufgeloest -
-# nicht unbesehen aus dem Manifest uebernommen. Die member_id wird dabei
-# AUSSCHLIESSLICH ueber eine VERIFIZIERTE member_claims-Verknuepfung
-# (claim_status='verified') aufgeloest, ausgehend von der exakten
-# Rollen-E-Mail - dieselbe Kette, die serverseitig beim Anlegen entsteht
+# Vor BEGIN, fuer alle drei Rollen: die tatsaechliche app_users-E-Mail UND
+# die tatsaechliche member_id werden ausschliesslich live aus der
+# Datenbank aufgeloest - nicht unbesehen aus dem Manifest uebernommen. Die
+# member_id wird dabei AUSSCHLIESSLICH ueber eine VERIFIZIERTE
+# member_claims-Verknuepfung (claim_status='verified') aufgeloest,
+# ausgehend von der exakten Rollen-E-Mail - dieselbe Kette, die
+# serverseitig beim Anlegen entsteht
 # (ensureAppUserMemberAnchorTx()/upsertVerifiedAppMemberClaimTx() in
 # backend/internal/repository/fansub_group_app_members_repository.go):
 # E-Mail -> app_users.id -> verified member_claims -> members.id. Das ist
 # die geforderte Referenz-Sicherheitspruefung: eine manipulierte oder stale
 # ID im Manifest, die zu einem fremden/falschen app_users- oder
 # members-Datensatz gehoert, bricht hier ab, OHNE dass diese ID je in
-# einer Mutation verwendet wird. Existiert fuer eine Rolle kein app_users
-# mit dieser E-Mail oder kein verifizierter Claim, bleibt deren member_id
-# leer (nichts zu loeschen fuer diese Rolle, kein Fehler) - ES SEI DENN ein
-# vorhandenes Manifest behauptet explizit eine ID fuer genau diese Rolle,
-# dann ist die fehlende Live-Verifikation ein Abbruchgrund.
+# einer Mutation verwendet wird.
 declare -A ROLE_EMAIL=(
   [leader]="e2e-leader@team4s.test"
   [deputy]="e2e-deputy@team4s.test"
@@ -208,30 +212,24 @@ SQL
   REAL_APP_USER_ID[$role_key]="${resolved%%|*}"
   REAL_MEMBER_ID[$role_key]="${resolved#*|}"
 
-  if [[ "$HAVE_MANIFEST" == true ]]; then
-    manifest_app_user_id_var="${role_key^^}_APP_USER_ID"
-    manifest_member_id_var="${role_key^^}_MEMBER_ID"
-    manifest_app_user_id="${!manifest_app_user_id_var}"
-    manifest_member_id="${!manifest_member_id_var}"
-    if [[ -z "${REAL_APP_USER_ID[$role_key]}" || "$manifest_app_user_id" != "${REAL_APP_USER_ID[$role_key]}" ]]; then
-      echo "FEHLER: Manifest verweist fuer ${role_key} auf app_users ${manifest_app_user_id}, die mit '${email}' verknuepfte echte app_users-ID ist aber '${REAL_APP_USER_ID[$role_key]:-"(keine gefunden)"}'. Abbruch ohne jede Mutation." >&2
-      exit 1
-    fi
-    if [[ -z "${REAL_MEMBER_ID[$role_key]}" || "$manifest_member_id" != "${REAL_MEMBER_ID[$role_key]}" ]]; then
-      echo "FEHLER: Manifest verweist fuer ${role_key} auf member_id ${manifest_member_id}, ueber einen verifizierten member_claim zu '${email}' aufloesbar ist aber '${REAL_MEMBER_ID[$role_key]:-"(keine gefunden)"}'. Abbruch ohne jede Mutation." >&2
-      exit 1
-    fi
+  manifest_app_user_id_var="${role_key^^}_APP_USER_ID"
+  manifest_member_id_var="${role_key^^}_MEMBER_ID"
+  manifest_app_user_id="${!manifest_app_user_id_var}"
+  manifest_member_id="${!manifest_member_id_var}"
+  if [[ -z "${REAL_APP_USER_ID[$role_key]}" || "$manifest_app_user_id" != "${REAL_APP_USER_ID[$role_key]}" ]]; then
+    echo "FEHLER: Manifest verweist fuer ${role_key} auf app_users ${manifest_app_user_id}, die mit '${email}' verknuepfte echte app_users-ID ist aber '${REAL_APP_USER_ID[$role_key]:-"(keine gefunden)"}'. Abbruch ohne jede Mutation." >&2
+    exit 1
+  fi
+  if [[ -z "${REAL_MEMBER_ID[$role_key]}" || "$manifest_member_id" != "${REAL_MEMBER_ID[$role_key]}" ]]; then
+    echo "FEHLER: Manifest verweist fuer ${role_key} auf member_id ${manifest_member_id}, ueber einen verifizierten member_claim zu '${email}' aufloesbar ist aber '${REAL_MEMBER_ID[$role_key]:-"(keine gefunden)"}'. Abbruch ohne jede Mutation." >&2
+    exit 1
   fi
 done
 
-if [[ -z "$REAL_GROUP_ID" ]]; then
-  echo "Keine Fixture-Gruppe (slug='${EXPECTED_SLUG}' kuerzel='${EXPECTED_KUERZEL}') gefunden - DB-Gruppen-/Historie-Teil wird uebersprungen."
-fi
-
 # Eine einzige Transaktion fuer alles: Legacy-Bridge-Zeilen + app_users
 # (alle 5 e2e-*@team4s.test-Adressen, exakte E-Mail-Gleichheit, niemals
-# LIKE/Muster), historischer Eintrag (scoped auf die verifizierte
-# fansub_group_id, falls eine Gruppe gefunden wurde) und die Gruppe selbst.
+# LIKE/Muster), historischer Eintrag (scoped auf die oben verifizierte
+# fansub_group_id) und die Gruppe selbst.
 # Die Gruppen-Loeschung steckt in einem PL/pgSQL-DO-Block, der die
 # Zeilenzahl der eigenen DELETE-Anweisung per GET DIAGNOSTICS prueft und
 # bei != 1 eine Exception auslöst - das bricht die GESAMTE Transaktion
@@ -326,8 +324,8 @@ if [[ "$DELETE_STATUS" -ne 0 ]]; then
   exit 1
 fi
 
-[[ "$HAVE_MANIFEST" == true ]] && rm -f "$MANIFEST"
-echo "DB-Fixture entfernt: Fansub-Gruppe ${REAL_GROUP_ID:-"(keine)"} (slug=${EXPECTED_SLUG}, kuerzel=${EXPECTED_KUERZEL}, inkl. historischem Eintrag und Live-Mitgliedschaften/-Rollen per CASCADE), ${#MEMBER_IDS[@]} members-Identitaet(en) samt verified member_claims (member_id(s): ${MEMBER_IDS[*]:-"keine"}) und app_users/Legacy-Bridge-Zeilen fuer alle 5 e2e-*@team4s.test-Adressen geloescht. Manifest entfernt (falls vorhanden)."
+rm -f "$MANIFEST"
+echo "DB-Fixture entfernt: Fansub-Gruppe ${REAL_GROUP_ID} (slug=${EXPECTED_SLUG}, kuerzel=${EXPECTED_KUERZEL}, inkl. historischem Eintrag und Live-Mitgliedschaften/-Rollen per CASCADE), ${#MEMBER_IDS[@]} members-Identitaet(en) samt verified member_claims (member_id(s): ${MEMBER_IDS[*]:-"keine"}) und app_users/Legacy-Bridge-Zeilen fuer alle 5 e2e-*@team4s.test-Adressen geloescht. Manifest entfernt."
 
 # ---- Teil 2: Keycloak-Konten tatsaechlich zuruecksetzen --------------------
 # Nutzt dieselbe kcadm-Admin-Session wie provision-keycloak-users.sh
