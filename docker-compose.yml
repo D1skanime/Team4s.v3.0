@@ -121,6 +121,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
       APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://127.0.0.1:3000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
       DATABASE_URL: postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_v2?sslmode=disable
       AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-team4s-local-dev-secret}
       AUTH_ADMIN_BOOTSTRAP_USER_IDS: ${AUTH_ADMIN_BOOTSTRAP_USER_IDS:-1}
