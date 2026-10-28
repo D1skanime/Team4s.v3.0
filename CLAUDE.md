@@ -10,6 +10,22 @@
 - Use `http://127.0.0.1:3300` through the Windows SSH tunnel for browser login/UAT. The Linux frontend listens on `http://192.168.235.196:3000`.
 - At the start of work, connect with `ssh team4s-linux`, change to `/home/d1sk/team4s`, inspect `git status --short`, and run `docker compose ps`.
 
+## Verbindliche Zusatzregeln in `AGENTS.md`
+
+`AGENTS.md` gilt für Claude genauso verbindlich wie diese Datei und wird vor
+jeder Umsetzung gelesen. Dort stehen u. a. die Regeln, die hier nicht
+wiederholt werden:
+
+- **Implementation Reuse And Contract Rules:** vor jeder neuen Komponente,
+  jedem Hook, Helfer, Endpunkt oder DTO nach einem bestehenden Gegenstück
+  suchen; keine zweite Kopie von Parsing-, Upload-, Auth-, Medien- oder
+  UI-Logik (kein doppelter Code); Abweichungen begründen.
+- **API-, Auth-, Datenbank- und Migrationsregeln.**
+- **Team4s UI Implementation Contract** und **Responsive UI Standard.**
+- **Live Browser UAT Rules.**
+
+Bei Widersprüchen gilt die strengere Regel.
+
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
@@ -115,7 +131,9 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
 - **Scope:** Gilt für JSX-Textknoten, Button-Labels, Fehlermeldungen,
   Placeholder-Attribute, aria-labels, Toast-Nachrichten und Go-Response-Strings.
 - **Ausnahmen:** Code-Bezeichner (Variablennamen, Funktionsnamen, CSS-Klassen,
-  Dateinamen, Kommentare) sind vom Scope ausgenommen — nur String-Inhalte.
+  Dateinamen) sind vom Scope ausgenommen — nur String-Inhalte.
+- **Code-Kommentare:** Deutsch mit korrekten Umlauten, siehe „Dokumentation
+  wächst mit dem Code“.
 
 ### Frontend-UI (globales Design-System)
 
@@ -163,6 +181,13 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   einer Fansub-Gruppe. Änderungen erfordern eine Verwaltungsberechtigung, werden
   transaktional gespeichert und bei tatsächlichen Änderungen revisionssicher
   protokolliert.“).
+- **Zielniveau:** Ein neuer, erfahrener Entwickler ohne Projektvorwissen muss
+  anhand des Kommentars verstehen, worum es fachlich geht und welche Regeln
+  gelten. Kommentare, die nur wiederholen, was der Code ohnehin sagt
+  („erhöht i um 1“), sind unerwünscht.
+- **Sprache:** Code-Kommentare werden auf Deutsch mit korrekten Umlauten
+  (ä, ö, ü, Ä, Ö, Ü, ß) geschrieben, nicht in ASCII-Ersatzschreibung
+  (ae/oe/ue/ss).
 - **Verboten in Code-Kommentaren:** Reine Planungs-Verweise als Erklärung wie
   „Phase 137, D-06–D-08“, „Plan 188-05“, „Quick 261022-ap1“, „Gap-08“. Solche
   Verweise dürfen höchstens ZUSÄTZLICH zu einer fachlichen Erklärung stehen,
@@ -177,9 +202,13 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   `shared/contracts/` im selben Auftrag nachgezogen. Neue gemeinsame Bausteine
   (z. B. ein geteilter Hook oder eine geteilte Komponente) werden dort kurz
   aufgeführt, damit sie wiederverwendet statt neu gebaut werden.
-- **Bestand:** Bestehende Kommentare mit reinen Phasen-/D-Verweisen werden beim
-  Anfassen der Datei fachlich umformuliert (wie beim Datei-Split: beim Anfassen,
-  keine eigene Aufräumphase).
+- **Bestand beim Anfassen einer Datei** (wie beim Datei-Split: beim Anfassen,
+  keine eigene Aufräumphase):
+  - Kommentare mit reinen Phasen-/D-Verweisen werden fachlich umformuliert.
+  - Fehlen an den geänderten oder dafür verantwortlichen Klassen, Funktionen
+    bzw. Komponenten fachliche Kommentare, werden sie ergänzt.
+  - Englische Kommentare in der angefassten Datei werden ins Deutsche
+    übersetzt.
 - **Prüfung:** Pläne enthalten einen Doku-Task bzw. Doku-Akzeptanzkriterien;
   Review und Verifikation prüfen, ob Kommentare fachlich sind und die
   Architektur-Doku zum geänderten Code passt.

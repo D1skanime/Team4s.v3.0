@@ -102,6 +102,13 @@ Core rules:
   einer Fansub-Gruppe. Änderungen erfordern eine Verwaltungsberechtigung, werden
   transaktional gespeichert und bei tatsächlichen Änderungen revisionssicher
   protokolliert.“).
+- **Zielniveau:** Ein neuer, erfahrener Entwickler ohne Projektvorwissen muss
+  anhand des Kommentars verstehen, worum es fachlich geht und welche Regeln
+  gelten. Kommentare, die nur wiederholen, was der Code ohnehin sagt
+  („erhöht i um 1“), sind unerwünscht.
+- **Sprache:** Code-Kommentare werden auf Deutsch mit korrekten Umlauten
+  (ä, ö, ü, Ä, Ö, Ü, ß) geschrieben, nicht in ASCII-Ersatzschreibung
+  (ae/oe/ue/ss).
 - **Verboten in Code-Kommentaren:** Reine Planungs-Verweise als Erklärung wie
   „Phase 137, D-06–D-08“, „Plan 188-05“, „Quick 261022-ap1“, „Gap-08“. Solche
   Verweise dürfen höchstens ZUSÄTZLICH zu einer fachlichen Erklärung stehen,
@@ -116,9 +123,13 @@ Core rules:
   `shared/contracts/` im selben Auftrag nachgezogen. Neue gemeinsame Bausteine
   (z. B. ein geteilter Hook oder eine geteilte Komponente) werden dort kurz
   aufgeführt, damit sie wiederverwendet statt neu gebaut werden.
-- **Bestand:** Bestehende Kommentare mit reinen Phasen-/D-Verweisen werden beim
-  Anfassen der Datei fachlich umformuliert (wie beim Datei-Split: beim Anfassen,
-  keine eigene Aufräumphase).
+- **Bestand beim Anfassen einer Datei** (wie beim Datei-Split: beim Anfassen,
+  keine eigene Aufräumphase):
+  - Kommentare mit reinen Phasen-/D-Verweisen werden fachlich umformuliert.
+  - Fehlen an den geänderten oder dafür verantwortlichen Klassen, Funktionen
+    bzw. Komponenten fachliche Kommentare, werden sie ergänzt.
+  - Englische Kommentare in der angefassten Datei werden ins Deutsche
+    übersetzt.
 - **Prüfung:** Pläne enthalten einen Doku-Task bzw. Doku-Akzeptanzkriterien;
   Review und Verifikation prüfen, ob Kommentare fachlich sind und die
   Architektur-Doku zum geänderten Code passt.
@@ -208,6 +219,7 @@ When a ChatGPT/GSD Discuss phase creates a visual sketch, the agent must verify 
 - User-facing deutsche Strings (JSX-Text, Button-Labels, Fehlermeldungen, Placeholder, Toast-Nachrichten, aria-labels) verwenden immer korrekte Umlaute: ä, ö, ü, Ä, Ö, Ü, ß
 - Niemals ASCII-Ersetzungen in UI-Text: ae/oe/ue/ss statt Umlauten sind verboten (z.B. "wählen" nicht "waehlen", "für" nicht "fuer", "Änderungen" nicht "Aenderungen")
 - Code-Bezeichner (Variablennamen, Funktionsnamen, CSS-Klassen, Dateinamen) sind ausgenommen — diese bleiben ASCII-sicher
+- Code-Kommentare sind Deutsch mit korrekten Umlauten (siehe „Dokumentation wächst mit dem Code“)
 - Gilt für Frontend TSX/TS und Go Backend Strings die in HTTP-Responses landen
 
 - Avoid overloaded admin screens.
