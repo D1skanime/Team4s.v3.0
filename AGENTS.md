@@ -14,6 +14,7 @@ Shared operating notes for human + AI agents working in `Team4sV3`.
 - The application runtime is Docker Compose on Linux. Do not install Frontend, Backend, PostgreSQL, Redis, Keycloak, the Keycloak database, or Mailpit directly on Ubuntu.
 - GSD, Claude Code and Codex run natively on Ubuntu (nvm Node in `~/.nvm`, GSD 1.42.3 in `~/.claude` and `~/.codex`). `./scripts/gsd-linux.sh` is a legacy isolated wrapper for `gsd-tools.cjs` only; it is not the agent runtime.
 - Long autonomous jobs run through `ki-run` (`/home/d1sk/ki-run/README.md`) on branches `ki/team4s-<job-id>` in this checkout. Jobs never merge or push `main`; the user merges after live UAT via `ki-run accept`. Interactive work stays on `main`.
+- During live UAT of a `ki-run` job, never implement the user's findings yourself (no own branch, no direct commits in the occupied checkout). Turn them into feedback and hand them back with `ki-run reject <id> --feedback-file -` (or `ki-run retry` after `fehlgeschlagen`). After every `ki-run` control command run `ki-run status` and report the actual state.
 - Docker Desktop and WSL on Windows are not part of the Team4s runtime and must not be started for Team4s development.
 - Before editing, run `cd /home/d1sk/team4s`, inspect `git status --short`, and confirm the relevant Compose services with `docker compose ps`.
 - The live `.env`, `media/`, Docker volumes, and database contents are host-local runtime data. Do not overwrite, reset, or regenerate them as part of ordinary coding work.

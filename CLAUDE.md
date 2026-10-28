@@ -290,6 +290,12 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
   nie selbst (technisch gesperrt).
 - Während ein Auftrag den Arbeitsbereich belegt (`ki-run status`), keine manuelle Arbeit im Checkout;
   `ki-run park <id>` setzt ihn für Zwischenarbeit auf `main` zurück.
+- **Befunde aus der Live-UAT nie selbst umsetzen.** Nennt der Mensch während der Abnahme Mängel
+  („passt nicht“, „bitte flicken“), formuliert der begleitende Agent (Claude oder Codex) sie als
+  Feedback und gibt sie per `ki-run reject <id> --feedback-file -` an den Auftrag zurück (bei
+  `fehlgeschlagen` per `ki-run retry`). Kein eigener Branch, kein Direkt-Commit im belegten Checkout.
+- **Nach jedem `ki-run`-Steuerbefehl** (`reject`, `retry`, `answer`, `resume`, `accept`) sofort
+  `ki-run status` prüfen und dem Menschen den tatsächlichen Zustand melden, nicht den erwarteten.
 - Agenten in `ki-run`-Aufträgen legen **keine** `checkpoint:human-verify`-Halte mitten im Lauf an;
   die menschliche Prüfung ist die Live-Abnahme am Ende.
 
