@@ -92,6 +92,46 @@
   padding: 16px 24px 20px;
 }
 
+/* Nur aktiv, wenn tatsächlich ein Bannerfoto vorhanden ist (gleiche Bedingung wie das
+   Bannerbild selbst in FansubHeroSection.tsx) -- ohne Bannerfoto bleibt die bisherige dunkle
+   Schrift auf hellem Hintergrund unverändert korrekt. Nutzerfotos können beliebig hell sein,
+   daher reicht der großflächige Banner-Verlauf (max. 42% Schwarzanteil) allein NICHT für
+   garantiert lesbare helle Schrift -- ein zusätzlicher, deutlich blickdichterer Scrim direkt
+   hinter dem Textblock sichert WCAG AA (4,5:1) auch im Worst Case (rein weißes Foto) ab. Die
+   88%-Opazität ist rechnerisch in FansubHeroSection.accessibility.test.ts nachgewiesen (worst
+   case effektive Hintergrund-Leuchtdichte ~0,013, reiner weißer Text erreicht >16:1). */
+.heroBodyOnBanner {
+  position: relative;
+  /* Überschreibt die HeroMetrics-Fallback-Tokens NUR innerhalb dieses Banner-Textblocks (per
+     Klasse, nicht :global()) -- HeroMetrics selbst bleibt für alle anderen, hellen Kontexte
+     unverändert dunkel beschriftet. */
+  --hero-metrics-label: rgba(255, 255, 255, 0.82);
+  --hero-metrics-value: #ffffff;
+}
+
+.heroBodyOnBanner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 8, 14, 0) 0%, rgba(10, 8, 14, 0.88) 30%, rgba(10, 8, 14, 0.88) 100%);
+}
+
+.heroBodyOnBanner > * {
+  position: relative;
+  z-index: 1;
+}
+
+.heroBodyOnBanner .title {
+  color: #ffffff;
+}
+
+.heroBodyOnBanner .subtitle {
+  color: rgba(255, 255, 255, 0.88);
+}
+
 .title {
   margin: 0;
   /* Titel skaliert gemeinsam mit dem Logo (--logo auf .heroHeader) */

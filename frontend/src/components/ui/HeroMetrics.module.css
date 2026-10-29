@@ -13,14 +13,17 @@
 }
 
 .heroMetricItem dt {
-  color: rgba(28, 24, 38, 0.64);
+  /* Fallback = bisheriger Wert (reine Tokenisierung, kein Verhaltenswechsel fuer bestehende
+     Verwender). FansubHeroSection ueberschreibt diese Variable NUR innerhalb ihres eigenen
+     Banner-Textblocks (.heroBodyOnBanner), um auf einem dunklen Scrim lesbar zu bleiben. */
+  color: var(--hero-metrics-label, rgba(28, 24, 38, 0.64));
   font-size: 12px;
   font-weight: 600;
 }
 
 .heroMetricItem dd {
   margin: 2px 0 0;
-  color: var(--accent-deep);
+  color: var(--hero-metrics-value, var(--accent-deep));
   font-size: 24px;
   font-weight: 700;
   line-height: 1;
