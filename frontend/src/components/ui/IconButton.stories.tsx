@@ -52,3 +52,33 @@ export const Deaktiviert: Story = {
   name: 'Deaktiviert',
   args: { disabled: true },
 }
+
+const VARIANTS = ['default', 'floating', 'ghost'] as const
+const SIZES = ['sm', 'md', 'lg'] as const
+
+export const GroessenUndVarianten: Story = {
+  name: 'Größen und Varianten',
+  render: () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
+      {VARIANTS.flatMap((variant) =>
+        SIZES.map((size) => (
+          <div key={`${variant}-${size}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+            {variant === 'floating' ? (
+              <div style={{ position: 'relative', width: 72, height: 72, border: '1px dashed var(--border-subtle)' }}>
+                <IconButton icon={<X size={18} />} aria-label="Schließen" variant={variant} size={size} />
+              </div>
+            ) : (
+              <IconButton icon={<X size={18} />} aria-label="Schließen" variant={variant} size={size} />
+            )}
+            <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>{variant} / {size}</span>
+          </div>
+        )),
+      )}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: { story: 'Alle Varianten-/Größen-Kombinationen auf einen Blick vergleichen.' },
+    },
+  },
+}

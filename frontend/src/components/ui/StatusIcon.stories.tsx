@@ -37,3 +37,31 @@ export const Warning: Story = {
 export const Danger: Story = {
   args: { tone: 'danger', icon: <Ban size={18} strokeWidth={2} /> },
 }
+
+const TONE_ICONS = [
+  { tone: 'neutral' as const, icon: <Info size={18} strokeWidth={2} /> },
+  { tone: 'info' as const, icon: <Info size={18} strokeWidth={2} /> },
+  { tone: 'success' as const, icon: <CircleCheck size={18} strokeWidth={2} /> },
+  { tone: 'warning' as const, icon: <TriangleAlert size={18} strokeWidth={2} /> },
+  { tone: 'danger' as const, icon: <Ban size={18} strokeWidth={2} /> },
+]
+
+export const GroessenUndVarianten: Story = {
+  name: 'Größen und Varianten',
+  args: { icon: <Info size={18} strokeWidth={2} /> },
+  render: () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
+      {TONE_ICONS.map(({ tone, icon }) => (
+        <div key={tone} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <StatusIcon tone={tone} icon={icon} />
+          <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>{tone}</span>
+        </div>
+      ))}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: { story: 'Alle Tonalitäten auf einen Blick vergleichen.' },
+    },
+  },
+}

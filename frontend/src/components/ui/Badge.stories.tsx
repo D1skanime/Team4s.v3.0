@@ -35,3 +35,23 @@ export const Info: Story = {
 export const Muted: Story = {
   args: { variant: 'muted', children: 'Muted' },
 }
+
+const VARIANTS = ['neutral', 'success', 'warning', 'danger', 'info', 'muted'] as const
+
+export const GroessenUndVarianten: Story = {
+  name: 'Größen und Varianten',
+  render: () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+      {VARIANTS.map((variant) => (
+        <Badge key={variant} variant={variant}>
+          {variant}
+        </Badge>
+      ))}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: { story: 'Alle Varianten auf einen Blick vergleichen.' },
+    },
+  },
+}

@@ -42,3 +42,26 @@ export const Gross: Story = {
     </span>
   ),
 }
+
+const SIZES = ['sm', 'md', 'lg'] as const
+
+export const GroessenUndVarianten: Story = {
+  name: 'Größen und Varianten',
+  render: () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center' }}>
+      {SIZES.map((size) => (
+        <div key={size} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <span style={{ color: 'var(--accent-primary)' }}>
+            <Spinner size={size} />
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>{size}</span>
+        </div>
+      ))}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: { story: 'Alle Größen auf einen Blick vergleichen.' },
+    },
+  },
+}

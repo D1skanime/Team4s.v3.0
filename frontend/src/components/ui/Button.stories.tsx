@@ -89,3 +89,26 @@ export const FokusSichtbar: Story = {
     },
   },
 }
+
+const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'text', 'floating'] as const
+const SIZES = ['sm', 'md', 'lg'] as const
+
+export const GroessenUndVarianten: Story = {
+  name: 'Größen und Varianten',
+  render: () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+      {VARIANTS.flatMap((variant) =>
+        SIZES.map((size) => (
+          <Button key={`${variant}-${size}`} variant={variant} size={size}>
+            {variant} / {size}
+          </Button>
+        )),
+      )}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: { story: 'Alle Varianten-/Größen-Kombinationen auf einen Blick vergleichen.' },
+    },
+  },
+}
