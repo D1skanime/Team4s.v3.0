@@ -5,7 +5,9 @@
   gap: 18px;
   border: 1px solid rgba(56, 70, 96, 0.07);
   border-top-color: rgba(247, 250, 255, 0.82);
-  border-radius: 4px;
+  /* Teilt denselben Radius-Token wie Modal/Drawer/.cardNestedFlat (var(--radius-surface))
+     statt eines eigenen Literals -- EINE Formensprache für alle Dialog-/Karten-Flächen. */
+  border-radius: var(--radius-surface);
   background-color: #e6ebf3;
   background-image: linear-gradient(to bottom, #f4f7fb, #e6ebf3);
   padding: 18px 20px;
@@ -17,7 +19,7 @@
 .cardCompact {
   gap: 12px;
   padding: 16px;
-  border-radius: 4px;
+  border-radius: var(--radius-surface);
 }
 
 .cardElevated {

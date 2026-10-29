@@ -35,18 +35,35 @@
   color: var(--accent-deep);
 }
 
-.avatarStackOverflowButton {
+/* Element+Klasse-Selektoren (Spezifitaet 0,1,1) statt reiner Klassen-Selektoren: der
+   Ueberlauf-Ausloeser rendert jetzt ueber IconButton (variant="ghost"), dessen eigene
+   Basis-Klassen (.iconButton/.iconButtonGhost/.iconButtonSm aus IconButton.module.css) sonst
+   je nach CSS-Modul-Buendel-Reihenfolge das kreisrunde "+N"-Aussehen ueberschreiben koennten
+   -- identisches Muster wie bei NavArrow auf IconButton (Quick-Task 261029-rnd). */
+button.avatarStackOverflowButton {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-card);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
   appearance: none;
   padding: 0;
-  font: inherit;
+  font-family: inherit;
   cursor: pointer;
 }
 
-.avatarStackOverflowButton:hover {
+button.avatarStackOverflowButton:hover {
   background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface-card));
+  opacity: 1;
 }
 
-.avatarStackOverflowButton:focus-visible {
+button.avatarStackOverflowButton:focus-visible {
   outline: 2px solid var(--focus-outline);
   outline-offset: 2px;
 }

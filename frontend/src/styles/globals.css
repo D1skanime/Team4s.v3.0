@@ -118,10 +118,12 @@
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 12px;
-  /* Gemeinsamer Eckenradius für Dialog-Flächen (Modal/Drawer-Panel), an Cards rundeste
-     bestehende Variante (.cardNestedFlat, 10px) angeglichen -- EINE Formensprache statt
-     früher zufällig unterschiedlicher Modal-/Drawer-Radien. */
-  --radius-surface: 10px;
+  /* Gemeinsamer Eckenradius für Card (alle Varianten), Modal- und Drawer-Panel -- EIN Token
+     statt verstreuter, teils zufällig übereinstimmender Pixelwerte. Richtwert ist Cards
+     eigentliche, repo-weit dominante Formensprache (die Standard-Card .card/.cardCompact,
+     4px), nicht Modal/Drawers vormals eigenständiger 10px-Wert: die UAT-Vorgabe verlangt
+     ausdrücklich, Modal/Drawer an Card anzugleichen, nicht umgekehrt. */
+  --radius-surface: 4px;
 
   --space-1: 4px;
   --space-2: 8px;

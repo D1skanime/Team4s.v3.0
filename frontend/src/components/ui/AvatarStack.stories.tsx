@@ -4,9 +4,16 @@ import { AvatarStack } from './AvatarStack'
 
 /** Überlappende Identitäten mit `+N`-Overflow, optional als zugänglicher Button. */
 const meta = {
-  title: 'Grundbausteine/AvatarStack',
+  title: 'Zusammengesetzte Bausteine/AvatarStack',
   component: AvatarStack,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: IconButton (Überlauf-Auslöser, wenn onOverflowClick gesetzt ist).',
+      },
+    },
+  },
 } satisfies Meta<typeof AvatarStack>
 
 export default meta
@@ -23,7 +30,7 @@ export const Standard: Story = {
 }
 
 export const MitOverflow: Story = {
-  name: 'MitOverflow',
+  name: 'Mit Überlauf',
   args: {
     items: [
       { id: 1, label: 'C-Subs' },
@@ -38,7 +45,7 @@ export const MitOverflow: Story = {
 }
 
 export const AlsButton: Story = {
-  name: 'AlsButton',
+  name: 'Als interaktiver Button',
   args: {
     items: [
       { id: 1, label: 'C-Subs' },

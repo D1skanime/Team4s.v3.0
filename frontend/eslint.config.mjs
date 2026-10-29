@@ -63,8 +63,6 @@ const UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES = [
   // Text-Button-Form noch zu IconButtons Icon-only-Form, daher bleibt das native <button> hier
   // die technisch zutreffende Basis (bewusste Entscheidung, kein offener Punkt mehr).
   'Accordion.tsx',
-  // Kandidat für einen künftigen, eigenständigen Auftrag — nicht Teil der UAT-Runde 261029-i1y
-  'AvatarStack.tsx',
 ]
 
 // RATCHET — diese Liste darf nur SCHRUMPFEN, nie wachsen.

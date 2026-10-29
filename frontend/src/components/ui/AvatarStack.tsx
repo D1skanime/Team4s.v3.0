@@ -1,6 +1,7 @@
 import Image from 'next/image'
 
 import { classNames } from './classNames'
+import { IconButton } from './IconButton'
 import styles from './AvatarStack.module.css'
 
 export interface AvatarStackItem {
@@ -62,16 +63,16 @@ export function AvatarStack({
         </span>
       ))}
       {overflow > 0 ? onOverflowClick ? (
-        <button
-          type="button"
+        <IconButton
+          variant="ghost"
+          size="sm"
+          icon={`+${overflow}`}
           className={classNames(styles.avatarStackOverflow, styles.avatarStackOverflowButton)}
           aria-label={overflowAriaLabel ?? `${overflow} weitere anzeigen`}
           aria-expanded={overflowExpanded}
           aria-controls={overflowControls}
           onClick={onOverflowClick}
-        >
-          +{overflow}
-        </button>
+        />
       ) : (
         <span className={styles.avatarStackOverflow} aria-label={`${overflow} weitere`}>
           +{overflow}
