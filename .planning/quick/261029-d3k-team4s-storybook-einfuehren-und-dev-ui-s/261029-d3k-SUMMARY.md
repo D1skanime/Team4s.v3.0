@@ -175,11 +175,16 @@ T-261029-01).
 
 ## Bekannte, bewusst nicht behobene Einschränkungen
 
-1. **`frontend/scripts/capture-phase151-badge-evidence.mjs`** navigiert weiterhin zur
-   jetzt entfernten Route `/dev/ui-system/achievements` und schlägt bei einem erneuten
-   Lauf fehl. Historisches, bereits abgeschlossenes Evidence-Skript aus einer
-   abgeschlossenen Phase — bewusst nicht auf Storybook umgeschrieben (außerhalb des
-   Scopes dieses Auftrags, Plan-Entscheidung aus CONTEXT.md).
+1. ~~`frontend/scripts/capture-phase151-badge-evidence.mjs` navigiert weiterhin zur
+   entfernten Route `/dev/ui-system/achievements`~~ — **behoben nach unabhängigem
+   Review (Runde 1):** der Reviewer stufte das stille Fehlschlagen gegen eine 404-Seite
+   als blockierenden Befund ein. Ein Ummappen auf die neue Storybook-Story wurde
+   geprüft und verworfen (der Collector braucht zusätzlich `/members/type` als echte
+   Produktionsroute, die Storybooks routenloser Katalog nicht nachbilden kann). Statt
+   dessen kontrolliert stillgelegt: Das Skript bricht jetzt sofort mit einer klaren,
+   informativen Meldung ab (Exit 1) statt mit einer irreführenden Galerie-Assertion zu
+   scheitern; die ursprüngliche ~300-Zeilen-Messlogik bleibt vollständig in der
+   Git-Historie nachvollziehbar (ab Commit `f4b8b5603`). Siehe Commit `54d9a36f9`.
 2. **`docs/frontend/ui-system.md`** existiert weiterhin nicht, obwohl `AGENTS.md` es an
    zwei Stellen als "kanonischen Responsive-Standard" referenziert — themenfremde,
    bereits vor diesem Auftrag bestehende Lücke (Responsive-Regelwerk, keine
