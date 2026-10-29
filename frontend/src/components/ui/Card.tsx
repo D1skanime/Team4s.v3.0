@@ -1,6 +1,8 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 
 import { classNames } from './classNames'
+import { Heading } from './Heading'
+import { Text } from './Text'
 import styles from './Card.module.css'
 
 type CardVariant = 'default' | 'elevated' | 'interactive' | 'compact' | 'section' | 'flat' | 'nested' | 'nestedFlat'
@@ -25,8 +27,8 @@ export function Card({
 }: CardProps) {
   const cardHeader = header ?? (title || description ? (
     <div>
-      {title ? <h3 className={styles.cardTitle}>{title}</h3> : null}
-      {description ? <p className={styles.cardDescription}>{description}</p> : null}
+      {title ? <Heading level={3} size={3} className={styles.cardTitle}>{title}</Heading> : null}
+      {description ? <Text variant="soft" className={styles.cardDescription}>{description}</Text> : null}
     </div>
   ) : null)
 

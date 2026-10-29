@@ -24,6 +24,12 @@ const EXCEPTIONS: Record<string, string[]> = {
   // Modal+DialogHeader+IconButton (die deshalb bereits unter "Zusammengesetzte Bausteine"
   // stehen).
   Button: ['Spinner'],
+  // Heading/Text sind bewusst geteilte, eigene Typografie-Grundbausteine (level/size bzw.
+  // variant-API) -- keine zufaellige Kopplung, sondern die gezielte interne Migration dieser
+  // drei Header-Bausteine weg von eigenem h1/h2/h3/p auf einen gemeinsamen Baustein.
+  PageHeader: ['Heading', 'Text'],
+  SectionHeader: ['Heading', 'Text'],
+  Card: ['Heading', 'Text'],
 }
 
 function extractTitle(fileContent: string): string | null {

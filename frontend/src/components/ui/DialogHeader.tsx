@@ -1,7 +1,9 @@
 import { X } from 'lucide-react'
 import type { Ref } from 'react'
 
+import { Heading } from './Heading'
 import { IconButton } from './IconButton'
+import { Text } from './Text'
 import styles from './DialogHeader.module.css'
 
 export interface DialogHeaderProps {
@@ -38,10 +40,10 @@ export function DialogHeader({
   return (
     <div className={[styles.dialogHeader, className].filter(Boolean).join(' ')}>
       <div>
-        <h3 id={titleId} className={styles.dialogTitle}>
+        <Heading level={3} size={2} id={titleId} className={styles.dialogTitle}>
           {title}
-        </h3>
-        {description ? <p className={styles.dialogDescription}>{description}</p> : null}
+        </Heading>
+        {description ? <Text variant="soft" className={styles.dialogDescription}>{description}</Text> : null}
       </div>
       <IconButton
         ref={closeButtonRef}

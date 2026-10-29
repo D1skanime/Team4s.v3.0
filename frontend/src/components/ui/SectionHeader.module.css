@@ -40,7 +40,8 @@
 }
 
 .sectionTitle {
-  font-size: 1rem;
+  /* font-size kommt jetzt von Heading (.headingSize3 + --font-size-h3) -- hier bewusst nicht
+     mehr deklariert. */
   line-height: 1.15;
   letter-spacing: -0.015em;
 }
@@ -70,14 +71,17 @@
 }
 
 .sectionDescription {
-  margin: 8px 0 0;
   max-width: 72ch;
-  color: #657086;
 }
 
 .sectionDescription {
-  margin-top: 6px;
-  font-size: 0.92rem;
+  /* VOLLE Margin-Shorthand (nicht nur margin-top): Text (variant="soft") setzt bewusst KEINEN
+     eigenen margin-Reset, ein unvollstaendiges margin-top wuerde den Browser-Standard-
+     Absatzabstand unten/seitlich wieder durchschlagen lassen. font-size/color kommen jetzt von
+     Text, hier per CSS-Variable auf den bisherigen, unveraenderten Wert gesetzt. */
+  margin: 6px 0 0;
+  --text-soft-size: 0.92rem;
+  --text-soft-color: #657086;
   line-height: 1.5;
   max-width: 58ch;
 }

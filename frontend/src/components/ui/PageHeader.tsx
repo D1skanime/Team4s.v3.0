@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { Heading } from './Heading'
+import { Text } from './Text'
 import ownStyles from './PageHeader.module.css'
 import sharedStyles from './ui.module.css'
 
@@ -21,8 +23,8 @@ export function PageHeader({ eyebrow, title, description, actions, breadcrumbs }
       <div className={styles.pageHeaderContent}>
         {breadcrumbs ? <div>{breadcrumbs}</div> : null}
         {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
-        <h1 className={styles.pageTitle}>{title}</h1>
-        {description ? <p className={styles.pageDescription}>{description}</p> : null}
+        <Heading level={1} className={styles.pageTitle}>{title}</Heading>
+        {description ? <Text variant="meta" className={styles.pageDescription}>{description}</Text> : null}
       </div>
       {actions ? <div className={styles.pageHeaderActions}>{actions}</div> : null}
     </header>

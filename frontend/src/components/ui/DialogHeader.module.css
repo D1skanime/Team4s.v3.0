@@ -13,11 +13,13 @@
 
 .dialogTitle {
   margin: 0;
-  font-size: 1.25rem;
+  /* font-size kommt jetzt von Heading (level=3 size=2 -> .headingSize2 + --font-size-h2,
+     identisch zum bisherigen 1.25rem); semantisches Tag bleibt h3. */
   color: var(--text-strong);
 }
 
 .dialogDescription {
+  /* font-size 1rem/color var(--text-soft) entsprechen bereits exakt Texts variant="soft"-
+     Default -- keine CSS-Variablen-Ueberschreibung noetig, nur margin bleibt hier. */
   margin: 6px 0 0;
-  color: var(--text-soft);
 }

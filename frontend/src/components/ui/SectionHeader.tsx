@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { Heading } from './Heading'
+import { Text } from './Text'
 import ownStyles from './SectionHeader.module.css'
 import sharedStyles from './ui.module.css'
 
@@ -35,7 +37,6 @@ export function SectionHeader({
   counter,
   titleClassName,
 }: SectionHeaderProps) {
-  const Heading = level === 3 ? 'h3' : 'h2'
   const hasTitleRow = Boolean(icon || counter)
 
   return (
@@ -45,13 +46,13 @@ export function SectionHeader({
         {hasTitleRow ? (
           <div className={styles.sectionHeaderTitleRow}>
             {icon ? <span className={styles.sectionHeaderIcon}>{icon}</span> : null}
-            <Heading className={`${styles.sectionTitle} ${titleClassName ?? ''}`.trim()}>{title}</Heading>
+            <Heading level={level} size={3} className={`${styles.sectionTitle} ${titleClassName ?? ''}`.trim()}>{title}</Heading>
             {counter ? <span className={styles.sectionHeaderCounter}>{counter}</span> : null}
           </div>
         ) : (
-          <Heading className={`${styles.sectionTitle} ${titleClassName ?? ''}`.trim()}>{title}</Heading>
+          <Heading level={level} size={3} className={`${styles.sectionTitle} ${titleClassName ?? ''}`.trim()}>{title}</Heading>
         )}
-        {description ? <p className={styles.sectionDescription}>{description}</p> : null}
+        {description ? <Text variant="soft" className={styles.sectionDescription}>{description}</Text> : null}
       </div>
       {actions ? <div className={styles.sectionHeaderActions}>{actions}</div> : null}
     </div>

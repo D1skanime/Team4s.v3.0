@@ -34,7 +34,8 @@
 }
 
 .pageTitle {
-  font-size: clamp(2rem, 3vw, 2.75rem);
+  /* font-size kommt jetzt von Heading (.headingSize1 + --font-size-h1) -- hier bewusst nicht
+     mehr deklariert. */
   line-height: 0.98;
   letter-spacing: -0.035em;
   text-wrap: balance;
@@ -43,11 +44,13 @@
 .pageDescription {
   margin: 8px 0 0;
   max-width: 72ch;
-  color: #657086;
 }
 
 .pageDescription {
-  font-size: 1rem;
+  /* font-size/color kommen jetzt von Text (variant="meta"), hier per CSS-Variable auf den
+     bisherigen, unveraenderten Wert gesetzt -- identisches Muster wie Badge/--hero-metrics-*. */
+  --text-meta-size: 1rem;
+  --text-meta-color: #657086;
   line-height: 1.55;
   max-width: 66ch;
 }
