@@ -14,6 +14,11 @@ const config: StorybookConfig = {
   stories: [
     '../src/components/ui/**/*.stories.@(ts|tsx)',
     '../src/components/showcases/**/*.stories.@(ts|tsx)',
+    // Einzelne "Im Einsatz/*"-Stories fuer bereits produktive Domaenen-Komponenten leben direkt
+    // neben ihrer Komponente statt unter components/showcases/ (z. B. FansubHeroSection.stories.tsx
+    // unter components/fansubs/) -- ohne dieses Glob wuerde Storybook solche Dateien gar nicht
+    // erst einlesen, obwohl typecheck/vitest sie bereits pruefen (UAT-Runde 2, Befund 1).
+    '../src/components/fansubs/**/*.stories.@(ts|tsx)',
   ],
   framework: {
     name: '@storybook/nextjs',
