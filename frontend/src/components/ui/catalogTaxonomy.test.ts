@@ -37,12 +37,25 @@ function extractTitle(fileContent: string): string | null {
   return match ? match[1] : null
 }
 
+/**
+ * Erfasst lokale Geschwister-Importe sowohl als statisches `from './X'`/`from "./X"` ALS AUCH
+ * als dynamisches `import('./X')`/`import("./X")` -- ein rein statisches Regex haette ein
+ * spaeter eingefuehrtes `import('./X')` (z. B. fuer Code-Splitting) unsichtbar fuer diese
+ * Pruefung gemacht. Beide Anfuehrungszeichen-Varianten werden erfasst, da ESLint/Prettier
+ * aktuell nur einfache durchsetzt, ein kuenftiger Stilwechsel die Pruefung aber nicht lautlos
+ * aushebeln soll. Bekannte Grenze: nur flache `./X`-Pfade werden erkannt, ein Import aus einem
+ * Unterordner wie `./internal/X` nicht -- aktuell legt keine Datei unter components/ui ihre
+ * Geschwister-Importe in einem Unterordner ab, daher kein aktiver Verstoss, aber relevant,
+ * falls sich das aendert.
+ */
 function extractLocalImports(fileContent: string): string[] {
   const imports: string[] = []
-  const regex = /from '\.\/([A-Za-z]+)'/g
-  let match: RegExpExecArray | null
-  while ((match = regex.exec(fileContent)) !== null) {
-    imports.push(match[1])
+  const patterns = [/from\s+['"]\.\/([A-Za-z]+)['"]/g, /import\(\s*['"]\.\/([A-Za-z]+)['"]/g]
+  for (const regex of patterns) {
+    let match: RegExpExecArray | null
+    while ((match = regex.exec(fileContent)) !== null) {
+      imports.push(match[1])
+    }
   }
   return imports
 }
