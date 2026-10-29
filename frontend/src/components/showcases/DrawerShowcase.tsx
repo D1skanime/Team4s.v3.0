@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { Button, Drawer, Table, TableBody, TableCell, TableRow, Tabs } from '@/components/ui'
 
-import styles from '../page.module.css'
+import styles from './showcases.module.css'
 
 interface DrawerShowcaseProps {
   open: boolean
