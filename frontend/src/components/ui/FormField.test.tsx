@@ -62,6 +62,36 @@ describe('FormField Autoverknüpfung', () => {
     expect(input.id).toBe('eigene-id')
   })
 
+  it('verknüpft das Label sicher, wenn das Kind bereits eine eigene id hat, aber FormField kein htmlFor übergibt', () => {
+    render(
+      <FormField label="Vorhandene ID ohne htmlFor">
+        <Input id="bereits-vergeben" />
+      </FormField>,
+    )
+
+    // getByLabelText scheitert, wenn label[for] nicht auf die tatsächliche Feld-id zeigt --
+    // das ist exakt der zuvor fehlerhafte Fall (labelHtmlFor blieb undefined).
+    const input = screen.getByLabelText('Vorhandene ID ohne htmlFor') as HTMLInputElement
+    expect(input.id).toBe('bereits-vergeben')
+    const label = screen.getByText('Vorhandene ID ohne htmlFor')
+    expect(label.getAttribute('for')).toBe('bereits-vergeben')
+  })
+
+  it('löst einen Widerspruch zwischen FormField.htmlFor und einer abweichenden Kind-id zugunsten der tatsächlichen Kind-id auf', () => {
+    render(
+      <FormField label="Widersprüchliche IDs" htmlFor="vom-aufrufer-gemeint">
+        <Input id="tatsaechliche-kind-id" />
+      </FormField>,
+    )
+
+    // resolvedId bevorzugt die vorhandene Kind-id -- das Label MUSS derselben Priorität folgen,
+    // sonst zeigt label[for] auf eine ID, die am Feld gar nicht existiert.
+    const input = screen.getByLabelText('Widersprüchliche IDs') as HTMLInputElement
+    expect(input.id).toBe('tatsaechliche-kind-id')
+    const label = screen.getByText('Widersprüchliche IDs')
+    expect(label.getAttribute('for')).toBe('tatsaechliche-kind-id')
+  })
+
   it('verknüpft manuell gesetztes invalid=true mit error ODER-artig (bleibt invalid)', () => {
     render(
       <FormField label="Titel" error="Fehlertext">

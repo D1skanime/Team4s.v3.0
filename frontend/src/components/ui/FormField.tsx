@@ -121,11 +121,18 @@ export function FormField({
       }
     }
 
-    // Additive Fähigkeit: das Label bekommt nur dann htmlFor+id, wenn weder der Aufrufer noch
-    // das Kind bereits eine Verknüpfung vorgegeben haben. Jeder bestehende explizite
-    // htmlFor-Aufrufer (heutiger Normalfall) rendert exakt wie vor diesem Umbau.
+    // Sicherer Label-/ID-Vertrag: das Label zeigt bei einem bekannten Einzelkind IMMER auf
+    // resolvedId -- also exakt die ID, die das Kind tatsächlich bekommt (eigene Kind-id >
+    // FormField.htmlFor > generierte ID, siehe Reihenfolge oben). Das deckt auch die beiden
+    // zuvor fehlerhaften Fälle ab: ein Kind mit eigener id, aber ohne FormField.htmlFor (zuvor
+    // blieb labelHtmlFor undefined, das Label fokussierte nichts), und ein widersprüchliches
+    // FormField.htmlFor gegenüber einer abweichenden Kind-id (zuvor zeigte das Label auf die
+    // falsche, nicht auf die tatsächlich gerenderte ID). Ein zusätzliches labelId-Attribut
+    // (für mögliche künftige aria-labelledby-Verknüpfungen) wird nur ergänzt, wenn die ID
+    // tatsächlich neu generiert wurde -- das bleibt rein additiv und ändert an bestehenden,
+    // bereits korrekt verdrahteten Aufrufern nichts.
+    labelHtmlFor = resolvedId
     if (usesGeneratedId) {
-      labelHtmlFor = resolvedId
       labelId = `${resolvedId}-label`
     }
   }
