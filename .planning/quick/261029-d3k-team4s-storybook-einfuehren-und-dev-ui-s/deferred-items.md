@@ -52,3 +52,27 @@ eine dedizierte Build-Doku vermerkt, da sie jeden zukuenftigen `npm run build`-L
 laufenden Dev-Container betrifft — unabhaengig von Storybook. Liegt aber ausserhalb des
 Scopes dieses Storybook-Auftrags (betrifft den bestehenden Compose-/Build-Prozess, nicht
 die hier eingefuehrten Stories) und wird daher hier nur dokumentiert, nicht behoben.
+
+## 3. WICHTIG: `npm run build` im laufenden Dev-Container beschaedigt dessen eigenes `.next`
+
+Waehrend der Regressionspruefung (Task 12/14) und der nachtraeglichen Verifikation nach
+der Code-Review wurde `npm run build` wiederholt per `docker compose exec
+team4sv30-frontend ...` GEGEN DENSELBEN laufenden Container ausgefuehrt, in dem parallel
+`npm run dev` (der eigentliche Live-Dev-Server auf Port 3000) laeuft. Beide Prozesse
+teilen sich dasselbe `/app/.next`-Verzeichnis (benanntes Volume `frontend_next`). Der
+Produktions-Build hat dabei Produktions-Artefakte (`routes-manifest.json`,
+`required-server-files.json`, `BUILD_ID` usw.) direkt ins Wurzelverzeichnis von `.next`
+geschrieben und damit den parallel laufenden `next dev`-Prozess durcheinandergebracht:
+Die Live-Seite auf Port 3000 antwortete danach durchgehend mit HTTP 500
+(`ENOENT: .../.next/dev/routes-manifest.json`). **Das wurde noch im selben Auftrag
+gefunden und behoben** (`.next`-Volume-Inhalt geleert, `docker compose restart
+team4sv30-frontend`, danach wieder HTTP 200 bestaetigt) — kein bleibender Schaden,
+aber ein bemerkenswerter Befund.
+
+**Wichtig fuer kuenftige Aufträge:** `npm run build` (Produktions-Build) niemals per
+`docker compose exec` gegen den laufenden `team4sv30-frontend`-Dev-Container ausführen,
+solange dort gleichzeitig `npm run dev` lauft — das beschaedigt den Live-Dev-Server fuer
+jeden, der gerade im Browser testet. Falls ein Produktions-Build-Check noetig ist: entweder
+den Dev-Container danach neu starten (wie hier geschehen) oder besser einen separaten,
+kurzlebigen Container/Service fuer den Build-Check verwenden, der `.next` NICHT mit dem
+Dev-Service teilt.

@@ -287,6 +287,14 @@ Always run the most relevant available checks:
   additional required check once a file under `frontend/src/components/ui/` or
   `frontend/src/components/showcases/` has changed — a broken story build is a
   regression finding just like a broken `npm run build`.
+- Never run `npm run build` (production build) via `docker compose exec` against the
+  already-running `team4sv30-frontend` dev container while `npm run dev` is active there:
+  both processes share the same `/app/.next` volume, and a production build writes
+  artifacts that corrupt the dev server's manifest, breaking the live site on port 3000
+  with HTTP 500 for anyone testing in the browser (observed 2026-10-29, quick task
+  261029-d3k). If a production-build check is genuinely needed, either restart
+  `team4sv30-frontend` immediately afterward, or use a separate container that does not
+  share the `frontend_next` volume.
 - migration up/down tests for DB migration tasks
 - `git diff --check`
 
