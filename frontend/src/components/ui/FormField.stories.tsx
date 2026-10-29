@@ -81,7 +81,7 @@ export const Disabled: Story = {
 }
 
 export const AutomatischVerknuepfterFehler: Story = {
-  name: 'AutomatischVerknuepfterFehler',
+  name: 'Automatisch verknüpfter Fehler',
   args: {
     label: 'Anime-Titel',
     error: 'Titel ist bereits vergeben.',
@@ -104,7 +104,7 @@ export const AutomatischVerknuepfterFehler: Story = {
 }
 
 export const AutomatischVerknuepftesDisabled: Story = {
-  name: 'AutomatischVerknuepftesDisabled',
+  name: 'Automatisch verknüpft: deaktiviert',
   args: {
     label: 'Gesperrtes Feld (automatisch)',
     disabled: true,
@@ -126,7 +126,7 @@ export const AutomatischVerknuepftesDisabled: Story = {
 }
 
 export const AutomatischVerknuepftesSelect: Story = {
-  name: 'AutomatischVerknuepftesSelect',
+  name: 'Automatisch verknüpft: Auswahl',
   args: {
     label: 'Status',
     error: 'Bitte einen Status wählen.',
@@ -150,7 +150,7 @@ export const AutomatischVerknuepftesSelect: Story = {
 }
 
 export const AutomatischVerknuepfteTextarea: Story = {
-  name: 'AutomatischVerknuepfteTextarea',
+  name: 'Automatisch verknüpft: Textfeld',
   args: {
     label: 'Beschreibung',
     hint: 'Kurzer Fließtext zum Anime.',

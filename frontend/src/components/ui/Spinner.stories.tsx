@@ -35,7 +35,7 @@ export const Klein: Story = {
 }
 
 export const Gross: Story = {
-  name: 'Gross',
+  name: 'Groß',
   render: () => (
     <span style={{ color: 'var(--accent-primary)' }}>
       <Spinner size="lg" />

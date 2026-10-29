@@ -30,10 +30,11 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const NormalGross: Story = {
-  name: 'NormalGross',
+  name: 'Normal, groß',
   args: { size: 'md' },
 }
 
 export const Gross: Story = {
+  name: 'Groß',
   args: { size: 'lg' },
 }

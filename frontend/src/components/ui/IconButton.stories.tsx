@@ -44,7 +44,7 @@ export const Klein: Story = {
 }
 
 export const Gross: Story = {
-  name: 'Gross',
+  name: 'Groß',
   args: { size: 'lg' },
 }
 

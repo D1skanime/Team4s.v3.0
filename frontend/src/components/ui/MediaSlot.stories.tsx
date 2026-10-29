@@ -25,7 +25,7 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const LeerDropzone: Story = {
-  name: 'LeerDropzone',
+  name: 'Leer (Dropzone)',
   args: {
     hasValue: false,
     onFilesSelected: () => {},
@@ -33,7 +33,7 @@ export const LeerDropzone: Story = {
 }
 
 export const ReplaceOverlay: Story = {
-  name: 'ReplaceOverlay',
+  name: 'Ersetzen-Overlay',
   args: {
     hasValue: true,
     onFilesSelected: () => {},
@@ -46,6 +46,7 @@ export const ReplaceOverlay: Story = {
 }
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   args: {
     hasValue: false,
     disabled: true,

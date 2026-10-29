@@ -51,7 +51,7 @@ export const Standard: Story = {
 }
 
 export const AlleGeschlossen: Story = {
-  name: 'AlleGeschlossen',
+  name: 'Alle geschlossen',
   args: {
     openIds: new Set(),
     onOpenChange: () => {},

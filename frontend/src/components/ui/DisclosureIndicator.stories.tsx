@@ -18,7 +18,7 @@ export const Geschlossen: Story = {
 }
 
 export const Geoeffnet: Story = {
-  name: 'Geoeffnet',
+  name: 'Geöffnet',
   args: { open: true },
 }
 

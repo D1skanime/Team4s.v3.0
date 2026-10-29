@@ -54,7 +54,7 @@ export const Invalid: Story = {
 }
 
 export const GeschlossenesPanel: Story = {
-  name: 'GeschlossenesPanel',
+  name: 'Geschlossenes Panel',
   render: () => (
     <ControlledDatePicker id="date-picker-closed" label="Veröffentlichungsdatum" minYear={1990} maxYear={2030} />
   ),
