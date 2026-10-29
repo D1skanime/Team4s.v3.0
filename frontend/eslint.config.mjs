@@ -3,10 +3,10 @@ import nextTypeScript from 'eslint-config-next/typescript'
 
 // Guard: user-facing UI muss die globalen Primitives aus @/components/ui nutzen
 // (Button, Select, FormField, Modal, Input, Textarea, Tabs, Drawer ...).
-// Handgebaute native <select>/<input>/<textarea> in .tsx sind verpoent.
+// Handgebaute native <select>/<input>/<textarea> in .tsx sind verpönt.
 // Basis-Severity ist 'error' (Phase 143 / Kriterium 6, 2026-09-01). Die
-// LEGACY_NO_RESTRICTED_SYNTAX_FILES-Liste unten haelt die zu diesem Zeitpunkt
-// gemessenen Altfaelle auf 'warn' (Ratchet) — siehe deren Kommentar.
+// LEGACY_NO_RESTRICTED_SYNTAX_FILES-Liste unten hält die zu diesem Zeitpunkt
+// gemessenen Altfälle auf 'warn' (Ratchet) — siehe deren Kommentar.
 const uiPrimitiveGuardOptions = [
   {
     selector: "JSXOpeningElement[name.name='select']",
@@ -25,20 +25,59 @@ const uiPrimitiveGuardOptions = [
 const uiPrimitiveGuard = ['error', ...uiPrimitiveGuardOptions]
 const uiPrimitiveGuardLegacyWarn = ['warn', ...uiPrimitiveGuardOptions]
 
+// Zweiter, auf src/components/ui/** beschränkter Guard (Befund 8b, UAT-Runde 261029-i1y):
+// verbietet dort ZUSÄTZLICH natives <button> (Modal/Drawer fielen vormals auf eigene
+// <button>-Schließen-Kreuze zurück statt auf IconButton) und wiederholt die drei
+// select/input/textarea-Selektoren aus uiPrimitiveGuardOptions -- NICHT den repo-weiten
+// uiPrimitiveGuard selbst erweitert, damit dessen app-weiter Scope (select/input/textarea,
+// ohne button) unverändert bleibt.
+const uiDirectoryGuardOptions = [
+  ...uiPrimitiveGuardOptions,
+  {
+    selector: "JSXOpeningElement[name.name='button']",
+    message:
+      'Natives <button> in components/ui verboten — nutze <Button>/<IconButton> (Ausnahme nur für dokumentierte ARIA-Widget-Dateien, siehe UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES).',
+  },
+]
+const uiDirectoryGuard = ['error', ...uiDirectoryGuardOptions]
+
+// Bewusste, kleine, FESTE Ausnahmeliste (kein Ratchet wie LEGACY_NO_RESTRICTED_SYNTAX_FILES
+// oben — dieser Guard ist neu und wächst nicht über eine stillschweigend größer werdende
+// Altlast, sondern über eine bewusste Review-Entscheidung): Dateien, in denen das native
+// Element Teil der eigenen, unterschiedlichen ARIA-Widget-Semantik ist, kein fauler
+// Button-Ersatz.
+const UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES = [
+  'Button.tsx', // definierende Datei des Button-Primitives selbst
+  'IconButton.tsx', // definierende Datei des IconButton-Primitives selbst (analog zu Button.tsx: eigene forwardRef-Implementierung, kein Button-Wrapper)
+  'Input.tsx', // definierende Datei des Input-Primitives selbst
+  'Select.tsx', // definierende Datei des Select-Primitives selbst
+  'Textarea.tsx', // definierende Datei des Textarea-Primitives selbst
+  'Switch.tsx', // button[role=switch] IST Switch selbst, kein Button-Ersatz
+  'Tabs.tsx', // button[role=tab] ist Tabs' eigene Struktur
+  'NavArrow.tsx', // bereits im Code als bewusst natives Element dokumentiert
+  'ThumbnailStrip.tsx', // Thumbnail-Kacheln sind Dateninhalte des Widgets
+  'YearPicker.tsx', // Jahres-Kacheln/Trigger sind Dateninhalte des Widgets
+  'DatePicker.tsx', // Kalender-Navigations-/Tages-/Monats-/Jahres-Kacheln sind Dateninhalte des Widgets
+  // Kandidat für einen künftigen, eigenständigen Auftrag — nicht Teil der UAT-Runde 261029-i1y
+  'Accordion.tsx',
+  // Kandidat für einen künftigen, eigenständigen Auftrag — nicht Teil der UAT-Runde 261029-i1y
+  'AvatarStack.tsx',
+]
+
 // RATCHET — diese Liste darf nur SCHRUMPFEN, nie wachsen.
-// Gemessen am 2026-09-01 (Phase 143, Plan 143-12, Task 3): 264 Verstoesse in
+// Gemessen am 2026-09-01 (Phase 143, Plan 143-12, Task 3): 264 Verstöße in
 // genau diesen 67 Dateien (60 Produktions- + 7 Testdateien), als
 // `docker compose exec team4sv30-frontend npx eslint . --rule
 // '{"no-restricted-syntax":"error"}' --quiet` gegen den vollen Repo-Baum
 // gelaufen ist (src/components/ui/** ausgenommen, siehe dessen eigenes
 // Override unten). Es ist eine FROZEN EXPLICIT FILE LIST, keine Glob-Regel:
-// ein Directory-Glob wuerde auch morgen neu angelegte Dateien in denselben
+// ein Directory-Glob würde auch morgen neu angelegte Dateien in denselben
 // Ordnern stillschweigend mit-exemptieren und den Ratchet aushebeln — eine
-// neue Datei traegt hier nie automatisch eine Ausnahme. Wird eine Datei auf
+// neue Datei trägt hier nie automatisch eine Ausnahme. Wird eine Datei auf
 // die globalen Primitives umgestellt (retrofitted), wird ihr Eintrag
-// GELOESCHT. Nichts wird hier je hinzugefuegt; ein genuiner Bedarf fuer eine
-// Ergaenzung ist eine bewusste Entscheidung, die in einen Code-Review gehoert,
-// nicht in eine stille Editierung. Vollstaendige Migration ist als Backlog-
+// GELÖSCHT. Nichts wird hier je hinzugefügt; ein genuiner Bedarf für eine
+// Ergänzung ist eine bewusste Entscheidung, die in einen Code-Review gehört,
+// nicht in eine stille Editierung. Vollständige Migration ist als Backlog-
 // Item getrackt: .planning/todos/pending/2026-09-01-no-restricted-syntax-legacy-datei-migration.md
 const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   'src/app/admin/anime/\\[id\\]/episodes/\\[episodeId\\]/edit/page.tsx',
@@ -79,11 +118,11 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   // 187-06: reine Code-Verschiebung aus dem vormals hier gelisteten
   // EpisodeVersionEditorPage.tsx (450-Zeilen-Split der Informationen-/Dateien-Tabs in eigene
   // Sektions-Komponenten) -- keine neuen nativen Elemente, nur relokierte Altlast
-  // (Stream-Link-/Media-Provider-/Media-ID-Inputs bzw. das schreibgeschuetzte Anime-Folder-Path-
-  // Input). EpisodeVersionEditorPage.tsx selbst enthaelt nach dem Split kein natives Element mehr
+  // (Stream-Link-/Media-Provider-/Media-ID-Inputs bzw. das schreibgeschützte Anime-Folder-Path-
+  // Input). EpisodeVersionEditorPage.tsx selbst enthält nach dem Split kein natives Element mehr
   // und wurde deshalb aus dieser Liste entfernt (Ratchet schrumpft). Bewusste, dokumentierte
-  // Ergaenzung (187-06-SUMMARY.md), gleiches Muster wie die 156-14-/174-14-/180-04-/184-05-
-  // Ergaenzungen oben.
+  // Ergänzung (187-06-SUMMARY.md), gleiches Muster wie die 156-14-/174-14-/180-04-/184-05-
+  // Ergänzungen oben.
   'src/app/admin/episode-versions/\\[versionId\\]/edit/DateienTabSection.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/InformationenTabSection.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaDetailPanel.tsx',
@@ -92,13 +131,13 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   // ReleaseVersionMediaSection.tsx (Edit/View-Drawer-Extraktion zur
   // Einhaltung der 450-Zeilen-Grenze) -- keine neuen nativen Elemente, nur
   // relokierte Altlast (Checkbox- und Ersatzdatei-Input). Bewusste,
-  // dokumentierte Ergaenzung (180-04-SUMMARY.md), gleiches Muster wie die
-  // 156-14-/174-14-Ergaenzungen oben.
+  // dokumentierte Ergänzung (180-04-SUMMARY.md), gleiches Muster wie die
+  // 156-14-/174-14-Ergänzungen oben.
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaEditDrawer.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionNotesTab.test.tsx',
   // 156-14: reine Code-Verschiebung aus dem bereits gelisteten SegmentEditPanel.tsx (Extraktion
   // zur Einhaltung der 450-Zeilen-Grenze aus 156-UAT.md) -- keine neuen nativen Elemente, nur
-  // relokierte Altlast. Bewusste, dokumentierte Ergaenzung (156-14-SUMMARY.md), keine stille
+  // relokierte Altlast. Bewusste, dokumentierte Ergänzung (156-14-SUMMARY.md), keine stille
   // Editierung.
   'src/app/admin/episode-versions/\\[versionId\\]/edit/SegmentAssetSection.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/SegmentBasicFieldsSection.tsx',
@@ -118,8 +157,8 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   // 174-14: reine Code-Verschiebung aus dem bereits gelisteten
   // admin/fansubs/create/page.tsx (D-14-Split in Aliases-/Links-/Media-
   // Section-Komponenten) -- keine neuen nativen Elemente, nur relokierte
-  // Altlast. Bewusste, dokumentierte Ergaenzung (174-14-SUMMARY.md), keine
-  // stille Editierung. Gleiches Muster wie die 156-14-Ergaenzung oben.
+  // Altlast. Bewusste, dokumentierte Ergänzung (174-14-SUMMARY.md), keine
+  // stille Editierung. Gleiches Muster wie die 156-14-Ergänzung oben.
   'src/app/admin/fansubs/create/AdminFansubCreateAliasesSection.tsx',
   'src/app/admin/fansubs/create/AdminFansubCreateLinksSection.tsx',
   'src/app/admin/fansubs/create/AdminFansubCreateMediaSection.tsx',
@@ -129,14 +168,14 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   // admin/fansubs/page.tsx (D-05-Split zur Einhaltung der 450-Zeilen-Grenze,
   // Zeilen-Komponenten FansubDesktopRow/FansubMobileCard ausgelagert) --
   // keine neuen nativen Elemente, nur relokierte Altlast (Checkbox-Inputs).
-  // Bewusste, dokumentierte Ergaenzung (184-05-SUMMARY.md), gleiches Muster
-  // wie die 174-14-/156-14-/180-04-Ergaenzungen oben.
+  // Bewusste, dokumentierte Ergänzung (184-05-SUMMARY.md), gleiches Muster
+  // wie die 174-14-/156-14-/180-04-Ergänzungen oben.
   'src/app/admin/fansubs/FansubListRows.tsx',
   // quick-261018-l5r Task 2: reine Code-Verschiebung aus dem bereits gelisteten
   // AnimeEditWorkspace.tsx (Datei-Split zur Einhaltung der 450-Zeilen-Grenze vor der neuen
-  // AniSearch-Verknuepfungs-Karte in Task 3) -- keine neuen nativen Elemente, nur relokierte
-  // Altlast (Basisdaten-Inputs/-Selects). Bewusste, dokumentierte Ergaenzung
-  // (261018-l5r-SUMMARY.md), gleiches Muster wie die 180-04-/184-05-Ergaenzungen oben.
+  // AniSearch-Verknüpfungs-Karte in Task 3) -- keine neuen nativen Elemente, nur relokierte
+  // Altlast (Basisdaten-Inputs/-Selects). Bewusste, dokumentierte Ergänzung
+  // (261018-l5r-SUMMARY.md), gleiches Muster wie die 180-04-/184-05-Ergänzungen oben.
   'src/app/admin/anime/components/AnimeEditPage/AnimeEditDetailsSection.tsx',
   'src/app/anime/\\[id\\]/group/\\[groupId\\]/releases/page.tsx',
   'src/app/archiv/page.tsx',
@@ -188,14 +227,29 @@ const config = [
     },
   },
   {
-    // Die Primitive-Definitionen selbst kapseln die nativen Elemente — hier erlaubt.
+    // Block A (Befund 8b): aktiviert den components/ui-spezifischen Guard (select/input/
+    // textarea/button) für alle produktiven .tsx-Dateien UND .stories.tsx-Dateien (Stories
+    // sollen ebenfalls die Primitive nutzen), aber NICHT für .test.tsx -- Test-Harnesses
+    // rendern legitim eigene native <button>-Kinder als Testinhalt, unabhängig von der
+    // eigentlichen Komponente. Datei-Scope (.{ts,tsx}) bewusst identisch zum vormals hier
+    // stehenden, abgelösten Block übernommen -- reine .ts-Dateien wie classNames.ts/index.ts
+    // enthalten ohnehin kein JSX und sind vom JSX-Selektor nie betroffen.
     files: ['src/components/ui/**/*.{ts,tsx}'],
+    ignores: ['src/components/ui/**/*.test.tsx'],
+    rules: {
+      'no-restricted-syntax': uiDirectoryGuard,
+    },
+  },
+  {
+    // Block B: überschreibt Block A für die dokumentierte, feste Ausnahmeliste (muss NACH
+    // Block A stehen, damit die Override-Reihenfolge greift).
+    files: UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES.map((f) => `src/components/ui/${f}`),
     rules: {
       'no-restricted-syntax': 'off',
     },
   },
   {
-    // Ratchet-Ausnahme fuer die eingefrorene Altfaelle-Liste, siehe deren
+    // Ratchet-Ausnahme für die eingefrorene Altfälle-Liste, siehe deren
     // Definition/Kommentar oben (LEGACY_NO_RESTRICTED_SYNTAX_FILES).
     files: LEGACY_NO_RESTRICTED_SYNTAX_FILES,
     rules: {
