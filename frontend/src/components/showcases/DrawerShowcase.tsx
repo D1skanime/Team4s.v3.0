@@ -101,10 +101,10 @@ export function DrawerShowcase({ open, onClose }: DrawerShowcaseProps) {
                   </TableBody>
                 </Table>
                 <div className={styles.drawerMediaPreviewGrid}>
-                  <div className={styles.drawerMediaPreview}>Preview</div>
-                  <div className={styles.drawerMediaPreview}>Preview</div>
-                  <div className={styles.drawerMediaPreview}>Preview</div>
-                  <div className={styles.drawerMediaPreview}>Preview</div>
+                  <div className={styles.drawerMediaPreview}>Vorschau</div>
+                  <div className={styles.drawerMediaPreview}>Vorschau</div>
+                  <div className={styles.drawerMediaPreview}>Vorschau</div>
+                  <div className={styles.drawerMediaPreview}>Vorschau</div>
                 </div>
                 <Button>Medienverwaltung öffnen</Button>
               </div>

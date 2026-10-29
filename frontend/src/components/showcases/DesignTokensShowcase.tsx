@@ -49,7 +49,7 @@ export function DesignTokensShowcase() {
       <Card variant="section">
         <SectionHeader
           eyebrow="01"
-          title="Design Tokens Preview"
+          title="Design-Tokens-Vorschau"
           description="Die visuelle Basis bleibt ruhig und neutral, mit einem kühleren blau-tealigen Akzent für Primäraktionen und klare Hierarchie."
         />
         <div className={styles.tokenGrid}>

@@ -59,7 +59,7 @@ export function PublicFansubSurfacesShowcase() {
     <Card variant="section">
       <SectionHeader
         eyebrow="09"
-        title="Public Fansub Surfaces"
+        title="Öffentliche Fansub-Flächen"
         description="Die echten Public-Fansub-Komponenten als UI-Wahrheit: Header, Projekte, Geschichte, Historie, Erfolge, Medien, Lightbox und Team."
       />
       <div className={styles.publicSurfaceStack}>
@@ -70,13 +70,13 @@ export function PublicFansubSurfacesShowcase() {
         />
 
         <div className={styles.publicSurfaceFrames}>
-          <PublicSurfaceFrame title="Desktop Header" width="1180px">
+          <PublicSurfaceFrame title="Desktop-Kopfbereich" width="1180px">
             <FansubHeroSection group={showcaseGroup} stats={heroStats} communityLinks={showcaseLinks} />
           </PublicSurfaceFrame>
-          <PublicSurfaceFrame title="Tablet Header" width="820px">
+          <PublicSurfaceFrame title="Tablet-Kopfbereich" width="820px">
             <FansubHeroSection group={showcaseGroup} stats={heroStats} communityLinks={showcaseLinks} />
           </PublicSurfaceFrame>
-          <PublicSurfaceFrame title="Mobile Header" width="390px">
+          <PublicSurfaceFrame title="Mobile-Kopfbereich" width="390px">
             <FansubHeroSection group={showcaseGroup} stats={heroStats} communityLinks={showcaseLinks} />
           </PublicSurfaceFrame>
         </div>

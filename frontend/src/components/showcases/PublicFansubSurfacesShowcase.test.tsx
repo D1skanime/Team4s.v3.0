@@ -28,7 +28,7 @@ describe('PublicFansubSurfacesShowcase', () => {
   it('rendert die echten Public-Fansub-Flächen als UI-dev-Referenz', () => {
     render(<PublicFansubSurfacesShowcase />)
 
-    expect(screen.getByRole('heading', { name: 'Public Fansub Surfaces' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Öffentliche Fansub-Flächen' })).toBeTruthy()
     expect(screen.getAllByRole('heading', { name: 'C-Subs' }).length).toBeGreaterThan(0)
     expect(screen.getByRole('heading', { name: 'Projekte' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Geschichte' })).toBeTruthy()

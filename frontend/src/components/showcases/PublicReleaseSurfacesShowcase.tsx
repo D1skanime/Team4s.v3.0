@@ -215,7 +215,7 @@ export function PublicReleaseSurfacesShowcase() {
     <Card variant="section">
       <SectionHeader
         eyebrow="10"
-        title="Public Release Surfaces"
+        title="Öffentliche Release-Flächen"
         description="Definierbarer Release-Block für öffentliche Fansub-Projektseiten: neuestes Release, Release-Liste, Timeline, Medien, Texte, Fansubber und Leerzustand."
       />
       <div className={styles.publicSurfaceStack}>
@@ -242,13 +242,13 @@ export function PublicReleaseSurfacesShowcase() {
             ))}
           </div>
         </ReleaseSurfaceFrame>
-        <ReleaseSurfaceFrame title="Desktop Releases" width="1180px">
+        <ReleaseSurfaceFrame title="Desktop-Releases" width="1180px">
           <PublicReleaseBlock latestRelease={latestRelease} releases={olderReleases} />
         </ReleaseSurfaceFrame>
-        <ReleaseSurfaceFrame title="Tablet Releases" width="820px">
+        <ReleaseSurfaceFrame title="Tablet-Releases" width="820px">
           <PublicReleaseBlock latestRelease={latestRelease} releases={olderReleases.slice(0, 2)} />
         </ReleaseSurfaceFrame>
-        <ReleaseSurfaceFrame title="Mobile Releases" width="390px">
+        <ReleaseSurfaceFrame title="Mobile-Releases" width="390px">
           <PublicReleaseBlock latestRelease={latestRelease} releases={olderReleases.slice(0, 2)} layout="mobile" />
         </ReleaseSurfaceFrame>
         <ReleaseSurfaceFrame title="Leerer Release-Zustand" width="820px">

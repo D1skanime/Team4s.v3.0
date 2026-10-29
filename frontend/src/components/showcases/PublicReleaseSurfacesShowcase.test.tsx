@@ -28,7 +28,7 @@ describe('PublicReleaseSurfacesShowcase', () => {
   it('dokumentiert die produktive Release-Listenkarte mit Kara- und Leer-Timeline', () => {
     render(<PublicReleaseSurfacesShowcase />)
 
-    expect(screen.getByRole('heading', { name: 'Public Release Surfaces' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Öffentliche Release-Flächen' })).toBeTruthy()
     expect(screen.getByText('Globale Release-Listenkarte')).toBeTruthy()
     expect(screen.getAllByText('Entscheidung am Himmel über Fort Daiva').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Signal im Regen').length).toBeGreaterThan(0)
