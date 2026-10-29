@@ -65,7 +65,9 @@
 .cardNestedFlat {
   gap: 12px;
   padding: 14px 14px 12px;
-  border-radius: 10px;
+  /* Teilt denselben Radius-Token wie Modal/Drawer (var(--radius-surface)) statt eines zufaellig
+     identischen Pixelwerts -- so bleibt die Eckenrundung repo-weit an EINER Stelle pflegbar. */
+  border-radius: var(--radius-surface);
   border: 1px solid rgba(56, 70, 96, 0.06);
   background: rgba(246, 249, 253, 0.72);
   box-shadow: none;

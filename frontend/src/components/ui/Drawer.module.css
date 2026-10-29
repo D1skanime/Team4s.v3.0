@@ -105,7 +105,8 @@
   }
 
   .drawerPanel {
-    border-radius: 20px 0 0 20px;
+    /* Gleicher Radius-Token wie Card/Modal (var(--radius-surface)). */
+    border-radius: var(--radius-surface) 0 0 var(--radius-surface);
   }
 
   .drawerHeader {
@@ -132,7 +133,8 @@
     width: 100%;
     height: auto;
     max-height: 88vh;
-    border-radius: 22px 22px 0 0;
+    /* Gleicher Radius-Token wie Card/Modal (var(--radius-surface)). */
+    border-radius: var(--radius-surface) var(--radius-surface) 0 0;
     border-right: 0;
     border-bottom: 0;
     border-left: 0;

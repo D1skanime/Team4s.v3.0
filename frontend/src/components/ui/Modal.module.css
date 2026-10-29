@@ -92,13 +92,16 @@
   }
 
   .modalPanel {
-    border-radius: 20px 0 0 20px;
+    /* Gleicher Radius-Token wie Card/Drawer (var(--radius-surface)) -- nur der Zahlenwert
+       wandert zum Token, die Eckenkombination bleibt unveraendert. */
+    border-radius: var(--radius-surface) 0 0 var(--radius-surface);
   }
 
   .modalPanel {
     width: 100%;
     height: 100dvh;
     max-height: 100dvh;
+    /* Echter Vollbild-Sonderfall: "kein Radius", keine Reduktion eines Radius-Tokens. */
     border-radius: 0;
   }
 
