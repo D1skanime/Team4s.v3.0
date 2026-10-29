@@ -1,0 +1,51 @@
+.statusIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.statusIconNeutral {
+  background: color-mix(in srgb, var(--state-icon-neutral-bg) 68%, white);
+  color: var(--state-icon-neutral-fg);
+}
+
+.statusIconDanger {
+  background: color-mix(in srgb, var(--button-danger-mid) 12%, white);
+  color: var(--button-danger-end);
+}
+
+.statusIconInfo {
+  background: color-mix(in srgb, var(--accent-primary) 14%, white);
+  color: var(--accent-primary);
+}
+
+.statusIconSuccess {
+  background: color-mix(in srgb, var(--color-success) 14%, white);
+  color: var(--color-success);
+}
+
+.statusIconWarning {
+  background: color-mix(in srgb, var(--color-warning) 20%, white);
+  /* Reiner --color-warning-Text ist auf hellem Grund kaum lesbar -- abgedunkelte Mischung nur
+     fuer die Textfarbe, der Hintergrund bleibt hell/warnend. */
+  color: color-mix(in srgb, var(--color-warning) 65%, black);
+}
+
+.statusIconSm {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.statusIconLg {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 22px;
+}

@@ -104,6 +104,11 @@
   --button-success-mid: #51c99d;
   --button-success-end: #2f9b79;
 
+  /* Tokenisierung der vormals in ui.module.css hartcodierten Neutral-Tönung für StatusIcon
+     (reine Benennung bestehender Werte, keine Verhaltensänderung). */
+  --state-icon-neutral-bg: #dfe6f1;
+  --state-icon-neutral-fg: #6d778a;
+
   --status-ongoing: var(--color-success);
   --status-done: var(--color-primary);
   --status-aborted: var(--color-error);

@@ -4,6 +4,7 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, MouseEvent, ReactNode 
 
 import { classNames } from './classNames'
 import styles from './Button.module.css'
+import { Spinner } from './Spinner'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'text' | 'floating'
 type ButtonSize = 'sm' | 'md' | 'lg'
@@ -68,7 +69,7 @@ export function Button(props: ButtonProps) {
 
   const content = (
     <>
-      {loading ? <span className={styles.buttonSpinner} aria-hidden="true" /> : leftIcon}
+      {loading ? <Spinner size="sm" label="Wird geladen…" /> : leftIcon}
       {children}
       {rightIcon}
     </>
