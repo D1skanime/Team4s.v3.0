@@ -11,9 +11,17 @@ import styles from './showcases.module.css'
  * mit Daten, ein "Bearbeiten"-Button, der das Modal öffnet, und darin ein Formular mit
  * FormField+Input/Select. Zeigt die Modal/DialogHeader/IconButton-Komposition (Task 7) so, wie
  * sie in einer echten Admin-Seite verwendet würde — nicht nur isoliert als Primitiv-Story.
+ *
+ * `initialOpen` ist additiv und ausschliesslich fuer Storybook gedacht (z. B. eine "Geoeffnet"-
+ * Story, die das Modal ohne Klick auf "Bearbeiten" direkt sichtbar macht) -- die normale
+ * Verwendung ohne diese Prop verhaelt sich unveraendert (startet geschlossen).
  */
-export function ModalInContextShowcase() {
-  const [open, setOpen] = useState(false)
+interface ModalInContextShowcaseProps {
+  initialOpen?: boolean
+}
+
+export function ModalInContextShowcase({ initialOpen = false }: ModalInContextShowcaseProps = {}) {
+  const [open, setOpen] = useState(initialOpen)
   const [title, setTitle] = useState('Naruto')
   const [status, setStatus] = useState('public')
 

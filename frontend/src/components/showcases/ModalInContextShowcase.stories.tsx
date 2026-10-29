@@ -17,3 +17,8 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Standard: Story = {}
+
+export const Geoeffnet: Story = {
+  name: 'Geöffnet',
+  args: { initialOpen: true },
+}

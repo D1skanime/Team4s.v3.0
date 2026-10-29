@@ -19,3 +19,8 @@ type Story = StoryObj<typeof meta>
 export const Standard: Story = {
   args: { open: true, onClose: () => {} },
 }
+
+export const Geoeffnet: Story = {
+  name: 'Geöffnet',
+  args: { open: true, onClose: () => {} },
+}
