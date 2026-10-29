@@ -137,9 +137,9 @@ export function Modal({
     >
       <div className={styles.overlay} aria-hidden="true" />
       {variant !== 'stage' ? (
-        // Reiner Maus-Komfort-Layer (Klick auf den abgedunkelten Hintergrund schliesst das Modal).
+        // Reiner Maus-Komfort-Layer (Klick auf den abgedunkelten Hintergrund schließt das Modal).
         // Kein <button>, um den components/ui-Guard (Befund 8b) nicht zu verletzen -- Escape und
-        // der IconButton-basierte Schliessen-Knopf bleiben die tastaturzugaenglichen Wege.
+        // der IconButton-basierte Schließen-Knopf bleiben die tastaturzugänglichen Wege.
         <div role="presentation" aria-hidden="true" className={styles.overlayClose} onClick={onClose} />
       ) : null}
       <div
