@@ -1,0 +1,41 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import { Info } from 'lucide-react'
+
+import { Button } from './Button'
+import { EmptyState } from './EmptyState'
+
+/** Leerzustand-Primitive für Listen/Übersichten ohne Einträge. */
+const meta = {
+  title: 'UI/EmptyState',
+  component: EmptyState,
+  tags: ['autodocs'],
+} satisfies Meta<typeof EmptyState>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Standard: Story = {
+  args: {
+    title: 'Noch keine Gruppen',
+    description: 'Leere Listen sollen den nächsten sinnvollen Schritt zeigen statt nur leer zu wirken.',
+    action: <Button variant="secondary" size="sm">Neue Gruppe</Button>,
+  },
+}
+
+export const InfoVariante: Story = {
+  name: 'InfoVariante',
+  args: {
+    variant: 'info',
+    icon: <Info size={20} strokeWidth={2} />,
+    title: 'Abrufgrenze erreicht',
+    description: 'Es werden die ersten 500 Einträge angezeigt – bitte die Suche eingrenzen.',
+  },
+}
+
+export const OhneAction: Story = {
+  name: 'OhneAction',
+  args: {
+    title: 'Keine Treffer',
+    description: 'Für die aktuelle Filterkombination gibt es keine passenden Einträge.',
+  },
+}
