@@ -4,7 +4,7 @@ import { DrawerShowcase } from './DrawerShowcase'
 
 /**
  * 1:1 aus der früheren In-App-Showcase-Route migrierte Komposition
- * (Release-Details-Drawer mit Grössen-Umschalter und Tabs) — keine neuen
+ * (Release-Details-Drawer mit Größen-Umschalter und Tabs) — keine neuen
  * Zustands-Varianten gegenüber der ursprünglichen Seite erfunden.
  */
 const meta = {

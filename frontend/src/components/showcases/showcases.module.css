@@ -1902,3 +1902,13 @@
     height: 32px;
   }
 }
+
+.formWithErrorsHint {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--surface-card));
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
