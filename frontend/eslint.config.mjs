@@ -155,7 +155,7 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
 
 const config = [
   {
-    ignores: ['tmp-live-full-flow*.js'],
+    ignores: ['tmp-live-full-flow*.js', 'storybook-static/**'],
   },
   ...nextCoreWebVitals,
   ...nextTypeScript,

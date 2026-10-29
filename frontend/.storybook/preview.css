@@ -1,0 +1,6 @@
+/* Dunkler Buehnenhintergrund fuer Storybooks withThemeByClassName-Decorator (preview.tsx).
+   Dies ist bewusst NUR ein Hintergrund-Wechsel fuer die Storybook-Buehne, kein Team4s-
+   Produkt-Dark-Theme (das Projekt definiert aktuell keine --color-*-dark-Tokens). */
+.sb-stage-dark {
+  background: #1c1c1e;
+}

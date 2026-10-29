@@ -218,6 +218,31 @@ services:
     depends_on:
       - team4sv30-backend
 
+  # Eigener Dev-only Compose-Service fuer den Storybook-Komponenten-Katalog: ein
+  # Compose-Service kann nur EINEN Vordergrundprozess fuehren, und team4sv30-frontend
+  # ist bereits mit "npm run dev -- --webpack" auf Port 3000 belegt. Storybook braucht
+  # denselben Build-Context/dieselben Build-Args wie das Frontend (Next.js-Alias-
+  # Aufloesung, Umgebungsvariablen), laeuft aber als eigener Prozess auf Port 6006.
+  team4sv30-storybook:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8092}
+        NEXT_PUBLIC_AUTH_TOKEN: ${NEXT_PUBLIC_AUTH_TOKEN:-}
+        NEXT_PUBLIC_AUTH_DISPLAY_NAME: ${NEXT_PUBLIC_AUTH_DISPLAY_NAME:-}
+        NEXT_PUBLIC_RUNTIME_PROFILE: ${RUNTIME_PROFILE:-local}
+        NEXT_PUBLIC_AUTH_ISSUE_DEV_MODE: ${AUTH_ISSUE_DEV_MODE:-false}
+        NEXT_PUBLIC_KEYCLOAK_ENABLED: ${NEXT_PUBLIC_KEYCLOAK_ENABLED:-true}
+        NEXT_PUBLIC_KEYCLOAK_BASE_URL: ${NEXT_PUBLIC_KEYCLOAK_BASE_URL:-http://127.0.0.1:8081}
+        NEXT_PUBLIC_KEYCLOAK_REALM: ${NEXT_PUBLIC_KEYCLOAK_REALM:-team4s}
+        NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: ${NEXT_PUBLIC_KEYCLOAK_CLIENT_ID:-team4s-frontend}
+    container_name: team4sv30-storybook
+    ports:
+      - "6006:6006"
+    depends_on:
+      - team4sv30-frontend
+
 volumes:
   postgres_data:
   keycloak_db_data:
