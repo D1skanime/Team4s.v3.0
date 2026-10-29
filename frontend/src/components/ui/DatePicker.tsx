@@ -23,6 +23,10 @@ type DatePickerProps = {
   disabled?: boolean
   panelAlign?: 'start' | 'end'
   invalid?: boolean
+  /** Von FormField automatisch verknuepfte Fehler-/Hinweis-IDs (additiv, siehe FormField.tsx). */
+  'aria-describedby'?: string
+  /** Von FormField automatisch gesetzt, wenn der umschliessende error-Text aktiv ist. */
+  'aria-invalid'?: boolean
   onChange: (value: string) => void
 }
 
@@ -123,6 +127,8 @@ export function DatePicker({
   disabled = false,
   invalid = false,
   panelAlign = 'start',
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
   onChange,
 }: DatePickerProps) {
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -254,6 +260,8 @@ export function DatePicker({
           className={classNames(styles.datePickerTrigger, invalid && styles.controlInvalid)}
           aria-label={`${label} auswählen`}
           aria-expanded={isOpen}
+          aria-describedby={ariaDescribedBy}
+          aria-invalid={ariaInvalid || undefined}
           disabled={disabled}
           onClick={openPicker}
         >
