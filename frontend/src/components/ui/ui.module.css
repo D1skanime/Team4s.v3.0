@@ -120,26 +120,6 @@
   color: var(--text-faint);
 }
 
-.stateCard {
-  padding: 20px;
-  border-radius: 14px;
-  border: 1px solid var(--border-subtle);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 248, 252, 0.98) 100%);
-  display: grid;
-  gap: 10px;
-  text-align: left;
-  align-content: start;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 1px 3px rgba(33, 45, 72, 0.05);
-}
-
-.stateCompact {
-  padding: 16px;
-  gap: 8px;
-}
-
 .stateTitle {
   margin: 0;
   font-size: 0.98rem;
@@ -151,31 +131,6 @@
   margin: 0;
   color: var(--text-soft);
   line-height: 1.55;
-}
-
-.stateIcon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.stateNeutral .stateIcon {
-  background: color-mix(in srgb, #dfe6f1 68%, white);
-  color: #6d778a;
-}
-
-.stateDanger .stateIcon {
-  background: color-mix(in srgb, var(--button-danger-mid) 12%, white);
-  color: var(--button-danger-end);
-}
-
-.stateInfo .stateIcon {
-  background: color-mix(in srgb, var(--accent-primary) 14%, white);
-  color: var(--accent-primary);
 }
 
 .overlay {

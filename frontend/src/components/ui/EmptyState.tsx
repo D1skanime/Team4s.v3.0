@@ -1,7 +1,8 @@
 import { Inbox } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-import { classNames } from './classNames'
+import { Card } from './Card'
+import { StatusIcon } from './StatusIcon'
 import ownStyles from './EmptyState.module.css'
 import sharedStyles from './ui.module.css'
 
@@ -38,20 +39,11 @@ export function EmptyState({
   }
 
   return (
-    <div
-      className={classNames(
-        styles.stateCard,
-        variant === 'info' ? styles.stateInfo : styles.stateNeutral,
-        variant === 'compact' && styles.stateCompact,
-        className,
-      )}
-    >
-      <div className={styles.stateIcon} aria-hidden="true">
-        {icon ?? <Inbox size={20} strokeWidth={2} />}
-      </div>
+    <Card variant={variant === 'compact' ? 'compact' : 'flat'} className={className}>
+      <StatusIcon tone={variant === 'info' ? 'info' : 'neutral'} icon={icon ?? <Inbox size={20} strokeWidth={2} />} />
       <h3 className={styles.stateTitle}>{title}</h3>
       {description ? <p className={styles.stateDescription}>{description}</p> : null}
       {variant === 'withAction' || action ? action : null}
-    </div>
+    </Card>
   )
 }

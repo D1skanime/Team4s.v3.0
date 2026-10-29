@@ -1,6 +1,8 @@
 import { TriangleAlert } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { Card } from './Card'
+import { StatusIcon } from './StatusIcon'
 import styles from './ui.module.css'
 
 export interface ErrorStateProps {
@@ -60,13 +62,11 @@ export function getErrorStateCopy(
 
 export function ErrorState({ title, description, action }: ErrorStateProps) {
   return (
-    <div className={`${styles.stateCard} ${styles.stateDanger}`}>
-      <div className={styles.stateIcon} aria-hidden="true">
-        <TriangleAlert size={20} strokeWidth={2} />
-      </div>
+    <Card variant="flat">
+      <StatusIcon tone="danger" icon={<TriangleAlert size={20} strokeWidth={2} />} />
       <h3 className={styles.stateTitle}>{title}</h3>
       <p className={styles.stateDescription}>{description}</p>
       {action}
-    </div>
+    </Card>
   )
 }

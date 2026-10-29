@@ -69,7 +69,11 @@ export function Button(props: ButtonProps) {
 
   const content = (
     <>
-      {loading ? <Spinner size="sm" label="Wird geladen…" /> : leftIcon}
+      {/* label="" unterdrückt den vorlesbaren Spinner-Text bewusst: der Button-Inhalt selbst
+          (z. B. „Lädt...") ist bereits die vorgesehene Statusmeldung für Screenreader; ein
+          zusätzlicher Spinner-Text würde den Accessible Name um einen zweiten, redundanten
+          Textknoten verlängern und bestehende namensbasierte Lookups brechen. */}
+      {loading ? <Spinner size="sm" label="" /> : leftIcon}
       {children}
       {rightIcon}
     </>
