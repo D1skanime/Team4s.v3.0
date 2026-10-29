@@ -48,17 +48,6 @@
   color: var(--accent-primary, #2d5fe8);
 }
 
-.accordionChevron {
-  flex-shrink: 0;
-  transition: transform 200ms ease;
-  color: var(--text-soft, #748097);
-}
-
-.accordionChevronOpen {
-  transform: rotate(180deg);
-  color: var(--accent-primary, #2d5fe8);
-}
-
 .accordionPanel {
   overflow: hidden;
   padding: 0 16px 14px;

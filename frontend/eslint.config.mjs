@@ -58,7 +58,10 @@ const UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES = [
   'ThumbnailStrip.tsx', // Thumbnail-Kacheln sind Dateninhalte des Widgets
   'YearPicker.tsx', // Jahres-Kacheln/Trigger sind Dateninhalte des Widgets
   'DatePicker.tsx', // Kalender-Navigations-/Tages-/Monats-/Jahres-Kacheln sind Dateninhalte des Widgets
-  // Kandidat für einen künftigen, eigenständigen Auftrag — nicht Teil der UAT-Runde 261029-i1y
+  // Vollbreites, klickbares Flex-Layout-Widget (Titel + DisclosureIndicator-Öffner-Symbol) mit
+  // eigenem ARIA-Widget-Vertrag (aria-expanded/aria-controls) -- passt weder zu Buttons
+  // Text-Button-Form noch zu IconButtons Icon-only-Form, daher bleibt das native <button> hier
+  // die technisch zutreffende Basis (bewusste Entscheidung, kein offener Punkt mehr).
   'Accordion.tsx',
   // Kandidat für einen künftigen, eigenständigen Auftrag — nicht Teil der UAT-Runde 261029-i1y
   'AvatarStack.tsx',

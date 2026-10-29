@@ -4,6 +4,7 @@ import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { classNames } from './classNames'
+import { DisclosureIndicator } from './DisclosureIndicator'
 import styles from './Accordion.module.css'
 
 export interface AccordionItemDef {
@@ -74,6 +75,12 @@ export function Accordion({
 
         return (
           <div key={item.id} className={styles.accordionItem}>
+            {/* Bewusst ein natives <button>, nicht Button/IconButton: die Accordion-Kopfzeile
+               ist ein vollbreites, klickbares Flex-Layout aus Titel + Öffner-Symbol (kein reiner
+               Icon- oder Text-Button) und trägt ein eigenes ARIA-Widget (aria-expanded/
+               aria-controls) -- das passt weder zu Buttons Text-Button-Form noch zu IconButtons
+               Icon-only-Form. Das Öffner-Symbol selbst nutzt dagegen den geteilten
+               DisclosureIndicator-Baustein statt eines eigenen Pfeil-Nachbaus. */}
             <button
               type="button"
               id={headerId}
@@ -86,15 +93,7 @@ export function Accordion({
               onClick={() => toggle(item.id)}
             >
               <div className={styles.accordionTitle}>{item.title}</div>
-              <span
-                className={classNames(
-                  styles.accordionChevron,
-                  isOpen && styles.accordionChevronOpen,
-                )}
-                aria-hidden="true"
-              >
-                ▾
-              </span>
+              <DisclosureIndicator open={isOpen} size="sm" variant="plain" />
             </button>
 
             {isMounted ? (
