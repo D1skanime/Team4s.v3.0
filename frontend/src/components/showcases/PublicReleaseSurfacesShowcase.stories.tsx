@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { PublicReleaseSurfacesShowcase } from './PublicReleaseSurfacesShowcase'
 
 /**
- * 1:1 aus der früheren In-App-Showcase `/dev/ui-system` migrierte Komposition: rendert die
+ * 1:1 aus der früheren In-App-Showcase-Route migrierte Komposition: rendert die
  * echten produktiven Public-Release-Komponenten (Release-Block, Lightbox, Desktop-Zeile) mit
  * Mockdaten als UI-Wahrheit.
  */

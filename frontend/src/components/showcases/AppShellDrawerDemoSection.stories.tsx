@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { AppShellDrawerDemoSection } from './AppShellDrawerDemoSection'
 
 /**
- * 1:1 aus der früheren In-App-Showcase `/dev/ui-system` migrierte Komposition (AppShell mit
+ * 1:1 aus der früheren In-App-Showcase-Route migrierte Komposition (AppShell mit
  * Slide-over-Nav-Drawer, Dual-State anonym/eingeloggt) — keine neuen Zustands-Varianten
  * gegenüber der ursprünglichen Seite erfunden.
  */

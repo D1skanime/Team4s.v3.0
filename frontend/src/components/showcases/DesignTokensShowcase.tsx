@@ -4,7 +4,7 @@ import styles from './showcases.module.css'
 
 /**
  * Eigenständige Design-Tokens- und Farbfamilien-Vorschau. Diese Komponente ist NEU
- * (vormals nur inline im Seitencode von `frontend/src/app/dev/ui-system/page.tsx`
+ * (vormals nur inline im Seitencode der frueheren In-App-Showcase-Route
  * vorhanden) — ohne sie würde die Design-Tokens-Vorschau beim Löschen der alten
  * In-App-Showcase-Route (Task 12) ersatzlos verschwinden. Zeigt die Basis-Token-Familien
  * (Canvas/Card/Accent/Success, Radius/Schatten/Spacing/Typografie) sowie die zusätzlichen

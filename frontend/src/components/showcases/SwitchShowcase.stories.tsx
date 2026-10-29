@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { SwitchShowcase } from './SwitchShowcase'
 
 /**
- * 1:1 aus der früheren In-App-Showcase `/dev/ui-system` migrierte Komposition
+ * 1:1 aus der früheren In-App-Showcase-Route migrierte Komposition
  * (drei Switch-Beispiele inkl. gesperrtem Zustand) — keine neuen Zustands-Varianten
  * gegenüber der ursprünglichen Seite erfunden.
  */

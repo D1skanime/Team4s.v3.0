@@ -5,7 +5,7 @@ import { Button } from './Button'
 
 /**
  * Referenz-Story fuer das Button-Primitive: deckt alle Varianten ab, die vormals in der
- * In-App-Showcase `/dev/ui-system` sichtbar waren (Primary/Secondary/Ghost/Subtle/Danger/
+ * In-App-Showcase-Route sichtbar waren (Primary/Secondary/Ghost/Subtle/Danger/
  * Success/IconOnly/Loading/Disabled/Small/Large), ergaenzt um einen Lang-Text- und einen
  * Fokus-Pruefhinweis. Dient zugleich als frueher empirischer Beleg dafuer, dass CSS-Module
  * unter dem `@storybook/nextjs`-Webpack-Adapter ohne Zusatzkonfiguration greifen.
