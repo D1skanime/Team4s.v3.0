@@ -2,11 +2,22 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { NavArrow } from './NavArrow'
 
-/** Wine-roter Chevron-Pfeil für Karussell-/Galerie-Navigation. */
+/**
+ * Wine-roter Chevron-Pfeil für Karussell-/Galerie-Navigation, aufgebaut auf IconButtons
+ * `variant="ghost"` (Befund 8) -- sichtbare Komposition statt eigenem Nachbau, daher unter
+ * "Zusammengesetzte Bausteine" statt "Grundbausteine" (analog zu Modal/Drawer).
+ */
 const meta = {
-  title: 'Grundbausteine/NavArrow',
+  title: 'Zusammengesetzte Bausteine/NavArrow',
   component: NavArrow,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: IconButton.',
+      },
+    },
+  },
   args: {
     onClick: () => {},
   },
