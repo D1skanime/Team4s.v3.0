@@ -139,7 +139,11 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
 
 - **Pflicht:** Jede user-facing UI MUSS die globalen Primitives aus `@/components/ui`
   nutzen (`Button`, `Select`, `FormField`, `Modal`, `Input`, `Textarea`, `Tabs`,
-  `Drawer`, `Card`, `Table` …). Referenz/Showcase: Route `/dev/ui-system`.
+  `Drawer`, `Card`, `Table` …). Referenz/Showcase: Storybook — Start über
+  `docker compose up -d team4sv30-storybook`, danach `http://192.168.235.196:6006`
+  bzw. über den SSH-Tunnel auf Port 6006. Kategorie `UI/*` zeigt jede der 38 globalen
+  Primitives mit voller Zustandsabdeckung; Kategorie `Showcases/*` zeigt die
+  migrierten domänenspezifischen Kompositionen.
 - **Verboten:** Handgebaute native `<select>`, `<input>`, `<textarea>`, `<button>`
   oder Eigen-Markup für einen Primitiv-Typ, den `@/components/ui` bereits anbietet.
   Lokale Datei-Konsistenz rechtfertigt KEIN Abweichen vom globalen Design-System;
@@ -150,6 +154,10 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   führen (UI-Checker-Gate).
 - **Ausnahme:** Die Primitive-Definitionen selbst unter
   `frontend/src/components/ui/` dürfen native Elemente kapseln.
+- **Pflichtregel „Stories ziehen mit":** Ändert sich eine globale Primitive aus
+  `@/components/ui` sichtbar (neue Variante, neuer Zustand, geändertes
+  Props-Verhalten), wird im selben Auftrag die zugehörige `*.stories.tsx`-Datei
+  nachgezogen — keine nachträgliche Story-Pflege-Phase.
 
 ### Teststil
 

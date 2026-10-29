@@ -10,15 +10,15 @@ import nextTypeScript from 'eslint-config-next/typescript'
 const uiPrimitiveGuardOptions = [
   {
     selector: "JSXOpeningElement[name.name='select']",
-    message: 'Natives <select> verboten — nutze <Select> aus @/components/ui (Referenz: /dev/ui-system).',
+    message: 'Natives <select> verboten — nutze <Select> aus @/components/ui (Referenz: Storybook UI/*).',
   },
   {
     selector: "JSXOpeningElement[name.name='input']",
-    message: 'Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system).',
+    message: 'Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: Storybook UI/*).',
   },
   {
     selector: "JSXOpeningElement[name.name='textarea']",
-    message: 'Natives <textarea> verboten — nutze <Textarea> aus @/components/ui (Referenz: /dev/ui-system).',
+    message: 'Natives <textarea> verboten — nutze <Textarea> aus @/components/ui (Referenz: Storybook UI/*).',
   },
 ]
 

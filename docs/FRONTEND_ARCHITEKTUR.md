@@ -86,7 +86,6 @@ frontend/src/
 │   ├── archiv/                # Archiv-Ansichten
 │   ├── claim-invitations/     # Einladungs-Claim-Flow
 │   ├── covers/                 # Cover-Datei-/Display-Varianten-Routen
-│   ├── dev/                    # UI-System-Showcase (/dev/ui-system)
 │   ├── episodes/               # öffentliche Episodenansichten
 │   ├── fansubs/                 # öffentliche Fansub-/Gruppenseiten
 │   ├── invitations/             # Einladungsverwaltung
@@ -154,7 +153,6 @@ Routing folgt vollständig dem Next.js-App-Router-Dateisystem unter `src/app/`. 
 | `/admin/roles`, `/admin/role-capabilities` | Rollen-/Rechte-Verwaltung |
 | `/admin/tags-genres` | Taxonomie-Verwaltung |
 | `/admin/profile` | Admin-Eigenprofil |
-| `/dev/ui-system`, `/admin/dev/ui-system` | UI-System-Showcase (öffentlich bzw. admin-gescoped) |
 
 **Guards/Rechte:** `PlatformAdminGate` (`src/components/auth/PlatformAdminGate.tsx`) ist eine Client-Komponente. Sie liest `useAuthSession()` (`hasAccessToken`, `hasRefreshToken`, `isClientInitialized`) aus `src/lib/useAuthSession.ts`, ruft bei vorhandener Session `getCurrentUser()` auf und zeigt inline einen "Anmeldung erforderlich"- oder Fehlerzustand, solange kein berechtigter Nutzer ermittelt ist. Da jede Admin-Seite ihr eigenes Gate einbindet, gibt es keinen zentralen Middleware-Schutz auf Routenebene — die Autorisierung entsteht konsequent pro Seite plus serverseitiger Backend-Durchsetzung.
 
@@ -218,7 +216,7 @@ Wichtige Varianten-Entscheidungen: `Button` kennt `primary` (Cobalt-Farbfamilie)
 
 Globale Komponenten bleiben varianten-begrenzt: Ist ein neuer Fall mit einer vorhandenen Variante lösbar, wird keine neue Variante ergänzt; ergibt ein Fall nur für ein einzelnes Fachfeature Sinn, gehört er nicht unter `src/components/ui`. Lokale Styles bleiben erlaubt für fachliche Speziallayouts, komplexe Domain-Grids, einmalige Sonderfälle und hochspezifische Editor-/Media-/Story-Kompositionen — sie sind aber nicht mehr die erste Wahl für Standard-Buttons, -Cards, -Badges, -FormFields, -Header oder -EmptyStates.
 
-**Showcase/Referenz:** `src/app/dev/ui-system/page.tsx` (öffentliche Referenzseite) und `src/app/admin/dev/ui-system/` (admin-gescopte zweite Showcase) dienen ausschließlich der visuellen Prüfung, Design-Iteration, Komponenten- und Kompositions-Review sowie späteren Referenzmigrationen — sie sind explizit kein Produktfeature und nicht API-, auth- oder permission-gebunden.
+**Showcase/Referenz:** Storybook (`frontend/.storybook/main.ts`, Start über den `team4sv30-storybook`-Compose-Service, Port 6006) ist die verbindliche visuelle Referenz. Kategorie `UI/*` zeigt jede der 38 globalen Primitives mit voller Zustandsabdeckung (Standard/disabled/Fehler/Laden/leer/lange Inhalte/Fokus, soweit zutreffend); Kategorie `Showcases/*` zeigt die migrierten domänenspezifischen Kompositionen unter `frontend/src/components/showcases/`. `npm run build-storybook` ist Teil der Quality-Gate-Prüfung.
 
 ## 9. Seiten nach Fachbereich
 
