@@ -1,0 +1,40 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+
+import { UploadDropzone } from './UploadDropzone'
+
+/**
+ * Datei-Auswahl-/Drop-Fläche. Der tatsächliche `isDragActive`-Zustand entsteht nur über
+ * echte Drag&Drop-Events im Browser (kein Prop zum statischen Erzwingen) — die Story zeigt
+ * daher den Standard- statt eines künstlich erzwungenen Drag-Zustands; live im Canvas eine
+ * Datei über die Fläche ziehen, um den Drag-Zustand zu sehen.
+ */
+const meta = {
+  title: 'UI/UploadDropzone',
+  component: UploadDropzone,
+  tags: ['autodocs'],
+  args: {
+    onFilesSelected: () => {},
+  },
+} satisfies Meta<typeof UploadDropzone>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Standard: Story = {}
+
+export const Disabled: Story = {
+  args: { disabled: true },
+}
+
+export const DragAktiv: Story = {
+  name: 'DragAktiv',
+  args: { dropHintLabel: 'Datei hier loslassen' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Der Drag-Zustand (`isDragActive`) ist interner State der Komponente und lässt sich nicht per Prop statisch erzwingen — im Canvas eine Datei über die Fläche ziehen, um den optischen Drag-Zustand live zu sehen.',
+      },
+    },
+  },
+}
