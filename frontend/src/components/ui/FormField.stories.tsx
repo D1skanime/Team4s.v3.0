@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { FormField } from './FormField'
 import { Input } from './Input'
+import { Select } from './Select'
+import { Textarea } from './Textarea'
 
 /** Beschriftungs-/Hinweis-/Fehler-Hülle für ein einzelnes Formularfeld. */
 const meta = {
@@ -66,6 +68,89 @@ export const Disabled: Story = {
   render: (args) => (
     <FormField {...args}>
       <Input id="form-field-disabled" disabled defaultValue="Nicht editierbar" />
+    </FormField>
+  ),
+}
+
+export const AutomatischVerknuepfterFehler: Story = {
+  name: 'AutomatischVerknuepfterFehler',
+  args: {
+    label: 'Anime-Titel',
+    error: 'Titel ist bereits vergeben.',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Nur `error` ist am FormField gesetzt, NICHT `invalid` am Input -- id, aria-invalid und ' +
+          'aria-describedby kommen jetzt automatisch vom FormField. Ein Aufrufer muss sie nicht mehr ' +
+          'manuell am Kind setzen oder mit `htmlFor` verknüpfen (CONTEXT.md Befund 5).',
+      },
+    },
+  },
+  render: (args) => (
+    <FormField {...args}>
+      <Input placeholder="z. B. Naruto" />
+    </FormField>
+  ),
+}
+
+export const AutomatischVerknuepftesDisabled: Story = {
+  name: 'AutomatischVerknuepftesDisabled',
+  args: {
+    label: 'Gesperrtes Feld (automatisch)',
+    disabled: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Nur `disabled` ist am FormField gesetzt -- das Kind bekommt `disabled` automatisch per ' +
+          'ODER-Verknüpfung, ohne dass der Aufrufer es am Input selbst wiederholen muss.',
+      },
+    },
+  },
+  render: (args) => (
+    <FormField {...args}>
+      <Input defaultValue="Nicht editierbar" />
+    </FormField>
+  ),
+}
+
+export const AutomatischVerknuepftesSelect: Story = {
+  name: 'AutomatischVerknuepftesSelect',
+  args: {
+    label: 'Status',
+    error: 'Bitte einen Status wählen.',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Die Autoverknüpfung aus Befund 5 gilt für alle sechs bekannten Feldtypen, nicht nur Input.',
+      },
+    },
+  },
+  render: (args) => (
+    <FormField {...args}>
+      <Select>
+        <option value="">-- auswählen --</option>
+        <option value="disabled">Deaktiviert</option>
+        <option value="public">Öffentlich</option>
+      </Select>
+    </FormField>
+  ),
+}
+
+export const AutomatischVerknuepfteTextarea: Story = {
+  name: 'AutomatischVerknuepfteTextarea',
+  args: {
+    label: 'Beschreibung',
+    hint: 'Kurzer Fließtext zum Anime.',
+    error: 'Mindestens 20 Zeichen erforderlich.',
+  },
+  render: (args) => (
+    <FormField {...args}>
+      <Textarea placeholder="Beschreibung eingeben" />
     </FormField>
   ),
 }
