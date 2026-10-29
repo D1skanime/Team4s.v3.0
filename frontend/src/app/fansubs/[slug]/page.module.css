@@ -107,6 +107,13 @@
      unverändert dunkel beschriftet. */
   --hero-metrics-label: rgba(255, 255, 255, 0.82);
   --hero-metrics-value: #ffffff;
+  /* Gleiches Muster für den Status-Badge (variant="muted") in der Titelzeile: dessen
+     Standard-Chip (helles Glas, gedämpftes Blaugrau) ist auf dem dunklen Banner-Scrim praktisch
+     unlesbar. Die hier gesetzten hellen Werte sind rechnerisch in
+     FansubHeroSection.accessibility.test.ts gegen den Worst-Case-Scrim-Hintergrund auf
+     mindestens 4,5:1 Kontrast nachgewiesen. */
+  --badge-muted-bg: rgba(255, 255, 255, 0.18);
+  --badge-muted-fg: #ffffff;
 }
 
 .heroBodyOnBanner::before {

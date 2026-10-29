@@ -44,8 +44,12 @@
 }
 
 .badgeMuted {
-  background: rgba(255, 255, 255, 0.38);
-  color: #66758d;
+  /* Tokenisiert: der Aufrufkontext kann den Chip-Hintergrund/-Text per CSS-Variable
+     überschreiben (z. B. FansubHeroSections dunkler Banner-Scrim), ohne diese ~45+ anderen,
+     hellen variant="muted"-Verwender (Admin-Tabellen, Profilkarten, Nav-Badges) zu verändern --
+     die Fallback-Werte sind exakt die bisherigen, unveränderten Literale. */
+  background: var(--badge-muted-bg, rgba(255, 255, 255, 0.38));
+  color: var(--badge-muted-fg, #66758d);
   border-color: rgba(92, 105, 131, 0.1);
   box-shadow: none;
 }

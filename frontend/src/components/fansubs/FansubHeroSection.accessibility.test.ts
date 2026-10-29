@@ -20,6 +20,10 @@ const heroMetricsCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/components/ui/HeroMetrics.module.css'),
   'utf8',
 )
+const badgeCss = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/components/ui/Badge.module.css'),
+  'utf8',
+)
 
 type RGB = [number, number, number]
 const WHITE: RGB = [255, 255, 255]
@@ -119,5 +123,24 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
   it('HeroMetrics.module.css deklariert dieselben Fallback-Variablen mit dem unveränderten, dunklen Standardwert (kein Verhaltenswechsel ohne Bannerfoto)', () => {
     expect(heroMetricsCss).toMatch(/var\(--hero-metrics-label,\s*rgba\(28,\s*24,\s*38,\s*0\.64\)\)/)
     expect(heroMetricsCss).toMatch(/var\(--hero-metrics-value,\s*var\(--accent-deep\)\)/)
+  })
+
+  it('Status-Badge (variant="muted") erreicht im Banner-Fall mindestens 4,5:1 Kontrast gegen seine eigene, auf dem Worst-Case-Scrim aufliegende Chip-Fläche', () => {
+    // Zweistufige Mischung: zuerst der Badge-eigene Chip-Hintergrund über dem Worst-Case-Scrim-
+    // Hintergrund (Chip ist selbst teiltransparent), danach der Badge-Text über diesem bereits
+    // gemischten Chip-Hintergrund -- nicht nur direkt gegen den Scrim, da der Text optisch auf
+    // der Chip-Fläche liegt, nicht auf dem rohen Scrim.
+    const bgOverride = extractVarValue(pageCss, '.heroBodyOnBanner', 'badge-muted-bg')
+    const fgOverride = extractVarValue(pageCss, '.heroBodyOnBanner', 'badge-muted-fg')
+    const chipBackground =
+      bgOverride.alpha < 1 ? mix(bgOverride.rgb, worstCaseBackground, bgOverride.alpha) : bgOverride.rgb
+    const renderedText =
+      fgOverride.alpha < 1 ? mix(fgOverride.rgb, chipBackground, fgOverride.alpha) : fgOverride.rgb
+    expect(contrast(renderedText, chipBackground)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('Badge.module.css behält die unveränderten Fallback-Werte ohne Bannerfoto (kein Verhaltenswechsel für die ~45+ anderen variant="muted"-Verwender)', () => {
+    expect(badgeCss).toMatch(/var\(--badge-muted-bg,\s*rgba\(255,\s*255,\s*255,\s*0\.38\)\)/)
+    expect(badgeCss).toMatch(/var\(--badge-muted-fg,\s*#66758d\)/)
   })
 })
