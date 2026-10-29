@@ -287,6 +287,22 @@ Nach der Nachbesserung erneut empirisch bestätigt: `npm run typecheck` (0 Fehle
 3889 Tests, alle grün), `npm run build-storybook` (Exit 0), Storybook-`index.json` weiterhin
 mit den drei korrekten Kategorien.
 
+## Nachbesserung durch unabhängige Code-Review, Runde 2 (final)
+
+Ein zweiter unabhängiger Review fand einen echten, hochprioren Befund: `FormField.tsx`
+setzte `labelHtmlFor` nur dann auf `resolvedId`, wenn die ID frisch generiert wurde
+(`usesGeneratedId`). Zwei Fälle blieben dadurch fehlerhaft: (1) ein Kind mit bereits
+eigener `id`, aber ohne `FormField.htmlFor` — das Label blieb unverknüpft
+(`labelHtmlFor` blieb `undefined`); (2) ein widersprüchliches `FormField.htmlFor`
+gegenüber einer abweichenden Kind-`id` — das Label zeigte auf das vom Aufrufer gemeinte,
+aber am Feld gar nicht ankommende `htmlFor`, statt auf die tatsächliche, von `resolvedId`
+bevorzugte Kind-`id`. Behoben (Commit `4b9e6a963`): `labelHtmlFor` wird für jedes bekannte
+Einzelkind jetzt immer auf `resolvedId` gesetzt — die bereits korrekte Prioritätsreihenfolge
+(Kind-`id` > `FormField.htmlFor` > generierte ID) bleibt unverändert, nur das Label folgt ihr
+jetzt zuverlässig. Zwei neue Regressionstests (`FormField.test.tsx`) belegen beide Fälle und
+schlagen nachweislich gegen den alten Code fehl. Erneut bestätigt: typecheck/lint (weiterhin
+4 vorbestehende Fehler)/volle Testsuite (424 Dateien, 3891 Tests)/`build-storybook` grün.
+
 ## Self-Check: PASSED
 
 All 11 spot-checked created files found on disk; all 16 task commit hashes found in
