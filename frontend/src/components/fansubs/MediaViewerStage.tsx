@@ -198,14 +198,14 @@ export function MediaViewerStage({
         <>
           <NavArrow
             direction="previous"
-            size="large"
+            size="lg"
             label="Vorheriges Bild"
             className={styles.navPrev}
             onClick={onPrevious}
           />
           <NavArrow
             direction="next"
-            size="large"
+            size="lg"
             label="Nächstes Bild"
             className={styles.navNext}
             onClick={onNext}

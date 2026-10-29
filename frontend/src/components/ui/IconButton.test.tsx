@@ -40,4 +40,13 @@ describe('IconButton', () => {
     expect(button?.className).toMatch(/iconButtonFloating/)
     expect(button?.className).toMatch(/iconButtonLg/)
   })
+
+  it('verdrahtet die ghost-Variante tatsächlich in die Klassenliste (Basis für NavArrow)', () => {
+    const { container } = render(
+      <IconButton icon={<X size={18} />} aria-label="Schließen" variant="ghost" />,
+    )
+
+    const button = container.querySelector('button')
+    expect(button?.className).toMatch(/iconButtonGhost/)
+  })
 })

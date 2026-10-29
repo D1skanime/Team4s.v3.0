@@ -23,6 +23,10 @@ type Story = StoryObj<typeof meta>
 
 export const Standard: Story = {}
 
+export const Ghost: Story = {
+  args: { variant: 'ghost' },
+}
+
 export const Floating: Story = {
   args: { variant: 'floating' },
   decorators: [

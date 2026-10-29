@@ -1,38 +1,34 @@
-.navArrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+/* Element+Klasse-Selektoren (statt reiner Klassen-Selektoren) erzwingen hier bewusst eine
+   höhere CSS-Spezifität als IconButtons eigene .iconButton*-Klassen-Selektoren -- NavArrow und
+   IconButton stammen aus unterschiedlichen CSS-Modulen, deren Bündel-Reihenfolge im Build nicht
+   garantiert ist, daher darf sich diese Überschreibung nicht auf die Ladereihenfolge verlassen.
+   Fokus-Ring und disabled-Optik werden hier bewusst NICHT erneut deklariert -- die kommen
+   unverändert von IconButtons eigenen .iconButton:focus-visible/:disabled-Regeln. */
+button.navArrow {
   width: var(--control-height-md);
-  min-width: var(--control-height-md);
   height: var(--control-height-md);
+  min-width: var(--control-height-md);
   min-height: var(--control-height-md);
-  padding: 0;
-  border: none;
   border-radius: 8px;
-  background: transparent;
   color: var(--ui-arrow);
-  cursor: pointer;
-  transition: color 120ms ease, opacity 120ms ease, background-color 120ms ease;
 }
 
-.navArrow:hover {
+button.navArrow:hover {
   opacity: 0.72;
 }
 
-.navArrow:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+button.navArrowSm {
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  min-width: var(--control-height-sm);
+  min-height: var(--control-height-sm);
+  border-radius: 6px;
 }
 
-.navArrow:disabled {
-  opacity: 0.56;
-  cursor: not-allowed;
-}
-
-.navArrowLarge {
+button.navArrowLg {
   width: 56px;
-  min-width: 56px;
   height: 56px;
+  min-width: 56px;
   min-height: 56px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--text-strong) 55%, transparent);
@@ -40,7 +36,7 @@
   color: #ffffff;
 }
 
-.navArrowLarge:hover {
+button.navArrowLg:hover {
   background: color-mix(in srgb, var(--text-strong) 75%, transparent);
   opacity: 1;
 }

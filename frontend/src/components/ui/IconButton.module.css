@@ -47,3 +47,18 @@
      dieses Buttons rendern -- darüber bleiben, damit der Schließen-Button nie verdeckt wird. */
   z-index: 3;
 }
+
+/* Basis für NavArrow: transparent ohne Rahmen/Schatten, nur Opazitäts-Hover statt der
+   Standard-Optik mit Rahmen/Schatten -- NICHT im variant === 'floating'-Pfad, da NavArrow
+   inline positioniert bleibt. Nach den bestehenden Regeln platziert, damit diese Ueberschreibung
+   innerhalb dieser einen Datei bei Tie-Breaks gewinnt. */
+.iconButtonGhost {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.iconButtonGhost:hover {
+  background: transparent;
+  opacity: 0.72;
+}

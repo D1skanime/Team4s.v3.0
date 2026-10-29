@@ -16,12 +16,12 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Previous: Story = {
-  args: { direction: 'previous', label: 'Vorheriges Bild', size: 'default' },
+  args: { direction: 'previous', label: 'Vorheriges Bild', size: 'md' },
 }
 
 export const NextGross: Story = {
-  name: 'NextGross',
-  args: { direction: 'next', label: 'Nächstes Bild', size: 'large' },
+  name: 'Nächstes, groß',
+  args: { direction: 'next', label: 'Nächstes Bild', size: 'lg' },
 }
 
 export const Disabled: Story = {
