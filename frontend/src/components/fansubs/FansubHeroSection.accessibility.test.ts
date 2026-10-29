@@ -82,12 +82,12 @@ function extractVarValue(cssText: string, selector: string, varName: string): { 
 
 describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
   const scrimAlpha = extractScrimAlpha()
-  // Worst Case: ein rein weisses Bannerfoto (Leuchtdichte 1,0) hinter dem schwarzen Scrim.
+  // Worst Case: ein rein weißes Bannerfoto (Leuchtdichte 1,0) hinter dem schwarzen Scrim.
   const worstCaseBackground = mix(BLACK, WHITE, scrimAlpha)
 
   it('der Scrim allein erreicht im Worst Case eine deutlich abgedunkelte effektive Hintergrundfarbe', () => {
-    // Nachweis, dass der Scrim ueberhaupt wirkt (nicht nahezu durchsichtig) -- die eigentliche
-    // Kontrastpruefung erfolgt pro Textfarbe unten.
+    // Nachweis, dass der Scrim überhaupt wirkt (nicht nahezu durchsichtig) -- die eigentliche
+    // Kontrastprüfung erfolgt pro Textfarbe unten.
     expect(scrimAlpha).toBeGreaterThanOrEqual(0.85)
     expect(luminance(worstCaseBackground)).toBeLessThan(0.2)
   })

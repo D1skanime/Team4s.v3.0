@@ -16,9 +16,9 @@ type YearPickerProps = {
   maxYear: number
   disabled?: boolean
   invalid?: boolean
-  /** Von FormField automatisch verknuepfte Fehler-/Hinweis-IDs (additiv, siehe FormField.tsx). */
+  /** Von FormField automatisch verknüpfte Fehler-/Hinweis-IDs (additiv, siehe FormField.tsx). */
   'aria-describedby'?: string
-  /** Von FormField automatisch gesetzt, wenn der umschliessende error-Text aktiv ist. */
+  /** Von FormField automatisch gesetzt, wenn der umschließende error-Text aktiv ist. */
   'aria-invalid'?: boolean
   onChange: (value: string) => void
 }

@@ -65,7 +65,7 @@
   padding-bottom: 20px;
 }
 
-/* Nur Layout-Huelle: Banner und Projektidentitaet stehen ohne sichtbare Karte im Hero. */
+/* Nur Layout-Hülle: Banner und Projektidentität stehen ohne sichtbare Karte im Hero. */
 .heroCard {
   position: relative;
   display: grid;
@@ -141,7 +141,7 @@
 
 .subtitle {
   margin: 6px 0 0;
-  /* kraeftiger fuer Kontrast auf dem Glas */
+  /* kräftiger für Kontrast auf dem Glas */
   color: rgba(28, 24, 38, 0.74);
   line-height: 1.5;
   font-size: 14px;
@@ -246,7 +246,7 @@
   border-top: 0.5px solid var(--border-subtle);
 }
 
-/* Inline rechts neben der Identität (fuellt die Kopfzeile, keine tote Flaeche) */
+/* Inline rechts neben der Identität (füllt die Kopfzeile, keine tote Fläche) */
 .collaborationPanel {
   display: grid;
   gap: 8px;

@@ -27,7 +27,7 @@ const ERROR_MESSAGES: Record<Exclude<ErrorType, null>, string> = {
   '404': 'Asset nicht gefunden.',
   '500': 'Stream nicht verfügbar.',
   '503': 'Stream nicht verfügbar.',
-  timeout: 'Zeitueberschreitung.',
+  timeout: 'Zeitüberschreitung.',
 }
 
 const LOADING_TIMEOUT_MS = 15000

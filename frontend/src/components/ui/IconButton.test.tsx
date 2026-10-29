@@ -31,7 +31,7 @@ describe('IconButton', () => {
     expect(ref.current).toBeInstanceOf(HTMLButtonElement)
   })
 
-  it('unterstützt die floating-Variante und Groessen', () => {
+  it('unterstützt die floating-Variante und Größen', () => {
     const { container } = render(
       <IconButton icon={<X size={18} />} aria-label="Schließen" variant="floating" size="lg" />,
     )

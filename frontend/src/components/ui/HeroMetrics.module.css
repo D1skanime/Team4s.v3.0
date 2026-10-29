@@ -13,8 +13,8 @@
 }
 
 .heroMetricItem dt {
-  /* Fallback = bisheriger Wert (reine Tokenisierung, kein Verhaltenswechsel fuer bestehende
-     Verwender). FansubHeroSection ueberschreibt diese Variable NUR innerhalb ihres eigenen
+  /* Fallback = bisheriger Wert (reine Tokenisierung, kein Verhaltenswechsel für bestehende
+     Verwender). FansubHeroSection überschreibt diese Variable NUR innerhalb ihres eigenen
      Banner-Textblocks (.heroBodyOnBanner), um auf einem dunklen Scrim lesbar zu bleiben. */
   color: var(--hero-metrics-label, rgba(28, 24, 38, 0.64));
   font-size: 12px;
@@ -72,7 +72,7 @@
 
   /* Nicht-inline Kennzahlen bleiben auf Mobil in EINER Zeile, gleich breite
      Spalten (Bezeichnung darf innerhalb der Spalte umbrechen) -- die
-     Inline-Variante (ProjectMemberHero) behaelt ihr eigenes, unveraendertes
+     Inline-Variante (ProjectMemberHero) behält ihr eigenes, unverändertes
      Layout (separat per :not() ausgeschlossen). */
   .heroMetrics:not(.heroMetricsInline) {
     flex-wrap: nowrap;
@@ -93,7 +93,7 @@
 }
 
 /* Sehr schmale Viewports: mehr Kennzahlen, als nebeneinander noch lesbar
-   Platz haben, brechen gleichmaessig auf eine zweite Zeile um (2 Spalten)
+   Platz haben, brechen gleichmäßig auf eine zweite Zeile um (2 Spalten)
    statt die Spalten immer weiter zu stauchen. Bei ungerader Anzahl spannt
    die letzte Kennzahl beide Spalten, damit nie eine einzelne verwaiste
    Kennzahl schmal allein steht. */

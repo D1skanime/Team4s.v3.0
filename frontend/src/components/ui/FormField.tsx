@@ -20,7 +20,7 @@ export interface FormFieldProps {
 }
 
 /**
- * Die sechs Feld-Primitive, fuer die FormField automatisch id/disabled/invalid/aria-invalid/
+ * Die sechs Feld-Primitive, für die FormField automatisch id/disabled/invalid/aria-invalid/
  * aria-describedby injizieren darf. Jeder andere Kind-Typ (z. B. UploadDropzone, ein eigener
  * Radiogroup-Baustein oder mehrere Kinder gleichzeitig) bleibt unangetastet -- reines
  * {children}-Rendering wie vor diesem Umbau, damit kein bestehender Verwender riskiert wird.
@@ -28,9 +28,9 @@ export interface FormFieldProps {
 const KNOWN_FIELD_TYPES: readonly unknown[] = [Input, Select, Textarea, DatePicker, YearPicker, Switch]
 
 /**
- * Fuehrt eine bereits am Kind vorhandene aria-describedby mit den neu erzeugten Hinweis-/
+ * Führt eine bereits am Kind vorhandene aria-describedby mit den neu erzeugten Hinweis-/
  * Fehler-IDs zusammen -- leerzeichengetrennt, ohne Duplikate, ergibt undefined statt eines
- * leeren Strings, wenn nichts zu verknuepfen ist.
+ * leeren Strings, wenn nichts zu verknüpfen ist.
  */
 function mergeDescribedBy(existing: string | undefined, ...ids: Array<string | undefined>): string | undefined {
   const tokens = new Set<string>()
@@ -70,7 +70,7 @@ export function FormField({
     const childProps = singleChild.props as Record<string, unknown>
     // Reihenfolge verbindlich: eigene id am Kind gewinnt, sonst FormField.htmlFor, sonst eine neu
     // generierte ID -- so zeigt ein Label mit explizitem htmlFor nie auf eine andere ID als die,
-    // die das Kind tatsaechlich bekommt.
+    // die das Kind tatsächlich bekommt.
     const existingId = typeof childProps.id === 'string' ? childProps.id : undefined
     const resolvedId = existingId ?? htmlFor ?? generatedId
     const usesGeneratedId = !existingId && !htmlFor
@@ -83,8 +83,8 @@ export function FormField({
     const effectiveDisabled = disabled || Boolean(childProps.disabled)
 
     if (singleChild.type === Switch) {
-      // Switch kennt kein invalid-Konzept -- aria-invalid kommt hier ausschliesslich aus
-      // FormField.error, ohne ODER-Verknuepfung mit einer am Kind nicht existierenden Prop.
+      // Switch kennt kein invalid-Konzept -- aria-invalid kommt hier ausschließlich aus
+      // FormField.error, ohne ODER-Verknüpfung mit einer am Kind nicht existierenden Prop.
       const effectiveAriaInvalid = Boolean(error)
       renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof Switch>>, {
         id: resolvedId,
@@ -115,8 +115,8 @@ export function FormField({
       }
     }
 
-    // Additive Faehigkeit: das Label bekommt nur dann htmlFor+id, wenn weder der Aufrufer noch
-    // das Kind bereits eine Verknuepfung vorgegeben haben. Jeder bestehende explizite
+    // Additive Fähigkeit: das Label bekommt nur dann htmlFor+id, wenn weder der Aufrufer noch
+    // das Kind bereits eine Verknüpfung vorgegeben haben. Jeder bestehende explizite
     // htmlFor-Aufrufer (heutiger Normalfall) rendert exakt wie vor diesem Umbau.
     if (usesGeneratedId) {
       labelHtmlFor = resolvedId

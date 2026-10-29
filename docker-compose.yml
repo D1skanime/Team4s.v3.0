@@ -218,11 +218,11 @@ services:
     depends_on:
       - team4sv30-backend
 
-  # Eigener Dev-only Compose-Service fuer den Storybook-Komponenten-Katalog: ein
-  # Compose-Service kann nur EINEN Vordergrundprozess fuehren, und team4sv30-frontend
+  # Eigener Dev-only Compose-Service für den Storybook-Komponenten-Katalog: ein
+  # Compose-Service kann nur EINEN Vordergrundprozess führen, und team4sv30-frontend
   # ist bereits mit "npm run dev -- --webpack" auf Port 3000 belegt. Storybook braucht
   # denselben Build-Context/dieselben Build-Args wie das Frontend (Next.js-Alias-
-  # Aufloesung, Umgebungsvariablen), laeuft aber als eigener Prozess auf Port 6006.
+  # Auflösung, Umgebungsvariablen), läuft aber als eigener Prozess auf Port 6006.
   team4sv30-storybook:
     build:
       context: ./frontend

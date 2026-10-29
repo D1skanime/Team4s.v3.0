@@ -9,20 +9,20 @@ export interface DialogHeaderProps {
   description?: string
   onClose: () => void
   closeLabel?: string
-  /** ID der umschliessenden Dialog-Wurzel fuer aria-labelledby (von Modal/Drawer vorgegeben). */
+  /** ID der umschließenden Dialog-Wurzel für aria-labelledby (von Modal/Drawer vorgegeben). */
   titleId: string
-  /** Ermoeglicht Modal/Drawer, nach dem Oeffnen weiterhin per Ref auf den Schliessen-Button zu fokussieren. */
+  /** Ermöglicht Modal/Drawer, nach dem Öffnen weiterhin per Ref auf den Schließen-Button zu fokussieren. */
   closeButtonRef?: Ref<HTMLButtonElement>
-  /** Steuert, welche IconButton-Optik das Schliessen-Kreuz nutzt. */
+  /** Steuert, welche IconButton-Optik das Schließen-Kreuz nutzt. */
   variant?: 'default' | 'floating'
-  /** Kontextabhaengiges Padding/Border -- Rahmen/Innenabstand bleiben bei Modal/Drawer leicht unterschiedlich. */
+  /** Kontextabhängiges Padding/Border -- Rahmen/Innenabstand bleiben bei Modal/Drawer leicht unterschiedlich. */
   className?: string
 }
 
 /**
- * Interne, nicht exportierte Titelzeile fuer Dialog-Flaechen. Modal und Drawer rendern beide
- * exakt diese Komponente statt zweier paralleler, fast identischer JSX-Bloecke -- Titel/
- * Beschreibung links, Schliessen-IconButton rechts. Kein eigenstaendiges Primitiv (daher kein
+ * Interne, nicht exportierte Titelzeile für Dialog-Flächen. Modal und Drawer rendern beide
+ * exakt diese Komponente statt zweier paralleler, fast identischer JSX-Blöcke -- Titel/
+ * Beschreibung links, Schließen-IconButton rechts. Kein eigenständiges Primitiv (daher kein
  * Export aus index.ts): reine Implementierungsteilung zwischen den beiden Dialog-Bausteinen.
  */
 export function DialogHeader({

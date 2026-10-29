@@ -37,8 +37,8 @@ console.error([
   'STILLGELEGT: capture-phase151-badge-evidence.mjs zielte auf die entfernte Route',
   '/dev/ui-system/achievements. Phase 151 ist abgeschlossen; die Evidenz liegt bereits',
   'unter .planning/phases/151-erfolgsbadge-karussell-konsolidierung/ vor.',
-  'Die Galerie-Komponente lebt jetzt unveraendert in Storybook als',
+  'Die Galerie-Komponente lebt jetzt unverändert in Storybook als',
   'Showcases/AchievementBadgeShowcase. Dieses Skript ist nur noch historischer',
-  'Beleg (siehe Kommentar am Dateianfang) und wird absichtlich nicht mehr ausgefuehrt.',
+  'Beleg (siehe Kommentar am Dateianfang) und wird absichtlich nicht mehr ausgeführt.',
 ].join(' '))
 process.exitCode = 1

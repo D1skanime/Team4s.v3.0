@@ -43,7 +43,7 @@
   position: absolute;
   top: var(--space-5);
   right: var(--space-5);
-  /* variant="stage"-Verwender (z. B. der Bild-Viewer) koennen einen deckenden Layer unterhalb
-     dieses Buttons rendern -- darueber bleiben, damit der Schliessen-Button nie verdeckt wird. */
+  /* variant="stage"-Verwender (z. B. der Bild-Viewer) können einen deckenden Layer unterhalb
+     dieses Buttons rendern -- darüber bleiben, damit der Schließen-Button nie verdeckt wird. */
   z-index: 3;
 }

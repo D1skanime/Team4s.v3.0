@@ -11,10 +11,10 @@ import { Textarea } from './Textarea'
 import { YearPicker } from './YearPicker'
 
 /**
- * Verhaltensnachweis für die FormField-Autoverknuepfung (UAT-Befund 5): FormField reicht
+ * Verhaltensnachweis für die FormField-Autoverknüpfung (UAT-Befund 5): FormField reicht
  * id/disabled/invalid/aria-invalid/aria-describedby automatisch an genau EIN umschlossenes,
  * bekanntes Feld weiter (Input/Select/Textarea/DatePicker/YearPicker/Switch), ohne dass ein
- * expliziter htmlFor/invalid-Aufrufer etwas daran aendert.
+ * expliziter htmlFor/invalid-Aufrufer etwas daran ändert.
  */
 describe('FormField Autoverknüpfung', () => {
   it('vergibt bei genau einem Input-Kind ohne eigene id/invalid automatisch id, invalid, aria-invalid und aria-describedby auf den Fehlertext', () => {
@@ -171,7 +171,7 @@ describe('FormField Autoverknüpfung', () => {
     expect(screen.getByTestId('custom-field')).not.toBeNull()
   })
 
-  it('löst keinen Klick aus, wenn der Switch deaktiviert ist (Rueckwaertskompat-Smoketest)', () => {
+  it('löst keinen Klick aus, wenn der Switch deaktiviert ist (Rückwärtskompat-Smoketest)', () => {
     render(
       <FormField label="Status">
         <Switch checked={false} onCheckedChange={() => {}} disabled />

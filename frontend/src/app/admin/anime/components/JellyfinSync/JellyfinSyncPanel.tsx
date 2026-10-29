@@ -201,7 +201,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
         <div className={styles.headerCopy}>
           <p className={styles.eyebrow}>Provider Sync</p>
           <h2 className={studioStyles.sectionTitle}>Jellyfin neu verbinden</h2>
-          <p className={styles.description}>Suche die passende Jellyfin-Serie, lade eine Vorschau und uebernimm die Verknüpfung erst danach bewusst.</p>
+          <p className={styles.description}>Suche die passende Jellyfin-Serie, lade eine Vorschau und übernimm die Verknüpfung erst danach bewusst.</p>
           <p className={styles.description}>Wenn nur ein Treffer gefunden wird, wird er automatisch vorausgewählt.</p>
         </div>
         <div className={styles.headerStatus}>
@@ -327,7 +327,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
           <div className={styles.stepPanelHeader}>
             <span className={styles.stepIndex}>3</span>
             <div className={styles.stepPanelHeading}>
-              <h3 className={styles.stepTitle}>Preview pruefen</h3>
+              <h3 className={styles.stepTitle}>Preview prüfen</h3>
               <p className={styles.stepHelper}>Meist reicht Season 1. Lade danach die Vorschau.</p>
             </div>
           </div>
@@ -396,7 +396,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
                 />
                 <span className={styles.toggleCopy}>
                   <span className={styles.toggleTitle}>Bestehende Jellyfin-Versionen vorher entfernen</span>
-                  <span className={styles.compactHelper}>Loescht nur provider-importierte Jellyfin-Versionen vor dem Re-Import.</span>
+                  <span className={styles.compactHelper}>Löscht nur provider-importierte Jellyfin-Versionen vor dem Re-Import.</span>
                 </span>
               </label>
               {model.cleanupVersions && model.previewResult && model.previewResult.existing_jellyfin_versions > 0 ? (
@@ -413,8 +413,8 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
                   disabled={model.isSyncing || model.isLoadingPreview}
                 />
                 <span className={styles.toggleCopy}>
-                  <span className={styles.toggleTitle}>Mismatch-Guard ueberschreiben</span>
-                  <span className={styles.compactHelper}>Nur aktivieren, wenn die Preview bewusst geprueft wurde.</span>
+                  <span className={styles.toggleTitle}>Mismatch-Guard überschreiben</span>
+                  <span className={styles.compactHelper}>Nur aktivieren, wenn die Preview bewusst geprüft wurde.</span>
                 </span>
               </label>
               {model.allowMismatch ? (

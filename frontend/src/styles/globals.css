@@ -118,9 +118,9 @@
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 12px;
-  /* Gemeinsamer Eckenradius fuer Dialog-Flaechen (Modal/Drawer-Panel), an Cards rundeste
+  /* Gemeinsamer Eckenradius für Dialog-Flächen (Modal/Drawer-Panel), an Cards rundeste
      bestehende Variante (.cardNestedFlat, 10px) angeglichen -- EINE Formensprache statt
-     frueher zufaellig unterschiedlicher Modal-/Drawer-Radien. */
+     früher zufällig unterschiedlicher Modal-/Drawer-Radien. */
   --radius-surface: 10px;
 
   --space-1: 4px;
@@ -186,13 +186,13 @@
   --content-width-visual: 1660px;
   --content-width-visual-cap: 1760px;
 
-  /* Gemeinsamer Breitenvertrag fuer oeffentliche Fansub-Oberflaechen. */
+  /* Gemeinsamer Breitenvertrag für öffentliche Fansub-Oberflächen. */
   --public-page-max-width: 1360px;
   --public-page-gutter: 48px;
 
-  /* Seitenverhaeltnis des Profil-Banners (5:1 == 1920x384), gemeinsam fuer alle
+  /* Seitenverhältnis des Profil-Banners (5:1 == 1920x384), gemeinsam für alle
      Anzeige-Container (profileHeaderCard, heroPanel) -- muss mit PROFILE_BANNER_ASPECT_RATIO
-     in frontend/src/lib/profileBanner.ts uebereinstimmen (Live-UAT-Fix 2026-10-12: eine fest
+     in frontend/src/lib/profileBanner.ts übereinstimmen (Live-UAT-Fix 2026-10-12: eine fest
      min-height ohne aspect-ratio schnitt bei breiten Viewports oben/unten vom gespeicherten
      Zuschnitt ab). */
   --profile-banner-aspect-ratio: 1920 / 384;
@@ -216,13 +216,13 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  /* Full-Bleed-Elemente (100vw, z. B. Hero-Backdrop) duerfen keine Horizontalscrollbar erzeugen.
+  /* Full-Bleed-Elemente (100vw, z. B. Hero-Backdrop) dürfen keine Horizontalscrollbar erzeugen.
      'clip' statt 'hidden' -> erzeugt keinen Scroll-Container, bricht kein position: sticky.
      MUSS auf BEIDEN Elementen stehen (quick-261022-g17, live per Playwright verifiziert):
-     body { overflow-x: clip } allein genuegt NICHT, wenn ein Full-Bleed-Kind zusaetzlich
-     transform:scale(...) traegt (z. B. der Hero-Backdrop-Zoom-Effekt) -- der Browser
-     propagiert dessen Overflow nicht zuverlaessig auf <html>/den Viewport herunter, sodass
-     document.documentElement.scrollWidth trotzdem waechst und die Seite real horizontal
+     body { overflow-x: clip } allein genügt NICHT, wenn ein Full-Bleed-Kind zusätzlich
+     transform:scale(...) trägt (z. B. der Hero-Backdrop-Zoom-Effekt) -- der Browser
+     propagiert dessen Overflow nicht zuverlässig auf <html>/den Viewport herunter, sodass
+     document.documentElement.scrollWidth trotzdem wächst und die Seite real horizontal
      scrollbar wird. Mit overflow-x:clip auf <html> selbst bleibt scrollWidth === clientWidth. */
   overflow-x: clip;
 }

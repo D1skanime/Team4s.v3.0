@@ -10,7 +10,7 @@ const styles = new Proxy({} as Record<string, string>, {
 export interface LoadingStateProps {
   title?: string
   description?: string
-  /** Dezenter Infinite-Scroll-Ladeindikator (D-36) statt eines grossen Zustands-Blocks. */
+  /** Dezenter Infinite-Scroll-Ladeindikator statt eines großen Zustands-Blocks. */
   compact?: boolean
 }
 

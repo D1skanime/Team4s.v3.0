@@ -32,7 +32,7 @@
 .statusIconWarning {
   background: color-mix(in srgb, var(--color-warning) 20%, white);
   /* Reiner --color-warning-Text ist auf hellem Grund kaum lesbar -- abgedunkelte Mischung nur
-     fuer die Textfarbe, der Hintergrund bleibt hell/warnend. */
+     für die Textfarbe, der Hintergrund bleibt hell/warnend. */
   color: color-mix(in srgb, var(--color-warning) 65%, black);
 }
 
