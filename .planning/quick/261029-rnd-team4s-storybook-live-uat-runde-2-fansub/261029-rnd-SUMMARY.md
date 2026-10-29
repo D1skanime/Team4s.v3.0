@@ -220,6 +220,48 @@ Testdateien, 3938 Tests, alle grün — ein isolierter Zwischenlauf hatte einen 
 nicht mit dieser Runde zusammenhängenden Flake, der im sauberen Neulauf verschwand),
 `npm run build-storybook` (Exit 0).
 
+## Nachbesserung durch unabhängige Code-Review, Runde 2 (Commit `d1396c4a5`)
+
+Eine zweite unabhängige Review meldete drei weitere, diesmal `high` eingestufte
+Befunde — alle drei waren zutreffend und wurden behoben:
+
+- **Card teilte den vereinbarten Radius-Token nicht.** `.card`/`.cardCompact` in
+  `Card.module.css` standen weiterhin auf dem festen Literal `4px`, während
+  `--radius-surface` (von `.cardNestedFlat`, Modal und Drawer genutzt) auf `10px`
+  stand — die Runde-2-Vorgabe ("an die Card-Formensprache angleichen") war damit
+  in die falsche Richtung umgesetzt. Behoben: `--radius-surface` in `globals.css`
+  auf `4px` gesetzt (Cards eigentlichen, repo-weit dominanten Wert, nicht Modal/
+  Drawers vormaligen Eigenwert) und `.card`/`.cardCompact` auf `var(--radius-surface)`
+  umgestellt — jetzt teilen Card, Modal und Drawer exakt einen Token.
+- **AvatarStack umging das native-`<button>`-Verbot über eine neue, als „künftiger
+  Auftrag" bezeichnete ESLint-Ausnahme.** Das widerspricht der verbindlichen Regel,
+  dass `components/ui`-Bausteine kein natives `<button>` verwenden dürfen, außer der
+  jeweilige Baustein selbst kapselt es. Behoben: der native `<button>` für den
+  Überlauf-Auslöser wurde durch `IconButton` (`variant="ghost"`, `size="sm"`) ersetzt,
+  `AvatarStack.tsx` aus `UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES` entfernt. Da AvatarStack
+  dadurch sichtbar einen anderen `components/ui`-Baustein komponiert, wanderte die
+  Story konsequent von `Grundbausteine/AvatarStack` nach
+  `Zusammengesetzte Bausteine/AvatarStack` (identisches Präzedenzmuster wie NavArrow
+  in Runde 1) — `catalogTaxonomy.test.ts` hat genau diese Kopplung erkannt und bestand
+  nach der Umkatalogisierung wieder (26 Tests). Die kreisrunde "+N"-Optik wurde über
+  einen Element+Klasse-Selektor (`button.avatarStackOverflowButton`, Spezifität 0,1,1)
+  gegen IconButtons eigene Basis-Klassen abgesichert.
+- **ResponsiveImage hatte keine eigene Story.** Der Auftrag verlangt Stories für alle
+  globalen `components/ui`-Bausteine; ResponsiveImage war bisher nur indirekt über
+  ArtworkHero/ThumbnailStrip sichtbar. Ergänzt: `ResponsiveImage.stories.tsx` unter
+  `Grundbausteine/ResponsiveImage` mit zwei Zuständen — ein über `LOCAL_IMAGE_PATTERNS`
+  konfigurierter, optimierter Pfad (`/covers/placeholder.jpg`) und ein nicht
+  konfigurierter Alt-Pfad, der auf den unoptimierten Fallback ausweicht statt die
+  Seite mit E426/E231 abstürzen zu lassen (D-10) — die dabei sichtbare Bild-Bruch-
+  Darstellung ist bewusst das native Browser-Verhalten, kein eigenes Fallback-Visual.
+
+Erneut empirisch bestätigt: `npx tsc --noEmit` (0 Fehler), `npm run lint` (weiterhin
+exakt 4 vorbestehende, unveränderte Fehler), `npm test -- --run` (428 Testdateien,
+3939 Tests, alle grün), `npm run build-storybook` (Exit 0, nur vorbestehende
+Asset-Größen-Warnungen). Zusätzlich per `storybook-static/index.json` live geprüft:
+AvatarStack erscheint jetzt unter `Zusammengesetzte Bausteine/*`, ResponsiveImage unter
+`Grundbausteine/*` mit beiden neuen Stories.
+
 ## Self-Check: PASSED
 
 Alle acht im Summary genannten Dateien existieren (`Heading.tsx`, `Text.tsx`, `catalogTaxonomy.test.ts`,
