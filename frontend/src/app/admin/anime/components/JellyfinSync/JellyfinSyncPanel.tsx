@@ -1,58 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { Spinner } from '@/components/ui'
-import {
-  AdminAnimeJellyfinPreviewResult,
-  AdminAnimeJellyfinSyncResult,
-  AdminJellyfinSeriesSearchItem,
-} from '@/types/admin'
-import { AnimeDetail, EpisodeStatus } from '@/types/anime'
+import { AnimeDetail } from '@/types/anime'
 
-import studioStyles from '../../AdminStudio.module.css'
-import { formatEpisodeStatusLabel } from '../../utils/anime-helpers'
 import { deriveJellyfinSyncPanelState } from '../../utils/jellyfin-sync-panel-state'
+import { JellyfinSyncConfirmDialog } from './JellyfinSyncConfirmDialog'
+import type { JellyfinSyncModel } from './jellyfinSyncPanelHelpers'
+import { WIZARD_STEPS } from './jellyfinSyncPanelHelpers'
 import styles from './JellyfinSyncPanel.module.css'
-
-const EPISODE_STATUSES: EpisodeStatus[] = ['disabled', 'private', 'public']
-const WIZARD_STEPS = ['Suchen', 'Treffer', 'Preview', 'Sync'] as const
-
-interface JellyfinSyncModel {
-  searchQuery: string
-  seriesOptions: AdminJellyfinSeriesSearchItem[]
-  selectedSeriesID: string
-  seasonInput: string
-  episodeStatus: EpisodeStatus
-  cleanupVersions: boolean
-  allowMismatch: boolean
-  previewResult: AdminAnimeJellyfinPreviewResult | null
-  lastSyncResult: AdminAnimeJellyfinSyncResult | null
-  isSearching: boolean
-  isLoadingPreview: boolean
-  isSyncing: boolean
-  isBulkSyncing: boolean
-  searchFeedback: { tone: 'success' | 'error'; message: string; details?: string } | null
-  previewFeedback: { tone: 'success' | 'error'; message: string; details?: string } | null
-  syncFeedback: { tone: 'success' | 'error'; message: string; details?: string } | null
-  setSearchQuery: (q: string) => void
-  selectSeries: (id: string) => void
-  setSeasonInput: (value: string) => void
-  setEpisodeStatus: (value: EpisodeStatus) => void
-  setCleanupVersions: (value: boolean) => void
-  setAllowMismatch: (value: boolean) => void
-  search: () => Promise<void>
-  preview: (animeID: number) => Promise<void>
-  sync: (animeID: number, options?: { requireFreshPreview?: boolean }) => Promise<boolean>
-  reset: () => void
-}
-
-function renderStepFeedback(feedback: { tone: 'success' | 'error'; message: string; details?: string } | null) {
-  if (!feedback) {
-    return null
-  }
-
-  const className = feedback.tone === 'error' ? styles.errorState : styles.successState
-  return <div className={className}>{feedback.details ? `${feedback.message} ${feedback.details}` : feedback.message}</div>
-}
+import { JellyfinSyncStepApply } from './JellyfinSyncStepApply'
+import { JellyfinSyncStepPreview } from './JellyfinSyncStepPreview'
+import { JellyfinSyncStepSearch } from './JellyfinSyncStepSearch'
+import { JellyfinSyncStepSeries } from './JellyfinSyncStepSeries'
+import studioStyles from '../../AdminStudio.module.css'
 
 interface JellyfinSyncPanelProps {
   anime: AnimeDetail
@@ -61,68 +20,12 @@ interface JellyfinSyncPanelProps {
   onSynced: () => Promise<void>
 }
 
-function formatSeriesOption(item: AdminJellyfinSeriesSearchItem): string {
-  const year = item.production_year ? ` (${item.production_year})` : ''
-  const path = item.path?.trim() || '(ohne Pfad)'
-  return `${item.name}${year} - ${path}`
-}
-
-function renderPreviewSummaryCards(preview: AdminAnimeJellyfinPreviewResult) {
-  return (
-    <div className={studioStyles.summaryGrid}>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Gefundene Episoden</p>
-        <p className={studioStyles.summaryValue}>
-          {preview.matched_episodes}/{preview.scanned_episodes}
-        </p>
-      </div>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Akzeptiert</p>
-        <p className={studioStyles.summaryValue}>{preview.accepted_unique_episodes}</p>
-      </div>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Pfad-gefiltert</p>
-        <p className={studioStyles.summaryValue}>{preview.path_filtered_episodes}</p>
-      </div>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Skip</p>
-        <p className={studioStyles.summaryValue}>{preview.skipped_episodes}</p>
-      </div>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Bestehende Versionen</p>
-        <p className={studioStyles.summaryValue}>{preview.existing_jellyfin_versions}</p>
-      </div>
-    </div>
-  )
-}
-
-function renderSyncSummaryCards(result: AdminAnimeJellyfinSyncResult) {
-  return (
-    <div className={studioStyles.summaryGrid}>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Episoden neu</p>
-        <p className={studioStyles.summaryValue}>{result.imported_episodes}</p>
-      </div>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Episoden aktualisiert</p>
-        <p className={studioStyles.summaryValue}>{result.updated_episodes}</p>
-      </div>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Versionen neu</p>
-        <p className={studioStyles.summaryValue}>{result.imported_versions}</p>
-      </div>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Versionen aktualisiert</p>
-        <p className={studioStyles.summaryValue}>{result.updated_versions}</p>
-      </div>
-      <div className={studioStyles.summaryCard}>
-        <p className={studioStyles.summaryLabel}>Gelöscht</p>
-        <p className={studioStyles.summaryValue}>{result.deleted_versions ?? 0}</p>
-      </div>
-    </div>
-  )
-}
-
+/**
+ * Vierstufiger Assistent, um die Jellyfin-Verknüpfung eines Anime bewusst neu aufzubauen (Suchen
+ * -> Treffer wählen -> Vorschau prüfen -> Sync anwenden). Jeder Schritt ist eine eigene
+ * Unterkomponente (JellyfinSyncStep*.tsx); dieser Orchestrator hält nur den gemeinsamen
+ * Assistenten-Zustand und die abgeleiteten Freigabe-Flags (deriveJellyfinSyncPanelState).
+ */
 export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: JellyfinSyncPanelProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
@@ -234,373 +137,39 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
       </ol>
 
       <div className={styles.wizardStack}>
-        <section className={styles.stepPanel}>
-          <div className={styles.stepPanelHeader}>
-            <span className={styles.stepIndex}>1</span>
-            <div className={styles.stepPanelHeading}>
-              <h3 className={styles.stepTitle}>Serie suchen</h3>
-              <p className={styles.stepHelper}>Gib den Anime-Namen ein und starte die Jellyfin-Suche.</p>
-            </div>
-          </div>
-          <div className={styles.inlineFieldRow}>
-            <div className={`${studioStyles.field} ${styles.inlineFieldGrow}`}>
-              <label htmlFor="jellyfin-search-query">Anime-Titel in Jellyfin</label>
-              <input
-                id="jellyfin-search-query"
-                className={studioStyles.input}
-                value={model.searchQuery}
-                onChange={(event) => model.setSearchQuery(event.target.value)}
-                disabled={model.isSyncing || model.isSearching || model.isLoadingPreview}
-                placeholder="z. B. Naruto"
-              />
-            </div>
-            <button
-              className={`${studioStyles.button} ${studioStyles.buttonSecondary}`}
-              type="button"
-              onClick={handleSearch}
-              disabled={model.isSyncing || model.isSearching || model.isLoadingPreview}
-            >
-              {model.isSearching ? (
-                <>
-                  <Spinner size="sm" label="" />
-                  Suche läuft...
-                </>
-              ) : (
-                'Suchen'
-              )}
-            </button>
-          </div>
-          {renderStepFeedback(model.searchFeedback)}
-        </section>
-
-        <section className={styles.stepPanel}>
-          <div className={styles.stepPanelHeader}>
-            <span className={styles.stepIndex}>2</span>
-            <div className={styles.stepPanelHeading}>
-              <h3 className={styles.stepTitle}>Treffer wählen</h3>
-              <p className={styles.stepHelper}>Wähle den passenden Treffer. Bei genau einem Treffer passiert das automatisch.</p>
-            </div>
-          </div>
-          <div className={studioStyles.field}>
-            <label htmlFor="jellyfin-series-select">Passende Jellyfin-Serie</label>
-            {showSearchEmptyState ? (
-              <div className={styles.emptyState}>
-                <p className={styles.emptyStateText}>
-                  Keine Jellyfin-Serien für diesen Suchbegriff gefunden. Versuche einen anderen Titel oder Ordnernamen.
-                </p>
-              </div>
-            ) : (
-              <select
-                id="jellyfin-series-select"
-                className={studioStyles.select}
-                value={selectedSeriesID}
-                onChange={(event) => {
-                  model.selectSeries(event.target.value)
-                }}
-                disabled={model.isSyncing || model.isSearching || model.isLoadingPreview || !hasSearchResults}
-              >
-                <option value="">{hasSearchResults ? '-- Treffer auswählen --' : '-- Zuerst nach Serie suchen --'}</option>
-                {model.seriesOptions.map((item) => (
-                  <option key={item.jellyfin_series_id} value={item.jellyfin_series_id}>
-                    {formatSeriesOption(item)}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          {selectedSeries ? (
-            <div className={styles.previewBox}>
-              <p className={styles.previewEyebrow}>Ausgewählter Treffer</p>
-              <p className={styles.previewTitle}>
-                {selectedSeries.name}
-                {selectedSeries.production_year ? ` (${selectedSeries.production_year})` : ''}
-              </p>
-              <p className={styles.metaLine}>{selectedSeries.path?.trim() || '(ohne Pfad)'}</p>
-            </div>
-          ) : (
-            <p className={styles.metaLine}>Noch kein Treffer ausgewählt.</p>
-          )}
-        </section>
-
-        <section className={styles.stepPanel}>
-          <div className={styles.stepPanelHeader}>
-            <span className={styles.stepIndex}>3</span>
-            <div className={styles.stepPanelHeading}>
-              <h3 className={styles.stepTitle}>Preview prüfen</h3>
-              <p className={styles.stepHelper}>Meist reicht Season 1. Lade danach die Vorschau.</p>
-            </div>
-          </div>
-
-          <div className={styles.optionGrid}>
-            <div className={studioStyles.field}>
-              <label htmlFor="jellyfin-season-number">Staffel</label>
-              <input
-                id="jellyfin-season-number"
-                className={studioStyles.input}
-                value={model.seasonInput}
-                onChange={(event) => model.setSeasonInput(event.target.value)}
-                disabled={model.isSyncing || model.isLoadingPreview}
-                placeholder="1"
-              />
-            </div>
-
-            <div className={studioStyles.field}>
-              <label htmlFor="jellyfin-episode-status">Status für neue Episoden</label>
-              <select
-                id="jellyfin-episode-status"
-                className={studioStyles.select}
-                value={model.episodeStatus}
-                onChange={(event) => model.setEpisodeStatus(event.target.value as EpisodeStatus)}
-                disabled={model.isSyncing || model.isLoadingPreview}
-              >
-                {EPISODE_STATUSES.map((value) => (
-                  <option key={value} value={value}>
-                    {formatEpisodeStatusLabel(value)}
-                  </option>
-                ))}
-              </select>
-              <p className={styles.compactHelper}>Standard: private</p>
-            </div>
-
-            <div className={studioStyles.field}>
-              <div className={styles.labelRow}>
-                <label htmlFor="jellyfin-sync-rule">Import-Regel</label>
-                <span
-                  className={styles.infoBadge}
-                  title="Aktuell ist nur DB-first verfügbar: vorhandene DB-Werte bleiben erhalten."
-                  aria-hidden="true"
-                >
-                  i
-                </span>
-              </div>
-              <select id="jellyfin-sync-rule" className={studioStyles.select} value="db-first" disabled>
-                <option value="db-first">DB-first</option>
-              </select>
-              <p className={styles.compactHelper}>Vorhandene DB-Werte werden nicht still überschrieben.</p>
-            </div>
-          </div>
-
-          <details className={styles.advancedPanel}>
-            <summary className={styles.advancedSummary}>
-              <span>Erweitert & Risiko</span>
-              <span className={styles.advancedHint}>Nur für Sonderfälle</span>
-            </summary>
-            <div className={styles.advancedBody}>
-              <label className={styles.toggleCard}>
-                <input
-                  type="checkbox"
-                  checked={model.cleanupVersions}
-                  onChange={(event) => model.setCleanupVersions(event.target.checked)}
-                  disabled={model.isSyncing || model.isLoadingPreview}
-                />
-                <span className={styles.toggleCopy}>
-                  <span className={styles.toggleTitle}>Bestehende Jellyfin-Versionen vorher entfernen</span>
-                  <span className={styles.compactHelper}>Löscht nur provider-importierte Jellyfin-Versionen vor dem Re-Import.</span>
-                </span>
-              </label>
-              {model.cleanupVersions && model.previewResult && model.previewResult.existing_jellyfin_versions > 0 ? (
-                <div className={styles.warningBox}>
-                  Achtung: {model.previewResult.existing_jellyfin_versions} bestehende Jellyfin-Versionen werden beim Sync entfernt.
-                </div>
-              ) : null}
-
-              <label className={styles.toggleCard}>
-                <input
-                  type="checkbox"
-                  checked={model.allowMismatch}
-                  onChange={(event) => model.setAllowMismatch(event.target.checked)}
-                  disabled={model.isSyncing || model.isLoadingPreview}
-                />
-                <span className={styles.toggleCopy}>
-                  <span className={styles.toggleTitle}>Mismatch-Guard überschreiben</span>
-                  <span className={styles.compactHelper}>Nur aktivieren, wenn die Preview bewusst geprüft wurde.</span>
-                </span>
-              </label>
-              {model.allowMismatch ? (
-                <div className={styles.warningBox}>Guard deaktiviert. Falsche Zuordnung kann erneut TV- und OVA-Daten mischen.</div>
-              ) : null}
-            </div>
-          </details>
-
-          {renderStepFeedback(model.previewFeedback)}
-
-          <div className={styles.stepActions}>
-            <button
-              className={`${studioStyles.button} ${studioStyles.buttonPrimary}`}
-              type="button"
-              onClick={handlePreview}
-              disabled={model.isSyncing || model.isLoadingPreview || selectedSeriesID === ''}
-            >
-              {model.isLoadingPreview ? (
-                <>
-                  <Spinner size="sm" label="" />
-                  Preview läuft...
-                </>
-              ) : (
-                'Vorschau laden'
-              )}
-            </button>
-            <span className={styles.actionHint}>
-              {selectedSeriesID ? 'Lade jetzt die Vorschau für den ausgewählten Treffer.' : 'Wähle zuerst einen Treffer aus.'}
-            </span>
-          </div>
-
-          <div className={styles.previewBox}>
-            {model.isLoadingPreview ? (
-              <div className={styles.emptyState}>
-                <Spinner size="sm" label="" />
-                <p className={styles.emptyStateText}>Vorschau wird geladen...</p>
-              </div>
-            ) : hasFreshPreview && model.previewResult ? (
-              <>
-                <div className={styles.previewHeader}>
-                  <div className={styles.previewTitleBlock}>
-                    <p className={styles.previewEyebrow}>Vorschau</p>
-                    <p className={styles.previewTitle}>{model.previewResult.jellyfin_series_name}</p>
-                    <p className={styles.metaLine}>{model.previewResult.jellyfin_series_path || '(ohne Pfad)'}</p>
-                  </div>
-                  <div className={styles.previewBadges}>
-                    {model.previewResult.matched_episodes === 0 ? (
-                      <span className={`${studioStyles.badge} ${studioStyles.badgeWarning}`}>Keine Treffer</span>
-                    ) : model.previewResult.mismatch_detected ? (
-                      <span className={`${studioStyles.badge} ${studioStyles.badgeWarning}`}>Mismatch</span>
-                    ) : (
-                      <span className={`${studioStyles.badge} ${studioStyles.badgeSuccess}`}>Bereit</span>
-                    )}
-                    <span className={`${studioStyles.badge} ${studioStyles.badgeMuted}`}>Season {model.previewResult.season_number}</span>
-                  </div>
-                </div>
-                {model.previewResult.matched_episodes === 0 ? (
-                  <div className={styles.warningBox}>
-                    Keine passenden Episoden für Season {model.previewResult.season_number} in dieser Serie gefunden.
-                    Prüfe Season-Nummer und Pfad-Filter.
-                  </div>
-                ) : (
-                  <>
-                    {renderPreviewSummaryCards(model.previewResult)}
-                    {model.previewResult.mismatch_detected && model.previewResult.mismatch_reason ? (
-                      <div className={styles.warningBox}>Guard-Hinweis: {model.previewResult.mismatch_reason}</div>
-                    ) : null}
-                  </>
-                )}
-              </>
-            ) : (
-              <p className={styles.placeholderText}>Noch keine aktuelle Preview geladen.</p>
-            )}
-          </div>
-        </section>
-
-        <section className={styles.stepPanel}>
-          <div className={styles.stepPanelHeader}>
-            <span className={styles.stepIndex}>4</span>
-            <div className={styles.stepPanelHeading}>
-              <h3 className={styles.stepTitle}>Sync anwenden</h3>
-              <p className={styles.stepHelper}>Erst wenn die Vorschau gut aussieht, wird die Verknüpfung übernommen.</p>
-            </div>
-          </div>
-
-          {renderStepFeedback(model.syncFeedback)}
-
-          <div className={styles.stepActions}>
-            <button
-              className={`${studioStyles.button} ${studioStyles.buttonDanger}`}
-              type="button"
-              onClick={handleRequestSync}
-              disabled={!canSync}
-            >
-              {model.isSyncing ? (
-                <>
-                  <Spinner size="sm" label="" />
-                  Sync läuft...
-                </>
-              ) : (
-                'Verknüpfen & synchronisieren'
-              )}
-            </button>
-            <span className={styles.actionHint}>
-              {canSync
-                ? 'Öffnet zuerst die Bestätigung.'
-                : hasFreshPreview && !hasSyncablePreview
-                  ? 'Diese Vorschau enthält keine importierbaren Episoden.'
-                  : 'Bitte zuerst eine aktuelle Vorschau laden.'}
-            </span>
-          </div>
-
-          <div className={styles.previewBox}>
-            {model.lastSyncResult ? (
-              <>
-                <div className={styles.previewHeader}>
-                  <div className={styles.previewTitleBlock}>
-                    <p className={styles.previewEyebrow}>Letztes Ergebnis</p>
-                    <p className={styles.previewTitle}>{model.lastSyncResult.jellyfin_series_name}</p>
-                    <p className={styles.metaLine}>{model.lastSyncResult.jellyfin_series_path || '(ohne Pfad)'}</p>
-                  </div>
-                  <span className={`${studioStyles.badge} ${studioStyles.badgeSuccess}`}>Abgeschlossen</span>
-                </div>
-                {renderSyncSummaryCards(model.lastSyncResult)}
-              </>
-            ) : (
-              <p className={styles.placeholderText}>Nach einem erfolgreichen Sync erscheint hier eine kurze Ergebnis-Zusammenfassung.</p>
-            )}
-          </div>
-        </section>
+        <JellyfinSyncStepSearch model={model} onSearch={handleSearch} />
+        <JellyfinSyncStepSeries
+          model={model}
+          selectedSeriesID={selectedSeriesID}
+          selectedSeries={selectedSeries}
+          hasSearchResults={hasSearchResults}
+          showSearchEmptyState={showSearchEmptyState}
+        />
+        <JellyfinSyncStepPreview
+          model={model}
+          selectedSeriesID={selectedSeriesID}
+          hasFreshPreview={hasFreshPreview}
+          onPreview={handlePreview}
+        />
+        <JellyfinSyncStepApply
+          model={model}
+          canSync={canSync}
+          hasFreshPreview={hasFreshPreview}
+          hasSyncablePreview={hasSyncablePreview}
+          onRequestSync={handleRequestSync}
+        />
       </div>
 
       {isConfirmOpen ? (
-        <div className={styles.modalBackdrop} role="presentation" onClick={() => !model.isSyncing && setIsConfirmOpen(false)}>
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="jellyfin-sync-confirm-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={styles.modalBody}>
-              <p className={styles.eyebrow}>Bestätigung</p>
-              <h3 id="jellyfin-sync-confirm-title" className={styles.modalTitle}>
-                Sync wirklich anwenden?
-              </h3>
-              <p className={styles.modalText}>
-                {selectedSeries ? `Serie: ${selectedSeries.name}` : 'Die ausgewählte Jellyfin-Serie'} wird jetzt als saisonweiter Bulk-Sync mit diesem Anime synchronisiert.
-              </p>
-              {model.cleanupVersions ? (
-                <div className={styles.warningBox}>Bestehende Jellyfin-Versionen werden vor dem Re-Import entfernt.</div>
-              ) : null}
-              {model.previewResult && model.previewResult.matched_episodes > 0 ? (
-                <p className={styles.modalText}>
-                  {model.previewResult.accepted_unique_episodes} Episoden werden importiert/aktualisiert.
-                </p>
-              ) : null}
-              {renderStepFeedback(model.syncFeedback)}
-            </div>
-            <div className={styles.modalActions}>
-              <button
-                className={`${studioStyles.button} ${studioStyles.buttonSecondary}`}
-                type="button"
-                onClick={() => setIsConfirmOpen(false)}
-                disabled={model.isSyncing}
-              >
-                Abbrechen
-              </button>
-              <button
-                className={`${studioStyles.button} ${studioStyles.buttonDanger}`}
-                type="button"
-                onClick={handleConfirmSync}
-                disabled={model.isSyncing}
-              >
-                {model.isSyncing ? (
-                  <>
-                    <Spinner size="sm" label="" />
-                    Staffel wird synchronisiert...
-                  </>
-                ) : (
-                  'Staffel jetzt synchronisieren'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+        <JellyfinSyncConfirmDialog
+          selectedSeries={selectedSeries}
+          previewResult={model.previewResult}
+          cleanupVersions={model.cleanupVersions}
+          isSyncing={model.isSyncing}
+          syncFeedback={model.syncFeedback}
+          onCancel={() => setIsConfirmOpen(false)}
+          onConfirm={handleConfirmSync}
+        />
       ) : null}
     </section>
   )

@@ -108,7 +108,12 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   'src/app/admin/anime/components/EpisodeManager/EpisodeFilters.tsx',
   'src/app/admin/anime/components/EpisodeManager/EpisodeInlineEdit.tsx',
   'src/app/admin/anime/components/EpisodeManager/EpisodeRow.tsx',
-  'src/app/admin/anime/components/JellyfinSync/JellyfinSyncPanel.tsx',
+  // JellyfinSyncPanel.tsx wurde aufgeteilt (CLAUDE.md "Übergroße Dateien beim Anfassen
+  // aufteilen", Quick-Task 261029-i1y) -- dieselbe, bereits vor dem Split bestehende
+  // native-input/select-Altlast lebt jetzt in diesen drei Schritt-Komponenten, kein Zuwachs.
+  'src/app/admin/anime/components/JellyfinSync/JellyfinSyncStepPreview.tsx',
+  'src/app/admin/anime/components/JellyfinSync/JellyfinSyncStepSearch.tsx',
+  'src/app/admin/anime/components/JellyfinSync/JellyfinSyncStepSeries.tsx',
   'src/app/admin/anime/components/ManualCreate/ManualCreateAssetUploadPanel.tsx',
   'src/app/admin/anime/components/ManualCreate/ManualCreateWorkspace.tsx',
   'src/app/admin/anime/create/CreateAniSearchIntakeCard.tsx',
