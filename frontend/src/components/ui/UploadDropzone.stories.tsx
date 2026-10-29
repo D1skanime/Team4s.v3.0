@@ -30,6 +30,7 @@ type Story = StoryObj<typeof meta>
 export const Standard: Story = {}
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   args: { disabled: true },
 }
 

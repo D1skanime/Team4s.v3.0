@@ -42,12 +42,14 @@ export const Standard: Story = {
 }
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   render: () => (
     <ControlledDatePicker id="date-picker-disabled" label="Veröffentlichungsdatum" minYear={1990} maxYear={2030} disabled />
   ),
 }
 
 export const Invalid: Story = {
+  name: 'Ungültig',
   render: () => (
     <ControlledDatePicker id="date-picker-invalid" label="Veröffentlichungsdatum" minYear={1990} maxYear={2030} invalid />
   ),

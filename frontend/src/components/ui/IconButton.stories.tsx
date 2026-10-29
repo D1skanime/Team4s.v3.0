@@ -24,10 +24,12 @@ type Story = StoryObj<typeof meta>
 export const Standard: Story = {}
 
 export const Ghost: Story = {
+  name: 'Dezent',
   args: { variant: 'ghost' },
 }
 
 export const Floating: Story = {
+  name: 'Schwebend',
   args: { variant: 'floating' },
   decorators: [
     (Story) => (
@@ -54,6 +56,11 @@ export const Deaktiviert: Story = {
 }
 
 const VARIANTS = ['default', 'floating', 'ghost'] as const
+const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
+  default: 'Standard',
+  floating: 'Schwebend',
+  ghost: 'Dezent',
+}
 const SIZES = ['sm', 'md', 'lg'] as const
 
 export const GroessenUndVarianten: Story = {
@@ -70,7 +77,7 @@ export const GroessenUndVarianten: Story = {
             ) : (
               <IconButton icon={<X size={18} />} aria-label="Schließen" variant={variant} size={size} />
             )}
-            <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>{variant} / {size}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>{VARIANT_LABELS[variant]} / {size}</span>
           </div>
         )),
       )}

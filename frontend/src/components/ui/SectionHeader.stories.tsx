@@ -24,7 +24,7 @@ export const Standard: Story = {
 }
 
 export const OhneDescription: Story = {
-  name: 'OhneDescription',
+  name: 'Ohne Beschreibung',
   args: {
     title: 'Mitgliederübersicht',
   },

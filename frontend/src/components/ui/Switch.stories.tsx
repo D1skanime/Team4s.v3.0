@@ -25,5 +25,6 @@ export const Aus: Story = {
 }
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   args: { checked: false, disabled: true, label: 'Gesperrte Option' },
 }

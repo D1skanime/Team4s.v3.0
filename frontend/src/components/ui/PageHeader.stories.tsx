@@ -31,7 +31,7 @@ export const Standard: Story = {
 }
 
 export const OhneActions: Story = {
-  name: 'OhneActions',
+  name: 'Ohne Aktionen',
   args: {
     eyebrow: 'Preview',
     title: 'Meine Gruppen',

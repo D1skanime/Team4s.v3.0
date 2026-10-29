@@ -55,6 +55,7 @@ export const Standard: Story = {
 }
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   render: () => (
     <SortableList items={BASE_ITEMS} getItemId={(item) => item.id} onReorder={() => {}} renderItem={renderRow} disabled label="Gesperrte Sortierung" />
   ),

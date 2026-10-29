@@ -22,19 +22,22 @@ export const Neutral: Story = {
 }
 
 export const InfoTon: Story = {
-  name: 'Info',
+  name: 'Hinweis',
   args: { tone: 'info', icon: <Info size={18} strokeWidth={2} /> },
 }
 
 export const Success: Story = {
+  name: 'Erfolg',
   args: { tone: 'success', icon: <CircleCheck size={18} strokeWidth={2} /> },
 }
 
 export const Warning: Story = {
+  name: 'Warnung',
   args: { tone: 'warning', icon: <TriangleAlert size={18} strokeWidth={2} /> },
 }
 
 export const Danger: Story = {
+  name: 'Gefahr',
   args: { tone: 'danger', icon: <Ban size={18} strokeWidth={2} /> },
 }
 
@@ -45,6 +48,13 @@ const TONE_ICONS = [
   { tone: 'warning' as const, icon: <TriangleAlert size={18} strokeWidth={2} /> },
   { tone: 'danger' as const, icon: <Ban size={18} strokeWidth={2} /> },
 ]
+const TONE_LABELS: Record<(typeof TONE_ICONS)[number]['tone'], string> = {
+  neutral: 'Neutral',
+  info: 'Hinweis',
+  success: 'Erfolg',
+  warning: 'Warnung',
+  danger: 'Gefahr',
+}
 
 export const GroessenUndVarianten: Story = {
   name: 'Größen und Varianten',
@@ -54,7 +64,7 @@ export const GroessenUndVarianten: Story = {
       {TONE_ICONS.map(({ tone, icon }) => (
         <div key={tone} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
           <StatusIcon tone={tone} icon={icon} />
-          <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>{tone}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>{TONE_LABELS[tone]}</span>
         </div>
       ))}
     </div>

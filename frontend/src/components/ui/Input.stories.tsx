@@ -18,10 +18,12 @@ type Story = StoryObj<typeof meta>
 export const Standard: Story = {}
 
 export const Invalid: Story = {
+  name: 'Ungültig',
   args: { invalid: true, defaultValue: 'Ungültiger Wert' },
 }
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   args: { disabled: true, defaultValue: 'Gesperrt' },
 }
 

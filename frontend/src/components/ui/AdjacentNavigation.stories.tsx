@@ -20,6 +20,7 @@ export const Standard: Story = {
 }
 
 export const Floating: Story = {
+  name: 'Schwebend',
   args: {
     variant: 'floating',
     previous: { href: '#', label: 'C-Subs Projekt' },

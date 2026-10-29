@@ -13,6 +13,7 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Hairline: Story = {
+  name: 'Haarlinie',
   args: { thickness: 'hairline' },
 }
 
@@ -21,9 +22,11 @@ export const Standard: Story = {
 }
 
 export const Medium: Story = {
+  name: 'Mittel',
   args: { thickness: 'medium' },
 }
 
 export const Strong: Story = {
+  name: 'Stark',
   args: { thickness: 'strong' },
 }

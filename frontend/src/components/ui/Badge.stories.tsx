@@ -16,27 +16,40 @@ export const Neutral: Story = {
   args: { variant: 'neutral', children: 'Neutral' },
 }
 
-export const Success: Story = {
-  args: { variant: 'success', children: 'Success' },
+export const Erfolg: Story = {
+  name: 'Erfolg',
+  args: { variant: 'success', children: 'Erfolg' },
 }
 
-export const Warning: Story = {
-  args: { variant: 'warning', children: 'Warning' },
+export const Warnung: Story = {
+  name: 'Warnung',
+  args: { variant: 'warning', children: 'Warnung' },
 }
 
-export const Danger: Story = {
-  args: { variant: 'danger', children: 'Danger' },
+export const Gefahr: Story = {
+  name: 'Gefahr',
+  args: { variant: 'danger', children: 'Gefahr' },
 }
 
-export const Info: Story = {
-  args: { variant: 'info', children: 'Info' },
+export const Hinweis: Story = {
+  name: 'Hinweis',
+  args: { variant: 'info', children: 'Hinweis' },
 }
 
-export const Muted: Story = {
-  args: { variant: 'muted', children: 'Muted' },
+export const Gedaempft: Story = {
+  name: 'Gedämpft',
+  args: { variant: 'muted', children: 'Gedämpft' },
 }
 
 const VARIANTS = ['neutral', 'success', 'warning', 'danger', 'info', 'muted'] as const
+const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
+  neutral: 'Neutral',
+  success: 'Erfolg',
+  warning: 'Warnung',
+  danger: 'Gefahr',
+  info: 'Hinweis',
+  muted: 'Gedämpft',
+}
 
 export const GroessenUndVarianten: Story = {
   name: 'Größen und Varianten',
@@ -44,7 +57,7 @@ export const GroessenUndVarianten: Story = {
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
       {VARIANTS.map((variant) => (
         <Badge key={variant} variant={variant}>
-          {variant}
+          {VARIANT_LABELS[variant]}
         </Badge>
       ))}
     </div>

@@ -68,6 +68,7 @@ export const Pflichtfeld: Story = {
 }
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   args: {
     label: 'Gesperrtes Feld',
     htmlFor: 'form-field-disabled',

@@ -29,7 +29,7 @@ export const Standard: Story = {
 }
 
 export const InfoVariante: Story = {
-  name: 'InfoVariante',
+  name: 'Info-Variante',
   args: {
     variant: 'info',
     icon: <Info size={20} strokeWidth={2} />,
@@ -39,7 +39,7 @@ export const InfoVariante: Story = {
 }
 
 export const OhneAction: Story = {
-  name: 'OhneAction',
+  name: 'Ohne Aktion',
   args: {
     title: 'Keine Treffer',
     description: 'Für die aktuelle Filterkombination gibt es keine passenden Einträge.',

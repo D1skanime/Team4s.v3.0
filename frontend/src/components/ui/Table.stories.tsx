@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Tabl
 const rows = [
   { name: 'Anime no Hikari', status: 'Aktiv', owners: '3 Rollen', progress: '12 Versionen' },
   { name: 'Pixel Fansubs', status: 'Pausiert', owners: '1 Rolle', progress: '4 Versionen' },
-  { name: 'T4 Archive Lab', status: 'Read-only', owners: '2 Rollen', progress: '27 Assets' },
+  { name: 'T4 Archive Lab', status: 'Nur Lesen', owners: '2 Rollen', progress: '27 Assets' },
 ]
 
 function statusVariant(status: string): 'success' | 'danger' | 'warning' | 'info' {
@@ -16,7 +16,7 @@ function statusVariant(status: string): 'success' | 'danger' | 'warning' | 'info
       return 'success'
     case 'Pausiert':
       return 'danger'
-    case 'Read-only':
+    case 'Nur Lesen':
       return 'warning'
     default:
       return 'info'
@@ -58,6 +58,7 @@ export const Standard: Story = {
 }
 
 export const Compact: Story = {
+  name: 'Kompakt',
   render: () => (
     <Table variant="compact">
       <TableBody>
@@ -73,7 +74,7 @@ export const Compact: Story = {
 }
 
 export const WithActions: Story = {
-  name: 'WithActions',
+  name: 'Mit Aktionen',
   render: () => (
     <Table variant="withActions">
       <TableHead>
@@ -99,6 +100,7 @@ export const WithActions: Story = {
 }
 
 export const Selectable: Story = {
+  name: 'Auswählbar',
   render: () => (
     <Table variant="selectable">
       <TableBody>

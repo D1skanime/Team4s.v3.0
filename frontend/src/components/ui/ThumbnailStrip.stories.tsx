@@ -52,7 +52,7 @@ function VieleItemsDemo() {
 }
 
 export const VieleItems: Story = {
-  name: 'VieleItems',
+  name: 'Viele Einträge',
   render: () => <VieleItemsDemo />,
 }
 

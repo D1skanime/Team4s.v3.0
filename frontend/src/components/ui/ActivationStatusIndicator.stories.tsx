@@ -24,27 +24,27 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const RoleMatrixErfolg: Story = {
-  name: 'RoleMatrixErfolg',
+  name: 'Rollenmatrix: Erfolg',
   args: { path: 'role_matrix', cacheReloadSucceeded: true },
 }
 
 export const RoleMatrixFehlerMitRetry: Story = {
-  name: 'RoleMatrixFehlerMitRetry',
+  name: 'Rollenmatrix: Fehler mit Wiederholung',
   args: { path: 'role_matrix', cacheReloadSucceeded: false, onRetry: () => {} },
 }
 
 export const OverrideAktiv: Story = {
-  name: 'OverrideAktiv',
+  name: 'Override: Aktiv',
   args: { path: 'override', activationStatus: 'active' },
 }
 
 export const OverridePending: Story = {
-  name: 'OverridePending',
+  name: 'Override: Ausstehend',
   args: { path: 'override', activationStatus: 'pending' },
 }
 
 export const OverridePersisted: Story = {
-  name: 'OverridePersisted',
+  name: 'Override: Dauerhaft gespeichert',
   args: { path: 'override', activationStatus: 'persisted' },
   parameters: {
     docs: {
@@ -57,7 +57,7 @@ export const OverridePersisted: Story = {
 }
 
 export const OverrideFailed: Story = {
-  name: 'OverrideFailed',
+  name: 'Override: Fehlgeschlagen',
   args: { path: 'override', activationStatus: 'failed' },
   parameters: {
     docs: {

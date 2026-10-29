@@ -64,6 +64,6 @@ function DangerDemo() {
 }
 
 export const DangerVariante: Story = {
-  name: 'DangerVariante',
+  name: 'Gefahr-Variante',
   render: () => <DangerDemo />,
 }

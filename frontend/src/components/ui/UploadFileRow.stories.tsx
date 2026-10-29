@@ -28,21 +28,26 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Idle: Story = {
+  name: 'Wartet',
   args: { status: 'idle' },
 }
 
 export const Uploading: Story = {
+  name: 'Lädt hoch',
   args: { status: 'uploading', progress: 42 },
 }
 
 export const Processing: Story = {
+  name: 'Wird verarbeitet',
   args: { status: 'processing' },
 }
 
 export const Ready: Story = {
+  name: 'Hochgeladen',
   args: { status: 'ready' },
 }
 
 export const Failed: Story = {
+  name: 'Fehlgeschlagen',
   args: { status: 'failed', errorMessage: 'Die Datei konnte nicht hochgeladen werden.', onRetry: () => {} },
 }

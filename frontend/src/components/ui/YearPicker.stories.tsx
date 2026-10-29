@@ -34,12 +34,14 @@ export const Standard: Story = {
 }
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   render: () => (
     <ControlledYearPicker id="year-picker-disabled" label="Gründungsjahr" minYear={1980} maxYear={2030} disabled />
   ),
 }
 
 export const Invalid: Story = {
+  name: 'Ungültig',
   render: () => (
     <ControlledYearPicker id="year-picker-invalid" label="Gründungsjahr" minYear={1980} maxYear={2030} invalid />
   ),

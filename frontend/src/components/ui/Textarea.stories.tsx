@@ -20,10 +20,12 @@ export const Standard: Story = {
 }
 
 export const Invalid: Story = {
+  name: 'Ungültig',
   args: { invalid: true, defaultValue: 'Die Oberfläche bleibt mockbasiert und generisch.' },
 }
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   args: { disabled: true, defaultValue: 'Gesperrtes Feld' },
 }
 

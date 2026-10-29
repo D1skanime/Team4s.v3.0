@@ -24,6 +24,7 @@ export const Standard: Story = {
 }
 
 export const Invalid: Story = {
+  name: 'Ungültig',
   args: { invalid: true, defaultValue: 'ongoing' },
   render: (args) => (
     <Select {...args}>
@@ -35,6 +36,7 @@ export const Invalid: Story = {
 }
 
 export const Disabled: Story = {
+  name: 'Deaktiviert',
   args: { disabled: true, defaultValue: 'ongoing' },
   render: (args) => (
     <Select {...args}>
