@@ -5,9 +5,17 @@ import { Accordion } from './Accordion'
 
 /** Aufklappbare Kategorien — unabhängig schaltbar, Touch-Ziel >= 44px, kein horizontaler Scroll. */
 const meta = {
-  title: 'Grundbausteine/Accordion',
+  title: 'Zusammengesetzte Bausteine/Accordion',
   component: Accordion,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Besteht aus: DisclosureIndicator (natives button als dokumentierte ARIA-Widget-Ausnahme).',
+      },
+    },
+  },
 } satisfies Meta<typeof Accordion>
 
 export default meta

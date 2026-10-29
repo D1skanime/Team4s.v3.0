@@ -6,9 +6,16 @@ const demoFile = new File(['Team4s Storybook Demo-Inhalt'], 'release-screenshot.
 
 /** Einzelne Datei-Zeile innerhalb einer Upload-Warteschlange, je Status ein eigener Zustand. */
 const meta = {
-  title: 'Grundbausteine/UploadFileRow',
+  title: 'Zusammengesetzte Bausteine/UploadFileRow',
   component: UploadFileRow,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: Badge, Button, FormField, Input, Textarea.',
+      },
+    },
+  },
   args: {
     file: demoFile,
     title: '',

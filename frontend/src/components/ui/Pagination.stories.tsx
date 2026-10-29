@@ -4,9 +4,16 @@ import { Pagination } from './Pagination'
 
 /** Seitennavigation für lange Listen: Zurück/Weiter plus Seitenfenster. */
 const meta = {
-  title: 'Grundbausteine/Pagination',
+  title: 'Zusammengesetzte Bausteine/Pagination',
   component: Pagination,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: Button.',
+      },
+    },
+  },
 } satisfies Meta<typeof Pagination>
 
 export default meta

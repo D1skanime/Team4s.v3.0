@@ -5,9 +5,16 @@ import { MediaSlot } from './MediaSlot'
 /** Einzel-Bild/-Video-Upload-Slot: zeigt nie eine zweite, große Dropzone neben einer
  * vorhandenen Vorschau (replace-overlay statt empty-dropzone, siehe resolveUploadSlotPresentation). */
 const meta = {
-  title: 'Grundbausteine/MediaSlot',
+  title: 'Zusammengesetzte Bausteine/MediaSlot',
   component: MediaSlot,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: UploadDropzone.',
+      },
+    },
+  },
   args: {
     aspectRatio: 1,
     label: 'Logo',

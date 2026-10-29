@@ -34,9 +34,16 @@ function renderItem(item: DemoItem, state: FocalCarouselItemState) {
 
 /** Fokussiertes Karussell-Primitive mit Nachbar-Vorschau und Tastatur-/Pointer-Navigation. */
 const meta = {
-  title: 'Grundbausteine/FocalCarousel',
+  title: 'Zusammengesetzte Bausteine/FocalCarousel',
   component: FocalCarousel<DemoItem>,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: Button, NavArrow (über FocalCarouselInternals).',
+      },
+    },
+  },
   args: {
     items: DEMO_ITEMS,
     getItemKey: (item: DemoItem) => item.id,

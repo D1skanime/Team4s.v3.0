@@ -7,9 +7,16 @@ import { HeroMetrics } from './HeroMetrics'
 
 /** Identitäts-Hero-Fläche mit optionalem Hintergrund-Artwork, Avatar, Status und Kennzahlen. */
 const meta = {
-  title: 'Grundbausteine/ArtworkHero',
+  title: 'Zusammengesetzte Bausteine/ArtworkHero',
   component: ArtworkHero,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: ResponsiveImage.',
+      },
+    },
+  },
   args: {
     ariaLabel: 'C-Subs Profil',
     title: 'C-Subs',

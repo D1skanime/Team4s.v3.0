@@ -14,9 +14,16 @@ function demoItems(count: number) {
 /** Volle-Breite Thumbnail-Leiste unterhalb einer Bild-Bühne. Rendert bewusst nichts bei
  * weniger als zwei Einträgen (D-32) — die Leer-Story zeigt diesen No-Op-Zustand. */
 const meta = {
-  title: 'Grundbausteine/ThumbnailStrip',
+  title: 'Zusammengesetzte Bausteine/ThumbnailStrip',
   component: ThumbnailStrip,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: ResponsiveImage.',
+      },
+    },
+  },
   args: {
     items: demoItems(4),
     activeIndex: 0,
