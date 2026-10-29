@@ -283,6 +283,10 @@ Always run the most relevant available checks:
 - `lint`
 - relevant tests
 - `build` if feasible
+- For the frontend, `npm run build-storybook` (in the frontend container) is an
+  additional required check once a file under `frontend/src/components/ui/` or
+  `frontend/src/components/showcases/` has changed — a broken story build is a
+  regression finding just like a broken `npm run build`.
 - migration up/down tests for DB migration tasks
 - `git diff --check`
 
