@@ -141,17 +141,25 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   nutzen (`Button`, `Select`, `FormField`, `Modal`, `Input`, `Textarea`, `Tabs`,
   `Drawer`, `Card`, `Table` …). Referenz/Showcase: Storybook — Start über
   `docker compose up -d team4sv30-storybook`, danach `http://192.168.235.196:6006`
-  bzw. über den SSH-Tunnel auf Port 6006. Kategorie `UI/*` zeigt jede der 38 globalen
-  Primitives mit voller Zustandsabdeckung; Kategorie `Showcases/*` zeigt die
-  migrierten domänenspezifischen Kompositionen.
+  bzw. über den SSH-Tunnel auf Port 6006. Drei Kategorien: `Grundbausteine/*` zeigt
+  jedes eigenständige Primitiv (34 Stories, keine andere `components/ui`-Komponente
+  intern importiert) mit voller Zustandsabdeckung; `Zusammengesetzte Bausteine/*`
+  zeigt Primitives, die sichtbar mehrere benannte Grundbausteine komponieren (7
+  Stories, z. B. FormField, Modal, Drawer — jede mit einem „Besteht aus"-Hinweis in
+  ihrer Autodocs-Beschreibung); `Im Einsatz/*` zeigt die migrierten
+  domänenspezifischen Kompositionen (12 Stories).
 - **Verboten:** Handgebaute native `<select>`, `<input>`, `<textarea>`, `<button>`
   oder Eigen-Markup für einen Primitiv-Typ, den `@/components/ui` bereits anbietet.
   Lokale Datei-Konsistenz rechtfertigt KEIN Abweichen vom globalen Design-System;
   die „closest-analog"-Regel darf das globale UI nie überstimmen.
-- **Durchsetzung:** ESLint `no-restricted-syntax` warnt bei nativem `<select>/<input>/
-  <textarea>` (`frontend/eslint.config.mjs`); nach Migration der Altfälle wird auf
-  `error` angehoben. UI-SPECs müssen die Primitive-Nutzung als Pflicht-Constraint
-  führen (UI-Checker-Gate).
+- **Durchsetzung:** ESLint `no-restricted-syntax` steht repo-weit bereits auf
+  `error` für natives `<select>/<input>/<textarea>` (`frontend/eslint.config.mjs`).
+  Ein zweiter, auf `src/components/ui/**` beschränkter Guard verbietet dort
+  zusätzlich natives `<button>` (Modal/Drawer fielen vormals auf ein eigenes
+  Schließen-Kreuz zurück, statt auf `IconButton` — siehe dessen dokumentierte,
+  feste Ausnahmeliste `UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES` für Dateien, in denen das
+  native Element Teil der eigenen ARIA-Widget-Semantik ist). UI-SPECs müssen die
+  Primitive-Nutzung als Pflicht-Constraint führen (UI-Checker-Gate).
 - **Ausnahme:** Die Primitive-Definitionen selbst unter
   `frontend/src/components/ui/` dürfen native Elemente kapseln.
 - **Pflichtregel „Stories ziehen mit":** Ändert sich eine globale Primitive aus

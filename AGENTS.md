@@ -214,7 +214,7 @@ For any non-trivial UI redesign or new public/admin surface:
 10. After implementation, perform a live visual comparison against the approved reference or prototype. A material visual difference is a UI gap, not an acceptable interpretation.
 11. A UI task is not complete merely because tests, typecheck, or build pass; it must also pass the agreed live visual and responsive verification.
 12. Reuse existing Team4s components, tokens, APIs, authorization, and domain logic where appropriate. A prototype defines the desired UX, not permission to build parallel architecture.
-13. Storybook (`frontend/.storybook`, categories `UI/*` and `Showcases/*`) is the binding visual reference for existing primitives — before building a new variant, check whether a matching story already exists.
+13. Storybook (`frontend/.storybook`, categories `Grundbausteine/*`, `Zusammengesetzte Bausteine/*`, and `Im Einsatz/*`) is the binding visual reference for existing primitives — before building a new variant, check whether a matching story already exists.
 
 When a ChatGPT/GSD Discuss phase creates a visual sketch, the agent must verify before Execute that an HTML prototype and a UI specification also exist. For a larger visual change, if either is missing, do not interpret the image autonomously; record the missing UI Contract as a planning gap.
 ### Responsive UI Standard
