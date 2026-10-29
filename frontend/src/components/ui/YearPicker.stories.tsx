@@ -6,7 +6,7 @@ import { YearPicker } from './YearPicker'
 
 /** Kompakte Jahres-Auswahl-Primitive (z. B. für Gründungsjahr/Erscheinungsjahr). */
 const meta = {
-  title: 'UI/YearPicker',
+  title: 'Grundbausteine/YearPicker',
   component: YearPicker,
   tags: ['autodocs'],
   // Alle Pflicht-Props liegen hier als Platzhalter vor; jede Story rendert stattdessen über

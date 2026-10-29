@@ -9,7 +9,7 @@ import { UploadDropzone } from './UploadDropzone'
  * Datei über die Fläche ziehen, um den Drag-Zustand zu sehen.
  */
 const meta = {
-  title: 'UI/UploadDropzone',
+  title: 'Grundbausteine/UploadDropzone',
   component: UploadDropzone,
   tags: ['autodocs'],
   args: {

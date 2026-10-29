@@ -8,7 +8,7 @@ import { ActivationStatusIndicator } from './ActivationStatusIndicator'
  * und Pfad `override` (persönliche Rechte-Override-Mutation, mit `active`/`pending`).
  */
 const meta = {
-  title: 'UI/ActivationStatusIndicator',
+  title: 'Grundbausteine/ActivationStatusIndicator',
   component: ActivationStatusIndicator,
   tags: ['autodocs'],
 } satisfies Meta<typeof ActivationStatusIndicator>

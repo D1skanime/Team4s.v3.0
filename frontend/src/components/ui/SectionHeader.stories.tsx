@@ -5,7 +5,7 @@ import { SectionHeader } from './SectionHeader'
 
 /** Sekundärer Abschnitts-Header innerhalb einer Seite. */
 const meta = {
-  title: 'UI/SectionHeader',
+  title: 'Grundbausteine/SectionHeader',
   component: SectionHeader,
   tags: ['autodocs'],
 } satisfies Meta<typeof SectionHeader>

@@ -3,15 +3,20 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Button } from './Button'
 import { ErrorState, getErrorStateCopy } from './ErrorState'
 
-/**
- * Fehlerzustand-Primitive. `Status403` demonstriert den speziellen 403-Sonderfall von
- * `getErrorStateCopy`/`getStatusAwareMessage` (eigene Berechtigungs-Fehlermeldung statt des
- * generischen "Fehler beim Laden").
- */
 const meta = {
-  title: 'UI/ErrorState',
+  title: 'Zusammengesetzte Bausteine/ErrorState',
   component: ErrorState,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Fehlerzustand-Primitive. `Status403` demonstriert den speziellen 403-Sonderfall von ' +
+          '`getErrorStateCopy`/`getStatusAwareMessage` (eigene Berechtigungs-Fehlermeldung statt des ' +
+          'generischen "Fehler beim Laden"). Besteht aus: Card, StatusIcon.',
+      },
+    },
+  },
 } satisfies Meta<typeof ErrorState>
 
 export default meta

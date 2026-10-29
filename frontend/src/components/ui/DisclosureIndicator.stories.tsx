@@ -4,7 +4,7 @@ import { DisclosureIndicator } from './DisclosureIndicator'
 
 /** Öffner-Symbol-Primitive für aufklappbare Zeilen/Listen/Karten. */
 const meta = {
-  title: 'UI/DisclosureIndicator',
+  title: 'Grundbausteine/DisclosureIndicator',
   component: DisclosureIndicator,
   tags: ['autodocs'],
 } satisfies Meta<typeof DisclosureIndicator>

@@ -25,7 +25,7 @@ function statusVariant(status: string): 'success' | 'danger' | 'warning' | 'info
 
 /** Tabellen-Primitive mit vier Varianten plus eingebautem Leerzustand. */
 const meta = {
-  title: 'UI/Table',
+  title: 'Grundbausteine/Table',
   tags: ['autodocs'],
 } satisfies Meta
 

@@ -4,7 +4,7 @@ import { Input } from './Input'
 
 /** Freitext-Eingabefeld-Primitive: Standard-, Fehler-, Disabled- und Lang-Wert-Zustand. */
 const meta = {
-  title: 'UI/Input',
+  title: 'Grundbausteine/Input',
   component: Input,
   tags: ['autodocs'],
   args: {

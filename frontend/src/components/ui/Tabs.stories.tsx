@@ -4,7 +4,7 @@ import { Tabs } from './Tabs'
 
 /** Tab-Primitive mit Reitern, optionalen Badges und ARIA-Tablist-Semantik. */
 const meta = {
-  title: 'UI/Tabs',
+  title: 'Grundbausteine/Tabs',
   component: Tabs,
   tags: ['autodocs'],
 } satisfies Meta<typeof Tabs>

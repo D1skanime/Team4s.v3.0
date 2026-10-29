@@ -11,7 +11,7 @@ import { Button } from './Button'
  * unter dem `@storybook/nextjs`-Webpack-Adapter ohne Zusatzkonfiguration greifen.
  */
 const meta = {
-  title: 'UI/Button',
+  title: 'Grundbausteine/Button',
   component: Button,
   tags: ['autodocs'],
   args: {

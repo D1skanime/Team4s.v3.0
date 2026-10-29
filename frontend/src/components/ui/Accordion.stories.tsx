@@ -5,7 +5,7 @@ import { Accordion } from './Accordion'
 
 /** Aufklappbare Kategorien — unabhängig schaltbar, Touch-Ziel >= 44px, kein horizontaler Scroll. */
 const meta = {
-  title: 'UI/Accordion',
+  title: 'Grundbausteine/Accordion',
   component: Accordion,
   tags: ['autodocs'],
 } satisfies Meta<typeof Accordion>

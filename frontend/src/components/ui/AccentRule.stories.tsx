@@ -4,7 +4,7 @@ import { AccentRule } from './AccentRule'
 
 /** Dekorative Wein-/Akzentlinie in vier Dicken. */
 const meta = {
-  title: 'UI/AccentRule',
+  title: 'Grundbausteine/AccentRule',
   component: AccentRule,
   tags: ['autodocs'],
 } satisfies Meta<typeof AccentRule>

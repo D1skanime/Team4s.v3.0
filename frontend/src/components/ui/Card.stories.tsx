@@ -4,7 +4,7 @@ import { Card } from './Card'
 
 /** Card-Primitive: alle acht dokumentierten Varianten aus CardProps. */
 const meta = {
-  title: 'UI/Card',
+  title: 'Grundbausteine/Card',
   component: Card,
   tags: ['autodocs'],
 } satisfies Meta<typeof Card>

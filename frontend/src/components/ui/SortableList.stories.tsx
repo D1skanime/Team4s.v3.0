@@ -27,7 +27,7 @@ function renderRow(item: DemoItem) {
 
 /** Drag&Drop-Sortierliste ohne eigenes Erscheinungsbild — der Aufrufer liefert `renderItem`. */
 const meta = {
-  title: 'UI/SortableList',
+  title: 'Grundbausteine/SortableList',
   component: SortableList<DemoItem>,
   tags: ['autodocs'],
   // Platzhalter-Args für den generischen Typ; jede Story liefert ihre eigene

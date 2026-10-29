@@ -8,7 +8,7 @@ import { AccordionShowcase } from './AccordionShowcase'
  * neuen Zustands-Varianten gegenüber der ursprünglichen Seite erfunden.
  */
 const meta = {
-  title: 'Showcases/AccordionShowcase',
+  title: 'Im Einsatz/AccordionShowcase',
   component: AccordionShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof AccordionShowcase>

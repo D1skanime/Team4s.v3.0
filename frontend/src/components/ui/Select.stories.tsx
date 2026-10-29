@@ -4,7 +4,7 @@ import { Select } from './Select'
 
 /** Auswahlfeld-Primitive: Standard mit drei Optionen, Fehler-, Disabled- und Leer-Optionen-Zustand. */
 const meta = {
-  title: 'UI/Select',
+  title: 'Grundbausteine/Select',
   component: Select,
   tags: ['autodocs'],
 } satisfies Meta<typeof Select>

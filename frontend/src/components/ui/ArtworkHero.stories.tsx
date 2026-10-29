@@ -7,7 +7,7 @@ import { HeroMetrics } from './HeroMetrics'
 
 /** Identitäts-Hero-Fläche mit optionalem Hintergrund-Artwork, Avatar, Status und Kennzahlen. */
 const meta = {
-  title: 'UI/ArtworkHero',
+  title: 'Grundbausteine/ArtworkHero',
   component: ArtworkHero,
   tags: ['autodocs'],
   args: {

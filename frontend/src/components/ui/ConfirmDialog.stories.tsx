@@ -3,14 +3,19 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Button } from './Button'
 import { useConfirmDialog } from './ConfirmDialog'
 
-/**
- * `useConfirmDialog()` ist ein Hook+Komponenten-Verbund (kein reines Props-Rendering) —
- * diese Story demonstriert den echten Aufruf-Fluss: Button klicken öffnet das Modal,
- * Bestätigen/Abbrechen löst das zurückgegebene Promise auf.
- */
 const meta = {
-  title: 'UI/ConfirmDialog',
+  title: 'Zusammengesetzte Bausteine/ConfirmDialog',
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          '`useConfirmDialog()` ist ein Hook+Komponenten-Verbund (kein reines Props-Rendering) — ' +
+          'diese Story demonstriert den echten Aufruf-Fluss: Button klicken öffnet das Modal, ' +
+          'Bestätigen/Abbrechen löst das zurückgegebene Promise auf. Besteht aus: Modal, Button.',
+      },
+    },
+  },
 } satisfies Meta
 
 export default meta

@@ -4,7 +4,7 @@ import { AvatarStack } from './AvatarStack'
 
 /** Überlappende Identitäten mit `+N`-Overflow, optional als zugänglicher Button. */
 const meta = {
-  title: 'UI/AvatarStack',
+  title: 'Grundbausteine/AvatarStack',
   component: AvatarStack,
   tags: ['autodocs'],
 } satisfies Meta<typeof AvatarStack>

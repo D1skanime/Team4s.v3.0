@@ -9,7 +9,7 @@ import { PublicFansubSurfacesShowcase } from './PublicFansubSurfacesShowcase'
  * wirken dadurch sowohl hier als auch auf den echten Public-Seiten.
  */
 const meta = {
-  title: 'Showcases/PublicFansubSurfacesShowcase',
+  title: 'Im Einsatz/PublicFansubSurfacesShowcase',
   component: PublicFansubSurfacesShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof PublicFansubSurfacesShowcase>

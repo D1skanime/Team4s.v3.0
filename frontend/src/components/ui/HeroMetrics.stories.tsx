@@ -4,7 +4,7 @@ import { HeroMetrics } from './HeroMetrics'
 
 /** Kennzahlen-Leiste für Hero-Flächen (Bezeichnung oben dunkel, Wert darunter blau). */
 const meta = {
-  title: 'UI/HeroMetrics',
+  title: 'Grundbausteine/HeroMetrics',
   component: HeroMetrics,
   tags: ['autodocs'],
   args: {

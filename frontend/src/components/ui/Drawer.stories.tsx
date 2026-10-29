@@ -3,10 +3,8 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Button } from './Button'
 import { Drawer } from './Drawer'
 
-/** Seitlicher Drawer für fokussierte Detail-Ansichten. `open: true` als Default-Arg, da
- * Storybook statisch rendert. */
 const meta = {
-  title: 'UI/Drawer',
+  title: 'Zusammengesetzte Bausteine/Drawer',
   component: Drawer,
   tags: ['autodocs'],
   args: {
@@ -16,6 +14,15 @@ const meta = {
     description: 'Der Drawer bleibt global, soll sich aber wie eine konzentrierte seitliche Arbeitsfläche anfühlen.',
     children: <p>Mock-Detailinhalt ohne API-Seam.</p>,
     footer: <Button variant="secondary">Schließen</Button>,
+  },
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Seitlicher Drawer für fokussierte Detail-Ansichten. `open: true` als Default-Arg, da ' +
+          'Storybook statisch rendert. Besteht aus: DialogHeader (intern), IconButton, Button.',
+      },
+    },
   },
 } satisfies Meta<typeof Drawer>
 

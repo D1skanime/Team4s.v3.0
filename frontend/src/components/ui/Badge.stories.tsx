@@ -4,7 +4,7 @@ import { Badge } from './Badge'
 
 /** Status-Badge-Primitive: alle sechs Varianten, bewusst unauffällig statt laut. */
 const meta = {
-  title: 'UI/Badge',
+  title: 'Grundbausteine/Badge',
   component: Badge,
   tags: ['autodocs'],
 } satisfies Meta<typeof Badge>

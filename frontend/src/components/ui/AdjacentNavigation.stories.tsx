@@ -4,7 +4,7 @@ import { AdjacentNavigation } from './AdjacentNavigation'
 
 /** Globale Vor-/Weiter-Pills für Projekt-, Release- und Sequenznavigation. */
 const meta = {
-  title: 'UI/AdjacentNavigation',
+  title: 'Grundbausteine/AdjacentNavigation',
   component: AdjacentNavigation,
   tags: ['autodocs'],
 } satisfies Meta<typeof AdjacentNavigation>

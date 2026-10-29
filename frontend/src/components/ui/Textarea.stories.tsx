@@ -4,7 +4,7 @@ import { Textarea } from './Textarea'
 
 /** Mehrzeiliges Freitextfeld-Primitive: Standard-, Fehler-, Disabled- und Lang-Inhalt-Zustand. */
 const meta = {
-  title: 'UI/Textarea',
+  title: 'Grundbausteine/Textarea',
   component: Textarea,
   tags: ['autodocs'],
   args: {

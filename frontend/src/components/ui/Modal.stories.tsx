@@ -3,18 +3,24 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Button } from './Button'
 import { Modal } from './Modal'
 
-/**
- * Overlay-Primitive mit Fokus-Trap (Tab bleibt innerhalb des Panels) und Escape-Schließen.
- * Storybook rendert statisch, daher `open: true` als Default-Arg — ein Modal, das erst per
- * Klick geöffnet werden müsste, wäre in der Story unsichtbar.
- */
 const meta = {
-  title: 'UI/Modal',
+  title: 'Zusammengesetzte Bausteine/Modal',
   component: Modal,
   tags: ['autodocs'],
   args: {
     open: true,
     onClose: () => {},
+  },
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Overlay-Primitive mit Fokus-Trap (Tab bleibt innerhalb des Panels) und Escape-Schließen. ' +
+          'Storybook rendert statisch, daher `open: true` als Default-Arg — ein Modal, das erst per ' +
+          'Klick geöffnet werden müsste, wäre in der Story unsichtbar. Besteht aus: DialogHeader ' +
+          '(intern), IconButton, Button.',
+      },
+    },
   },
 } satisfies Meta<typeof Modal>
 

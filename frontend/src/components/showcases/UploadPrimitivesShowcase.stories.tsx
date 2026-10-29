@@ -8,7 +8,7 @@ import { UploadPrimitivesShowcase } from './UploadPrimitivesShowcase'
  * neuen Zustands-Varianten gegenüber der ursprünglichen Seite erfunden.
  */
 const meta = {
-  title: 'Showcases/UploadPrimitivesShowcase',
+  title: 'Im Einsatz/UploadPrimitivesShowcase',
   component: UploadPrimitivesShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof UploadPrimitivesShowcase>

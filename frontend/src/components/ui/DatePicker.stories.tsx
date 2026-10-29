@@ -12,7 +12,7 @@ import { DatePicker } from './DatePicker'
  * Args-Variante.
  */
 const meta = {
-  title: 'UI/DatePicker',
+  title: 'Grundbausteine/DatePicker',
   component: DatePicker,
   tags: ['autodocs'],
   // Alle Pflicht-Props liegen hier als Platzhalter vor; jede Story rendert stattdessen über

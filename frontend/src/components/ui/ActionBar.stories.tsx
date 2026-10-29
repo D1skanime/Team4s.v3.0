@@ -6,7 +6,7 @@ import { ActionBar } from './ActionBar'
 
 /** Aktionsleiste für Edit-Flows: Leading-Status links, Button-Gruppe rechts. */
 const meta = {
-  title: 'UI/ActionBar',
+  title: 'Grundbausteine/ActionBar',
   component: ActionBar,
   tags: ['autodocs'],
 } satisfies Meta<typeof ActionBar>

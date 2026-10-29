@@ -2,11 +2,17 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { LoadingState } from './LoadingState'
 
-/** Ladezustand-Primitive für Bereiche, die noch keine Daten haben. */
 const meta = {
-  title: 'UI/LoadingState',
+  title: 'Zusammengesetzte Bausteine/LoadingState',
   component: LoadingState,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Ladezustand-Primitive für Bereiche, die noch keine Daten haben. Besteht aus: Card, Spinner.',
+      },
+    },
+  },
 } satisfies Meta<typeof LoadingState>
 
 export default meta

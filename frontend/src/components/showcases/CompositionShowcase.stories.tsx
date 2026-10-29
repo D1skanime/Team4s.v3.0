@@ -12,7 +12,7 @@ import { CompositionShowcase } from './CompositionShowcase'
  * zusätzliche Aufsplittung gegenüber der ursprünglichen Seite).
  */
 const meta = {
-  title: 'Showcases/CompositionShowcase',
+  title: 'Im Einsatz/CompositionShowcase',
   component: CompositionShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof CompositionShowcase>

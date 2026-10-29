@@ -4,7 +4,7 @@ import { NavArrow } from './NavArrow'
 
 /** Wine-roter Chevron-Pfeil für Karussell-/Galerie-Navigation. */
 const meta = {
-  title: 'UI/NavArrow',
+  title: 'Grundbausteine/NavArrow',
   component: NavArrow,
   tags: ['autodocs'],
   args: {

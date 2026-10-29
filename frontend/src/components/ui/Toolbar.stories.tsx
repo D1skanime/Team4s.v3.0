@@ -8,7 +8,7 @@ import { Toolbar } from './Toolbar'
 
 /** Werkzeugleiste für Such-/Filter-Zeilen oberhalb von Listen/Tabellen. */
 const meta = {
-  title: 'UI/Toolbar',
+  title: 'Grundbausteine/Toolbar',
   component: Toolbar,
   tags: ['autodocs'],
 } satisfies Meta<typeof Toolbar>

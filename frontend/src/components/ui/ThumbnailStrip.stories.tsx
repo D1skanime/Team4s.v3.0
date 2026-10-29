@@ -14,7 +14,7 @@ function demoItems(count: number) {
 /** Volle-Breite Thumbnail-Leiste unterhalb einer Bild-Bühne. Rendert bewusst nichts bei
  * weniger als zwei Einträgen (D-32) — die Leer-Story zeigt diesen No-Op-Zustand. */
 const meta = {
-  title: 'UI/ThumbnailStrip',
+  title: 'Grundbausteine/ThumbnailStrip',
   component: ThumbnailStrip,
   tags: ['autodocs'],
   args: {

@@ -8,7 +8,7 @@ import { PublicReleaseSurfacesShowcase } from './PublicReleaseSurfacesShowcase'
  * Mockdaten als UI-Wahrheit.
  */
 const meta = {
-  title: 'Showcases/PublicReleaseSurfacesShowcase',
+  title: 'Im Einsatz/PublicReleaseSurfacesShowcase',
   component: PublicReleaseSurfacesShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof PublicReleaseSurfacesShowcase>

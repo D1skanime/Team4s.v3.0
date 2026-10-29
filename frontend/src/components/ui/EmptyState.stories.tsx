@@ -4,11 +4,17 @@ import { Info } from 'lucide-react'
 import { Button } from './Button'
 import { EmptyState } from './EmptyState'
 
-/** Leerzustand-Primitive für Listen/Übersichten ohne Einträge. */
 const meta = {
-  title: 'UI/EmptyState',
+  title: 'Zusammengesetzte Bausteine/EmptyState',
   component: EmptyState,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Leerzustand-Primitive für Listen/Übersichten ohne Einträge. Besteht aus: Card, StatusIcon.',
+      },
+    },
+  },
 } satisfies Meta<typeof EmptyState>
 
 export default meta

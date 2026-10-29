@@ -5,14 +5,22 @@ import { Input } from './Input'
 import { Select } from './Select'
 import { Textarea } from './Textarea'
 
-/** Beschriftungs-/Hinweis-/Fehler-Hülle für ein einzelnes Formularfeld. */
 const meta = {
-  title: 'UI/FormField',
+  title: 'Zusammengesetzte Bausteine/FormField',
   component: FormField,
   tags: ['autodocs'],
   // `children` ist bei FormField ein Pflichtprop; jede Story liefert ihr eigenes
   // Eingabefeld über `render` und überschreibt diesen Platzhalter zur Laufzeit.
   args: { children: null },
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Beschriftungs-/Hinweis-/Fehler-Hülle für ein einzelnes Formularfeld. Besteht aus: Input, ' +
+          'Select, Textarea, DatePicker, YearPicker oder Switch als umschlossenes Feld.',
+      },
+    },
+  },
 } satisfies Meta<typeof FormField>
 
 export default meta

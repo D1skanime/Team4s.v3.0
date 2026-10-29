@@ -4,7 +4,7 @@ import { Switch } from './Switch'
 
 /** Toggle-Primitive mit `role="switch"` und korrekten ARIA-Attributen. */
 const meta = {
-  title: 'UI/Switch',
+  title: 'Grundbausteine/Switch',
   component: Switch,
   tags: ['autodocs'],
   args: {
