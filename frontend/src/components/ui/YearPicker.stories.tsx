@@ -9,7 +9,7 @@ const meta = {
   title: 'UI/YearPicker',
   component: YearPicker,
   tags: ['autodocs'],
-  // Alle Pflicht-Props liegen hier als Platzhalter vor; jede Story rendert stattdessen ueber
+  // Alle Pflicht-Props liegen hier als Platzhalter vor; jede Story rendert stattdessen über
   // `ControlledYearPicker` mit eigenem useState-Wert und ignoriert diese Default-Args.
   args: {
     id: 'year-picker-meta-default',

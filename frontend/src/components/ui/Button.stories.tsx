@@ -4,10 +4,10 @@ import { MoreHorizontal } from 'lucide-react'
 import { Button } from './Button'
 
 /**
- * Referenz-Story fuer das Button-Primitive: deckt alle Varianten ab, die vormals in der
+ * Referenz-Story für das Button-Primitive: deckt alle Varianten ab, die vormals in der
  * In-App-Showcase-Route sichtbar waren (Primary/Secondary/Ghost/Subtle/Danger/
- * Success/IconOnly/Loading/Disabled/Small/Large), ergaenzt um einen Lang-Text- und einen
- * Fokus-Pruefhinweis. Dient zugleich als frueher empirischer Beleg dafuer, dass CSS-Module
+ * Success/IconOnly/Loading/Disabled/Small/Large), ergänzt um einen Lang-Text- und einen
+ * Fokus-Prüfhinweis. Dient zugleich als früher empirischer Beleg dafür, dass CSS-Module
  * unter dem `@storybook/nextjs`-Webpack-Adapter ohne Zusatzkonfiguration greifen.
  */
 const meta = {

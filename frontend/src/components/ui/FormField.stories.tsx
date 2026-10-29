@@ -9,7 +9,7 @@ const meta = {
   component: FormField,
   tags: ['autodocs'],
   // `children` ist bei FormField ein Pflichtprop; jede Story liefert ihr eigenes
-  // Eingabefeld ueber `render` und ueberschreibt diesen Platzhalter zur Laufzeit.
+  // Eingabefeld über `render` und überschreibt diesen Platzhalter zur Laufzeit.
   args: { children: null },
 } satisfies Meta<typeof FormField>
 

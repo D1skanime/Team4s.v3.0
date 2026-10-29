@@ -3,10 +3,11 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { ThumbnailStrip } from './ThumbnailStrip'
 
+// Lokales Platzhalterbild statt externer Bildquelle — keine Netzwerkabhängigkeit.
 function demoItems(count: number) {
   return Array.from({ length: count }, (_, index) => ({
     key: index,
-    thumbnailUrl: `https://picsum.photos/seed/team4s-thumb-${index}/96/96`,
+    thumbnailUrl: '/covers/placeholder.jpg',
   }))
 }
 

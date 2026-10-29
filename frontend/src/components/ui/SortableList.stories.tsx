@@ -30,8 +30,8 @@ const meta = {
   title: 'UI/SortableList',
   component: SortableList<DemoItem>,
   tags: ['autodocs'],
-  // Platzhalter-Args fuer den generischen Typ; jede Story liefert ihre eigene
-  // items/getItemId/onReorder/renderItem-Kombination ueber `render`.
+  // Platzhalter-Args für den generischen Typ; jede Story liefert ihre eigene
+  // items/getItemId/onReorder/renderItem-Kombination über `render`.
   args: {
     items: BASE_ITEMS,
     getItemId: (item: DemoItem) => item.id,

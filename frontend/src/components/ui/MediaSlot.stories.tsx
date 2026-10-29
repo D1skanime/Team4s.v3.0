@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { MediaSlot } from './MediaSlot'
 
-/** Einzel-Bild/-Video-Upload-Slot: zeigt nie eine zweite, grosse Dropzone neben einer
+/** Einzel-Bild/-Video-Upload-Slot: zeigt nie eine zweite, große Dropzone neben einer
  * vorhandenen Vorschau (replace-overlay statt empty-dropzone, siehe resolveUploadSlotPresentation). */
 const meta = {
   title: 'UI/MediaSlot',
@@ -31,8 +31,9 @@ export const ReplaceOverlay: Story = {
     hasValue: true,
     onFilesSelected: () => {},
     previewContent: (
+      // Lokales Platzhalterbild statt externer Bildquelle — keine Netzwerkabhängigkeit.
       // eslint-disable-next-line @next/next/no-img-element
-      <img src="https://picsum.photos/seed/team4s-mediaslot/200/200" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <img src="/covers/placeholder.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
     ),
   },
 }

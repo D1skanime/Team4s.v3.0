@@ -1,14 +1,14 @@
 /**
  * Eingefrorene Momentaufnahme der PNG-Dateinamen unter
- * `frontend/public/member-achievement-badges/` (Stand: Einfuehrung von Storybook,
- * 2026-10-29). Die urspruengliche In-App-Showcase-Seite hat diese Liste serverseitig
- * per `fs/promises.readdir` zur Laufzeit erzeugt (frueherer serverseitiger Server-
- * Component-Code der ehemaligen Achievements-Unterroute) -- eine Storybook-Story rendert
- * dagegen ausschliesslich
- * client-seitig im Browser und kann das Dateisystem des Servers nicht lesen. Wird ein
- * neues Erfolgsbadge-Artwork unter `public/member-achievement-badges/` ergaenzt oder
- * entfernt, muss diese Liste beim naechsten Anfassen dieser Datei von Hand nachgezogen
- * werden (siehe AGENTS.md "Dokumentation waechst mit dem Code").
+ * `frontend/public/member-achievement-badges/` (Stand: Einführung von Storybook,
+ * 2026-10-29). Die ursprüngliche In-App-Showcase-Seite hat diese Liste serverseitig
+ * per `fs/promises.readdir` zur Laufzeit erzeugt (früherer serverseitiger Server-
+ * Component-Code der ehemaligen Achievements-Unterroute) — eine Storybook-Story rendert
+ * dagegen ausschließlich client-seitig im Browser und kann das Dateisystem des Servers
+ * nicht lesen. Wird ein neues Erfolgsbadge-Artwork unter
+ * `public/member-achievement-badges/` ergänzt oder entfernt, muss diese Liste beim
+ * nächsten Anfassen dieser Datei von Hand nachgezogen werden (siehe AGENTS.md
+ * "Dokumentation wächst mit dem Code").
  */
 export const ACHIEVEMENT_BADGE_SOURCE_FILES: readonly string[] = [
   'contribution_archivist_bronze-v2.png',

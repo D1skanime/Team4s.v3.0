@@ -127,10 +127,10 @@ export const showcaseProjects: PublicFansubProject[] = [
   },
 ]
 
-// Ueberlauf-Fixture fuer die "Alle N anzeigen"-Kachel: muss oberhalb von
+// Überlauf-Fixture für die "Alle N anzeigen"-Kachel: muss oberhalb von
 // FansubProjectsGrid.PREVIEW_COUNT (20) bleiben, sonst demonstriert die Showcase den
-// Ueberlauf-Pfad nicht mehr (siehe 190-REVIEW.md IN-03). 6 Basisprojekte + 18 generierte
-// Archivprojekte = 24, bewusst mit Puffer ueber dem Schwellenwert.
+// Überlauf-Pfad nicht mehr. 6 Basisprojekte + 18 generierte Archivprojekte = 24,
+// bewusst mit Puffer über dem Schwellenwert.
 export const showcaseOverflowProjects: PublicFansubProject[] = [
   ...showcaseProjects,
   ...Array.from({ length: 18 }, (_, index) => {

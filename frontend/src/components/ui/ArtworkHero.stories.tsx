@@ -34,7 +34,9 @@ type Story = StoryObj<typeof meta>
 
 export const Standard: Story = {
   args: {
-    imageUrl: 'https://picsum.photos/seed/team4s-artwork-hero/1200/400',
+    // Lokales Platzhalterbild statt externer Bildquelle — Storybook zeigt wie die
+    // frühere In-App-Showcase ausschließlich Mockdaten, keine Netzwerkabhängigkeit.
+    imageUrl: '/covers/placeholder.jpg',
   },
 }
 

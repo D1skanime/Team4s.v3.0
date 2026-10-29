@@ -4,7 +4,7 @@ import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 
 // Dieselbe Design-Token-Quelle wie die eigentliche App — keine zweite,
 // Storybook-eigene Token-Definition. preview.css kommt zuerst, damit die
-// Buehnenhintergrund-Klasse unten die App-Tokens nicht ueberschreibt.
+// Bühnenhintergrund-Klasse unten die App-Tokens nicht überschreibt.
 import './preview.css'
 import '../src/styles/globals.css'
 
@@ -37,10 +37,10 @@ const preview: Preview = {
     viewport: { value: 'mobile390' },
   },
   decorators: [
-    // Team4s hat aktuell KEIN eigenes dunkles Produkt-Farbthema -- dieser Decorator
-    // schaltet ausschliesslich den Storybook-Buehnenhintergrund zwischen hell und
-    // dunkel um (siehe preview.css), damit Komponenten auf beiden Hintergruenden auf
-    // Kontrast/Lesbarkeit geprueft werden koennen, ohne ein nicht existierendes
+    // Team4s hat aktuell KEIN eigenes dunkles Produkt-Farbthema — dieser Decorator
+    // schaltet ausschließlich den Storybook-Bühnenhintergrund zwischen hell und
+    // dunkel um (siehe preview.css), damit Komponenten auf beiden Hintergründen auf
+    // Kontrast/Lesbarkeit geprüft werden können, ohne ein nicht existierendes
     // Produkt-Dark-Theme zu simulieren.
     withThemeByClassName({
       themes: {

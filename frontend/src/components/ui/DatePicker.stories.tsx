@@ -15,7 +15,7 @@ const meta = {
   title: 'UI/DatePicker',
   component: DatePicker,
   tags: ['autodocs'],
-  // Alle Pflicht-Props liegen hier als Platzhalter vor; jede Story rendert stattdessen ueber
+  // Alle Pflicht-Props liegen hier als Platzhalter vor; jede Story rendert stattdessen über
   // `ControlledDatePicker` mit eigenem useState-Wert und ignoriert diese Default-Args.
   args: {
     id: 'date-picker-meta-default',
