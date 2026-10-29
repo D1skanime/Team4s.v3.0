@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui'
 
-import styles from '../page.module.css'
+import styles from './showcases.module.css'
 
 const releaseRows = [
   {

@@ -23,7 +23,7 @@ import {
   showcaseOverflowProjects,
   showcaseStories,
 } from './PublicFansubSurfacesShowcase.fixtures'
-import styles from '../page.module.css'
+import styles from './showcases.module.css'
 
 function PublicSurfaceFrame({
   title,

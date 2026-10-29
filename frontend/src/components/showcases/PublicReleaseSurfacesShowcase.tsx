@@ -11,7 +11,7 @@ import type { PublicReleasePreview } from '@/components/fansubs/PublicReleaseBlo
 import { DesktopReleaseRow } from '@/app/anime/[id]/group/[groupId]/sections/OlderReleasesList.rows'
 import type { EpisodeReleaseSummary } from '@/types/group'
 
-import styles from '../page.module.css'
+import styles from './showcases.module.css'
 
 const releaseImages = [
   {

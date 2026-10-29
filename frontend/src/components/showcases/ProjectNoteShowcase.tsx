@@ -6,7 +6,7 @@ import { ChevronDown } from 'lucide-react'
 import { Badge, Button, Card, FormField, Input, SectionHeader, Select } from '@/components/ui'
 import { RichTextEditor } from '@/components/editor'
 
-import styles from '../page.module.css'
+import styles from './showcases.module.css'
 
 export function ProjectNoteShowcase() {
   const [projectNoteTitle, setProjectNoteTitle] = useState('ffff')
