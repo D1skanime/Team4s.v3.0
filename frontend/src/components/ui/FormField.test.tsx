@@ -119,7 +119,7 @@ describe('FormField Autoverknüpfung', () => {
     expect(switchEl.getAttribute('aria-describedby')).toBeTruthy()
   })
 
-  it('verknüpft DatePicker/YearPicker über ihren internen Trigger-Button mit aria-describedby/aria-invalid', () => {
+  it('verknüpft DatePicker/YearPicker über ihren internen Trigger-Button mit aria-describedby (ohne aria-invalid -- die implizite button-Rolle unterstützt dieses Attribut laut ARIA-Spezifikation nicht, siehe FormField.tsx)', () => {
     render(
       <FormField label="Datum" error="Ungültiges Datum">
         <DatePicker
@@ -133,7 +133,7 @@ describe('FormField Autoverknüpfung', () => {
       </FormField>,
     )
     const dateTrigger = screen.getByRole('button', { name: 'Geburtsdatum auswählen' })
-    expect(dateTrigger.getAttribute('aria-invalid')).toBe('true')
+    expect(dateTrigger.getAttribute('aria-invalid')).toBeNull()
     expect(dateTrigger.getAttribute('aria-describedby')).toBeTruthy()
 
     render(
@@ -142,7 +142,7 @@ describe('FormField Autoverknüpfung', () => {
       </FormField>,
     )
     const yearTrigger = screen.getByRole('button', { name: 'Erschienen' })
-    expect(yearTrigger.getAttribute('aria-invalid')).toBe('true')
+    expect(yearTrigger.getAttribute('aria-invalid')).toBeNull()
     expect(yearTrigger.getAttribute('aria-describedby')).toBeTruthy()
   })
 

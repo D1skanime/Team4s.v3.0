@@ -31,6 +31,7 @@ export function Switch({
       role="switch"
       aria-checked={checked}
       aria-disabled={disabled || undefined}
+      disabled={disabled}
       onClick={handleClick}
       className={classNames(
         styles.switchRoot,

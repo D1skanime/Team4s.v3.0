@@ -101,6 +101,12 @@ export function FormField({
         ...(effectiveInvalid ? { 'aria-invalid': true as const } : {}),
         'aria-describedby': mergedDescribedBy,
       }
+      // DatePicker/YearPicker rendern ihren Trigger als <button> -- aria-invalid ist laut
+      // ARIA-Spezifikation für die implizite button-Rolle nicht unterstützt (nur für
+      // formularfeldartige Rollen wie textbox/combobox). Der Fehlerzustand bleibt dort über die
+      // bereits vorhandene visuelle invalid-Klasse plus aria-describedby (rollenunabhängig
+      // gültig) erkennbar, nur ohne das spec-widrige aria-invalid-Attribut.
+      const { 'aria-invalid': _unusedAriaInvalid, ...triggerSafeProps } = injectedProps
 
       if (singleChild.type === Input) {
         renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof Input>>, injectedProps)
@@ -109,9 +115,9 @@ export function FormField({
       } else if (singleChild.type === Textarea) {
         renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof Textarea>>, injectedProps)
       } else if (singleChild.type === DatePicker) {
-        renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof DatePicker>>, injectedProps)
+        renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof DatePicker>>, triggerSafeProps)
       } else if (singleChild.type === YearPicker) {
-        renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof YearPicker>>, injectedProps)
+        renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof YearPicker>>, triggerSafeProps)
       }
     }
 

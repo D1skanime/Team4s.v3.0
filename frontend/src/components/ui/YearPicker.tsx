@@ -18,8 +18,6 @@ type YearPickerProps = {
   invalid?: boolean
   /** Von FormField automatisch verknüpfte Fehler-/Hinweis-IDs (additiv, siehe FormField.tsx). */
   'aria-describedby'?: string
-  /** Von FormField automatisch gesetzt, wenn der umschließende error-Text aktiv ist. */
-  'aria-invalid'?: boolean
   onChange: (value: string) => void
 }
 
@@ -45,7 +43,6 @@ export function YearPicker({
   disabled = false,
   invalid = false,
   'aria-describedby': ariaDescribedBy,
-  'aria-invalid': ariaInvalid,
   onChange,
 }: YearPickerProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -200,7 +197,6 @@ export function YearPicker({
         aria-expanded={isOpen}
         aria-controls={isOpen ? `${id}-picker` : undefined}
         aria-describedby={ariaDescribedBy}
-        aria-invalid={ariaInvalid || undefined}
         onClick={togglePicker}
       >
         <span>{value || 'Keine Angabe'}</span>
