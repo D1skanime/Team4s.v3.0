@@ -156,6 +156,19 @@
   --text-soft: #625c56;
   --text-faint: #8c857e;
 
+  /* Typografie-Skala fuer die neuen Heading/Text-Grundbausteine: die vier Groessen
+     entsprechen 1:1 den bereits produktiven Ueberschriftsgroessen von PageHeader (H1),
+     DialogHeader (H2), SectionHeader/Card (H3); H4 ist eine neue, kleinere Stufe ohne
+     bestehenden Pflicht-Einsatzort. --font-weight-heading entspricht dem unveraenderten
+     Browser-Standard fuer h1-h6 (keine bestehende Regel setzt ein abweichendes font-weight
+     auf diesen Elementen) -- die Tokenisierung macht das bisher implizite Gewicht nur
+     explizit, aendert es nicht. */
+  --font-size-h1: clamp(2rem, 3vw, 2.75rem);
+  --font-size-h2: 1.25rem;
+  --font-size-h3: 1rem;
+  --font-size-h4: 0.875rem;
+  --font-weight-heading: 700;
+
   --border-subtle: rgba(45, 41, 38, 0.12);
   --border-strong: rgba(45, 41, 38, 0.24);
   --border-accent: rgba(255, 106, 61, 0.35);
