@@ -1,0 +1,23 @@
+.dialogHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+}
+
+.dialogHeader > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-strong);
+}
+
+.dialogDescription {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+}

@@ -118,6 +118,10 @@
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 12px;
+  /* Gemeinsamer Eckenradius fuer Dialog-Flaechen (Modal/Drawer-Panel), an Cards rundeste
+     bestehende Variante (.cardNestedFlat, 10px) angeglichen -- EINE Formensprache statt
+     frueher zufaellig unterschiedlicher Modal-/Drawer-Radien. */
+  --radius-surface: 10px;
 
   --space-1: 4px;
   --space-2: 8px;
