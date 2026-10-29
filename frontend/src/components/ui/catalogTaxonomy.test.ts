@@ -32,6 +32,15 @@ const EXCEPTIONS: Record<string, string[]> = {
   Card: ['Heading', 'Text'],
 }
 
+/** Story-Dateien unter "Grundbausteine/*", die bewusst KEINE eigene X.tsx haben, weil sie reine
+ *  Dokumentations-Seiten ohne eigene Produktkomponente sind (z. B. eine Typografie-Uebersicht).
+ *  Jeder WEITERE Fall muss hier bewusst mit Begruendung ergaenzt werden -- sonst schlaegt der
+ *  Test fehl. Das faengt z. B. einen Tippfehler im Dateinamen ab, der sonst stillschweigend als
+ *  "hat halt keine X.tsx" durchgehen wuerde, statt auf eine echte Inkonsistenz hinzuweisen. */
+const DOCUMENTATION_ONLY_STORIES = new Set([
+  'TypographyOverview', // reine Typografie-Uebersichtsseite (H1-H4, Text-Varianten), kein Baustein
+])
+
 function extractTitle(fileContent: string): string | null {
   const match = fileContent.match(/title:\s*'([^']+)'/)
   return match ? match[1] : null
@@ -79,12 +88,18 @@ describe('Grundbausteine/* Katalogpruefung: keine stillschweigenden Grundbaustei
     const componentPath = path.join(UI_DIR, `${componentName}.tsx`)
 
     if (!fs.existsSync(componentPath)) {
-      // Reine Dokumentations-Story ohne eigene Produktkomponente (z. B. eine
-      // Typografie-Uebersichtsseite, siehe TypographyOverview.stories.tsx) -- es gibt keine
-      // X.tsx, die auf stillschweigende Importe geprueft werden koennte. Bewusst als it.skip
-      // sichtbar in der Testausgabe, statt die Datei einfach stillschweigend auszulassen oder
-      // per fs.readFileSync in einen ENOENT-Crash zu laufen.
-      it.skip(`${storyFile}: hat keine eigene X.tsx -- Katalogpruefung bewusst uebersprungen`, () => {})
+      // Keine eigene X.tsx -- das ist NUR fuer bewusst dokumentierte Dokumentations-Stories
+      // erlaubt (DOCUMENTATION_ONLY_STORIES). Statt die Datei per it.skip unueberprueft zu
+      // lassen, prueft dieser aktive, immer ausgefuehrte Test, dass genau das der Fall ist:
+      // ein NEUER "Grundbausteine/*"-Story-Dateiname ohne eigene X.tsx, der NICHT bewusst
+      // eingetragen ist (z. B. durch einen Tippfehler im Dateinamen oder eine vergessene
+      // X.tsx), laesst diesen Test fehlschlagen statt stillschweigend unbemerkt zu bleiben.
+      it(`${storyFile}: fehlende X.tsx ist eine bewusst dokumentierte Ausnahme`, () => {
+        expect(
+          DOCUMENTATION_ONLY_STORIES.has(componentName),
+          `${storyFile} hat keine eigene ${componentName}.tsx und steht NICHT in DOCUMENTATION_ONLY_STORIES -- entweder eine ${componentName}.tsx anlegen oder die Datei hier bewusst mit Begruendung eintragen`,
+        ).toBe(true)
+      })
       continue
     }
 
