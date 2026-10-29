@@ -1,0 +1,19 @@
+.textBody {
+  font-size: var(--text-body-size, 1rem);
+  color: var(--text-body-color, var(--text-body));
+}
+
+.textSoft {
+  font-size: var(--text-soft-size, 1rem);
+  color: var(--text-soft-color, var(--text-soft));
+}
+
+.textMeta {
+  font-size: var(--text-meta-size, 0.875rem);
+  color: var(--text-meta-color, var(--text-soft));
+}
+
+.textSmall {
+  font-size: var(--text-small-size, 0.75rem);
+  color: var(--text-small-color, var(--text-faint));
+}
