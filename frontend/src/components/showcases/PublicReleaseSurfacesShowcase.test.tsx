@@ -14,7 +14,6 @@ vi.mock('next/image', () => {
     void unoptimized
     void priority
     void fill
-    // eslint-disable-next-line @next/next/no-img-element
     return <img ref={ref} alt={alt} {...props} />
   })
   MockNextImage.displayName = 'MockNextImage'
