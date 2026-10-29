@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, AlertCircle, RotateCw } from 'lucide-react'
 
+import { Spinner } from '@/components/ui/Spinner'
 import { MediaAsset } from '@/types/mediaAsset'
 import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
@@ -217,7 +218,9 @@ export default function VideoPlayerModal({ isOpen, asset, onClose }: VideoPlayer
         <div className={styles.videoContainer}>
           {loading && (
             <div className={styles.loadingOverlay}>
-              <div className={styles.spinner} />
+              <span className={styles.spinnerColor}>
+                <Spinner size="lg" label="" />
+              </span>
               <p className={styles.loadingText}>Stream wird geladen...</p>
             </div>
           )}

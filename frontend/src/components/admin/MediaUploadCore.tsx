@@ -1,9 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import { Crop, Loader2, Trash2 } from 'lucide-react'
+import { Crop, Trash2 } from 'lucide-react'
 
-import { Button, MediaSlot } from '@/components/ui'
+import { Button, MediaSlot, Spinner } from '@/components/ui'
 import { classNames } from '@/components/ui/classNames'
 
 import type { EditableMediaValue } from './MediaUpload'
@@ -74,7 +74,7 @@ export function MediaUploadCore({
         <h3>{title}</h3>
         {busy ? (
           <span className={styles.statusPill} aria-live="polite">
-            <Loader2 size={14} className={styles.spinner} />
+            <Spinner size="sm" label="" />
             {preparingEdit ? 'Bearbeiten...' : busyAction === 'upload' ? 'Upload...' : 'Löschen...'}
           </span>
         ) : null}

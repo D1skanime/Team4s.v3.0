@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { Spinner } from '@/components/ui'
 import {
   AdminAnimeJellyfinPreviewResult,
   AdminAnimeJellyfinSyncResult,
@@ -42,10 +43,6 @@ interface JellyfinSyncModel {
   preview: (animeID: number) => Promise<void>
   sync: (animeID: number, options?: { requireFreshPreview?: boolean }) => Promise<boolean>
   reset: () => void
-}
-
-function LoadingSpinner() {
-  return <span className={styles.loadingSpinner} aria-hidden="true" />
 }
 
 function renderStepFeedback(feedback: { tone: 'success' | 'error'; message: string; details?: string } | null) {
@@ -265,7 +262,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             >
               {model.isSearching ? (
                 <>
-                  <LoadingSpinner />
+                  <Spinner size="sm" label="" />
                   Suche läuft...
                 </>
               ) : (
@@ -437,7 +434,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             >
               {model.isLoadingPreview ? (
                 <>
-                  <LoadingSpinner />
+                  <Spinner size="sm" label="" />
                   Preview läuft...
                 </>
               ) : (
@@ -452,7 +449,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
           <div className={styles.previewBox}>
             {model.isLoadingPreview ? (
               <div className={styles.emptyState}>
-                <LoadingSpinner />
+                <Spinner size="sm" label="" />
                 <p className={styles.emptyStateText}>Vorschau wird geladen...</p>
               </div>
             ) : hasFreshPreview && model.previewResult ? (
@@ -514,7 +511,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
             >
               {model.isSyncing ? (
                 <>
-                  <LoadingSpinner />
+                  <Spinner size="sm" label="" />
                   Sync läuft...
                 </>
               ) : (
@@ -594,7 +591,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
               >
                 {model.isSyncing ? (
                   <>
-                    <LoadingSpinner />
+                    <Spinner size="sm" label="" />
                     Staffel wird synchronisiert...
                   </>
                 ) : (

@@ -111,19 +111,9 @@
   z-index: 1;
 }
 
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(59, 130, 246, 0.2);
-  border-top-color: var(--color-primary, #3b82f6);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.spinnerColor {
+  color: var(--color-primary, #3b82f6);
+  display: inline-flex;
 }
 
 .loadingText {
