@@ -262,6 +262,51 @@ Asset-Größen-Warnungen). Zusätzlich per `storybook-static/index.json` live ge
 AvatarStack erscheint jetzt unter `Zusammengesetzte Bausteine/*`, ResponsiveImage unter
 `Grundbausteine/*` mit beiden neuen Stories.
 
+## Nachbesserung durch unabhängige Code-Review, Runde 3 (Commit `2bef7c328`)
+
+Eine dritte unabhängige Review meldete einen `high`-Befund: mehrere `components/ui`-
+Stories zeigten weiterhin englische sichtbare Namen/Inhalte (zitiert: Badge, Button,
+Card, Text, UploadFileRow). Der Befund traf zu und wurde nicht nur für die vier
+zitierten Dateien, sondern — nach repo-weitem Abgleich auf dasselbe Fehlermuster,
+motiviert durch den Befundtext "u. a." — für **alle** betroffenen `components/ui`-
+Stories behoben:
+
+- **Sichtbare Story-Namen ohne deutsches `name:`-Override.** Rund 20 Dateien (u. a.
+  DatePicker, FormField, Input, Select, SortableList, Switch, Textarea,
+  UploadDropzone, YearPicker) zeigten den rohen, englischen Export-Bezeichner als
+  Sidebar-Namen (`Disabled`, `Invalid`, `Ghost`, `Floating`, `Previous`, `Compact`,
+  `Selectable` …). Ergänzt um deutsche `name:`-Werte.
+- **Selbst-spiegelnde `name:`-Overrides mit englischem Wortanteil.** `WithActions`,
+  `InfoVariante`, `OhneAction`, `VieleItems`, `DangerVariante` sowie fünf Overrides in
+  `ActivationStatusIndicator.stories.tsx` (`RoleMatrixErfolg`, `RoleMatrixFehlerMitRetry`,
+  `OverrideAktiv`, `OverridePending`, `OverridePersisted`, `OverrideFailed`) hatten ihr
+  eigenes camelCase als `name:`-Wert übernommen statt einer echten deutschen Phrase —
+  durch z. B. `'Mit Aktionen'`, `'Override: Ausstehend'` ersetzt.
+- **Gerenderte Props-Inhalte.** Badge/Button/IconButton/StatusIcon rendern in ihrer
+  "Größen und Varianten"-Übersichtsstory die rohen, englischen Varianten-Keys (z. B.
+  `'success'`) direkt als sichtbaren Text — über neue `VARIANT_LABELS`/`TONE_LABELS`-
+  Maps auf deutsche Begriffe umgestellt. `Table.stories.tsx`s Beispieldaten enthielten
+  den Status `'Read-only'` — durch `'Nur Lesen'` ersetzt.
+- **Bewusst unverändert:** Layout-Fachbegriffe, die selbst echte Prop-Namen der
+  jeweiligen Komponente sind (`NurLeading`/`NurTrailing`, da Toolbar/ActionBar die
+  Props tatsächlich `leading`/`trailing` nennen) und der Domänenbegriff `OhneArtwork`
+  (in diesem Medien-/Fansub-Kontext ein etablierter Fachbegriff, keine vergessene
+  Übersetzung) — analog zu den bereits akzeptierten Größen-Kürzeln `sm`/`md`/`lg` und
+  `H1`–`H4`.
+
+Ergänzter Test: `storyDisplayNames.german.test.ts` (fs-basiert, Muster analog zu
+`catalogTaxonomy.test.ts`) prüft für jeden Story-Export sowohl den sichtbaren Namen
+als auch großgeschriebene String-Literale im Block auf englische Wortreste — fängt
+künftig genau diese beiden Fehlermuster automatisch ab. Per temporärer Verstoss-
+Injektion verifiziert (Datei nach Bestätigung des Fehlschlags wieder gelöscht).
+
+Erneut empirisch bestätigt: `npx tsc --noEmit` (0 Fehler), `npm run lint` (weiterhin
+exakt 4 vorbestehende, unveränderte Fehler), `npm test -- --run` (429 Testdateien,
+4275 Tests, alle grün — inklusive der 336 neuen Tests aus
+`storyDisplayNames.german.test.ts`), `npm run build-storybook` (Exit 0). Zusätzlich
+`storybook-static/index.json` nach dem Build programmatisch nach den zuvor
+englischen sichtbaren Story-Namen durchsucht: keine Treffer mehr.
+
 ## Self-Check: PASSED
 
 Alle acht im Summary genannten Dateien existieren (`Heading.tsx`, `Text.tsx`, `catalogTaxonomy.test.ts`,
