@@ -597,6 +597,32 @@ vorbestehend und in nicht angefassten Dateien — `useReleaseVersionMedia.ts`,
 `ReleasesFilterBar.tsx`), `npm test -- --run` (431 Dateien, 4649 Tests grün), `npm run
 build-storybook` (Exit 0), `git diff --check` (sauber).
 
+## Unabhängiger Review, Runde 1 (codex) — Nachbesserung
+
+Zwei `[high]`-Befunde nach Runde 5 bestätigt und behoben:
+
+- **`DatePicker.module.css`**: Tages-/Monats-/Jahres-Kacheln deklarierten trotz der Runde-5-
+  Umstellung weiterhin einen eigenen Radius (7px) sowie `color-mix()`-Literale mit eigenem
+  `#fff`-Anteil für Hover-/Heute-/Gedämpft-Zustand.
+- **`YearPicker.module.css`**: `.yearPickerHint` (`#748097`) und `.yearPickerPanel`
+  (`rgba(...)`-Rahmen/-Hintergrund, `14px`-Radius) blieben eigene Literale statt der
+  gemeinsamen Feld-Tokens.
+
+Sieben neue, benannte `--picker-*`-Tokens in `globals.css` fassen die Werte zusammen;
+YearPickers Panel bezieht zusätzlich die bereits bestehenden `--field-border-color`/
+`--field-bg-hover`-Tokens (exakter Wertetreffer). Panel-Radius dadurch für beide Picker
+identisch `14px` (minimale, kaum wahrnehmbare Harmonisierung; keine Änderung bei
+Input/Select/Textarea). `button.yearPickerYear`s `10px`-Radius war nicht Teil der zitierten
+Befund-Zeilen und bleibt unverändert (bereits in UAT-Runde 4 als bewusste, eigene
+Jahres-Kachel-Größe dokumentiert). Neuer Test `pickerTokens.regression.test.ts` (8 Tests,
+fs-basierter Byte-Abgleich) beweist die Token-Nutzung und das Fehlen verbleibender
+`rgba()`/`color-mix()`/Hex-Literale.
+
+Verifiziert: `npx tsc --noEmit` (0 Fehler), `npx eslint src/` (keine neuen Fehler),
+`npm test -- --run` (432 Dateien, 4657 Tests grün), `npm run build-storybook` (Exit 0),
+`git diff --check` (sauber), Storybook-Screenshot-Vergleich DatePicker-Tagesraster/
+YearPicker-Panel (optisch wie erwartet, Panel-Radius-Harmonisierung nicht sichtbar störend).
+
 ---
 *Phase: quick-261029-rnd*
 *Completed: 2026-10-30*
