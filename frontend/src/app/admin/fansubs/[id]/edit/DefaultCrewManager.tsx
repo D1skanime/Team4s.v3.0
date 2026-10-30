@@ -20,6 +20,12 @@ import {
   FormField,
   SectionHeader,
   Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
 } from '@/components/ui'
 
 type Props = {
@@ -153,40 +159,40 @@ export function DefaultCrewManager({ fansubId, members }: Props) {
           description="Füge Mitglieder und Rollen hinzu, um das Standard-Team zu definieren."
         />
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1rem' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '0.35rem 0.5rem', fontWeight: 600 }}>Mitglied</th>
-              <th style={{ textAlign: 'left', padding: '0.35rem 0.5rem', fontWeight: 600 }}>Rolle</th>
-              <th style={{ padding: '0.35rem 0.5rem' }} />
-            </tr>
-          </thead>
-          <tbody>
-            {crew.map((entry) => {
-              const key = `${entry.member_id}:${entry.role_code}`
-              return (
-                <tr key={key}>
-                  <td style={{ padding: '0.35rem 0.5rem' }}>
-                    {memberDisplayName(entry.member_id)}
-                  </td>
-                  <td style={{ padding: '0.35rem 0.5rem' }}>
-                    <Badge variant="neutral" className={ROLE_CATALOG_CHIP_CLASS} data-color-key={presentationForRole(contributionRoles, entry.role_code).colorKey}>{roleLabelFor(entry.role_code)}</Badge>
-                  </td>
-                  <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => void handleRemove(entry)}
-                      disabled={removingKey === key}
-                    >
-                      {removingKey === key ? 'Wird entfernt…' : 'Entfernen'}
-                    </Button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <div style={{ marginBottom: '1rem' }}>
+          <Table variant="withActions">
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Mitglied</TableHeaderCell>
+                <TableHeaderCell>Rolle</TableHeaderCell>
+                <TableHeaderCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {crew.map((entry) => {
+                const key = `${entry.member_id}:${entry.role_code}`
+                return (
+                  <TableRow key={key}>
+                    <TableCell>{memberDisplayName(entry.member_id)}</TableCell>
+                    <TableCell>
+                      <Badge variant="neutral" className={ROLE_CATALOG_CHIP_CLASS} data-color-key={presentationForRole(contributionRoles, entry.role_code).colorKey}>{roleLabelFor(entry.role_code)}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => void handleRemove(entry)}
+                        disabled={removingKey === key}
+                      >
+                        {removingKey === key ? 'Wird entfernt…' : 'Entfernen'}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
