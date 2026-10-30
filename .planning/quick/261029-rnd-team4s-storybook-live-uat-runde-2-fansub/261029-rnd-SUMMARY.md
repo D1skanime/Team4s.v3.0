@@ -391,6 +391,40 @@ Verifiziert: `npx tsc --noEmit` (0 Fehler), `npm run lint` (weiterhin exakt 4 vo
 Fehler), `npm test -- --run src/components/fansubs` (33 Dateien, 249 Tests grün), Playwright-
 Projekt `public` (2/2 grün gegen die echte laufende App unter `http://127.0.0.1:3000`).
 
+## Nachbesserung durch unabhängige Code-Review, Runde 1 (Commit `aca44a83a`)
+
+Eine unabhängige Review meldete zwei `high`-Befunde zum neuen Hero-Scrim-Kontrastnachweis —
+beide zutreffend und behoben:
+
+- **Link-Pills (`.heroChip`) fehlten in der Messreihe**, obwohl die Abnahmevorgabe sie
+  explizit verlangte. Ergänzt: `FansubHeroSection.accessibility.test.ts` prüft jetzt auch
+  `.heroChip`s eigene, teiltransparente Chip-Fläche (`rgba(255,255,255,0.72)`) gegen ihren
+  Text (`color: var(--text-primary)`) im Worst Case — dafür wurde `resolveGlobalVar()`
+  ergänzt, das eine CSS-Variablen-Referenz ohne eigenen Fallback bis zu einem Literal in
+  `globals.css` auflöst, da `.heroChip` anders als Badge/HeroMetrics keinen eigenen
+  Banner-Override besitzt. Im Playwright-Nachweis stellte sich zusätzlich heraus, dass
+  `bloody-shadow` (die ursprüngliche zweite Prüfgruppe) in der DB gar keinen Hero-Link
+  hinterlegt hat — von sieben bannerten Gruppen haben nur `new-subs` und `ls-subs`
+  überhaupt einen Link. `bloody-shadow` wurde durch `ls-subs` ersetzt (hellstes Bannerfoto
+  unter den verbleibenden fünf Gruppen MIT echtem Link, ~64,5% Leuchtdichte).
+- **`parseComputedColor()` verwarf den Alpha-Kanal bei `rgba()`-Textfarben.** Subtitle
+  (`rgba(255,255,255,0.88)`) und Kennzahl-Bezeichnung (`rgba(255,255,255,0.82)`) sind im
+  Banner-Fall bewusst teiltransparent — der Test behandelte sie fälschlich wie deckendes
+  Weiß, was einen echten Kontrastregressionsfall hätte grün melden können. Alpha wird jetzt
+  extrahiert und per `mix()` gegen den gemessenen Hintergrund komponiert, bevor der Kontrast
+  berechnet wird. Die Messwerte änderten sich dadurch sichtbar (z. B. Gründungszeile vorher
+  `rgb(255,255,255)`, jetzt korrekt `rgb(228,227,228)`), bleiben aber weiterhin deutlich
+  über der 4,5:1-Schwelle.
+- **Kollateral-Fix**: ein eigener Kommentar mit dem Platzhalter-Beispiel `var(--name)` wurde
+  vom repo-weiten `cssCustomProperties.guard.test.ts` fälschlich als tote CSS-Variablen-
+  Referenz erkannt (reiner Text-Scan über alle Quelldateien, kein echtes CSS) — Formulierung
+  ohne Code-Literal angepasst.
+
+Neue Messwerte (Link-Pills): `new-subs` 8,99:1, `ls-subs` 9,11:1 — beide deutlich über der
+WCAG-AA-Schwelle. Verifiziert: `npx tsc --noEmit` (0 Fehler), `npm run lint` (weiterhin
+exakt 4 vorbestehende Fehler), `npm test -- --run` (429 Dateien, 4444 Tests grün, inklusive
+`cssCustomProperties.guard.test.ts`), Playwright-Projekt `public` (2/2 grün).
+
 ## Self-Check: PASSED
 
 Alle acht im Summary genannten Dateien existieren (`Heading.tsx`, `Text.tsx`, `catalogTaxonomy.test.ts`,
