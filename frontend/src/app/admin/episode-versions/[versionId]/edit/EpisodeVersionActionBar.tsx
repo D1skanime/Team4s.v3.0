@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 
 import type { ActiveTab } from "./episodeVersionEditorUtils";
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 
 interface EpisodeVersionActionBarProps {
   backHref: string;

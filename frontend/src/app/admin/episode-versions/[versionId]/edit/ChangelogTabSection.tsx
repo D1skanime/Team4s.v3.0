@@ -1,4 +1,4 @@
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 
 export function ChangelogTabSection() {
   return (

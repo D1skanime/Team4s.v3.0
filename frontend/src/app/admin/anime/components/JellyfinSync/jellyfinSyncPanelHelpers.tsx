@@ -1,7 +1,7 @@
 import { EpisodeStatus } from '@/types/anime'
 import { AdminJellyfinSeriesSearchItem, AdminAnimeJellyfinPreviewResult, AdminAnimeJellyfinSyncResult } from '@/types/admin'
 
-import styles from './JellyfinSyncPanel.module.css'
+import styles from './JellyfinSyncPanel.styles'
 
 /**
  * Geteilte Typen, Konstanten und kleine, zustandslose Render-Helfer für die vier

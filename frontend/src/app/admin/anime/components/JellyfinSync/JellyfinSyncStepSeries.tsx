@@ -2,7 +2,7 @@ import type { AdminJellyfinSeriesSearchItem } from '@/types/admin'
 
 import studioStyles from '../../AdminStudio.module.css'
 import { formatSeriesOption, type JellyfinSyncModel } from './jellyfinSyncPanelHelpers'
-import styles from './JellyfinSyncPanel.module.css'
+import styles from './JellyfinSyncPanel.styles'
 
 interface JellyfinSyncStepSeriesProps {
   model: JellyfinSyncModel

@@ -8,7 +8,7 @@ import { ReleaseVersionMetadataFields } from "./ReleaseVersionMetadataFields";
 import { EpisodeClassificationSection } from "./EpisodeClassificationSection";
 import { FansubGroupsSection } from "./FansubGroupsSection";
 import type { FormState } from "./episodeVersionEditorUtils";
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 
 interface InformationenTabSectionProps {
   context: EpisodeVersionEditorContext;

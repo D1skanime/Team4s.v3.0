@@ -3,7 +3,7 @@ import type { AdminAnimeJellyfinPreviewResult, AdminJellyfinSeriesSearchItem } f
 
 import studioStyles from '../../AdminStudio.module.css'
 import { renderStepFeedback, type StepFeedback } from './jellyfinSyncPanelHelpers'
-import styles from './JellyfinSyncPanel.module.css'
+import styles from './JellyfinSyncPanel.styles'
 
 interface JellyfinSyncConfirmDialogProps {
   selectedSeries: AdminJellyfinSeriesSearchItem | null

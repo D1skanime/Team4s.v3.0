@@ -2,7 +2,7 @@ import { Spinner } from '@/components/ui'
 
 import studioStyles from '../../AdminStudio.module.css'
 import { type JellyfinSyncModel, renderStepFeedback } from './jellyfinSyncPanelHelpers'
-import styles from './JellyfinSyncPanel.module.css'
+import styles from './JellyfinSyncPanel.styles'
 
 interface JellyfinSyncStepSearchProps {
   model: JellyfinSyncModel

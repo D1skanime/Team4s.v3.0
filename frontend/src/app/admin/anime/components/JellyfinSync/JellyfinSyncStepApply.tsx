@@ -3,7 +3,7 @@ import type { AdminAnimeJellyfinSyncResult } from '@/types/admin'
 
 import studioStyles from '../../AdminStudio.module.css'
 import { type JellyfinSyncModel, renderStepFeedback } from './jellyfinSyncPanelHelpers'
-import styles from './JellyfinSyncPanel.module.css'
+import styles from './JellyfinSyncPanel.styles'
 
 function renderSyncSummaryCards(result: AdminAnimeJellyfinSyncResult) {
   return (

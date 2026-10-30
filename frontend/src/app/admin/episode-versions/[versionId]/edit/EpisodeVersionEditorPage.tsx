@@ -28,7 +28,7 @@ import { useEpisodeNeighborNavigation } from "./useEpisodeNeighborNavigation";
 import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
 import { SegmenteTab } from "./SegmenteTab";
 import { JellyfinEnrichmentNotice } from "./JellyfinEnrichmentNotice";
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 import { EpisodeVersionTabNav } from "./EpisodeVersionTabNav";
 import { DateienTabSection } from "./DateienTabSection";
 import { InformationenTabSection } from "./InformationenTabSection";
@@ -233,7 +233,7 @@ export function EpisodeVersionEditorPage() {
     ? `/admin/anime/${editor.contextData.version.anime_id}/episodes`
     : "/admin/anime";
 
-  // Build breadcrumb parts
+  // Erzeugt die Brotkrümelnavigations-Teile
   const breadcrumbEpisodeLabel =
     episodeNumber != null
       ? `Episode ${padEpisodeNumber(episodeNumber)}`
@@ -294,7 +294,7 @@ export function EpisodeVersionEditorPage() {
               void editor.handleSave(event, !isPlatformAdmin && canEditMetadata);
             }}
           >
-            {/* 5-Tab navigation */}
+            {/* 5-Tab-Navigation */}
             <EpisodeVersionTabNav
               shouldRenderAdminTabs={shouldRenderAdminTabs}
               shouldRenderContributorTabs={shouldRenderContributorTabs}
@@ -319,7 +319,7 @@ export function EpisodeVersionEditorPage() {
               </section>
             ) : null}
 
-            {/* Übersicht tab stub */}
+            {/* Übersicht-Tab (Platzhalter) */}
             {allowedTabs.has("uebersicht") && visibleActiveTab === "uebersicht" ? (
               <UebersichtTabSection
                 animeTitle={animeTitle}
@@ -328,12 +328,12 @@ export function EpisodeVersionEditorPage() {
               />
             ) : null}
 
-            {/* Dateien tab stub */}
+            {/* Dateien-Tab (Platzhalter) */}
             {allowedTabs.has("dateien") && visibleActiveTab === "dateien" ? (
               <DateienTabSection editor={editor} />
             ) : null}
 
-            {/* Informationen tab — main metadata form */}
+            {/* Informationen-Tab — Haupt-Metadatenformular */}
             {allowedTabs.has("informationen") &&
             visibleActiveTab === "informationen" ? (
               <InformationenTabSection
@@ -355,7 +355,7 @@ export function EpisodeVersionEditorPage() {
               />
             ) : null}
 
-            {/* Segmente tab */}
+            {/* Segmente-Tab */}
             {allowedTabs.has("segmente") && visibleActiveTab === "segmente" ? (
               <SegmenteTab
                 animeId={segmentAnimeId}
@@ -368,7 +368,7 @@ export function EpisodeVersionEditorPage() {
               />
             ) : null}
 
-            {/* Media / Assets tab */}
+            {/* Medien-/Assets-Tab */}
             {allowedTabs.has("media") && visibleActiveTab === "media" ? (
               <section className={styles.card}>
                 <ReleaseVersionMediaSection
@@ -381,12 +381,12 @@ export function EpisodeVersionEditorPage() {
               </section>
             ) : null}
 
-            {/* Changelog tab stub */}
+            {/* Changelog-Tab (Platzhalter) */}
             {allowedTabs.has("changelog") && visibleActiveTab === "changelog" ? (
               <ChangelogTabSection />
             ) : null}
 
-            {/* Notizen / Beiträge tab */}
+            {/* Notizen-/Beiträge-Tab */}
             {allowedTabs.has("notizen") && visibleActiveTab === "notizen" ? (
               <section className={styles.card}>
                 <div className={styles.sectionHeader}>

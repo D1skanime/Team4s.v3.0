@@ -1,5 +1,5 @@
 import { padEpisodeNumber } from "./episodeVersionEditorUtils";
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 
 interface UebersichtTabSectionProps {
   animeTitle: string;

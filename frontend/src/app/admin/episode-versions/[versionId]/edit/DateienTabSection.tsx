@@ -2,7 +2,7 @@ import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
 
 import { formatBytes, formatDateTime } from "./episodeVersionEditorUtils";
 import type { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 
 interface DateienTabSectionProps {
   editor: ReturnType<typeof useEpisodeVersionEditor>;

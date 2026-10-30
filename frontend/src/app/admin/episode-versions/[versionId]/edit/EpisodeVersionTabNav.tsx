@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import type { ActiveTab } from "./episodeVersionEditorUtils";
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 
 interface EpisodeVersionTabNavProps {
   shouldRenderAdminTabs: boolean;

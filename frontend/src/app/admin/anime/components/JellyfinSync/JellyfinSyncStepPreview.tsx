@@ -4,7 +4,7 @@ import type { AdminAnimeJellyfinPreviewResult } from '@/types/admin'
 import studioStyles from '../../AdminStudio.module.css'
 import { formatEpisodeStatusLabel } from '../../utils/anime-helpers'
 import { EPISODE_STATUSES, type JellyfinSyncModel, renderStepFeedback } from './jellyfinSyncPanelHelpers'
-import styles from './JellyfinSyncPanel.module.css'
+import styles from './JellyfinSyncPanel.styles'
 
 function renderPreviewSummaryCards(preview: AdminAnimeJellyfinPreviewResult) {
   return (

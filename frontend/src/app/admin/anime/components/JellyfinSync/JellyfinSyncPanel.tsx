@@ -6,7 +6,7 @@ import { deriveJellyfinSyncPanelState } from '../../utils/jellyfin-sync-panel-st
 import { JellyfinSyncConfirmDialog } from './JellyfinSyncConfirmDialog'
 import type { JellyfinSyncModel } from './jellyfinSyncPanelHelpers'
 import { WIZARD_STEPS } from './jellyfinSyncPanelHelpers'
-import styles from './JellyfinSyncPanel.module.css'
+import styles from './JellyfinSyncPanel.styles'
 import { JellyfinSyncStepApply } from './JellyfinSyncStepApply'
 import { JellyfinSyncStepPreview } from './JellyfinSyncStepPreview'
 import { JellyfinSyncStepSearch } from './JellyfinSyncStepSearch'
@@ -31,7 +31,7 @@ export function JellyfinSyncPanel({ anime, model, onBeforeAction, onSynced }: Je
   const [hasSearched, setHasSearched] = useState(false)
   const prevIsSearching = useRef(model.isSearching)
 
-  // Track when search completes to show empty state
+  // Erfasst den Abschluss einer Suche, um danach ggf. den Leer-Zustand anzuzeigen
   useEffect(() => {
     if (prevIsSearching.current && !model.isSearching) {
       setHasSearched(true)
