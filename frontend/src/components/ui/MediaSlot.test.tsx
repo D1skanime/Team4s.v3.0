@@ -161,4 +161,20 @@ describe('MediaSlot', () => {
     expect(screen.getByText('Kein Hintergrund')).not.toBeNull()
     expect(screen.queryByRole('button')).toBeNull()
   })
+
+  it('zeigt den Fehlertext statt des Hinweistexts, wenn beide gesetzt sind', () => {
+    render(
+      <MediaSlot
+        aspectRatio={1}
+        label="Logo"
+        hasValue={false}
+        onFilesSelected={vi.fn()}
+        hint="JPG oder PNG, max. 4 MB"
+        error="Datei zu groß"
+      />,
+    )
+
+    expect(screen.getByRole('alert').textContent).toBe('Datei zu groß')
+    expect(screen.queryByText('JPG oder PNG, max. 4 MB')).toBeNull()
+  })
 })

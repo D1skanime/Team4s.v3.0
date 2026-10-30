@@ -17,6 +17,14 @@ describe('Button', () => {
     render(<Button href="/ziel">Weiter</Button>)
     expect(screen.getByRole('link', { name: 'Weiter' })).not.toBeNull()
   })
+
+  it('rendert mit href+as eine eigene Link-Komponente statt eines nativen <a>, für clientseitige Navigation', () => {
+    function FakeLink({ href, children, ...rest }: { href: string; children: React.ReactNode }) {
+      return <a data-testid="fake-link" href={href} {...rest}>{children}</a>
+    }
+    render(<Button href="/ziel" as={FakeLink}>Weiter</Button>)
+    expect(screen.getByTestId('fake-link').getAttribute('href')).toBe('/ziel')
+  })
 })
 
 describe('Button.module.css', () => {

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { UploadFileRow } from './UploadFileRow'
@@ -12,7 +13,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: Badge, Button, FormField, Input, Textarea.',
+        component: 'Besteht aus: Card, MediaFrame, ResponsiveImage, Heading, Text, ProgressBar, Badge, Button, FormField, Input, Textarea.',
       },
     },
   },
@@ -50,4 +51,33 @@ export const Ready: Story = {
 export const Failed: Story = {
   name: 'Fehlgeschlagen',
   args: { status: 'failed', errorMessage: 'Die Datei konnte nicht hochgeladen werden.', onRetry: () => {} },
+}
+
+export const Kompakt: Story = {
+  name: 'Kompakt',
+  args: { status: 'ready', density: 'compact' },
+}
+
+export const OhneTitelUndBeschreibung: Story = {
+  name: 'Ohne Titel/Beschreibung',
+  args: { status: 'ready', showMetadataFields: false },
+}
+
+function WechselnderFortschritt() {
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setProgress((current) => (current >= 100 ? 0 : current + 10))
+    }, 400)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  return <UploadFileRow file={demoFile} status="uploading" progress={progress} showMetadataFields={false} />
+}
+
+export const WechselnderFortschrittStory: Story = {
+  name: 'Wechselnder Fortschritt',
+  args: { status: 'uploading' },
+  render: () => <WechselnderFortschritt />,
 }

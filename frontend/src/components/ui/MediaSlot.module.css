@@ -1,13 +1,13 @@
 .mediaSlotWrapper {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
 }
 
 .mediaSlot {
   position: relative;
   width: 100%;
-  border-radius: var(--radius-md, 12px);
+  border-radius: var(--radius-surface);
   overflow: hidden;
 }
 
@@ -15,32 +15,30 @@
   border-radius: 999px;
 }
 
+/* Element+Klasse-Selektor (Spezifität 0,1,1): schlägt UploadDropzones eigene Radius-Regel
+   zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge -- kein !important mehr nötig. */
+div.mediaSlotRoundDropzone {
+  border-radius: 999px;
+}
+
 .mediaSlotDropzone {
   width: 100%;
   height: 100%;
   min-height: 0;
-  /* Opts THIS specific UploadDropzone instance into CSS size containment (Live-UAT/code-review
-     follow-up 2026-10-13, moved here from the shared .dropzone base rule): .mediaSlot's own box
-     has a definite, aspect-ratio-driven height (set via an inline style a few lines up the
-     ancestor chain), so letting this box's height collapse below its own content's natural size
-     is exactly the fix a flat/short MediaSlot tile (e.g. a 5.4:1 banner) needs -- UploadDropzone's
-     own @container (max-height: ...) rule reacts to that shrunk height and switches to a layout
-     that still fits. A non-MediaSlot UploadDropzone caller (density="roomy", sized by its own
-     content, no aspect-ratio ancestor) never gets this class and keeps its natural content-driven
-     height instead of collapsing to UploadDropzone's bare min-height. */
+  /* Bindet NUR diese UploadDropzone-Instanz in CSS-Größen-Containment ein: MediaSlots eigene
+     Box hat eine feste, über aspect-ratio bestimmte Höhe (als Inline-Stil am Elterncontainer
+     gesetzt) -- diese Box darf deshalb unter die natürliche Inhaltsgröße schrumpfen, ohne dass
+     etwas abgeschnitten wird. UploadDropzones eigene @container (max-height: ...)-Regel reagiert
+     auf diese geschrumpfte Höhe und wechselt auf ein Layout, das trotzdem passt. Eine
+     UploadDropzone außerhalb von MediaSlot (density="roomy", durch eigenen Inhalt bestimmte
+     Größe, kein aspect-ratio-Vorfahre) bekommt diese Klasse nie und behält ihre natürliche,
+     inhaltsbestimmte Höhe statt auf UploadDropzones bloße min-height zu schrumpfen. */
   container-type: size;
 }
 
-/* The shared UploadDropzone draws its own border-radius (not reliably overridable by
-   specificity across two separately-bundled CSS modules) -- !important here is a deliberate,
-   narrow override so a round slot (avatar/logo) never shows square corners peeking past the
-   parent's own round clip. */
-.mediaSlotRoundDropzone {
-  border-radius: 999px !important;
-}
-
-/* Non-interactive fallback when the caller omits onFilesSelected (e.g. one entry of an existing
-   Background/Background-Video list -- replace-in-place isn't offered there, only Delete). */
+/* Nicht-interaktiver Ersatzzustand, wenn der Aufrufer onFilesSelected weglässt (z. B. ein
+   bestehender Eintrag einer Hintergrund-/Hintergrundvideo-Liste -- dort wird kein Ersetzen an
+   Ort und Stelle angeboten, nur Löschen). */
 .mediaSlotStatic {
   width: 100%;
   height: 100%;
@@ -49,17 +47,27 @@
   justify-content: center;
 }
 
-/* Its own row directly below the slot, never overlapping or clipped by a round/rect preview. */
+/* Eigene Zeile direkt unter der Fläche, nie von einer runden/eckigen Vorschau überlappt oder
+   abgeschnitten. */
 .mediaSlotActions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .mediaSlotCornerBadge {
   position: absolute;
-  left: 6px;
-  bottom: 6px;
+  left: var(--space-1);
+  bottom: var(--space-1);
   z-index: 2;
+}
+
+.mediaSlotHint,
+.mediaSlotError {
+  text-align: center;
+}
+
+.mediaSlotError {
+  color: var(--color-error);
 }

@@ -1,13 +1,18 @@
 'use client'
 
-import Image from 'next/image'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useMemo } from 'react'
 import { RefreshCw, Trash2 } from 'lucide-react'
 
 import { Badge } from './Badge'
 import { Button } from './Button'
+import { Card } from './Card'
 import { FormField } from './FormField'
+import { Heading } from './Heading'
 import { Input } from './Input'
+import { MediaFrame } from './MediaFrame'
+import { ProgressBar } from './ProgressBar'
+import { ResponsiveImage } from './ResponsiveImage'
+import { Text } from './Text'
 import { Textarea } from './Textarea'
 import { classNames } from './classNames'
 import styles from './UploadFileRow.module.css'
@@ -24,7 +29,7 @@ export interface UploadFileRowProps {
   /** `false` hides Titel/Beschreibung entirely (single-slot ways with no such backend column). */
   showMetadataFields?: boolean
   status: UploadFileRowStatus
-  /** Only rendered as `<progress>` while `status === 'uploading'`. */
+  /** Only rendered (als Fortschrittsbalken) während `status === 'uploading'` oder `'processing'`. */
   progress?: number | null
   errorMessage?: string | null
   /** Only rendered (variant="subtle" + RefreshCw) when `status === 'failed'`. */
@@ -64,26 +69,16 @@ export function statusLabel(status: UploadFileRowStatus): string {
 }
 
 function FilePreview({ file, density }: { file: File; density: 'roomy' | 'compact' }) {
-  const image = useRef<HTMLImageElement>(null)
+  const objectUrl = useMemo(() => URL.createObjectURL(file), [file])
 
   useEffect(() => {
-    const url = URL.createObjectURL(file)
-    if (image.current) image.current.src = url
-    return () => {
-      URL.revokeObjectURL(url)
-    }
-  }, [file])
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [objectUrl])
 
   return (
-    <Image
-      ref={image}
-      src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
-      alt={`Vorschau ${file.name}`}
-      width={128}
-      height={128}
-      unoptimized
-      className={classNames(styles.preview, density === 'compact' ? styles.previewCompact : styles.previewRoomy)}
-    />
+    <MediaFrame aspectRatio={1}>
+      <ResponsiveImage src={objectUrl} alt={`Vorschau ${file.name}`} fill sizes={density === 'compact' ? '64px' : '128px'} />
+    </MediaFrame>
   )
 }
 
@@ -106,12 +101,12 @@ export function UploadFileRow({
   const captionFieldId = `${id}-caption`
 
   return (
-    <section className={styles.row} aria-labelledby={nameId}>
-      <div className={styles.previewWrap}>
+    <Card variant="compact" className={styles.row} aria-labelledby={nameId}>
+      <div className={classNames(styles.previewWrap, density === 'compact' && styles.previewWrapCompact)}>
         <FilePreview file={file} density={density} />
       </div>
       <div className={styles.fields}>
-        <p id={nameId} className={styles.filename}>{file.name}</p>
+        <Heading level={4} id={nameId} className={styles.filename}>{file.name}</Heading>
 
         {showMetadataFields ? (
           <>
@@ -139,10 +134,12 @@ export function UploadFileRow({
         <div className={styles.statusRow} aria-live="polite">
           <Badge variant={statusBadgeVariant(status)}>{statusLabel(status)}</Badge>
           {status === 'uploading' ? (
-            <progress max={100} value={progress ?? 0} aria-label={`Übertragung: ${file.name}`} />
+            <ProgressBar value={progress ?? 0} label={`Übertragung: ${file.name}`} size="sm" className={styles.progress} />
+          ) : status === 'processing' ? (
+            <ProgressBar indeterminate label={`Wird verarbeitet: ${file.name}`} size="sm" className={styles.progress} />
           ) : null}
         </div>
-        {errorMessage ? <p className={styles.errorText}>{errorMessage}</p> : null}
+        {errorMessage ? <Text variant="body" role="alert" className={styles.errorText}>{errorMessage}</Text> : null}
 
         <div className={styles.actions}>
           {status === 'failed' && onRetry ? (
@@ -157,6 +154,6 @@ export function UploadFileRow({
           ) : null}
         </div>
       </div>
-    </section>
+    </Card>
   )
 }

@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+import { NavArrow } from '@/components/ui'
 import { FansubGroupSummary } from '@/types/fansub'
 
 import styles from './GroupEdgeNavigation.module.css'
@@ -63,33 +63,35 @@ export function GroupEdgeNavigation({
       {currentGroupName ? (
         <span className={styles.groupLabel}>Weitere Projekte von {currentGroupName}</span>
       ) : null}
-      <button
-        type="button"
-        className={styles.navButton}
+      <span
+        className={styles.navButtonWrap}
         onMouseEnter={() => previousGroup && setHoverDirection('prev')}
         onMouseLeave={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
         onFocus={() => previousGroup && setHoverDirection('prev')}
         onBlur={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
-        onClick={() => handleNavigate('prev')}
-        disabled={!previousGroup || loadingDirection !== null}
-        aria-label="Vorherige Gruppe"
       >
-        <ChevronLeft size={22} />
-      </button>
+        <NavArrow
+          direction="previous"
+          label="Vorherige Gruppe"
+          onClick={() => handleNavigate('prev')}
+          disabled={!previousGroup || loadingDirection !== null}
+        />
+      </span>
 
-      <button
-        type="button"
-        className={styles.navButton}
+      <span
+        className={styles.navButtonWrap}
         onMouseEnter={() => nextGroup && setHoverDirection('next')}
         onMouseLeave={() => setHoverDirection((current) => (current === 'next' ? null : current))}
         onFocus={() => nextGroup && setHoverDirection('next')}
         onBlur={() => setHoverDirection((current) => (current === 'next' ? null : current))}
-        onClick={() => handleNavigate('next')}
-        disabled={!nextGroup || loadingDirection !== null}
-        aria-label="Nächste Gruppe"
       >
-        <ChevronRight size={22} />
-      </button>
+        <NavArrow
+          direction="next"
+          label="Nächste Gruppe"
+          onClick={() => handleNavigate('next')}
+          disabled={!nextGroup || loadingDirection !== null}
+        />
+      </span>
 
       {previewGroup ? (
         <div

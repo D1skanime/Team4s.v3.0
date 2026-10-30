@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+import { Button } from '@/components/ui'
 import { getAnimeList } from '@/lib/api'
 import {
   buildAnimeDetailHref,
@@ -120,11 +121,13 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery }: AnimeEdgeNavi
 
   return (
     <>
-      {/* Left button wrapper */}
+      {/* Linker Knopf-Wrapper */}
       <div className={styles.buttonWrapper}>
-        <button
+        <Button
           type="button"
+          variant="primary"
           className={styles.navButton}
+          leftIcon={<ChevronLeft size={22} />}
           onMouseEnter={() => {
             void loadNeighbors()
             setHoverDirection('prev')
@@ -142,9 +145,8 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery }: AnimeEdgeNavi
           disabled={(neighbors !== null && !previousAnime) || loadingDirection !== null}
           aria-label="Vorheriger Anime"
         >
-          <ChevronLeft size={22} />
-          <span>Zurück</span>
-        </button>
+          Zurück
+        </Button>
         {previewAnime && hoverDirection === 'prev' ? (
           <div className={`${styles.previewCard} ${styles.previewLeft}`}>
             <Image
@@ -163,11 +165,13 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery }: AnimeEdgeNavi
         ) : null}
       </div>
 
-      {/* Right button wrapper */}
+      {/* Rechter Knopf-Wrapper */}
       <div className={styles.buttonWrapper}>
-        <button
+        <Button
           type="button"
+          variant="primary"
           className={styles.navButton}
+          rightIcon={<ChevronRight size={22} />}
           onMouseEnter={() => {
             void loadNeighbors()
             setHoverDirection('next')
@@ -185,9 +189,8 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery }: AnimeEdgeNavi
           disabled={(neighbors !== null && !nextAnime) || loadingDirection !== null}
           aria-label="Nächster Anime"
         >
-          <span>Weiter</span>
-          <ChevronRight size={22} />
-        </button>
+          Weiter
+        </Button>
         {previewAnime && hoverDirection === 'next' ? (
           <div className={`${styles.previewCard} ${styles.previewRight}`}>
             <Image

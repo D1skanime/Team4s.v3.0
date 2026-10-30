@@ -4,9 +4,12 @@ import type { ChangeEvent, DragEvent, KeyboardEvent, ReactNode } from 'react'
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import { UploadCloud } from 'lucide-react'
 
+import { Badge } from './Badge'
 import { Button } from './Button'
 import { Input } from './Input'
+import { Text } from './Text'
 import { classNames } from './classNames'
+import { visuallyHiddenClassName } from './VisuallyHidden'
 import styles from './UploadDropzone.module.css'
 
 /** Imperative handle for callers that need an EXTERNAL trigger (e.g. an action-row "Ersetzen"
@@ -211,7 +214,7 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
         aria-label="Dateien"
         disabled={disabled}
         tabIndex={-1}
-        className={styles.hiddenFileInput}
+        className={visuallyHiddenClassName}
         onClick={(event) => event.stopPropagation()}
         onChange={onInputChange}
       />
@@ -219,15 +222,15 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
         <>
           {children}
           {isDragActive && overlayHintLabel ? (
-            <p className={styles.dropzoneOverlayHint}>{overlayHintLabel}</p>
+            <Badge variant="info" className={styles.dropzoneOverlayHint}>{overlayHintLabel}</Badge>
           ) : null}
         </>
       ) : (
         <>
           <UploadCloud size={22} aria-hidden="true" className={styles.icon} />
           <div className={styles.copy}>
-            <p className={styles.promptLabel}>{promptLabel}</p>
-            {dropHintLabel ? <p className={styles.dropHintLabel}>{dropHintLabel}</p> : null}
+            <Text variant="body" className={styles.promptLabel}>{promptLabel}</Text>
+            {dropHintLabel ? <Text variant="soft" className={styles.dropHintLabel}>{dropHintLabel}</Text> : null}
           </div>
           <Button
             type="button"
@@ -245,9 +248,9 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
         </>
       )}
       {showSingleSlotWarning ? (
-        <p className={styles.singleSlotWarning} role="status">
+        <Text variant="body" role="status" className={styles.singleSlotWarning}>
           {multiFileOnSingleSlotWarning}
-        </p>
+        </Text>
       ) : null}
     </div>
   )

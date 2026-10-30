@@ -1,6 +1,6 @@
 'use client'
 
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react'
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ElementType, MouseEvent, ReactNode } from 'react'
 
 import { classNames } from './classNames'
 import styles from './Button.module.css'
@@ -30,6 +30,9 @@ type NativeButtonProps = CommonButtonProps &
 type LinkButtonProps = CommonButtonProps &
   AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string
+    /** Link-Komponente für interne Ziele (z. B. `next/link`s `Link`, für clientseitige
+     *  Navigation statt eines vollen Seiten-Neuladens). Standard: natives `<a>`. */
+    as?: ElementType
   }
 
 export type ButtonProps = NativeButtonProps | LinkButtonProps
@@ -80,7 +83,7 @@ export function Button(props: ButtonProps) {
   )
 
   if ('href' in domProps && typeof domProps.href === 'string') {
-    const { href, onClick, target, rel, ...anchorProps } = domProps
+    const { href, onClick, target, rel, as: Tag = 'a', ...anchorProps } = domProps
     const isDisabled = Boolean(disabled || loading)
     const handleAnchorClick =
       isDisabled || onClick
@@ -94,7 +97,7 @@ export function Button(props: ButtonProps) {
         : undefined
 
     return (
-      <a
+      <Tag
         {...anchorProps}
         href={isDisabled ? undefined : href}
         target={target}
@@ -104,7 +107,7 @@ export function Button(props: ButtonProps) {
         onClick={handleAnchorClick}
       >
         {content}
-      </a>
+      </Tag>
     )
   }
 

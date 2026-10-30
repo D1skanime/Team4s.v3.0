@@ -2,6 +2,7 @@
 
 import { forwardRef, useImperativeHandle, useRef, type ReactNode } from 'react'
 
+import { Text } from './Text'
 import { classNames } from './classNames'
 import { UploadDropzone, resolveUploadSlotPresentation, type UploadDropzoneHandle } from './UploadDropzone'
 import styles from './MediaSlot.module.css'
@@ -43,6 +44,10 @@ export interface MediaSlotProps {
    * (e.g. a dashed "+ neuer Hintergrund" adder look is instead handled by the caller passing
    * `onFilesSelected`; this is only for a genuinely empty, non-interactive static slot). */
   staticEmptyContent?: ReactNode
+  /** Hinweistext unterhalb der Fläche (z. B. "JPG oder PNG, max. 4 MB"). */
+  hint?: ReactNode
+  /** Fehlertext unterhalb der Fläche, ersetzt den Hinweistext, wenn beide gesetzt sind. */
+  error?: ReactNode
   className?: string
 }
 
@@ -70,6 +75,8 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
   actions,
   cornerBadge,
   staticEmptyContent,
+  hint,
+  error,
   className,
 }, ref) {
   // Static mode (no onFilesSelected) renders no UploadDropzone at all, so there is nothing for a
@@ -116,6 +123,11 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
         {cornerBadge ? <div className={styles.mediaSlotCornerBadge}>{cornerBadge}</div> : null}
       </div>
       {actions ? <div className={styles.mediaSlotActions}>{actions}</div> : null}
+      {error ? (
+        <Text variant="body" role="alert" className={styles.mediaSlotError}>{error}</Text>
+      ) : hint ? (
+        <Text variant="soft" className={styles.mediaSlotHint}>{hint}</Text>
+      ) : null}
     </div>
   )
 })
