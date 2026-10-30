@@ -307,6 +307,43 @@ exakt 4 vorbestehende, unveränderte Fehler), `npm test -- --run` (429 Testdatei
 `storybook-static/index.json` nach dem Build programmatisch nach den zuvor
 englischen sichtbaren Story-Namen durchsucht: keine Treffer mehr.
 
+## Vorprüfung vor der Live-Abnahme (Commit `91b5ca003`)
+
+Vor der eigentlichen Live-Abnahme meldete der Mensch zwei Restpunkte aus einer eigenen
+Vorprüfung — beide zutreffend und behoben:
+
+- **Unlesbare, zusammengeschriebene Story-Namen.** 21 sichtbare Story-Namen waren zwar
+  deutsch, aber als CamelCase ohne Leerzeichen aus dem Export-Bezeichner abgeleitet
+  (`LangerInhalt`, `NurTrailing`, `MittenImVerlauf`, `ErsteSeite`, `LeereOptionen` u. a.,
+  über 11 Dateien unter `components/ui` verteilt). Durch lesbare deutsche Phrasen mit
+  Leerzeichen bzw. Bindestrich ersetzt ("Langer Inhalt", "Nur Trailing-Aktion", "Mitten im
+  Verlauf", "Erste Seite", "Leere Optionen"). `storyDisplayNames.german.test.ts` um eine
+  dritte, permanente Prüfung erweitert (`isUnspacedCamelCase`): erkennt künftig jeden
+  sichtbaren Namen aus mehreren großgeschriebenen Wortteilen ohne Leerzeichen automatisch
+  als Regression, unabhängig von Sprache. Per temporärer Verstoß-Injektion verifiziert.
+- **ASCII-Ersatzschreibung in Code-Kommentaren.** Entgegen der CLAUDE.md-Regel "Code-
+  Kommentare deutsch mit korrekten Umlauten" nutzten mehrere in diesem Auftrag neu
+  geschriebene oder geänderte Kommentare ASCII-Ersatz (z. B. `zufaellig` statt `zufällig`,
+  `fuer` statt `für`, `Verstoss` statt `Verstoß`). Per `git diff main...HEAD` über alle 159
+  in diesem Auftrag geänderten Dateien systematisch gesucht (Kommentar-Erkennung inkl.
+  mehrzeiliger `/* */`-Blöcke ohne durchgehende `*`-Präfixe) und auf korrekte Umlaute/ß
+  umgestellt — u. a. `AvatarStack.module.css`, `Card.module.css`, `Heading.tsx`, `Text.tsx`,
+  `catalogTaxonomy.test.ts`, `typography.regression.test.ts`,
+  `storyDisplayNames.german.test.ts` (eigener, in Runde 2 dieses Auftrags geschriebener
+  Kommentar), `globals.css`, `.storybook/main.ts`, `MediaViewerStage.tsx`,
+  `ModalInContextShowcase.tsx`. Code-Bezeichner und Commit-Nachrichten blieben wie
+  gefordert unangetastet; vorbestehende, nicht in diesem Auftrag geschriebene englische
+  Kommentare (z. B. in `achievementBadgeGalleryFixtures.ts`) wurden NICHT übersetzt, da
+  das ein anderes Problem (Sprache statt Umlaut-Schreibweise) und außerhalb der konkreten
+  Rückmeldung ist.
+
+Erneut empirisch bestätigt: `npx tsc --noEmit` (0 Fehler), `npm run lint` (weiterhin exakt
+4 vorbestehende, unveränderte Fehler), `npm test -- --run` (429 Testdateien, 4443 Tests,
+alle grün — inklusive 168 neuer Tests aus der dritten `storyDisplayNames.german.test.ts`-
+Prüfung), `npm run build-storybook` (Exit 0). Zusätzlich `storybook-static/index.json`
+nach dem Build programmatisch auf verbleibendes CamelCase-ohne-Leerzeichen durchsucht:
+keine Treffer mehr.
+
 ## Self-Check: PASSED
 
 Alle acht im Summary genannten Dateien existieren (`Heading.tsx`, `Text.tsx`, `catalogTaxonomy.test.ts`,
