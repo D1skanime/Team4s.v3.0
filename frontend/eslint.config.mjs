@@ -41,6 +41,25 @@ const uiDirectoryGuardOptions = [
 ]
 const uiDirectoryGuard = ['error', ...uiDirectoryGuardOptions]
 
+// Dritter, auf src/app/** beschränkter Guard (Befund 3, Live-UAT Runde 4, 2026-10-30, optional):
+// verbietet dort ZUSÄTZLICH natives <table> (DefaultCrewManager.tsx baute vormals einen eigenen
+// <table>-Nachbau statt Table/TableHead/TableRow/TableCell zu nutzen). Wiederholt die drei
+// select/input/textarea-Selektoren aus uiPrimitiveGuardOptions, damit dieser Block den
+// repo-weiten uiPrimitiveGuard für src/app NICHT versehentlich ersetzt -- ESLint Flat Config
+// überschreibt eine Regel pro Datei komplett (kein Array-Merge zwischen mehreren passenden
+// Config-Objekten). Zum Einführungszeitpunkt bestehen 0 Produktions-Verstöße (geprüft per
+// `grep -rl '<table' src/app --include='*.tsx'`, nur zwei .test.tsx-Dateien rendern eigene
+// Tabellen als Testinhalt) -- direkt als 'error' ohne Ratchet-Ausnahmeliste eingeführt.
+const appDirectoryGuardOptions = [
+  ...uiPrimitiveGuardOptions,
+  {
+    selector: "JSXOpeningElement[name.name='table']",
+    message:
+      'Natives <table> in src/app verboten — nutze <Table>/<TableHead>/<TableRow>/<TableCell> aus @/components/ui.',
+  },
+]
+const appDirectoryGuard = ['error', ...appDirectoryGuardOptions]
+
 // Bewusste, kleine, FESTE Ausnahmeliste (kein Ratchet wie LEGACY_NO_RESTRICTED_SYNTAX_FILES
 // oben — dieser Guard ist neu und wächst nicht über eine stillschweigend größer werdende
 // Altlast, sondern über eine bewusste Review-Entscheidung): Dateien, in denen das native
@@ -56,13 +75,17 @@ const UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES = [
   'Tabs.tsx', // button[role=tab] ist Tabs' eigene Struktur
   'NavArrow.tsx', // bereits im Code als bewusst natives Element dokumentiert
   'ThumbnailStrip.tsx', // Thumbnail-Kacheln sind Dateninhalte des Widgets
-  'YearPicker.tsx', // Jahres-Kacheln/Trigger sind Dateninhalte des Widgets
+  // YearPicker.tsx wurde entfernt: alle fünf nativen <button> wurden auf IconButton/NavArrow
+  // umgestellt (UAT-Runde 4, Befund 4, 2026-10-30) -- keine Ausnahme mehr nötig.
   'DatePicker.tsx', // Kalender-Navigations-/Tages-/Monats-/Jahres-Kacheln sind Dateninhalte des Widgets
+  // Accordion.tsx wurde entfernt: die Kopfzeile ist jetzt der geteilte DisclosureTrigger-
+  // Baustein (UAT-Runde 4, Befund 6, 2026-10-30) -- das native <button> steht jetzt nur noch
+  // in DisclosureTrigger.tsx selbst.
   // Vollbreites, klickbares Flex-Layout-Widget (Titel + DisclosureIndicator-Öffner-Symbol) mit
   // eigenem ARIA-Widget-Vertrag (aria-expanded/aria-controls) -- passt weder zu Buttons
   // Text-Button-Form noch zu IconButtons Icon-only-Form, daher bleibt das native <button> hier
   // die technisch zutreffende Basis (bewusste Entscheidung, kein offener Punkt mehr).
-  'Accordion.tsx',
+  'DisclosureTrigger.tsx',
 ]
 
 // RATCHET — diese Liste darf nur SCHRUMPFEN, nie wachsen.
@@ -255,8 +278,21 @@ const config = [
     },
   },
   {
+    // Block C (Befund 3, Live-UAT Runde 4, 2026-10-30, optional): aktiviert den src/app-
+    // spezifischen Guard (select/input/textarea/table) für alle produktiven .tsx-Dateien, aber
+    // NICHT für .test.tsx -- Test-Harnesses rendern legitim eigene native <table>-Testinhalte.
+    files: ['src/app/**/*.{ts,tsx}'],
+    ignores: ['src/app/**/*.test.tsx'],
+    rules: {
+      'no-restricted-syntax': appDirectoryGuard,
+    },
+  },
+  {
     // Ratchet-Ausnahme für die eingefrorene Altfälle-Liste, siehe deren
-    // Definition/Kommentar oben (LEGACY_NO_RESTRICTED_SYNTAX_FILES).
+    // Definition/Kommentar oben (LEGACY_NO_RESTRICTED_SYNTAX_FILES). Kommt bewusst NACH Block C,
+    // damit die dort grandfatherte warn-Stufe für select/input/textarea auf exakt diesen Dateien
+    // weiterhin greift (keine dieser Dateien nutzt natives <table>, siehe Kommentar an
+    // appDirectoryGuardOptions -- kein Abdeckungsverlust in der Praxis).
     files: LEGACY_NO_RESTRICTED_SYNTAX_FILES,
     rules: {
       'no-restricted-syntax': uiPrimitiveGuardLegacyWarn,
