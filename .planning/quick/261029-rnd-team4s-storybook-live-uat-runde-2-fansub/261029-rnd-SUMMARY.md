@@ -527,6 +527,76 @@ Alle acht im Summary genannten Dateien existieren (`Heading.tsx`, `Text.tsx`, `c
 `.storybook/main.ts`, `NavArrow.stories.tsx`), und alle 15 genannten Task-Commit-Hashes sind im
 Git-Log auffindbar.
 
+## Live-UAT Runde 5 (vom Menschen gesichtet, 2026-10-30) — Nachbesserung
+
+Der Auftrag blieb nach den automatischen Korrekturrunden weiter rot und wurde vom Menschen
+gesichtet. Entscheidung des Menschen (30.10.): alle offenen Review-Befunde beheben, keine
+Rückfrage. Fünf Punkte plus ein explizit benannter `[high]`-Befund (DatePicker) wurden behoben:
+
+1. **`DatePicker` analog zu `YearPicker` umgebaut** (der explizit benannte `[high]`-Befund):
+   Auslöser, Leeren-Verknüpfung, Blätter-Pfeile, Monats-/Jahres-Titel-Umschalter sowie Tages-/
+   Monats-/Jahres-Kacheln und Fußzeilen-Aktionen (insgesamt rund 50 vormals native `<button>`)
+   wurden auf `IconButton`/`NavArrow`/`Button` umgestellt — identisches Muster wie YearPickers
+   vorherige Umstellung. Die feste ESLint-Ausnahme in `UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES`
+   entfiel. Story-Katalog von „Grundbausteine" nach „Zusammengesetzte Bausteine" verschoben, mit
+   „Besteht aus: IconButton, NavArrow, Button." Fünf neue Verhaltens-Tests (Jahres-/Tages-
+   Auswahl, NavArrow-Blättern, Escape, Leeren) belegen unverändertes Tastatur-/Fokusverhalten.
+2. **Gemeinsamer Feld-Stil als globale Tokens**: Die vormals in `.control` (`ui.module.css`)
+   hartcodierten Rahmen-/Hintergrund-/Textfarb-/Fokus-/Fehler-/Deaktiviert-/Lesemodus-Werte
+   wurden als benannte `--field-*`-Tokens nach `globals.css` verschoben (identische Werte, keine
+   Optikänderung). `Input`/`Select`/`Textarea` (über `.control`), `YearPicker`s und `DatePicker`s
+   Auslöser beziehen diese Werte jetzt gemeinsam statt sie je einzeln zu kopieren. Zusätzlich
+   wurde ein geteilter `--selection-tile-*`-Verlauf eingeführt: YearPickers und DatePickers
+   „ausgewählt"-Kacheln (Jahr/Monat/Tag) nutzen jetzt exakt denselben Blauverlauf statt zweier
+   eigener, leicht abweichender Werte — DatePickers Auswahlfarbe gleicht sich dabei sichtbar an
+   YearPicker an (gewollte Harmonisierung, keine Optikänderung bei Input/Select/Textarea).
+3. **Heading liefert jetzt standardmäßig `color: var(--text-strong)`**: PageHeader/
+   SectionHeader/DialogHeader/Card/`.stateTitle` (EmptyState/ErrorState/LoadingState) benötigen
+   dafür keine eigene `color`-Deklaration mehr (vorher vier identische Kopien plus ein per
+   Vererbung unsicherer Fall bei Card). `ArtworkHero`s Titel verliert seinen eigenen, nahezu
+   identischen `--text-primary`-Override zugunsten von Headings neuem Standard. Eigene Schrift-
+   größen/-gewichte wurden aus `ArtworkHero` (Avatar, Titel), `HeroMetrics` (Label-Gewicht,
+   Kennzahl-Wert, Inline-Variante), `Accordion` (Panel-Text) und `DisclosureTrigger` entfernt
+   bzw. durch Tokens ersetzt: exakte Treffer (z. B. `--font-size-h2`/`--font-weight-heading` für
+   den ArtworkHero-Avatar, `--font-size-h3` für DisclosureTrigger) wurden direkt referenziert;
+   für Werte ohne bestehenden Treffer (1,5rem „Hero-Display", 600 „Label-Gewicht") wurden zwei
+   neue, schmale Tokens ergänzt (`--font-size-hero-display`, `--font-weight-label`) statt
+   weiterhin bloßer Literale. `Accordion.module.css`s Panel-Text bezieht jetzt die geteilte
+   `--text-soft-size`-Variable statt eines eigenen Literals (Inhalt bleibt beliebiger `ReactNode`,
+   daher keine echte `<Text>`-Umstellung). `typography.regression.test.ts` wurde entsprechend
+   aktualisiert (neue Prüfung auf Headings Standardfarbe, entfernte Einzel-`color`-Prüfungen).
+4. **Zwei übergroße CSS-Module jetzt fachlich aufgeteilt** (Entscheidung des Menschen, bewusste
+   Ausnahme von der sonst geltenden „nur beim Anfassen aufteilen"-Regel): `JellyfinSyncPanel.
+   module.css` (468 Zeilen) in vier Teil-Dateien nach fachlichem Bereich (Gerüst/Fortschritt,
+   Wizard-Schritt-Panel, Ergebnisanzeige, Bestätigungs-Dialog, je ≤ 204 Zeilen) und
+   `EpisodeVersionEditor.module.css` (530 Zeilen) ebenso (Seiten-Gerüst/Kopfzeile, Formular-
+   Karten/-Felder, Aktionsleiste/Navigation/Buttons, Tab-Navigation/Medien, je ≤ 193 Zeilen).
+   Da die einzelnen Schritt-/Tab-Komponenten Klassen aus mehreren Bereichen gleichzeitig nutzen,
+   bündelt je eine neue `*.styles.ts`-Datei (über den bestehenden `mergeCssModules`-Helfer, schon
+   in 40+ anderen Dateien im Repo verwendet) alle Teil-Stylesheets zu einem `styles`-Objekt;
+   jede der zwölf betroffenen Komponenten hat weiterhin nur einen einzigen `styles`-Import. Reine
+   mechanische Verschiebung ohne Werteänderung (byte-identische Selektoren/Deklarationen).
+5. **Englische Kommentare in den im selben Auftrag angefassten Dateien** (u. a. `ArtworkHero.tsx`/
+   `.module.css`, `SectionHeader.tsx`/`.module.css`, `globals.css`, `JellyfinSyncPanel.tsx`,
+   `EpisodeVersionEditorPage.tsx`, `EpisodeVersionHeader.tsx`) auf Deutsch mit korrekten Umlauten
+   übersetzt. `git diff --check` läuft sauber durch.
+
+**Bekannte Einschränkung**: Der CSS-Split von `JellyfinSyncPanel.module.css`/
+`EpisodeVersionEditor.module.css` (Punkt 4) konnte NICHT per authentifiziertem Live-Browser-
+Zugriff auf den echten Admin-Seiten geprüft werden — die dafür nötigen `E2E_PASSWORD_*`-
+Umgebungsvariablen sind in dieser Umgebung nicht gesetzt, und die vorhandene `admin.json`-
+Session war abgelaufen. Stattdessen verifiziert über: TypeScript/ESLint (0 neue Fehler), die
+realen Komponententests `JellyfinSyncPanel.test.tsx` und die gesamte `episode-versions`-Testsuite
+(beide rendern echt durch das gemergte `styles`-Objekt), sowie manuelle Prüfung, dass der Split
+eine reine, verlustfreie mechanische Verschiebung ist (keine Werteänderung). Punkte 1–3 wurden
+live in Storybook per Playwright-Screenshot geprüft (DatePicker Trigger/Panel/Tages-Raster,
+Input/Select/Textarea unverändert, Heading/ArtworkHero/HeroMetrics/Accordion/DisclosureTrigger).
+
+Verifiziert: `npx tsc --noEmit` (0 Fehler), `npx eslint src/` (2 Fehler, beide nachweislich
+vorbestehend und in nicht angefassten Dateien — `useReleaseVersionMedia.ts`,
+`ReleasesFilterBar.tsx`), `npm test -- --run` (431 Dateien, 4649 Tests grün), `npm run
+build-storybook` (Exit 0), `git diff --check` (sauber).
+
 ---
 *Phase: quick-261029-rnd*
-*Completed: 2026-10-29*
+*Completed: 2026-10-30*
