@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { Pagination } from './Pagination'
 
-/** Seitennavigation für lange Listen: Zurück/Weiter plus Seitenfenster. */
+/** Seitennavigation für lange Listen: Zurück/Weiter plus Seitenfenster mit Lückenanzeige. */
 const meta = {
   title: 'Zusammengesetzte Bausteine/Pagination',
   component: Pagination,
@@ -10,7 +10,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: Button.',
+        component: 'Besteht aus: Button, Text. Unterstützt Klick-Modus (`onPageChange`) und Link-Modus (`hrefForPage`).',
       },
     },
   },
@@ -40,6 +40,35 @@ export const LetzteSeite: Story = {
   parameters: {
     docs: {
       description: { story: 'Prüft den deaktivierten "Weiter"-Button auf der letzten Seite.' },
+    },
+  },
+}
+
+export const LueckeAufBeidenSeiten: Story = {
+  name: 'Lücke auf beiden Seiten',
+  args: { currentPage: 10, totalPages: 20, onPageChange: () => {} },
+  parameters: {
+    docs: {
+      description: { story: 'Sehr lange Liste: Erste/letzte Seite bleiben sichtbar, der Rest wird über zwei Lücken ausgeblendet.' },
+    },
+  },
+}
+
+/**
+ * Link-Modus für öffentliche, serverseitig gerenderte Listen: jede Seite bekommt über
+ * `hrefForPage` eine echte URL statt eines reinen Klick-Callbacks -- funktioniert ohne
+ * JavaScript und ist für Suchmaschinen crawlbar.
+ */
+export const LinkModus: Story = {
+  name: 'Link-Modus',
+  args: {
+    currentPage: 3,
+    totalPages: 8,
+    hrefForPage: (page: number) => `/anime?page=${page}`,
+  },
+  parameters: {
+    docs: {
+      description: { story: 'Alle Seitenzahlen sowie Zurück/Weiter rendern als echte `<a>`-Links statt als Button mit Klick-Handler.' },
     },
   },
 }

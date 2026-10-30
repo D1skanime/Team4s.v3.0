@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { Crop, Trash2 } from 'lucide-react'
 
-import { Button, MediaSlot, Spinner } from '@/components/ui'
+import { Button, MediaSlot, ProgressBar, Spinner } from '@/components/ui'
 import { classNames } from '@/components/ui/classNames'
 
 import type { EditableMediaValue } from './MediaUpload'
@@ -148,10 +148,8 @@ export function MediaUploadCore({
 
       {busyAction === 'upload' ? (
         <div className={styles.progressWrap}>
-          <div className={styles.progressTrack}>
-            <div className={styles.progressBar} style={{ width: `${progress}%` }} />
-          </div>
-          <span className={styles.progressLabel}>{progress}%</span>
+          <ProgressBar value={progress} label={`${title}-Upload: ${progress}%`} size="sm" className={styles.progressBarTrack} />
+          <span className={styles.progressLabel} aria-hidden="true">{progress}%</span>
         </div>
       ) : null}
 

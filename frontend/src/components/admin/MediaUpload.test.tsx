@@ -163,6 +163,8 @@ describe('MediaUpload', () => {
 
     uploadOptions.onProgress?.(42)
     expect(await screen.findByText('42%')).not.toBeNull()
+    // Nutzt den gemeinsamen ProgressBar-Baustein statt eines eigenen div-Fortschrittsbalkens.
+    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('42')
     expect(onBusyChange).toHaveBeenCalledWith(true)
 
     resolveUpload()

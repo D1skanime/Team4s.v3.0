@@ -16,10 +16,6 @@ vi.mock('next/link', () => ({
   ),
 }))
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
-}))
-
 vi.mock('@/lib/api', () => {
   class ApiError extends Error {
     status: number
