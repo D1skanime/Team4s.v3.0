@@ -467,6 +467,59 @@ Fehler), `npm test -- --run` (429 Dateien, 4608 Tests grün, inklusive 668 Tests
 erweiterten Prüfung), `npm run build-storybook` (Exit 0); `storybook-static/index.json` nach
 dem Build auf alle 13 „Im Einsatz/*"-Titel geprüft — durchgehend deutsch.
 
+## Live-UAT Runde 4 (abgelehnt, 6 Befunde) — Nachbesserung (Commits `5c337550e`..`40f1baccc`)
+
+Die vierte Live-Abnahme meldete sechs Befunde über globale Bausteine/Tokens hinweg. Alle
+sechs wurden behoben, jeweils selbst in Storybook/der laufenden App geprüft:
+
+1. **Taxonomie-Korrektur**: `PageHeader`/`SectionHeader` bestehen sichtbar aus Heading+
+   Text+Aktionsbereich und wurden nach „Zusammengesetzte Bausteine" verschoben (Eigenname-
+   Ausnahmen in `catalogTaxonomy.test.ts` entfernt, Story-Beschreibungen „Besteht aus:
+   Heading, Text" ergänzt). `Card` bleibt Grundbaustein (Grundfläche, Titel/Beschreibung
+   nur optional) — Ausnahme dort präzisiert, Story-Beschreibung um „kann Heading und Text
+   als Titel enthalten" ergänzt. `Button`→`Spinner` unverändert.
+2. **`TableEmptyState`**: rendert jetzt dieselbe Optik wie `EmptyState` (StatusIcon,
+   Heading, Text, zentriert) statt eigenem `<strong>`/`<br>`. `Table` bleibt Grundbaustein
+   mit begründeter Ausnahme. Zusätzlich (allgemeine Prüfung aus Befund 5): `EmptyState`/
+   `ErrorState`/`LoadingState` teilten sich bereits dieselben `.stateTitle`/
+   `.stateDescription`-Regeln — ebenfalls auf Heading/Text umgestellt.
+3. **`DefaultCrewManager.tsx`**: eigene native `<table>` auf `Table`/`TableHead`/
+   `TableRow`/`TableCell` umgestellt. Die Komponente wird aktuell von keiner echten Seite
+   gerendert (nur von eigenen Tests referenziert) — kein Live-Browser-Abgleich möglich,
+   transparent dokumentiert statt verschwiegen. Optionaler ESLint-Hinweis gegen natives
+   `<table>` in `src/app` ergänzt (0 Produktions-Verstöße zum Einführungszeitpunkt).
+4. **`YearPicker`**: Story war überdimensioniert (Trigger `width:100%` frei auf der vollen
+   Storybook-Fläche) — auf übliche Formularfeld-Breite begrenzt, neue „In FormField"- und
+   „Im Einsatz neben Input und Select"-Stories ergänzt. Trigger hatte einen eigenen Stil
+   statt des gemeinsamen Feld-Stils von Input/Select — jetzt exakt dieselben Werte wie
+   `.control` (`ui.module.css`). Alle fünf nativen `<button>` (Trigger, zwei Blätter-
+   Pfeile, „Keine Angabe"-Kachel, Jahres-Kacheln) auf `IconButton`/`NavArrow` umgestellt;
+   Tastatur-/Fokusverhalten unverändert (vier neue Tests dafür). Story nach
+   „Zusammengesetzte Bausteine" verschoben. `DatePicker` bleibt Grundbaustein (nutzte
+   bereits Tokens).
+5. **`ArtworkHero`/`HeroMetrics`**: Titel/Kontextzeile auf Heading/Text umgestellt (1,5rem
+   bleibt als Override, da keine vorhandene Heading-Stufe exakt passt). `HeroMetrics`-
+   Label nutzt jetzt `--text-small-size`, die feste Ersatzfarbe `rgba(28,24,38,0.64)`
+   wurde durch `--text-soft` ersetzt; blaue Zahlenfarbe bleibt bewusst über
+   `--accent-deep`. ArtworkHero-Story „Besteht aus" vervollständigt.
+6. **`Accordion`/neuer Grundbaustein `DisclosureTrigger`**: Accordion nutzt jetzt den
+   neuen, eigenständig story-dokumentierten `DisclosureTrigger`-Baustein statt eines
+   eigenen nativen `<button>`-Nachbaus — die ESLint-Ausnahme wanderte entsprechend.
+   Hartkodierte Werte in `Accordion.module.css` durch Tokens ersetzt (`--border-subtle`,
+   `color-mix(... var(--accent-primary) ...)`, `--border-accent`, `--radius-surface`).
+   Panel-Text (0,92rem) bleibt bewusst ein eigener Wert, da sein Inhalt beliebiger,
+   aufruferseitig gelieferter `ReactNode` ist — eine Heading/Text-Umstellung dort müsste an
+   jeder App-Seite erfolgen, was laut Auftrag explizit nicht Teil dieser Runde ist.
+
+**Bewusst nicht in dieser Runde** (laut Auftrag als Folgeaufträge vorgesehen):
+Umstellung der App-Seiten auf `ResponsiveImage`, `Heading`/`Text`, `Notice`,
+`DisclosureTrigger`.
+
+Verifiziert: `npx tsc --noEmit` (0 Fehler), `npm run lint` (weiterhin exakt 4
+vorbestehende Fehler), `npm test -- --run` (430 Dateien, 4644 Tests grün), `npm run
+build-storybook` (Exit 0 nach jedem Commit), Storybook-Screenshot-Vergleich für
+YearPicker/Table/Accordion/DisclosureTrigger/ArtworkHero (alle optisch wie erwartet).
+
 ## Self-Check: PASSED
 
 Alle acht im Summary genannten Dateien existieren (`Heading.tsx`, `Text.tsx`, `catalogTaxonomy.test.ts`,
