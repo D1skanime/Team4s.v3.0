@@ -60,6 +60,14 @@ describe('MediaSlot', () => {
     expect(screen.getByText('Zum Ersetzen loslassen')).not.toBeNull()
   })
 
+  it('gibt shape="round" an MediaFrame und die leere UploadDropzone weiter, statt den Radius selbst zu überschreiben', () => {
+    render(<MediaSlot aspectRatio={1} shape="round" label="Logo" hasValue={false} onFilesSelected={vi.fn()} />)
+
+    const dropzone = screen.getByRole('button', { name: 'Logo hierher ziehen oder klicken zum Hochladen' })
+    expect(dropzone.className).toMatch(/dropzoneRound/)
+    expect(dropzone.parentElement?.className).toMatch(/mediaFrameRound/)
+  })
+
   it('exposes the imperative open() handle regardless of hasValue', () => {
     const ref = createRef<UploadDropzoneHandle>()
     render(<MediaSlot ref={ref} aspectRatio={1} label="Banner" hasValue={false} onFilesSelected={vi.fn()} />)

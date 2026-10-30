@@ -32,6 +32,13 @@
   padding: var(--space-3);
 }
 
+/* Muss exakt MediaFrames eigenen Rund-Radius (50%) treffen -- die Leer-Dropzone sitzt innerhalb
+   derselben MediaFrame-Fläche und braucht denselben Rundungswert, sonst würde der gestrichelte
+   Rahmen an der kreisförmigen Außenkante der Fläche sichtbar eckig abgeschnitten. */
+.dropzoneRound {
+  border-radius: 50%;
+}
+
 .dropzoneDragging {
   border-color: var(--accent-primary);
   background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-card));

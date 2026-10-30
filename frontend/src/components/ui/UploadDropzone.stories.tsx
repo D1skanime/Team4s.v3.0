@@ -46,3 +46,16 @@ export const DragAktiv: Story = {
     },
   },
 }
+
+export const Rund: Story = {
+  name: 'Rund',
+  args: { shape: 'round' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Offizielle Form-Option für runde Flächen (z. B. ein Avatar-Slot) -- der gestrichelte Leer-Zustand folgt der Rundung, ohne dass ein Aufrufer die Radius-Regel von außen überschreiben muss.',
+      },
+    },
+  },
+}

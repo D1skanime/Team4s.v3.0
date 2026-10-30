@@ -86,6 +86,16 @@ describe('resolveUploadDropzoneLayout', () => {
 })
 
 describe('UploadDropzone', () => {
+  it('rendert eckig (Standard) ohne Rund-Klasse', () => {
+    render(<UploadDropzone onFilesSelected={vi.fn()} />)
+    expect(screen.getByRole('button', { name: PROMPT }).className).not.toMatch(/dropzoneRound/)
+  })
+
+  it('rendert rund, wenn shape="round" übergeben wird', () => {
+    render(<UploadDropzone onFilesSelected={vi.fn()} shape="round" />)
+    expect(screen.getByRole('button', { name: PROMPT }).className).toMatch(/dropzoneRound/)
+  })
+
   it('opens the native file picker when clicked', () => {
     const onFilesSelected = vi.fn()
     render(<UploadDropzone onFilesSelected={onFilesSelected} />)

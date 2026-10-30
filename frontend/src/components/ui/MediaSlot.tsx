@@ -2,8 +2,8 @@
 
 import { forwardRef, useImperativeHandle, useRef, type ReactNode } from 'react'
 
+import { MediaFrame } from './MediaFrame'
 import { Text } from './Text'
-import { classNames } from './classNames'
 import { UploadDropzone, resolveUploadSlotPresentation, type UploadDropzoneHandle } from './UploadDropzone'
 import styles from './MediaSlot.module.css'
 
@@ -97,10 +97,7 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
 
   return (
     <div className={styles.mediaSlotWrapper}>
-      <div
-        className={classNames(styles.mediaSlot, shape === 'round' ? styles.mediaSlotRound : null, className)}
-        style={{ aspectRatio }}
-      >
+      <MediaFrame aspectRatio={aspectRatio} shape={shape} cornerBadge={cornerBadge} className={className}>
         {onFilesSelected ? (
           <UploadDropzone
             ref={innerDropzoneRef}
@@ -108,10 +105,11 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
             accept={accept}
             multiple={multiple}
             disabled={disabled}
+            shape={shape}
             density="compact"
             promptLabel={promptLabel}
             overlayHintLabel={presentation === 'replace-overlay' ? replaceOverlayHintLabel : undefined}
-            className={classNames(styles.mediaSlotDropzone, shape === 'round' ? styles.mediaSlotRoundDropzone : null)}
+            className={styles.mediaSlotDropzone}
           >
             {presentation === 'replace-overlay' ? previewContent : null}
           </UploadDropzone>
@@ -120,8 +118,7 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
             {hasValue ? previewContent : staticEmptyContent}
           </div>
         )}
-        {cornerBadge ? <div className={styles.mediaSlotCornerBadge}>{cornerBadge}</div> : null}
-      </div>
+      </MediaFrame>
       {actions ? <div className={styles.mediaSlotActions}>{actions}</div> : null}
       {error ? (
         <Text variant="body" role="alert" className={styles.mediaSlotError}>{error}</Text>

@@ -29,6 +29,10 @@ export interface UploadDropzoneProps {
   /** `false` disables the drag&drop surface and falls back to click-only. */
   allowDrop?: boolean
   disabled?: boolean
+  /** Eckig (Standard) oder rund -- muss zur Form der eventuellen Vorschau passen (z. B. ein
+   *  rundes Avatar-Slot), damit der gestrichelte Leer-Zustand und ein per `children` übergebener
+   *  Ersetzen-Rahmen dieselbe Form wie die umgebende Fläche haben. */
+  shape?: 'rect' | 'round'
   /** Controls padding/typography only — never a fixed pixel width/height. */
   density?: 'roomy' | 'compact'
   promptLabel?: string
@@ -115,6 +119,7 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   allowDrop = true,
   disabled = false,
+  shape = 'rect',
   density = 'roomy',
   promptLabel = DEFAULT_PROMPT_LABEL,
   dropHintLabel,
@@ -190,6 +195,7 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
     <div
       className={classNames(
         styles.dropzone,
+        shape === 'round' ? styles.dropzoneRound : null,
         hasOverlayContent ? styles.dropzoneOverlay : (density === 'compact' ? styles.dropzoneCompact : styles.dropzoneRoomy),
         isDragActive ? styles.dropzoneDragging : null,
         disabled ? styles.dropzoneDisabled : null,

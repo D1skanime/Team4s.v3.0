@@ -11,7 +11,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: UploadDropzone.',
+        component: 'Besteht aus: MediaFrame, UploadDropzone.',
       },
     },
   },
