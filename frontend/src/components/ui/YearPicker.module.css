@@ -7,11 +7,10 @@
  * rendert jetzt über IconButton, dessen eigene .iconButton-Basisklasse (feste 40x40px, eigener
  * Rahmen/Radius/Hintergrund) sonst je nach CSS-Modul-Bündel-Reihenfolge die hier gewünschte,
  * volle Feldbreite überschreiben könnte -- identisches Muster wie NavArrow/AvatarStack auf
- * IconButton. Die Werte entsprechen bewusst exakt .control (Input/Select/Textarea) aus
- * ui.module.css, damit der Auslöser neben anderen Formularfeldern identisch aussieht (UAT-Runde
- * 4, Befund 4, 2026-10-30) -- .control selbst nutzt an dieser Stelle noch keine benannten
- * Custom Properties für Rahmen/Hintergrund/Textfarbe, daher sind das bewusst dieselben Literale,
- * keine neuen eigenen Werte.
+ * IconButton. Rahmen/Hintergrund/Textfarbe/Fokus/Fehler/Deaktiviert kommen jetzt aus den
+ * gemeinsamen --field-*-Tokens (globals.css), denselben, die auch .control (Input/Select/
+ * Textarea, ui.module.css) und DatePickers Auslöser nutzen -- keine kopierten Literale mehr
+ * (UAT-Runde 5, 2026-10-30; vorher UAT-Runde 4, Befund 4).
  */
 button.yearPickerTrigger {
   width: 100%;
@@ -21,13 +20,11 @@ button.yearPickerTrigger {
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(92, 105, 131, 0.14);
-  background: rgba(255, 255, 255, 0.94);
-  color: #334155;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.52),
-    0 1px 1px rgba(33, 45, 72, 0.04);
+  border-radius: var(--field-radius);
+  border: 1px solid var(--field-border-color);
+  background: var(--field-bg);
+  color: var(--field-text-color);
+  box-shadow: var(--field-shadow);
   font: inherit;
   font-weight: 700;
   text-align: left;
@@ -38,31 +35,27 @@ button.yearPickerTrigger {
 }
 
 button.yearPickerTrigger:hover {
-  border-color: rgba(92, 105, 131, 0.22);
-  background: rgba(255, 255, 255, 0.98);
+  border-color: var(--field-border-color-hover);
+  background: var(--field-bg-hover);
 }
 
 button.yearPickerTrigger:focus-visible {
   outline: none;
   border-color: var(--border-accent);
-  box-shadow:
-    0 0 0 3px rgba(122, 160, 240, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  box-shadow: var(--field-focus-shadow);
 }
 
 button.yearPickerTrigger:disabled {
   cursor: not-allowed;
   opacity: 0.62;
-  background: rgba(244, 247, 251, 0.94);
+  background: var(--field-disabled-bg);
 }
 
 /* Muss NACH button.yearPickerTrigger stehen: bei gleicher Spezifität (0,1,1) gewinnt die
    Deklarationsreihenfolge im Stylesheet. */
 button.yearPickerTriggerInvalid {
-  border-color: rgba(130, 18, 44, 0.34);
-  box-shadow:
-    0 0 0 3px rgba(130, 18, 44, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  border-color: var(--field-invalid-border-color);
+  box-shadow: var(--field-invalid-shadow);
 }
 
 .yearPickerHint {
@@ -114,17 +107,17 @@ button.yearPickerYear {
   font-weight: 750;
 }
 
+/* Verlauf kommt aus --selection-tile-* (globals.css) -- derselbe "ausgewählt"-Kachel-Stil wie
+   DatePickers Tages-/Monats-/Jahres-Auswahl (UAT-Runde 5, 2026-10-30). */
 button.yearPickerYearSelected {
-  border-color: rgba(57, 84, 144, 0.34);
-  background: linear-gradient(180deg, rgba(117, 152, 235, 0.94) 0%, rgba(72, 103, 180, 0.98) 100%);
-  color: #f9fbff;
-  box-shadow:
-    0 7px 18px rgba(67, 99, 180, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-color: var(--selection-tile-border-color);
+  background: var(--selection-tile-gradient);
+  color: var(--selection-tile-text-color);
+  box-shadow: var(--selection-tile-shadow);
 }
 
 button.yearPickerYearSelected:hover {
-  background: linear-gradient(180deg, rgba(117, 152, 235, 0.98) 0%, rgba(72, 103, 180, 1) 100%);
+  background: var(--selection-tile-gradient-hover);
   opacity: 1;
 }
 

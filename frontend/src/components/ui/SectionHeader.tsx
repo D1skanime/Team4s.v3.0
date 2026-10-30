@@ -12,17 +12,17 @@ const styles = new Proxy({} as Record<string, string>, {
 export interface SectionHeaderProps {
   eyebrow?: string
   title: string
-  /** Semantic heading level. Defaults to the section-level h2. */
+  /** Semantisches Überschriften-Level. Standard ist das Section-Level h2. */
   level?: 2 | 3
   description?: string
   actions?: ReactNode
   /** Wein-Unterstrich (dev-ui Header-Linie) unter dem Header. */
   underline?: boolean
-  /** Optional icon rendered directly before the title, inside the title's own row. */
+  /** Optionales Icon, das direkt vor dem Titel in dessen eigener Zeile gerendert wird. */
   icon?: ReactNode
-  /** Optional counter rendered directly after the title, inside the title's own row (never wraps). */
+  /** Optionaler Zähler, der direkt nach dem Titel in dessen eigener Zeile gerendert wird (bricht nie um). */
   counter?: ReactNode
-  /** Optional class for the heading element when a section needs a local scale. */
+  /** Optionale Klasse für das Heading-Element, wenn eine Sektion eine abweichende Größe braucht. */
   titleClassName?: string
 }
 

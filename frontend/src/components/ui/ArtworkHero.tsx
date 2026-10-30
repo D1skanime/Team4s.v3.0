@@ -20,7 +20,7 @@ export interface ArtworkHeroProps {
   fallbackImageUrl?: string | null
 }
 
-/** Light identity surface. Domain code supplies content and already resolved public URLs. */
+/** Helle Identitätsfläche. Domänen-Code liefert den Inhalt und bereits aufgelöste öffentliche URLs. */
 export function ArtworkHero({
   ariaLabel, title, avatar, status, roles, context, metrics, actions, imageUrl, fallbackImageUrl,
 }: ArtworkHeroProps) {

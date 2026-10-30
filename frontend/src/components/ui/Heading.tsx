@@ -32,9 +32,12 @@ const SIZE_CLASS_BY_LEVEL: Record<HeadingLevel, string> = {
  * Typografie-Grundbaustein für Überschriften: trennt bewusst das semantische Tag (`level`,
  * für die Dokumentstruktur) von der visuellen Größe (`size`, Standard = `level`). Ohne diese
  * Trennung könnte SectionHeader (das wahlweise ein h2 oder h3 rendert, aber IMMER in derselben
- * visuellen H3-Größe) seinen bestehenden `level`-Prop-Vertrag nicht beibehalten. Setzt bewusst
- * KEINE `color` -- die vier bestehenden Konsumenten (PageHeader/SectionHeader/DialogHeader/Card)
- * behalten ihre eigene, teils tokenisierte, teils vererbte Farbdeklaration.
+ * visuellen H3-Größe) seinen bestehenden `level`-Prop-Vertrag nicht beibehalten. Liefert
+ * standardmäßig `color: var(--text-strong)` -- die vier bestehenden Konsumenten (PageHeader/
+ * SectionHeader/DialogHeader/Card) benötigen dadurch keine eigene Farbdeklaration mehr. Kontexte
+ * mit abweichendem Hintergrund (z. B. ein dunkler Hero-Scrim) überschreiben die Farbe gezielt
+ * per eigener CSS-Klasse auf demselben Element, genau wie bei einer Heading-Größenstufe
+ * (UAT-Runde 5, 2026-10-30).
  */
 export function Heading({ level, size, className, ...rest }: HeadingProps) {
   const Tag = TAG_BY_LEVEL[level]

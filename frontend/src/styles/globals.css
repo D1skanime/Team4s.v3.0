@@ -140,16 +140,17 @@
   --surface-card: #ffffff;
   --surface-card-muted: #fbfaf8;
   --surface-overlay: rgba(255, 255, 255, 0.9);
-  /* Scoped exclusively to the new Bild-Viewer's dunkler Image-Stage (Phase 177, D-21/Sketch 010) --
-     not a sitewide dominant/secondary surface replacement. */
+  /* Ausschließlich für die dunkle Bild-Stage des Bild-Viewers reserviert (Phase 177,
+     D-21/Sketch 010) -- kein sitetweiter Ersatz der dominanten/sekundären Oberflächenfarbe. */
   --surface-stage: #10141c;
-  /* Phase 177 Gap-Fix D-33 (Live-UAT Runde 2): translucent "Schleier" for the Bild-Viewer-Chrome,
-     derived from --text-strong (not a new raw hex) -- replaces the flat --surface-stage fill on
-     Modal's stage panel ONLY, combined with a backdrop-filter blur so the real page stays
-     faintly visible/darkened behind the viewer instead of a solid opaque fill. This token must
-     NEVER be applied as a second, un-blurred flat background anywhere else in the viewer chrome
-     -- see Modal.module.css's .modalPanelStage comment for why stacking it twice compounds to
-     near-total opacity. */
+  /* Phase 177 Gap-Fix D-33 (Live-UAT Runde 2): durchscheinender "Schleier" für das Bild-Viewer-
+     Chrome, abgeleitet von --text-strong (kein neuer, roher Hex-Wert) -- ersetzt die flache
+     --surface-stage-Füllung NUR auf Modals Stage-Panel, kombiniert mit einem backdrop-filter-
+     Weichzeichner, damit die echte Seite hinter dem Viewer schwach sichtbar/abgedunkelt bleibt,
+     statt einer vollständig deckenden Füllung. Dieser Token darf NIEMALS als zweiter,
+     ungeschärfter flacher Hintergrund an anderer Stelle im Viewer-Chrome eingesetzt werden --
+     siehe den Kommentar zu Modal.module.css's .modalPanelStage dazu, warum ein zweifaches
+     Stapeln sich zu nahezu voller Deckkraft aufsummiert. */
   --surface-stage-veil: color-mix(in srgb, var(--text-strong) 86%, transparent);
   --surface-stage-veil-blur: 20px;
 
@@ -171,6 +172,14 @@
   --font-size-h4: 0.875rem;
   --font-weight-heading: 700;
 
+  /* Zwei ergänzende Typo-Tokens für Stellen, die keine der vier Heading-Stufen trifft: das
+     große Hero-Display (ArtworkHeros Titel, HeroMetrics' Kennzahl-Wert -- beide bewusst
+     prominenter als H1/H2 in ihrem jeweils kompakten Hero-Kontext) sowie das kompakte
+     Label-Gewicht (HeroMetrics' Bezeichner). Werte unverändert aus den bisherigen Literalen
+     übernommen -- reine Benennung, keine Optikänderung (UAT-Runde 5, 2026-10-30). */
+  --font-size-hero-display: 1.5rem;
+  --font-weight-label: 600;
+
   --border-subtle: rgba(45, 41, 38, 0.12);
   --border-strong: rgba(45, 41, 38, 0.24);
   --border-accent: rgba(255, 106, 61, 0.35);
@@ -186,6 +195,41 @@
   --control-height-sm: 36px;
   --control-height-md: 44px;
   --control-height-lg: 52px;
+
+  /* Gemeinsamer Feld-Stil für alle Eingabe-Grundbausteine (Rahmen, Hintergrund, Textfarbe,
+     Fokus-/Fehler-/Deaktiviert-/Lesemodus-Zustand): EIN benannter Werte-Satz statt der vormals je
+     Komponente separat kopierten rgba-Literale in Input/Select/Textarea (ui.module.css) sowie
+     YearPicker/DatePicker (eigene Auslöser-Stylesheets, da deren Auslöser aus Spezifitätsgründen
+     auf IconButton statt auf `.control` aufbauen). Werte unverändert aus dem bisherigen
+     `.control`-Rezept übernommen -- die Tokenisierung ändert die Optik von Input/Select/Textarea
+     bewusst NICHT (UAT-Runde 5, 2026-10-30). */
+  --field-radius: 8px;
+  --field-border-color: rgba(92, 105, 131, 0.14);
+  --field-border-color-hover: rgba(92, 105, 131, 0.22);
+  --field-bg: rgba(255, 255, 255, 0.94);
+  --field-bg-hover: rgba(255, 255, 255, 0.98);
+  --field-text-color: #334155;
+  --field-placeholder-color: #8a95a8;
+  --field-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52), 0 1px 1px rgba(33, 45, 72, 0.04);
+  --field-focus-shadow: 0 0 0 3px rgba(122, 160, 240, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --field-invalid-border-color: rgba(130, 18, 44, 0.34);
+  --field-invalid-shadow: 0 0 0 3px rgba(130, 18, 44, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  --field-disabled-bg: rgba(244, 247, 251, 0.94);
+  --field-readonly-border-color: rgba(92, 105, 131, 0.12);
+  --field-readonly-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 247, 251, 0.96) 100%);
+  --field-readonly-text-color: #2f3746;
+  --field-readonly-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 10px 18px -18px rgba(17, 24, 39, 0.18);
+
+  /* Gemeinsamer "ausgewählt"-Kachel-Verlauf für Jahres-/Monats-/Tages-Kacheln in YearPicker und
+     DatePicker -- vorher hatte jede Komponente ihren eigenen, leicht abweichenden Blauverlauf
+     hart codiert. Der Wert entspricht dem vormaligen YearPicker-Rezept; DatePickers Tages-/
+     Monats-/Jahres-Auswahl gleicht sich dadurch optisch an YearPicker an (UAT-Runde 5,
+     2026-10-30). */
+  --selection-tile-gradient: linear-gradient(180deg, rgba(117, 152, 235, 0.94) 0%, rgba(72, 103, 180, 0.98) 100%);
+  --selection-tile-gradient-hover: linear-gradient(180deg, rgba(117, 152, 235, 0.98) 0%, rgba(72, 103, 180, 1) 100%);
+  --selection-tile-border-color: rgba(57, 84, 144, 0.34);
+  --selection-tile-text-color: #f9fbff;
+  --selection-tile-shadow: 0 7px 18px rgba(67, 99, 180, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 
   --z-base: 1;
   --z-dropdown: 20;
@@ -316,7 +360,7 @@ textarea {
 .color-token-purple { color: #9333ea; }
 
 
-/* One bounded catalog color_key-to-token seam; role codes never select color. */
+/* Eine einzige, begrenzte Katalog-Naht von color_key zu Token; Rollen-Codes wählen die Farbe nie selbst. */
 [data-color-key='#183b7c'] { --role-chip-accent: #183b7c; }
 [data-color-key='#8c4a16'] { --role-chip-accent: #8c4a16; }
 [data-color-key='#0f766e'] { --role-chip-accent: #0f766e; }

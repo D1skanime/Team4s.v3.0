@@ -77,7 +77,10 @@ const UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES = [
   'ThumbnailStrip.tsx', // Thumbnail-Kacheln sind Dateninhalte des Widgets
   // YearPicker.tsx wurde entfernt: alle fünf nativen <button> wurden auf IconButton/NavArrow
   // umgestellt (UAT-Runde 4, Befund 4, 2026-10-30) -- keine Ausnahme mehr nötig.
-  'DatePicker.tsx', // Kalender-Navigations-/Tages-/Monats-/Jahres-Kacheln sind Dateninhalte des Widgets
+  // DatePicker.tsx wurde entfernt: alle nativen <button> (Auslöser, Leeren, Blätter-Pfeile,
+  // Monats-/Jahres-Titel-Umschalter, Tages-/Monats-/Jahres-Kacheln, Fußzeilen-Aktionen) wurden
+  // analog zu YearPicker auf IconButton/NavArrow/Button umgestellt (UAT-Runde 5, 2026-10-30) --
+  // keine Ausnahme mehr nötig.
   // Accordion.tsx wurde entfernt: die Kopfzeile ist jetzt der geteilte DisclosureTrigger-
   // Baustein (UAT-Runde 4, Befund 6, 2026-10-30) -- das native <button> steht jetzt nur noch
   // in DisclosureTrigger.tsx selbst.

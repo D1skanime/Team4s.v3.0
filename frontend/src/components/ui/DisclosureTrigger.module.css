@@ -1,3 +1,5 @@
+/* font-size entspricht exakt --font-size-h3 (1rem) -- als Token referenziert statt eines
+   zufällig übereinstimmenden Literals (UAT-Runde 5, 2026-10-30). */
 .disclosureTrigger {
   display: flex;
   align-items: center;
@@ -10,7 +12,7 @@
   background: transparent;
   color: var(--text-strong);
   font: inherit;
-  font-size: 1rem;
+  font-size: var(--font-size-h3);
   font-weight: var(--font-weight-heading);
   text-align: left;
   cursor: pointer;

@@ -13,9 +13,9 @@
 
 .dialogTitle {
   margin: 0;
-  /* font-size kommt jetzt von Heading (level=3 size=2 -> .headingSize2 + --font-size-h2,
-     identisch zum bisherigen 1.25rem); semantisches Tag bleibt h3. */
-  color: var(--text-strong);
+  /* font-size/color kommen jetzt von Heading (level=3 size=2 -> .headingSize2 + --font-size-h2,
+     identisch zum bisherigen 1.25rem; Standard-Farbe --text-strong); semantisches Tag bleibt
+     h3. */
 }
 
 .dialogDescription {

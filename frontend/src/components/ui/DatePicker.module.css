@@ -11,42 +11,58 @@
   min-width: 0;
 }
 
-.datePickerTrigger {
-  display: inline-flex;
+/*
+ * Element+Klasse-Selektoren (Spezifität 0,1,1) statt reiner Klassen-Selektoren: der Auslöser
+ * rendert über IconButton, dessen eigene .iconButton-Basisklasse (feste 40x40px, eigener Rahmen/
+ * Radius/Hintergrund) sonst je nach CSS-Modul-Bündel-Reihenfolge die hier gewünschte, volle
+ * Feldbreite überschreiben könnte -- identisches Muster wie YearPicker. Rahmen/Hintergrund/
+ * Textfarbe/Fokus/Fehler/Deaktiviert kommen aus den gemeinsamen --field-*-Tokens (globals.css),
+ * denselben, die auch .control (Input/Select/Textarea, ui.module.css) und YearPickers Auslöser
+ * nutzen (UAT-Runde 5, 2026-10-30).
+ */
+button.datePickerTrigger {
+  width: 100%;
+  min-height: var(--control-height-md);
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  width: 100%;
-  min-width: 0;
-  min-height: var(--control-height-md);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 255, 0.94));
-  color: var(--text-primary);
-  cursor: pointer;
+  padding: 0 14px;
+  border-radius: var(--field-radius);
+  border: 1px solid var(--field-border-color);
+  background: var(--field-bg);
+  color: var(--field-text-color);
+  box-shadow: var(--field-shadow);
   font: inherit;
-  padding: 0 12px;
   text-align: left;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.84),
-    0 8px 18px -18px rgba(17, 24, 39, 0.24);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
 }
 
-.datePickerTrigger:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--accent-primary) 38%, transparent);
+button.datePickerTrigger:hover {
+  border-color: var(--field-border-color-hover);
+  background: var(--field-bg-hover);
 }
 
-.datePickerTrigger:focus-visible {
+button.datePickerTrigger:focus-visible {
   outline: none;
   border-color: var(--border-accent);
-  box-shadow:
-    0 0 0 3px rgba(122, 160, 240, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  box-shadow: var(--field-focus-shadow);
 }
 
-.datePickerTrigger:disabled {
+button.datePickerTrigger:disabled {
   cursor: not-allowed;
-  opacity: 0.58;
+  opacity: 0.62;
+  background: var(--field-disabled-bg);
+}
+
+/* Muss NACH button.datePickerTrigger stehen: bei gleicher Spezifität (0,1,1) gewinnt die
+   Deklarationsreihenfolge im Stylesheet. */
+button.datePickerTriggerInvalid {
+  border-color: var(--field-invalid-border-color);
+  box-shadow: var(--field-invalid-shadow);
 }
 
 .datePickerValue,
@@ -58,33 +74,15 @@
 }
 
 .datePickerPlaceholder {
-  color: var(--text-muted);
+  color: var(--field-placeholder-color);
 }
 
-.datePickerInlineClear {
+/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept (Spezifität 0,1,0) zuverlässig
+   unabhängig von der CSS-Modul-Bündel-Reihenfolge. */
+button.datePickerInlineClear {
   justify-self: start;
   min-height: 22px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--accent-primary);
-  cursor: pointer;
-  font: inherit;
   font-size: 0.78rem;
-  font-weight: 800;
-  padding: 0 2px;
-}
-
-.datePickerInlineClear:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  text-decoration: underline;
-}
-
-.datePickerInlineClear:disabled {
-  color: var(--text-muted);
-  cursor: not-allowed;
-  opacity: 0.48;
-  text-decoration: none;
 }
 
 .datePickerPanel {
@@ -97,13 +95,14 @@
   width: min(100vw - 32px, 334px);
   max-height: min(430px, 72vh);
   overflow: auto;
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  border-radius: 10px;
-  background: linear-gradient(180deg, #fff 0%, #f7f9fd 100%);
+  /* Rahmen/Hintergrund/Schatten kommen aus denselben Tokens wie YearPickers Panel --
+     Panel-Chrome über beide Datums-/Jahres-Auswahlen hinweg vereinheitlicht (UAT-Runde 5,
+     2026-10-30). */
+  border: 1px solid var(--field-border-color);
+  border-radius: var(--radius-md);
+  background: var(--field-bg-hover);
   padding: 12px;
-  box-shadow:
-    0 20px 46px -26px rgba(20, 30, 52, 0.55),
-    0 3px 10px rgba(20, 30, 52, 0.14);
+  box-shadow: var(--shadow-lg);
 }
 
 .datePickerPanelEnd {
@@ -123,48 +122,6 @@
   gap: 8px;
 }
 
-.datePickerNavButton,
-.datePickerPanelTitle button,
-.datePickerDay,
-.datePickerMonthGrid button,
-.datePickerYearGrid button,
-.datePickerFooter button {
-  border: 1px solid transparent;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-primary);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 800;
-}
-
-.datePickerNavButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 36px;
-  padding: 0;
-}
-
-.datePickerNavButton:hover:not(:disabled),
-.datePickerPanelTitle button:hover,
-.datePickerMonthGrid button:hover:not(:disabled),
-.datePickerYearGrid button:hover:not(:disabled),
-.datePickerDay:hover:not(:disabled),
-.datePickerFooter button:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  background: color-mix(in srgb, var(--accent-primary) 8%, #fff);
-}
-
-.datePickerNavButton:disabled,
-.datePickerDay:disabled,
-.datePickerMonthGrid button:disabled,
-.datePickerYearGrid button:disabled,
-.datePickerFooter button:disabled {
-  cursor: not-allowed;
-  opacity: 0.42;
-}
-
 .datePickerPanelTitle {
   display: flex;
   align-items: center;
@@ -175,8 +132,15 @@
   font-weight: 900;
 }
 
-.datePickerPanelTitle button,
 .datePickerPanelTitle span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept zuverlässig. */
+button.datePickerPanelTitleButton {
   min-height: 34px;
   padding: 0 10px;
 }
@@ -197,10 +161,36 @@
 
 .datePickerWeekdays span:nth-child(6),
 .datePickerWeekdays span:nth-child(7) {
-  color: #9a2441;
+  color: var(--ui-line);
 }
 
-.datePickerDay {
+/*
+ * Element+Klasse-Selektoren wie beim Auslöser: Tages-/Monats-/Jahres-Kacheln rendern über
+ * IconButton, dessen feste 40x40px-Basisgröße sonst die Rasterzellen-Breite/-Radien
+ * überschreiben könnte (identisches Muster wie YearPickers Jahres-Kacheln).
+ */
+button.datePickerDay,
+button.datePickerMonthTile,
+button.datePickerYearTile {
+  width: 100%;
+  height: auto;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 800;
+}
+
+button.datePickerDay:hover:not(:disabled),
+button.datePickerMonthTile:hover:not(:disabled),
+button.datePickerYearTile:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 8%, #fff);
+  opacity: 1;
+}
+
+button.datePickerDay {
   min-width: 0;
   min-height: 36px;
   padding: 0;
@@ -213,19 +203,29 @@
 }
 
 .datePickerDayWeekend {
-  color: #9a2441;
+  color: var(--ui-line);
 }
 
 .datePickerDayToday {
   border-color: color-mix(in srgb, var(--accent-primary) 34%, transparent);
 }
 
-.datePickerDaySelected,
-.datePickerTileSelected {
-  border-color: #25416f !important;
-  background: linear-gradient(180deg, #466dbd 0%, #263f72 100%) !important;
-  color: #fff !important;
-  box-shadow: 0 8px 18px -14px rgba(38, 63, 114, 0.65);
+/* Verlauf kommt aus --selection-tile-* (globals.css) -- derselbe "ausgewählt"-Kachel-Stil wie
+   YearPickers Jahres-Kacheln (UAT-Runde 5, 2026-10-30). !important bleibt nötig, weil eine
+   Tages-Kachel gleichzeitig "heute" UND "ausgewählt" sein kann; beide Zustandsklassen haben hier
+   dieselbe Spezifität (0,1,1). */
+button.datePickerDaySelected,
+button.datePickerTileSelected {
+  border-color: var(--selection-tile-border-color) !important;
+  background: var(--selection-tile-gradient) !important;
+  color: var(--selection-tile-text-color) !important;
+  box-shadow: var(--selection-tile-shadow);
+  opacity: 1;
+}
+
+button.datePickerDaySelected:hover,
+button.datePickerTileSelected:hover {
+  background: var(--selection-tile-gradient-hover) !important;
 }
 
 .datePickerMonthGrid,
@@ -235,8 +235,8 @@
   gap: 8px;
 }
 
-.datePickerMonthGrid button,
-.datePickerYearGrid button {
+button.datePickerMonthTile,
+button.datePickerYearTile {
   min-height: 42px;
   border-color: color-mix(in srgb, var(--text-secondary) 12%, transparent);
   background: color-mix(in srgb, #fff 84%, var(--bg-secondary));
@@ -246,18 +246,19 @@
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+  border-top: 1px solid var(--border-subtle);
   padding-top: 10px;
 }
 
-.datePickerFooter button {
+/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept zuverlässig. */
+button.datePickerFooterButton {
   min-height: 34px;
   padding: 0 10px;
   color: var(--accent-primary);
 }
 
-.datePickerFooter button:last-child {
-  color: #8d1530;
+button.datePickerFooterButtonDanger {
+  color: var(--ui-line);
 }
 
 @media (max-width: 560px) {

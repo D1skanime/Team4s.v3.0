@@ -16,18 +16,23 @@
   /* Fallback jetzt der allgemeine --text-soft-Token statt einer eigenen, fest kodierten
      rgba()-Ersatzfarbe (UAT-Runde 4, Befund 5) -- FansubHeroSection überschreibt diese Variable
      weiterhin NUR innerhalb ihres eigenen Banner-Textblocks (.heroBodyOnBanner), um auf einem
-     dunklen Scrim lesbar zu bleiben. Schriftgröße entspricht Texts "small"-Stufe (0,75rem). */
+     dunklen Scrim lesbar zu bleiben. Schriftgröße entspricht Texts "small"-Stufe (0,75rem);
+     Gewicht kommt aus dem geteilten Label-Token --font-weight-label statt eines eigenen
+     Literals (UAT-Runde 5, 2026-10-30). */
   color: var(--hero-metrics-label, var(--text-soft));
   font-size: var(--text-small-size, 0.75rem);
-  font-weight: 600;
+  font-weight: var(--font-weight-label);
 }
 
 .heroMetricItem dd {
   margin: 2px 0 0;
-  /* Blaue Zahlenfarbe bleibt bewusst über --accent-deep (UAT-Runde 4, Befund 5). */
+  /* Blaue Zahlenfarbe bleibt bewusst über --accent-deep (UAT-Runde 4, Befund 5). font-size/
+     font-weight kommen jetzt aus den geteilten Typo-Tokens --font-size-hero-display (identischer
+     Wert wie ArtworkHeros Titel) und --font-weight-heading statt eigener Literale (UAT-Runde 5,
+     2026-10-30). */
   color: var(--hero-metrics-value, var(--accent-deep));
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: var(--font-size-hero-display);
+  font-weight: var(--font-weight-heading);
   line-height: 1;
 }
 
@@ -49,8 +54,10 @@
 
 .heroMetricsInline .heroMetricItem dd {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
+  /* font-size entspricht Texts "meta"-Stufe, Gewicht dem geteilten Label-Token -- als Tokens
+     referenziert statt eigener Literale (UAT-Runde 5, 2026-10-30). */
+  font-size: var(--text-meta-size, 0.875rem);
+  font-weight: var(--font-weight-label);
   line-height: 1.5;
   color: var(--text-body);
   white-space: nowrap;
@@ -85,6 +92,10 @@
     min-width: 0;
   }
 
+  /* 11px ist eine eng begrenzte Feinjustierung ausschließlich für diesen Mobil-Breakpoint
+     (passt drei bis vier Kennzahlen nebeneinander in die schmale Spaltenbreite) -- trifft keine
+     bestehende Typo-Stufe und bleibt deshalb bewusst ein eigener Wert, anders als die
+     Haupt-Deklarationen oben (UAT-Runde 5, 2026-10-30). */
   .heroMetricItem dt {
     font-size: 11px;
   }

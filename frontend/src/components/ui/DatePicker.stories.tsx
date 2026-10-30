@@ -15,9 +15,16 @@ import { Select } from './Select'
  * Args-Variante.
  */
 const meta = {
-  title: 'Grundbausteine/DatePicker',
+  title: 'Zusammengesetzte Bausteine/DatePicker',
   component: DatePicker,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: IconButton, NavArrow, Button.',
+      },
+    },
+  },
   // Alle Pflicht-Props liegen hier als Platzhalter vor; jede Story rendert stattdessen über
   // `ControlledDatePicker` mit eigenem useState-Wert und ignoriert diese Default-Args.
   args: {

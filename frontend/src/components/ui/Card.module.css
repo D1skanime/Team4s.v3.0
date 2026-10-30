@@ -86,8 +86,8 @@
 
 .cardTitle {
   margin: 0;
-  /* font-size kommt jetzt von Heading (.headingSize3 + --font-size-h3); cardTitle hatte nie
-     eine eigene Farbe, bleibt bewusst vererbt -- Heading selbst setzt ebenfalls keine color. */
+  /* font-size/color kommen jetzt von Heading (.headingSize3 + --font-size-h3, Standard-Farbe
+     --text-strong) -- hier bewusst nicht mehr deklariert. */
   line-height: 1.3;
 }
 

@@ -1,4 +1,4 @@
-/* Shared, content-sized light hero. Geometry belongs here, never in a domain page. */
+/* Geteilter, inhaltsgroßer heller Hero. Geometrie gehört hierhin, niemals in eine Domänen-Seite. */
 .hero {
   container: artwork-hero / inline-size;
   min-width: 0;
@@ -40,7 +40,7 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  /* Open the upper-right artwork; keep identity left and the action row light. */
+  /* Öffnet das Artwork oben rechts; hält Identität links und die Aktionszeile hell lesbar. */
   background:
     linear-gradient(0deg,
       var(--surface-card) 0%,
@@ -52,6 +52,8 @@
       color-mix(in srgb, var(--surface-card) 25%, transparent) 100%);
 }
 
+/* font-size/font-weight entsprechen exakt --font-size-h2/--font-weight-heading -- als Tokens
+   referenziert statt zufällig übereinstimmender Literale (UAT-Runde 5, 2026-10-30). */
 .avatar {
   width: var(--artwork-hero-avatar);
   height: var(--artwork-hero-avatar);
@@ -59,8 +61,8 @@
   overflow: hidden;
   display: grid;
   place-items: center;
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-heading);
   background: var(--surface-sunken);
   color: var(--accent-deep);
 }
@@ -91,14 +93,16 @@
 /* Element+Klasse-Selektor (Spezifität 0,1,1): schlägt Headings eigene .headingSize1-Klasse
    zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge -- identisches Muster wie
    NavArrow/IconButton. 1,5rem entspricht keiner vorhandenen Heading-Größenstufe (h1=
-   clamp(2rem, 3vw, 2,75rem), h2=1,25rem) und bleibt deshalb als Override erhalten; margin/
-   font-weight kommen jetzt von Heading selbst (UAT-Runde 4, Befund 5, 2026-10-30). */
+   clamp(2rem, 3vw, 2,75rem), h2=1,25rem) und bleibt deshalb als Override erhalten, jetzt über
+   den Typo-Token --font-size-hero-display statt eines eigenen Literals; margin/font-weight/
+   color kommen jetzt von Heading selbst (Standard-Farbe --text-strong) -- der vormals eigene,
+   nahezu identische --text-primary-Override entfällt (UAT-Runde 5, 2026-10-30; vorher UAT-Runde
+   4, Befund 5). */
 h1.title {
   min-width: 0;
-  font-size: 1.5rem;
+  font-size: var(--font-size-hero-display);
   line-height: 1.2;
-  color: var(--text-primary);
-  overflow-wrap: anywhere; /* User-chosen names can be a single unbroken string. */
+  overflow-wrap: anywhere; /* Nutzer-gewählte Namen können ein einzelner, nicht umbrechbarer String sein. */
 }
 
 .roles {
@@ -116,7 +120,7 @@ h1.title {
 .context {
   margin: var(--space-1) 0 0;
   line-height: 1.5;
-  overflow-wrap: anywhere; /* Project/group names are user-provided. */
+  overflow-wrap: anywhere; /* Projekt-/Gruppennamen werden von Nutzern frei vergeben. */
   --text-soft-size: 0.875rem;
 }
 
@@ -134,7 +138,7 @@ h1.title {
   text-align: center;
 }
 
-/* 48rem fits 64px avatar + 16px gap + 32rem copy + 48px padding and artwork context. */
+/* 48rem passt zu 64px Avatar + 16px Abstand + 32rem Textbreite + 48px Innenabstand und Artwork-Kontext. */
 @container artwork-hero (min-width: 48rem) {
   .artwork img {
     object-position: right center;

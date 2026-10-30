@@ -30,12 +30,11 @@
 
 .pageTitle {
   margin: 0;
-  color: var(--text-strong);
 }
 
 .pageTitle {
-  /* font-size kommt jetzt von Heading (.headingSize1 + --font-size-h1) -- hier bewusst nicht
-     mehr deklariert. */
+  /* font-size/color kommen jetzt von Heading (.headingSize1 + --font-size-h1, Standard-Farbe
+     --text-strong) -- hier bewusst nicht mehr deklariert. */
   line-height: 0.98;
   letter-spacing: -0.035em;
   text-wrap: balance;

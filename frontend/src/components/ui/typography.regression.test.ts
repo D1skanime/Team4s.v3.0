@@ -43,6 +43,11 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
     expect(globalsCss).toMatch(/--font-size-h3:\s*1rem;/)
   })
 
+  it('Heading liefert standardmaessig die Farbe ueber --text-strong -- Konsumenten brauchen dafuer keine eigene color-Deklaration mehr', () => {
+    const headingRule = mergedBlocks(readUiFile('Heading.module.css'), '.heading')
+    expect(headingRule).toMatch(/color:\s*var\(--text-strong\);/)
+  })
+
   describe('PageHeader', () => {
     const pageHeaderCss = readUiFile('PageHeader.module.css')
     const pageHeaderTsx = readUiFile('PageHeader.tsx')
@@ -51,16 +56,16 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(pageHeaderTsx).toMatch(/<Heading\s+level=\{1\}/)
     })
 
-    it('Titel: font-size clamp(2rem, 3vw, 2.75rem) (ueber Heading .headingSize1), color var(--text-strong), line-height 0.98, letter-spacing -0.035em, margin 0 -- kein eigenes font-size mehr', () => {
+    it('Titel: font-size clamp(2rem, 3vw, 2.75rem) (ueber Heading .headingSize1), color var(--text-strong) (ueber Headings Standardfarbe), line-height 0.98, letter-spacing -0.035em, margin 0 -- kein eigenes font-size/color mehr', () => {
       const headingCss = readUiFile('Heading.module.css')
       expect(headingCss).toMatch(/\.headingSize1\s*\{\s*font-size:\s*var\(--font-size-h1\);\s*\}/)
 
       const titleRule = mergedBlocks(pageHeaderCss, '.pageTitle')
       expect(titleRule).toMatch(/margin:\s*0;/)
-      expect(titleRule).toMatch(/color:\s*var\(--text-strong\);/)
       expect(titleRule).toMatch(/line-height:\s*0\.98;/)
       expect(titleRule).toMatch(/letter-spacing:\s*-0\.035em;/)
       expect(titleRule).not.toMatch(/font-size:/)
+      expect(titleRule).not.toMatch(/color:/)
     })
 
     it('Beschreibung: font-size 1rem / color #657086 ueber --text-meta-size/-color-Overrides, margin 8px 0 0', () => {
@@ -80,16 +85,16 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(sectionHeaderTsx).toMatch(/<Heading\s+level=\{level\}\s+size=\{3\}/)
     })
 
-    it('Titel: font-size 1rem (ueber Heading .headingSize3), color var(--text-strong), line-height 1.15, letter-spacing -0.015em, margin 0', () => {
+    it('Titel: font-size 1rem (ueber Heading .headingSize3), color var(--text-strong) (ueber Headings Standardfarbe), line-height 1.15, letter-spacing -0.015em, margin 0', () => {
       const headingCss = readUiFile('Heading.module.css')
       expect(headingCss).toMatch(/\.headingSize3\s*\{\s*font-size:\s*var\(--font-size-h3\);\s*\}/)
 
       const titleRule = mergedBlocks(sectionHeaderCss, '.sectionTitle')
       expect(titleRule).toMatch(/margin:\s*0;/)
-      expect(titleRule).toMatch(/color:\s*var\(--text-strong\);/)
       expect(titleRule).toMatch(/line-height:\s*1\.15;/)
       expect(titleRule).toMatch(/letter-spacing:\s*-0\.015em;/)
       expect(titleRule).not.toMatch(/font-size:/)
+      expect(titleRule).not.toMatch(/color:/)
     })
 
     it('Beschreibung: font-size 0.92rem / color #657086 ueber --text-soft-size/-color-Overrides, UND die VOLLE margin-Shorthand margin 6px 0 0 (nicht nur margin-top)', () => {
@@ -113,14 +118,14 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(dialogHeaderTsx).toMatch(/<Heading\s+level=\{3\}\s+size=\{2\}/)
     })
 
-    it('Titel: font-size 1.25rem (ueber Heading .headingSize2), color var(--text-strong), margin 0', () => {
+    it('Titel: font-size 1.25rem (ueber Heading .headingSize2), color var(--text-strong) (ueber Headings Standardfarbe), margin 0', () => {
       const headingCss = readUiFile('Heading.module.css')
       expect(headingCss).toMatch(/\.headingSize2\s*\{\s*font-size:\s*var\(--font-size-h2\);\s*\}/)
 
       const titleRule = mergedBlocks(dialogHeaderCss, '.dialogTitle')
       expect(titleRule).toMatch(/margin:\s*0;/)
-      expect(titleRule).toMatch(/color:\s*var\(--text-strong\);/)
       expect(titleRule).not.toMatch(/font-size:/)
+      expect(titleRule).not.toMatch(/color:/)
     })
 
     it('Beschreibung: font-size 1rem / color var(--text-soft) entsprechen bereits dem Text-"soft"-Default -- keine CSS-Variablen-Ueberschreibung noetig, nur margin 6px 0 0 bleibt', () => {
@@ -174,12 +179,12 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(readUiFile('LoadingState.tsx')).toMatch(/<Text\s+variant="soft"/)
     })
 
-    it('.stateTitle: color var(--text-strong), line-height 1.25, margin 0 -- kein eigenes font-size mehr', () => {
+    it('.stateTitle: line-height 1.25, margin 0 -- kein eigenes font-size/color mehr (Heading liefert beides)', () => {
       const titleRule = mergedBlocks(uiSharedCss, '.stateTitle')
       expect(titleRule).toMatch(/margin:\s*0;/)
-      expect(titleRule).toMatch(/color:\s*var\(--text-strong\);/)
       expect(titleRule).toMatch(/line-height:\s*1\.25;/)
       expect(titleRule).not.toMatch(/font-size:/)
+      expect(titleRule).not.toMatch(/color:/)
     })
 
     it('.stateDescription: line-height 1.55, margin 0 -- kein eigenes color mehr (Text "soft" liefert denselben var(--text-soft)-Wert)', () => {
@@ -191,8 +196,10 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
   })
 
   // UAT-Runde 4, Befund 5: ArtworkHero rendert Titel/Kontextzeile jetzt über Heading/Text statt
-  // eines eigenen h1/p. 1,5rem entspricht KEINER vorhandenen Heading-Größenstufe, bleibt daher
-  // bewusst als Override erhalten (anders als bei PageHeader/SectionHeader/DialogHeader/Card).
+  // eines eigenen h1/p. 1,5rem entspricht KEINER vorhandenen Heading-Größenstufe; UAT-Runde 5
+  // (2026-10-30) verlangt trotzdem KEIN eigenes, bloßes Literal mehr -- der Wert ist jetzt über
+  // den Typo-Token --font-size-hero-display benannt. Die Farbe kommt seither von Headings neuem
+  // Standard (--text-strong) statt eines eigenen, nahezu identischen --text-primary-Overrides.
   describe('ArtworkHero', () => {
     const artworkHeroCss = readUiFile('ArtworkHero.module.css')
     const artworkHeroTsx = readUiFile('ArtworkHero.tsx')
@@ -201,12 +208,12 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(artworkHeroTsx).toMatch(/<Heading\s+level=\{1\}/)
     })
 
-    it('Titel: font-size 1.5rem (Override, kein Heading-Größenschritt trifft genau), color var(--text-primary), margin kommt jetzt von Heading', () => {
+    it('Titel: font-size ueber den Typo-Token --font-size-hero-display (kein Heading-Größenschritt trifft genau), kein eigenes color/margin/font-weight mehr (Heading liefert Farbe/Abstand)', () => {
       const titleRule = mergedBlocks(artworkHeroCss, 'h1.title')
-      expect(titleRule).toMatch(/font-size:\s*1\.5rem;/)
-      expect(titleRule).toMatch(/color:\s*var\(--text-primary\);/)
+      expect(titleRule).toMatch(/font-size:\s*var\(--font-size-hero-display\);/)
       expect(titleRule).not.toMatch(/margin:/)
       expect(titleRule).not.toMatch(/font-weight:/)
+      expect(titleRule).not.toMatch(/color:/)
     })
 
     it('rendert die Kontextzeile über Text variant="soft" statt eines eigenen p', () => {
