@@ -95,11 +95,11 @@ button.datePickerInlineClear {
   width: min(100vw - 32px, 334px);
   max-height: min(430px, 72vh);
   overflow: auto;
-  /* Rahmen/Hintergrund/Schatten kommen aus denselben Tokens wie YearPickers Panel --
-     Panel-Chrome über beide Datums-/Jahres-Auswahlen hinweg vereinheitlicht (UAT-Runde 5,
-     2026-10-30). */
+  /* Rahmen/Hintergrund/Schatten/Radius kommen aus denselben Tokens wie YearPickers Panel --
+     Panel-Chrome über beide Datums-/Jahres-Auswahlen hinweg vereinheitlicht (Review-Runde 1,
+     2026-10-30; vorher UAT-Runde 5). */
   border: 1px solid var(--field-border-color);
-  border-radius: var(--radius-md);
+  border-radius: var(--picker-panel-radius);
   background: var(--field-bg-hover);
   padding: 12px;
   box-shadow: var(--shadow-lg);
@@ -167,7 +167,9 @@ button.datePickerPanelTitleButton {
 /*
  * Element+Klasse-Selektoren wie beim Auslöser: Tages-/Monats-/Jahres-Kacheln rendern über
  * IconButton, dessen feste 40x40px-Basisgröße sonst die Rasterzellen-Breite/-Radien
- * überschreiben könnte (identisches Muster wie YearPickers Jahres-Kacheln).
+ * überschreiben könnte (identisches Muster wie YearPickers Jahres-Kacheln). Radius/Hover-Farben
+ * kommen aus den gemeinsamen --picker-tile-*-Tokens (globals.css) statt eigener Literale
+ * (Review-Runde 1, 2026-10-30).
  */
 button.datePickerDay,
 button.datePickerMonthTile,
@@ -175,7 +177,7 @@ button.datePickerYearTile {
   width: 100%;
   height: auto;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--picker-tile-radius);
   background: transparent;
   color: var(--text-primary);
   font: inherit;
@@ -185,8 +187,8 @@ button.datePickerYearTile {
 button.datePickerDay:hover:not(:disabled),
 button.datePickerMonthTile:hover:not(:disabled),
 button.datePickerYearTile:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  background: color-mix(in srgb, var(--accent-primary) 8%, #fff);
+  border-color: var(--picker-tile-hover-border-color);
+  background: var(--picker-tile-hover-bg);
   opacity: 1;
 }
 
@@ -207,7 +209,7 @@ button.datePickerDay {
 }
 
 .datePickerDayToday {
-  border-color: color-mix(in srgb, var(--accent-primary) 34%, transparent);
+  border-color: var(--picker-tile-today-border-color);
 }
 
 /* Verlauf kommt aus --selection-tile-* (globals.css) -- derselbe "ausgewählt"-Kachel-Stil wie
@@ -238,8 +240,8 @@ button.datePickerTileSelected:hover {
 button.datePickerMonthTile,
 button.datePickerYearTile {
   min-height: 42px;
-  border-color: color-mix(in srgb, var(--text-secondary) 12%, transparent);
-  background: color-mix(in srgb, #fff 84%, var(--bg-secondary));
+  border-color: var(--picker-tile-muted-border-color);
+  background: var(--picker-tile-muted-bg);
 }
 
 .datePickerFooter {

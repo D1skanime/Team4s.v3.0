@@ -58,13 +58,19 @@ button.yearPickerTriggerInvalid {
   box-shadow: var(--field-invalid-shadow);
 }
 
+/* Farbe kommt aus dem geteilten --picker-hint-Token (globals.css) statt eines eigenen Literals
+   (Review-Runde 1, 2026-10-30). */
 .yearPickerHint {
-  color: #748097;
+  color: var(--picker-hint-color);
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
 
+/* Rahmen/Hintergrund entsprechen exakt den gemeinsamen --field-border-color/--field-bg-hover-
+   Tokens (Input/Select/Textarea, YearPicker-/DatePicker-Auslöser); Radius kommt aus dem
+   geteilten --picker-panel-radius-Token, denselben, die auch DatePickers Panel nutzt -- keine
+   eigenen Literale mehr (Review-Runde 1, 2026-10-30). */
 .yearPickerPanel {
   position: fixed;
   z-index: calc(var(--z-modal) + 1);
@@ -72,9 +78,9 @@ button.yearPickerTriggerInvalid {
   gap: 12px;
   overflow: auto;
   padding: 12px;
-  border: 1px solid rgba(92, 105, 131, 0.14);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--field-border-color);
+  border-radius: var(--picker-panel-radius);
+  background: var(--field-bg-hover);
   box-shadow: var(--shadow-lg);
 }
 

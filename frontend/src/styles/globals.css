@@ -231,6 +231,22 @@
   --selection-tile-text-color: #f9fbff;
   --selection-tile-shadow: 0 7px 18px rgba(67, 99, 180, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 
+  /* Gemeinsame Picker-Tokens für YearPicker/DatePicker: ergänzen die --field-*-Tokens (Auslöser)
+     und --selection-tile-*-Tokens (ausgewählter Zustand) um die übrigen Panel-/Kachel-Werte, die
+     vorher je Komponente als eigene Literale kopiert waren (Rahmenfarbe/Radius/Hover-/Gedämpft-
+     Zustand der Raster-Kacheln, Panel-Radius, Auslöser-Hinweistext-Farbe). Beide Picker beziehen
+     diese Werte jetzt gemeinsam statt eigener Farben/Radien -- Panel-Radius dadurch für beide
+     identisch 14px (vorher DatePicker 12px, YearPicker 14px als eigenes Literal; Review-Runde 1,
+     2026-10-30). */
+  --picker-panel-radius: 14px;
+  --picker-hint-color: #748097;
+  --picker-tile-radius: 7px;
+  --picker-tile-hover-border-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  --picker-tile-hover-bg: color-mix(in srgb, var(--accent-primary) 8%, #fff);
+  --picker-tile-today-border-color: color-mix(in srgb, var(--accent-primary) 34%, transparent);
+  --picker-tile-muted-border-color: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  --picker-tile-muted-bg: color-mix(in srgb, #fff 84%, var(--bg-secondary));
+
   --z-base: 1;
   --z-dropdown: 20;
   --z-sticky: 40;
