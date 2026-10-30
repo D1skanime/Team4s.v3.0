@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
+import { useState } from 'react'
 
 import { Button } from './Button'
 import { Modal } from './Modal'
@@ -46,6 +47,42 @@ export const Standard: Story = {
           'Der Fokus-Trap hält Tab-Navigation innerhalb des Panels; das addon-a11y-Panel dieser Story zeigt automatisierte Fokus-/Kontrast-Hinweise.',
       },
     },
+  },
+}
+
+/**
+ * Echte Öffnen-/Schließen-Interaktion statt des eingefrorenen `open: true`-Standard-Arg der
+ * übrigen Stories: ein Klick auf den Auslöser-Button öffnet das Modal, Escape/Backdrop-Klick/
+ * der Schließen-Button schließen es wieder über den eigenen `onClose`-Callback.
+ */
+export const OeffnenUndSchliessen: Story = {
+  name: 'Öffnen und Schließen',
+  args: {
+    title: 'Release-Version archivieren?',
+    description: 'Die Version bleibt nachvollziehbar, verschwindet aber aus der aktiven Arbeitsliste.',
+    children: <p>Das Modal bleibt bewusst kurz und zeigt nur den nötigen Kontext vor einer klaren Entscheidung.</p>,
+  },
+  render: (args) => {
+    function Demo() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <Button onClick={() => setOpen(true)}>Modal öffnen</Button>
+          <Modal
+            {...args}
+            open={open}
+            onClose={() => setOpen(false)}
+            footer={(
+              <>
+                <Button variant="secondary" onClick={() => setOpen(false)}>Abbrechen</Button>
+                <Button variant="danger" onClick={() => setOpen(false)}>Archivieren</Button>
+              </>
+            )}
+          />
+        </>
+      )
+    }
+    return <Demo />
   },
 }
 

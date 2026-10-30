@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
+import { useState } from 'react'
 
 import { Button } from './Button'
 import { Drawer } from './Drawer'
@@ -37,4 +38,25 @@ export const NormalGross: Story = {
 export const Gross: Story = {
   name: 'Groß',
   args: { size: 'lg' },
+}
+
+/**
+ * Echte Öffnen-/Schließen-Interaktion statt des eingefrorenen `open: true`-Standard-Arg der
+ * übrigen Stories: ein Klick auf den Auslöser-Button öffnet den Drawer, Escape/Backdrop-Klick/
+ * der Schließen-Button schließen ihn wieder über den eigenen `onClose`-Callback.
+ */
+export const OeffnenUndSchliessen: Story = {
+  name: 'Öffnen und Schließen',
+  render: (args) => {
+    function Demo() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <Button onClick={() => setOpen(true)}>Drawer öffnen</Button>
+          <Drawer {...args} open={open} onClose={() => setOpen(false)} />
+        </>
+      )
+    }
+    return <Demo />
+  },
 }
