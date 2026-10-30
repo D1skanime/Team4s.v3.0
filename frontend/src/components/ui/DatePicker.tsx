@@ -6,6 +6,22 @@ import { CalendarDays, X } from 'lucide-react'
 
 import { Button } from './Button'
 import { classNames } from './classNames'
+import {
+  MONTH_LABELS,
+  WEEKDAY_LABELS,
+  YEARS_PER_PAGE,
+  clampYear,
+  compareDateOnly,
+  monthIsSelectable,
+  pageStartForYear,
+  parseDateValue,
+  sameDate,
+  startOfCalendarGrid,
+  toDisplayDate,
+  toIsoDate,
+  yearIsSelectable,
+  yearRangeLabel,
+} from './DatePicker.dateLogic'
 import { IconButton } from './IconButton'
 import { NavArrow } from './NavArrow'
 import styles from './DatePicker.module.css'
@@ -28,90 +44,6 @@ type DatePickerProps = {
 
 type PickerView = 'day' | 'month' | 'year'
 
-const MONTH_LABELS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
-const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
-const YEARS_PER_PAGE = 12
-
-function clampYear(year: number, minYear: number, maxYear: number): number {
-  return Math.min(maxYear, Math.max(minYear, year))
-}
-
-function isIsoDate(value: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value.trim())
-}
-
-function parseDateValue(value: string, minYear: number, maxYear: number): Date | null {
-  const trimmed = value.trim()
-  if (!trimmed) return null
-  if (/^\d{4}$/.test(trimmed)) {
-    return new Date(clampYear(Number(trimmed), minYear, maxYear), 0, 1)
-  }
-  if (!isIsoDate(trimmed)) return null
-  const [yearRaw, monthRaw, dayRaw] = trimmed.split('-')
-  const year = Number(yearRaw)
-  const month = Number(monthRaw) - 1
-  const day = Number(dayRaw)
-  const date = new Date(year, month, day)
-  if (Number.isNaN(date.getTime())) return null
-  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) return null
-  return new Date(clampYear(year, minYear, maxYear), month, day)
-}
-
-function toIsoDate(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function toDisplayDate(value: string, minYear: number, maxYear: number): string {
-  const date = parseDateValue(value, minYear, maxYear)
-  if (!date) return ''
-  return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`
-}
-
-function sameDate(left: Date, right: Date): boolean {
-  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate()
-}
-
-function compareDateOnly(left: Date, right: Date): number {
-  const leftTime = new Date(left.getFullYear(), left.getMonth(), left.getDate()).getTime()
-  const rightTime = new Date(right.getFullYear(), right.getMonth(), right.getDate()).getTime()
-  return leftTime - rightTime
-}
-
-function startOfCalendarGrid(year: number, month: number): Date {
-  const first = new Date(year, month, 1)
-  const mondayBasedDay = (first.getDay() + 6) % 7
-  return new Date(year, month, 1 - mondayBasedDay)
-}
-
-function pageStartForYear(year: number): number {
-  return Math.floor(year / YEARS_PER_PAGE) * YEARS_PER_PAGE
-}
-
-function yearRangeLabel(start: number, minYear: number, maxYear: number): string {
-  const from = Math.max(start, minYear)
-  const to = Math.min(start + YEARS_PER_PAGE - 1, maxYear)
-  return `${from} - ${to}`
-}
-
-function yearIsSelectable(year: number, minDate: Date | null, maxDate: Date | null): boolean {
-  const start = new Date(year, 0, 1)
-  const end = new Date(year, 11, 31)
-  if (minDate && compareDateOnly(end, minDate) < 0) return false
-  if (maxDate && compareDateOnly(start, maxDate) > 0) return false
-  return true
-}
-
-function monthIsSelectable(year: number, month: number, minDate: Date | null, maxDate: Date | null): boolean {
-  const start = new Date(year, month, 1)
-  const end = new Date(year, month + 1, 0)
-  if (minDate && compareDateOnly(end, minDate) < 0) return false
-  if (maxDate && compareDateOnly(start, maxDate) > 0) return false
-  return true
-}
-
 /**
  * Datums-Auswahl mit Tages-/Monats-/Jahres-Panel. Auslöser und Leeren-Symbol nutzen `IconButton`s
  * offizielle `field`-Variante (Feld-Zeilen-Auslöser, kein eigener Rahmen/Hintergrund) bzw.
@@ -121,7 +53,9 @@ function monthIsSelectable(year: number, month: number, minDate: Date | null, ma
  * und Fußzeilen-Aktionen nutzen `Button`s `ghost`-Variante. Der Auslöser nutzt `IconButton`s
  * `icon`-Prop für sein Wert-/Symbol-Layout, da `Button` keinen Ref weiterleitet, dieser Baustein
  * aber für die Panel-Positionierung (Rand-Erkennung oben/unten) einen echten
- * `HTMLButtonElement`-Ref benötigt.
+ * `HTMLButtonElement`-Ref benötigt. Die reinen Datums-/Kalender-Hilfsfunktionen (Parsen/
+ * Formatieren, Auswählbarkeit, Kalenderraster, Jahres-Seiten) liegen in `DatePicker.dateLogic.ts`
+ * (Datei-Zeilenlimit, ohne React-Abhängigkeit unabhängig testbar).
  */
 export function DatePicker({
   id,
