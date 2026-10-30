@@ -2,16 +2,27 @@
   position: relative;
 }
 
-.yearPickerTrigger {
+/*
+ * Element+Klasse-Selektoren (Spezifität 0,1,1) statt reiner Klassen-Selektoren: der Auslöser
+ * rendert jetzt über IconButton, dessen eigene .iconButton-Basisklasse (feste 40x40px, eigener
+ * Rahmen/Radius/Hintergrund) sonst je nach CSS-Modul-Bündel-Reihenfolge die hier gewünschte,
+ * volle Feldbreite überschreiben könnte -- identisches Muster wie NavArrow/AvatarStack auf
+ * IconButton. Die Werte entsprechen bewusst exakt .control (Input/Select/Textarea) aus
+ * ui.module.css, damit der Auslöser neben anderen Formularfeldern identisch aussieht (UAT-Runde
+ * 4, Befund 4, 2026-10-30) -- .control selbst nutzt an dieser Stelle noch keine benannten
+ * Custom Properties für Rahmen/Hintergrund/Textfarbe, daher sind das bewusst dieselben Literale,
+ * keine neuen eigenen Werte.
+ */
+button.yearPickerTrigger {
   width: 100%;
   min-height: var(--control-height-md);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid rgba(92, 105, 131, 0.14);
+  padding: 12px 14px;
   border-radius: 8px;
+  border: 1px solid rgba(92, 105, 131, 0.14);
   background: rgba(255, 255, 255, 0.94);
   color: #334155;
   box-shadow:
@@ -20,21 +31,18 @@
   font: inherit;
   font-weight: 700;
   text-align: left;
-  cursor: pointer;
   transition:
     border-color 120ms ease,
     box-shadow 120ms ease,
     background-color 120ms ease;
 }
 
-.yearPickerTrigger:hover {
+button.yearPickerTrigger:hover {
   border-color: rgba(92, 105, 131, 0.22);
   background: rgba(255, 255, 255, 0.98);
 }
 
-.yearPickerTrigger:focus-visible,
-.yearPickerYear:focus-visible,
-.yearPickerNav:focus-visible {
+button.yearPickerTrigger:focus-visible {
   outline: none;
   border-color: var(--border-accent);
   box-shadow:
@@ -42,13 +50,15 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
-.yearPickerTrigger:disabled {
+button.yearPickerTrigger:disabled {
   cursor: not-allowed;
   opacity: 0.62;
   background: rgba(244, 247, 251, 0.94);
 }
 
-.yearPickerTriggerInvalid {
+/* Muss NACH button.yearPickerTrigger stehen: bei gleicher Spezifität (0,1,1) gewinnt die
+   Deklarationsreihenfolge im Stylesheet. */
+button.yearPickerTriggerInvalid {
   border-color: rgba(130, 18, 44, 0.34);
   box-shadow:
     0 0 0 3px rgba(130, 18, 44, 0.12),
@@ -84,55 +94,38 @@
   font-size: 0.86rem;
 }
 
-.yearPickerNav {
-  min-height: 32px;
-  padding: 6px 10px;
-  border: 1px solid rgba(92, 105, 131, 0.14);
-  border-radius: 999px;
-  background: rgba(241, 245, 251, 0.9);
-  color: #334155;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.yearPickerNav:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
 .yearPickerGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
-.yearPickerYear {
+/* Element+Klasse-Selektor (Spezifität 0,1,1): Jahres-/"Keine Angabe"-Kacheln rendern jetzt über
+   IconButton, dessen feste 40x40px-Basisgröße sonst die volle Rasterzellen-Breite/die eigene
+   Eckenrundung überschreiben könnte. Farben/Fokus/Hover/Disabled kommen bewusst von IconButtons
+   eigenen Regeln -- nur Form/Größe/Schrift werden hier überschrieben (UAT-Runde 4, Befund 4). */
+button.yearPickerYear {
+  width: 100%;
+  height: auto;
   min-height: 36px;
-  border: 1px solid rgba(92, 105, 131, 0.14);
   border-radius: 10px;
-  background: rgba(248, 250, 252, 0.94);
-  color: #334155;
   font: inherit;
   font-size: 0.86rem;
   font-weight: 750;
-  cursor: pointer;
 }
 
-.yearPickerYear:hover,
-.yearPickerNav:hover:not(:disabled) {
-  border-color: rgba(57, 84, 144, 0.34);
-  background: rgba(240, 246, 255, 0.96);
-}
-
-.yearPickerYearSelected {
+button.yearPickerYearSelected {
   border-color: rgba(57, 84, 144, 0.34);
   background: linear-gradient(180deg, rgba(117, 152, 235, 0.94) 0%, rgba(72, 103, 180, 0.98) 100%);
   color: #f9fbff;
   box-shadow:
     0 7px 18px rgba(67, 99, 180, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+button.yearPickerYearSelected:hover {
+  background: linear-gradient(180deg, rgba(117, 152, 235, 0.98) 0%, rgba(72, 103, 180, 1) 100%);
+  opacity: 1;
 }
 
 .yearPickerClear {

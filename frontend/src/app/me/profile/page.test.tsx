@@ -267,7 +267,7 @@ async function pickActivityYear(label: string, year: string) {
       fireEvent.click(yearButton)
       return
     }
-    const earlierButton = screen.getByRole('button', { name: 'Früher' }) as HTMLButtonElement
+    const earlierButton = screen.getByRole('button', { name: 'Frühere Jahre' }) as HTMLButtonElement
     if (earlierButton.disabled) break
     fireEvent.click(earlierButton)
   }
