@@ -11,8 +11,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component:
-          'Besteht aus: DisclosureIndicator (natives button als dokumentierte ARIA-Widget-Ausnahme).',
+        component: 'Besteht aus: DisclosureTrigger.',
       },
     },
   },

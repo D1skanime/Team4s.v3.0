@@ -1,0 +1,41 @@
+.disclosureTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-strong);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: var(--font-weight-heading);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.disclosureTrigger:hover {
+  background: color-mix(in srgb, var(--accent-primary) 4%, transparent);
+  color: var(--accent-primary);
+}
+
+.disclosureTrigger:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--border-accent);
+  border-radius: var(--radius-surface);
+}
+
+.disclosureTriggerOpen {
+  color: var(--accent-primary);
+}
+
+.disclosureTriggerTitle {
+  min-width: 0;
+  flex: 1;
+  text-align: start;
+}

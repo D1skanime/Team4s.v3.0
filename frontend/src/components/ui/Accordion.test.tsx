@@ -55,11 +55,13 @@ describe('Accordion', () => {
     expect(screen.getByText('Inhalte für Bearbeitung')).toBeTruthy()
   })
 
-  it('Header-Touch-Ziel >= 44px (CSS-Klasse accordionHeader vorhanden)', () => {
+  it('Header-Touch-Ziel >= 44px (CSS-Klasse disclosureTrigger vorhanden)', () => {
     render(<Accordion items={demoItems} />)
     const firstHeader = screen.getByRole('button', { name: /Übersetzung/i })
-    // Prüfen dass die CSS-Klasse gesetzt ist (min-height >= 44px ist in ui.module.css definiert)
-    expect(firstHeader.className).toMatch(/accordionHeader/)
+    // Prüfen dass die CSS-Klasse gesetzt ist (min-height: 44px ist in DisclosureTrigger.module.css
+    // definiert -- die Kopfzeile wurde auf den geteilten DisclosureTrigger-Baustein umgestellt,
+    // UAT-Runde 4, Befund 6, 2026-10-30).
+    expect(firstHeader.className).toMatch(/disclosureTrigger/)
   })
 
   it('rendert strukturierte Rich-Header', () => {
