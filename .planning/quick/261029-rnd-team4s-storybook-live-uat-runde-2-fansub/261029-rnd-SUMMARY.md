@@ -425,6 +425,48 @@ WCAG-AA-Schwelle. Verifiziert: `npx tsc --noEmit` (0 Fehler), `npm run lint` (we
 exakt 4 vorbestehende Fehler), `npm test -- --run` (429 Dateien, 4444 Tests grün, inklusive
 `cssCustomProperties.guard.test.ts`), Playwright-Projekt `public` (2/2 grün).
 
+## Nachbesserung durch unabhängige Code-Review, Runde 2 (Commits `1c9c633f9`, `2cf5bb70d`)
+
+Eine zweite unabhängige Review meldete einen `high`-Befund: 13 Storybook-Titel unter
+`components/showcases` und `components/fansubs` (Kategorie `Im Einsatz/*`) zeigten weiterhin
+den rohen, englischen Datei-/Komponentennamen als zweites Titel-Segment (z. B. „Im Einsatz/
+AccordionShowcase"), und die bisherige `storyDisplayNames.german.test.ts`-Prüfung lief nur
+über `src/components/ui` — sie konnte diese Fälle strukturell nicht erkennen.
+
+Behoben:
+- **Alle 13 Titel auf lesbares Deutsch umgestellt**, orientiert an der jeweils bereits
+  vorhandenen Datei-Kopfkommentar-Beschreibung: `AccordionShowcase` → „Accordion mit
+  AvatarStack", `AppShellDrawerDemoSection` → „AppShell mit Slide-over-Drawer",
+  `AchievementBadgeShowcase` → „Erfolgsbadge-Galerie", `CompositionShowcase` → „Admin-Layer-
+  Kompositionen", `DesignTokensShowcase` → „Design-Tokens und Farbfamilien", `DrawerShowcase`
+  → „Drawer mit Größen-Umschalter", `FormWithErrorsShowcase` → „Formular mit mehreren
+  Fehlern", `ModalInContextShowcase` → „Modal im Seitenkontext", `PublicFansubSurfacesShowcase`
+  → „Öffentliche Fansub-Oberflächen", `PublicReleaseSurfacesShowcase` → „Öffentliche
+  Release-Oberflächen", `SwitchShowcase` → „Switch-Beispiele", `UploadPrimitivesShowcase` →
+  „Upload-Dropzone mit Warteschlange", `FansubHeroSection` (components/fansubs) → „Fansub-
+  Kopfzeile".
+- **`storyDisplayNames.german.test.ts` von `src/components/ui/` nach `src/components/`
+  verschoben** und um zwei Dimensionen erweitert: (1) scannt jetzt `components/ui`,
+  `components/showcases` UND `components/fansubs` statt nur `components/ui`; (2) neue,
+  dateiweite Prüfung des `title:`-Labels (zweites Pfadsegment) auf englische Wörter UND
+  CamelCase-ohne-Leerzeichen. `components/ui` ist von der Titel-Prüfung bewusst ausgenommen:
+  dort ist das Label laut etablierter Projektkonvention (siehe `catalogTaxonomy.test.ts`)
+  immer der reale, katalogisierte Komponentenname (z. B. „LoadingState", „AvatarStack") — ein
+  Eigenname, kein freier Beschreibungstext. Eine ungefilterte Prüfung hätte dort z. B.
+  „LoadingState" wegen des enthaltenen Worts „loading" fälschlich durchfallen lassen.
+  `components/showcases`/`components/fansubs` haben keine vergleichbare Eigennamen-Konvention
+  und unterliegen daher denselben Lesbarkeitsregeln wie Story-Namen. Per temporärer
+  Verstoß-Injektion (einen Titel zurückgesetzt, Test schlug korrekt fehl, danach
+  wiederhergestellt) verifiziert.
+- Die eigentlichen Titel-Änderungen wurden im ersten Fix-Commit versehentlich nicht
+  mitgestaged (ein ungültiger Pfad in derselben `git add`-Anweisung ließ den Befehl vorher
+  abbrechen) — per Nachtrag-Commit (`2cf5bb70d`) korrigiert und erneut verifiziert.
+
+Verifiziert: `npx tsc --noEmit` (0 Fehler), `npm run lint` (weiterhin exakt 4 vorbestehende
+Fehler), `npm test -- --run` (429 Dateien, 4608 Tests grün, inklusive 668 Tests in der
+erweiterten Prüfung), `npm run build-storybook` (Exit 0); `storybook-static/index.json` nach
+dem Build auf alle 13 „Im Einsatz/*"-Titel geprüft — durchgehend deutsch.
+
 ## Self-Check: PASSED
 
 Alle acht im Summary genannten Dateien existieren (`Heading.tsx`, `Text.tsx`, `catalogTaxonomy.test.ts`,
