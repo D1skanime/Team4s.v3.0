@@ -344,6 +344,53 @@ Prüfung), `npm run build-storybook` (Exit 0). Zusätzlich `storybook-static/ind
 nach dem Build programmatisch auf verbleibendes CamelCase-ohne-Leerzeichen durchsucht:
 keine Treffer mehr.
 
+## Nachbesserung durch Live-Abnahme: Hero-Scrim positionsabhängig abgesichert (Commit `17d749fb7`)
+
+Der Mensch sichtete den Auftrag nach den automatischen Korrekturrunden erneut und meldete
+einen `high`-Befund zum Fansub-Hero-Banner-Scrim (`frontend/src/app/fansubs/[slug]/
+page.module.css`): `.heroBodyOnBanner::before` war ein Verlauf, der bei 0% transparent
+startete und die geprüften 88% Deckkraft erst bei 30% der Box-Höhe erreichte. Titel,
+Status-Badge und Kennzahlen sitzen aber bereits direkt nach dem 16px-Padding am oberen
+Rand dieser Box, also weit vor der 30%-Marke — der bisherige deterministische Test prüfte
+nur den Endwert des Verlaufs und konnte diese Lücke nicht erkennen.
+
+Behoben:
+- **CSS**: `.heroBodyOnBanner::before` ist jetzt eine FLÄCHIGE, gleichmäßig deckende Farbe
+  (`rgba(10, 8, 14, 0.88)`) statt eines Verlaufs — die volle Deckkraft gilt dadurch
+  unabhängig von Box-Höhe und tatsächlicher Textposition im gesamten Textblock. Das ist die
+  im Befund explizit genannte erste Option ("den Verlauf so legen, dass er am oberen Rand
+  des Textblocks bereits die nötige Deckkraft hat").
+- **Deterministischer Test**: `FansubHeroSection.accessibility.test.ts`s
+  `extractScrimAlpha()` erzwingt zusätzlich, dass KEIN `linear-gradient()` mehr verwendet
+  wird — strukturell schließt das jede positionsabhängige Schwachstelle aus, statt nur den
+  Endwert zu prüfen. Per temporärer Regression (alten Verlauf wiederhergestellt, Test schlug
+  korrekt fehl, danach zurückgesetzt) verifiziert.
+- **Neuer Playwright-Nachweis**: `e2e/fansub-hero-banner-contrast.spec.ts` (Projekt
+  `public` in `playwright.config.ts`, kein Login nötig) misst gegen die echte laufende App
+  für die zwei hellsten von sieben Fansub-Gruppen mit Bannerfoto (`new-subs` ~89%,
+  `bloody-shadow` ~68% mittlere Leuchtdichte — per Sharp-Analyse der real auf der DB
+  hinterlegten Bilddateien ermittelt, nicht geschätzt) die tatsächlich gerenderten Pixel
+  hinter Titel/Badge/Gründungszeile/Kennzahlen direkt am oberen Rand des Textblocks.
+  Gemessene Kontraste (Vordergrund per `getComputedStyle`, Hintergrund per häufigster
+  Farbe im Element-Screenshot): Titel 18,26:1 / 18,29:1, Status-Badge 10,33:1 ("aufgelöst",
+  new-subs) / 5,37:1 ("aktiv", bloody-shadow — hartcodierter opaker Success-Chip,
+  unabhängig vom Scrim), Gründungszeile 17,37:1 / 18,11:1, Kennzahl-Bezeichnung 18,50:1 /
+  18,28:1, Kennzahl-Wert 18,21:1 / 18,10:1 — alle zehn Messungen deutlich über der
+  4,5:1-WCAG-AA-Schwelle.
+- **Transparent dokumentierte Einschränkung**: keines der sieben real hinterlegten
+  Bannerfotos ist nach Unschärfe-/Helligkeits-Filterung und dem eigenen Backdrop-Verlauf
+  (`.heroBackdropTuning::after`) am Messpunkt hell genug, um den NUR mit dem alten Verlauf
+  reproduzierbaren Fehler empirisch zu demonstrieren (per Diagnose-Lauf gegen alle sieben
+  Gruppen mit dem vorübergehend wiederhergestellten alten Verlauf bestätigt: Titel-Region
+  blieb bei allen sieben zwischen 63,9 und 79,0 von 255 Leuchtdichte, deutlich zu dunkel für
+  einen Unterschied). Der Playwright-Test beweist daher die reale, aktuelle AA-Konformität
+  mit großer Marge, nicht die historische Regression selbst — das leistet strukturell der
+  deterministische CSS-Test (siehe oben).
+
+Verifiziert: `npx tsc --noEmit` (0 Fehler), `npm run lint` (weiterhin exakt 4 vorbestehende
+Fehler), `npm test -- --run src/components/fansubs` (33 Dateien, 249 Tests grün), Playwright-
+Projekt `public` (2/2 grün gegen die echte laufende App unter `http://127.0.0.1:3000`).
+
 ## Self-Check: PASSED
 
 Alle acht im Summary genannten Dateien existieren (`Heading.tsx`, `Text.tsx`, `catalogTaxonomy.test.ts`,
