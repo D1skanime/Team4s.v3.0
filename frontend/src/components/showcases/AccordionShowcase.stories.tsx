@@ -8,7 +8,7 @@ import { AccordionShowcase } from './AccordionShowcase'
  * neuen Zustands-Varianten gegenüber der ursprünglichen Seite erfunden.
  */
 const meta = {
-  title: 'Im Einsatz/AccordionShowcase',
+  title: 'Im Einsatz/Accordion mit AvatarStack',
   component: AccordionShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof AccordionShowcase>

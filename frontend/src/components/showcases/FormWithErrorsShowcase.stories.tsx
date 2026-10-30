@@ -8,7 +8,7 @@ import { FormWithErrorsShowcase } from './FormWithErrorsShowcase'
  * Feldtyp gleichzeitig.
  */
 const meta = {
-  title: 'Im Einsatz/FormWithErrorsShowcase',
+  title: 'Im Einsatz/Formular mit mehreren Fehlern',
   component: FormWithErrorsShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof FormWithErrorsShowcase>

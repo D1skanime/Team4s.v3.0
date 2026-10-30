@@ -7,7 +7,7 @@ import { DesignTokensShowcase } from './DesignTokensShowcase'
  * früheren In-App-Showcase-Route vorhandene Design-Tokens- und Farbfamilien-Vorschau.
  */
 const meta = {
-  title: 'Im Einsatz/DesignTokensShowcase',
+  title: 'Im Einsatz/Design-Tokens und Farbfamilien',
   component: DesignTokensShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof DesignTokensShowcase>

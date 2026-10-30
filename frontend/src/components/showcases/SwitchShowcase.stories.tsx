@@ -8,7 +8,7 @@ import { SwitchShowcase } from './SwitchShowcase'
  * gegenüber der ursprünglichen Seite erfunden.
  */
 const meta = {
-  title: 'Im Einsatz/SwitchShowcase',
+  title: 'Im Einsatz/Switch-Beispiele',
   component: SwitchShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof SwitchShowcase>

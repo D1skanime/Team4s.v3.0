@@ -10,7 +10,7 @@ import { ACHIEVEMENT_BADGE_SOURCE_FILES } from './AchievementBadgeShowcase.sourc
  * globalen Storybook-Decorator.
  */
 const meta = {
-  title: 'Im Einsatz/AchievementBadgeShowcase',
+  title: 'Im Einsatz/Erfolgsbadge-Galerie',
   component: AchievementBadgeShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof AchievementBadgeShowcase>

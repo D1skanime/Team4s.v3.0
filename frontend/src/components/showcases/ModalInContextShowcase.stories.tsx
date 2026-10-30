@@ -8,7 +8,7 @@ import { ModalInContextShowcase } from './ModalInContextShowcase'
  * Modal/DialogHeader/IconButton-Komposition im Seitenkontext statt isoliert.
  */
 const meta = {
-  title: 'Im Einsatz/ModalInContextShowcase',
+  title: 'Im Einsatz/Modal im Seitenkontext',
   component: ModalInContextShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof ModalInContextShowcase>

@@ -8,7 +8,7 @@ import { DrawerShowcase } from './DrawerShowcase'
  * Zustands-Varianten gegenüber der ursprünglichen Seite erfunden.
  */
 const meta = {
-  title: 'Im Einsatz/DrawerShowcase',
+  title: 'Im Einsatz/Drawer mit Größen-Umschalter',
   component: DrawerShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof DrawerShowcase>

@@ -8,7 +8,7 @@ import { AppShellDrawerDemoSection } from './AppShellDrawerDemoSection'
  * gegenüber der ursprünglichen Seite erfunden.
  */
 const meta = {
-  title: 'Im Einsatz/AppShellDrawerDemoSection',
+  title: 'Im Einsatz/AppShell mit Slide-over-Drawer',
   component: AppShellDrawerDemoSection,
   tags: ['autodocs'],
 } satisfies Meta<typeof AppShellDrawerDemoSection>

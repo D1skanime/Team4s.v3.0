@@ -8,7 +8,7 @@ import { UploadPrimitivesShowcase } from './UploadPrimitivesShowcase'
  * neuen Zustands-Varianten gegenüber der ursprünglichen Seite erfunden.
  */
 const meta = {
-  title: 'Im Einsatz/UploadPrimitivesShowcase',
+  title: 'Im Einsatz/Upload-Dropzone mit Warteschlange',
   component: UploadPrimitivesShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof UploadPrimitivesShowcase>

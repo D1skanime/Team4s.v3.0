@@ -6,7 +6,7 @@ import type { FansubGroup } from '@/types/fansub'
 /**
  * Echte, produktive Public-Komponente (Mockdaten): zeigt die Kopfzeile einer Fansub-
  * Gruppenseite inkl. Status-Badge, Kennzahlen und optionalem Bannerfoto. Die Story
- * "AufgelöstMitBanner" macht den UAT-Kontrastfix für den Status-Badge (variant="muted") auf
+ * "Aufgelöst mit Banner" macht den UAT-Kontrastfix für den Status-Badge (variant="muted") auf
  * dem dunklen Banner-Scrim sichtbar prüfbar -- vorher gab es keinen Storybook-Zustand, der
  * eine aufgelöste Gruppe MIT Bannerfoto zeigt.
  */
@@ -63,7 +63,7 @@ const sampleStats = [
 ]
 
 const meta = {
-  title: 'Im Einsatz/FansubHeroSection',
+  title: 'Im Einsatz/Fansub-Kopfzeile',
   component: FansubHeroSection,
   tags: ['autodocs'],
   parameters: {
