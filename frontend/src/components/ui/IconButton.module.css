@@ -82,3 +82,67 @@
      dieses Buttons rendern -- darüber bleiben, damit der Schließen-Button nie verdeckt wird. */
   z-index: 3;
 }
+
+.iconButtonFill {
+  width: 100%;
+  height: auto;
+}
+
+/* Feld-Variante: IconButton als Auslöser INNERHALB einer umgebenden Feld-Zeile (z. B. DatePickers
+   Datums-Auslöser neben seinem Leeren-Symbol) -- kein eigener Rahmen/Hintergrund/Radius/Schatten,
+   da das umgebende Feld (--field-*-Tokens) sie liefert; Inhalt linksbündig mit Platz zwischen
+   Wert und Symbol statt zentriert. */
+.iconButtonField {
+  justify-content: space-between;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--field-text-color);
+  font: inherit;
+  text-align: left;
+}
+
+.iconButtonField:hover {
+  background: transparent;
+}
+
+.iconButtonField:focus-visible {
+  outline: none;
+  box-shadow: var(--field-focus-shadow);
+}
+
+/* Kachel-Variante: Tages-/Monats-/Jahres-Auswahlkachel eines Pickers -- transparent, eigener
+   Radius-Token statt IconButtons Standard-Eckenrundung. "Ausgewählt" kommt über aria-current/
+   aria-pressed (derselbe Mechanismus wie bei Button), nicht über eine externe Klasse mit
+   !important -- die Attribut-Selektor-Kombination unten hat zuverlässig höhere Spezifität als
+   jede einzelne lokale Zustands-Klasse (z. B. "heute"), ganz ohne !important. */
+.iconButtonTile {
+  border: 1px solid transparent;
+  border-radius: var(--picker-tile-radius);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 800;
+}
+
+.iconButtonTile:hover:not(:disabled) {
+  border-color: var(--picker-tile-hover-border-color);
+  background: var(--picker-tile-hover-bg);
+  opacity: 1;
+}
+
+.iconButtonTile[aria-current]:not([aria-current="false"]),
+.iconButtonTile[aria-pressed="true"] {
+  border-color: var(--selection-tile-border-color);
+  background: var(--selection-tile-gradient);
+  color: var(--selection-tile-text-color);
+  box-shadow: var(--selection-tile-shadow);
+  opacity: 1;
+}
+
+.iconButtonTile[aria-current]:not([aria-current="false"]):hover,
+.iconButtonTile[aria-pressed="true"]:hover {
+  background: var(--selection-tile-gradient-hover);
+}

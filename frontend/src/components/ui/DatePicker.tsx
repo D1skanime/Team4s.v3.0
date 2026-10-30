@@ -113,15 +113,15 @@ function monthIsSelectable(year: number, month: number, minDate: Date | null, ma
 }
 
 /**
- * Datums-Auswahl mit Tages-/Monats-/Jahres-Panel. Alle vormals nativen `<button>`-Elemente
- * (Auslöser, Leeren-Verknüpfung, Blätter-Pfeile, Monats-/Jahres-Titel-Umschalter, Tages-/
- * Monats-/Jahres-Kacheln, Fußzeilen-Aktionen) sind analog zu YearPicker auf die geteilten
- * Grundbausteine `IconButton`/`NavArrow`/`Button` umgestellt. Der Auslöser nutzt `IconButton`s
+ * Datums-Auswahl mit Tages-/Monats-/Jahres-Panel. Auslöser und Leeren-Symbol nutzen `IconButton`s
+ * offizielle `field`-Variante (Feld-Zeilen-Auslöser, kein eigener Rahmen/Hintergrund) bzw.
+ * `ghost`-Variante; Tages-/Monats-/Jahres-Kacheln nutzen `IconButton`s offizielle `tile`-Variante
+ * mit `size="fill"` -- der "ausgewählt"-Zustand kommt über `aria-current`, denselben Mechanismus
+ * wie bei `Button`, statt einer von außen injizierten CSS-Klasse. Monats-/Jahres-Titel-Umschalter
+ * und Fußzeilen-Aktionen nutzen `Button`s `ghost`-Variante. Der Auslöser nutzt `IconButton`s
  * `icon`-Prop für sein Wert-/Symbol-Layout, da `Button` keinen Ref weiterleitet, dieser Baustein
  * aber für die Panel-Positionierung (Rand-Erkennung oben/unten) einen echten
- * `HTMLButtonElement`-Ref benötigt. Tastatur-/Fokusverhalten bleibt dadurch unverändert, da
- * `IconButton`/`NavArrow`/`Button` alle nativen `button`-Attribute (disabled, aria-*, onClick)
- * unverändert durchreichen.
+ * `HTMLButtonElement`-Ref benötigt.
  */
 export function DatePicker({
   id,
@@ -262,6 +262,8 @@ export function DatePicker({
         <IconButton
           id={id}
           ref={triggerRef}
+          variant="field"
+          size="fill"
           icon={
             <>
               <span className={displayValue ? styles.datePickerValue : styles.datePickerPlaceholder}>
@@ -317,21 +319,21 @@ export function DatePicker({
               ) : view === 'month' ? (
                 <Button
                   type="button"
-                  variant="text"
-                  className={styles.datePickerPanelTitleButton}
+                  variant="ghost"
+                  size="sm"
                   onClick={() => { setYearPageStart(pageStartForYear(visibleMonth.getFullYear())); setView('year') }}
                 >
                   {visibleMonth.getFullYear()}
                 </Button>
               ) : (
                 <>
-                  <Button type="button" variant="text" className={styles.datePickerPanelTitleButton} onClick={() => setView('month')}>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setView('month')}>
                     {MONTH_LABELS[visibleMonth.getMonth()]}
                   </Button>
                   <Button
                     type="button"
-                    variant="text"
-                    className={styles.datePickerPanelTitleButton}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => { setYearPageStart(pageStartForYear(visibleMonth.getFullYear())); setView('year') }}
                   >
                     {visibleMonth.getFullYear()}
@@ -369,14 +371,16 @@ export function DatePicker({
                   return (
                     <IconButton
                       key={toIsoDate(date)}
+                      variant="tile"
+                      size="fill"
                       icon={date.getDate()}
                       aria-label={String(date.getDate())}
+                      aria-current={isSelected ? 'true' : undefined}
                       className={classNames(
                         styles.datePickerDay,
                         !isCurrentMonth && styles.datePickerDayMuted,
                         isWeekend && styles.datePickerDayWeekend,
                         isToday && styles.datePickerDayToday,
-                        isSelected && styles.datePickerDaySelected,
                       )}
                       disabled={!isSelectable}
                       onClick={() => selectDay(date)}
@@ -392,9 +396,12 @@ export function DatePicker({
               {MONTH_LABELS.map((month, index) => (
                 <IconButton
                   key={month}
+                  variant="tile"
+                  size="fill"
                   icon={month}
                   aria-label={month}
-                  className={classNames(styles.datePickerMonthTile, index === visibleMonth.getMonth() && styles.datePickerTileSelected)}
+                  aria-current={index === visibleMonth.getMonth() ? 'true' : undefined}
+                  className={styles.datePickerMonthTile}
                   disabled={!monthIsSelectable(visibleMonth.getFullYear(), index, minSelectableDate, maxSelectableDate)}
                   onClick={() => selectMonth(index)}
                 />
@@ -407,9 +414,12 @@ export function DatePicker({
               {years.map((year) => (
                 <IconButton
                   key={year}
+                  variant="tile"
+                  size="fill"
                   icon={year}
                   aria-label={String(year)}
-                  className={classNames(styles.datePickerYearTile, year === visibleMonth.getFullYear() && styles.datePickerTileSelected)}
+                  aria-current={year === visibleMonth.getFullYear() ? 'true' : undefined}
+                  className={styles.datePickerYearTile}
                   disabled={!yearIsSelectable(year, minSelectableDate, maxSelectableDate)}
                   onClick={() => selectYear(year)}
                 />
@@ -419,12 +429,13 @@ export function DatePicker({
 
           {view === 'day' ? (
             <div className={styles.datePickerFooter}>
-              <Button type="button" variant="text" className={styles.datePickerFooterButton} disabled={!isSelectableDate(today)} onClick={selectToday}>
+              <Button type="button" variant="ghost" size="sm" className={styles.datePickerFooterButton} disabled={!isSelectableDate(today)} onClick={selectToday}>
                 Heute
               </Button>
               <Button
                 type="button"
-                variant="text"
+                variant="ghost"
+                size="sm"
                 className={classNames(styles.datePickerFooterButton, styles.datePickerFooterButtonDanger)}
                 disabled={!value}
                 onClick={clearDate}

@@ -73,6 +73,55 @@ export const Deaktiviert: Story = {
   args: { disabled: true },
 }
 
+export const FeldAusloeser: Story = {
+  name: 'Feld-Auslöser',
+  args: {
+    icon: <>Wert <ChevronRight size={16} aria-hidden="true" /></>,
+    'aria-label': 'Datum auswählen',
+    variant: 'field',
+    size: 'fill',
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ display: 'flex', alignItems: 'center', width: 220, padding: '0 12px', minHeight: 44, border: '1px solid var(--field-border-color)', borderRadius: 'var(--field-radius)', background: 'var(--field-bg)' }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story: 'Basis für DatePickers Auslöser: kein eigener Rahmen/Hintergrund -- die umgebende Feld-Zeile liefert die Optik, size="fill" streckt den Button auf die volle Zeilenbreite.',
+      },
+    },
+  },
+}
+
+export const Auswahlkachel: Story = {
+  name: 'Auswahlkachel',
+  render: () => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 44px)', gap: 8 }}>
+      {[1, 2, 3, 4].map((day) => (
+        <IconButton
+          key={day}
+          icon={day}
+          aria-label={String(day)}
+          variant="tile"
+          size="fill"
+          aria-current={day === 3 ? 'true' : undefined}
+        />
+      ))}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Basis für Tages-/Monats-/Jahres-Kacheln eines Pickers: transparent, füllt die Rasterzelle (size="fill"), "ausgewählt" (Kachel 3) über aria-current -- derselbe Mechanismus wie bei Button, ohne externen Spezifitäts-Trick.',
+      },
+    },
+  },
+}
+
 const VARIANTS = ['default', 'ghost', 'onImage'] as const
 const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   default: 'Standard',

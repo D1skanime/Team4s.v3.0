@@ -4,13 +4,16 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ElementType, ReactNode
 import { classNames } from './classNames'
 import styles from './IconButton.module.css'
 
-export type IconButtonVariant = 'default' | 'ghost' | 'onImage'
-export type IconButtonSize = 'sm' | 'md' | 'lg'
+export type IconButtonVariant = 'default' | 'ghost' | 'onImage' | 'field' | 'tile'
+export type IconButtonSize = 'sm' | 'md' | 'lg' | 'fill'
 export type IconButtonShape = 'square' | 'round'
 export type IconButtonTone = 'default' | 'arrow'
 
 interface IconButtonVisualProps {
   variant?: IconButtonVariant
+  /** 'fill' streckt den Button auf die volle Breite seines Containers mit automatischer Höhe,
+   *  statt der festen quadratischen sm/md/lg-Maße -- für ein Auslöser-Feld oder eine Raster-
+   *  Auswahlkachel, deren Größe vom umgebenden Layout (Flex-Zeile, Grid-Zelle) bestimmt wird. */
   size?: IconButtonSize
   /** 'square' (Standard, abgerundetes Quadrat) oder 'round' für einen echten Kreis. */
   shape?: IconButtonShape
@@ -26,8 +29,11 @@ function iconButtonClassName({ variant = 'default', size = 'md', shape = 'square
     styles.iconButton,
     variant === 'ghost' && styles.iconButtonGhost,
     variant === 'onImage' && styles.iconButtonOnImage,
+    variant === 'field' && styles.iconButtonField,
+    variant === 'tile' && styles.iconButtonTile,
     size === 'sm' && styles.iconButtonSm,
     size === 'lg' && styles.iconButtonLg,
+    size === 'fill' && styles.iconButtonFill,
     shape === 'round' && styles.iconButtonRound,
     tone === 'arrow' && styles.iconButtonToneArrow,
     floating && styles.iconButtonFloating,
@@ -44,7 +50,10 @@ export interface IconButtonProps extends IconButtonVisualProps, Omit<ButtonHTMLA
  * Grundbaustein für Icon-only-Buttons mit erzwungenem `aria-label` (Pflicht-Prop statt optional,
  * damit ein unbeschrifteter Icon-Button gar nicht erst compiliert). Form (quadratisch/rund),
  * Größe, Farbvariante und Ton sind offizielle Optionen -- kein Baustein muss diese Optik von
- * außen überschreiben.
+ * außen überschreiben. Die Varianten `field` (Auslöser innerhalb einer Feld-Zeile, z. B.
+ * DatePicker) und `tile` (Raster-Auswahlkachel mit "ausgewählt"-Zustand über aria-current/
+ * aria-pressed, z. B. Tages-/Monats-/Jahres-Kacheln) decken zusammen mit `size="fill"` die
+ * Picker-Bausteine ab, ohne dass diese IconButtons Basis-Rezept von außen überschreiben müssen.
  */
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
   { icon, variant, size, shape, tone, floating, className, type, ...rest },

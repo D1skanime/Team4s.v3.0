@@ -9,10 +9,9 @@ afterEach(() => {
   cleanup()
 })
 
-// UAT-Runde 5 (2026-10-30, Offener Befund zu UAT-Runde 4, Befund 4): Trigger/Leeren/Blätter-
-// Pfeile/Titel-Umschalter/Tages-/Monats-/Jahres-Kacheln/Fußzeilen-Aktionen wurden von eigenen
-// nativen <button>-Elementen auf IconButton/NavArrow/Button umgestellt -- diese Tests belegen,
-// dass Tastatur-/Fokus-/Klickverhalten dabei unverändert geblieben ist.
+// Trigger/Leeren/Blätter-Pfeile/Titel-Umschalter/Tages-/Monats-/Jahres-Kacheln/Fußzeilen-Aktionen
+// rendern über IconButton/NavArrow/Button (nicht über eigene native <button>-Elemente) -- diese
+// Tests belegen, dass Tastatur-/Fokus-/Klickverhalten dabei unverändert bleibt.
 describe('DatePicker', () => {
   it('öffnet das Panel in der Jahres-Ansicht und wählt per Klick auf eine Jahres-Kachel ein Jahr aus', () => {
     render(
@@ -91,5 +90,18 @@ describe('DatePicker', () => {
     )
 
     expect(screen.getByRole('button', { name: 'Datum leeren' })).toHaveProperty('disabled', true)
+  })
+
+  it('markiert die ausgewählte Tages-Kachel über aria-current statt einer externen CSS-Klasse', () => {
+    render(
+      <DatePicker id="release-date" label="Veröffentlichungsdatum" value="2026-07-15" minYear={2020} maxYear={2030} onChange={() => undefined} />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Veröffentlichungsdatum auswählen' }))
+    fireEvent.click(screen.getByRole('button', { name: '2026' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Jul' }))
+
+    expect(screen.getByRole('button', { name: '15' }).getAttribute('aria-current')).toBe('true')
+    expect(screen.getByRole('button', { name: '20' }).getAttribute('aria-current')).toBeNull()
   })
 })

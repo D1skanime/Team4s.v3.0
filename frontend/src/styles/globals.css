@@ -271,6 +271,13 @@
   --picker-tile-muted-border-color: color-mix(in srgb, var(--text-secondary) 12%, transparent);
   --picker-tile-muted-bg: color-mix(in srgb, #fff 84%, var(--bg-secondary));
 
+  /* DatePickers Kalender-Panel-Abmessungen: fest statt eines Prozentwerts, da die Breite exakt
+     auf das 7-Spalten-Tages-Raster abgestimmt ist, nicht auf eine responsive Inhaltsgröße. */
+  --picker-panel-width: 334px;
+  --picker-panel-width-mobile: 318px;
+  --picker-panel-max-height: 430px;
+  --picker-panel-max-height-mobile: 390px;
+
   --z-base: 1;
   --z-dropdown: 20;
   --z-sticky: 40;

@@ -67,4 +67,25 @@ describe('IconButton', () => {
     const button = container.querySelector('button')
     expect(button?.className).toMatch(/iconButtonGhost/)
   })
+
+  it('unterstützt die field-Variante für einen Auslöser innerhalb einer Feld-Zeile (Basis für DatePicker)', () => {
+    const { container } = render(
+      <IconButton icon={<X size={18} />} aria-label="Datum auswählen" variant="field" size="fill" />,
+    )
+
+    const button = container.querySelector('button')
+    expect(button?.className).toMatch(/iconButtonField/)
+    expect(button?.className).toMatch(/iconButtonFill/)
+  })
+
+  it('unterstützt die tile-Variante mit ausgewähltem Zustand über aria-current, ohne !important', () => {
+    const { container } = render(
+      <IconButton icon="12" aria-label="12" variant="tile" size="fill" aria-current="true" />,
+    )
+
+    const button = container.querySelector('button')
+    expect(button?.className).toMatch(/iconButtonTile/)
+    expect(button?.className).toMatch(/iconButtonFill/)
+    expect(button?.getAttribute('aria-current')).toBe('true')
+  })
 })

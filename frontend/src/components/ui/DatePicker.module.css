@@ -4,15 +4,13 @@
 }
 
 /*
- * Element+Klasse-Selektoren (Spezifität 0,1,1) statt reiner Klassen-Selektoren: beide Knöpfe
- * rendern über IconButton, dessen eigene .iconButton-Basisklasse (feste Breite/Höhe, eigener
- * Rahmen/Radius/Hintergrund) sonst je nach CSS-Modul-Bündel-Reihenfolge die hier gewünschte
- * Feldzeile überschreiben könnte -- identisches Muster wie YearPicker. Rahmen/Hintergrund/Fokus/
- * Fehler/Deaktiviert kommen aus den gemeinsamen --field-*-Tokens (globals.css), denselben, die
- * auch .control (Input/Select/Textarea, ui.module.css) und YearPickers Auslöser nutzen. Der
- * Auslöser selbst trägt KEINEN eigenen Rahmen/Hintergrund mehr -- das übernimmt die umgebende
- * Feldzeile, damit Auslöser und Leeren-Symbol optisch EIN Feld bilden statt zweier getrennter
- * Elemente.
+ * Rahmen/Hintergrund/Fokus/Fehler/Deaktiviert kommen aus den gemeinsamen --field-*-Tokens
+ * (globals.css), denselben, die auch .control (Input/Select/Textarea, ui.module.css) und
+ * YearPickers Auslöser nutzen. Der Auslöser selbst (IconButton variant="field") trägt KEINEN
+ * eigenen Rahmen/Hintergrund -- das übernimmt diese umgebende Feldzeile, damit Auslöser und
+ * Leeren-Symbol optisch EIN Feld bilden statt zweier getrennter Elemente. Nur die Flex-Einbettung
+ * (flex-basis, min-width) bleibt hier lokal, da IconButton seinen Platz in einer fremden
+ * Flex-Zeile nicht selbst kennen kann.
  */
 .datePickerField {
   display: flex;
@@ -46,29 +44,9 @@
   background: var(--field-disabled-bg);
 }
 
-button.datePickerTrigger:focus-visible {
-  outline: none;
-  border-radius: var(--field-radius);
-  box-shadow: var(--field-focus-shadow);
-}
-
-button.datePickerTrigger {
+.datePickerTrigger {
   flex: 1 1 auto;
   min-width: 0;
-  width: auto;
-  min-height: auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  color: var(--field-text-color);
-  font: inherit;
-  text-align: left;
 }
 
 .datePickerValue,
@@ -83,9 +61,11 @@ button.datePickerTrigger {
   color: var(--field-placeholder-color);
 }
 
-/* Element+Klasse-Selektor: schmales Leeren-Symbol am Ende der Feldzeile statt eines eigenen
-   Textlinks unterhalb des Felds. Hover-/Deaktiviert-Optik kommt bewusst von IconButtons eigener
-   ghost-Variante -- nur Größe/Farbe werden hier überschrieben. */
+/* Element+Klasse-Selektor (Spezifität 0,1,1): schmales Leeren-Symbol am Ende der Feldzeile statt
+   eines eigenen Textlinks unterhalb des Felds -- schlägt IconButtons eigene Farb-Regel
+   zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge. Rahmen/Hintergrund/Fokus/
+   Deaktiviert kommen bewusst von IconButtons eigener ghost-Variante, nur die Farbe wird hier als
+   lokaler Akzent überschrieben (keine eigene Breite/Höhe/Radius-Neudefinition). */
 button.datePickerClearButton {
   flex-shrink: 0;
   color: var(--field-placeholder-color);
@@ -98,19 +78,19 @@ button.datePickerClearButton:hover {
 .datePickerPanel {
   position: absolute;
   z-index: 60;
-  top: calc(100% + 8px);
+  top: calc(100% + var(--space-2));
   left: 0;
   display: grid;
-  gap: 10px;
-  width: min(100vw - 32px, 334px);
-  max-height: min(430px, 72vh);
+  gap: var(--space-3);
+  width: min(100vw - var(--space-6), var(--picker-panel-width));
+  max-height: min(var(--picker-panel-max-height), 72vh);
   overflow: auto;
   /* Rahmen/Hintergrund/Schatten/Radius kommen aus denselben Tokens wie YearPickers Panel --
      Panel-Chrome über beide Datums-/Jahres-Auswahlen hinweg vereinheitlicht. */
   border: 1px solid var(--field-border-color);
   border-radius: var(--picker-panel-radius);
   background: var(--field-bg-hover);
-  padding: 12px;
+  padding: var(--space-3);
   box-shadow: var(--shadow-lg);
 }
 
@@ -121,44 +101,42 @@ button.datePickerClearButton:hover {
 
 .datePickerPanelAbove {
   top: auto;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + var(--space-2));
 }
 
+/* Spalten der Blätter-Pfeile folgen deren tatsächlicher Breite (auto) statt eines festen
+   Maßes, das von NavArrows Größe abweichen könnte. */
 .datePickerPanelHeader {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .datePickerPanelTitle {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-1);
   min-width: 0;
   color: var(--text-primary);
   font-weight: 900;
 }
 
+/* Hält die Jahres-Ansicht-Beschriftung (reiner Text, kein Button) auf derselben Höhe wie die
+   ghost-Buttons der Monats-/Tages-Ansicht (--control-height-sm, identisch zu deren size="sm"). */
 .datePickerPanelTitle span {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  padding: 0 10px;
-}
-
-/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept zuverlässig. */
-button.datePickerPanelTitleButton {
-  min-height: 34px;
-  padding: 0 10px;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-3);
 }
 
 .datePickerWeekdays,
 .datePickerDayGrid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .datePickerWeekdays span {
@@ -173,82 +151,50 @@ button.datePickerPanelTitleButton {
   color: var(--ui-line);
 }
 
-/*
- * Element+Klasse-Selektoren wie beim Auslöser: Tages-/Monats-/Jahres-Kacheln rendern über
- * IconButton, dessen feste 40x40px-Basisgröße sonst die Rasterzellen-Breite/-Radien
- * überschreiben könnte (identisches Muster wie YearPickers Jahres-Kacheln). Radius/Hover-Farben
- * kommen aus den gemeinsamen --picker-tile-*-Tokens (globals.css) statt eigener Literale
- * (Review-Runde 1, 2026-10-30).
- */
-button.datePickerDay,
-button.datePickerMonthTile,
-button.datePickerYearTile {
-  width: 100%;
-  height: auto;
-  border: 1px solid transparent;
-  border-radius: var(--picker-tile-radius);
-  background: transparent;
-  color: var(--text-primary);
-  font: inherit;
-  font-weight: 800;
-}
-
-button.datePickerDay:hover:not(:disabled),
-button.datePickerMonthTile:hover:not(:disabled),
-button.datePickerYearTile:hover:not(:disabled) {
-  border-color: var(--picker-tile-hover-border-color);
-  background: var(--picker-tile-hover-bg);
-  opacity: 1;
-}
-
-button.datePickerDay {
+/* Tages-Kacheln (IconButton variant="tile" size="fill") brauchen eine eigene Mindesthöhe --
+   diese Grundfläche/-form/-radius/-hover/-"ausgewählt"-Optik kommt jetzt aus IconButtons eigener
+   tile-Variante (siehe IconButton.module.css), nicht mehr aus einem externen Element+Klasse-
+   Override dieser Datei. */
+.datePickerDay {
   min-width: 0;
-  min-height: 36px;
-  padding: 0;
+  min-height: var(--control-height-sm);
   text-align: center;
 }
 
-.datePickerDayMuted {
+/* Element+Klasse-Selektor: schlägt IconButtons eigene tile-Textfarbe zuverlässig (ein
+   reiner Klassen-Selektor hätte gegen die höhere Spezifität von button.datePickerDay nie
+   gewonnen -- vorbestehende, bislang unbemerkte Lücke, hier mitbehoben). */
+button.datePickerDayMuted {
   color: var(--text-muted);
   opacity: 0.62;
 }
 
-.datePickerDayWeekend {
+button.datePickerDayWeekend {
   color: var(--ui-line);
 }
 
-.datePickerDayToday {
+/* Element+Klasse-Selektor (Spezifität 0,1,1): "heute"-Markierung als lokaler Akzent über
+   IconButtons eigener tile-Grundfarbe -- kein !important mehr nötig, da der "ausgewählt"-
+   Zustand jetzt über aria-current direkt in IconButton.module.css mit höherer Spezifität
+   (Attribut-Selektor-Kombination) entschieden wird, statt zwei gleich spezifischen externen
+   Klassen hier gegeneinander auszuspielen. */
+button.datePickerDayToday {
   border-color: var(--picker-tile-today-border-color);
-}
-
-/* Verlauf kommt aus --selection-tile-* (globals.css) -- derselbe "ausgewählt"-Kachel-Stil wie
-   YearPickers Jahres-Kacheln. !important bleibt nötig, weil eine Tages-Kachel gleichzeitig
-   "heute" UND "ausgewählt" sein kann; beide Zustandsklassen haben hier dieselbe Spezifität
-   (0,1,1). */
-button.datePickerDaySelected,
-button.datePickerTileSelected {
-  border-color: var(--selection-tile-border-color) !important;
-  background: var(--selection-tile-gradient) !important;
-  color: var(--selection-tile-text-color) !important;
-  box-shadow: var(--selection-tile-shadow);
-  opacity: 1;
-}
-
-button.datePickerDaySelected:hover,
-button.datePickerTileSelected:hover {
-  background: var(--selection-tile-gradient-hover) !important;
 }
 
 .datePickerMonthGrid,
 .datePickerYearGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--space-2);
 }
 
+/* Element+Klasse-Selektor: Monats-/Jahres-Kacheln bleiben -- im Unterschied zu Tages-Kacheln --
+   auch unausgewählt sichtbar gedämpft gefüllt statt komplett transparent; eigene Mindesthöhe,
+   da hier weniger, größere Kacheln als im Tages-Raster sitzen. */
 button.datePickerMonthTile,
 button.datePickerYearTile {
-  min-height: 42px;
+  min-height: var(--control-height-md);
   border-color: var(--picker-tile-muted-border-color);
   background: var(--picker-tile-muted-bg);
 }
@@ -256,15 +202,14 @@ button.datePickerYearTile {
 .datePickerFooter {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-2);
   border-top: 1px solid var(--border-subtle);
-  padding-top: 10px;
+  padding-top: var(--space-3);
 }
 
-/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept zuverlässig. */
+/* Element+Klasse-Selektor: Akzentfarbe der Fußzeilen-Aktionen -- Rahmen/Hintergrund/Größe
+   kommen bereits aus Buttons eigener ghost/sm-Kombination. */
 button.datePickerFooterButton {
-  min-height: 34px;
-  padding: 0 10px;
   color: var(--accent-primary);
 }
 
@@ -274,7 +219,7 @@ button.datePickerFooterButtonDanger {
 
 @media (max-width: 560px) {
   .datePickerPanel {
-    width: min(100vw - 28px, 318px);
-    max-height: min(390px, 68vh);
+    width: min(100vw - var(--space-5), var(--picker-panel-width-mobile));
+    max-height: min(var(--picker-panel-max-height-mobile), 68vh);
   }
 }
