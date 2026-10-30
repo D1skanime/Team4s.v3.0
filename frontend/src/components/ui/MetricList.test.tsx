@@ -3,13 +3,13 @@ import { readFileSync } from 'node:fs'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { HeroMetrics } from './HeroMetrics'
+import { MetricList } from './MetricList'
 import styles from './Button.module.css'
 
-describe('HeroMetrics', () => {
+describe('MetricList', () => {
   it('ordnet Bezeichnungen vor den hervorgehobenen Werten an', () => {
     render(
-      <HeroMetrics
+      <MetricList
         ariaLabel="Kennzahlen"
         items={[
           { label: 'Dauer', value: '23:45 Min.' },
@@ -21,17 +21,18 @@ describe('HeroMetrics', () => {
     const metrics = screen.getByLabelText('Kennzahlen')
     expect(metrics.textContent).toBe('Dauer23:45 Min.CodecH.264')
   })
-  it('renders inline metrics while preserving label/value semantics', () => {
-    const { container } = render(<HeroMetrics ariaLabel="Inline" variant="inline" items={[{label:'Folgen',value:13}]} />)
+
+  it('rendert die Inline-Variante mit erhaltener Bezeichnung-Wert-Semantik', () => {
+    const { container } = render(<MetricList ariaLabel="Inline" variant="inline" items={[{ label: 'Folgen', value: 13 }]} />)
     expect(screen.getByLabelText('Inline').querySelector('dd')?.textContent).toBe('13 Folgen')
     expect(container.querySelector('dt')?.textContent).toBe('Folgen')
     expect(container.querySelector('dd span')?.getAttribute('aria-hidden')).toBe('true')
   })
 
-  it('renders an item with onActivate as a real Button (variant="text"), clickable and keyboard-focusable', () => {
+  it('rendert eine Kennzahl mit onActivate als echten, klickbaren und tastaturfokussierbaren Button', () => {
     const onActivate = vi.fn()
     render(
-      <HeroMetrics
+      <MetricList
         ariaLabel="Sprung"
         variant="inline"
         items={[{ label: 'Beiträge', value: 12, onActivate, activateLabel: 'Zu Beiträge springen' }]}
@@ -49,9 +50,9 @@ describe('HeroMetrics', () => {
     expect(button.classList.contains(styles.buttonText)).toBe(true)
   })
 
-  it('renders an item without onActivate as plain text, no button at all', () => {
+  it('rendert eine Kennzahl ohne onActivate als reinen Text, ganz ohne Button', () => {
     render(
-      <HeroMetrics
+      <MetricList
         ariaLabel="Kein Sprung"
         variant="inline"
         items={[{ label: 'Folgen', value: 13 }]}
@@ -61,12 +62,11 @@ describe('HeroMetrics', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 
-  // 157-15 (GAP-03 F2): jsdom cannot compute real pseudo-class styles (no live :hover/
-  // :focus-visible rendering), so this CSS-source assertion is the sanctioned way to prove the
-  // hero-metric text-button affordance is permanent (base rule, not hover-gated) and carries a
-  // visible keyboard focus ring. The live, real-browser proof of the same affordance runs in
-  // shot-projectmember.mjs.
-  it('gives .buttonText a permanent (non-hover-only) underline affordance and a focus-visible ring (F2)', () => {
+  // jsdom kann echte Pseudoklassen-Stile nicht berechnen (kein echtes :hover/:focus-visible-
+  // Rendering) -- diese CSS-Quelltext-Prüfung belegt deshalb stattdessen, dass die
+  // Text-Button-Unterstreichung dauerhaft sichtbar ist (Basisregel, nicht nur bei Hover) und
+  // einen sichtbaren Tastatur-Fokusring hat.
+  it('gibt .buttonText eine dauerhafte Unterstreichung und einen sichtbaren Fokusring', () => {
     const css = readFileSync('src/components/ui/Button.module.css', 'utf8')
     const baseRule = css.match(/\.buttonText\s*\{[^}]+\}/)?.[0]
     const focusVisibleRule = css.match(/\.buttonText:focus-visible\s*\{[^}]+\}/)?.[0]

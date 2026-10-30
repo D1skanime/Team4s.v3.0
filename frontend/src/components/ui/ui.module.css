@@ -83,38 +83,6 @@
   opacity: 0.52;
 }
 
-.eyebrow {
-  margin: 0 0 4px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #7c3c4f;
-}
-
-.breadcrumbs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 0 0 10px;
-  padding: 0;
-  list-style: none;
-  color: #7d8799;
-  font-size: 12px;
-  letter-spacing: 0.01em;
-}
-
-.breadcrumbs li {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.breadcrumbs li:not(:last-child)::after {
-  content: "/";
-  color: var(--text-faint);
-}
-
 /* Größe/Gewicht/Farbe kommen jetzt von Heading (level=3 size=3, Standard-Farbe --text-strong);
    nur der Zeilenabstand bleibt hier als Override. Gemeinsam genutzt von EmptyState/ErrorState/
    LoadingState. */

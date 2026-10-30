@@ -921,7 +921,7 @@
 }
 
 .fansubEditAnimeReleaseType {
-  color: #7c3c4f;
+  color: var(--ui-arrow);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -938,7 +938,7 @@
 .fansubEditAnimeToggle {
   border: 0;
   background: transparent;
-  color: #7c3c4f;
+  color: var(--ui-arrow);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1235,7 +1235,7 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  color: #7c3c4f;
+  color: var(--ui-arrow);
 }
 
 .fansubEditReleasePeopleBox {

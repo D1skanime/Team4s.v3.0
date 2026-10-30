@@ -58,10 +58,29 @@ describe('Accordion', () => {
   it('Header-Touch-Ziel >= 44px (CSS-Klasse disclosureTrigger vorhanden)', () => {
     render(<Accordion items={demoItems} />)
     const firstHeader = screen.getByRole('button', { name: /Übersetzung/i })
-    // Prüfen dass die CSS-Klasse gesetzt ist (min-height: 44px ist in DisclosureTrigger.module.css
-    // definiert -- die Kopfzeile wurde auf den geteilten DisclosureTrigger-Baustein umgestellt,
-    // UAT-Runde 4, Befund 6, 2026-10-30).
+    // Prüft, dass die Kopfzeile den geteilten DisclosureTrigger-Baustein nutzt, dessen
+    // min-height (--control-height-md, 44px) das Touch-Ziel sicherstellt.
     expect(firstHeader.className).toMatch(/disclosureTrigger/)
+  })
+
+  it('defaultOpenIds legt im unkontrollierten Modus fest, welche Items beim ersten Rendern offen sind', () => {
+    render(<Accordion items={demoItems} defaultOpenIds={new Set(['item-2'])} />)
+
+    expect(screen.getByRole('button', { name: /Übersetzung/i }).getAttribute('aria-expanded')).toBe('false')
+    expect(screen.getByRole('button', { name: /Bearbeitung/i }).getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByText('Inhalte für Bearbeitung')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Bearbeitung/i }))
+    expect(screen.getByRole('button', { name: /Bearbeitung/i }).getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('mode="single" schließt beim Öffnen eines Items automatisch jedes andere', () => {
+    render(<Accordion items={demoItems} mode="single" defaultOpenIds={new Set(['item-1'])} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Bearbeitung/i }))
+
+    expect(screen.getByRole('button', { name: /Übersetzung/i }).getAttribute('aria-expanded')).toBe('false')
+    expect(screen.getByRole('button', { name: /Bearbeitung/i }).getAttribute('aria-expanded')).toBe('true')
   })
 
   it('rendert strukturierte Rich-Header', () => {

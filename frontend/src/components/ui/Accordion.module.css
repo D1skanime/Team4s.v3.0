@@ -12,16 +12,12 @@
   border-bottom: none;
 }
 
-/* Panel-Inhalt ist beliebiger, vom Aufrufer gelieferter ReactNode (siehe
-   AccordionItemDef.children) -- eine Umstellung auf den Text-Grundbaustein müsste an jeder
-   Aufruferstelle erfolgen (App-Seiten-Migration, laut Auftrag bewusst NICHT Teil dieser Runde).
-   font-size referenziert trotzdem die geteilte --text-soft-size-Variable (derselbe 0,92rem-Wert
-   wie Card/SectionHeader/DialogHeaders Beschreibungstext) statt eines bloßen Literals -- kein
-   eigener, unbenannter Wert mehr (UAT-Runde 5, 2026-10-30). color nutzt bereits den bestehenden
-   --text-body-Token ohne Literal-Fallback (UAT-Runde 4, Befund 6, 2026-10-30). */
+/* Panel-Inhalt ist beliebiger, vom Aufrufer gelieferter ReactNode -- gibt deshalb nur Abstand
+   und Fläche vor, keine eigene Typografie: font-size referenziert die geteilte
+   --text-soft-size-Variable statt eines Literals, color den bestehenden --text-body-Token. */
 .accordionPanel {
   overflow: hidden;
-  padding: 0 16px 14px;
+  padding: 0 var(--space-4) var(--space-3);
   color: var(--text-body);
   font-size: var(--text-soft-size, 0.92rem);
   line-height: 1.55;

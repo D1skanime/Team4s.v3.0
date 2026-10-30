@@ -2,7 +2,6 @@
 .hero {
   container: artwork-hero / inline-size;
   min-width: 0;
-  --artwork-hero-avatar: 48px;
   --artwork-hero-copy: 32rem;
 }
 
@@ -10,13 +9,8 @@
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: var(--artwork-hero-avatar) minmax(0, 1fr);
+  grid-template-columns: var(--avatar-size-lg) minmax(0, 1fr);
   gap: var(--space-2) var(--space-4);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--surface-card);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
   min-width: 0;
 }
@@ -52,26 +46,9 @@
       color-mix(in srgb, var(--surface-card) 25%, transparent) 100%);
 }
 
-/* font-size/font-weight entsprechen exakt --font-size-h2/--font-weight-heading -- als Tokens
-   referenziert statt zufällig übereinstimmender Literale (UAT-Runde 5, 2026-10-30). */
-.avatar {
-  width: var(--artwork-hero-avatar);
-  height: var(--artwork-hero-avatar);
-  border-radius: 50%;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  font-size: var(--font-size-h2);
-  font-weight: var(--font-weight-heading);
-  background: var(--surface-sunken);
-  color: var(--accent-deep);
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  object-fit: cover;
+.avatarInner {
+  --avatar-bg: var(--surface-sunken);
+  --avatar-fg: var(--accent-deep);
 }
 
 .identity,
@@ -90,18 +67,8 @@
   min-width: 0;
 }
 
-/* Element+Klasse-Selektor (Spezifität 0,1,1): schlägt Headings eigene .headingSize1-Klasse
-   zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge -- identisches Muster wie
-   NavArrow/IconButton. 1,5rem entspricht keiner vorhandenen Heading-Größenstufe (h1=
-   clamp(2rem, 3vw, 2,75rem), h2=1,25rem) und bleibt deshalb als Override erhalten, jetzt über
-   den Typo-Token --font-size-hero-display statt eines eigenen Literals; margin/font-weight/
-   color kommen jetzt von Heading selbst (Standard-Farbe --text-strong) -- der vormals eigene,
-   nahezu identische --text-primary-Override entfällt (UAT-Runde 5, 2026-10-30; vorher UAT-Runde
-   4, Befund 5). */
-h1.title {
+.title {
   min-width: 0;
-  font-size: var(--font-size-hero-display);
-  line-height: 1.2;
   overflow-wrap: anywhere; /* Nutzer-gewählte Namen können ein einzelner, nicht umbrechbarer String sein. */
 }
 
@@ -114,9 +81,8 @@ h1.title {
   white-space: normal;
 }
 
-/* color/font-size kommen jetzt von Text (variant="soft"); --text-soft-size überschreibt NUR die
-   Größe (Text-Standard wäre 1rem), Farbe entspricht bereits dem Text-"soft"-Default, daher kein
-   eigenes color mehr nötig. */
+/* font-size kommt jetzt von Text (variant="soft"); --text-soft-size überschreibt NUR die
+   Größe (Text-Standard wäre 1rem), Farbe entspricht bereits dem Text-"soft"-Default. */
 .context {
   margin: var(--space-1) 0 0;
   line-height: 1.5;
@@ -130,23 +96,9 @@ h1.title {
   gap: var(--space-2);
 }
 
-.actions > a {
-  max-width: 100%;
-  min-width: 0;
-  padding-block: var(--space-2);
-  line-height: 1.25;
-  text-align: center;
-}
-
-/* 48rem passt zu 64px Avatar + 16px Abstand + 32rem Textbreite + 48px Innenabstand und Artwork-Kontext. */
 @container artwork-hero (min-width: 48rem) {
   .artwork img {
     object-position: right center;
-  }
-
-  .panel {
-    --artwork-hero-avatar: 64px;
-    padding: var(--space-5);
   }
 
   .details {
@@ -157,7 +109,7 @@ h1.title {
     background: linear-gradient(90deg,
       var(--surface-card) 0%,
       color-mix(in srgb, var(--surface-card) 96%, transparent)
-        calc(var(--artwork-hero-copy) + var(--artwork-hero-avatar) + var(--space-4) + var(--space-5)),
+        calc(var(--artwork-hero-copy) + var(--avatar-size-lg) + var(--space-4) + var(--space-5)),
       transparent 100%);
   }
 }

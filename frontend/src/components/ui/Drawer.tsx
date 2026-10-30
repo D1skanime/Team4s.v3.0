@@ -2,15 +2,15 @@
 
 import type { ReactNode } from 'react'
 
+import { mergeCssModules } from '@/lib/mergeCssModules'
+
 import { Button } from './Button'
 import { classNames } from './classNames'
 import { DialogHeader } from './DialogHeader'
 import ownStyles from './Drawer.module.css'
 import sharedStyles from './ui.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(ownStyles, sharedStyles)
 
 export interface DrawerProps {
   open: boolean

@@ -107,8 +107,8 @@
    Box-Höhe und tatsächlicher Text-Position immer die volle 88%-Deckkraft vorhanden. */
 .heroBodyOnBanner {
   position: relative;
-  /* Überschreibt die HeroMetrics-Fallback-Tokens NUR innerhalb dieses Banner-Textblocks (per
-     Klasse, nicht :global()) -- HeroMetrics selbst bleibt für alle anderen, hellen Kontexte
+  /* Überschreibt die MetricList-Fallback-Tokens NUR innerhalb dieses Banner-Textblocks (per
+     Klasse, nicht :global()) -- MetricList selbst bleibt für alle anderen, hellen Kontexte
      unverändert dunkel beschriftet. */
   --hero-metrics-label: rgba(255, 255, 255, 0.82);
   --hero-metrics-value: #ffffff;

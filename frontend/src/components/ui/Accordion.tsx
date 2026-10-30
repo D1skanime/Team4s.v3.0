@@ -26,6 +26,9 @@ export interface AccordionProps {
   openIds?: Set<string>
   /** Controlled-Modus: Callback bei Toggle; erhält die neue Menge offener IDs. */
   onOpenChange?: (next: Set<string>) => void
+  /** Unkontrollierter Modus: welche Items beim ersten Rendern bereits offen sind. Wird
+   *  ignoriert, sobald `openIds` gesetzt ist. */
+  defaultOpenIds?: Set<string>
   /**
    * Optional: IDs, deren Panel-Inhalt auch im geschlossenen Zustand im DOM
    * gemountet bleibt (nur visuell via `hidden` versteckt statt unmounted).
@@ -41,11 +44,12 @@ export function Accordion({
   className,
   openIds: controlledOpenIds,
   onOpenChange,
+  defaultOpenIds,
   keepMountedIds,
 }: AccordionProps) {
   const baseId = useId()
   const isControlled = controlledOpenIds !== undefined
-  const [internalOpenIds, setInternalOpenIds] = useState<Set<string>>(new Set())
+  const [internalOpenIds, setInternalOpenIds] = useState<Set<string>>(() => new Set(defaultOpenIds))
   const openIds = isControlled ? controlledOpenIds : internalOpenIds
 
   function toggle(id: string) {

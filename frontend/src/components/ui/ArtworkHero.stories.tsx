@@ -1,11 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
+import { Check } from 'lucide-react'
 
 import { Badge } from './Badge'
 import { Button } from './Button'
 import { ArtworkHero } from './ArtworkHero'
-import { HeroMetrics } from './HeroMetrics'
+import { MetricList } from './MetricList'
 
-/** Identitäts-Hero-Fläche mit optionalem Hintergrund-Artwork, Avatar, Status und Kennzahlen. */
+/** Identitäts-Hero-Fläche für ein Profil oder eine Gruppe, mit optionalem Hintergrund-Artwork,
+ *  Avatar, Status und Kennzahlen. */
 const meta = {
   title: 'Zusammengesetzte Bausteine/ArtworkHero',
   component: ArtworkHero,
@@ -13,18 +15,18 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: ResponsiveImage, Heading, Text sowie die Slot-Bausteine HeroMetrics, Badge, Button.',
+        component: 'Besteht aus: Card, Avatar, ResponsiveImage, Heading (Hero-Titel), Text sowie die Slot-Bausteine MetricList, Badge, Button.',
       },
     },
   },
   args: {
     ariaLabel: 'C-Subs Profil',
     title: 'C-Subs',
-    avatar: <span style={{ fontWeight: 700 }}>CS</span>,
+    avatarLabel: 'C-Subs',
     status: <Badge variant="success">Aktiv</Badge>,
     context: 'Fansub-Gruppe seit 2002, 20 Anime-Projekte.',
     metrics: (
-      <HeroMetrics
+      <MetricList
         ariaLabel="Kennzahlen"
         items={[
           { label: 'Anime-Projekte', value: 20 },
@@ -41,8 +43,7 @@ type Story = StoryObj<typeof meta>
 
 export const Standard: Story = {
   args: {
-    // Lokales Platzhalterbild statt externer Bildquelle — Storybook zeigt wie die
-    // frühere In-App-Showcase ausschließlich Mockdaten, keine Netzwerkabhängigkeit.
+    // Lokales Platzhalterbild statt externer Bildquelle.
     imageUrl: '/covers/placeholder.jpg',
   },
 }
@@ -56,6 +57,40 @@ export const OhneArtwork: Story = {
   parameters: {
     docs: {
       description: { story: 'Fallback-Zustand ohne verfügbares Hintergrund-Artwork.' },
+    },
+  },
+}
+
+export const MitRollen: Story = {
+  name: 'Mit Rollen',
+  args: {
+    title: 'Mira Sato',
+    avatarLabel: 'Mira Sato',
+    imageUrl: null,
+    fallbackImageUrl: null,
+    status: <Badge variant="success"><Check size={14} aria-hidden="true" />Verifiziert</Badge>,
+    roles: (
+      <>
+        <Badge>Übersetzung</Badge>
+        <Badge>Qualitätssicherung</Badge>
+      </>
+    ),
+    context: 'Naruto · C-Subs',
+    metrics: (
+      <MetricList
+        ariaLabel="Beiträge"
+        variant="inline"
+        items={[
+          { label: 'Folgen', value: 13 },
+          { label: 'Beiträge', value: 12 },
+        ]}
+      />
+    ),
+    actions: <Button variant="subtle" size="sm">Vollständiges Profil</Button>,
+  },
+  parameters: {
+    docs: {
+      description: { story: 'Mit Verifiziert-Status und Rollen-Abzeichen, z. B. für ein Mitwirkungsprofil.' },
     },
   },
 }

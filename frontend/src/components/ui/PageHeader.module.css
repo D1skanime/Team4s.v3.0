@@ -1,55 +1,43 @@
 .pageHeader {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
   align-items: flex-start;
   flex-wrap: wrap;
-}
-
-.pageHeader {
-  gap: 20px 28px;
-  padding-bottom: 6px;
+  gap: var(--space-5) var(--space-6);
+  padding-bottom: var(--space-2);
 }
 
 .pageHeaderContent {
   display: grid;
   min-width: 0;
-}
-
-.pageHeaderContent {
-  gap: 2px;
+  gap: var(--space-1);
 }
 
 .pageHeaderActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-2);
   align-items: center;
   justify-content: flex-end;
 }
 
-.pageTitle {
-  margin: 0;
+/* Nur Abstand -- Schriftgröße/-farbe kommen von Text (variant="eyebrow"). */
+.eyebrow {
+  margin: 0 0 var(--space-1);
 }
 
 .pageTitle {
-  /* font-size/color kommen jetzt von Heading (.headingSize1 + --font-size-h1, Standard-Farbe
+  margin: 0;
+  /* font-size/color kommen von Heading (.headingSize1 + --font-size-h1, Standard-Farbe
      --text-strong) -- hier bewusst nicht mehr deklariert. */
   line-height: 0.98;
   letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
+/* font-size/color kommen von Text (variant="meta") -- keine eigene Überschreibung mehr. */
 .pageDescription {
-  margin: 8px 0 0;
-  max-width: 72ch;
-}
-
-.pageDescription {
-  /* font-size/color kommen jetzt von Text (variant="meta"), hier per CSS-Variable auf den
-     bisherigen, unveränderten Wert gesetzt -- identisches Muster wie Badge/--hero-metrics-*. */
-  --text-meta-size: 1rem;
-  --text-meta-color: #657086;
+  margin: var(--space-2) 0 0;
   line-height: 1.55;
   max-width: 66ch;
 }

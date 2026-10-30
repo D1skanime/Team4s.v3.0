@@ -1,69 +1,56 @@
-.heroMetrics {
+.metricList {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 26px;
+  gap: var(--space-5);
   margin: 0;
 }
 
-.heroMetricItem {
+.metricItem {
   display: grid;
-  gap: 2px;
+  gap: var(--space-1);
   min-width: 0;
 }
 
-.heroMetricItem dt {
-  /* Fallback jetzt der allgemeine --text-soft-Token statt einer eigenen, fest kodierten
-     rgba()-Ersatzfarbe (UAT-Runde 4, Befund 5) -- FansubHeroSection überschreibt diese Variable
-     weiterhin NUR innerhalb ihres eigenen Banner-Textblocks (.heroBodyOnBanner), um auf einem
-     dunklen Scrim lesbar zu bleiben. Schriftgröße entspricht Texts "small"-Stufe (0,75rem);
-     Gewicht kommt aus dem geteilten Label-Token --font-weight-label statt eines eigenen
-     Literals (UAT-Runde 5, 2026-10-30). */
-  color: var(--hero-metrics-label, var(--text-soft));
-  font-size: var(--text-small-size, 0.75rem);
-  font-weight: var(--font-weight-label);
+/* Fallback --text-soft, überschreibbar über --hero-metrics-label -- FansubHeroSection setzt
+   diese Variable NUR innerhalb seines eigenen Banner-Textblocks, um auf einem dunklen Scrim
+   lesbar zu bleiben. */
+.metricLabel {
+  --text-small-color: var(--hero-metrics-label, var(--text-soft));
 }
 
-.heroMetricItem dd {
-  margin: 2px 0 0;
-  /* Blaue Zahlenfarbe bleibt bewusst über --accent-deep (UAT-Runde 4, Befund 5). font-size/
-     font-weight kommen jetzt aus den geteilten Typo-Tokens --font-size-hero-display (identischer
-     Wert wie ArtworkHeros Titel) und --font-weight-heading statt eigener Literale (UAT-Runde 5,
-     2026-10-30). */
+/* Element+Klasse-Selektor: überschreibt Headings eigene Standardfarbe (--text-strong)
+   zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge. Fallback --accent-deep,
+   überschreibbar über --hero-metrics-value. */
+h4.metricValue {
   color: var(--hero-metrics-value, var(--accent-deep));
-  font-size: var(--font-size-hero-display);
-  font-weight: var(--font-weight-heading);
-  line-height: 1;
 }
 
-.heroMetrics.heroMetricsInline {
+/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept (font-size/-weight: inherit)
+   zuverlässig -- dieselbe Größe/Farbe wie die nicht klickbare h4.metricValue. */
+button.metricValueButton {
+  font-size: var(--font-size-hero);
+  font-weight: var(--font-weight-heading);
+  color: var(--hero-metrics-value, var(--accent-deep));
+}
+
+.metricListInline {
   gap: var(--space-1) var(--space-3);
   align-items: baseline;
 }
 
-.heroMetricsInline .heroMetricItem {
+.metricListInline .metricItem {
   display: flex;
   gap: var(--space-3);
   align-items: baseline;
 }
 
-.heroMetricsInline .heroMetricItem + .heroMetricItem::before {
+.metricListInline .metricItem + .metricItem::before {
   content: '·';
   color: var(--text-soft);
 }
 
-.heroMetricsInline .heroMetricItem dd {
-  margin: 0;
-  /* font-size entspricht Texts "meta"-Stufe, Gewicht dem geteilten Label-Token -- als Tokens
-     referenziert statt eigener Literale (UAT-Runde 5, 2026-10-30). */
-  font-size: var(--text-meta-size, 0.875rem);
-  font-weight: var(--font-weight-label);
-  line-height: 1.5;
-  color: var(--text-body);
-  white-space: nowrap;
-}
-
-.heroMetricInlineLabel {
+.metricInlineLabel {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -74,51 +61,56 @@
   white-space: nowrap;
 }
 
+.metricInlineValue {
+  --text-meta-color: var(--text-body);
+}
+
+.metricInlineValueText {
+  white-space: nowrap;
+}
+
+/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept zuverlässig -- dieselbe
+   Größe/Farbe wie der nicht klickbare Text(variant="meta")-Wert. */
+button.metricInlineValueButton {
+  font-size: var(--text-meta-size, 0.875rem);
+  font-weight: var(--font-weight-label);
+  line-height: 1.5;
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
 @media (max-width: 767px) {
-  .heroMetrics {
-    gap: 16px 22px;
+  .metricList {
+    gap: var(--space-4) var(--space-5);
   }
 
-  /* Nicht-inline Kennzahlen bleiben auf Mobil in EINER Zeile, gleich breite
-     Spalten (Bezeichnung darf innerhalb der Spalte umbrechen) -- die
-     Inline-Variante (ProjectMemberHero) behält ihr eigenes, unverändertes
-     Layout (separat per :not() ausgeschlossen). */
-  .heroMetrics:not(.heroMetricsInline) {
+  /* Nicht-inline Kennzahlen bleiben auf Mobil in EINER Zeile, gleich breite Spalten --
+     die Inline-Variante behält ihr eigenes, unverändertes Layout. */
+  .metricList:not(.metricListInline) {
     flex-wrap: nowrap;
   }
 
-  .heroMetrics:not(.heroMetricsInline) .heroMetricItem {
+  .metricList:not(.metricListInline) .metricItem {
     flex: 1 1 0;
     min-width: 0;
   }
 
-  /* 11px ist eine eng begrenzte Feinjustierung ausschließlich für diesen Mobil-Breakpoint
-     (passt drei bis vier Kennzahlen nebeneinander in die schmale Spaltenbreite) -- trifft keine
-     bestehende Typo-Stufe und bleibt deshalb bewusst ein eigener Wert, anders als die
-     Haupt-Deklarationen oben (UAT-Runde 5, 2026-10-30). */
-  .heroMetricItem dt {
-    font-size: 11px;
-  }
-
-  .heroMetricItem dd {
-    /* 20px entspricht exakt --font-size-h2 (1,25rem) -- als Token referenziert statt eines
-       zufällig übereinstimmenden Literals (UAT-Runde 4, Befund 5). */
+  h4.metricValue {
     font-size: var(--font-size-h2);
   }
 }
 
-/* Sehr schmale Viewports: mehr Kennzahlen, als nebeneinander noch lesbar
-   Platz haben, brechen gleichmäßig auf eine zweite Zeile um (2 Spalten)
-   statt die Spalten immer weiter zu stauchen. Bei ungerader Anzahl spannt
-   die letzte Kennzahl beide Spalten, damit nie eine einzelne verwaiste
-   Kennzahl schmal allein steht. */
+/* Sehr schmale Viewports: mehr Kennzahlen, als nebeneinander noch lesbar Platz haben, brechen
+   gleichmäßig auf eine zweite Zeile um (2 Spalten) statt die Spalten immer weiter zu stauchen.
+   Bei ungerader Anzahl spannt die letzte Kennzahl beide Spalten, damit nie eine einzelne
+   verwaiste Kennzahl schmal allein steht. */
 @media (max-width: 339px) {
-  .heroMetrics:not(.heroMetricsInline) {
+  .metricList:not(.metricListInline) {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .heroMetrics:not(.heroMetricsInline) .heroMetricItem:last-child:nth-child(odd) {
+  .metricList:not(.metricListInline) .metricItem:last-child:nth-child(odd) {
     grid-column: 1 / -1;
   }
 }

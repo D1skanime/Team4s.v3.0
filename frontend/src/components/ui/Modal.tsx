@@ -5,15 +5,15 @@ import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { KeyboardEvent, ReactNode } from 'react'
 
+import { mergeCssModules } from '@/lib/mergeCssModules'
+
 import { Button } from './Button'
 import { DialogHeader } from './DialogHeader'
 import { IconButton } from './IconButton'
 import ownStyles from './Modal.module.css'
 import sharedStyles from './ui.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(ownStyles, sharedStyles)
 
 export interface ModalProps {
   open: boolean
@@ -161,7 +161,8 @@ export function Modal({
               ref={closeButtonRef}
               icon={<X size={18} />}
               aria-label="Schließen"
-              variant="floating"
+              variant="onImage"
+              floating
               onClick={onClose}
             />
           </>

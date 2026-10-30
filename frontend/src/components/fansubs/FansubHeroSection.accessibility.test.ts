@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 /**
  * Deterministischer Worst-Case-Kontrastnachweis für den Fansub-Hero-Banner (UAT-Befund 2): wenn
  * ein Bannerfoto vorhanden ist, blendet `FansubHeroSection` einen zusätzlichen dunklen Scrim
- * (`.heroBodyOnBanner::before`) hinter Titel/Subtitle/HeroMetrics ein, dessen Opazität so bemessen
+ * (`.heroBodyOnBanner::before`) hinter Titel/Subtitle/MetricList ein, dessen Opazität so bemessen
  * ist, dass selbst ein rein weißes (also denkbar hellstes) Bannerfoto den Text nicht unlesbar
  * macht. Muster exakt wie `src/lib/roleCatalog.accessibility.test.ts`: lokale Helfer rechnen die
  * echten, per Regex aus dem realen CSS-Text extrahierten Formeln nach -- kein jsdom-Rendering
@@ -24,8 +24,8 @@ const pageCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/app/fansubs/[slug]/page.module.css'),
   'utf8',
 )
-const heroMetricsCss = fs.readFileSync(
-  path.resolve(process.cwd(), 'src/components/ui/HeroMetrics.module.css'),
+const metricListCss = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/components/ui/MetricList.module.css'),
   'utf8',
 )
 const badgeCss = fs.readFileSync(
@@ -92,7 +92,7 @@ function extractScrimAlpha(): number {
  * Löst eine in `globals.css` deklarierte Custom Property bis zu einem Literal auf (hex ODER
  * rgba()) -- folgt dabei EINER Indirektionsstufe (`--text-primary: var(--color-text-primary)`
  * -> `--color-text-primary: #1c1c1e`), wie sie im globalen Token-System üblich ist. Wird für
- * `.heroChip`s `color: var(--text-primary)` benötigt, das (anders als Badge/HeroMetrics) KEINEN
+ * `.heroChip`s `color: var(--text-primary)` benötigt, das (anders als Badge/MetricList) KEINEN
  * eigenen Banner-Override besitzt und daher direkt auf den globalen Token verweist.
  */
 function resolveGlobalVar(varName: string, depth = 0): { rgb: RGB; alpha: number } {
@@ -181,9 +181,9 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
     expect(contrast(rendered, worstCaseBackground)).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('HeroMetrics.module.css deklariert dieselben Fallback-Variablen mit einem weiterhin dunklen, nur jetzt tokenisierten Standardwert (UAT-Runde 4, Befund 5: die vormals fest kodierte rgba()-Ersatzfarbe wurde bewusst durch den allgemeinen --text-soft-Token ersetzt -- kein Banner-Verhaltenswechsel, da dieser Fallback nur den Nicht-Banner-Fall betrifft)', () => {
-    expect(heroMetricsCss).toMatch(/var\(--hero-metrics-label,\s*var\(--text-soft\)\)/)
-    expect(heroMetricsCss).toMatch(/var\(--hero-metrics-value,\s*var\(--accent-deep\)\)/)
+  it('MetricList.module.css deklariert dieselben Fallback-Variablen mit einem weiterhin dunklen Standardwert -- kein Banner-Verhaltenswechsel, da dieser Fallback nur den Nicht-Banner-Fall betrifft', () => {
+    expect(metricListCss).toMatch(/var\(--hero-metrics-label,\s*var\(--text-soft\)\)/)
+    expect(metricListCss).toMatch(/var\(--hero-metrics-value,\s*var\(--accent-deep\)\)/)
   })
 
   it('Status-Badge (variant="muted") erreicht im Banner-Fall mindestens 4,5:1 Kontrast gegen seine eigene, auf dem Worst-Case-Scrim aufliegende Chip-Fläche', () => {
@@ -206,7 +206,7 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
   })
 
   it('.heroChip (Link-Pills) erreicht im Banner-Fall mindestens 4,5:1 Kontrast gegen seine eigene, auf dem Worst-Case-Scrim aufliegende Chip-Fläche', () => {
-    // .heroChip besitzt -- anders als Badge/HeroMetrics -- KEINEN eigenen Banner-Override: die
+    // .heroChip besitzt -- anders als Badge/MetricList -- KEINEN eigenen Banner-Override: die
     // teiltransparente weiße Chip-Fläche (rgba(255,255,255,0.72)) und der dunkle Text
     // (var(--text-primary)) bleiben im Banner-Fall unverändert. Zweistufige Mischung wie beim
     // Badge: zuerst die Chip-Fläche über dem Worst-Case-Scrim-Hintergrund, danach der Text

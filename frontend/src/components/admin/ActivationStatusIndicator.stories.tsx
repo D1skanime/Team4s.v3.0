@@ -3,12 +3,11 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ActivationStatusIndicator } from './ActivationStatusIndicator'
 
 /**
- * Discriminated-Union-Primitive für die ehrliche Aktivierungsstatus-Vokabular bei
- * Rechte-Mutationen: Pfad `role_matrix` (Rollenmatrix-Grant/Revoke, kein Pending-Zustand)
- * und Pfad `override` (persönliche Rechte-Override-Mutation, mit `active`/`pending`).
+ * Zeigt ehrlich an, ob eine Rechte-Änderung bereits wirksam ist: entweder nach einer
+ * Rollenmatrix-Änderung oder nach einer persönlichen Ausnahme für ein einzelnes Mitglied.
  */
 const meta = {
-  title: 'Zusammengesetzte Bausteine/ActivationStatusIndicator',
+  title: 'Admin/ActivationStatusIndicator',
   component: ActivationStatusIndicator,
   tags: ['autodocs'],
   parameters: {
@@ -33,38 +32,32 @@ export const RoleMatrixFehlerMitRetry: Story = {
   args: { path: 'role_matrix', cacheReloadSucceeded: false, onRetry: () => {} },
 }
 
-export const OverrideAktiv: Story = {
-  name: 'Override: Aktiv',
+export const PersoenlicheAusnahmeAktiv: Story = {
+  name: 'Persönliche Ausnahme: Aktiv',
   args: { path: 'override', activationStatus: 'active' },
 }
 
-export const OverridePending: Story = {
-  name: 'Override: Ausstehend',
+export const PersoenlicheAusnahmePending: Story = {
+  name: 'Persönliche Ausnahme: Ausstehend',
   args: { path: 'override', activationStatus: 'pending' },
 }
 
-export const OverridePersisted: Story = {
-  name: 'Override: Dauerhaft gespeichert',
+export const PersoenlicheAusnahmePersisted: Story = {
+  name: 'Persönliche Ausnahme: Dauerhaft gespeichert',
   args: { path: 'override', activationStatus: 'persisted' },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Rendert bewusst nichts: "persisted" ist laut CapabilityActivationStatus-Dokumentation für ein zukünftiges Cache-Aktivierungsmodell reserviert, das MutateOverride heute nie produziert — defensiver Fallback für einen unerreichbaren Zustand.',
-      },
-    },
-  },
+  render: () => (
+    <p style={{ color: 'var(--text-soft)', fontStyle: 'italic' }}>
+      Rendert bewusst nichts: Dieser Zustand tritt beim heutigen Speicherpfad nie tatsächlich auf.
+    </p>
+  ),
 }
 
-export const OverrideFailed: Story = {
-  name: 'Override: Fehlgeschlagen',
+export const PersoenlicheAusnahmeFailed: Story = {
+  name: 'Persönliche Ausnahme: Fehlgeschlagen',
   args: { path: 'override', activationStatus: 'failed' },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Rendert bewusst nichts: ein echter Fehler auf dem Override-Pfad wird als 4xx/5xx VOR jeder Aktivierungsstatus-Konstruktion zurückgegeben — eine 200-Antwort kann "failed" laut Vertrag nie tragen.',
-      },
-    },
-  },
+  render: () => (
+    <p style={{ color: 'var(--text-soft)', fontStyle: 'italic' }}>
+      Rendert bewusst nichts: Ein echter Fehler wird als Fehlerantwort zurückgegeben, bevor dieser Status überhaupt entsteht.
+    </p>
+  ),
 }

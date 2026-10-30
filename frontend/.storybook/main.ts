@@ -1,23 +1,26 @@
 import type { StorybookConfig } from '@storybook/nextjs'
 
 /**
- * Storybook-Grundkonfiguration für den Komponenten-Katalog des Team4s-Frontends.
- *
- * Ersetzt die frühere In-App-Showcase-Route vollständig: Jede globale Primitive aus
- * `@/components/ui` (Kategorie `UI/*`) und jede migrierte domänenspezifische
- * Komposition (Kategorie `Showcases/*`) bekommt eine eigene `*.stories.tsx`-Datei unter
- * den jeweiligen Komponenten-Verzeichnissen. Der `@storybook/nextjs`-Adapter nutzt den
- * Webpack-Builder (nicht Vite), damit die Build-Pipeline zu den bestehenden
+ * Storybook-Grundkonfiguration für den Komponenten-Katalog des Team4s-Frontends: zeigt jede
+ * globale Primitive aus `@/components/ui` (Kategorien `Grundbausteine/*` und `Zusammengesetzte
+ * Bausteine/*`) sowie jede migrierte domänenspezifische Komposition (Kategorie `Im Einsatz/*`)
+ * und admin-spezifische Fachbausteine (Kategorie `Admin/*`) über eine eigene
+ * `*.stories.tsx`-Datei neben ihrer jeweiligen Komponente. Der `@storybook/nextjs`-Adapter
+ * nutzt den Webpack-Builder (nicht Vite), damit die Build-Pipeline zu den bestehenden
  * Next.js-Konventionen des Projekts passt.
  */
 const config: StorybookConfig = {
   stories: [
     '../src/components/ui/**/*.stories.@(ts|tsx)',
     '../src/components/showcases/**/*.stories.@(ts|tsx)',
+    // Admin-spezifische Fachbausteine (z. B. ActivationStatusIndicator) leben unter
+    // components/admin statt components/ui, da sie an admin-spezifische Datentypen gebunden
+    // sind -- ohne dieses Glob würde Storybook ihre Stories nicht einlesen.
+    '../src/components/admin/**/*.stories.@(ts|tsx)',
     // Einzelne "Im Einsatz/*"-Stories für bereits produktive Domänen-Komponenten leben direkt
     // neben ihrer Komponente statt unter components/showcases/ (z. B. FansubHeroSection.stories.tsx
     // unter components/fansubs/) -- ohne dieses Glob würde Storybook solche Dateien gar nicht
-    // erst einlesen, obwohl typecheck/vitest sie bereits prüfen (UAT-Runde 2, Befund 1).
+    // erst einlesen.
     '../src/components/fansubs/**/*.stories.@(ts|tsx)',
   ],
   framework: {

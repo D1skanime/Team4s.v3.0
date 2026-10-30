@@ -12,7 +12,7 @@ describe('ActivationStatusIndicator', () => {
   it('rendert "Gespeichert und aktiv." mit Erfolgs-Badge, wenn der Rollen-Matrix-Cache-Reload erfolgreich war', () => {
     render(<ActivationStatusIndicator path="role_matrix" cacheReloadSucceeded />)
 
-    // screen.getByText throws if the exact copy is not found — presence is the assertion.
+    // screen.getByText wirft bereits, wenn der genaue Text fehlt -- das Vorhandensein ist die Prüfung.
     expect(screen.getByText('Gespeichert und aktiv.').tagName).toBe('SPAN')
   })
 
@@ -39,13 +39,13 @@ describe('ActivationStatusIndicator', () => {
     expect(screen.queryByRole('button', { name: 'Erneut versuchen' })).toBeNull()
   })
 
-  it('rendert "Gespeichert und sofort aktiv." mit Erfolgs-Badge für den Override-Pfad im aktiven Zustand', () => {
+  it('rendert "Gespeichert und sofort aktiv." mit Erfolgs-Badge für die persönliche Ausnahme im aktiven Zustand', () => {
     render(<ActivationStatusIndicator path="override" activationStatus="active" />)
 
     expect(screen.getByText('Gespeichert und sofort aktiv.').tagName).toBe('SPAN')
   })
 
-  it('rendert die "Status wird geprüft" Copy mit Warning-Badge für den Override-Pfad im pending-Zustand', () => {
+  it('rendert die "Status wird geprüft"-Meldung mit Warnungs-Badge für die persönliche Ausnahme im ausstehenden Zustand', () => {
     render(<ActivationStatusIndicator path="override" activationStatus="pending" />)
 
     expect(
@@ -53,7 +53,7 @@ describe('ActivationStatusIndicator', () => {
     ).toBe('SPAN')
   })
 
-  it('rendert nichts für den Override-Pfad im (heute unerreichbaren) failed-Zustand', () => {
+  it('rendert nichts für die persönliche Ausnahme im (heute unerreichbaren) fehlgeschlagenen Zustand', () => {
     const { container } = render(<ActivationStatusIndicator path="override" activationStatus="failed" />)
 
     expect(container.innerHTML).toBe('')

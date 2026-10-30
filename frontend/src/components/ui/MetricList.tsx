@@ -1,53 +1,60 @@
 import type { ReactNode } from 'react'
 
 import { Button } from './Button'
+import { Heading } from './Heading'
+import { Text } from './Text'
 import { classNames } from './classNames'
-import styles from './HeroMetrics.module.css'
+import styles from './MetricList.module.css'
 
-export interface HeroMetricItem {
+export interface MetricListItem {
   label: string
   value: ReactNode
   onActivate?: () => void
   activateLabel?: string
 }
 
-export interface HeroMetricsProps {
-  items: HeroMetricItem[]
+export interface MetricListProps {
+  items: MetricListItem[]
   ariaLabel: string
   className?: string
   variant?: 'default' | 'inline'
 }
 
-export function HeroMetrics({ items, ariaLabel, className, variant = 'default' }: HeroMetricsProps) {
+/**
+ * Liste von Kennzahlen (Bezeichnung + Wert), wahlweise untereinander-nebeneinander ("default")
+ * oder als kompakte, durch Punkte getrennte Reihe ("inline"). Eine Kennzahl kann klickbar sein
+ * (z. B. um zu einem passenden Abschnitt der Seite zu springen).
+ */
+export function MetricList({ items, ariaLabel, className, variant = 'default' }: MetricListProps) {
   if (items.length === 0) return null
 
   return (
-    <dl className={classNames(styles.heroMetrics, variant === 'inline' && styles.heroMetricsInline, className)} aria-label={ariaLabel}>
+    <dl className={classNames(styles.metricList, variant === 'inline' && styles.metricListInline, className)} aria-label={ariaLabel}>
       {items.map((item) => (
-        <div key={item.label} className={styles.heroMetricItem}>
+        <div key={item.label} className={styles.metricItem}>
           {variant === 'inline' ? (
             <>
-              <dt className={styles.heroMetricInlineLabel}>{item.label}</dt>
-              <dd>
+              <dt className={styles.metricInlineLabel}><Text variant="small">{item.label}</Text></dt>
+              <dd className={styles.metricInlineValue}>
                 {item.onActivate ? (
-                  <Button type="button" variant="text" onClick={item.onActivate} aria-label={item.activateLabel}>
+                  <Button type="button" variant="text" className={styles.metricInlineValueButton} onClick={item.onActivate} aria-label={item.activateLabel}>
                     {item.value}<span aria-hidden="true"> {item.label}</span>
                   </Button>
                 ) : (
-                  <>{item.value}<span aria-hidden="true"> {item.label}</span></>
+                  <Text variant="meta" className={styles.metricInlineValueText}>{item.value}<span aria-hidden="true"> {item.label}</span></Text>
                 )}
               </dd>
             </>
           ) : (
             <>
-              <dt>{item.label}</dt>
+              <dt><Text variant="small" className={styles.metricLabel}>{item.label}</Text></dt>
               <dd>
                 {item.onActivate ? (
-                  <Button type="button" variant="text" onClick={item.onActivate} aria-label={item.activateLabel}>
+                  <Button type="button" variant="text" className={styles.metricValueButton} onClick={item.onActivate} aria-label={item.activateLabel}>
                     {item.value}
                   </Button>
                 ) : (
-                  item.value
+                  <Heading level={4} size="hero" className={styles.metricValue}>{item.value}</Heading>
                 )}
               </dd>
             </>

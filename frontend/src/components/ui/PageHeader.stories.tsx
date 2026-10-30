@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
-import { Badge } from './Badge'
 import { Button } from './Button'
 import { PageHeader } from './PageHeader'
 
-/** Primärer Seiten-Header: Eyebrow, Titel, Beschreibung, Breadcrumbs und Actions. */
+/** Primärer Seiten-Header: Überzeile, Titel, Beschreibung, Brotkrümel und Aktionen. */
 const meta = {
   title: 'Zusammengesetzte Bausteine/PageHeader',
   component: PageHeader,
@@ -21,26 +20,36 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+const BREADCRUMB_STYLE: React.CSSProperties = {
+  display: 'flex',
+  gap: 6,
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+  fontSize: '0.875rem',
+  color: 'var(--text-soft)',
+}
+
 export const Standard: Story = {
   args: {
-    eyebrow: 'Interne Dev-Route',
-    title: 'Team4s UI-System-Labor',
-    description:
-      'Design-Tokens, generische UI-Komponenten und typische Oberflächenkompositionen an einem Ort prüfen, bevor echte Seiten migriert werden.',
+    eyebrow: 'Fansub-Gruppe',
+    title: 'C-Subs bearbeiten',
+    description: 'Stammdaten, Logo und Banner der Gruppe pflegen.',
     breadcrumbs: (
-      <ol style={{ display: 'flex', gap: 8, listStyle: 'none', margin: 0, padding: 0 }}>
-        <li><Badge variant="muted">/dev</Badge></li>
-        <li><Badge variant="info">ui-system</Badge></li>
+      <ol style={BREADCRUMB_STYLE}>
+        <li>Fansub-Gruppen</li>
+        <li>/</li>
+        <li>C-Subs</li>
       </ol>
     ),
-    actions: <Button>Modal prüfen</Button>,
+    actions: <Button>Speichern</Button>,
   },
 }
 
 export const OhneActions: Story = {
   name: 'Ohne Aktionen',
   args: {
-    eyebrow: 'Preview',
+    eyebrow: 'Mitgliederbereich',
     title: 'Meine Gruppen',
     description: 'Header mit Beschreibung, aber ohne zusätzliche Aktionen.',
   },

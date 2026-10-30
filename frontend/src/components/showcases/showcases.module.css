@@ -1144,7 +1144,7 @@
 }
 
 .animeAccordionType {
-  color: #7c3c4f;
+  color: var(--ui-arrow);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1253,7 +1253,7 @@
   border: 0;
   padding: 0;
   background: transparent;
-  color: #7c3c4f;
+  color: var(--ui-arrow);
   cursor: pointer;
 }
 

@@ -21,52 +21,44 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+function Demo({ initialOpen, title }: { initialOpen: boolean; title: React.ReactNode }) {
+  const [open, setOpen] = useState(initialOpen)
+  return (
+    <DisclosureTrigger
+      title={title}
+      open={open}
+      aria-controls="disclosure-trigger-demo-panel"
+      onClick={() => setOpen((current) => !current)}
+    />
+  )
+}
+
 export const Geschlossen: Story = {
   name: 'Geschlossen',
-  args: {
-    title: 'Übersetzung',
-    open: false,
-    'aria-controls': 'disclosure-trigger-demo-panel',
-    onClick: () => {},
-  },
+  args: { title: 'Übersetzung', open: false, onClick: () => {} },
+  render: () => <Demo initialOpen={false} title="Übersetzung" />,
 }
 
 export const Geoeffnet: Story = {
   name: 'Geöffnet',
-  args: {
-    title: 'Übersetzung',
-    open: true,
-    'aria-controls': 'disclosure-trigger-demo-panel',
-    onClick: () => {},
-  },
+  args: { title: 'Übersetzung', open: true, onClick: () => {} },
+  render: () => <Demo initialOpen title="Übersetzung" />,
 }
 
 export const MitBadgeImTitel: Story = {
   name: 'Mit Badge im Titel',
-  args: {
-    title: 'Übersetzung',
-    open: false,
-    onClick: () => {},
-  },
-  render: () => {
-    function Demo() {
-      const [open, setOpen] = useState(false)
-      return (
-        <DisclosureTrigger
-          title={
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              Übersetzung
-              <Badge variant="success">Aktiv</Badge>
-            </span>
-          }
-          open={open}
-          aria-controls="disclosure-trigger-demo-panel-badge"
-          onClick={() => setOpen((current) => !current)}
-        />
-      )
-    }
-    return <Demo />
-  },
+  args: { title: 'Übersetzung', open: false, onClick: () => {} },
+  render: () => (
+    <Demo
+      initialOpen={false}
+      title={
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          Übersetzung
+          <Badge variant="success">Aktiv</Badge>
+        </span>
+      }
+    />
+  ),
   parameters: {
     docs: {
       description: {

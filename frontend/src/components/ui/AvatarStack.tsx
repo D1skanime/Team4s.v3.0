@@ -1,7 +1,6 @@
-import Image from 'next/image'
-
-import { classNames } from './classNames'
+import { Avatar } from './Avatar'
 import { IconButton } from './IconButton'
+import { classNames } from './classNames'
 import styles from './AvatarStack.module.css'
 
 export interface AvatarStackItem {
@@ -21,15 +20,6 @@ export interface AvatarStackProps {
   overflowAriaLabel?: string
 }
 
-export function initials(label: string) {
-  return label
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('') || '?'
-}
-
 export function AvatarStack({
   items,
   maxVisible = 3,
@@ -46,37 +36,24 @@ export function AvatarStack({
   return (
     <span className={classNames(styles.avatarStack, className)} aria-label={ariaLabel ?? `${items.length} Einträge`}>
       {visibleItems.map((item) => (
-        <span key={item.id} className={styles.avatarStackItem} title={item.label}>
-          {item.imageUrl ? (
-            <Image
-              src={item.imageUrl}
-              alt=""
-              width={32}
-              height={32}
-              className={styles.avatarStackImage}
-              unoptimized
-            />
-          ) : (
-            <span aria-hidden="true">{initials(item.label)}</span>
-          )}
-          <span className={styles.visuallyHidden}>{item.label}</span>
-        </span>
+        <Avatar key={item.id} label={item.label} src={item.imageUrl} size="sm" className={styles.avatarStackItem} />
       ))}
-      {overflow > 0 ? onOverflowClick ? (
-        <IconButton
-          variant="ghost"
-          size="sm"
-          icon={`+${overflow}`}
-          className={classNames(styles.avatarStackOverflow, styles.avatarStackOverflowButton)}
-          aria-label={overflowAriaLabel ?? `${overflow} weitere anzeigen`}
-          aria-expanded={overflowExpanded}
-          aria-controls={overflowControls}
-          onClick={onOverflowClick}
-        />
-      ) : (
-        <span className={styles.avatarStackOverflow} aria-label={`${overflow} weitere`}>
-          +{overflow}
-        </span>
+      {overflow > 0 ? (
+        onOverflowClick ? (
+          <IconButton
+            variant="ghost"
+            shape="round"
+            size="sm"
+            icon={`+${overflow}`}
+            className={styles.avatarStackOverflowButton}
+            aria-label={overflowAriaLabel ?? `${overflow} weitere anzeigen`}
+            aria-expanded={overflowExpanded}
+            aria-controls={overflowControls}
+            onClick={onOverflowClick}
+          />
+        ) : (
+          <Avatar label={`${overflow} weitere`} count={overflow} size="sm" className={styles.avatarStackItem} />
+        )
       ) : null}
     </span>
   )

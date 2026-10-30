@@ -24,6 +24,11 @@ const EXCEPTIONS: Record<string, string[]> = {
   // Modal+DialogHeader+IconButton (die deshalb bereits unter "Zusammengesetzte Bausteine"
   // stehen).
   Button: ['Spinner'],
+  // ResponsiveImage ist nur die interne Bildquelle (entscheidet lediglich, ob optimiert oder
+  // unoptimiert geladen wird); VisuallyHidden liefert nur den vorlesbaren Namen neben dem Bild/
+  // den Initialen. Beides sind interne Implementierungsdetails der EINEN Avatar-Fläche, kein vom
+  // Aufrufer sichtbar komponierter Baustein-Verbund.
+  Avatar: ['ResponsiveImage', 'VisuallyHidden'],
   // Card bleibt bewusst ein Grundbaustein: seine Grundfläche (Rahmen/Hintergrund/Schatten) steht
   // für sich, Titel/Beschreibung sind nur ein OPTIONALER Teil (title/description-Props). Dass
   // dieser optionale Titel intern Heading/Text nutzt, ist dieselbe Art geteilter Typografie-

@@ -3,15 +3,14 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Pixel-Regressionsnachweis für die interne Heading/Text-Umstellung von PageHeader/
- * SectionHeader/DialogHeader/Card (UAT-Befund 5): liest die realen CSS-Texte per `fs` (kein
- * Rendering, Muster analog zu catalogTaxonomy.test.ts/roleCatalog.accessibility.test.ts) und
- * beweist, dass jede Komponente nach der Umstellung auf die geteilten Heading/Text-Bausteine
- * BYTE-IDENTISCHE effektive font-size/color/line-height/letter-spacing/margin-Werte behält wie
- * vor der Umstellung. Besonders kritisch: SectionHeaders .sectionDescription muss die VOLLE
- * margin-Shorthand setzen (nicht nur margin-top) -- Text.module.css nimmt bewusst KEINEN
- * eigenen margin-Reset vor, ein unvollständiger Reset würde den Browser-Standard-Absatzabstand
- * unten/seitlich wieder durchschlagen lassen.
+ * Regressionsnachweis dafür, dass PageHeader/SectionHeader/DialogHeader/Card ihre Typografie
+ * vollständig über die geteilten Heading/Text-Bausteine beziehen, statt eigene font-size-/
+ * color-Literale zu deklarieren: liest die realen CSS-Texte per `fs` (kein Rendering, Muster
+ * analog zu catalogTaxonomy.test.ts/roleCatalog.accessibility.test.ts). Besonders kritisch:
+ * SectionHeaders .sectionDescription muss die VOLLE margin-Shorthand setzen (nicht nur
+ * margin-top) -- Text.module.css nimmt bewusst KEINEN eigenen margin-Reset vor, ein
+ * unvollständiger Reset würde den Browser-Standard-Absatzabstand unten/seitlich wieder
+ * durchschlagen lassen.
  */
 
 const UI_DIR = path.resolve(process.cwd(), 'src/components/ui')
@@ -68,12 +67,16 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(titleRule).not.toMatch(/color:/)
     })
 
-    it('Beschreibung: font-size 1rem / color #657086 ueber --text-meta-size/-color-Overrides, margin 8px 0 0', () => {
+    it('Beschreibung: Text("meta")-Standardgroesse/-farbe ohne eigene Ueberschreibung, margin ueber --space-2-Token', () => {
       expect(pageHeaderTsx).toMatch(/<Text\s+variant="meta"/)
       const descriptionRule = mergedBlocks(pageHeaderCss, '.pageDescription')
-      expect(descriptionRule).toMatch(/margin:\s*8px 0 0;/)
-      expect(descriptionRule).toMatch(/--text-meta-size:\s*1rem;/)
-      expect(descriptionRule).toMatch(/--text-meta-color:\s*#657086;/)
+      expect(descriptionRule).toMatch(/margin:\s*var\(--space-2\) 0 0;/)
+      expect(descriptionRule).not.toMatch(/--text-meta-size:/)
+      expect(descriptionRule).not.toMatch(/--text-meta-color:/)
+    })
+
+    it('Eyebrow: rendert ueber Text(variant="eyebrow") statt eines eigenen <p>', () => {
+      expect(pageHeaderTsx).toMatch(/<Text\s+variant="eyebrow"/)
     })
   })
 
@@ -97,16 +100,20 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(titleRule).not.toMatch(/color:/)
     })
 
-    it('Beschreibung: font-size 0.92rem / color #657086 ueber --text-soft-size/-color-Overrides, UND die VOLLE margin-Shorthand margin 6px 0 0 (nicht nur margin-top)', () => {
+    it('Beschreibung: font-size 0.92rem / color #657086 ueber --text-soft-size/-color-Overrides, UND die VOLLE margin-Shorthand ueber --space-2-Token (nicht nur margin-top)', () => {
       expect(sectionHeaderTsx).toMatch(/<Text\s+variant="soft"/)
       const descriptionRule = mergedBlocks(sectionHeaderCss, '.sectionDescription')
       // Kritisch: volle Shorthand, NICHT nur margin-top -- Text setzt keinen eigenen Reset,
       // ein unvollständiger Reset ließe den Browser-Standard-Absatzabstand unten/seitlich
       // durchschlagen.
-      expect(descriptionRule).toMatch(/margin:\s*6px 0 0;/)
-      expect(descriptionRule).not.toMatch(/margin-top:\s*6px;/)
+      expect(descriptionRule).toMatch(/margin:\s*var\(--space-2\) 0 0;/)
+      expect(descriptionRule).not.toMatch(/margin-top:/)
       expect(descriptionRule).toMatch(/--text-soft-size:\s*0\.92rem;/)
       expect(descriptionRule).toMatch(/--text-soft-color:\s*#657086;/)
+    })
+
+    it('Eyebrow: rendert ueber Text(variant="eyebrow") statt eines eigenen <p>', () => {
+      expect(sectionHeaderTsx).toMatch(/<Text\s+variant="eyebrow"/)
     })
   })
 
@@ -195,22 +202,20 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
     })
   })
 
-  // UAT-Runde 4, Befund 5: ArtworkHero rendert Titel/Kontextzeile jetzt über Heading/Text statt
-  // eines eigenen h1/p. 1,5rem entspricht KEINER vorhandenen Heading-Größenstufe; UAT-Runde 5
-  // (2026-10-30) verlangt trotzdem KEIN eigenes, bloßes Literal mehr -- der Wert ist jetzt über
-  // den Typo-Token --font-size-hero-display benannt. Die Farbe kommt seither von Headings neuem
-  // Standard (--text-strong) statt eines eigenen, nahezu identischen --text-primary-Overrides.
+  // ArtworkHero rendert Titel/Kontextzeile über Heading/Text statt eines eigenen h1/p. Der Titel
+  // nutzt Headings size="hero"-Stufe -- dadurch braucht ArtworkHero kein eigenes font-size/
+  // color/margin/font-weight mehr, auch keinen eigenen Element+Klasse-Override.
   describe('ArtworkHero', () => {
     const artworkHeroCss = readUiFile('ArtworkHero.module.css')
     const artworkHeroTsx = readUiFile('ArtworkHero.tsx')
 
-    it('rendert den Titel über Heading level=1 statt eines eigenen h1', () => {
-      expect(artworkHeroTsx).toMatch(/<Heading\s+level=\{1\}/)
+    it('rendert den Titel über Heading level=1 size="hero" statt eines eigenen h1', () => {
+      expect(artworkHeroTsx).toMatch(/<Heading\s+level=\{1\}\s+size="hero"/)
     })
 
-    it('Titel: font-size ueber den Typo-Token --font-size-hero-display (kein Heading-Größenschritt trifft genau), kein eigenes color/margin/font-weight mehr (Heading liefert Farbe/Abstand)', () => {
-      const titleRule = mergedBlocks(artworkHeroCss, 'h1.title')
-      expect(titleRule).toMatch(/font-size:\s*var\(--font-size-hero-display\);/)
+    it('Titel: kein eigenes font-size/color/margin/font-weight mehr (Heading liefert alles über size="hero")', () => {
+      const titleRule = mergedBlocks(artworkHeroCss, '.title')
+      expect(titleRule).not.toMatch(/font-size:/)
       expect(titleRule).not.toMatch(/margin:/)
       expect(titleRule).not.toMatch(/font-weight:/)
       expect(titleRule).not.toMatch(/color:/)

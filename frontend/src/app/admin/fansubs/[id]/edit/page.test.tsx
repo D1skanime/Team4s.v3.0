@@ -46,11 +46,9 @@ const mediaUploadProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
 const appMembersSectionProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
 const animeProjectNoteWorkspaceProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
 const apiMocks = vi.hoisted(() => ({
-  applyDefaultCrew: vi.fn().mockResolvedValue({ applied_count: 0 }),
   createFansubAlias: vi.fn(),
   createFansubLink: vi.fn(),
   deleteAdminReleaseThemeAsset: vi.fn(),
-  deleteDefaultCrewEntry: vi.fn().mockResolvedValue(undefined),
   deleteFansubAlias: vi.fn(),
   deleteFansubGroup: vi.fn(),
   deleteFansubLink: vi.fn(),
@@ -76,7 +74,6 @@ const apiMocks = vi.hoisted(() => ({
   getFansubGroupCapabilities: vi.fn(),
   getFansubList: vi.fn(),
   listAnimeContributions: vi.fn().mockResolvedValue({ data: [] }),
-  listDefaultCrew: vi.fn().mockResolvedValue([]),
   listUnifiedGroupMembers: vi.fn().mockResolvedValue([]),
   resolveApiUrl: vi.fn((value: string) => value),
   deleteAnimeContribution: vi.fn().mockResolvedValue(undefined),
@@ -85,7 +82,6 @@ const apiMocks = vi.hoisted(() => ({
   uploadAdminReleaseThemeAssetForRelease: vi.fn(),
   upsertAnimeContribution: vi.fn().mockResolvedValue({ data: {} }),
   upsertAnimeFansubProjectNote: vi.fn().mockResolvedValue(null),
-  upsertDefaultCrewEntry: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/lib/useAuthSession', () => ({
@@ -137,10 +133,6 @@ vi.mock('./AnimeProjectNoteWorkspace', () => ({
 
 vi.mock('./CoverageMatrix', () => ({
   CoverageMatrix: () => <div data-testid="coverage-matrix" />,
-}))
-
-vi.mock('./DefaultCrewManager', () => ({
-  DefaultCrewManager: () => <div data-testid="default-crew-manager" />,
 }))
 
 vi.mock('./NotesTab', () => ({

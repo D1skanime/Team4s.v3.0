@@ -15,7 +15,7 @@ export interface DialogHeaderProps {
   titleId: string
   /** Ermöglicht Modal/Drawer, nach dem Öffnen weiterhin per Ref auf den Schließen-Button zu fokussieren. */
   closeButtonRef?: Ref<HTMLButtonElement>
-  /** Steuert, welche IconButton-Optik das Schließen-Kreuz nutzt. */
+  /** 'floating' positioniert das Schließen-Kreuz absolut statt in der normalen Kopfzeile. */
   variant?: 'default' | 'floating'
   /** Kontextabhängiges Padding/Border -- Rahmen/Innenabstand bleiben bei Modal/Drawer leicht unterschiedlich. */
   className?: string
@@ -49,7 +49,7 @@ export function DialogHeader({
         ref={closeButtonRef}
         icon={<X size={18} />}
         aria-label={closeLabel}
-        variant={variant}
+        floating={variant === 'floating'}
         onClick={onClose}
       />
     </div>

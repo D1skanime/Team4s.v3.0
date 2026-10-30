@@ -3,7 +3,6 @@
 import { Pencil, Search } from 'lucide-react'
 
 import {
-  ActionBar,
   Badge,
   Button,
   Card,
@@ -63,7 +62,7 @@ export function CompositionShowcase({ page, onPageChange, onOpenDrawer }: Compos
     <Card variant="section">
       <SectionHeader eyebrow="11" title="Kompositionsbeispiele" description="Nicht nur Einzelteile, sondern typische Admin-Layer mit Mockdaten und ohne Fachlogik." />
       <div className={styles.compositionGrid}>
-        <Card variant="section" title="Komposition 1 – Admin List Layout" description="PageHeader, Toolbar, Tabelle, Pagination und Row Actions.">
+        <Card variant="section" title="Komposition 1 – Admin-Listenansicht" description="PageHeader, Toolbar, Tabelle, Pagination und Zeilen-Aktionen.">
           <Toolbar
             leading={(
               <>
@@ -101,7 +100,7 @@ export function CompositionShowcase({ page, onPageChange, onOpenDrawer }: Compos
           <Pagination currentPage={page} totalPages={8} onPageChange={onPageChange} />
         </Card>
 
-        <Card variant="section" title="Komposition 2 – Detail / Edit Layout" description="FormFields, Card-Struktur und ActionBar für sichere Edit-Flows.">
+        <Card variant="section" title="Komposition 2 – Detail-/Bearbeitungsansicht" description="FormFields, Card-Struktur und Toolbar für sichere Bearbeitungs-Abläufe.">
           <FormField label="Titel" htmlFor="comp-title">
             <Input id="comp-title" defaultValue="Meine Gruppen – Referenzformular" />
           </FormField>
@@ -115,7 +114,7 @@ export function CompositionShowcase({ page, onPageChange, onOpenDrawer }: Compos
           <FormField label="Beschreibung" htmlFor="comp-text">
             <Textarea id="comp-text" defaultValue="Mock-Bearbeitungsformular ohne Backend-Vertrag." />
           </FormField>
-          <ActionBar
+          <Toolbar
             leading={<Badge variant="muted">Ungespeicherte Änderungen</Badge>}
             trailing={(
               <>

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 import { PublicHeaderBackdrop } from '@/components/public/PublicHeaderBackdrop'
-import { Badge, HeroMetrics } from '@/components/ui'
+import { Badge, MetricList } from '@/components/ui'
 import { classNames } from '@/components/ui/classNames'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
@@ -139,7 +139,7 @@ export function FansubHeroSection({
                 </div>
               </div>
 
-              <HeroMetrics items={heroStats} ariaLabel="Gruppenkennzahlen" />
+              <MetricList items={heroStats} ariaLabel="Gruppenkennzahlen" />
             </div>
 
             {heroLinks.length > 0 ? (

@@ -74,14 +74,22 @@ describe('DatePicker', () => {
     expect(handleChange).not.toHaveBeenCalled()
   })
 
-  it('leert den Wert per Klick auf die "Leeren"-Verknüpfung neben dem Auslöser', () => {
+  it('leert den Wert per Klick auf das Leeren-Symbol in der Feldzeile', () => {
     const handleChange = vi.fn()
     render(
       <DatePicker id="release-date" label="Veröffentlichungsdatum" value="2026-07-15" minYear={2020} maxYear={2030} onChange={handleChange} />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Leeren' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Datum leeren' }))
 
     expect(handleChange).toHaveBeenCalledWith('')
+  })
+
+  it('deaktiviert das Leeren-Symbol, wenn kein Wert gesetzt ist', () => {
+    render(
+      <DatePicker id="release-date" label="Veröffentlichungsdatum" value="" minYear={2020} maxYear={2030} onChange={() => undefined} />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Datum leeren' })).toHaveProperty('disabled', true)
   })
 })

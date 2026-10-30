@@ -1,6 +1,8 @@
 .tableWrap {
   overflow: auto;
-  border-radius: 18px;
+  /* Teilt denselben Radius-Token wie Card/Modal/Drawer (var(--radius-surface)) statt eines
+     eigenen Literals -- EINE Formensprache für alle Flächen. */
+  border-radius: var(--radius-surface);
   border: 1px solid var(--border-subtle);
   background: color-mix(in srgb, var(--surface-card) 95%, transparent);
 }

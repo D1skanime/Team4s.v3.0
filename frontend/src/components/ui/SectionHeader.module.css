@@ -1,45 +1,40 @@
 .sectionHeader {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
   align-items: flex-start;
   flex-wrap: wrap;
+  gap: var(--space-4) var(--space-5);
 }
 
 /* Opt-in: Wein-Header-Linie des Design-Systems unter dem Section-Header */
 .sectionHeaderUnderline {
-  padding-bottom: 14px;
-  margin-bottom: 18px;
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
   border-bottom: 2px solid var(--ui-line);
-}
-
-.sectionHeader {
-  gap: 14px 20px;
 }
 
 .sectionHeaderContent {
   display: grid;
   min-width: 0;
-}
-
-.sectionHeaderContent {
   gap: 1px;
 }
 
 .sectionHeaderActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-2);
   align-items: center;
   justify-content: flex-end;
 }
 
-.sectionTitle {
-  margin: 0;
+/* Nur Abstand -- Schriftgröße/-farbe kommen von Text (variant="eyebrow"). */
+.eyebrow {
+  margin: 0 0 var(--space-1);
 }
 
 .sectionTitle {
-  /* font-size/color kommen jetzt von Heading (.headingSize3 + --font-size-h3, Standard-Farbe
+  margin: 0;
+  /* font-size/color kommen von Heading (.headingSize3 + --font-size-h3, Standard-Farbe
      --text-strong) -- hier bewusst nicht mehr deklariert. */
   line-height: 1.15;
   letter-spacing: -0.015em;
@@ -52,7 +47,7 @@
 .sectionHeaderTitleRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .sectionHeaderIcon {
@@ -70,16 +65,12 @@
   line-height: 1.15;
 }
 
+/* VOLLE Margin-Shorthand (nicht nur margin-top): Text (variant="soft") setzt bewusst KEINEN
+   eigenen margin-Reset, ein unvollständiges margin-top würde den Browser-Standard-Absatzabstand
+   unten/seitlich wieder durchschlagen lassen. font-size/color kommen von Text, hier per
+   CSS-Variable auf den bisherigen, unveränderten Wert gesetzt. */
 .sectionDescription {
-  max-width: 72ch;
-}
-
-.sectionDescription {
-  /* VOLLE Margin-Shorthand (nicht nur margin-top): Text (variant="soft") setzt bewusst KEINEN
-     eigenen margin-Reset, ein unvollständiges margin-top würde den Browser-Standard-
-     Absatzabstand unten/seitlich wieder durchschlagen lassen. font-size/color kommen jetzt von
-     Text, hier per CSS-Variable auf den bisherigen, unveränderten Wert gesetzt. */
-  margin: 6px 0 0;
+  margin: var(--space-2) 0 0;
   --text-soft-size: 0.92rem;
   --text-soft-color: #657086;
   line-height: 1.5;

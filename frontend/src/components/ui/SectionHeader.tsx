@@ -2,12 +2,7 @@ import type { ReactNode } from 'react'
 
 import { Heading } from './Heading'
 import { Text } from './Text'
-import ownStyles from './SectionHeader.module.css'
-import sharedStyles from './ui.module.css'
-
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+import styles from './SectionHeader.module.css'
 
 export interface SectionHeaderProps {
   eyebrow?: string
@@ -42,7 +37,7 @@ export function SectionHeader({
   return (
     <div className={underline ? `${styles.sectionHeader} ${styles.sectionHeaderUnderline}` : styles.sectionHeader}>
       <div className={styles.sectionHeaderContent}>
-        {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
+        {eyebrow ? <Text variant="eyebrow" className={styles.eyebrow}>{eyebrow}</Text> : null}
         {hasTitleRow ? (
           <div className={styles.sectionHeaderTitleRow}>
             {icon ? <span className={styles.sectionHeaderIcon}>{icon}</span> : null}

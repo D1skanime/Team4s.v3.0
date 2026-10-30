@@ -2,7 +2,8 @@
 
 import { useEffect, useId, useMemo, useState } from 'react'
 
-import { ActivationStatusIndicator, Button, FormField, Modal, Select, Textarea } from '@/components/ui'
+import { Button, FormField, Modal, Select, Textarea } from '@/components/ui'
+import { ActivationStatusIndicator } from '@/components/admin/ActivationStatusIndicator'
 import { ApiError, mutateCapabilityOverride } from '@/lib/api'
 import type {
   CapabilityOverrideMutationResult,

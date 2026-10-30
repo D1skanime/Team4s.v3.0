@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, X } from 'lucide-react'
 
 import { Button } from './Button'
 import { classNames } from './classNames'
@@ -258,7 +258,7 @@ export function DatePicker({
 
   return (
     <div className={styles.datePicker} ref={rootRef}>
-      <div className={styles.datePickerTopRow}>
+      <div className={classNames(styles.datePickerField, invalid && styles.datePickerFieldInvalid, disabled && styles.datePickerFieldDisabled)}>
         <IconButton
           id={id}
           ref={triggerRef}
@@ -270,22 +270,22 @@ export function DatePicker({
               <CalendarDays size={16} aria-hidden="true" />
             </>
           }
-          className={classNames(styles.datePickerTrigger, invalid && styles.datePickerTriggerInvalid)}
+          className={styles.datePickerTrigger}
           aria-label={`${label} auswählen`}
           aria-expanded={isOpen}
           aria-describedby={ariaDescribedBy}
           disabled={disabled}
           onClick={openPicker}
         />
-        <Button
-          type="button"
-          variant="text"
-          className={styles.datePickerInlineClear}
+        <IconButton
+          variant="ghost"
+          size="sm"
+          icon={<X size={14} aria-hidden="true" />}
+          aria-label="Datum leeren"
+          className={styles.datePickerClearButton}
           disabled={disabled || !value}
           onClick={clearDate}
-        >
-          Leeren
-        </Button>
+        />
       </div>
 
       {isOpen ? (

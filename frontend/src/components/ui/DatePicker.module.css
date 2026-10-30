@@ -3,66 +3,72 @@
   width: 100%;
 }
 
-.datePickerTopRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 3px;
-  align-items: start;
-  min-width: 0;
-}
-
 /*
- * Element+Klasse-Selektoren (Spezifität 0,1,1) statt reiner Klassen-Selektoren: der Auslöser
- * rendert über IconButton, dessen eigene .iconButton-Basisklasse (feste 40x40px, eigener Rahmen/
- * Radius/Hintergrund) sonst je nach CSS-Modul-Bündel-Reihenfolge die hier gewünschte, volle
- * Feldbreite überschreiben könnte -- identisches Muster wie YearPicker. Rahmen/Hintergrund/
- * Textfarbe/Fokus/Fehler/Deaktiviert kommen aus den gemeinsamen --field-*-Tokens (globals.css),
- * denselben, die auch .control (Input/Select/Textarea, ui.module.css) und YearPickers Auslöser
- * nutzen (UAT-Runde 5, 2026-10-30).
+ * Element+Klasse-Selektoren (Spezifität 0,1,1) statt reiner Klassen-Selektoren: beide Knöpfe
+ * rendern über IconButton, dessen eigene .iconButton-Basisklasse (feste Breite/Höhe, eigener
+ * Rahmen/Radius/Hintergrund) sonst je nach CSS-Modul-Bündel-Reihenfolge die hier gewünschte
+ * Feldzeile überschreiben könnte -- identisches Muster wie YearPicker. Rahmen/Hintergrund/Fokus/
+ * Fehler/Deaktiviert kommen aus den gemeinsamen --field-*-Tokens (globals.css), denselben, die
+ * auch .control (Input/Select/Textarea, ui.module.css) und YearPickers Auslöser nutzen. Der
+ * Auslöser selbst trägt KEINEN eigenen Rahmen/Hintergrund mehr -- das übernimmt die umgebende
+ * Feldzeile, damit Auslöser und Leeren-Symbol optisch EIN Feld bilden statt zweier getrennter
+ * Elemente.
  */
-button.datePickerTrigger {
-  width: 100%;
-  min-height: var(--control-height-md);
+.datePickerField {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 0 14px;
+  gap: var(--space-1);
+  width: 100%;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-1) 0 var(--space-3);
   border-radius: var(--field-radius);
   border: 1px solid var(--field-border-color);
   background: var(--field-bg);
-  color: var(--field-text-color);
   box-shadow: var(--field-shadow);
-  font: inherit;
-  text-align: left;
   transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease,
-    background-color 120ms ease;
+    border-color var(--transition-fast) ease,
+    box-shadow var(--transition-fast) ease,
+    background-color var(--transition-fast) ease;
 }
 
-button.datePickerTrigger:hover {
+.datePickerField:hover {
   border-color: var(--field-border-color-hover);
   background: var(--field-bg-hover);
 }
 
-button.datePickerTrigger:focus-visible {
-  outline: none;
-  border-color: var(--border-accent);
-  box-shadow: var(--field-focus-shadow);
+.datePickerFieldInvalid {
+  border-color: var(--field-invalid-border-color);
+  box-shadow: var(--field-invalid-shadow);
 }
 
-button.datePickerTrigger:disabled {
-  cursor: not-allowed;
+.datePickerFieldDisabled {
   opacity: 0.62;
   background: var(--field-disabled-bg);
 }
 
-/* Muss NACH button.datePickerTrigger stehen: bei gleicher Spezifität (0,1,1) gewinnt die
-   Deklarationsreihenfolge im Stylesheet. */
-button.datePickerTriggerInvalid {
-  border-color: var(--field-invalid-border-color);
-  box-shadow: var(--field-invalid-shadow);
+button.datePickerTrigger:focus-visible {
+  outline: none;
+  border-radius: var(--field-radius);
+  box-shadow: var(--field-focus-shadow);
+}
+
+button.datePickerTrigger {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  min-height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--field-text-color);
+  font: inherit;
+  text-align: left;
 }
 
 .datePickerValue,
@@ -77,12 +83,16 @@ button.datePickerTriggerInvalid {
   color: var(--field-placeholder-color);
 }
 
-/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept (Spezifität 0,1,0) zuverlässig
-   unabhängig von der CSS-Modul-Bündel-Reihenfolge. */
-button.datePickerInlineClear {
-  justify-self: start;
-  min-height: 22px;
-  font-size: 0.78rem;
+/* Element+Klasse-Selektor: schmales Leeren-Symbol am Ende der Feldzeile statt eines eigenen
+   Textlinks unterhalb des Felds. Hover-/Deaktiviert-Optik kommt bewusst von IconButtons eigener
+   ghost-Variante -- nur Größe/Farbe werden hier überschrieben. */
+button.datePickerClearButton {
+  flex-shrink: 0;
+  color: var(--field-placeholder-color);
+}
+
+button.datePickerClearButton:hover {
+  color: var(--ui-line);
 }
 
 .datePickerPanel {
@@ -264,15 +274,6 @@ button.datePickerFooterButtonDanger {
 }
 
 @media (max-width: 560px) {
-  .datePickerTopRow {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-  }
-
-  .datePickerInlineClear {
-    justify-self: start;
-  }
-
   .datePickerPanel {
     width: min(100vw - 28px, 318px);
     max-height: min(390px, 68vh);
