@@ -155,4 +155,68 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(descriptionRule).not.toMatch(/color:/)
     })
   })
+
+  // Live-UAT Runde 4, Befund 5 (allgemeine Prüfung): EmptyState/ErrorState/LoadingState teilten
+  // sich bereits VOR dieser Umstellung dieselben .stateTitle/.stateDescription-Regeln in
+  // ui.module.css -- ein eigener h3/p statt Heading/Text, mit denselben hartkodierten Werten.
+  describe('EmptyState/ErrorState/LoadingState (geteilte .stateTitle/.stateDescription)', () => {
+    const uiSharedCss = readUiFile('ui.module.css')
+
+    it('rendern den Titel über Heading level=3 size=3 statt eines eigenen h3', () => {
+      expect(readUiFile('EmptyState.tsx')).toMatch(/<Heading\s+level=\{3\}\s+size=\{3\}/)
+      expect(readUiFile('ErrorState.tsx')).toMatch(/<Heading\s+level=\{3\}\s+size=\{3\}/)
+      expect(readUiFile('LoadingState.tsx')).toMatch(/<Heading\s+level=\{3\}\s+size=\{3\}/)
+    })
+
+    it('rendern die Beschreibung über Text variant="soft" statt eines eigenen p', () => {
+      expect(readUiFile('EmptyState.tsx')).toMatch(/<Text\s+variant="soft"/)
+      expect(readUiFile('ErrorState.tsx')).toMatch(/<Text\s+variant="soft"/)
+      expect(readUiFile('LoadingState.tsx')).toMatch(/<Text\s+variant="soft"/)
+    })
+
+    it('.stateTitle: color var(--text-strong), line-height 1.25, margin 0 -- kein eigenes font-size mehr', () => {
+      const titleRule = mergedBlocks(uiSharedCss, '.stateTitle')
+      expect(titleRule).toMatch(/margin:\s*0;/)
+      expect(titleRule).toMatch(/color:\s*var\(--text-strong\);/)
+      expect(titleRule).toMatch(/line-height:\s*1\.25;/)
+      expect(titleRule).not.toMatch(/font-size:/)
+    })
+
+    it('.stateDescription: line-height 1.55, margin 0 -- kein eigenes color mehr (Text "soft" liefert denselben var(--text-soft)-Wert)', () => {
+      const descriptionRule = mergedBlocks(uiSharedCss, '.stateDescription')
+      expect(descriptionRule).toMatch(/margin:\s*0;/)
+      expect(descriptionRule).toMatch(/line-height:\s*1\.55;/)
+      expect(descriptionRule).not.toMatch(/color:/)
+    })
+  })
+
+  // UAT-Runde 4, Befund 5: ArtworkHero rendert Titel/Kontextzeile jetzt über Heading/Text statt
+  // eines eigenen h1/p. 1,5rem entspricht KEINER vorhandenen Heading-Größenstufe, bleibt daher
+  // bewusst als Override erhalten (anders als bei PageHeader/SectionHeader/DialogHeader/Card).
+  describe('ArtworkHero', () => {
+    const artworkHeroCss = readUiFile('ArtworkHero.module.css')
+    const artworkHeroTsx = readUiFile('ArtworkHero.tsx')
+
+    it('rendert den Titel über Heading level=1 statt eines eigenen h1', () => {
+      expect(artworkHeroTsx).toMatch(/<Heading\s+level=\{1\}/)
+    })
+
+    it('Titel: font-size 1.5rem (Override, kein Heading-Größenschritt trifft genau), color var(--text-primary), margin kommt jetzt von Heading', () => {
+      const titleRule = mergedBlocks(artworkHeroCss, 'h1.title')
+      expect(titleRule).toMatch(/font-size:\s*1\.5rem;/)
+      expect(titleRule).toMatch(/color:\s*var\(--text-primary\);/)
+      expect(titleRule).not.toMatch(/margin:/)
+      expect(titleRule).not.toMatch(/font-weight:/)
+    })
+
+    it('rendert die Kontextzeile über Text variant="soft" statt eines eigenen p', () => {
+      expect(artworkHeroTsx).toMatch(/<Text\s+variant="soft"/)
+    })
+
+    it('Kontextzeile: font-size 0.875rem über --text-soft-size-Override (color-Override nicht nötig, var(--text-soft) ist bereits der Text-"soft"-Default)', () => {
+      const contextRule = mergedBlocks(artworkHeroCss, '.context')
+      expect(contextRule).toMatch(/--text-soft-size:\s*0\.875rem;/)
+      expect(contextRule).not.toMatch(/color:/)
+    })
+  })
 })

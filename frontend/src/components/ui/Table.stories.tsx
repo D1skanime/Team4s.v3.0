@@ -27,6 +27,16 @@ function statusVariant(status: string): 'success' | 'danger' | 'warning' | 'info
 const meta = {
   title: 'Grundbausteine/Table',
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Tabellen-Grundstruktur (table/thead/tbody/tr/th/td). TableEmptyState nutzt für den ' +
+          'Leerzustand dieselbe Optik wie EmptyState (StatusIcon, Heading, Text) -- begründete ' +
+          'Ausnahme in catalogTaxonomy.test.ts, siehe dort.',
+      },
+    },
+  },
 } satisfies Meta
 
 export default meta

@@ -5,9 +5,16 @@ import { SectionHeader } from './SectionHeader'
 
 /** Sekundärer Abschnitts-Header innerhalb einer Seite. */
 const meta = {
-  title: 'Grundbausteine/SectionHeader',
+  title: 'Zusammengesetzte Bausteine/SectionHeader',
   component: SectionHeader,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: Heading, Text.',
+      },
+    },
+  },
 } satisfies Meta<typeof SectionHeader>
 
 export default meta

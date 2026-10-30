@@ -9,7 +9,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Ladezustand-Primitive für Bereiche, die noch keine Daten haben. Besteht aus: Card, Spinner.',
+        component: 'Ladezustand-Primitive für Bereiche, die noch keine Daten haben. Besteht aus: Card, Spinner, Heading, Text.',
       },
     },
   },

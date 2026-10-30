@@ -1,6 +1,10 @@
+import { Inbox } from 'lucide-react'
 import type { HTMLAttributes, ReactNode, TableHTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from 'react'
 
 import { classNames } from './classNames'
+import { Heading } from './Heading'
+import { StatusIcon } from './StatusIcon'
+import { Text } from './Text'
 import styles from './Table.module.css'
 
 type TableVariant = 'default' | 'compact' | 'selectable' | 'withActions'
@@ -64,13 +68,20 @@ export interface TableEmptyStateProps {
   description: string
 }
 
+/**
+ * Leerzustand INNERHALB einer Tabellenzeile -- dieselbe visuelle Sprache wie EmptyState
+ * (StatusIcon + Heading + Text), nur ohne Card-Hülle, da die Tabellenzelle bereits die
+ * umschließende Fläche ist (UAT-Runde 4, Befund 2, 2026-10-30).
+ */
 export function TableEmptyState({ colSpan, title, description }: TableEmptyStateProps) {
   return (
     <tr>
       <td className={styles.tableEmpty} colSpan={colSpan}>
-        <strong>{title}</strong>
-        <br />
-        {description}
+        <div className={styles.tableEmptyContent}>
+          <StatusIcon tone="neutral" size="sm" icon={<Inbox size={16} strokeWidth={2} />} />
+          <Heading level={3} size={3} className={styles.tableEmptyTitle}>{title}</Heading>
+          <Text variant="soft" className={styles.tableEmptyDescription}>{description}</Text>
+        </div>
       </td>
     </tr>
   )

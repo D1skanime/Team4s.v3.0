@@ -6,9 +6,16 @@ import { PageHeader } from './PageHeader'
 
 /** Primärer Seiten-Header: Eyebrow, Titel, Beschreibung, Breadcrumbs und Actions. */
 const meta = {
-  title: 'Grundbausteine/PageHeader',
+  title: 'Zusammengesetzte Bausteine/PageHeader',
   component: PageHeader,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: 'Besteht aus: Heading, Text.',
+      },
+    },
+  },
 } satisfies Meta<typeof PageHeader>
 
 export default meta

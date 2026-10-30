@@ -13,7 +13,7 @@ const meta = {
         component:
           'Fehlerzustand-Primitive. `Status403` demonstriert den speziellen 403-Sonderfall von ' +
           '`getErrorStateCopy`/`getStatusAwareMessage` (eigene Berechtigungs-Fehlermeldung statt des ' +
-          'generischen "Fehler beim Laden"). Besteht aus: Card, StatusIcon.',
+          'generischen "Fehler beim Laden"). Besteht aus: Card, StatusIcon, Heading, Text.',
       },
     },
   },

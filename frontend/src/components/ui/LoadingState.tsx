@@ -1,5 +1,7 @@
 import { Card } from './Card'
+import { Heading } from './Heading'
 import { Spinner } from './Spinner'
+import { Text } from './Text'
 import ownStyles from './LoadingState.module.css'
 import sharedStyles from './ui.module.css'
 
@@ -24,8 +26,8 @@ export function LoadingState({
       <span className={styles.stateSpinnerWrap}>
         <Spinner size="md" />
       </span>
-      <h3 className={styles.stateTitle}>{title}</h3>
-      <p className={styles.stateDescription}>{description}</p>
+      <Heading level={3} size={3} className={styles.stateTitle}>{title}</Heading>
+      <Text variant="soft" className={styles.stateDescription}>{description}</Text>
     </Card>
   )
 }

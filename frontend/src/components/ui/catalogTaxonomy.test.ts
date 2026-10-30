@@ -24,12 +24,20 @@ const EXCEPTIONS: Record<string, string[]> = {
   // Modal+DialogHeader+IconButton (die deshalb bereits unter "Zusammengesetzte Bausteine"
   // stehen).
   Button: ['Spinner'],
-  // Heading/Text sind bewusst geteilte, eigene Typografie-Grundbausteine (level/size bzw.
-  // variant-API) -- keine zufällige Kopplung, sondern die gezielte interne Migration dieser
-  // drei Header-Bausteine weg von eigenem h1/h2/h3/p auf einen gemeinsamen Baustein.
-  PageHeader: ['Heading', 'Text'],
-  SectionHeader: ['Heading', 'Text'],
+  // Card bleibt bewusst ein Grundbaustein: seine Grundfläche (Rahmen/Hintergrund/Schatten) steht
+  // für sich, Titel/Beschreibung sind nur ein OPTIONALER Teil (title/description-Props). Dass
+  // dieser optionale Titel intern Heading/Text nutzt, ist dieselbe Art geteilter Typografie-
+  // Grundbaustein-Wiederverwendung wie ein Button, der intern ein Icon aus lucide-react
+  // einbindet -- keine sichtbar KOMPONIERTE Kombination mehrerer benannter Bausteine, die ein
+  // Aufrufer selbst zusammensetzt (anders als bei PageHeader/SectionHeader unten, die deshalb
+  // nach "Zusammengesetzte Bausteine" verschoben wurden, UAT-Runde 4, Befund 1, 2026-10-30).
   Card: ['Heading', 'Text'],
+  // Table bleibt bewusst ein Grundbaustein: die <table>/<thead>/<tbody>/<tr>/<td>-Familie ist
+  // eine reine Daten-Tabellen-Grundstruktur. TableEmptyState ist nur EIN optionaler Hilfs-Export
+  // für den Sonderfall "keine Zeilen" innerhalb dieser Grundstruktur (StatusIcon/Heading/Text
+  // für dieselbe Optik wie EmptyState) -- kein vom Aufrufer sichtbar komponierter Baustein-
+  // Verbund, den die Tabelle selbst erzwingt (UAT-Runde 4, Befund 2, 2026-10-30).
+  Table: ['Heading', 'StatusIcon', 'Text'],
 }
 
 /** Story-Dateien unter "Grundbausteine/*", die bewusst KEINE eigene X.tsx haben, weil sie reine

@@ -57,7 +57,24 @@
   text-align: right;
 }
 
-.tableEmpty {
+/* Element+Klasse-Selektor (Spezifität 0,1,1) statt reinem Klassen-Selektor: ".table td" hat
+   dieselbe Spezifität und würde das hier gewünschte größere Padding sonst überschreiben. */
+td.tableEmpty {
   text-align: center;
-  color: var(--text-soft);
+  padding: 32px 16px;
+}
+
+.tableEmptyContent {
+  display: inline-grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.tableEmptyTitle {
+  color: var(--text-strong);
+}
+
+.tableEmptyDescription {
+  margin: 0;
 }

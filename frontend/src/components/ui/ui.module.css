@@ -120,16 +120,19 @@
   color: var(--text-faint);
 }
 
+/* Größe/Gewicht kommen jetzt von Heading (level=3 size=3); nur Farbe und Zeilenabstand
+   bleiben hier als Override, da Heading selbst bewusst keine eigene color setzt (siehe dessen
+   Dokumentation). Gemeinsam genutzt von EmptyState/ErrorState/LoadingState. */
 .stateTitle {
   margin: 0;
-  font-size: 0.98rem;
   color: var(--text-strong);
   line-height: 1.25;
 }
 
+/* Farbe kommt jetzt von Text (variant="soft", identischer --text-soft-Wert); nur Zeilenabstand
+   bleibt hier als Override. Gemeinsam genutzt von EmptyState/ErrorState/LoadingState. */
 .stateDescription {
   margin: 0;
-  color: var(--text-soft);
   line-height: 1.55;
 }
 

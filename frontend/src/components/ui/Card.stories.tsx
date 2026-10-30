@@ -7,6 +7,17 @@ const meta = {
   title: 'Grundbausteine/Card',
   component: Card,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Grundfläche mit optionalem Titel/Beschreibung -- kann Heading und Text als Titel enthalten ' +
+          '(begründete Ausnahme in catalogTaxonomy.test.ts: Heading/Text sind geteilte Typografie-' +
+          'Grundbausteine, keine sichtbar komponierte Baustein-Kombination wie bei PageHeader/' +
+          'SectionHeader, die deshalb unter "Zusammengesetzte Bausteine" stehen).',
+      },
+    },
+  },
 } satisfies Meta<typeof Card>
 
 export default meta

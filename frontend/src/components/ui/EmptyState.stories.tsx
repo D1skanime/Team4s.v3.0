@@ -11,7 +11,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Leerzustand-Primitive für Listen/Übersichten ohne Einträge. Besteht aus: Card, StatusIcon.',
+        component: 'Leerzustand-Primitive für Listen/Übersichten ohne Einträge. Besteht aus: Card, StatusIcon, Heading, Text.',
       },
     },
   },
