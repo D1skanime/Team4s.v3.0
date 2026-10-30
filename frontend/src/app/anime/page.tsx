@@ -27,14 +27,6 @@ interface AnimePageProps {
         content_type?: string | string[]
         status?: string | string[]
       }>
-    | {
-        page?: string | string[]
-        per_page?: string | string[]
-        q?: string | string[]
-        letter?: string | string[]
-        content_type?: string | string[]
-        status?: string | string[]
-      }
     | undefined
 }
 
