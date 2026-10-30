@@ -99,7 +99,12 @@
    garantiert lesbare helle Schrift -- ein zusätzlicher, deutlich blickdichterer Scrim direkt
    hinter dem Textblock sichert WCAG AA (4,5:1) auch im Worst Case (rein weißes Foto) ab. Die
    88%-Opazität ist rechnerisch in FansubHeroSection.accessibility.test.ts nachgewiesen (worst
-   case effektive Hintergrund-Leuchtdichte ~0,013, reiner weißer Text erreicht >16:1). */
+   case effektive Hintergrund-Leuchtdichte ~0,013, reiner weißer Text erreicht >16:1). Live-UAT-
+   Befund: ein vormaliger Verlauf (0% transparent bis 30% Boxhöhe) ließ genau den oberen Bereich
+   dieser Box -- wo Titel/Status-Badge/Kennzahlen als allererste Inhalte direkt nach dem
+   16px-Padding beginnen -- unzureichend verdunkelt. Der Scrim ist daher jetzt eine FLÄCHIGE,
+   gleichmäßig deckende Farbe über die gesamte Box (kein Verlauf mehr) -- so ist unabhängig von
+   Box-Höhe und tatsächlicher Text-Position immer die volle 88%-Deckkraft vorhanden. */
 .heroBodyOnBanner {
   position: relative;
   /* Überschreibt die HeroMetrics-Fallback-Tokens NUR innerhalb dieses Banner-Textblocks (per
@@ -123,7 +128,7 @@
   z-index: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(10, 8, 14, 0) 0%, rgba(10, 8, 14, 0.88) 30%, rgba(10, 8, 14, 0.88) 100%);
+  background: rgba(10, 8, 14, 0.88);
 }
 
 .heroBodyOnBanner > * {

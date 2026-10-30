@@ -10,6 +10,14 @@ import { describe, expect, it } from 'vitest'
  * macht. Muster exakt wie `src/lib/roleCatalog.accessibility.test.ts`: lokale Helfer rechnen die
  * echten, per Regex aus dem realen CSS-Text extrahierten Formeln nach -- kein jsdom-Rendering
  * (jsdom kann Verläufe/Bilder ohnehin nicht zuverlässig für color-contrast auswerten).
+ *
+ * Positionsabhängigkeit (Live-UAT-Nachbesserung): `extractScrimAlpha()` erzwingt zusätzlich, dass
+ * der Scrim eine FLÄCHIGE Farbe ist, kein `linear-gradient()` mit einer Rampe. Ein früherer
+ * Verlauf erreichte die hier geprüfte Opazität erst bei 30% der Box-Höhe, während Titel/Badge/
+ * Kennzahlen bereits direkt am oberen Rand (nach 16px Padding) beginnen -- ein reiner Endwert-
+ * Test hätte diese Lücke nicht erkannt. Der zusätzliche, Playwright-basierte Nachweis gegen die
+ * echte laufende App (`e2e/fansub-hero-banner-contrast.spec.ts`) misst ergänzend die
+ * tatsächlichen Pixel hinter Titel/Badge/Kennzahlen für reale Gruppen mit hellem Bannerfoto.
  */
 
 const pageCss = fs.readFileSync(
@@ -51,11 +59,31 @@ function contrast(a: RGB, b: RGB): number {
   return (lighter + 0.05) / (darker + 0.05)
 }
 
-/** Extrahiert die Scrim-Opazität aus der mittleren/unteren rgba(10, 8, 14, <ALPHA>)-Stelle der
- *  `.heroBodyOnBanner::before`-background-Regel. */
+/**
+ * Extrahiert die Scrim-Opazität aus der `.heroBodyOnBanner::before`-background-Regel und
+ * erzwingt zugleich, dass es sich um eine FLÄCHIGE Farbe handelt (kein `linear-gradient(...)`
+ * mit einer Rampe von transparent auf deckend). Live-UAT-Befund: ein vormaliger Verlauf
+ * (`rgba(10,8,14,0) 0%` bis `rgba(10,8,14,0.88) 30%`) ließ exakt den oberen Bereich dieser Box
+ * -- wo Titel/Status-Badge/Kennzahlen direkt nach dem 16px-Padding beginnen, also weit VOR der
+ * 30%-Marke -- unzureichend verdunkelt. Ein reiner Endwert-Test (wie zuvor) kann das nicht
+ * erkennen, da er nur die 30%/100%-Stelle prüft, nicht den tatsächlich von Text belegten oberen
+ * Rand. Die Prüfung auf eine flächige (positionsunabhängige) Farbe schließt diese Lücke
+ * grundsätzlich: es gibt dann schlicht keine schwächere Stelle mehr, unabhängig von der
+ * Textposition innerhalb der Box.
+ */
 function extractScrimAlpha(): number {
-  const match = pageCss.match(/\.heroBodyOnBanner::before\s*\{[^}]*rgba\(10,\s*8,\s*14,\s*([\d.]+)\)\s*30%/)
-  expect(match, '.heroBodyOnBanner::before must declare a mid-stop rgba(10, 8, 14, <alpha>) scrim').not.toBeNull()
+  const block = pageCss.match(/\.heroBodyOnBanner::before\s*\{([^}]*)\}/)
+  expect(block, '.heroBodyOnBanner::before must exist in the stylesheet').not.toBeNull()
+
+  expect(
+    block![1],
+    '.heroBodyOnBanner::before darf keinen linear-gradient() mehr verwenden -- ein Verlauf kann am ' +
+      'oberen Rand der Box (wo Titel/Badge/Kennzahlen tatsächlich beginnen) schwächer als am Endwert ' +
+      'sein, eine flächige Farbe schließt das aus',
+  ).not.toMatch(/linear-gradient/)
+
+  const match = block![1].match(/background:\s*rgba\(10,\s*8,\s*14,\s*([\d.]+)\)/)
+  expect(match, '.heroBodyOnBanner::before must declare a flat rgba(10, 8, 14, <alpha>) background').not.toBeNull()
   return Number(match![1])
 }
 

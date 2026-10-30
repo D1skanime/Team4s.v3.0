@@ -30,6 +30,16 @@ export default defineConfig({
       name: 'setup',
       testMatch: 'auth.setup.ts',
     },
+    // Öffentliche Fansub-Profilseite benötigt keine Anmeldung -- anders als die vier
+    // rollenbasierten Projekte unten hängt dieses Projekt bewusst NICHT von `setup` ab und
+    // nutzt keinen `storageState`.
+    {
+      name: 'public',
+      testMatch: 'fansub-hero-banner-contrast.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
     {
       name: 'admin',
       testMatch: 'admin-user-list.spec.ts',
