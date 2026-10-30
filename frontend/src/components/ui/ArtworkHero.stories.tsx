@@ -13,7 +13,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: ResponsiveImage.',
+        component: 'Besteht aus: ResponsiveImage, Heading, Text sowie die Slot-Bausteine HeroMetrics, Badge, Button.',
       },
     },
   },

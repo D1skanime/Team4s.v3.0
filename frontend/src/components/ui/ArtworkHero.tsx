@@ -2,7 +2,9 @@
 
 import { useState, type ReactNode } from 'react'
 
+import { Heading } from './Heading'
 import { ResponsiveImage } from './ResponsiveImage'
+import { Text } from './Text'
 import styles from './ArtworkHero.module.css'
 
 export interface ArtworkHeroProps {
@@ -44,11 +46,11 @@ export function ArtworkHero({
         <div className={styles.avatar} aria-hidden="true">{avatar}</div>
         <div className={styles.identity}>
           <div className={styles.titleRow}>
-            <h1 className={styles.title}>{title}</h1>
+            <Heading level={1} className={styles.title}>{title}</Heading>
             {status}
           </div>
           {roles ? <div className={styles.roles}>{roles}</div> : null}
-          <p className={styles.context}>{context}</p>
+          <Text variant="soft" className={styles.context}>{context}</Text>
         </div>
         <div className={styles.details}>
           {metrics}

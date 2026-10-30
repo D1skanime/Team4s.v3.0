@@ -13,18 +13,20 @@
 }
 
 .heroMetricItem dt {
-  /* Fallback = bisheriger Wert (reine Tokenisierung, kein Verhaltenswechsel für bestehende
-     Verwender). FansubHeroSection überschreibt diese Variable NUR innerhalb ihres eigenen
-     Banner-Textblocks (.heroBodyOnBanner), um auf einem dunklen Scrim lesbar zu bleiben. */
-  color: var(--hero-metrics-label, rgba(28, 24, 38, 0.64));
-  font-size: 12px;
+  /* Fallback jetzt der allgemeine --text-soft-Token statt einer eigenen, fest kodierten
+     rgba()-Ersatzfarbe (UAT-Runde 4, Befund 5) -- FansubHeroSection überschreibt diese Variable
+     weiterhin NUR innerhalb ihres eigenen Banner-Textblocks (.heroBodyOnBanner), um auf einem
+     dunklen Scrim lesbar zu bleiben. Schriftgröße entspricht Texts "small"-Stufe (0,75rem). */
+  color: var(--hero-metrics-label, var(--text-soft));
+  font-size: var(--text-small-size, 0.75rem);
   font-weight: 600;
 }
 
 .heroMetricItem dd {
   margin: 2px 0 0;
+  /* Blaue Zahlenfarbe bleibt bewusst über --accent-deep (UAT-Runde 4, Befund 5). */
   color: var(--hero-metrics-value, var(--accent-deep));
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -88,7 +90,9 @@
   }
 
   .heroMetricItem dd {
-    font-size: 20px;
+    /* 20px entspricht exakt --font-size-h2 (1,25rem) -- als Token referenziert statt eines
+       zufällig übereinstimmenden Literals (UAT-Runde 4, Befund 5). */
+    font-size: var(--font-size-h2);
   }
 }
 

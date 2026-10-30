@@ -88,12 +88,15 @@
   min-width: 0;
 }
 
-.title {
-  margin: 0;
+/* Element+Klasse-Selektor (Spezifität 0,1,1): schlägt Headings eigene .headingSize1-Klasse
+   zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge -- identisches Muster wie
+   NavArrow/IconButton. 1,5rem entspricht keiner vorhandenen Heading-Größenstufe (h1=
+   clamp(2rem, 3vw, 2,75rem), h2=1,25rem) und bleibt deshalb als Override erhalten; margin/
+   font-weight kommen jetzt von Heading selbst (UAT-Runde 4, Befund 5, 2026-10-30). */
+h1.title {
   min-width: 0;
   font-size: 1.5rem;
   line-height: 1.2;
-  font-weight: 700;
   color: var(--text-primary);
   overflow-wrap: anywhere; /* User-chosen names can be a single unbroken string. */
 }
@@ -107,12 +110,14 @@
   white-space: normal;
 }
 
+/* color/font-size kommen jetzt von Text (variant="soft"); --text-soft-size überschreibt NUR die
+   Größe (Text-Standard wäre 1rem), Farbe entspricht bereits dem Text-"soft"-Default, daher kein
+   eigenes color mehr nötig. */
 .context {
   margin: var(--space-1) 0 0;
-  color: var(--text-soft);
-  font-size: 0.875rem;
   line-height: 1.5;
   overflow-wrap: anywhere; /* Project/group names are user-provided. */
+  --text-soft-size: 0.875rem;
 }
 
 .details {

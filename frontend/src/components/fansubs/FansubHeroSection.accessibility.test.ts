@@ -181,8 +181,8 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
     expect(contrast(rendered, worstCaseBackground)).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('HeroMetrics.module.css deklariert dieselben Fallback-Variablen mit dem unveränderten, dunklen Standardwert (kein Verhaltenswechsel ohne Bannerfoto)', () => {
-    expect(heroMetricsCss).toMatch(/var\(--hero-metrics-label,\s*rgba\(28,\s*24,\s*38,\s*0\.64\)\)/)
+  it('HeroMetrics.module.css deklariert dieselben Fallback-Variablen mit einem weiterhin dunklen, nur jetzt tokenisierten Standardwert (UAT-Runde 4, Befund 5: die vormals fest kodierte rgba()-Ersatzfarbe wurde bewusst durch den allgemeinen --text-soft-Token ersetzt -- kein Banner-Verhaltenswechsel, da dieser Fallback nur den Nicht-Banner-Fall betrifft)', () => {
+    expect(heroMetricsCss).toMatch(/var\(--hero-metrics-label,\s*var\(--text-soft\)\)/)
     expect(heroMetricsCss).toMatch(/var\(--hero-metrics-value,\s*var\(--accent-deep\)\)/)
   })
 
