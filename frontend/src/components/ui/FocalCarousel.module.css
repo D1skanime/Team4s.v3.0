@@ -76,10 +76,10 @@
 }
 
 .track:focus-visible {
-  /* Phase 134-06 fix: --focus-ring is a box-shadow shorthand (globals.css), not a color -- using
-     it as an outline color made this declaration invalid at computed-value time (collapses to
-     outline-style: none), silently hiding the focus ring on carousel keyboard navigation.
-     --focus-outline is the dedicated color token for exactly this purpose. */
+  /* --focus-ring ist eine box-shadow-Kurzschreibweise (globals.css), keine Farbe -- als
+     outline-Farbe genutzt wäre diese Deklaration zur Berechnungszeit ungültig (fällt auf
+     outline-style: none zurück) und würde den Fokusring bei der Tastatur-Navigation im
+     Karussell lautlos verstecken. --focus-outline ist der dafür vorgesehene Farb-Token. */
   outline: 2px solid var(--focus-outline, var(--accent-primary));
   outline-offset: 2px;
 }

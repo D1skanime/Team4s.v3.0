@@ -11,7 +11,7 @@ import tabsStyles from './EpisodeVersionEditor.tabs.module.css'
  * Gerüst/Kopfzeile, Formular-Karten/-Felder, Aktionsleiste/Navigation/Buttons, Tab-Navigation/
  * Medien-Bereiche) -- da mehrere Tab-/Sektions-Komponenten Klassen aus mehreren dieser Bereiche
  * gleichzeitig nutzen, bündelt dieses Modul alle vier zu EINEM Lookup, damit jede Komponente
- * weiterhin nur einen einzigen `styles`-Import braucht (UAT-Runde 5, 2026-10-30).
+ * weiterhin nur einen einzigen `styles`-Import braucht.
  */
 const styles = mergeCssModules(shellStyles, mergeCssModules(fieldsStyles, mergeCssModules(actionsStyles, tabsStyles)))
 

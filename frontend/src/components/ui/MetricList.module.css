@@ -19,10 +19,12 @@
   --text-small-color: var(--hero-metrics-label, var(--text-soft));
 }
 
-/* Element+Klasse-Selektor: überschreibt Headings eigene Standardfarbe (--text-strong)
-   zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge. Fallback --accent-deep,
+/* Kein <Heading>-Element (siehe MetricList.tsx), daher volle eigene Typografie statt nur einer
+   Farb-Überschreibung: Größe/Gewicht wie Heading size="hero", Fallback-Farbe --accent-deep,
    überschreibbar über --hero-metrics-value. */
-h4.metricValue {
+.metricValue {
+  font-size: var(--font-size-hero);
+  font-weight: var(--font-weight-heading);
   color: var(--hero-metrics-value, var(--accent-deep));
 }
 
@@ -95,7 +97,7 @@ button.metricInlineValueButton {
     min-width: 0;
   }
 
-  h4.metricValue {
+  .metricValue {
     font-size: var(--font-size-h2);
   }
 }

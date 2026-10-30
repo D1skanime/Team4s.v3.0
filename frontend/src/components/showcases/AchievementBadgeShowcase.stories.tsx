@@ -4,7 +4,6 @@ import { AchievementBadgeShowcase } from './AchievementBadgeShowcase'
 import { ACHIEVEMENT_BADGE_SOURCE_FILES } from './AchievementBadgeShowcase.sourceFiles.fixture'
 
 /**
- * 1:1 aus der früheren In-App-Showcase-Route (ehemals die separate Achievements-Unterroute) migrierte
  * Erfolgsbadge-Galerie (Rollen-Ketten, Fortschritts-/Rang-Stufen, Sonderfälle). Baut sich
  * selbst einen `RoleCatalogProvider` mit Mock-`loads` auf und braucht deshalb KEINEN
  * globalen Storybook-Decorator.

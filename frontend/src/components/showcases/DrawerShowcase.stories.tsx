@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { DrawerShowcase } from './DrawerShowcase'
 
 /**
- * 1:1 aus der früheren In-App-Showcase-Route migrierte Komposition
+ * Komposition
  * (Release-Details-Drawer mit Größen-Umschalter und Tabs) — keine neuen
  * Zustands-Varianten gegenüber der ursprünglichen Seite erfunden.
  */

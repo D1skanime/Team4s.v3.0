@@ -20,11 +20,9 @@ export interface ThumbnailStripProps {
 }
 
 /**
- * Volle-Breite Thumbnail-Leiste unterhalb der Bild-Bühne (Phase 177 Gap-Fix, D-28). Neues
- * globales Primitive (D-11) statt feature-lokalem Bau; wiederverwendet centeredScrollLeft/
- * directItemElements aus FocalCarouselInternals.tsx fuer das Auto-Scroll-Verhalten, statt die
- * Scroll-Zentrierungs-Mathematik erneut zu bauen. Rendert nichts bei weniger als zwei Bildern
- * (D-32).
+ * Volle-Breite Thumbnail-Leiste unterhalb der Bild-Bühne. Wiederverwendet centeredScrollLeft/
+ * directItemElements aus FocalCarouselInternals.tsx für das Auto-Scroll-Verhalten, statt die
+ * Scroll-Zentrierungs-Mathematik erneut zu bauen. Rendert nichts bei weniger als zwei Bildern.
  */
 export function ThumbnailStrip({ items, activeIndex, onSelect, regionLabel }: ThumbnailStripProps) {
   const trackRef = useRef<HTMLDivElement | null>(null)

@@ -11,7 +11,7 @@ import wizardStyles from './JellyfinSyncPanel.wizard.module.css'
  * Fortschrittsanzeige, Wizard-Schritt-Panel, Ergebnisanzeige, Bestätigungs-Dialog) -- da die
  * einzelnen Schritt-Komponenten Klassen aus mehreren dieser Bereiche gleichzeitig nutzen, bündelt
  * dieses Modul alle vier zu EINEM Lookup, damit jede Komponente weiterhin nur einen einzigen
- * `styles`-Import braucht (UAT-Runde 5, 2026-10-30).
+ * `styles`-Import braucht.
  */
 const styles = mergeCssModules(shellStyles, mergeCssModules(wizardStyles, mergeCssModules(resultsStyles, modalStyles)))
 

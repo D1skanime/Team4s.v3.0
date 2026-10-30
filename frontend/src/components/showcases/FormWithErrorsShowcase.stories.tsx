@@ -4,7 +4,7 @@ import { FormWithErrorsShowcase } from './FormWithErrorsShowcase'
 
 /**
  * Formular mit mehreren gleichzeitig automatisch verknüpften Fehlerzuständen (Input, Select,
- * Textarea) -- nutzt die FormField-Autoverknüpfung aus Befund 5 sichtbar an mehr als einem
+ * Textarea) -- zeigt FormFields automatische Fehler-Verknüpfung sichtbar an mehr als einem
  * Feldtyp gleichzeitig.
  */
 const meta = {

@@ -93,7 +93,7 @@ export const AutomatischVerknuepfterFehler: Story = {
         story:
           'Nur `error` ist am FormField gesetzt, NICHT `invalid` am Input -- id, aria-invalid und ' +
           'aria-describedby kommen jetzt automatisch vom FormField. Ein Aufrufer muss sie nicht mehr ' +
-          'manuell am Kind setzen oder mit `htmlFor` verknüpfen (CONTEXT.md Befund 5).',
+          'manuell am Kind setzen oder mit `htmlFor` verknüpfen.',
       },
     },
   },
@@ -135,7 +135,7 @@ export const AutomatischVerknuepftesSelect: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Die Autoverknüpfung aus Befund 5 gilt für alle sechs bekannten Feldtypen, nicht nur Input.',
+        story: 'Die Autoverknüpfung gilt für alle sechs bekannten Feldtypen, nicht nur Input.',
       },
     },
   },

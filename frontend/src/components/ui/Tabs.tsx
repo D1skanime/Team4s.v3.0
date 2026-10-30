@@ -17,9 +17,9 @@ export interface TabsProps {
   items: TabItem[]
   defaultTabId?: string
   /**
-   * Kontrollierter Modus (z. B. für URL-Sync, siehe UserDetailPageClient.tsx D-03):
-   * wenn gesetzt, bestimmt der Aufrufer den aktiven Tab komplett selbst.
-   * Ohne `activeId` verhält sich `Tabs` wie zuvor unkontrolliert (interner State).
+   * Kontrollierter Modus (z. B. für URL-Sync): wenn gesetzt, bestimmt der Aufrufer den
+   * aktiven Tab komplett selbst. Ohne `activeId` verhält sich `Tabs` wie zuvor
+   * unkontrolliert (interner State).
    */
   activeId?: string
   onActiveIdChange?: (id: string) => void
@@ -29,7 +29,7 @@ export interface TabsProps {
    * `keepMountedIds`-Konvention. Ohne diese Prop wird ausschließlich der aktive
    * Tab gerendert (bisheriges Verhalten, jeder Tab-Wechsel unmontiert/montiert neu).
    * Nötig, wenn Tab-Inhalte einen eigenen Datenabruf besitzen und ein Re-Fetch
-   * beim Zurückwechseln vermieden werden soll (D-03, 138-15-PLAN.md).
+   * beim Zurückwechseln vermieden werden soll.
    */
   keepMountedIds?: Set<string>
 }

@@ -9,8 +9,7 @@
  * volle Feldbreite überschreiben könnte -- identisches Muster wie NavArrow/AvatarStack auf
  * IconButton. Rahmen/Hintergrund/Textfarbe/Fokus/Fehler/Deaktiviert kommen jetzt aus den
  * gemeinsamen --field-*-Tokens (globals.css), denselben, die auch .control (Input/Select/
- * Textarea, ui.module.css) und DatePickers Auslöser nutzen -- keine kopierten Literale mehr
- * (UAT-Runde 5, 2026-10-30; vorher UAT-Runde 4, Befund 4).
+ * Textarea, ui.module.css) und DatePickers Auslöser nutzen -- keine kopierten Literale mehr.
  */
 button.yearPickerTrigger {
   width: 100%;
@@ -102,7 +101,7 @@ button.yearPickerTriggerInvalid {
 /* Element+Klasse-Selektor (Spezifität 0,1,1): Jahres-/"Keine Angabe"-Kacheln rendern jetzt über
    IconButton, dessen feste 40x40px-Basisgröße sonst die volle Rasterzellen-Breite/die eigene
    Eckenrundung überschreiben könnte. Farben/Fokus/Hover/Disabled kommen bewusst von IconButtons
-   eigenen Regeln -- nur Form/Größe/Schrift werden hier überschrieben (UAT-Runde 4, Befund 4). */
+   eigenen Regeln -- nur Form/Größe/Schrift werden hier überschrieben. */
 button.yearPickerYear {
   width: 100%;
   height: auto;
@@ -114,7 +113,7 @@ button.yearPickerYear {
 }
 
 /* Verlauf kommt aus --selection-tile-* (globals.css) -- derselbe "ausgewählt"-Kachel-Stil wie
-   DatePickers Tages-/Monats-/Jahres-Auswahl (UAT-Runde 5, 2026-10-30). */
+   DatePickers Tages-/Monats-/Jahres-Auswahl. */
 button.yearPickerYearSelected {
   border-color: var(--selection-tile-border-color);
   background: var(--selection-tile-gradient);

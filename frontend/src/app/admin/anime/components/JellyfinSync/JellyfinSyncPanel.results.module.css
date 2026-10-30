@@ -2,7 +2,7 @@
  * Ausgelagert aus JellyfinSyncPanel.module.css (das über 450-Zeilen-Limit wuchs): die Stile der
  * Ergebnisanzeige -- Vorschau-Box, Leer-/Fehler-/Erfolgs-Zustand. Wird über
  * JellyfinSyncPanel.styles.ts zusammen mit den übrigen drei Teil-Stylesheets zu EINEM
- * `styles`-Objekt gemergt (UAT-Runde 5, 2026-10-30).
+ * `styles`-Objekt gemergt.
  */
 .previewBox {
   display: grid;

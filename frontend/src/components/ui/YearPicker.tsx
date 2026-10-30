@@ -45,9 +45,8 @@ function pageStartForYear(rawYear: string, minYear: number, maxYear: number): nu
  * `icon`-Prop für sein zweizeiliges Wert-/Hinweis-Layout statt eines Icons (dasselbe Muster wie
  * `AvatarStack`s Text-Inhalt im `icon`-Prop), da `Button` aktuell keinen Ref weiterleitet, dieser
  * Baustein aber für die Panel-Positionierung einen echten `HTMLButtonElement`-Ref benötigt.
- * Tastatur-/Fokusverhalten bleibt dadurch unverändert, da `IconButton` alle native
- * `button`-Attribute (disabled, aria-*, onClick) unverändert durchreicht (UAT-Runde 4, Befund 4,
- * 2026-10-30).
+ * Tastatur-/Fokusverhalten bleibt dadurch unverändert, da `IconButton` alle nativen
+ * `button`-Attribute (disabled, aria-*, onClick) unverändert durchreicht.
  */
 export function YearPicker({
   id,

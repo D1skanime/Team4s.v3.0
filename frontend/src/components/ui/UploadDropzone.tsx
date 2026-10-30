@@ -54,10 +54,10 @@ const DEFAULT_MULTI_FILE_ON_SINGLE_SLOT_WARNING =
   'Nur die erste Datei wurde übernommen — dieser Platz erlaubt nur ein Bild.'
 
 /**
- * Pure helper: when `multiple` is false and more than one file arrives (click-pick or drop), only
- * the first file is kept — the rest are dropped and `droppedExtra` signals the caller to show the
- * locked D-16 warning sentence. Co-located here (no hooks) so the behavior is testable without any
- * DOM simulation.
+ * Reine Hilfsfunktion: Wenn `multiple` false ist und mehr als eine Datei ankommt (Klick-Auswahl
+ * oder Drop), wird nur die erste Datei behalten -- der Rest wird verworfen, und `droppedExtra`
+ * signalisiert dem Aufrufer, den festen Warnsatz anzuzeigen. Bewusst ohne Hooks ausgelagert,
+ * damit das Verhalten ohne DOM-Simulation testbar ist.
  */
 export function sliceToSingleFileIfNeeded(
   files: File[],
@@ -110,8 +110,8 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
   onFilesSelected,
   accept = 'image/*',
   multiple = true,
-  // D-17: drag&drop is now always active (see 180-12 Task 1's dead-branch removal); kept in the
-  // public API as a legitimate future extension point, only the `false`-handling code path was removed.
+  // Drag&Drop ist inzwischen immer aktiv; die Prop bleibt als legitimer künftiger
+  // Erweiterungspunkt in der öffentlichen API erhalten, nur der `false`-Codepfad entfiel.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   allowDrop = true,
   disabled = false,

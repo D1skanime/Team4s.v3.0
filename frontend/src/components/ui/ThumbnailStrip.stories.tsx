@@ -12,7 +12,7 @@ function demoItems(count: number) {
 }
 
 /** Volle-Breite Thumbnail-Leiste unterhalb einer Bild-Bühne. Rendert bewusst nichts bei
- * weniger als zwei Einträgen (D-32) — die Leer-Story zeigt diesen No-Op-Zustand. */
+ * weniger als zwei Einträgen — die Leer-Story zeigt diesen No-Op-Zustand. */
 const meta = {
   title: 'Zusammengesetzte Bausteine/ThumbnailStrip',
   component: ThumbnailStrip,
@@ -61,7 +61,7 @@ export const Leer: Story = {
   args: { items: [], activeIndex: 0, onSelect: () => {} },
   parameters: {
     docs: {
-      description: { story: 'Rendert bewusst nichts: ThumbnailStrip zeigt sich erst ab zwei Einträgen (D-32).' },
+      description: { story: 'Rendert bewusst nichts: ThumbnailStrip zeigt sich erst ab zwei Einträgen.' },
     },
   },
 }

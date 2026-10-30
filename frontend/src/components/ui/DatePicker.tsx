@@ -121,7 +121,7 @@ function monthIsSelectable(year: number, month: number, minDate: Date | null, ma
  * aber für die Panel-Positionierung (Rand-Erkennung oben/unten) einen echten
  * `HTMLButtonElement`-Ref benötigt. Tastatur-/Fokusverhalten bleibt dadurch unverändert, da
  * `IconButton`/`NavArrow`/`Button` alle nativen `button`-Attribute (disabled, aria-*, onClick)
- * unverändert durchreichen (UAT-Runde 5, 2026-10-30, Offener Befund zu UAT-Runde 4, Befund 4).
+ * unverändert durchreichen.
  */
 export function DatePicker({
   id,

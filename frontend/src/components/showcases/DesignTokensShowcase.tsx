@@ -3,10 +3,7 @@ import { Card, SectionHeader } from '@/components/ui'
 import styles from './showcases.module.css'
 
 /**
- * Eigenständige Design-Tokens- und Farbfamilien-Vorschau. Diese Komponente ist NEU
- * (vormals nur inline im Seitencode der früheren In-App-Showcase-Route
- * vorhanden) — ohne sie würde die Design-Tokens-Vorschau beim Löschen der alten
- * In-App-Showcase-Route (Task 12) ersatzlos verschwinden. Zeigt die Basis-Token-Familien
+ * Eigenständige Design-Tokens- und Farbfamilien-Vorschau. Zeigt die Basis-Token-Familien
  * (Canvas/Card/Accent/Success, Radius/Schatten/Spacing/Typografie) sowie die zusätzlichen
  * Farbfamilien der öffentlichen Profile (Avatar-Kreise, Medien-Kategorie-Tags,
  * Community-Logo-Farben) — alles über CSS-Variablen, keine Inline-Hex-Werte in
@@ -16,7 +13,7 @@ import styles from './showcases.module.css'
 const tokenSwatches = [
   { name: 'Canvas', variable: '--surface-canvas', color: '#f6f4ef' },
   { name: 'Card', variable: '--surface-card', color: '#ffffff' },
-  { name: 'Accent', variable: '--accent-primary', color: '#2d5fe8' },
+  { name: 'Accent', variable: '--accent-primary', color: '#5f84dd' },
   { name: 'Success', variable: '--color-success', color: '#28a745' },
 ]
 

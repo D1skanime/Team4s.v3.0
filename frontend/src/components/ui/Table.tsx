@@ -71,7 +71,7 @@ export interface TableEmptyStateProps {
 /**
  * Leerzustand INNERHALB einer Tabellenzeile -- dieselbe visuelle Sprache wie EmptyState
  * (StatusIcon + Heading + Text), nur ohne Card-Hülle, da die Tabellenzelle bereits die
- * umschließende Fläche ist (UAT-Runde 4, Befund 2, 2026-10-30).
+ * umschließende Fläche ist.
  */
 export function TableEmptyState({ colSpan, title, description }: TableEmptyStateProps) {
   return (

@@ -3,8 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { DesignTokensShowcase } from './DesignTokensShowcase'
 
 /**
- * Neue, eigenständige Komponente für die vormals nur inline im Seitencode der
- * früheren In-App-Showcase-Route vorhandene Design-Tokens- und Farbfamilien-Vorschau.
+ * Design-Tokens- und Farbfamilien-Vorschau, gruppiert nach Token-Familie.
  */
 const meta = {
   title: 'Im Einsatz/Design-Tokens und Farbfamilien',

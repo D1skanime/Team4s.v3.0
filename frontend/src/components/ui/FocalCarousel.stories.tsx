@@ -5,8 +5,8 @@ import { FocalCarousel } from './FocalCarousel'
 
 type DemoItem = { id: number; label: string; imageUrl: string }
 
-// Lokales Platzhalterbild statt externer Bildquelle — Storybook zeigt wie die frühere
-// In-App-Showcase ausschließlich Mockdaten, keine Netzwerkabhängigkeit.
+// Lokales Platzhalterbild statt externer Bildquelle -- ausschließlich Mockdaten, keine
+// Netzwerkabhängigkeit.
 const DEMO_ITEMS: DemoItem[] = Array.from({ length: 5 }, (_, index) => ({
   id: index,
   label: `Szene ${index + 1}`,

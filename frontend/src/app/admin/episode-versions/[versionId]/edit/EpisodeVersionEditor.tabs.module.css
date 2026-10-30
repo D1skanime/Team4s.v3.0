@@ -2,7 +2,7 @@
  * Ausgelagert aus EpisodeVersionEditor.module.css (das über 450-Zeilen-Limit wuchs): die Stile
  * der Tab-Navigation, des Stub-Hinweistexts und der Medien-Upload-/Galerie-Bereiche. Wird über
  * EpisodeVersionEditor.styles.ts zusammen mit den übrigen drei Teil-Stylesheets zu EINEM
- * `styles`-Objekt gemergt (UAT-Runde 5, 2026-10-30).
+ * `styles`-Objekt gemergt.
  */
 .stubInfo {
   display: grid;

@@ -2,7 +2,7 @@
  * Ausgelagert aus EpisodeVersionEditor.module.css (das über 450-Zeilen-Limit wuchs): die Stile
  * der Formular-Karten/-Felder (Sektions-Karten, Eingabefelder, Datei-/Erweitert-/Gruppensuche-
  * Kacheln, Chips). Wird über EpisodeVersionEditor.styles.ts zusammen mit den übrigen drei
- * Teil-Stylesheets zu EINEM `styles`-Objekt gemergt (UAT-Runde 5, 2026-10-30).
+ * Teil-Stylesheets zu EINEM `styles`-Objekt gemergt.
  */
 .form {
   display: grid;

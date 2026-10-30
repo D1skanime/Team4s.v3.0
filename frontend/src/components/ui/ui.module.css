@@ -1,6 +1,6 @@
 /* Werte kommen aus den gemeinsamen --field-*-Tokens (globals.css) -- denselben, die auch
    YearPickers und DatePickers Auslöser nutzen, damit alle Formularfelder optisch identisch
-   bleiben (UAT-Runde 5, 2026-10-30). */
+   bleiben. */
 .control {
   width: 100%;
   min-width: 0;

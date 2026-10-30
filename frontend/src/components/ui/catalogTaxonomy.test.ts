@@ -4,11 +4,10 @@ import { describe, expect, it } from 'vitest'
 
 /**
  * Automatische Qualitätssicherung gegen stillschweigende Grundbaustein-zu-Grundbaustein-
- * Verbünde (UAT-Befund 4/7): ein Primitiv unter der Storybook-Kategorie "Grundbausteine/*"
- * verspricht per Definition (siehe CLAUDE.md "Frontend-UI"), KEINE andere components/ui-
- * Komponente intern zu importieren -- komponiert es sichtbar mehrere benannte Grundbausteine,
- * gehört es nach "Zusammengesetzte Bausteine/*" (wie bei den zehn in Befund 7 bereits
- * umsortierten Komponenten). Dieser Test liest NUR die realen Quelldateien per `fs` (kein
+ * Verbünde: ein Primitiv unter der Storybook-Kategorie "Grundbausteine/*" verspricht per
+ * Definition (siehe CLAUDE.md "Frontend-UI"), KEINE andere components/ui-Komponente intern zu
+ * importieren -- komponiert es sichtbar mehrere benannte Grundbausteine, gehört es nach
+ * "Zusammengesetzte Bausteine/*". Dieser Test liest NUR die realen Quelldateien per `fs` (kein
  * jsdom-Rendering, Muster analog zu roleCatalog.accessibility.test.ts) und schlägt bei jedem
  * nicht dokumentierten Fall mit Datei+Import in der Fehlermeldung fehl, statt ein
  * stillschweigendes Abdriften der Taxonomie erst bei der nächsten Live-UAT zu entdecken.
@@ -35,13 +34,13 @@ const EXCEPTIONS: Record<string, string[]> = {
   // Grundbaustein-Wiederverwendung wie ein Button, der intern ein Icon aus lucide-react
   // einbindet -- keine sichtbar KOMPONIERTE Kombination mehrerer benannter Bausteine, die ein
   // Aufrufer selbst zusammensetzt (anders als bei PageHeader/SectionHeader unten, die deshalb
-  // nach "Zusammengesetzte Bausteine" verschoben wurden, UAT-Runde 4, Befund 1, 2026-10-30).
+  // nach "Zusammengesetzte Bausteine" verschoben wurden).
   Card: ['Heading', 'Text'],
   // Table bleibt bewusst ein Grundbaustein: die <table>/<thead>/<tbody>/<tr>/<td>-Familie ist
   // eine reine Daten-Tabellen-Grundstruktur. TableEmptyState ist nur EIN optionaler Hilfs-Export
   // für den Sonderfall "keine Zeilen" innerhalb dieser Grundstruktur (StatusIcon/Heading/Text
   // für dieselbe Optik wie EmptyState) -- kein vom Aufrufer sichtbar komponierter Baustein-
-  // Verbund, den die Tabelle selbst erzwingt (UAT-Runde 4, Befund 2, 2026-10-30).
+  // Verbund, den die Tabelle selbst erzwingt.
   Table: ['Heading', 'StatusIcon', 'Text'],
 }
 

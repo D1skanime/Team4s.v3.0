@@ -248,8 +248,7 @@
   /* Gemeinsamer "ausgewählt"-Kachel-Verlauf für Jahres-/Monats-/Tages-Kacheln in YearPicker und
      DatePicker -- vorher hatte jede Komponente ihren eigenen, leicht abweichenden Blauverlauf
      hart codiert. Der Wert entspricht dem vormaligen YearPicker-Rezept; DatePickers Tages-/
-     Monats-/Jahres-Auswahl gleicht sich dadurch optisch an YearPicker an (UAT-Runde 5,
-     2026-10-30). */
+     Monats-/Jahres-Auswahl gleicht sich dadurch optisch an YearPicker an. */
   --selection-tile-gradient: linear-gradient(180deg, rgba(117, 152, 235, 0.94) 0%, rgba(72, 103, 180, 0.98) 100%);
   --selection-tile-gradient-hover: linear-gradient(180deg, rgba(117, 152, 235, 0.98) 0%, rgba(72, 103, 180, 1) 100%);
   --selection-tile-border-color: rgba(57, 84, 144, 0.34);

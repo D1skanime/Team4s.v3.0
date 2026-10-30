@@ -1,11 +1,9 @@
 /**
  * Eingefrorene Momentaufnahme der PNG-Dateinamen unter
- * `frontend/public/member-achievement-badges/` (Stand: Einführung von Storybook,
- * 2026-10-29). Die ursprüngliche In-App-Showcase-Seite hat diese Liste serverseitig
- * per `fs/promises.readdir` zur Laufzeit erzeugt (früherer serverseitiger Server-
- * Component-Code der ehemaligen Achievements-Unterroute) — eine Storybook-Story rendert
- * dagegen ausschließlich client-seitig im Browser und kann das Dateisystem des Servers
- * nicht lesen. Wird ein neues Erfolgsbadge-Artwork unter
+ * `frontend/public/member-achievement-badges/`. Eine Storybook-Story rendert
+ * ausschließlich client-seitig im Browser und kann das Dateisystem des Servers nicht lesen
+ * (anders als serverseitiger Code, der diese Liste per `fs/promises.readdir` zur Laufzeit
+ * erzeugen könnte). Wird ein neues Erfolgsbadge-Artwork unter
  * `public/member-achievement-badges/` ergänzt oder entfernt, muss diese Liste beim
  * nächsten Anfassen dieser Datei von Hand nachgezogen werden (siehe AGENTS.md
  * "Dokumentation wächst mit dem Code").

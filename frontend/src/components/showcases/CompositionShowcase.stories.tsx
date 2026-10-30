@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { CompositionShowcase } from './CompositionShowcase'
 
 /**
- * 1:1 aus der früheren In-App-Showcase-Route migrierte Komposition: vier
+ * Komposition: vier
  * typische Admin-Layer-Kompositionen (Liste, Edit-Formular, interaktive Liste,
  * Drawer-Anstoß) plus die drei verschachtelten Unterkomponenten
  * `MediaManagementCompositionShowcase`, `ProjectNoteShowcase` und

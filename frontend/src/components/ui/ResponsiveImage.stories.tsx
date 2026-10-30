@@ -7,8 +7,8 @@ import { ResponsiveImage } from './ResponsiveImage'
  * `src` zu den in `publicImagePatterns` konfigurierten lokalen/externen Mustern passt --
  * nur dann läuft das Bild durch den Next.js-Optimierer, sonst rendert es unoptimiert
  * (unverändertes Original) statt die ganze Seite mit einem E426/E231-Fehler abstürzen zu
- * lassen (D-10). Beide Zweige zeigen exakt dasselbe `<Image>`-Element mit identischer
- * Geometrie -- es gibt keinen separaten Fallback-Platzhalter.
+ * lassen. Beide Zweige zeigen exakt dasselbe `<Image>`-Element mit identischer Geometrie --
+ * es gibt keinen separaten Fallback-Platzhalter.
  */
 const meta = {
   title: 'Grundbausteine/ResponsiveImage',
@@ -48,7 +48,7 @@ export const NichtKonfigurierterPfad: Story = {
     docs: {
       description: {
         story:
-          'Ein flacher Alt-Pfad außerhalb aller konfigurierten Muster (vor dem 173-16-Backfill, D-10). Statt eines E426-Absturzes rendert ResponsiveImage unoptimiert weiter -- die hier sichtbare Bruch-Darstellung ist das native Browser-Verhalten für ein nicht auflösbares Bild, kein eigenes Fallback-Visual der Komponente.',
+          'Ein flacher Alt-Pfad außerhalb aller konfigurierten Muster. Statt eines E426-Absturzes rendert ResponsiveImage unoptimiert weiter -- die hier sichtbare Bruch-Darstellung ist das native Browser-Verhalten für ein nicht auflösbares Bild, kein eigenes Fallback-Visual der Komponente.',
       },
     },
   },

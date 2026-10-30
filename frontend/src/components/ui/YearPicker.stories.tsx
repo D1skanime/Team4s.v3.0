@@ -42,7 +42,7 @@ function ControlledYearPicker(props: Omit<ComponentProps<typeof YearPicker>, 'va
 /**
  * Begrenzt die Story auf eine übliche Formularfeld-Breite statt der vollen Storybook-Fläche --
  * der Trigger selbst ist bewusst `width: 100%` (identisch zu Input/Select), wirkt ohne
- * begrenzenden Container aber überdimensioniert (UAT-Runde 4, Befund 4, 2026-10-30).
+ * begrenzenden Container aber überdimensioniert.
  */
 function FieldWidth({ children }: { children: ReactNode }) {
   return <div style={{ maxWidth: 280 }}>{children}</div>
@@ -106,7 +106,7 @@ export const ImEinsatz: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Zeigt, dass der Auslöser neben Input/Select optisch denselben Feld-Stil nutzt (UAT-Runde 4, Befund 4).',
+        story: 'Zeigt, dass der Auslöser neben Input/Select optisch denselben Feld-Stil nutzt.',
       },
     },
   },

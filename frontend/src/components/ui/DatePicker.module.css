@@ -106,8 +106,7 @@ button.datePickerClearButton:hover {
   max-height: min(430px, 72vh);
   overflow: auto;
   /* Rahmen/Hintergrund/Schatten/Radius kommen aus denselben Tokens wie YearPickers Panel --
-     Panel-Chrome über beide Datums-/Jahres-Auswahlen hinweg vereinheitlicht (Review-Runde 1,
-     2026-10-30; vorher UAT-Runde 5). */
+     Panel-Chrome über beide Datums-/Jahres-Auswahlen hinweg vereinheitlicht. */
   border: 1px solid var(--field-border-color);
   border-radius: var(--picker-panel-radius);
   background: var(--field-bg-hover);
@@ -223,9 +222,9 @@ button.datePickerDay {
 }
 
 /* Verlauf kommt aus --selection-tile-* (globals.css) -- derselbe "ausgewählt"-Kachel-Stil wie
-   YearPickers Jahres-Kacheln (UAT-Runde 5, 2026-10-30). !important bleibt nötig, weil eine
-   Tages-Kachel gleichzeitig "heute" UND "ausgewählt" sein kann; beide Zustandsklassen haben hier
-   dieselbe Spezifität (0,1,1). */
+   YearPickers Jahres-Kacheln. !important bleibt nötig, weil eine Tages-Kachel gleichzeitig
+   "heute" UND "ausgewählt" sein kann; beide Zustandsklassen haben hier dieselbe Spezifität
+   (0,1,1). */
 button.datePickerDaySelected,
 button.datePickerTileSelected {
   border-color: var(--selection-tile-border-color) !important;

@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 
 import { Button } from './Button'
-import { Heading } from './Heading'
 import { Text } from './Text'
 import { classNames } from './classNames'
 import styles from './MetricList.module.css'
@@ -54,7 +53,12 @@ export function MetricList({ items, ariaLabel, className, variant = 'default' }:
                     {item.value}
                   </Button>
                 ) : (
-                  <Heading level={4} size="hero" className={styles.metricValue}>{item.value}</Heading>
+                  // Bewusst kein <Heading>: der Kennzahlen-Wert ist Dateninhalt einer <dl>, keine
+                  // Dokument-Überschrift -- je nachdem, wo MetricList eingebettet wird, würde ein
+                  // fester Heading-Level die umgebende h1-h6-Reihenfolge der Seite verletzen
+                  // (Axe-Regel heading-order). Die Größe kommt trotzdem über denselben
+                  // --font-size-hero-Token wie Heading size="hero".
+                  <span className={styles.metricValue}>{item.value}</span>
                 )}
               </dd>
             </>

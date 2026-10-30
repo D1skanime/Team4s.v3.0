@@ -37,7 +37,7 @@ export function Drawer({ open, onClose, title, description, children, footer, va
     >
       <div className={styles.overlay} aria-hidden="true" />
       {/* Reiner Maus-Komfort-Layer (Klick auf den abgedunkelten Hintergrund schließt den Drawer).
-          Kein <button>, um den components/ui-Guard (Befund 8b) nicht zu verletzen -- Escape (über
+          Kein <button>, um das Lint-Verbot für native Buttons in components/ui nicht zu verletzen -- Escape (über
           den umschließenden Dialog) und der IconButton-basierte Schließen-Knopf bleiben die
           tastaturzugänglichen Wege. */}
       <div role="presentation" aria-hidden="true" className={styles.overlayClose} onClick={onClose} />

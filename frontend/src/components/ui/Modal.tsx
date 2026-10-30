@@ -10,6 +10,7 @@ import { mergeCssModules } from '@/lib/mergeCssModules'
 import { Button } from './Button'
 import { DialogHeader } from './DialogHeader'
 import { IconButton } from './IconButton'
+import { VisuallyHidden } from './VisuallyHidden'
 import ownStyles from './Modal.module.css'
 import sharedStyles from './ui.module.css'
 
@@ -138,7 +139,7 @@ export function Modal({
       <div className={styles.overlay} aria-hidden="true" />
       {variant !== 'stage' ? (
         // Reiner Maus-Komfort-Layer (Klick auf den abgedunkelten Hintergrund schließt das Modal).
-        // Kein <button>, um den components/ui-Guard (Befund 8b) nicht zu verletzen -- Escape und
+        // Kein <button>, um das Lint-Verbot für native Buttons in components/ui nicht zu verletzen -- Escape und
         // der IconButton-basierte Schließen-Knopf bleiben die tastaturzugänglichen Wege.
         <div role="presentation" aria-hidden="true" className={styles.overlayClose} onClick={onClose} />
       ) : null}
@@ -156,7 +157,7 @@ export function Modal({
       >
         {variant === 'stage' ? (
           <>
-            <span id={titleID} className="visually-hidden">{title}</span>
+            <VisuallyHidden id={titleID}>{title}</VisuallyHidden>
             <IconButton
               ref={closeButtonRef}
               icon={<X size={18} />}
