@@ -6,19 +6,22 @@ import sharp from 'sharp'
  * UAT-Befund: ein früherer Verlauf war erst ab 30% der Textblock-Höhe ausreichend deckend, der
  * davor existierende CSS-Test prüfte aber nur den Endwert des Verlaufs und konnte das nicht
  * erkennen). Dieser Test rendert zwei reale Fansub-Profile mit nachweislich HELLEM Bannerfoto
- * (per vorheriger DB-/Bildanalyse ermittelt: `new-subs` ~89% mittlere Leuchtdichte, `bloody-
- * shadow` ~68%, die zwei hellsten von sieben Gruppen mit Bannerbild) und misst die TATSÄCHLICH
- * gerenderten Pixel direkt hinter Titel, Status-Badge, Gründungszeile und Kennzahlen -- exakt am
+ * (per vorheriger DB-/Bildanalyse ermittelt, siehe `HERO_CASES` unten für die genaue
+ * Auswahlbegründung) und misst die TATSÄCHLICH gerenderten Pixel direkt hinter Titel,
+ * Status-Badge, Gründungszeile, Kennzahlen UND den Hero-Link-Pills (`.heroChip`) -- exakt am
  * oberen Rand des Textblocks, wo der frühere Verlauf am schwächsten war, statt nur dessen
  * rechnerischen Endwert zu wiederholen.
  *
  * Methodik: Für jedes gemessene Element wird die vom Browser TATSÄCHLICH angewendete Textfarbe
- * per `getComputedStyle` gelesen (deterministisch, kein Rätselraten) und der tatsächlich
- * komponierte Hintergrund per Screenshot des Element-Ausschnitts + häufigster (quantisierter)
- * Farbe darin geschätzt -- robust gegenüber den wenigen, kantengeglätteten Textrand-Pixeln,
- * solange die Hintergrundfläche (wie hier) größer ist als die dünnen Glyphenstriche selbst. Für
- * den Status-Badge ist das bewusst die CHIP-eigene, auf dem Scrim aufliegende Fläche (nicht der
- * rohe Scrim), weil der Text optisch auf dieser Fläche liegt.
+ * per `getComputedStyle` gelesen (deterministisch, kein Rätselraten) -- INKLUSIVE Alpha-Kanal,
+ * der vor der Kontrastberechnung gegen den gemessenen Hintergrund komponiert wird (Subtitle und
+ * Kennzahl-Bezeichnung sind im Banner-Fall bewusst teiltransparent, siehe `parseComputedColor`).
+ * Der tatsächlich komponierte Hintergrund wird per Screenshot des Element-Ausschnitts +
+ * häufigster (quantisierter) Farbe darin geschätzt -- robust gegenüber den wenigen,
+ * kantengeglätteten Textrand-Pixeln, solange die Hintergrundfläche (wie hier) größer ist als die
+ * dünnen Glyphenstriche selbst. Für Status-Badge und Link-Pill ist das bewusst die CHIP-eigene,
+ * auf dem Scrim aufliegende Fläche (nicht der rohe Scrim), weil der Text optisch auf dieser
+ * Fläche liegt.
  */
 
 const WCAG_AA_NORMAL_TEXT = 4.5
@@ -37,11 +40,26 @@ function contrast(a: RGB, b: RGB): number {
   return (lighter + 0.05) / (darker + 0.05)
 }
 
-function parseComputedColor(css: string): RGB {
+function mix(foreground: RGB, background: RGB, alpha: number): RGB {
+  return foreground.map((channel, index) => channel * alpha + background[index] * (1 - alpha)) as RGB
+}
+
+/**
+ * Parst eine von `getComputedStyle` zurückgegebene Farbe INKLUSIVE Alpha. Browser liefern
+ * `rgb(r, g, b)` für opake und `rgba(r, g, b, a)` für teiltransparente Farben -- Subtitle
+ * (`rgba(255, 255, 255, 0.88)`) und Kennzahl-Bezeichnung (`rgba(255, 255, 255, 0.82)`) im
+ * Banner-Fall sind BEWUSST teiltransparent (siehe FansubHeroSection.accessibility.test.ts). Ein
+ * Verwerfen des Alpha-Kanals würde sie fälschlich als deckendes Weiß behandeln und könnte einen
+ * echten Kontrastregressionsfall (z. B. ein versehentlich erhöhter Alpha-Wert) grün melden, da
+ * nur `rgb` statt der tatsächlich gerenderten, mit dem Hintergrund gemischten Farbe geprüft
+ * würde.
+ */
+function parseComputedColor(css: string): { rgb: RGB; alpha: number } {
   const match = css.match(/rgba?\(([^)]+)\)/)
   if (!match) throw new Error(`Nicht parsebare computed-style-Farbe: ${css}`)
   const parts = match[1].split(',').map((part) => Number.parseFloat(part.trim()))
-  return [parts[0], parts[1], parts[2]]
+  const alpha = parts.length >= 4 ? parts[3] : 1
+  return { rgb: [parts[0], parts[1], parts[2]], alpha }
 }
 
 /** Häufigste (auf 8er-Schritte quantisierte) Farbe innerhalb eines Screenshot-Ausschnitts. */
@@ -86,7 +104,11 @@ async function measure(label: string, locator: Locator, blockTop: number): Promi
   const screenshot = await locator.screenshot()
   const background = await dominantColor(screenshot)
   const colorCss = await locator.evaluate((el) => getComputedStyle(el).color)
-  const foreground = parseComputedColor(colorCss)
+  const { rgb: foregroundRgb, alpha: foregroundAlpha } = parseComputedColor(colorCss)
+  // Teiltransparenter Text wird VOR der Kontrastberechnung gegen den gemessenen Hintergrund
+  // komponiert -- sonst würde z. B. `rgba(255,255,255,0.82)` fälschlich wie deckendes Weiß
+  // bewertet, das stets maximalen Kontrast gegen jeden dunklen Hintergrund ergibt.
+  const foreground = foregroundAlpha < 1 ? mix(foregroundRgb, background, foregroundAlpha) : foregroundRgb
 
   return {
     label,
@@ -106,14 +128,19 @@ interface HeroCase {
   label: string
   statusText: string
   subtitleText: string
+  linkText: string
 }
 
 /**
- * Die zwei hellsten von sieben Fansub-Gruppen mit echtem Bannerfoto (per Sharp-Leuchtdichte-
- * Analyse der tatsächlich auf der DB hinterlegten Bilddateien ermittelt, siehe Bericht):
- * `new-subs` (~89% mittlere Leuchtdichte, Status "aufgelöst" -- der kontrastkritischste Badge-
- * Pfad, da variant="muted" einen teiltransparenten statt opaken Chip nutzt) und `bloody-shadow`
- * (~68%, Status "aktiv").
+ * Die zwei hellsten von sieben Fansub-Gruppen mit echtem Bannerfoto, die ZUGLEICH einen echten
+ * Hero-Link (`.heroChip`) besitzen -- von den sieben bannerten Gruppen haben nur `new-subs` und
+ * `ls-subs` einen hinterlegten Website-Link, Link-Pills gehören laut Abnahmevorgabe zur
+ * Pflicht-Messreihe. `bloody-shadow` (~68% Leuchtdichte, eigentlich die zweithellste Gruppe)
+ * hat KEINEN Link und schied deshalb aus; `ls-subs` ist mit ~64,5% die hellste der verbleibenden
+ * fünf Gruppen MIT Link (per Sharp-Leuchtdichte-Analyse der tatsächlich auf der DB hinterlegten
+ * Bilddateien ermittelt, siehe Bericht). `new-subs` bleibt zusätzlich der kontrastkritischste
+ * Badge-Pfad (Status "aufgelöst" -- variant="muted" nutzt einen teiltransparenten statt opaken
+ * Chip).
  */
 const HERO_CASES: HeroCase[] = [
   {
@@ -121,12 +148,14 @@ const HERO_CASES: HeroCase[] = [
     label: 'New-Subs (hellstes Bannerfoto, ~89% Leuchtdichte, Status "aufgelöst")',
     statusText: 'aufgelöst',
     subtitleText: '2012 bis 2015 • Deutschland',
+    linkText: 'Webseite',
   },
   {
-    slug: 'bloody-shadow',
-    label: 'Bloody-Shadow (zweithellstes Bannerfoto, ~68% Leuchtdichte, Status "aktiv")',
+    slug: 'ls-subs',
+    label: 'LS-SUBS (hellstes Bannerfoto MIT Hero-Link, ~64,5% Leuchtdichte, Status "aktiv")',
     statusText: 'aktiv',
-    subtitleText: 'Keine Kurzbeschreibung vorhanden.',
+    subtitleText: 'gegründet 2011 • Deutschland',
+    linkText: 'Webseite',
   },
 ]
 
@@ -147,6 +176,7 @@ async function measureHero(page: Page, heroCase: HeroCase): Promise<Measurement[
   const subtitle = hero.getByText(heroCase.subtitleText, { exact: true })
   const metricLabel = hero.locator('dt').first()
   const metricValue = hero.locator('dd').first()
+  const link = hero.getByRole('link', { name: heroCase.linkText })
 
   return [
     await measure('Titel (Gruppenname)', title, textBlockBox.y),
@@ -154,12 +184,13 @@ async function measureHero(page: Page, heroCase: HeroCase): Promise<Measurement[
     await measure('Gründungszeile', subtitle, textBlockBox.y),
     await measure('Kennzahl-Bezeichnung', metricLabel, textBlockBox.y),
     await measure('Kennzahl-Wert', metricValue, textBlockBox.y),
+    await measure(`Link-Pill ("${heroCase.linkText}")`, link, textBlockBox.y),
   ]
 }
 
 test.describe('Fansub-Hero-Scrim: realer, positionsabhängiger Kontrast gegen echte helle Bannerfotos', () => {
   for (const heroCase of HERO_CASES) {
-    test(`${heroCase.label}: Titel/Badge/Gründungszeile/Kennzahlen erreichen WCAG AA direkt am oberen Rand des Textblocks`, async ({
+    test(`${heroCase.label}: Titel/Badge/Gründungszeile/Kennzahlen/Link-Pills erreichen WCAG AA direkt am oberen Rand des Textblocks`, async ({
       page,
     }) => {
       await page.setViewportSize({ width: 1280, height: 900 })

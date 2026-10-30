@@ -32,6 +32,7 @@ const badgeCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/components/ui/Badge.module.css'),
   'utf8',
 )
+const globalsCss = fs.readFileSync(path.resolve(process.cwd(), 'src/styles/globals.css'), 'utf8')
 
 type RGB = [number, number, number]
 const WHITE: RGB = [255, 255, 255]
@@ -87,13 +88,40 @@ function extractScrimAlpha(): number {
   return Number(match![1])
 }
 
-/** Extrahiert eine Farbe (opak #hex ODER rgba(255,255,255,<alpha>)) aus einer benannten
- *  CSS-Deklaration innerhalb eines gegebenen Selektor-Blocks. */
+/**
+ * Löst eine in `globals.css` deklarierte Custom Property bis zu einem Literal auf (hex ODER
+ * rgba()) -- folgt dabei EINER Indirektionsstufe (`--text-primary: var(--color-text-primary)`
+ * -> `--color-text-primary: #1c1c1e`), wie sie im globalen Token-System üblich ist. Wird für
+ * `.heroChip`s `color: var(--text-primary)` benötigt, das (anders als Badge/HeroMetrics) KEINEN
+ * eigenen Banner-Override besitzt und daher direkt auf den globalen Token verweist.
+ */
+function resolveGlobalVar(varName: string, depth = 0): { rgb: RGB; alpha: number } {
+  expect(depth, `--${varName}: Variablenkette zu tief verschachtelt`).toBeLessThan(5)
+  const match = globalsCss.match(new RegExp(`--${varName}:\\s*([^;]+);`))
+  expect(match, `--${varName} must be declared in globals.css`).not.toBeNull()
+  const value = match![1].trim()
+
+  const varRefMatch = value.match(/^var\(--([a-zA-Z0-9-]+)\)$/)
+  if (varRefMatch) {
+    return resolveGlobalVar(varRefMatch[1], depth + 1)
+  }
+  if (value.startsWith('#')) {
+    return { rgb: hexRgb(value), alpha: 1 }
+  }
+  const rgbaMatch = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/)
+  expect(rgbaMatch, `--${varName} must be a parseable color: ${value}`).not.toBeNull()
+  const [, r, g, b, a] = rgbaMatch!
+  return { rgb: [Number(r), Number(g), Number(b)], alpha: a === undefined ? 1 : Number(a) }
+}
+
+/** Extrahiert eine Farbe (opak #hex, rgba(...), ODER eine direkte CSS-Variablen-Referenz ohne
+ *  eigenen Fallback auf einen globalen Token) aus einer benannten CSS-Deklaration innerhalb
+ *  eines gegebenen Selektor-Blocks. */
 function extractColorFromRule(cssText: string, selector: string, property: string): { rgb: RGB; alpha: number } {
   const selectorRegex = new RegExp(`${selector.replace(/[.[\]]/g, '\\$&')}\\s*\\{([^}]*)\\}`)
   const block = cssText.match(selectorRegex)
   expect(block, `${selector} must exist in the stylesheet`).not.toBeNull()
-  const propRegex = new RegExp(`${property}:\\s*(#[0-9a-fA-F]{6}|rgba\\([^)]+\\));`)
+  const propRegex = new RegExp(`${property}:\\s*(#[0-9a-fA-F]{6}|rgba?\\([^)]+\\)|var\\(--[a-zA-Z0-9-]+\\));`)
   const propMatch = block![1].match(propRegex)
   expect(propMatch, `${selector} must declare ${property}`).not.toBeNull()
   const value = propMatch![1]
@@ -102,10 +130,15 @@ function extractColorFromRule(cssText: string, selector: string, property: strin
     return { rgb: hexRgb(value), alpha: 1 }
   }
 
-  const rgbaMatch = value.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/)
+  const varRefMatch = value.match(/^var\(--([a-zA-Z0-9-]+)\)$/)
+  if (varRefMatch) {
+    return resolveGlobalVar(varRefMatch[1])
+  }
+
+  const rgbaMatch = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/)
   expect(rgbaMatch, `${selector} ${property} must be a parseable rgba()`).not.toBeNull()
   const [, r, g, b, a] = rgbaMatch!
-  return { rgb: [Number(r), Number(g), Number(b)], alpha: Number(a) }
+  return { rgb: [Number(r), Number(g), Number(b)], alpha: a === undefined ? 1 : Number(a) }
 }
 
 function extractVarValue(cssText: string, selector: string, varName: string): { rgb: RGB; alpha: number } {
@@ -170,5 +203,19 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
   it('Badge.module.css behält die unveränderten Fallback-Werte ohne Bannerfoto (kein Verhaltenswechsel für die ~45+ anderen variant="muted"-Verwender)', () => {
     expect(badgeCss).toMatch(/var\(--badge-muted-bg,\s*rgba\(255,\s*255,\s*255,\s*0\.38\)\)/)
     expect(badgeCss).toMatch(/var\(--badge-muted-fg,\s*#66758d\)/)
+  })
+
+  it('.heroChip (Link-Pills) erreicht im Banner-Fall mindestens 4,5:1 Kontrast gegen seine eigene, auf dem Worst-Case-Scrim aufliegende Chip-Fläche', () => {
+    // .heroChip besitzt -- anders als Badge/HeroMetrics -- KEINEN eigenen Banner-Override: die
+    // teiltransparente weiße Chip-Fläche (rgba(255,255,255,0.72)) und der dunkle Text
+    // (var(--text-primary)) bleiben im Banner-Fall unverändert. Zweistufige Mischung wie beim
+    // Badge: zuerst die Chip-Fläche über dem Worst-Case-Scrim-Hintergrund, danach der Text
+    // über dieser bereits gemischten Chip-Fläche.
+    const chipBackgroundOwn = extractColorFromRule(pageCss, '.heroChip', 'background')
+    const chipText = extractColorFromRule(pageCss, '.heroChip', 'color')
+    const chipBackground =
+      chipBackgroundOwn.alpha < 1 ? mix(chipBackgroundOwn.rgb, worstCaseBackground, chipBackgroundOwn.alpha) : chipBackgroundOwn.rgb
+    const renderedText = chipText.alpha < 1 ? mix(chipText.rgb, chipBackground, chipText.alpha) : chipText.rgb
+    expect(contrast(renderedText, chipBackground)).toBeGreaterThanOrEqual(4.5)
   })
 })
