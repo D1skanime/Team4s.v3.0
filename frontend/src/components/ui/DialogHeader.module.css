@@ -20,6 +20,6 @@
 
 .dialogDescription {
   /* font-size 1rem/color var(--text-soft) entsprechen bereits exakt Texts variant="soft"-
-     Default -- keine CSS-Variablen-Ueberschreibung noetig, nur margin bleibt hier. */
+     Default -- keine CSS-Variablen-Überschreibung nötig, nur margin bleibt hier. */
   margin: 6px 0 0;
 }

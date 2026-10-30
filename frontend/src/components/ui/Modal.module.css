@@ -93,7 +93,7 @@
 
   .modalPanel {
     /* Gleicher Radius-Token wie Card/Drawer (var(--radius-surface)) -- nur der Zahlenwert
-       wandert zum Token, die Eckenkombination bleibt unveraendert. */
+       wandert zum Token, die Eckenkombination bleibt unverändert. */
     border-radius: var(--radius-surface) 0 0 var(--radius-surface);
   }
 

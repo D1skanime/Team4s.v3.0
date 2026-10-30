@@ -28,7 +28,7 @@ export const Standard: Story = {
 }
 
 export const NurTrailing: Story = {
-  name: 'NurTrailing',
+  name: 'Nur Trailing-Aktion',
   args: {
     trailing: <Button variant="secondary">Schließen</Button>,
   },

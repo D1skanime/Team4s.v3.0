@@ -23,7 +23,7 @@ export const Standard: Story = {
 }
 
 export const LangerTabLabel: Story = {
-  name: 'LangerTabLabel',
+  name: 'Langes Tab-Label',
   args: {
     items: [
       { id: 'summary', label: 'Übersicht', content: <p>Standard-Tab.</p> },
@@ -37,7 +37,7 @@ export const LangerTabLabel: Story = {
 }
 
 export const FokusWechsel: Story = {
-  name: 'FokusWechsel',
+  name: 'Fokus-Wechsel',
   args: {
     items: [
       { id: 'summary', label: 'Übersicht', content: <p>Mit Tab/Pfeiltasten zwischen den Reitern wechseln.</p> },

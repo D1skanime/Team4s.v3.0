@@ -35,10 +35,10 @@
   color: var(--accent-deep);
 }
 
-/* Element+Klasse-Selektoren (Spezifitaet 0,1,1) statt reiner Klassen-Selektoren: der
-   Ueberlauf-Ausloeser rendert jetzt ueber IconButton (variant="ghost"), dessen eigene
+/* Element+Klasse-Selektoren (Spezifität 0,1,1) statt reiner Klassen-Selektoren: der
+   Überlauf-Auslöser rendert jetzt über IconButton (variant="ghost"), dessen eigene
    Basis-Klassen (.iconButton/.iconButtonGhost/.iconButtonSm aus IconButton.module.css) sonst
-   je nach CSS-Modul-Buendel-Reihenfolge das kreisrunde "+N"-Aussehen ueberschreiben koennten
+   je nach CSS-Modul-Bündel-Reihenfolge das kreisrunde "+N"-Aussehen überschreiben könnten
    -- identisches Muster wie bei NavArrow auf IconButton (Quick-Task 261029-rnd). */
 button.avatarStackOverflowButton {
   width: 32px;

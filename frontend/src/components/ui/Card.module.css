@@ -67,7 +67,7 @@
 .cardNestedFlat {
   gap: 12px;
   padding: 14px 14px 12px;
-  /* Teilt denselben Radius-Token wie Modal/Drawer (var(--radius-surface)) statt eines zufaellig
+  /* Teilt denselben Radius-Token wie Modal/Drawer (var(--radius-surface)) statt eines zufällig
      identischen Pixelwerts -- so bleibt die Eckenrundung repo-weit an EINER Stelle pflegbar. */
   border-radius: var(--radius-surface);
   border: 1px solid rgba(56, 70, 96, 0.06);
@@ -92,7 +92,7 @@
 }
 
 .cardDescription {
-  /* color-Override nicht noetig: var(--text-soft) ist bereits Texts variant="soft"-Default. */
+  /* color-Override nicht nötig: var(--text-soft) ist bereits Texts variant="soft"-Default. */
   margin: 4px 0 0;
   --text-soft-size: 0.92rem;
 }

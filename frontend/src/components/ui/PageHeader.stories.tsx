@@ -40,7 +40,7 @@ export const OhneActions: Story = {
 }
 
 export const LangerTitel: Story = {
-  name: 'LangerTitel',
+  name: 'Langer Titel',
   args: {
     title: 'Ein außergewöhnlich langer Seitentitel, der das Umbruchverhalten des Headers auf schmalen Viewports prüft',
     description: 'Prüft, ob der Titel bei sehr langem Text sauber umbricht statt überzulaufen.',

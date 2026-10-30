@@ -29,7 +29,7 @@ export const Standard: Story = {
 }
 
 export const NurLeading: Story = {
-  name: 'NurLeading',
+  name: 'Nur Leading-Aktion',
   args: {
     leading: <Input placeholder="Suche oder Filter" />,
   },

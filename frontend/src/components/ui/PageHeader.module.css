@@ -48,7 +48,7 @@
 
 .pageDescription {
   /* font-size/color kommen jetzt von Text (variant="meta"), hier per CSS-Variable auf den
-     bisherigen, unveraenderten Wert gesetzt -- identisches Muster wie Badge/--hero-metrics-*. */
+     bisherigen, unveränderten Wert gesetzt -- identisches Muster wie Badge/--hero-metrics-*. */
   --text-meta-size: 1rem;
   --text-meta-color: #657086;
   line-height: 1.55;

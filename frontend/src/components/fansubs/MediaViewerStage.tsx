@@ -40,7 +40,7 @@ function prefetch(url: string | undefined | null) {
 
 /**
  * Entscheidet, ob der "Originalbild wird geladen …"-Pill sichtbar sein soll:
- * nur solange ein tatsaechlicher Swap von einer abweichenden Anzeige-URL auf
+ * nur solange ein tatsächlicher Swap von einer abweichenden Anzeige-URL auf
  * die Original-URL noch ausstehend ist. Einzige nicht bereits in
  * mediaViewerNavigation.ts abgedeckte Logik dieser Datei (D-13).
  */
@@ -86,8 +86,8 @@ export function MediaViewerStage({
       onGestureNavigate,
     })
 
-  // Ladezustand/Fehlerzustand duerfen beim Wechsel auf ein anderes Bild nicht
-  // uebernommen werden (Zoom-/Pan-Reset laeuft ueber useMediaViewerZoomPan's
+  // Ladezustand/Fehlerzustand dürfen beim Wechsel auf ein anderes Bild nicht
+  // übernommen werden (Zoom-/Pan-Reset läuft über useMediaViewerZoomPan's
   // eigenen resetKey-Effekt plus den lifted zoomLevel-Reset in FansubMediaLightbox.tsx).
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -178,9 +178,9 @@ export function MediaViewerStage({
           description="Bitte prüfen Sie Ihre Verbindung oder wählen Sie ein anderes Bild."
         />
       ) : displaySrc ? (
-        // Bewusst natives <img>, nicht next/image: der Zoom-auf-native-Aufloesung
-        // benoetigt direkte Kontrolle ueber intrinsisches Sizing, die next/image's
-        // fill-/explizites-width-height-Vertrag nicht saubar abbilden kann.
+        // Bewusst natives <img>, nicht next/image: der Zoom-auf-native-Auflösung
+        // benötigt direkte Kontrolle über intrinsisches Sizing, die next/image's
+        // fill-/explizites-width-height-Vertrag nicht sauber abbilden kann.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           ref={imageRef}

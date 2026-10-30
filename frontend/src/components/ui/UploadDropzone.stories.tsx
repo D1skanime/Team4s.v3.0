@@ -35,7 +35,7 @@ export const Disabled: Story = {
 }
 
 export const DragAktiv: Story = {
-  name: 'DragAktiv',
+  name: 'Drag aktiv',
   args: { dropHintLabel: 'Datei hier loslassen' },
   parameters: {
     docs: {

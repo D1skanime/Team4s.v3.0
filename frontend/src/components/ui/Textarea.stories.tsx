@@ -30,7 +30,7 @@ export const Disabled: Story = {
 }
 
 export const LangerInhalt: Story = {
-  name: 'LangerInhalt',
+  name: 'Langer Inhalt',
   args: {
     defaultValue:
       'Die Oberfläche bleibt mockbasiert und generisch. Dieser Absatz ist bewusst sehr lang, über mehrere Zeilen hinweg, um das Zeilenumbruch- und Scroll-Verhalten eines mehrzeiligen Textfelds mit realistisch langem Fließtext zu prüfen, ohne dass dabei der Rahmen des Feldes gesprengt wird.',

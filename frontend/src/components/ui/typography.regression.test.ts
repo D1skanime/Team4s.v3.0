@@ -3,14 +3,14 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Pixel-Regressionsnachweis fuer die interne Heading/Text-Umstellung von PageHeader/
+ * Pixel-Regressionsnachweis für die interne Heading/Text-Umstellung von PageHeader/
  * SectionHeader/DialogHeader/Card (UAT-Befund 5): liest die realen CSS-Texte per `fs` (kein
  * Rendering, Muster analog zu catalogTaxonomy.test.ts/roleCatalog.accessibility.test.ts) und
  * beweist, dass jede Komponente nach der Umstellung auf die geteilten Heading/Text-Bausteine
- * BYTE-IDENTISCHE effektive font-size/color/line-height/letter-spacing/margin-Werte behaelt wie
+ * BYTE-IDENTISCHE effektive font-size/color/line-height/letter-spacing/margin-Werte behält wie
  * vor der Umstellung. Besonders kritisch: SectionHeaders .sectionDescription muss die VOLLE
  * margin-Shorthand setzen (nicht nur margin-top) -- Text.module.css nimmt bewusst KEINEN
- * eigenen margin-Reset vor, ein unvollstaendiger Reset wuerde den Browser-Standard-Absatzabstand
+ * eigenen margin-Reset vor, ein unvollständiger Reset würde den Browser-Standard-Absatzabstand
  * unten/seitlich wieder durchschlagen lassen.
  */
 
@@ -24,8 +24,8 @@ function readGlobalsCss(): string {
   return fs.readFileSync(path.resolve(process.cwd(), 'src/styles/globals.css'), 'utf8')
 }
 
-/** Fasst ALLE Deklarationsbloecke eines Selektors in einer CSS-Datei zusammen (manche Dateien
- *  deklarieren denselben Selektor bewusst in mehreren, thematisch getrennten Bloecken). */
+/** Fasst ALLE Deklarationsblöcke eines Selektors in einer CSS-Datei zusammen (manche Dateien
+ *  deklarieren denselben Selektor bewusst in mehreren, thematisch getrennten Blöcken). */
 function mergedBlocks(cssText: string, selector: string): string {
   const escaped = selector.replace(/[.[\]]/g, '\\$&')
   const regex = new RegExp(`${escaped}\\s*\\{([^}]*)\\}`, 'g')
@@ -96,7 +96,7 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(sectionHeaderTsx).toMatch(/<Text\s+variant="soft"/)
       const descriptionRule = mergedBlocks(sectionHeaderCss, '.sectionDescription')
       // Kritisch: volle Shorthand, NICHT nur margin-top -- Text setzt keinen eigenen Reset,
-      // ein unvollstaendiger Reset liesse den Browser-Standard-Absatzabstand unten/seitlich
+      // ein unvollständiger Reset ließe den Browser-Standard-Absatzabstand unten/seitlich
       // durchschlagen.
       expect(descriptionRule).toMatch(/margin:\s*6px 0 0;/)
       expect(descriptionRule).not.toMatch(/margin-top:\s*6px;/)

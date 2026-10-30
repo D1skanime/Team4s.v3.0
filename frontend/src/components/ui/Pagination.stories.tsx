@@ -20,12 +20,12 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const MittenImVerlauf: Story = {
-  name: 'MittenImVerlauf',
+  name: 'Mitten im Verlauf',
   args: { currentPage: 2, totalPages: 8, onPageChange: () => {} },
 }
 
 export const ErsteSeite: Story = {
-  name: 'ErsteSeite',
+  name: 'Erste Seite',
   args: { currentPage: 1, totalPages: 8, onPageChange: () => {} },
   parameters: {
     docs: {
@@ -35,7 +35,7 @@ export const ErsteSeite: Story = {
 }
 
 export const LetzteSeite: Story = {
-  name: 'LetzteSeite',
+  name: 'Letzte Seite',
   args: { currentPage: 8, totalPages: 8, onPageChange: () => {} },
   parameters: {
     docs: {

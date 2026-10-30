@@ -12,9 +12,9 @@ import styles from './showcases.module.css'
  * FormField+Input/Select. Zeigt die Modal/DialogHeader/IconButton-Komposition (Task 7) so, wie
  * sie in einer echten Admin-Seite verwendet würde — nicht nur isoliert als Primitiv-Story.
  *
- * `initialOpen` ist additiv und ausschliesslich fuer Storybook gedacht (z. B. eine "Geoeffnet"-
+ * `initialOpen` ist additiv und ausschließlich für Storybook gedacht (z. B. eine "Geöffnet"-
  * Story, die das Modal ohne Klick auf "Bearbeiten" direkt sichtbar macht) -- die normale
- * Verwendung ohne diese Prop verhaelt sich unveraendert (startet geschlossen).
+ * Verwendung ohne diese Prop verhält sich unverändert (startet geschlossen).
  */
 interface ModalInContextShowcaseProps {
   initialOpen?: boolean

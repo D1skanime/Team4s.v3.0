@@ -50,7 +50,7 @@ export const Standard: Story = {
 }
 
 export const LangerInhalt: Story = {
-  name: 'LangerInhalt',
+  name: 'Langer Inhalt',
   args: {
     title: 'Ausführliche Release-Notizen',
     size: 'lg',

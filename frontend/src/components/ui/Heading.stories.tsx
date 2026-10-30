@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Heading } from './Heading'
 
 /**
- * Typografie-Grundbaustein fuer Ueberschriften: `level` bestimmt das semantische Tag (h1-h4),
- * `size` (optional, Standard = `level`) bestimmt die visuelle Groessenstufe unabhaengig davon.
+ * Typografie-Grundbaustein für Überschriften: `level` bestimmt das semantische Tag (h1-h4),
+ * `size` (optional, Standard = `level`) bestimmt die visuelle Größenstufe unabhängig davon.
  */
 const meta = {
   title: 'Grundbausteine/Heading',

@@ -3,24 +3,27 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Automatische Qualitaetssicherung gegen englische sichtbare Story-Namen/-Inhalte
- * (Codex-Review Runde 2 von 2, quick-261029-rnd): der Auftrag verlangt durchgehend deutsche
- * sichtbare Story-Namen und gerenderte Texte in Storybook. Zwei konkrete, bereits aufgetretene
- * Fehlermuster werden hier dauerhaft als Regression erfasst, statt erst bei der naechsten
- * Review-Runde erneut aufzufallen:
+ * Automatische Qualitätssicherung gegen englische ODER unlesbar zusammengeschriebene sichtbare
+ * Story-Namen/-Inhalte (Codex-Review Runde 2 von 2 + Live-UAT-Nachbesserung, quick-261029-rnd):
+ * der Auftrag verlangt durchgehend deutsche, lesbare sichtbare Story-Namen und gerenderte Texte
+ * in Storybook. Drei konkrete, bereits aufgetretene Fehlermuster werden hier dauerhaft als
+ * Regression erfasst, statt erst bei der nächsten Review-/UAT-Runde erneut aufzufallen:
  *
  * 1. Eine Story ohne `name:`-Override zeigt den rohen Export-Bezeichner als sichtbaren Namen
  *    (z. B. `export const Disabled` ohne Override zeigt "Disabled" in der Sidebar).
  * 2. Ein `name:`-Override oder ein gerendertes Props-Literal verwendet selbst ein englisches
  *    Wort (z. B. `name: 'WithActions'` oder `children: 'Success'`).
+ * 3. Ein `name:`-Override (oder der ungenutzte Export-Bezeichner) ist zwar deutsch, aber ohne
+ *    Leerzeichen aus mehreren Wörtern zusammengeschrieben (CamelCase, z. B. `name: 'LangerInhalt'`
+ *    statt `'Langer Inhalt'`) -- für Menschen in der Sidebar schwer lesbar.
  *
- * Bewusste Grenze (analog zu catalogTaxonomy.test.ts): dies ist eine Textmuster-Pruefung per
+ * Bewusste Grenze (analog zu catalogTaxonomy.test.ts): dies ist eine Textmuster-Prüfung per
  * `fs`, kein jsdom-Rendering -- sie erfasst nur den `name:`-Override, den Export-Bezeichner und
- * einzelne, exakt grossgeschriebene String-Literale je Story-Block, NICHT jede beliebige
+ * einzelne, exakt großgeschriebene String-Literale je Story-Block, NICHT jede beliebige
  * zusammengesetzte JSX-Ausdruck-Struktur. Echte code-seitige Enum-Werte (`variant: 'success'`)
- * bleiben unberuehrt, da sie im Code-Stil dieses Repos durchgehend kleingeschrieben sind --
- * nur die GROSSGESCHRIEBENE Form eines Wortes als eigenstaendiges String-Literal gilt als
- * Verstoss.
+ * bleiben unberührt, da sie im Code-Stil dieses Repos durchgehend kleingeschrieben sind --
+ * nur die GROSSGESCHRIEBENE Form eines Wortes als eigenständiges String-Literal gilt als
+ * Verstoß.
  */
 
 const UI_DIR = path.resolve(process.cwd(), 'src/components/ui')
@@ -43,6 +46,14 @@ const DISPLAY_NAME_ALLOWLIST = new Set([
   'NurTrailing', // s.o., Pendant `trailing`
   'OhneArtwork', // "Artwork" ist in diesem Medien-/Fansub-Kontext ein etablierter Fachbegriff
 ])
+
+/** Erkennt einen sichtbaren Namen, der aus mehreren grossgeschriebenen Wortteilen ohne
+ *  Leerzeichen besteht (z. B. "LangerInhalt") -- lesbar wäre "Langer Inhalt". Technische,
+ *  bewusst wortlose Kürzel wie "H1"-"H4" (Ziffer statt zweitem Grossbuchstaben) fallen NICHT
+ *  darunter. */
+function isUnspacedCamelCase(text: string): boolean {
+  return /^[A-Z][a-z0-9]+(?:[A-Z][a-zA-Z0-9]*)+$/.test(text)
+}
 
 /** Grossgeschriebene String-Literale, die wiederholt als vergessener englischer Props-Inhalt
  *  (z. B. `children: 'Success'`) aufgetaucht sind. */
@@ -112,6 +123,16 @@ describe('Storybook-Texte sind durchgehend deutsch (sichtbare Story-Namen und Pr
           violations,
           `${storyFile} / ${identifier}: enthält grossgeschriebene englische String-Literale: ${violations.join(', ')} -- vermutlich vergessener englischer Props-/Children-Inhalt`,
         ).toEqual([])
+      })
+
+      it(`${storyFile} / ${identifier}: sichtbarer Story-Name ist lesbar (kein CamelCase ohne Leerzeichen)`, () => {
+        const nameOverrideMatch = block.match(/name:\s*'([^']*)'/)
+        const effectiveDisplayName = nameOverrideMatch ? nameOverrideMatch[1] : identifier
+
+        expect(
+          isUnspacedCamelCase(effectiveDisplayName),
+          `${storyFile} / ${identifier}: sichtbarer Name "${effectiveDisplayName}" ist mehrwortiges CamelCase ohne Leerzeichen -- deutsches name:-Override mit Leerzeichen/Satzzeichen ergänzen (z. B. "Langer Inhalt" statt "LangerInhalt")`,
+        ).toBe(false)
       })
     }
   }

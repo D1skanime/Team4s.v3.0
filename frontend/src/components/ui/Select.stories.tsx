@@ -48,7 +48,7 @@ export const Disabled: Story = {
 }
 
 export const LeereOptionen: Story = {
-  name: 'LeereOptionen',
+  name: 'Leere Optionen',
   render: (args) => (
     <Select {...args}>
       <option value="">Keine Optionen verfügbar</option>

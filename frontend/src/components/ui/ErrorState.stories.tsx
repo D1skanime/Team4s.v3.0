@@ -42,7 +42,7 @@ export const Status403: Story = {
 }
 
 export const OhneAction: Story = {
-  name: 'OhneAction',
+  name: 'Ohne Aktion',
   args: {
     title: 'Fehler beim Laden',
     description: 'Die Daten konnten nicht geladen werden.',

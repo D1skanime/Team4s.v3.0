@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { Text } from './Text'
 
-/** Typografie-Grundbaustein fuer Fliess-/Metatext mit vier Tonalitaetsstufen. */
+/** Typografie-Grundbaustein für Fließ-/Metatext mit vier Tonalitätsstufen. */
 const meta = {
   title: 'Grundbausteine/Text',
   component: Text,

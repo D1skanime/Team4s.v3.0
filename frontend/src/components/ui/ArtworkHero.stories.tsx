@@ -48,7 +48,7 @@ export const Standard: Story = {
 }
 
 export const OhneArtwork: Story = {
-  name: 'OhneArtwork',
+  name: 'Ohne Artwork',
   args: {
     imageUrl: null,
     fallbackImageUrl: null,

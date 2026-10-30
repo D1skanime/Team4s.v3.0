@@ -4,9 +4,9 @@ import { Heading } from './Heading'
 import { Text } from './Text'
 
 /**
- * Reine Dokumentations-Komponente (keine eigenstaendige Produktkomponente, daher kein Export
+ * Reine Dokumentations-Komponente (keine eigenständige Produktkomponente, daher kein Export
  * aus index.ts): zeigt die vier Heading-Stufen und alle vier Text-Varianten nebeneinander mit
- * Beispieltexten, die echten Seiteninhalten aehneln. Nur in dieser Storybook-Datei lokal
+ * Beispieltexten, die echten Seiteninhalten ähneln. Nur in dieser Storybook-Datei lokal
  * definiert.
  */
 function TypographyOverview() {

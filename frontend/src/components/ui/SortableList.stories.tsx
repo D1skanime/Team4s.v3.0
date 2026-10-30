@@ -62,7 +62,7 @@ export const Disabled: Story = {
 }
 
 export const LeereListe: Story = {
-  name: 'LeereListe',
+  name: 'Leere Liste',
   render: () => (
     <SortableList items={[]} getItemId={(item: DemoItem) => item.id} onReorder={() => {}} renderItem={renderRow} label="Leere Sortierung" />
   ),
@@ -76,6 +76,6 @@ function LangeListeDemo() {
 }
 
 export const LangeListe: Story = {
-  name: 'LangeListe',
+  name: 'Lange Liste',
   render: () => <LangeListeDemo />,
 }

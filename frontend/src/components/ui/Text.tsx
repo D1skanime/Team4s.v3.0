@@ -17,12 +17,12 @@ const VARIANT_CLASS: Record<TextVariant, string> = {
 }
 
 /**
- * Typografie-Grundbaustein fuer Fliess-/Metatext mit vier Tonalitaetsstufen. Rendert bewusst
+ * Typografie-Grundbaustein für Fließ-/Metatext mit vier Tonalitätsstufen. Rendert bewusst
  * KEINEN margin-Reset -- Aufrufer (z. B. PageHeader/SectionHeader/DialogHeader/Card) setzen ihr
- * eigenes margin, das je Kontext unterschiedlich ausfaellt. Jede Variante nutzt ein
- * `var(--text-*-size/-color, <Fallback>)`-Muster: Aufrufer koennen Groesse/Farbe per eigener
- * CSS-Klasse auf demselben Element ueberschreiben, ohne von der CSS-Modul-Buendelreihenfolge
- * abhaengig zu sein (identisches Muster wie Badge/--hero-metrics-* aus der vorangegangenen
+ * eigenes margin, das je Kontext unterschiedlich ausfällt. Jede Variante nutzt ein
+ * `var(--text-*-size/-color, <Fallback>)`-Muster: Aufrufer können Größe/Farbe per eigener
+ * CSS-Klasse auf demselben Element überschreiben, ohne von der CSS-Modul-Bündelreihenfolge
+ * abhängig zu sein (identisches Muster wie Badge/--hero-metrics-* aus der vorangegangenen
  * UAT-Runde).
  */
 export function Text({ variant = 'body', className, ...rest }: TextProps) {

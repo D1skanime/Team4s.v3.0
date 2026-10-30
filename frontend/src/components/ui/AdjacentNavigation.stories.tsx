@@ -29,7 +29,7 @@ export const Floating: Story = {
 }
 
 export const NurNext: Story = {
-  name: 'NurNext',
+  name: 'Nur Weiter',
   args: {
     next: { href: '#', label: 'Viper Creed' },
   },

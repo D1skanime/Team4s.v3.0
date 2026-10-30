@@ -3,29 +3,29 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Automatische Qualitaetssicherung gegen stillschweigende Grundbaustein-zu-Grundbaustein-
- * Verbuende (UAT-Befund 4/7): ein Primitiv unter der Storybook-Kategorie "Grundbausteine/*"
+ * Automatische Qualitätssicherung gegen stillschweigende Grundbaustein-zu-Grundbaustein-
+ * Verbünde (UAT-Befund 4/7): ein Primitiv unter der Storybook-Kategorie "Grundbausteine/*"
  * verspricht per Definition (siehe CLAUDE.md "Frontend-UI"), KEINE andere components/ui-
  * Komponente intern zu importieren -- komponiert es sichtbar mehrere benannte Grundbausteine,
- * gehoert es nach "Zusammengesetzte Bausteine/*" (wie bei den zehn in Befund 7 bereits
+ * gehört es nach "Zusammengesetzte Bausteine/*" (wie bei den zehn in Befund 7 bereits
  * umsortierten Komponenten). Dieser Test liest NUR die realen Quelldateien per `fs` (kein
- * jsdom-Rendering, Muster analog zu roleCatalog.accessibility.test.ts) und schlaegt bei jedem
+ * jsdom-Rendering, Muster analog zu roleCatalog.accessibility.test.ts) und schlägt bei jedem
  * nicht dokumentierten Fall mit Datei+Import in der Fehlermeldung fehl, statt ein
- * stillschweigendes Abdriften der Taxonomie erst bei der naechsten Live-UAT zu entdecken.
+ * stillschweigendes Abdriften der Taxonomie erst bei der nächsten Live-UAT zu entdecken.
  */
 
 const UI_DIR = path.resolve(process.cwd(), 'src/components/ui')
 
-/** Deklarierte Ausnahmen: ein Import gilt trotz eigener X.stories.tsx NICHT als Verstoss, wenn
- *  er hier mit einer fachlichen Begruendung gelistet ist. */
+/** Deklarierte Ausnahmen: ein Import gilt trotz eigener X.stories.tsx NICHT als Verstoß, wenn
+ *  er hier mit einer fachlichen Begründung gelistet ist. */
 const EXCEPTIONS: Record<string, string[]> = {
-  // Spinner ist ausschliesslich ein internes Implementierungsdetail von Buttons Lade-Zustand,
-  // kein sichtbarer, eigenstaendig komponierter Baustein-Verbund -- anders als z. B.
+  // Spinner ist ausschließlich ein internes Implementierungsdetail von Buttons Lade-Zustand,
+  // kein sichtbarer, eigenständig komponierter Baustein-Verbund -- anders als z. B.
   // Modal+DialogHeader+IconButton (die deshalb bereits unter "Zusammengesetzte Bausteine"
   // stehen).
   Button: ['Spinner'],
   // Heading/Text sind bewusst geteilte, eigene Typografie-Grundbausteine (level/size bzw.
-  // variant-API) -- keine zufaellige Kopplung, sondern die gezielte interne Migration dieser
+  // variant-API) -- keine zufällige Kopplung, sondern die gezielte interne Migration dieser
   // drei Header-Bausteine weg von eigenem h1/h2/h3/p auf einen gemeinsamen Baustein.
   PageHeader: ['Heading', 'Text'],
   SectionHeader: ['Heading', 'Text'],
@@ -33,12 +33,12 @@ const EXCEPTIONS: Record<string, string[]> = {
 }
 
 /** Story-Dateien unter "Grundbausteine/*", die bewusst KEINE eigene X.tsx haben, weil sie reine
- *  Dokumentations-Seiten ohne eigene Produktkomponente sind (z. B. eine Typografie-Uebersicht).
- *  Jeder WEITERE Fall muss hier bewusst mit Begruendung ergaenzt werden -- sonst schlaegt der
- *  Test fehl. Das faengt z. B. einen Tippfehler im Dateinamen ab, der sonst stillschweigend als
- *  "hat halt keine X.tsx" durchgehen wuerde, statt auf eine echte Inkonsistenz hinzuweisen. */
+ *  Dokumentations-Seiten ohne eigene Produktkomponente sind (z. B. eine Typografie-Übersicht).
+ *  Jeder WEITERE Fall muss hier bewusst mit Begründung ergänzt werden -- sonst schlägt der
+ *  Test fehl. Das fängt z. B. einen Tippfehler im Dateinamen ab, der sonst stillschweigend als
+ *  "hat halt keine X.tsx" durchgehen würde, statt auf eine echte Inkonsistenz hinzuweisen. */
 const DOCUMENTATION_ONLY_STORIES = new Set([
-  'TypographyOverview', // reine Typografie-Uebersichtsseite (H1-H4, Text-Varianten), kein Baustein
+  'TypographyOverview', // reine Typografie-Übersichtsseite (H1-H4, Text-Varianten), kein Baustein
 ])
 
 function extractTitle(fileContent: string): string | null {
@@ -48,14 +48,14 @@ function extractTitle(fileContent: string): string | null {
 
 /**
  * Erfasst lokale Geschwister-Importe sowohl als statisches `from './X'`/`from "./X"` ALS AUCH
- * als dynamisches `import('./X')`/`import("./X")` -- ein rein statisches Regex haette ein
- * spaeter eingefuehrtes `import('./X')` (z. B. fuer Code-Splitting) unsichtbar fuer diese
- * Pruefung gemacht. Beide Anfuehrungszeichen-Varianten werden erfasst, da ESLint/Prettier
- * aktuell nur einfache durchsetzt, ein kuenftiger Stilwechsel die Pruefung aber nicht lautlos
+ * als dynamisches `import('./X')`/`import("./X")` -- ein rein statisches Regex hätte ein
+ * später eingeführtes `import('./X')` (z. B. für Code-Splitting) unsichtbar für diese
+ * Prüfung gemacht. Beide Anführungszeichen-Varianten werden erfasst, da ESLint/Prettier
+ * aktuell nur einfache durchsetzt, ein künftiger Stilwechsel die Prüfung aber nicht lautlos
  * aushebeln soll. Bekannte Grenze: nur flache `./X`-Pfade werden erkannt, ein Import aus einem
  * Unterordner wie `./internal/X` nicht -- aktuell legt keine Datei unter components/ui ihre
- * Geschwister-Importe in einem Unterordner ab, daher kein aktiver Verstoss, aber relevant,
- * falls sich das aendert.
+ * Geschwister-Importe in einem Unterordner ab, daher kein aktiver Verstoß, aber relevant,
+ * falls sich das ändert.
  */
 function extractLocalImports(fileContent: string): string[] {
   const imports: string[] = []
@@ -74,7 +74,7 @@ const storyFiles = fs
   .filter((file) => file.endsWith('.stories.tsx'))
   .sort()
 
-describe('Grundbausteine/* Katalogpruefung: keine stillschweigenden Grundbaustein-Verbuende', () => {
+describe('Grundbausteine/* Katalogprüfung: keine stillschweigenden Grundbaustein-Verbünde', () => {
   for (const storyFile of storyFiles) {
     const storyPath = path.join(UI_DIR, storyFile)
     const storyContent = fs.readFileSync(storyPath, 'utf8')
@@ -88,16 +88,16 @@ describe('Grundbausteine/* Katalogpruefung: keine stillschweigenden Grundbaustei
     const componentPath = path.join(UI_DIR, `${componentName}.tsx`)
 
     if (!fs.existsSync(componentPath)) {
-      // Keine eigene X.tsx -- das ist NUR fuer bewusst dokumentierte Dokumentations-Stories
-      // erlaubt (DOCUMENTATION_ONLY_STORIES). Statt die Datei per it.skip unueberprueft zu
-      // lassen, prueft dieser aktive, immer ausgefuehrte Test, dass genau das der Fall ist:
+      // Keine eigene X.tsx -- das ist NUR für bewusst dokumentierte Dokumentations-Stories
+      // erlaubt (DOCUMENTATION_ONLY_STORIES). Statt die Datei per it.skip unüberprüft zu
+      // lassen, prüft dieser aktive, immer ausgeführte Test, dass genau das der Fall ist:
       // ein NEUER "Grundbausteine/*"-Story-Dateiname ohne eigene X.tsx, der NICHT bewusst
       // eingetragen ist (z. B. durch einen Tippfehler im Dateinamen oder eine vergessene
-      // X.tsx), laesst diesen Test fehlschlagen statt stillschweigend unbemerkt zu bleiben.
+      // X.tsx), lässt diesen Test fehlschlagen statt stillschweigend unbemerkt zu bleiben.
       it(`${storyFile}: fehlende X.tsx ist eine bewusst dokumentierte Ausnahme`, () => {
         expect(
           DOCUMENTATION_ONLY_STORIES.has(componentName),
-          `${storyFile} hat keine eigene ${componentName}.tsx und steht NICHT in DOCUMENTATION_ONLY_STORIES -- entweder eine ${componentName}.tsx anlegen oder die Datei hier bewusst mit Begruendung eintragen`,
+          `${storyFile} hat keine eigene ${componentName}.tsx und steht NICHT in DOCUMENTATION_ONLY_STORIES -- entweder eine ${componentName}.tsx anlegen oder die Datei hier bewusst mit Begründung eintragen`,
         ).toBe(true)
       })
       continue
@@ -121,7 +121,7 @@ describe('Grundbausteine/* Katalogpruefung: keine stillschweigenden Grundbaustei
         return fs.existsSync(path.join(UI_DIR, `${importedName}.stories.tsx`))
       })
 
-      expect(violations, `${storyFile} importiert ungeprueft: ${violations.join(', ')}`).toEqual([])
+      expect(violations, `${storyFile} importiert ungeprüft: ${violations.join(', ')}`).toEqual([])
     })
   }
 })

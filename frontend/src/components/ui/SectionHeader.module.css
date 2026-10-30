@@ -76,9 +76,9 @@
 
 .sectionDescription {
   /* VOLLE Margin-Shorthand (nicht nur margin-top): Text (variant="soft") setzt bewusst KEINEN
-     eigenen margin-Reset, ein unvollstaendiges margin-top wuerde den Browser-Standard-
+     eigenen margin-Reset, ein unvollständiges margin-top würde den Browser-Standard-
      Absatzabstand unten/seitlich wieder durchschlagen lassen. font-size/color kommen jetzt von
-     Text, hier per CSS-Variable auf den bisherigen, unveraenderten Wert gesetzt. */
+     Text, hier per CSS-Variable auf den bisherigen, unveränderten Wert gesetzt. */
   margin: 6px 0 0;
   --text-soft-size: 0.92rem;
   --text-soft-color: #657086;

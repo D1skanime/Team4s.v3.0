@@ -28,7 +28,7 @@ export const Disabled: Story = {
 }
 
 export const LangerWert: Story = {
-  name: 'LangerWert',
+  name: 'Langer Wert',
   args: {
     defaultValue:
       'Ein sehr langer vorbefüllter Eingabewert, der das Overflow- und Scroll-Verhalten innerhalb des Eingabefelds prüft',

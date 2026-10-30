@@ -63,7 +63,7 @@ export const AlleGeschlossen: Story = {
 }
 
 export const LangerInhalt: Story = {
-  name: 'LangerInhalt',
+  name: 'Langer Inhalt',
   args: {
     openIds: new Set(['lang']),
     onOpenChange: () => {},

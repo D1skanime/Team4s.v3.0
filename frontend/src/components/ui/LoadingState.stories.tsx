@@ -26,7 +26,7 @@ export const Standard: Story = {
 }
 
 export const OhneBeschreibung: Story = {
-  name: 'OhneBeschreibung',
+  name: 'Ohne Beschreibung',
   args: {
     title: 'Inhalt wird vorbereitet',
     description: '',

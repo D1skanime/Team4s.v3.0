@@ -8,9 +8,9 @@ export type HeadingLevel = 1 | 2 | 3 | 4
 export interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
   /** Semantisches Tag (h1-h4) -- bestimmt die Dokumentstruktur/Barrierefreiheits-Hierarchie. */
   level: HeadingLevel
-  /** Visuelle Groessenstufe, unabhaengig vom Tag waehlbar (Standard: identisch zu `level`).
-   *  Ermoeglicht z. B. ein semantisches h3, das visuell wie ein H2 aussieht (SectionHeader
-   *  rendert wahlweise h2/h3, bleibt aber immer in der H3-Groessenstufe). */
+  /** Visuelle Größenstufe, unabhängig vom Tag wählbar (Standard: identisch zu `level`).
+   *  Ermöglicht z. B. ein semantisches h3, das visuell wie ein H2 aussieht (SectionHeader
+   *  rendert wahlweise h2/h3, bleibt aber immer in der H3-Größenstufe). */
   size?: HeadingLevel
 }
 
@@ -29,10 +29,10 @@ const SIZE_CLASS_BY_LEVEL: Record<HeadingLevel, string> = {
 }
 
 /**
- * Typografie-Grundbaustein fuer Ueberschriften: trennt bewusst das semantische Tag (`level`,
- * fuer die Dokumentstruktur) von der visuellen Groesse (`size`, Standard = `level`). Ohne diese
- * Trennung koennte SectionHeader (das wahlweise ein h2 oder h3 rendert, aber IMMER in derselben
- * visuellen H3-Groesse) seinen bestehenden `level`-Prop-Vertrag nicht beibehalten. Setzt bewusst
+ * Typografie-Grundbaustein für Überschriften: trennt bewusst das semantische Tag (`level`,
+ * für die Dokumentstruktur) von der visuellen Größe (`size`, Standard = `level`). Ohne diese
+ * Trennung könnte SectionHeader (das wahlweise ein h2 oder h3 rendert, aber IMMER in derselben
+ * visuellen H3-Größe) seinen bestehenden `level`-Prop-Vertrag nicht beibehalten. Setzt bewusst
  * KEINE `color` -- die vier bestehenden Konsumenten (PageHeader/SectionHeader/DialogHeader/Card)
  * behalten ihre eigene, teils tokenisierte, teils vererbte Farbdeklaration.
  */

@@ -40,7 +40,7 @@ export const Standard: Story = {
 }
 
 export const MitFehler: Story = {
-  name: 'MitFehler',
+  name: 'Mit Fehler',
   args: {
     label: 'Beschreibung',
     htmlFor: 'form-field-error',
