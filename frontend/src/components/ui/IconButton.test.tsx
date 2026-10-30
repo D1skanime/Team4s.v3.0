@@ -31,14 +31,32 @@ describe('IconButton', () => {
     expect(ref.current).toBeInstanceOf(HTMLButtonElement)
   })
 
-  it('unterstützt die floating-Variante und Größen', () => {
+  it('unterstützt floating-Positionierung und Größen unabhängig voneinander', () => {
     const { container } = render(
-      <IconButton icon={<X size={18} />} aria-label="Schließen" variant="floating" size="lg" />,
+      <IconButton icon={<X size={18} />} aria-label="Schließen" floating size="lg" />,
     )
 
     const button = container.querySelector('button')
     expect(button?.className).toMatch(/iconButtonFloating/)
     expect(button?.className).toMatch(/iconButtonLg/)
+  })
+
+  it('unterstützt die runde Form und die Pfeil-Tonalität', () => {
+    const { container } = render(
+      <IconButton icon={<X size={18} />} aria-label="Weiter" shape="round" tone="arrow" />,
+    )
+
+    const button = container.querySelector('button')
+    expect(button?.className).toMatch(/iconButtonRound/)
+    expect(button?.className).toMatch(/iconButtonToneArrow/)
+  })
+
+  it('unterstützt die onImage-Variante für Icon-Buttons auf Bildern', () => {
+    const { container } = render(
+      <IconButton icon={<X size={18} />} aria-label="Schließen" variant="onImage" />,
+    )
+
+    expect(container.querySelector('button')?.className).toMatch(/iconButtonOnImage/)
   })
 
   it('verdrahtet die ghost-Variante tatsächlich in die Klassenliste (Basis für NavArrow)', () => {

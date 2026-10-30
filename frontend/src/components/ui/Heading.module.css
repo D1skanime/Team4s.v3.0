@@ -4,6 +4,10 @@
   font-weight: var(--font-weight-heading);
 }
 
+.headingSizeHero {
+  font-size: var(--font-size-hero);
+}
+
 .headingSize1 {
   font-size: var(--font-size-h1);
 }

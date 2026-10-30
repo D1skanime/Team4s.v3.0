@@ -31,6 +31,10 @@
   --accent-dark: var(--color-primary-active);
   --accent-deep: #185fa5;
 
+  --avatar-size-sm: 32px;
+  --avatar-size-md: 48px;
+  --avatar-size-lg: 64px;
+
   --avatar-1-bg: #eeedfe;
   --avatar-1-fg: #3c3489;
   --avatar-2-bg: #e1f5ee;
@@ -167,18 +171,20 @@
      auf diesen Elementen) -- die Tokenisierung macht das bisher implizite Gewicht nur
      explizit, ändert es nicht. */
   --font-size-h1: clamp(2rem, 3vw, 2.75rem);
+  /* Zusätzliche Heading-Größenstufe zwischen H1 und H2 für prominente, aber kompakte
+     Hero-Titel (ArtworkHero) und große Kennzahlen (MetricList) -- über Heading size="hero"
+     wählbar, kein eigener Baustein. */
+  --font-size-hero: 1.5rem;
   --font-size-h2: 1.25rem;
   --font-size-h3: 1rem;
   --font-size-h4: 0.875rem;
   --font-weight-heading: 700;
-
-  /* Zwei ergänzende Typo-Tokens für Stellen, die keine der vier Heading-Stufen trifft: das
-     große Hero-Display (ArtworkHeros Titel, HeroMetrics' Kennzahl-Wert -- beide bewusst
-     prominenter als H1/H2 in ihrem jeweils kompakten Hero-Kontext) sowie das kompakte
-     Label-Gewicht (HeroMetrics' Bezeichner). Werte unverändert aus den bisherigen Literalen
-     übernommen -- reine Benennung, keine Optikänderung (UAT-Runde 5, 2026-10-30). */
-  --font-size-hero-display: 1.5rem;
+  /* Kompaktes Label-Gewicht (z. B. MetricList-Bezeichner). */
   --font-weight-label: 600;
+
+  /* Überzeilen-Farbe: verweist bewusst auf --text-soft, nicht auf einen eigenen Hex-Wert --
+     eine Überzeile ist typografisch dasselbe gedämpfte Grau wie anderer Nebentext. */
+  --text-eyebrow: var(--text-soft);
 
   --border-subtle: rgba(45, 41, 38, 0.12);
   --border-strong: rgba(45, 41, 38, 0.24);
@@ -192,33 +198,52 @@
   --focus-ring: 0 0 0 3px rgba(255, 106, 61, 0.18);
   --focus-outline: rgba(255, 106, 61, 0.62);
 
+  --transition-fast: 120ms;
+
   --control-height-sm: 36px;
   --control-height-md: 44px;
   --control-height-lg: 52px;
 
+  /* Gemeinsame Dialog-Fläche für Modal und Drawer (Panel-Hintergrund identisch, Fußzeile
+     eigenständig) statt je eigener, nahezu identischer rgba-Verläufe. */
+  --surface-dialog-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 247, 243, 0.98) 100%);
+  --surface-dialog-footer: linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(248, 244, 240, 0.92) 100%);
+  --modal-width-md: 560px;
+  --modal-width-lg: 1100px;
+  --drawer-width-md: 620px;
+  --drawer-width-lg: 760px;
+
+  /* Basisfarben für den Feld-Stil, benannt statt roh -- der Feld-Stil selbst besteht aus
+     color-mix()-Ableitungen dieser drei Basisfarben (Rahmen-Neutralton, Lesemodus-Fläche,
+     Feldtext), nicht aus eigenen rgba-/Hex-Werten. */
+  --color-border-field: #5c6983;
+  --surface-field-readonly: #f4f7fb;
+  --text-field: #334155;
+  --text-field-placeholder: #8a95a8;
+  --text-field-readonly: #2f3746;
+
   /* Gemeinsamer Feld-Stil für alle Eingabe-Grundbausteine (Rahmen, Hintergrund, Textfarbe,
      Fokus-/Fehler-/Deaktiviert-/Lesemodus-Zustand): EIN benannter Werte-Satz statt der vormals je
      Komponente separat kopierten rgba-Literale in Input/Select/Textarea (ui.module.css) sowie
-     YearPicker/DatePicker (eigene Auslöser-Stylesheets, da deren Auslöser aus Spezifitätsgründen
-     auf IconButton statt auf `.control` aufbauen). Werte unverändert aus dem bisherigen
-     `.control`-Rezept übernommen -- die Tokenisierung ändert die Optik von Input/Select/Textarea
-     bewusst NICHT (UAT-Runde 5, 2026-10-30). */
+     YearPicker/DatePicker. Rahmen/Hintergrund leiten sich per color-mix() von den obigen
+     Basisfarben bzw. --surface-card/--ui-line ab; nur reine Schatten-Werte (keine Rahmen-/
+     Flächenfarbe) bleiben rgba-Literale, denselben Umgang wie --shadow-lg/--shadow-md oben. */
   --field-radius: 8px;
-  --field-border-color: rgba(92, 105, 131, 0.14);
-  --field-border-color-hover: rgba(92, 105, 131, 0.22);
-  --field-bg: rgba(255, 255, 255, 0.94);
-  --field-bg-hover: rgba(255, 255, 255, 0.98);
-  --field-text-color: #334155;
-  --field-placeholder-color: #8a95a8;
-  --field-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52), 0 1px 1px rgba(33, 45, 72, 0.04);
-  --field-focus-shadow: 0 0 0 3px rgba(122, 160, 240, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.72);
-  --field-invalid-border-color: rgba(130, 18, 44, 0.34);
-  --field-invalid-shadow: 0 0 0 3px rgba(130, 18, 44, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.68);
-  --field-disabled-bg: rgba(244, 247, 251, 0.94);
-  --field-readonly-border-color: rgba(92, 105, 131, 0.12);
-  --field-readonly-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 247, 251, 0.96) 100%);
-  --field-readonly-text-color: #2f3746;
-  --field-readonly-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 10px 18px -18px rgba(17, 24, 39, 0.18);
+  --field-border-color: color-mix(in srgb, var(--color-border-field) 14%, transparent);
+  --field-border-color-hover: color-mix(in srgb, var(--color-border-field) 22%, transparent);
+  --field-bg: color-mix(in srgb, var(--surface-card) 94%, transparent);
+  --field-bg-hover: color-mix(in srgb, var(--surface-card) 98%, transparent);
+  --field-text-color: var(--text-field);
+  --field-placeholder-color: var(--text-field-placeholder);
+  --field-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-card) 52%, transparent), 0 1px 1px rgba(33, 45, 72, 0.04);
+  --field-focus-shadow: 0 0 0 3px rgba(122, 160, 240, 0.18), inset 0 1px 0 color-mix(in srgb, var(--surface-card) 72%, transparent);
+  --field-invalid-border-color: color-mix(in srgb, var(--ui-line) 34%, transparent);
+  --field-invalid-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-line) 12%, transparent), inset 0 1px 0 color-mix(in srgb, var(--surface-card) 68%, transparent);
+  --field-disabled-bg: color-mix(in srgb, var(--surface-field-readonly) 94%, transparent);
+  --field-readonly-border-color: color-mix(in srgb, var(--color-border-field) 12%, transparent);
+  --field-readonly-bg: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 98%, transparent) 0%, color-mix(in srgb, var(--surface-field-readonly) 96%, transparent) 100%);
+  --field-readonly-text-color: var(--text-field-readonly);
+  --field-readonly-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-card) 72%, transparent), 0 10px 18px -18px rgba(17, 24, 39, 0.18);
 
   /* Gemeinsamer "ausgewählt"-Kachel-Verlauf für Jahres-/Monats-/Tages-Kacheln in YearPicker und
      DatePicker -- vorher hatte jede Komponente ihren eigenen, leicht abweichenden Blauverlauf

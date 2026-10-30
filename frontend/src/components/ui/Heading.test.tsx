@@ -26,6 +26,18 @@ describe('Heading', () => {
     expect(element.className).not.toMatch(/headingSize3/)
   })
 
+  it('rendert size="hero" als h1-Tag mit der Hero-Groessen-Klasse', () => {
+    const { container } = render(
+      <Heading level={1} size="hero">
+        Fansub-Gruppe C-Subs
+      </Heading>,
+    )
+
+    const element = container.firstElementChild as HTMLElement
+    expect(element.tagName).toBe('H1')
+    expect(element.className).toMatch(/headingSizeHero/)
+  })
+
   it('reicht id und weitere native Attribute durch (z. B. fuer DialogHeaders titleId-Bedarf)', () => {
     const { container } = render(
       <Heading level={2} id="dialog-title">

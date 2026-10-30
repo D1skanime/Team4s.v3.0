@@ -31,3 +31,8 @@ export const Small: Story = {
   name: 'Klein',
   args: { variant: 'small', children: 'Kleiner, zurückhaltender Hinweistext.' },
 }
+
+export const Eyebrow: Story = {
+  name: 'Überzeile',
+  args: { variant: 'eyebrow', children: 'Fansub-Gruppe' },
+}

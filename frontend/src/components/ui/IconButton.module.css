@@ -34,24 +34,17 @@
 }
 
 .iconButtonLg {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
 }
 
-.iconButtonFloating {
-  position: absolute;
-  top: var(--space-5);
-  right: var(--space-5);
-  /* variant="stage"-Verwender (z. B. der Bild-Viewer) können einen deckenden Layer unterhalb
-     dieses Buttons rendern -- darüber bleiben, damit der Schließen-Button nie verdeckt wird. */
-  z-index: 3;
+/* Nach den Größen-Regeln deklariert, damit ein runder Button bei gleicher Spezifität (0,1,0)
+   immer den vollen Kreis statt der größenabhängigen eckigen Rundung erhält. */
+.iconButtonRound {
+  border-radius: 50%;
 }
 
-/* Basis für NavArrow: transparent ohne Rahmen/Schatten, nur Opazitäts-Hover statt der
-   Standard-Optik mit Rahmen/Schatten -- NICHT im variant === 'floating'-Pfad, da NavArrow
-   inline positioniert bleibt. Nach den bestehenden Regeln platziert, damit diese Ueberschreibung
-   innerhalb dieser einen Datei bei Tie-Breaks gewinnt. */
 .iconButtonGhost {
   border-color: transparent;
   background: transparent;
@@ -61,4 +54,31 @@
 .iconButtonGhost:hover {
   background: transparent;
   opacity: 0.72;
+}
+
+/* Dunkel-transparente Variante für Icon-Buttons direkt auf einem Bild oder dunklen Hintergrund
+   (z. B. das Schließen-Kreuz im Bild-Viewer) -- nutzt dieselben Scrim-Tokens wie andere
+   Bild-Overlays. */
+.iconButtonOnImage {
+  border-color: transparent;
+  background: var(--scrim-strong);
+  color: var(--scrim-icon);
+  box-shadow: none;
+}
+
+.iconButtonOnImage:hover {
+  background: color-mix(in srgb, var(--scrim-strong) 85%, black);
+}
+
+.iconButtonToneArrow {
+  color: var(--ui-arrow);
+}
+
+.iconButtonFloating {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  /* variant="onImage"-Verwender (z. B. der Bild-Viewer) können einen deckenden Layer unterhalb
+     dieses Buttons rendern -- darüber bleiben, damit der Schließen-Button nie verdeckt wird. */
+  z-index: 3;
 }

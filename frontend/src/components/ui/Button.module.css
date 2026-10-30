@@ -16,6 +16,7 @@
   font-size: 14px;
   font-weight: 700;
   line-height: 1;
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
   transition:
@@ -121,6 +122,18 @@
 .buttonSuccess:hover {
   border-color: color-mix(in srgb, var(--button-success-end) 72%, #1b5d4a 28%);
   box-shadow: 0 7px 18px rgba(47, 155, 121, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Offizieller "aktuell/ausgewählt"-Zustand für Pagination, Filter-Knöpfe und Umschalter: reagiert
+   auf die Standard-ARIA-Attribute aria-current/aria-pressed, keine eigene Prop nötig. Greift
+   unabhängig von der gewählten variant, damit z. B. eine ausgewählte Seitenzahl innerhalb einer
+   Pagination immer gleich aussieht. */
+.button[aria-current]:not([aria-current="false"]),
+.button[aria-pressed="true"] {
+  --button-bg: color-mix(in srgb, var(--accent-primary) 14%, white);
+  --button-border: color-mix(in srgb, var(--accent-primary) 20%, white);
+  --button-text: color-mix(in srgb, var(--accent-primary) 46%, var(--text-body) 54%);
+  box-shadow: none;
 }
 
 .buttonText {

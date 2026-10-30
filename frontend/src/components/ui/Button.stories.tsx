@@ -4,11 +4,8 @@ import { MoreHorizontal } from 'lucide-react'
 import { Button } from './Button'
 
 /**
- * Referenz-Story für das Button-Primitive: deckt alle Varianten ab, die vormals in der
- * In-App-Showcase-Route sichtbar waren (Primary/Secondary/Ghost/Subtle/Danger/
- * Success/IconOnly/Loading/Disabled/Small/Large), ergänzt um einen Lang-Text- und einen
- * Fokus-Prüfhinweis. Dient zugleich als früher empirischer Beleg dafür, dass CSS-Module
- * unter dem `@storybook/nextjs`-Webpack-Adapter ohne Zusatzkonfiguration greifen.
+ * Klickbarer Knopf für Aktionen in Formularen, Dialogen und Listen, mit mehreren Farbtönen,
+ * drei Größen und einem Lade-/Deaktiviert-Zustand. Bricht seinen Text nie um.
  */
 const meta = {
   title: 'Grundbausteine/Button',
@@ -81,10 +78,10 @@ export const Gross: Story = {
   args: { size: 'lg', children: 'Groß' },
 }
 
-export const LangerLabelText: Story = {
-  name: 'Langer Label-Text',
+export const LangerText: Story = {
+  name: 'Langer Text',
   args: {
-    children: 'Dieser Button-Text ist absichtlich sehr lang, um Umbruch- und Overflow-Verhalten innerhalb der Button-Fläche zu prüfen',
+    children: 'Dieser Button-Text ist absichtlich sehr lang und bricht trotzdem nicht um',
   },
 }
 
@@ -94,8 +91,19 @@ export const FokusSichtbar: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'Standard-Button zur Fokus-Prüfung: Tab-Taste drücken, um den sichtbaren Fokusring zu sehen. Das `addon-a11y`-Panel dieser Story zeigt zusätzlich automatisierte Kontrast-/Fokus-Hinweise.',
+        story: 'Tab-Taste drücken, um den sichtbaren Fokusring zu sehen.',
+      },
+    },
+  },
+}
+
+export const AktuellAusgewaehlt: Story = {
+  name: 'Aktuell/ausgewählt',
+  args: { variant: 'secondary', 'aria-current': 'page', children: 'Seite 2' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Markiert einen Button als aktuell aktive Auswahl (z. B. die aktuelle Seite einer Seitennavigation oder einen aktiven Filter) — über die Standard-Attribute aria-current oder aria-pressed, ohne eigene Prop.',
       },
     },
   },

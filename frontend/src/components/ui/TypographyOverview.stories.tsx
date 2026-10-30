@@ -14,11 +14,13 @@ function TypographyOverview() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Heading level={1}>Naruto</Heading>
+        <Heading level={1} size="hero">Fansub-Gruppe C-Subs</Heading>
         <Heading level={2}>Anime bearbeiten</Heading>
         <Heading level={3}>Übersicht</Heading>
         <Heading level={4}>Verknüpfte Anime</Heading>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <Text variant="eyebrow">Fansub-Gruppe</Text>
         <Text variant="body">Normaler Fließtext für Beschreibungen und Inhalte.</Text>
         <Text variant="soft">Leiser getönter Text, etwa für Sektions-Unterzeilen.</Text>
         <Text variant="meta">Kompakter Metatext, etwa für Seiten-Unterzeilen.</Text>

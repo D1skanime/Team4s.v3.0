@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
-import { X } from 'lucide-react'
+import { ChevronRight, X } from 'lucide-react'
 
 import { IconButton } from './IconButton'
 
 /**
- * Grundbaustein für Icon-only-Buttons mit erzwungenem `aria-label`. Konsolidiert die vormals
- * zufällig identischen `.closeButton`/`.closeButtonFloating`-Rezepte aus Modal/`ui.module.css`
- * in ein einziges, wiederverwendbares Rezept.
+ * Knopf, der nur ein Symbol zeigt, mit erzwungener Beschriftung für Screenreader. Bietet eigene
+ * Optionen für Form, Größe, Farbvariante und Ton an, statt dass Aufrufer seine Optik von außen
+ * überschreiben müssen.
  */
 const meta = {
   title: 'Grundbausteine/IconButton',
@@ -23,17 +23,37 @@ type Story = StoryObj<typeof meta>
 
 export const Standard: Story = {}
 
-export const Ghost: Story = {
-  name: 'Dezent',
+export const Dezent: Story = {
   args: { variant: 'ghost' },
 }
 
-export const Floating: Story = {
-  name: 'Schwebend',
-  args: { variant: 'floating' },
+export const AufBild: Story = {
+  name: 'Auf Bild',
+  args: { variant: 'onImage' },
   decorators: [
     (Story) => (
-      <div style={{ position: 'relative', width: 160, height: 120, border: '1px dashed var(--border-subtle)' }}>
+      <div style={{ position: 'relative', width: 160, height: 120, background: 'var(--text-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Story />
+      </div>
+    ),
+  ],
+}
+
+export const Rund: Story = {
+  args: { shape: 'round' },
+}
+
+export const PfeilTon: Story = {
+  name: 'Pfeil-Ton',
+  args: { icon: <ChevronRight size={18} />, 'aria-label': 'Weiter', tone: 'arrow', shape: 'round' },
+}
+
+export const Schwebend: Story = {
+  name: 'Schwebend (Ecke)',
+  args: { floating: true, variant: 'onImage' },
+  decorators: [
+    (Story) => (
+      <div style={{ position: 'relative', width: 160, height: 120, background: 'var(--text-strong)' }}>
         <Story />
       </div>
     ),
@@ -41,7 +61,6 @@ export const Floating: Story = {
 }
 
 export const Klein: Story = {
-  name: 'Klein',
   args: { size: 'sm' },
 }
 
@@ -51,15 +70,14 @@ export const Gross: Story = {
 }
 
 export const Deaktiviert: Story = {
-  name: 'Deaktiviert',
   args: { disabled: true },
 }
 
-const VARIANTS = ['default', 'floating', 'ghost'] as const
+const VARIANTS = ['default', 'ghost', 'onImage'] as const
 const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   default: 'Standard',
-  floating: 'Schwebend',
   ghost: 'Dezent',
+  onImage: 'Auf Bild',
 }
 const SIZES = ['sm', 'md', 'lg'] as const
 
@@ -69,15 +87,21 @@ export const GroessenUndVarianten: Story = {
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
       {VARIANTS.flatMap((variant) =>
         SIZES.map((size) => (
-          <div key={`${variant}-${size}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-            {variant === 'floating' ? (
-              <div style={{ position: 'relative', width: 72, height: 72, border: '1px dashed var(--border-subtle)' }}>
-                <IconButton icon={<X size={18} />} aria-label="Schließen" variant={variant} size={size} />
-              </div>
-            ) : (
-              <IconButton icon={<X size={18} />} aria-label="Schließen" variant={variant} size={size} />
-            )}
-            <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>{VARIANT_LABELS[variant]} / {size}</span>
+          <div
+            key={`${variant}-${size}`}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 6,
+              padding: 8,
+              background: variant === 'onImage' ? 'var(--text-strong)' : 'transparent',
+            }}
+          >
+            <IconButton icon={<X size={18} />} aria-label="Schließen" variant={variant} size={size} />
+            <span style={{ fontSize: 12, color: variant === 'onImage' ? '#fff' : 'var(--text-soft)' }}>
+              {VARIANT_LABELS[variant]} / {size}
+            </span>
           </div>
         )),
       )}

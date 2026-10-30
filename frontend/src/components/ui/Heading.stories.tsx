@@ -35,3 +35,15 @@ export const AbweichendeVisuelleGroesse: Story = {
   name: 'Abweichende visuelle Größe',
   args: { level: 3, size: 2, children: 'Semantisch h3, visuell wie H2' },
 }
+
+export const HeroTitel: Story = {
+  name: 'Hero-Titel',
+  args: { level: 1, size: 'hero', children: 'Fansub-Gruppe C-Subs' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Größenstufe zwischen H1 und H2 für prominente, aber kompakte Titel, z. B. in einer Profil- oder Gruppen-Kopfzeile.',
+      },
+    },
+  },
+}

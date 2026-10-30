@@ -28,4 +28,9 @@ describe('Text', () => {
     expect((softContainer.firstElementChild as HTMLElement).className).toMatch(/textSoft/)
     expect((smallContainer.firstElementChild as HTMLElement).className).toMatch(/textSmall/)
   })
+
+  it('rendert variant="eyebrow" mit der eyebrow-Variantenklasse', () => {
+    const { container } = render(<Text variant="eyebrow">Fansub-Gruppe</Text>)
+    expect((container.firstElementChild as HTMLElement).className).toMatch(/textEyebrow/)
+  })
 })
