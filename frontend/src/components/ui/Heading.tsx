@@ -5,7 +5,7 @@ import styles from './Heading.module.css'
 
 export type HeadingLevel = 1 | 2 | 3 | 4
 export type HeadingVisualSize = HeadingLevel | 'hero'
-export type HeadingTone = 'default' | 'accent'
+export type HeadingTone = 'default' | 'accent' | 'onScrim'
 
 export interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
   /** Semantisches Tag (h1-h4) -- bestimmt die Dokumentstruktur/Barrierefreiheits-Hierarchie. */
@@ -16,7 +16,8 @@ export interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
    *  Profil-/Gruppen-Titel in einer Kopfzeile, die nicht die volle Seitenüberschrift sein soll). */
   size?: HeadingVisualSize
   /** 'accent' färbt die Überschrift in der Akzentfarbe (--accent-deep) statt der Standardfarbe
-   *  --text-strong, z. B. für eine hervorgehobene Kennzahl. */
+   *  --text-strong, z. B. für eine hervorgehobene Kennzahl. 'onScrim' hält sie auf einem dunklen
+   *  Hintergrund (z. B. ein Foto-Banner mit Scrim) lesbar (--scrim-text, WCAG-kontrastgeprüft). */
   tone?: HeadingTone
 }
 
@@ -38,6 +39,7 @@ const SIZE_CLASS_BY_VISUAL_SIZE: Record<HeadingVisualSize, string> = {
 const TONE_CLASS_BY_TONE: Record<HeadingTone, string | undefined> = {
   default: undefined,
   accent: styles.headingToneAccent,
+  onScrim: styles.headingToneOnScrim,
 }
 
 /**

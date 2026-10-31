@@ -25,3 +25,11 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* Nach allen Variant-Klassen deklariert, damit sie deren jeweilige Farbe zuverlässig überschreibt
+   (gleiche Spezifität wie jede einzelne Variant-Klasse, gewinnt über die Deklarationsreihenfolge
+   in dieser Datei). Hält Text auf einem dunklen Hintergrund (z. B. ein Foto-Banner mit Scrim)
+   lesbar -- derselbe Token wie IconButtons onImage-Variante, WCAG-kontrastgeprüft. */
+.textToneOnScrim {
+  color: var(--scrim-icon);
+}

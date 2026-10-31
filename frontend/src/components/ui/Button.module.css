@@ -203,6 +203,31 @@
   font-size: 15px;
 }
 
+/* Nach .buttonText deklariert, damit Größe/Gewicht zuverlässig gegen dessen eigenes
+   font-size/font-weight: inherit gewinnen (identisches Muster wie .buttonSmall/.buttonLarge
+   oben, die aus demselben Grund nach .buttonText stehen). */
+.buttonHero {
+  font-size: var(--font-size-hero);
+  font-weight: var(--font-weight-heading);
+}
+
+.buttonProse {
+  font-size: 1rem;
+}
+
+.buttonToneAccent {
+  color: var(--accent-deep);
+}
+
+.buttonToneAccent:hover {
+  color: color-mix(in srgb, var(--accent-deep) 85%, var(--text-strong) 15%);
+}
+
+.buttonToneStrong {
+  color: var(--text-body);
+  font-weight: var(--font-weight-label);
+}
+
 .buttonBlock {
   width: 100%;
 }

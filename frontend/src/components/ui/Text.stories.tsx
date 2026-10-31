@@ -36,3 +36,22 @@ export const Eyebrow: Story = {
   name: 'Überzeile',
   args: { variant: 'eyebrow', children: 'Fansub-Gruppe' },
 }
+
+export const AufDunklemHintergrund: Story = {
+  name: 'Auf dunklem Hintergrund',
+  args: { variant: 'small', tone: 'onScrim', children: '15 von 24 angezeigt' },
+  decorators: [
+    (Story) => (
+      <div style={{ padding: 16, background: '#1c1c1e', borderRadius: 8 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story: 'tone="onScrim" hält den Text unabhängig von der gewählten Variante auf einem dunklen Hintergrund lesbar (z. B. ein Foto-Banner mit Scrim).',
+      },
+    },
+  },
+}

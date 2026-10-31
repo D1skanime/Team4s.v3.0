@@ -65,6 +65,31 @@ describe('MetricList', () => {
     expect(button.classList.contains(styles.buttonText)).toBe(true)
   })
 
+  it('reicht tone="onDark" als Heading/Text tone="onScrim" durch, Standardton ohne onScrim-Klasse', () => {
+    const { rerender } = render(
+      <MetricList
+        ariaLabel="Kennzahlen"
+        valueHeadingLevel={2}
+        tone="onDark"
+        items={[{ label: 'Punkte', value: 42 }]}
+      />,
+    )
+
+    expect(screen.getByRole('heading', { name: '42' }).className).toMatch(/headingToneOnScrim/)
+    expect(screen.getByText('Punkte').className).toMatch(/textToneOnScrim/)
+
+    rerender(
+      <MetricList
+        ariaLabel="Kennzahlen"
+        valueHeadingLevel={2}
+        items={[{ label: 'Punkte', value: 42 }]}
+      />,
+    )
+
+    expect(screen.getByRole('heading', { name: '42' }).className).not.toMatch(/headingToneOnScrim/)
+    expect(screen.getByText('Punkte').className).not.toMatch(/textToneOnScrim/)
+  })
+
   it('rendert eine Kennzahl ohne onActivate als reinen Text, ganz ohne Button', () => {
     render(
       <MetricList

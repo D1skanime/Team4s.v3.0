@@ -28,6 +28,18 @@ const metricListCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/components/ui/MetricList.module.css'),
   'utf8',
 )
+const headingCss = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/components/ui/Heading.module.css'),
+  'utf8',
+)
+const textCss = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/components/ui/Text.module.css'),
+  'utf8',
+)
+const fansubHeroSectionTsx = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/components/fansubs/FansubHeroSection.tsx'),
+  'utf8',
+)
 const badgeCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/components/ui/Badge.module.css'),
   'utf8',
@@ -169,21 +181,26 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
     expect(contrast(rendered, worstCaseBackground)).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('--hero-metrics-label (im Banner-Fall) erreicht mindestens 4,5:1 gegen den Worst-Case-Scrim-Hintergrund', () => {
-    const { rgb, alpha } = extractVarValue(pageCss, '.heroBodyOnBanner', 'hero-metrics-label')
+  it('Text tone="onScrim" (MetricLists Kennzahlen-Beschriftung im Banner-Fall) erreicht mindestens 4,5:1 gegen den Worst-Case-Scrim-Hintergrund', () => {
+    const { rgb, alpha } = extractColorFromRule(textCss, '.textToneOnScrim', 'color')
     const rendered = alpha < 1 ? mix(rgb, worstCaseBackground, alpha) : rgb
     expect(contrast(rendered, worstCaseBackground)).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('--hero-metrics-value (im Banner-Fall) erreicht mindestens 4,5:1 gegen den Worst-Case-Scrim-Hintergrund', () => {
-    const { rgb, alpha } = extractVarValue(pageCss, '.heroBodyOnBanner', 'hero-metrics-value')
+  it('Heading tone="onScrim" (MetricLists Kennzahlen-Wert im Banner-Fall) erreicht mindestens 4,5:1 gegen den Worst-Case-Scrim-Hintergrund', () => {
+    const { rgb, alpha } = extractColorFromRule(headingCss, '.headingToneOnScrim', 'color')
     const rendered = alpha < 1 ? mix(rgb, worstCaseBackground, alpha) : rgb
     expect(contrast(rendered, worstCaseBackground)).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('MetricList.module.css deklariert dieselben Fallback-Variablen mit einem weiterhin dunklen Standardwert -- kein Banner-Verhaltenswechsel, da dieser Fallback nur den Nicht-Banner-Fall betrifft', () => {
-    expect(metricListCss).toMatch(/var\(--hero-metrics-label,\s*var\(--text-soft\)\)/)
-    expect(metricListCss).toMatch(/var\(--hero-metrics-value,\s*var\(--accent-deep\)\)/)
+  it('FansubHeroSection reicht tone="onDark" nur bei vorhandenem Bannerfoto an MetricList durch, MetricList.module.css überschreibt keine Heading-/Text-Farbe/-Größe mehr', () => {
+    expect(fansubHeroSectionTsx).toMatch(/tone=\{bannerURL \? 'onDark' : 'default'\}/)
+    // Die frühere .metricLabel/.metricValue-Überschreibung ist komplett entfallen -- einzige
+    // verbleibende Farbdeklaration ist der rein dekorative "·"-Trenner der Inline-Variante
+    // (::before, kein Heading/Text-Override).
+    expect(metricListCss).not.toMatch(/metricLabel|metricValue/)
+    expect(metricListCss).not.toMatch(/font-size:/)
+    expect(metricListCss).not.toMatch(/font-weight:/)
   })
 
   it('Status-Badge (variant="muted") erreicht im Banner-Fall mindestens 4,5:1 Kontrast gegen seine eigene, auf dem Worst-Case-Scrim aufliegende Chip-Fläche', () => {

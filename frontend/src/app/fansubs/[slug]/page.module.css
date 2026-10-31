@@ -107,12 +107,9 @@
    Box-Höhe und tatsächlicher Text-Position immer die volle 88%-Deckkraft vorhanden. */
 .heroBodyOnBanner {
   position: relative;
-  /* Überschreibt die MetricList-Fallback-Tokens NUR innerhalb dieses Banner-Textblocks (per
-     Klasse, nicht :global()) -- MetricList selbst bleibt für alle anderen, hellen Kontexte
-     unverändert dunkel beschriftet. */
-  --hero-metrics-label: rgba(255, 255, 255, 0.82);
-  --hero-metrics-value: #ffffff;
-  /* Gleiches Muster für den Status-Badge (variant="muted") in der Titelzeile: dessen
+  /* MetricList bekommt die helle Beschriftung für den Banner-Fall über die offizielle
+     tone="onDark"-Prop (FansubHeroSection.tsx), nicht mehr über eine hier gesetzte CSS-Variable.
+     Gleiches Muster für den Status-Badge (variant="muted") in der Titelzeile: dessen
      Standard-Chip (helles Glas, gedämpftes Blaugrau) ist auf dem dunklen Banner-Scrim praktisch
      unlesbar. Die hier gesetzten hellen Werte sind rechnerisch in
      FansubHeroSection.accessibility.test.ts gegen den Worst-Case-Scrim-Hintergrund auf

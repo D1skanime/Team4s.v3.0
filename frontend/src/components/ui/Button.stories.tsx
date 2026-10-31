@@ -78,6 +78,30 @@ export const Gross: Story = {
   args: { size: 'lg', children: 'Groß' },
 }
 
+export const HeroZahl: Story = {
+  name: 'Hero-Zahl',
+  args: { variant: 'text', size: 'hero', tone: 'accent', children: '1.284' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Größe/Gewicht wie Heading size="hero", Farbe wie Heading tone="accent" -- für eine klickbare, hervorgehobene Kennzahl (siehe MetricList), da ein Heading nicht gültig in einen Button verschachtelt werden darf.',
+      },
+    },
+  },
+}
+
+export const FliesstextWert: Story = {
+  name: 'Fließtext-Wert',
+  args: { variant: 'text', size: 'prose', tone: 'strong', children: '13 Folgen' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Größe wie Text variant="body" (1rem), Farbe/Gewicht wie kräftiger Fließtext -- für eine klickbare Kennzahl innerhalb einer kompakten, inline-Liste.',
+      },
+    },
+  },
+}
+
 export const LangerText: Story = {
   name: 'Langer Text',
   args: {

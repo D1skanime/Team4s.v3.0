@@ -59,3 +59,22 @@ export const AkzentTon: Story = {
     },
   },
 }
+
+export const AufDunklemHintergrund: Story = {
+  name: 'Auf dunklem Hintergrund',
+  args: { level: 2, size: 'hero', tone: 'onScrim', children: '1.284' },
+  decorators: [
+    (Story) => (
+      <div style={{ padding: 16, background: '#1c1c1e', borderRadius: 8 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story: 'tone="onScrim" hält die Überschrift auf einem dunklen Hintergrund (z. B. ein Foto-Banner mit Scrim) lesbar, WCAG-kontrastgeprüft.',
+      },
+    },
+  },
+}

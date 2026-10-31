@@ -12,35 +12,6 @@
   min-width: 0;
 }
 
-/* Element+Klasse-Selektor (Spezifität 0,1,1): überschreibt Texts eigene Farbe zuverlässig, statt
-   Texts private --text-small-color-Variable von außen zu setzen. Fallback --text-soft,
-   überschreibbar über --hero-metrics-label (MetricLists EIGENE, öffentliche Variable) --
-   FansubHeroSection setzt sie NUR innerhalb seines eigenen Banner-Textblocks, um auf einem
-   dunklen Scrim lesbar zu bleiben. */
-p.metricLabel {
-  color: var(--hero-metrics-label, var(--text-soft));
-}
-
-/* Element+Klasse-Selektor: überschreibt Headings eigene tone="accent"-Farbe (--accent-deep)
-   zuverlässig für denselben Banner-Sonderfall wie .metricLabel -- MetricLists eigene, öffentliche
-   --hero-metrics-value-Variable, keine private Variable von Heading. */
-h1.metricValue,
-h2.metricValue,
-h3.metricValue,
-h4.metricValue {
-  color: var(--hero-metrics-value, var(--accent-deep));
-}
-
-/* Trägt die Hero-Größe/-Farbe für den klickbaren Fall (Button variant="text" übernimmt beides
-   per CSS-"inherit" aus Buttons eigenem .buttonText-Rezept) -- im nicht klickbaren Fall bringt
-   Heading size="hero" tone="accent" seine Typografie bereits selbst mit, diese Zelle liefert dort
-   nur das Grid-Layout. */
-.metricValueCell {
-  font-size: var(--font-size-hero);
-  font-weight: var(--font-weight-heading);
-  color: var(--accent-deep);
-}
-
 .metricListInline {
   gap: var(--space-1) var(--space-3);
   align-items: baseline;
@@ -68,21 +39,6 @@ h4.metricValue {
   white-space: nowrap;
 }
 
-/* Trägt Größe/Farbe für den klickbaren Fall (Button variant="text" übernimmt beides per
-   CSS-"inherit") -- Text(variant="body") im nicht klickbaren Fall bringt seine Typografie
-   bereits selbst mit und ignoriert diese Zelle (eigene, explizite Deklaration schlägt inherit). */
-.metricInlineValue {
-  font-size: 1rem;
-  color: var(--text-body);
-  white-space: nowrap;
-}
-
-/* Element+Klasse-Selektor: einziger verbleibender Unterschied zum nicht klickbaren
-   Text(variant="body")-Wert ist das stärkere Schriftgewicht. */
-button.metricInlineValueButton {
-  font-weight: var(--font-weight-label);
-}
-
 @media (max-width: 767px) {
   .metricList {
     gap: var(--space-4) var(--space-5);
@@ -97,13 +53,6 @@ button.metricInlineValueButton {
   .metricList:not(.metricListInline) .metricItem {
     flex: 1 1 0;
     min-width: 0;
-  }
-
-  h1.metricValue,
-  h2.metricValue,
-  h3.metricValue,
-  h4.metricValue {
-    font-size: var(--font-size-h2);
   }
 }
 

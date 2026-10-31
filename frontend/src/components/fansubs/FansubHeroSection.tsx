@@ -139,7 +139,12 @@ export function FansubHeroSection({
                 </div>
               </div>
 
-              <MetricList items={heroStats} ariaLabel="Gruppenkennzahlen" valueHeadingLevel={2} />
+              <MetricList
+                items={heroStats}
+                ariaLabel="Gruppenkennzahlen"
+                valueHeadingLevel={2}
+                tone={bannerURL ? 'onDark' : 'default'}
+              />
             </div>
 
             {heroLinks.length > 0 ? (

@@ -54,3 +54,22 @@ export const KlickbareKennzahlInline: Story = {
     ],
   },
 }
+
+export const AufDunklemHintergrund: Story = {
+  name: 'Auf dunklem Hintergrund',
+  args: { tone: 'onDark' },
+  decorators: [
+    (Story) => (
+      <div style={{ padding: 16, background: '#1c1c1e', borderRadius: 8 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story: 'tone="onDark" reicht Heading/Text tone="onScrim" durch, z. B. für ein Foto-Banner mit Scrim (siehe FansubHeroSection), WCAG-kontrastgeprüft.',
+      },
+    },
+  },
+}

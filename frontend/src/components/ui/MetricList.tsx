@@ -26,17 +26,25 @@ export interface MetricListProps {
    *  über Heading), aber trotzdem Pflicht-Prop, damit kein Aufrufer der Standard-Variante
    *  versehentlich den Default vergisst. */
   valueHeadingLevel: HeadingLevel
+  /** 'onDark' hält Beschriftung und Wert auf einem dunklen Hintergrund lesbar (z. B. ein
+   *  Foto-Banner mit Scrim, siehe FansubHeroSection) -- reicht Heading/Text tone="onScrim"
+   *  durch, WCAG-kontrastgeprüft. Gilt nur für nicht klickbare Kennzahlen; eine klickbare
+   *  Kennzahl mit tone="onDark" ist aktuell kein unterstützter Fall (kein realer Verwender). */
+  tone?: 'default' | 'onDark'
 }
 
 /**
  * Liste von Kennzahlen (Bezeichnung + Wert), wahlweise untereinander-nebeneinander ("default")
  * oder als kompakte, durch Punkte getrennte Reihe ("inline"). Eine Kennzahl kann klickbar sein
  * (z. B. um zu einem passenden Abschnitt der Seite zu springen) -- dann rendert der Wert über
- * `Button variant="text"` statt `Heading`, da ein Heading-Element nicht gültig in einen Button
- * verschachtelt werden darf.
+ * `Button` (Größe/Ton über dessen offizielle `size`/`tone`-Optionen) statt `Heading`/`Text`, da
+ * deren Elemente nicht gültig in einen Button verschachtelt werden dürfen.
  */
-export function MetricList({ items, ariaLabel, className, variant = 'default', valueHeadingLevel }: MetricListProps) {
+export function MetricList({ items, ariaLabel, className, variant = 'default', valueHeadingLevel, tone = 'default' }: MetricListProps) {
   if (items.length === 0) return null
+
+  const labelTone = tone === 'onDark' ? 'onScrim' : 'default'
+  const valueHeadingTone = tone === 'onDark' ? 'onScrim' : 'accent'
 
   return (
     <dl className={classNames(styles.metricList, variant === 'inline' && styles.metricListInline, className)} aria-label={ariaLabel}>
@@ -44,27 +52,27 @@ export function MetricList({ items, ariaLabel, className, variant = 'default', v
         <div key={item.label} className={styles.metricItem}>
           {variant === 'inline' ? (
             <>
-              <dt className={styles.metricInlineLabel}><Text variant="small">{item.label}</Text></dt>
-              <dd className={styles.metricInlineValue}>
+              <dt className={styles.metricInlineLabel}><Text variant="small" tone={labelTone}>{item.label}</Text></dt>
+              <dd>
                 {item.onActivate ? (
-                  <Button type="button" variant="text" className={styles.metricInlineValueButton} onClick={item.onActivate} aria-label={item.activateLabel}>
+                  <Button type="button" variant="text" size="prose" tone="strong" onClick={item.onActivate} aria-label={item.activateLabel}>
                     {item.value}<span aria-hidden="true"> {item.label}</span>
                   </Button>
                 ) : (
-                  <Text variant="body">{item.value}<span aria-hidden="true"> {item.label}</span></Text>
+                  <Text variant="body" tone={labelTone}>{item.value}<span aria-hidden="true"> {item.label}</span></Text>
                 )}
               </dd>
             </>
           ) : (
             <>
-              <dt><Text variant="small" className={styles.metricLabel}>{item.label}</Text></dt>
-              <dd className={styles.metricValueCell}>
+              <dt><Text variant="small" tone={labelTone}>{item.label}</Text></dt>
+              <dd>
                 {item.onActivate ? (
-                  <Button type="button" variant="text" onClick={item.onActivate} aria-label={item.activateLabel}>
+                  <Button type="button" variant="text" size="hero" tone="accent" onClick={item.onActivate} aria-label={item.activateLabel}>
                     {item.value}
                   </Button>
                 ) : (
-                  <Heading level={valueHeadingLevel} size="hero" tone="accent" className={styles.metricValue}>{item.value}</Heading>
+                  <Heading level={valueHeadingLevel} size="hero" tone={valueHeadingTone}>{item.value}</Heading>
                 )}
               </dd>
             </>

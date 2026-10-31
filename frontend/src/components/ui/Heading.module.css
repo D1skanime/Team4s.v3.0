@@ -27,3 +27,7 @@
 .headingToneAccent {
   color: var(--accent-deep);
 }
+
+.headingToneOnScrim {
+  color: var(--scrim-text);
+}

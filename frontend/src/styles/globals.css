@@ -72,6 +72,9 @@
 
   --scrim-strong: rgba(0, 0, 0, 0.72);
   --scrim-icon: rgba(255, 255, 255, 0.85);
+  /* Deckende Überschriftenfarbe auf einem dunklen Scrim (z. B. ein Foto-Banner) -- heller als
+     --scrim-icon, da eine Überschrift mehr Kontrast als ein reines Icon-Symbol braucht. */
+  --scrim-text: #ffffff;
 
   /* Navigations-/Disclosure-Pfeil (Chevron) des Design-Systems */
   --ui-arrow: #7c3c4f;

@@ -33,4 +33,14 @@ describe('Text', () => {
     const { container } = render(<Text variant="eyebrow">Fansub-Gruppe</Text>)
     expect((container.firstElementChild as HTMLElement).className).toMatch(/textEyebrow/)
   })
+
+  it('rendert tone="onScrim" zusätzlich zur gewählten variant, Standardton ohne zusätzliche Klasse', () => {
+    const { container, rerender } = render(<Text variant="small" tone="onScrim">Hinweis</Text>)
+    const element = container.firstElementChild as HTMLElement
+    expect(element.className).toMatch(/textSmall/)
+    expect(element.className).toMatch(/textToneOnScrim/)
+
+    rerender(<Text variant="small">Hinweis</Text>)
+    expect((container.firstElementChild as HTMLElement).className).not.toMatch(/textToneOnScrim/)
+  })
 })

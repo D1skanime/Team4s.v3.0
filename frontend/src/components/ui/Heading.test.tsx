@@ -46,6 +46,11 @@ describe('Heading', () => {
     expect((container.firstElementChild as HTMLElement).className).not.toMatch(/headingToneAccent/)
   })
 
+  it('rendert tone="onScrim" mit der Scrim-Farben-Klasse (lesbar auf dunklem Hintergrund)', () => {
+    const { container } = render(<Heading level={2} tone="onScrim">42</Heading>)
+    expect((container.firstElementChild as HTMLElement).className).toMatch(/headingToneOnScrim/)
+  })
+
   it('reicht id und weitere native Attribute durch (z. B. fuer DialogHeaders titleId-Bedarf)', () => {
     const { container } = render(
       <Heading level={2} id="dialog-title">

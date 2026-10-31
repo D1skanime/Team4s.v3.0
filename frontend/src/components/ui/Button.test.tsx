@@ -25,6 +25,16 @@ describe('Button', () => {
     render(<Button href="/ziel" as={FakeLink}>Weiter</Button>)
     expect(screen.getByTestId('fake-link').getAttribute('href')).toBe('/ziel')
   })
+
+  it('unterstützt size="hero"/"prose" und tone="accent"/"strong" (Basis für MetricList)', () => {
+    const { container, rerender } = render(<Button variant="text" size="hero" tone="accent">42</Button>)
+    expect(container.querySelector('button')?.className).toMatch(/buttonHero/)
+    expect(container.querySelector('button')?.className).toMatch(/buttonToneAccent/)
+
+    rerender(<Button variant="text" size="prose" tone="strong">42</Button>)
+    expect(container.querySelector('button')?.className).toMatch(/buttonProse/)
+    expect(container.querySelector('button')?.className).toMatch(/buttonToneStrong/)
+  })
 })
 
 describe('Button.module.css', () => {
@@ -36,5 +46,15 @@ describe('Button.module.css', () => {
 
   it('stellt den aktuell/ausgewählt-Zustand über aria-current/aria-pressed bereit, nicht über eine eigene Prop', () => {
     expect(css).toMatch(/\.button\[aria-current\]:not\(\[aria-current="false"\]\),\s*\n\.button\[aria-pressed="true"\]/)
+  })
+
+  it('deklariert die hero-/prose-Größen und accent-/strong-Töne NACH .buttonText, damit sie dessen eigenes inherit zuverlässig überschreiben', () => {
+    const buttonTextIndex = css.indexOf('.buttonText {')
+    expect(buttonTextIndex).toBeGreaterThan(-1)
+    for (const selector of ['.buttonHero {', '.buttonProse {', '.buttonToneAccent {', '.buttonToneStrong {']) {
+      const index = css.indexOf(selector)
+      expect(index, `${selector} must exist in the stylesheet`).toBeGreaterThan(-1)
+      expect(index, `${selector} must be declared after .buttonText to reliably win its inherit reset`).toBeGreaterThan(buttonTextIndex)
+    }
   })
 })
