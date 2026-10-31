@@ -11,7 +11,8 @@ import { Text } from './Text'
 import { classNames } from './classNames'
 import styles from './Pagination.module.css'
 
-export interface PaginationProps {
+interface PagesModeProps {
+  mode?: 'pages'
   currentPage: number
   totalPages: number
   /** Klick-Modus: Seitenwechsel löst nur den Callback aus, ohne eigene URL -- für Admin-Tabellen
@@ -27,14 +28,84 @@ export interface PaginationProps {
   className?: string
 }
 
+interface LoadMoreModeProps {
+  /** Lädt zusätzliche Einträge nach, statt zu einer festen Seitenzahl zu springen -- für Listen,
+   *  die cursor-/batch-weise nachladen und bereits sichtbare Einträge dabei behalten (anders als
+   *  der Seiten-Modus, der eine ganze Seite durch eine andere ersetzt). */
+  mode: 'loadMore'
+  /** Anzahl aktuell sichtbarer Einträge, für die Fortschrittsanzeige "X von Y angezeigt". */
+  shownCount: number
+  totalCount: number
+  canShowMore: boolean
+  canShowLess: boolean
+  onShowMore: () => void
+  onShowLess: () => void
+  /** Beschriftung des "Mehr"-Buttons, z. B. "Weitere 9 Beiträge anzeigen" -- vom Aufrufer gebaut,
+   *  da die Mengenangabe je Domäne unterschiedlich benannt wird (Beiträge, Bilder, ...). */
+  showMoreLabel: string
+  /** Standard: "Weniger anzeigen". */
+  showLessLabel?: string
+  /** Deaktiviert den "Mehr"-Button während eine weitere Seite lädt. */
+  loading?: boolean
+  className?: string
+}
+
+export type PaginationProps = PagesModeProps | LoadMoreModeProps
+
 /**
  * Seitennavigation für lange Listen: Weiter/Zurück plus Seitenfenster mit Lückenanzeige
- * (`computePaginationItems`) für sehr lange Listen. Unterstützt wahlweise Klick-Modus
- * (`onPageChange`) oder Link-Modus (`hrefForPage`) -- einziger Baustein für beide Fälle, damit
- * öffentliche Seiten (echte Links) und Admin-Tabellen (eigener Fetch-State) nicht länger zwei
- * eigenständige Implementierungen pflegen.
+ * (`computePaginationItems`), wahlweise als Klick-Modus (`onPageChange`) oder Link-Modus
+ * (`hrefForPage`) -- einziger Baustein für beide Fälle, damit öffentliche Seiten (echte Links)
+ * und Admin-Tabellen (eigener Fetch-State) nicht länger zwei eigenständige Implementierungen
+ * pflegen. `mode="loadMore"` deckt denselben Bedarf für cursor-/batch-basiertes Nachladen ab
+ * (Fortschrittstext + Weniger-/Mehr-Button statt Seiten-Sprung), damit auch diese Listen keine
+ * eigene Fortschritts-/Button-Reihe mehr pflegen müssen.
  */
-export function Pagination({ currentPage, totalPages, onPageChange, hrefForPage, linkComponent, className }: PaginationProps) {
+export function Pagination(props: PaginationProps) {
+  if (props.mode === 'loadMore') {
+    return <LoadMorePagination {...props} />
+  }
+  return <PagesPagination {...props} />
+}
+
+function LoadMorePagination({
+  shownCount,
+  totalCount,
+  canShowMore,
+  canShowLess,
+  onShowMore,
+  onShowLess,
+  showMoreLabel,
+  showLessLabel = 'Weniger anzeigen',
+  loading = false,
+  className,
+}: LoadMoreModeProps) {
+  if (!canShowMore && !canShowLess) {
+    return null
+  }
+
+  return (
+    <div className={classNames(styles.loadMore, className)}>
+      {canShowMore ? (
+        <Text variant="small">{`${shownCount} von ${totalCount} angezeigt`}</Text>
+      ) : null}
+      <div className={styles.loadMoreActions}>
+        {canShowLess ? (
+          <Button type="button" variant="ghost" size="sm" onClick={onShowLess}>
+            {showLessLabel}
+          </Button>
+        ) : null}
+        {canShowMore ? (
+          <Button type="button" variant="secondary" size="sm" onClick={onShowMore} disabled={loading}>
+            {showMoreLabel}
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+function PagesPagination({ currentPage, totalPages, onPageChange, hrefForPage, linkComponent, className }: PagesModeProps) {
   const items = useMemo(() => computePaginationItems(currentPage, totalPages), [currentPage, totalPages])
 
   if (totalPages <= 1) {

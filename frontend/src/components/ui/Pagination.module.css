@@ -17,3 +17,18 @@
   padding: 0 var(--space-1);
   color: var(--text-soft);
 }
+
+/* Nachlade-Leiste (mode="loadMore"): Fortschritt ("X von Y angezeigt") + Weniger-/Mehr-Button,
+   statt zu einer Seitenzahl zu springen. */
+.loadMore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.loadMoreActions {
+  display: flex;
+  gap: var(--space-2);
+}

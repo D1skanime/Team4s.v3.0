@@ -109,4 +109,100 @@ describe('Pagination', () => {
       screen.getAllByText('…').forEach((el) => expect(el.tagName).toBe('SPAN'))
     })
   })
+
+  describe('Nachlade-Modus (mode="loadMore")', () => {
+    it('zeigt den Fortschritt und den Mehr-Button, solange weitere Einträge nachladbar sind', () => {
+      const onShowMore = vi.fn()
+      render(
+        <Pagination
+          mode="loadMore"
+          shownCount={15}
+          totalCount={24}
+          canShowMore
+          canShowLess={false}
+          onShowMore={onShowMore}
+          onShowLess={() => {}}
+          showMoreLabel="Weitere 9 Beiträge anzeigen"
+        />,
+      )
+
+      expect(screen.getByText('15 von 24 angezeigt')).not.toBeNull()
+      fireEvent.click(screen.getByRole('button', { name: 'Weitere 9 Beiträge anzeigen' }))
+      expect(onShowMore).toHaveBeenCalledTimes(1)
+      expect(screen.queryByRole('button', { name: 'Weniger anzeigen' })).toBeNull()
+    })
+
+    it('zeigt den Weniger-Button ohne Fortschrittstext, wenn bereits alles geladen ist', () => {
+      const onShowLess = vi.fn()
+      render(
+        <Pagination
+          mode="loadMore"
+          shownCount={24}
+          totalCount={24}
+          canShowMore={false}
+          canShowLess
+          onShowMore={() => {}}
+          onShowLess={onShowLess}
+          showMoreLabel="Weitere Beiträge anzeigen"
+        />,
+      )
+
+      expect(screen.queryByText(/von 24 angezeigt/)).toBeNull()
+      fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
+      expect(onShowLess).toHaveBeenCalledTimes(1)
+    })
+
+    it('deaktiviert den Mehr-Button während loading', () => {
+      render(
+        <Pagination
+          mode="loadMore"
+          shownCount={15}
+          totalCount={24}
+          canShowMore
+          canShowLess={false}
+          onShowMore={() => {}}
+          onShowLess={() => {}}
+          showMoreLabel="Weitere Beiträge anzeigen"
+          loading
+        />,
+      )
+
+      expect(screen.getByRole('button', { name: 'Weitere Beiträge anzeigen' })).toHaveProperty('disabled', true)
+    })
+
+    it('rendert nichts, wenn weder mehr noch weniger angezeigt werden kann', () => {
+      const { container } = render(
+        <Pagination
+          mode="loadMore"
+          shownCount={3}
+          totalCount={3}
+          canShowMore={false}
+          canShowLess={false}
+          onShowMore={() => {}}
+          onShowLess={() => {}}
+          showMoreLabel="Weitere Beiträge anzeigen"
+        />,
+      )
+
+      expect(container.firstChild).toBeNull()
+    })
+
+    it('nutzt eine eigene Weniger-Beschriftung, wenn showLessLabel übergeben wird', () => {
+      render(
+        <Pagination
+          mode="loadMore"
+          shownCount={24}
+          totalCount={24}
+          canShowMore={false}
+          canShowLess
+          onShowMore={() => {}}
+          onShowLess={() => {}}
+          showMoreLabel="Weitere Beiträge anzeigen"
+          showLessLabel="Weniger Bilder anzeigen"
+        />,
+      )
+
+      expect(screen.getByRole('button', { name: 'Weniger Bilder anzeigen' })).not.toBeNull()
+    })
+  })
 })

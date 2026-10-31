@@ -3,7 +3,7 @@
 import { Image as ImageIcon } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
-import { Button, SectionHeader, Text } from '@/components/ui'
+import { Pagination, SectionHeader } from '@/components/ui'
 import { FansubMediaLightbox } from '@/components/fansubs/FansubMediaLightbox'
 import { getProjectMemberMedia } from '@/lib/api'
 import type { ProjectMemberMediaItem } from '@/types/projectMember'
@@ -25,9 +25,8 @@ interface ProjectMemberMediaGalleryProps {
   count: number
 }
 
-// Projektweite Bilder-&-Medien-Galerie: lädt cursor-basiert in Seiten nach (weniger/mehr
-// anzeigen, siehe ProjectMemberNotesSection für dieselbe Begründung gegen @/components/ui
-// Pagination), responsives Grid, öffnet den Media Viewer über die aktuell angezeigten Medien.
+// Projektweite Bilder-&-Medien-Galerie: lädt cursor-basiert nach (Pagination mode="loadMore"),
+// responsives Grid, öffnet den Media Viewer über die aktuell angezeigten Medien.
 export function ProjectMemberMediaGallery({
   animeID,
   groupID,
@@ -83,25 +82,18 @@ export function ProjectMemberMediaGallery({
         ))}
       </div>
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
-      <div className={pageStyles.pager}>
-        {canShowMore ? (
-          <Text variant="small" className={pageStyles.pagerInfo}>
-            {`${shown.length} von ${count} angezeigt`}
-          </Text>
-        ) : null}
-        <div className={pageStyles.pagerButtons}>
-          {canShowLess ? (
-            <Button type="button" variant="ghost" size="sm" onClick={showLess}>
-              Weniger anzeigen
-            </Button>
-          ) : null}
-          {canShowMore ? (
-            <Button type="button" variant="secondary" size="sm" onClick={showMore} disabled={loading}>
-              Weitere Bilder laden
-            </Button>
-          ) : null}
-        </div>
-      </div>
+      <Pagination
+        mode="loadMore"
+        className={pageStyles.pager}
+        shownCount={shown.length}
+        totalCount={count}
+        canShowMore={canShowMore}
+        canShowLess={canShowLess}
+        onShowMore={showMore}
+        onShowLess={showLess}
+        loading={loading}
+        showMoreLabel="Weitere Bilder laden"
+      />
       <FansubMediaLightbox
         media={shown.map((item) => toProjectMemberLightboxItem(item, projectPath))}
         index={openIndex}
