@@ -28,6 +28,7 @@ const meta = {
     metrics: (
       <MetricList
         ariaLabel="Kennzahlen"
+        valueHeadingLevel={2}
         items={[
           { label: 'Anime-Projekte', value: 20 },
           { label: 'Release-Versionen', value: 59 },
@@ -80,6 +81,7 @@ export const MitRollen: Story = {
       <MetricList
         ariaLabel="Beiträge"
         variant="inline"
+        valueHeadingLevel={2}
         items={[
           { label: 'Folgen', value: 13 },
           { label: 'Beiträge', value: 12 },

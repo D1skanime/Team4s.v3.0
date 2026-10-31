@@ -12,28 +12,33 @@
   min-width: 0;
 }
 
-/* Fallback --text-soft, überschreibbar über --hero-metrics-label -- FansubHeroSection setzt
-   diese Variable NUR innerhalb seines eigenen Banner-Textblocks, um auf einem dunklen Scrim
-   lesbar zu bleiben. */
-.metricLabel {
-  --text-small-color: var(--hero-metrics-label, var(--text-soft));
+/* Element+Klasse-Selektor (Spezifität 0,1,1): überschreibt Texts eigene Farbe zuverlässig, statt
+   Texts private --text-small-color-Variable von außen zu setzen. Fallback --text-soft,
+   überschreibbar über --hero-metrics-label (MetricLists EIGENE, öffentliche Variable) --
+   FansubHeroSection setzt sie NUR innerhalb seines eigenen Banner-Textblocks, um auf einem
+   dunklen Scrim lesbar zu bleiben. */
+p.metricLabel {
+  color: var(--hero-metrics-label, var(--text-soft));
 }
 
-/* Kein <Heading>-Element (siehe MetricList.tsx), daher volle eigene Typografie statt nur einer
-   Farb-Überschreibung: Größe/Gewicht wie Heading size="hero", Fallback-Farbe --accent-deep,
-   überschreibbar über --hero-metrics-value. */
-.metricValue {
-  font-size: var(--font-size-hero);
-  font-weight: var(--font-weight-heading);
+/* Element+Klasse-Selektor: überschreibt Headings eigene tone="accent"-Farbe (--accent-deep)
+   zuverlässig für denselben Banner-Sonderfall wie .metricLabel -- MetricLists eigene, öffentliche
+   --hero-metrics-value-Variable, keine private Variable von Heading. */
+h1.metricValue,
+h2.metricValue,
+h3.metricValue,
+h4.metricValue {
   color: var(--hero-metrics-value, var(--accent-deep));
 }
 
-/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept (font-size/-weight: inherit)
-   zuverlässig -- dieselbe Größe/Farbe wie die nicht klickbare h4.metricValue. */
-button.metricValueButton {
+/* Trägt die Hero-Größe/-Farbe für den klickbaren Fall (Button variant="text" übernimmt beides
+   per CSS-"inherit" aus Buttons eigenem .buttonText-Rezept) -- im nicht klickbaren Fall bringt
+   Heading size="hero" tone="accent" seine Typografie bereits selbst mit, diese Zelle liefert dort
+   nur das Grid-Layout. */
+.metricValueCell {
   font-size: var(--font-size-hero);
   font-weight: var(--font-weight-heading);
-  color: var(--hero-metrics-value, var(--accent-deep));
+  color: var(--accent-deep);
 }
 
 .metricListInline {
@@ -63,22 +68,19 @@ button.metricValueButton {
   white-space: nowrap;
 }
 
+/* Trägt Größe/Farbe für den klickbaren Fall (Button variant="text" übernimmt beides per
+   CSS-"inherit") -- Text(variant="body") im nicht klickbaren Fall bringt seine Typografie
+   bereits selbst mit und ignoriert diese Zelle (eigene, explizite Deklaration schlägt inherit). */
 .metricInlineValue {
-  --text-meta-color: var(--text-body);
-}
-
-.metricInlineValueText {
-  white-space: nowrap;
-}
-
-/* Element+Klasse-Selektor: überschreibt Buttons .buttonText-Rezept zuverlässig -- dieselbe
-   Größe/Farbe wie der nicht klickbare Text(variant="meta")-Wert. */
-button.metricInlineValueButton {
-  font-size: var(--text-meta-size, 0.875rem);
-  font-weight: var(--font-weight-label);
-  line-height: 1.5;
+  font-size: 1rem;
   color: var(--text-body);
   white-space: nowrap;
+}
+
+/* Element+Klasse-Selektor: einziger verbleibender Unterschied zum nicht klickbaren
+   Text(variant="body")-Wert ist das stärkere Schriftgewicht. */
+button.metricInlineValueButton {
+  font-weight: var(--font-weight-label);
 }
 
 @media (max-width: 767px) {
@@ -97,7 +99,10 @@ button.metricInlineValueButton {
     min-width: 0;
   }
 
-  .metricValue {
+  h1.metricValue,
+  h2.metricValue,
+  h3.metricValue,
+  h4.metricValue {
     font-size: var(--font-size-h2);
   }
 }

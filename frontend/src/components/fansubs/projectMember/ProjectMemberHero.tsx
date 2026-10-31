@@ -75,7 +75,7 @@ export function ProjectMemberHero({
         </Badge>
       )) : null}
       context={<>{animeTitle} · {groupName}</>}
-      metrics={<MetricList items={metrics} ariaLabel="Projektbeiträge" variant="inline" />}
+      metrics={<MetricList items={metrics} ariaLabel="Projektbeiträge" variant="inline" valueHeadingLevel={2} />}
       actions={<>
         <Button href={projectPath} variant="subtle" size="sm" leftIcon={<ArrowLeft size={14} aria-hidden="true" />}>
           Zurück zum Projekt

@@ -323,6 +323,7 @@ export function MemberProfileHero({
               className={styles.heroPoints}
               items={[{ label: 'Punkte', value: totalPoints }]}
               ariaLabel="Mitglied-Punktzahl"
+              valueHeadingLevel={2}
             />
           ) : null}
           {profile.bio ? (

@@ -5,6 +5,7 @@ import styles from './Heading.module.css'
 
 export type HeadingLevel = 1 | 2 | 3 | 4
 export type HeadingVisualSize = HeadingLevel | 'hero'
+export type HeadingTone = 'default' | 'accent'
 
 export interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
   /** Semantisches Tag (h1-h4) -- bestimmt die Dokumentstruktur/Barrierefreiheits-Hierarchie. */
@@ -14,6 +15,9 @@ export interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
    *  zwischen H1 und H2 und ist für prominente, aber kompakte Titel gedacht (z. B. ein
    *  Profil-/Gruppen-Titel in einer Kopfzeile, die nicht die volle Seitenüberschrift sein soll). */
   size?: HeadingVisualSize
+  /** 'accent' färbt die Überschrift in der Akzentfarbe (--accent-deep) statt der Standardfarbe
+   *  --text-strong, z. B. für eine hervorgehobene Kennzahl. */
+  tone?: HeadingTone
 }
 
 const TAG_BY_LEVEL: Record<HeadingLevel, 'h1' | 'h2' | 'h3' | 'h4'> = {
@@ -31,16 +35,21 @@ const SIZE_CLASS_BY_VISUAL_SIZE: Record<HeadingVisualSize, string> = {
   4: styles.headingSize4,
 }
 
+const TONE_CLASS_BY_TONE: Record<HeadingTone, string | undefined> = {
+  default: undefined,
+  accent: styles.headingToneAccent,
+}
+
 /**
  * Typografie-Grundbaustein für Überschriften: trennt bewusst das semantische Tag (`level`,
  * für die Dokumentstruktur) von der visuellen Größe (`size`, Standard = `level`). Liefert
- * standardmäßig `color: var(--text-strong)`. Kontexte mit abweichendem Hintergrund (z. B. ein
- * dunkler Hero-Scrim) überschreiben die Farbe gezielt per eigener CSS-Klasse auf demselben
- * Element, genau wie bei einer Heading-Größenstufe.
+ * standardmäßig `color: var(--text-strong)`, mit `tone="accent"` offiziell wählbar `--accent-deep`
+ * (z. B. für eine hervorgehobene Kennzahl) -- kein Aufrufer muss die Farbe mehr per eigener
+ * CSS-Klasse von außen überschreiben.
  */
-export function Heading({ level, size, className, ...rest }: HeadingProps) {
+export function Heading({ level, size, tone = 'default', className, ...rest }: HeadingProps) {
   const Tag = TAG_BY_LEVEL[level]
   const visualSize = size ?? level
 
-  return <Tag className={classNames(styles.heading, SIZE_CLASS_BY_VISUAL_SIZE[visualSize], className)} {...rest} />
+  return <Tag className={classNames(styles.heading, SIZE_CLASS_BY_VISUAL_SIZE[visualSize], TONE_CLASS_BY_TONE[tone], className)} {...rest} />
 }

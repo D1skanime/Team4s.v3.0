@@ -47,3 +47,15 @@ export const HeroTitel: Story = {
     },
   },
 }
+
+export const AkzentTon: Story = {
+  name: 'Akzent-Ton',
+  args: { level: 2, size: 'hero', tone: 'accent', children: '1.284' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Färbt die Überschrift in --accent-deep statt der Standardfarbe --text-strong, z. B. für eine hervorgehobene Kennzahl (siehe MetricList).',
+      },
+    },
+  },
+}

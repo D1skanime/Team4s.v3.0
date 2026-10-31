@@ -23,3 +23,7 @@
 .headingSize4 {
   font-size: var(--font-size-h4);
 }
+
+.headingToneAccent {
+  color: var(--accent-deep);
+}

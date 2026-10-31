@@ -461,6 +461,10 @@ describe('MemberProfilePage Phase 99 route composition', () => {
 
     expect(screen.getAllByRole('heading', { level: 1 }).map((heading) => heading.textContent)).toContain('Ballelboy')
     expect(screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual([
+      // Hero-Punktzahl (MetricList, direkt nach dem h1-Namen): MetricList bildet den Kennzahlen-
+      // Wert über ein echtes Heading ab (hier level=2, eine Stufe unter dem umgebenden h1), statt
+      // über einen eigenen, nicht in der Überschriften-Hierarchie sichtbaren span.
+      '0',
       'Profil und Mitgliedschaft',
       'Fansub-Projekte',
       'Rollenfortschritt',

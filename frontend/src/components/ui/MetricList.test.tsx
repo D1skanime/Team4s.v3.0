@@ -11,6 +11,7 @@ describe('MetricList', () => {
     render(
       <MetricList
         ariaLabel="Kennzahlen"
+        valueHeadingLevel={2}
         items={[
           { label: 'Dauer', value: '23:45 Min.' },
           { label: 'Codec', value: 'H.264' },
@@ -22,8 +23,21 @@ describe('MetricList', () => {
     expect(metrics.textContent).toBe('Dauer23:45 Min.CodecH.264')
   })
 
+  it('rendert den nicht klickbaren Wert über Heading mit dem übergebenen valueHeadingLevel, nicht über einen eigenen span', () => {
+    render(
+      <MetricList
+        ariaLabel="Kennzahlen"
+        valueHeadingLevel={3}
+        items={[{ label: 'Punkte', value: 42 }]}
+      />,
+    )
+
+    const heading = screen.getByRole('heading', { level: 3, name: '42' })
+    expect(heading.tagName).toBe('H3')
+  })
+
   it('rendert die Inline-Variante mit erhaltener Bezeichnung-Wert-Semantik', () => {
-    const { container } = render(<MetricList ariaLabel="Inline" variant="inline" items={[{ label: 'Folgen', value: 13 }]} />)
+    const { container } = render(<MetricList ariaLabel="Inline" variant="inline" valueHeadingLevel={2} items={[{ label: 'Folgen', value: 13 }]} />)
     expect(screen.getByLabelText('Inline').querySelector('dd')?.textContent).toBe('13 Folgen')
     expect(container.querySelector('dt')?.textContent).toBe('Folgen')
     expect(container.querySelector('dd span')?.getAttribute('aria-hidden')).toBe('true')
@@ -35,6 +49,7 @@ describe('MetricList', () => {
       <MetricList
         ariaLabel="Sprung"
         variant="inline"
+        valueHeadingLevel={2}
         items={[{ label: 'Beiträge', value: 12, onActivate, activateLabel: 'Zu Beiträge springen' }]}
       />,
     )
@@ -55,6 +70,7 @@ describe('MetricList', () => {
       <MetricList
         ariaLabel="Kein Sprung"
         variant="inline"
+        valueHeadingLevel={2}
         items={[{ label: 'Folgen', value: 13 }]}
       />,
     )

@@ -16,6 +16,7 @@ const meta = {
   },
   args: {
     ariaLabel: 'Beispiel-Kennzahlen',
+    valueHeadingLevel: 2,
     items: [
       { label: 'Anime-Projekte', value: 20 },
       { label: 'Release-Versionen', value: 59 },

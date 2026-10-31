@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 
 import { Button } from './Button'
+import { Heading } from './Heading'
+import type { HeadingLevel } from './Heading'
 import { Text } from './Text'
 import { classNames } from './classNames'
 import styles from './MetricList.module.css'
@@ -17,14 +19,23 @@ export interface MetricListProps {
   ariaLabel: string
   className?: string
   variant?: 'default' | 'inline'
+  /** Überschriften-Level für den nicht klickbaren Kennzahlen-Wert (rendert über `Heading
+   *  size="hero"`). MUSS zur umgebenden Überschriften-Hierarchie der jeweiligen Seite passen --
+   *  ein Level über der zuletzt gerenderten Überschrift --, sonst verletzt es die Axe-Regel
+   *  heading-order. Bei `variant="inline"` ohne Wirkung (der Wert rendert dort über Text, nie
+   *  über Heading), aber trotzdem Pflicht-Prop, damit kein Aufrufer der Standard-Variante
+   *  versehentlich den Default vergisst. */
+  valueHeadingLevel: HeadingLevel
 }
 
 /**
  * Liste von Kennzahlen (Bezeichnung + Wert), wahlweise untereinander-nebeneinander ("default")
  * oder als kompakte, durch Punkte getrennte Reihe ("inline"). Eine Kennzahl kann klickbar sein
- * (z. B. um zu einem passenden Abschnitt der Seite zu springen).
+ * (z. B. um zu einem passenden Abschnitt der Seite zu springen) -- dann rendert der Wert über
+ * `Button variant="text"` statt `Heading`, da ein Heading-Element nicht gültig in einen Button
+ * verschachtelt werden darf.
  */
-export function MetricList({ items, ariaLabel, className, variant = 'default' }: MetricListProps) {
+export function MetricList({ items, ariaLabel, className, variant = 'default', valueHeadingLevel }: MetricListProps) {
   if (items.length === 0) return null
 
   return (
@@ -40,25 +51,20 @@ export function MetricList({ items, ariaLabel, className, variant = 'default' }:
                     {item.value}<span aria-hidden="true"> {item.label}</span>
                   </Button>
                 ) : (
-                  <Text variant="meta" className={styles.metricInlineValueText}>{item.value}<span aria-hidden="true"> {item.label}</span></Text>
+                  <Text variant="body">{item.value}<span aria-hidden="true"> {item.label}</span></Text>
                 )}
               </dd>
             </>
           ) : (
             <>
               <dt><Text variant="small" className={styles.metricLabel}>{item.label}</Text></dt>
-              <dd>
+              <dd className={styles.metricValueCell}>
                 {item.onActivate ? (
-                  <Button type="button" variant="text" className={styles.metricValueButton} onClick={item.onActivate} aria-label={item.activateLabel}>
+                  <Button type="button" variant="text" onClick={item.onActivate} aria-label={item.activateLabel}>
                     {item.value}
                   </Button>
                 ) : (
-                  // Bewusst kein <Heading>: der Kennzahlen-Wert ist Dateninhalt einer <dl>, keine
-                  // Dokument-Überschrift -- je nachdem, wo MetricList eingebettet wird, würde ein
-                  // fester Heading-Level die umgebende h1-h6-Reihenfolge der Seite verletzen
-                  // (Axe-Regel heading-order). Die Größe kommt trotzdem über denselben
-                  // --font-size-hero-Token wie Heading size="hero".
-                  <span className={styles.metricValue}>{item.value}</span>
+                  <Heading level={valueHeadingLevel} size="hero" tone="accent" className={styles.metricValue}>{item.value}</Heading>
                 )}
               </dd>
             </>

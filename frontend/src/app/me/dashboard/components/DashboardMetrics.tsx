@@ -17,6 +17,7 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
       <SectionHeader title="Deine Zahlen" />
       <MetricList
         ariaLabel="Deine Kennzahlen"
+        valueHeadingLevel={3}
         items={[
           { label: 'Punkte', value: data.total_points.toLocaleString('de-DE') },
           { label: 'Badges', value: data.badges_count },

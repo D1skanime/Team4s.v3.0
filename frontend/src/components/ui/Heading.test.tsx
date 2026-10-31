@@ -38,6 +38,14 @@ describe('Heading', () => {
     expect(element.className).toMatch(/headingSizeHero/)
   })
 
+  it('rendert tone="accent" mit der Akzentfarben-Klasse, Standardton ohne zusaetzliche Klasse', () => {
+    const { container, rerender } = render(<Heading level={2} tone="accent">42</Heading>)
+    expect((container.firstElementChild as HTMLElement).className).toMatch(/headingToneAccent/)
+
+    rerender(<Heading level={2}>42</Heading>)
+    expect((container.firstElementChild as HTMLElement).className).not.toMatch(/headingToneAccent/)
+  })
+
   it('reicht id und weitere native Attribute durch (z. B. fuer DialogHeaders titleId-Bedarf)', () => {
     const { container } = render(
       <Heading level={2} id="dialog-title">

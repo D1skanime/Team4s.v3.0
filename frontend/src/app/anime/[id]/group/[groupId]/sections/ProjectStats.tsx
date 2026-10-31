@@ -47,6 +47,7 @@ export function ProjectStats({ contributorCount, releaseCount, coopGroups, anime
     <div className={styles.projectStats}>
       <MetricList
         ariaLabel="Projektkennzahlen"
+        valueHeadingLevel={2}
         items={[
           { label: 'Mitwirkende', value: contributorCount },
           { label: 'Releases', value: releaseCount },
