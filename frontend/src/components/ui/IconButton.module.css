@@ -74,6 +74,20 @@
   color: var(--ui-arrow);
 }
 
+/* Gefüllte Akzent-Variante (z. B. ein klickbarer "+N weitere"-Überlauf-Knopf, der optisch wie
+   eine akzentfarbene Zähler-Fläche wirken soll statt wie ein transparenter Dezent-Knopf). */
+.iconButtonAccent {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  box-shadow: none;
+}
+
+.iconButtonAccent:hover {
+  background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface-card));
+  opacity: 1;
+}
+
 .iconButtonFloating {
   position: absolute;
   top: var(--space-5);

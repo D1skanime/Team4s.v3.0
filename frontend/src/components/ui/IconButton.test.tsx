@@ -78,6 +78,14 @@ describe('IconButton', () => {
     expect(button?.className).toMatch(/iconButtonFill/)
   })
 
+  it('unterstützt die accent-Variante für einen gefüllten Zähler-/Überlauf-Knopf (Basis für AvatarStack)', () => {
+    const { container } = render(
+      <IconButton icon="+3" aria-label="3 weitere anzeigen" variant="accent" shape="round" />,
+    )
+
+    expect(container.querySelector('button')?.className).toMatch(/iconButtonAccent/)
+  })
+
   it('unterstützt die tile-Variante mit ausgewähltem Zustand über aria-current, ohne !important', () => {
     const { container } = render(
       <IconButton icon="12" aria-label="12" variant="tile" size="fill" aria-current="true" />,

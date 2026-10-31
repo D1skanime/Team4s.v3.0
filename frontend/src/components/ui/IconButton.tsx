@@ -4,7 +4,7 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ElementType, ReactNode
 import { classNames } from './classNames'
 import styles from './IconButton.module.css'
 
-export type IconButtonVariant = 'default' | 'ghost' | 'onImage' | 'field' | 'tile'
+export type IconButtonVariant = 'default' | 'ghost' | 'onImage' | 'field' | 'tile' | 'accent'
 export type IconButtonSize = 'sm' | 'md' | 'lg' | 'fill'
 export type IconButtonShape = 'square' | 'round'
 export type IconButtonTone = 'default' | 'arrow'
@@ -31,6 +31,7 @@ function iconButtonClassName({ variant = 'default', size = 'md', shape = 'square
     variant === 'onImage' && styles.iconButtonOnImage,
     variant === 'field' && styles.iconButtonField,
     variant === 'tile' && styles.iconButtonTile,
+    variant === 'accent' && styles.iconButtonAccent,
     size === 'sm' && styles.iconButtonSm,
     size === 'lg' && styles.iconButtonLg,
     size === 'fill' && styles.iconButtonFill,
@@ -54,6 +55,8 @@ export interface IconButtonProps extends IconButtonVisualProps, Omit<ButtonHTMLA
  * DatePicker) und `tile` (Raster-Auswahlkachel mit "ausgewählt"-Zustand über aria-current/
  * aria-pressed, z. B. Tages-/Monats-/Jahres-Kacheln) decken zusammen mit `size="fill"` die
  * Picker-Bausteine ab, ohne dass diese IconButtons Basis-Rezept von außen überschreiben müssen.
+ * `accent` liefert eine gefüllte, akzentfarbene Fläche für einen klickbaren Zähler-/Überlauf-
+ * Knopf (z. B. AvatarStacks "+N weitere").
  */
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
   { icon, variant, size, shape, tone, floating, className, type, ...rest },

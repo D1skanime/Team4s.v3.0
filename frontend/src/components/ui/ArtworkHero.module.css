@@ -81,13 +81,12 @@
   white-space: normal;
 }
 
-/* font-size kommt jetzt von Text (variant="soft"); --text-soft-size überschreibt NUR die
-   Größe (Text-Standard wäre 1rem), Farbe entspricht bereits dem Text-"soft"-Default. */
+/* Größe/Farbe kommen vollständig von Texts "meta"-Variante (0.875rem, --text-soft) -- keine
+   private Text-Variable mehr von außen gesetzt. */
 .context {
   margin: var(--space-1) 0 0;
   line-height: 1.5;
   overflow-wrap: anywhere; /* Projekt-/Gruppennamen werden von Nutzern frei vergeben. */
-  --text-soft-size: 0.875rem;
 }
 
 .details {

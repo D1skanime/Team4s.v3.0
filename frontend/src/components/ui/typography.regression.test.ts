@@ -100,16 +100,17 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(titleRule).not.toMatch(/color:/)
     })
 
-    it('Beschreibung: font-size 0.92rem / color #657086 ueber --text-soft-size/-color-Overrides, UND die VOLLE margin-Shorthand ueber --space-2-Token (nicht nur margin-top)', () => {
-      expect(sectionHeaderTsx).toMatch(/<Text\s+variant="soft"/)
+    it('Beschreibung: Text("meta")-Standardgroesse/-farbe (0.875rem, --text-soft) ohne eigene Ueberschreibung, UND die VOLLE margin-Shorthand ueber --space-2-Token (nicht nur margin-top)', () => {
+      expect(sectionHeaderTsx).toMatch(/<Text\s+variant="meta"/)
       const descriptionRule = mergedBlocks(sectionHeaderCss, '.sectionDescription')
       // Kritisch: volle Shorthand, NICHT nur margin-top -- Text setzt keinen eigenen Reset,
       // ein unvollständiger Reset ließe den Browser-Standard-Absatzabstand unten/seitlich
       // durchschlagen.
       expect(descriptionRule).toMatch(/margin:\s*var\(--space-2\) 0 0;/)
       expect(descriptionRule).not.toMatch(/margin-top:/)
-      expect(descriptionRule).toMatch(/--text-soft-size:\s*0\.92rem;/)
-      expect(descriptionRule).toMatch(/--text-soft-color:\s*#657086;/)
+      expect(descriptionRule).not.toMatch(/--text-soft-size:/)
+      expect(descriptionRule).not.toMatch(/--text-soft-color:/)
+      expect(descriptionRule).not.toMatch(/#[0-9a-fA-F]{3,8}/)
     })
 
     it('Eyebrow: rendert ueber Text(variant="eyebrow") statt eines eigenen <p>', () => {
@@ -221,13 +222,13 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(titleRule).not.toMatch(/color:/)
     })
 
-    it('rendert die Kontextzeile über Text variant="soft" statt eines eigenen p', () => {
-      expect(artworkHeroTsx).toMatch(/<Text\s+variant="soft"/)
+    it('rendert die Kontextzeile über Text variant="meta" statt eines eigenen p', () => {
+      expect(artworkHeroTsx).toMatch(/<Text\s+variant="meta"/)
     })
 
-    it('Kontextzeile: font-size 0.875rem über --text-soft-size-Override (color-Override nicht nötig, var(--text-soft) ist bereits der Text-"soft"-Default)', () => {
+    it('Kontextzeile: Text("meta")-Standardgroesse/-farbe (0.875rem, --text-soft) ohne eigene Ueberschreibung', () => {
       const contextRule = mergedBlocks(artworkHeroCss, '.context')
-      expect(contextRule).toMatch(/--text-soft-size:\s*0\.875rem;/)
+      expect(contextRule).not.toMatch(/--text-soft-size:/)
       expect(contextRule).not.toMatch(/color:/)
     })
   })

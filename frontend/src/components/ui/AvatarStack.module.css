@@ -12,18 +12,10 @@
   border: 2px solid var(--surface-card);
 }
 
-/* Element+Klasse-Selektor (Spezifität 0,1,1): schlägt IconButtons eigene Basis-Klassen
-   zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge -- der klickbare Überlauf-Knopf
-   (IconButton, da Avatar selbst keinen Klick-Handler anbietet) soll optisch genau wie Avatars
-   eigene Zähler-Darstellung aussehen (Akzentfarbe statt transparent). */
+/* Element+Klasse-Selektor (Spezifität 0,1,1): ergänzt nur den lokalen Überlapp-Effekt (negativer
+   Abstand, weißer Trennring) -- Fläche/Farbe kommen jetzt aus IconButtons offizieller
+   accent-Variante, kein Spezifitäts-Override von Hintergrund/Farbe mehr nötig. */
 button.avatarStackOverflowButton {
   margin-inline-start: calc(var(--space-2) * -1);
   border: 2px solid var(--surface-card);
-  background: var(--accent-soft);
-  color: var(--accent-deep);
-}
-
-button.avatarStackOverflowButton:hover {
-  background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface-card));
-  opacity: 1;
 }

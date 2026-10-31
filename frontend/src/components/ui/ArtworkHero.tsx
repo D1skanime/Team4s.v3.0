@@ -56,7 +56,7 @@ export function ArtworkHero({
             {status}
           </div>
           {roles ? <div className={styles.roles}>{roles}</div> : null}
-          <Text variant="soft" className={styles.context}>{context}</Text>
+          <Text variant="meta" className={styles.context}>{context}</Text>
         </div>
         <div className={styles.details}>
           {metrics}

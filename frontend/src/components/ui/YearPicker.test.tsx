@@ -33,9 +33,9 @@ describe('YearPicker', () => {
     expect(screen.queryByText('2088-2099')).toBeNull()
   })
 
-  // UAT-Runde 4, Befund 4 (2026-10-30): Trigger/Blätter-Pfeile/Jahres-Kacheln wurden von eigenen
-  // nativen <button>-Elementen auf IconButton/NavArrow umgestellt -- diese vier Tests belegen,
-  // dass Tastatur-/Fokus-/Klickverhalten dabei unverändert geblieben ist.
+  // Trigger/Blätter-Pfeile/Jahres-Kacheln rendern über IconButton/NavArrow (nicht über eigene
+  // native <button>-Elemente) -- diese vier Tests belegen, dass Tastatur-/Fokus-/Klickverhalten
+  // dabei unverändert bleibt.
   it('wählt ein Jahr per Klick auf die IconButton-Kachel aus und schließt danach das Panel', () => {
     const handleChange = vi.fn()
     render(
@@ -90,5 +90,17 @@ describe('YearPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Keine Angabe' }))
 
     expect(handleChange).toHaveBeenCalledWith('')
+  })
+
+  it('markiert die ausgewählte Jahres-Kachel über aria-current statt einer externen CSS-Klasse', () => {
+    render(
+      <YearPicker id="founded-year" label="Gründungsjahr" value="2005" minYear={1990} maxYear={2030} onChange={() => undefined} />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Gründungsjahr' }))
+
+    expect(screen.getByRole('button', { name: '2005' }).getAttribute('aria-current')).toBe('true')
+    expect(screen.getByRole('button', { name: '2004' }).getAttribute('aria-current')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Keine Angabe' }).getAttribute('aria-current')).toBeNull()
   })
 })

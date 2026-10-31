@@ -27,6 +27,18 @@ export const Dezent: Story = {
   args: { variant: 'ghost' },
 }
 
+export const Akzent: Story = {
+  name: 'Akzent',
+  args: { icon: '+3', 'aria-label': '3 weitere anzeigen', variant: 'accent', shape: 'round' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Gefüllte, akzentfarbene Fläche für einen klickbaren Zähler-/Überlauf-Knopf, z. B. AvatarStacks "+N weitere".',
+      },
+    },
+  },
+}
+
 export const AufBild: Story = {
   name: 'Auf Bild',
   args: { variant: 'onImage' },

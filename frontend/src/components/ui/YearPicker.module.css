@@ -3,62 +3,55 @@
 }
 
 /*
- * Element+Klasse-Selektoren (Spezifität 0,1,1) statt reiner Klassen-Selektoren: der Auslöser
- * rendert jetzt über IconButton, dessen eigene .iconButton-Basisklasse (feste 40x40px, eigener
- * Rahmen/Radius/Hintergrund) sonst je nach CSS-Modul-Bündel-Reihenfolge die hier gewünschte,
- * volle Feldbreite überschreiben könnte -- identisches Muster wie NavArrow/AvatarStack auf
- * IconButton. Rahmen/Hintergrund/Textfarbe/Fokus/Fehler/Deaktiviert kommen jetzt aus den
- * gemeinsamen --field-*-Tokens (globals.css), denselben, die auch .control (Input/Select/
- * Textarea, ui.module.css) und DatePickers Auslöser nutzen -- keine kopierten Literale mehr.
+ * Rahmen/Hintergrund/Fokus/Fehler/Deaktiviert kommen aus den gemeinsamen --field-*-Tokens
+ * (globals.css), denselben, die auch .control (Input/Select/Textarea, ui.module.css) und
+ * DatePickers Feldzeile nutzen. Der Auslöser selbst (IconButton variant="field") trägt KEINEN
+ * eigenen Rahmen/Hintergrund -- das übernimmt diese Feldzeile, identisches Muster wie DatePicker.
  */
-button.yearPickerTrigger {
+.yearPickerField {
   width: 100%;
   min-height: var(--control-height-md);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
+  padding: 0 var(--space-4);
   border-radius: var(--field-radius);
   border: 1px solid var(--field-border-color);
   background: var(--field-bg);
-  color: var(--field-text-color);
   box-shadow: var(--field-shadow);
-  font: inherit;
-  font-weight: 700;
-  text-align: left;
   transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease,
-    background-color 120ms ease;
+    border-color var(--transition-fast) ease,
+    box-shadow var(--transition-fast) ease,
+    background-color var(--transition-fast) ease;
 }
 
-button.yearPickerTrigger:hover {
+.yearPickerField:hover {
   border-color: var(--field-border-color-hover);
   background: var(--field-bg-hover);
 }
 
-button.yearPickerTrigger:focus-visible {
-  outline: none;
-  border-color: var(--border-accent);
-  box-shadow: var(--field-focus-shadow);
-}
-
-button.yearPickerTrigger:disabled {
-  cursor: not-allowed;
-  opacity: 0.62;
-  background: var(--field-disabled-bg);
-}
-
-/* Muss NACH button.yearPickerTrigger stehen: bei gleicher Spezifität (0,1,1) gewinnt die
-   Deklarationsreihenfolge im Stylesheet. */
-button.yearPickerTriggerInvalid {
+.yearPickerFieldInvalid {
   border-color: var(--field-invalid-border-color);
   box-shadow: var(--field-invalid-shadow);
 }
 
-/* Farbe kommt aus dem geteilten --picker-hint-Token (globals.css) statt eines eigenen Literals
-   (Review-Runde 1, 2026-10-30). */
+.yearPickerFieldDisabled {
+  opacity: 0.62;
+  background: var(--field-disabled-bg);
+}
+
+.yearPickerTrigger {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Element+Klasse-Selektor (Spezifität 0,1,1): schlägt IconButtons field-Variante (font: inherit,
+   Spezifität 0,1,0) zuverlässig -- der Auslöser-Wert soll fett wirken, unabhängig vom ambienten
+   Kontext, in den YearPicker eingebettet wird. */
+button.yearPickerTrigger {
+  font-weight: 700;
+}
+
+/* Farbe kommt aus dem geteilten --picker-hint-Token (globals.css) statt eines eigenen Literals. */
 .yearPickerHint {
   color: var(--picker-hint-color);
   font-size: 12px;
@@ -69,7 +62,7 @@ button.yearPickerTriggerInvalid {
 /* Rahmen/Hintergrund entsprechen exakt den gemeinsamen --field-border-color/--field-bg-hover-
    Tokens (Input/Select/Textarea, YearPicker-/DatePicker-Auslöser); Radius kommt aus dem
    geteilten --picker-panel-radius-Token, denselben, die auch DatePickers Panel nutzt -- keine
-   eigenen Literale mehr (Review-Runde 1, 2026-10-30). */
+   eigenen Literale mehr. */
 .yearPickerPanel {
   position: fixed;
   z-index: calc(var(--z-modal) + 1);
@@ -98,32 +91,11 @@ button.yearPickerTriggerInvalid {
   gap: 8px;
 }
 
-/* Element+Klasse-Selektor (Spezifität 0,1,1): Jahres-/"Keine Angabe"-Kacheln rendern jetzt über
-   IconButton, dessen feste 40x40px-Basisgröße sonst die volle Rasterzellen-Breite/die eigene
-   Eckenrundung überschreiben könnte. Farben/Fokus/Hover/Disabled kommen bewusst von IconButtons
-   eigenen Regeln -- nur Form/Größe/Schrift werden hier überschrieben. */
+/* Element+Klasse-Selektor (Spezifität 0,1,1): einzige verbleibende lokale Ergänzung zu
+   IconButtons tile-Variante (Fläche/Form/Radius/Hover/"ausgewählt" kommen von dort, identisches
+   Muster wie DatePickers Tages-/Monats-/Jahres-Kacheln) ist die Mindesthöhe der Rasterzelle. */
 button.yearPickerYear {
-  width: 100%;
-  height: auto;
-  min-height: 36px;
-  border-radius: 10px;
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 750;
-}
-
-/* Verlauf kommt aus --selection-tile-* (globals.css) -- derselbe "ausgewählt"-Kachel-Stil wie
-   DatePickers Tages-/Monats-/Jahres-Auswahl. */
-button.yearPickerYearSelected {
-  border-color: var(--selection-tile-border-color);
-  background: var(--selection-tile-gradient);
-  color: var(--selection-tile-text-color);
-  box-shadow: var(--selection-tile-shadow);
-}
-
-button.yearPickerYearSelected:hover {
-  background: var(--selection-tile-gradient-hover);
-  opacity: 1;
+  min-height: var(--control-height-sm);
 }
 
 .yearPickerClear {

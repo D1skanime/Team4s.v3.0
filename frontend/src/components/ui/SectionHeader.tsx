@@ -47,7 +47,7 @@ export function SectionHeader({
         ) : (
           <Heading level={level} size={3} className={`${styles.sectionTitle} ${titleClassName ?? ''}`.trim()}>{title}</Heading>
         )}
-        {description ? <Text variant="soft" className={styles.sectionDescription}>{description}</Text> : null}
+        {description ? <Text variant="meta" className={styles.sectionDescription}>{description}</Text> : null}
       </div>
       {actions ? <div className={styles.sectionHeaderActions}>{actions}</div> : null}
     </div>

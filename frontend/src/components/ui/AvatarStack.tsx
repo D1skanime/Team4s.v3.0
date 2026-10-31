@@ -41,7 +41,7 @@ export function AvatarStack({
       {overflow > 0 ? (
         onOverflowClick ? (
           <IconButton
-            variant="ghost"
+            variant="accent"
             shape="round"
             size="sm"
             icon={`+${overflow}`}
