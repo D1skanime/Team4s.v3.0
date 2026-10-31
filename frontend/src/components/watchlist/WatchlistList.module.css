@@ -36,44 +36,9 @@
   cursor: default;
 }
 
+/* Nur Abstand -- die Seitennavigation selbst kommt vollständig von @/components/ui Pagination. */
 .paginationRow {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.pageInfo {
-  font-size: 0.83rem;
-  color: var(--text-secondary);
-}
-
-.paginationActions {
-  display: flex;
-  gap: 0.45rem;
-  align-items: center;
-}
-
-.pageLink {
-  font-size: 0.83rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
-  color: var(--text-primary);
-  text-decoration: none;
-  padding: 0.25rem 0.65rem;
-}
-
-.pageLink:hover {
-  border-color: color-mix(in srgb, var(--accent-color) 55%, transparent);
-}
-
-.pageLinkDisabled {
-  font-size: 0.83rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  color: var(--text-secondary);
-  padding: 0.25rem 0.65rem;
 }
 
 .message {

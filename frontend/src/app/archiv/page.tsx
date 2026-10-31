@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { MemberSearchCard } from '@/components/archive/MemberSearchCard'
+import { Pagination } from '@/components/ui'
 import { getFansubs, listRoleDefinitions, searchArchive } from '@/lib/api'
 import { readableCodeLabel } from '@/lib/roleCatalog'
 import type { RoleDefinitionOption } from '@/types/admin-capability'
@@ -213,30 +214,13 @@ export default async function ArchivPage({ searchParams }: ArchivePageProps) {
               ))}
             </div>
 
-            {/* Pagination: nur anzeigen wenn mehr als 1 Seite (D-16) */}
-            {totalPages > 1 && (
-              <nav className={styles.archivPagination} aria-label="Seitennavigation">
-                {currentPage > 1 && (
-                  <Link
-                    href={buildArchivUrl(resolved, currentPage - 1)}
-                    className={styles.paginationLink}
-                  >
-                    Zurück
-                  </Link>
-                )}
-                <span className={styles.paginationInfo}>
-                  Seite {currentPage} von {totalPages}
-                </span>
-                {currentPage < totalPages && (
-                  <Link
-                    href={buildArchivUrl(resolved, currentPage + 1)}
-                    className={styles.paginationLink}
-                  >
-                    Weiter
-                  </Link>
-                )}
-              </nav>
-            )}
+            <Pagination
+              className={styles.archivPagination}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              hrefForPage={(page) => buildArchivUrl(resolved, page)}
+              linkComponent={Link}
+            />
           </>
         ) : null}
       </section>

@@ -3,7 +3,7 @@
 import { Image as ImageIcon } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
-import { Button, SectionHeader } from '@/components/ui'
+import { Button, SectionHeader, Text } from '@/components/ui'
 import { FansubMediaLightbox } from '@/components/fansubs/FansubMediaLightbox'
 import { getProjectMemberMedia } from '@/lib/api'
 import type { ProjectMemberMediaItem } from '@/types/projectMember'
@@ -25,8 +25,9 @@ interface ProjectMemberMediaGalleryProps {
   count: number
 }
 
-// Projektweite Bilder-&-Medien-Galerie (Brief 3.3/12): cursor-nachgeladen mit weniger/mehr,
-// responsives Grid, öffnet den Media Viewer über die aktuell angezeigten Medien.
+// Projektweite Bilder-&-Medien-Galerie: lädt cursor-basiert in Seiten nach (weniger/mehr
+// anzeigen, siehe ProjectMemberNotesSection für dieselbe Begründung gegen @/components/ui
+// Pagination), responsives Grid, öffnet den Media Viewer über die aktuell angezeigten Medien.
 export function ProjectMemberMediaGallery({
   animeID,
   groupID,
@@ -84,9 +85,9 @@ export function ProjectMemberMediaGallery({
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
       <div className={pageStyles.pager}>
         {canShowMore ? (
-          <span className={pageStyles.pagerInfo}>
+          <Text variant="small" className={pageStyles.pagerInfo}>
             {`${shown.length} von ${count} angezeigt`}
-          </span>
+          </Text>
         ) : null}
         <div className={pageStyles.pagerButtons}>
           {canShowLess ? (

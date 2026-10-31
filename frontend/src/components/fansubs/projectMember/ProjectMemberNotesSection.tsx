@@ -3,7 +3,7 @@
 import { FileText } from 'lucide-react'
 import { useCallback } from 'react'
 
-import { Button, SectionHeader } from '@/components/ui'
+import { Button, SectionHeader, Text } from '@/components/ui'
 import { getProjectMemberNotes } from '@/lib/api'
 import type { ProjectMemberNote } from '@/types/projectMember'
 
@@ -24,7 +24,11 @@ interface ProjectMemberNotesSectionProps {
   hasMultipleRoles: boolean
 }
 
-// Projektweite Texte-&-Notizen-Sektion (Brief 3.2/10): cursor-nachgeladen mit weniger/mehr.
+// Projektweite Texte-&-Notizen-Sektion: lädt cursor-basiert in Seiten nach (weniger/mehr
+// anzeigen), statt zu einer festen Seitenzahl zu springen -- die bereits angezeigten Einträge
+// bleiben beim Nachladen erhalten. @/components/ui Pagination (Sprung zu Seite N von M) passt
+// deshalb nicht; die Fortschrittsanzeige nutzt trotzdem denselben Text-Baustein statt eines
+// eigenen, unformatierten span.
 export function ProjectMemberNotesSection({
   animeID,
   groupID,
@@ -75,7 +79,7 @@ export function ProjectMemberNotesSection({
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
       <div className={pageStyles.pager}>
         {canShowMore ? (
-          <span className={pageStyles.pagerInfo}>{`${shown.length} von ${count} angezeigt`}</span>
+          <Text variant="small" className={pageStyles.pagerInfo}>{`${shown.length} von ${count} angezeigt`}</Text>
         ) : null}
         <div className={pageStyles.pagerButtons}>
           {canShowLess ? (

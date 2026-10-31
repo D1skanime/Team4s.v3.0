@@ -112,8 +112,9 @@
   gap: 10px;
   margin-top: 16px;
 }
-.pagerInfo {
-  font-size: 0.82rem;
+/* Element+Klasse-Selektor: überschreibt Texts "small"-Standardfarbe zuverlässig, Größe bleibt
+   Texts eigener "small"-Standard (0.75rem). */
+p.pagerInfo {
   color: var(--text-muted);
 }
 .pagerButtons {
