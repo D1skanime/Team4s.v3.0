@@ -88,6 +88,28 @@
   opacity: 1;
 }
 
+/* Medien-Vorschau-Kachel: zeigt ein Bild-Thumbnail als klickbaren Vorschau-Auslöser (z. B.
+   ThumbnailStrip). Anders als die tile-Variante deckt "ausgewählt" NICHT die Fläche mit einer
+   Farbe ab (das Vorschaubild bliebe sonst verdeckt) -- stattdessen ein reiner Rahmen-Akzent.
+   Feste Maße statt sm/md/lg/fill, da die Größe (96x64, passend zu ResponsiveImages
+   sizes="96px") Teil des festen Rezepts dieser Variante ist, nicht vom umgebenden Layout
+   bestimmt wird. */
+.iconButtonMedia {
+  position: relative;
+  overflow: hidden;
+  width: 96px;
+  height: 64px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--media-tile-radius);
+  background: var(--media-tile-placeholder-bg);
+}
+
+.iconButtonMedia[aria-current]:not([aria-current="false"]),
+.iconButtonMedia[aria-pressed="true"] {
+  border-color: var(--accent-primary);
+}
+
 .iconButtonFloating {
   position: absolute;
   top: var(--space-5);

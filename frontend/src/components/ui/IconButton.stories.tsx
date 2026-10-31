@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ChevronRight, X } from 'lucide-react'
 
 import { IconButton } from './IconButton'
+import { ResponsiveImage } from './ResponsiveImage'
 
 /**
  * Knopf, der nur ein Symbol zeigt, mit erzwungener Beschriftung für Screenreader. Bietet eigene
@@ -129,6 +130,30 @@ export const Auswahlkachel: Story = {
     docs: {
       description: {
         story: 'Basis für Tages-/Monats-/Jahres-Kacheln eines Pickers: transparent, füllt die Rasterzelle (size="fill"), "ausgewählt" (Kachel 3) über aria-current -- derselbe Mechanismus wie bei Button, ohne externen Spezifitäts-Trick.',
+      },
+    },
+  },
+}
+
+export const MedienVorschau: Story = {
+  name: 'Medien-Vorschau-Kachel',
+  render: () => (
+    <div style={{ display: 'flex', gap: 8 }}>
+      {[0, 1, 2].map((index) => (
+        <IconButton
+          key={index}
+          variant="media"
+          icon={<ResponsiveImage src="/covers/placeholder.jpg" alt="" fill sizes="96px" style={{ objectFit: 'cover' }} />}
+          aria-label={`Bild ${index + 1} von 3 anzeigen`}
+          aria-current={index === 1 ? 'true' : undefined}
+        />
+      ))}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Basis für ThumbnailStrips Bild-Vorschauen: feste 96x64-Kachel, "ausgewählt" (mittleres Bild) über einen Rahmen-Akzent statt einer deckenden Farbfläche -- das Vorschaubild bliebe sonst verdeckt.',
       },
     },
   },

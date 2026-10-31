@@ -43,4 +43,11 @@ describe('Text', () => {
     rerender(<Text variant="small">Hinweis</Text>)
     expect((container.firstElementChild as HTMLElement).className).not.toMatch(/textToneOnScrim/)
   })
+
+  it('rendert as="span" als echtes span-Element statt eines p mit derselben Variantenklasse -- für Kontexte wie <dt>/<dd>, die kein eigenständiges <p> vertragen', () => {
+    const { container } = render(<Text as="span" variant="small">12</Text>)
+    const element = container.firstElementChild as HTMLElement
+    expect(element.tagName).toBe('SPAN')
+    expect(element.className).toMatch(/textSmall/)
+  })
 })

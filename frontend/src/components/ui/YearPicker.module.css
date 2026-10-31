@@ -44,44 +44,48 @@
   min-width: 0;
 }
 
-/* Farbe kommt aus dem geteilten --picker-hint-Token (globals.css) statt eines eigenen Literals. */
+/* Farbe kommt aus dem geteilten --picker-hint-Token, Schriftgröße aus der allgemeinen
+   --font-size-sm-Typografiestufe (globals.css) -- kein eigenes Literal mehr. */
 .yearPickerHint {
   color: var(--picker-hint-color);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   white-space: nowrap;
 }
 
 /* Rahmen/Hintergrund entsprechen exakt den gemeinsamen --field-border-color/--field-bg-hover-
    Tokens (Input/Select/Textarea, YearPicker-/DatePicker-Auslöser); Radius kommt aus dem
-   geteilten --picker-panel-radius-Token, denselben, die auch DatePickers Panel nutzt -- keine
-   eigenen Literale mehr. */
+   geteilten --picker-panel-radius-Token, denselben, die auch DatePickers Panel nutzt; Abstand/
+   Innenabstand kommen aus der allgemeinen --space-*-Spacing-Skala -- keine eigenen Literale
+   mehr. */
 .yearPickerPanel {
   position: fixed;
   z-index: calc(var(--z-modal) + 1);
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   overflow: auto;
-  padding: 12px;
+  padding: var(--space-3);
   border: 1px solid var(--field-border-color);
   border-radius: var(--picker-panel-radius);
   background: var(--field-bg-hover);
   box-shadow: var(--shadow-lg);
 }
 
+/* Abstand/Schriftgröße kommen aus dem geteilten --picker-toolbar-*-Token-Paar (globals.css)
+   statt eigener Literale. */
 .yearPickerToolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--picker-toolbar-gap);
   color: var(--text-strong);
-  font-size: 0.86rem;
+  font-size: var(--picker-toolbar-font-size);
 }
 
 .yearPickerGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .yearPickerClear {

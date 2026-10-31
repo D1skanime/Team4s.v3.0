@@ -124,6 +124,44 @@ describe('Picker-Token-Regression (DatePicker/YearPicker/IconButton)', () => {
     expect(panelRule).toMatch(/background:\s*var\(--field-bg-hover\);/)
   })
 
+  it('globals.css deklariert --font-size-sm sowie das geteilte --picker-toolbar-gap/-font-size-Token-Paar (Review-Runde 3)', () => {
+    expect(globalsCss).toMatch(/--font-size-sm:\s*0\.75rem;/)
+    expect(globalsCss).toMatch(/--picker-toolbar-gap:\s*10px;/)
+    expect(globalsCss).toMatch(/--picker-toolbar-font-size:\s*0\.86rem;/)
+  })
+
+  it('YearPickers Panel-/Raster-Abstand, Auslöser-Hinweis- und Blätter-Pfeile-Zeilen-Schriftgröße kommen aus den Spacing-/Typografie-Tokens statt eigener px-/rem-Literale', () => {
+    const panelRule = mergedBlocks(yearPickerCss, '.yearPickerPanel')
+    expect(panelRule).toMatch(/gap:\s*var\(--space-3\);/)
+    expect(panelRule).toMatch(/padding:\s*var\(--space-3\);/)
+
+    const hintRule = mergedBlocks(yearPickerCss, '.yearPickerHint')
+    expect(hintRule).toMatch(/font-size:\s*var\(--font-size-sm\);/)
+
+    const toolbarRule = mergedBlocks(yearPickerCss, '.yearPickerToolbar')
+    expect(toolbarRule).toMatch(/gap:\s*var\(--picker-toolbar-gap\);/)
+    expect(toolbarRule).toMatch(/font-size:\s*var\(--picker-toolbar-font-size\);/)
+
+    const gridRule = mergedBlocks(yearPickerCss, '.yearPickerGrid')
+    expect(gridRule).toMatch(/gap:\s*var\(--space-2\);/)
+  })
+
+  it('DatePickers Wochentags-Kopfzeile bezieht die Schriftgröße aus --font-size-sm statt eines eigenen rem-Literals', () => {
+    const weekdaysRule = mergedBlocks(datePickerCss, '.datePickerWeekdays span')
+    expect(weekdaysRule).toMatch(/font-size:\s*var\(--font-size-sm\);/)
+  })
+
+  it('DatePicker.module.css und YearPicker.module.css enthalten keine eigenen px-/rem-Schrift-, Abstands- oder Innenabstandswerte mehr (reine "0" in einer Shorthand wie padding: 0 var(--space-1) bleibt erlaubt, braucht kein Token)', () => {
+    const rawTypographyOrSpacing = /(?:font-size|gap|padding)\s*:[^;]*?\b[0-9.]+(?:px|rem)\b/g
+    for (const [file, css] of [
+      ['DatePicker.module.css', stripCssComments(datePickerCss)],
+      ['YearPicker.module.css', stripCssComments(yearPickerCss)],
+    ] as const) {
+      const matches = css.match(rawTypographyOrSpacing) ?? []
+      expect(matches, `${file} enthält noch rohe Schrift-/Abstandswerte: ${matches.join(', ')}`).toEqual([])
+    }
+  })
+
   it('DatePicker.module.css und YearPicker.module.css enthalten keine rgba()/color-mix()-Literale mehr', () => {
     expect(datePickerCss).not.toMatch(/rgba\(/)
     expect(datePickerCss).not.toMatch(/color-mix\(in srgb, var\(--accent-primary\) \d/)

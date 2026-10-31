@@ -40,7 +40,21 @@ describe('MetricList', () => {
     const { container } = render(<MetricList ariaLabel="Inline" variant="inline" valueHeadingLevel={2} items={[{ label: 'Folgen', value: 13 }]} />)
     expect(screen.getByLabelText('Inline').querySelector('dd')?.textContent).toBe('13 Folgen')
     expect(container.querySelector('dt')?.textContent).toBe('Folgen')
-    expect(container.querySelector('dd span')?.getAttribute('aria-hidden')).toBe('true')
+    expect(container.querySelector('dd span[aria-hidden]')?.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  it('rendert Text innerhalb von <dt>/<dd> über dessen as="span"-Option, nie als <p>', () => {
+    const { container: defaultContainer } = render(
+      <MetricList ariaLabel="Kennzahlen" valueHeadingLevel={2} items={[{ label: 'Punkte', value: 42 }]} />,
+    )
+    expect(defaultContainer.querySelector('dt p')).toBeNull()
+    expect(defaultContainer.querySelector('dt span')).not.toBeNull()
+
+    const { container: inlineContainer } = render(
+      <MetricList ariaLabel="Inline" variant="inline" valueHeadingLevel={2} items={[{ label: 'Folgen', value: 13 }]} />,
+    )
+    expect(inlineContainer.querySelector('dt p')).toBeNull()
+    expect(inlineContainer.querySelector('dd p')).toBeNull()
   })
 
   it('rendert eine Kennzahl mit onActivate als echten, klickbaren und tastaturfokussierbaren Button', () => {

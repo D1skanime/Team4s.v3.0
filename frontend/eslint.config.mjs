@@ -74,7 +74,8 @@ const UI_DIR_NATIVE_ELEMENT_EXEMPT_FILES = [
   'Switch.tsx', // button[role=switch] IST Switch selbst, kein Button-Ersatz
   'Tabs.tsx', // button[role=tab] ist Tabs' eigene Struktur
   'NavArrow.tsx', // bereits im Code als bewusst natives Element dokumentiert
-  'ThumbnailStrip.tsx', // Thumbnail-Kacheln sind Dateninhalte des Widgets
+  // ThumbnailStrip.tsx wurde entfernt: die Thumbnail-Kacheln wurden auf IconButtons neue, offizielle
+  // media-Variante umgestellt (Code-Review Runde 3, 2026-10-31) -- keine Ausnahme mehr nötig.
   // YearPicker.tsx wurde entfernt: alle fünf nativen <button> wurden auf IconButton/NavArrow
   // umgestellt (UAT-Runde 4, Befund 4, 2026-10-30) -- keine Ausnahme mehr nötig.
   // DatePicker.tsx wurde entfernt: alle nativen <button> (Auslöser, Leeren, Blätter-Pfeile,

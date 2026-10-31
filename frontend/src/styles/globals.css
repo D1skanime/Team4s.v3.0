@@ -76,6 +76,13 @@
      --scrim-icon, da eine Überschrift mehr Kontrast als ein reines Icon-Symbol braucht. */
   --scrim-text: #ffffff;
 
+  /* Medien-Vorschau-Kachel (IconButton variant="media", z. B. ThumbnailStrip): heller Platzhalter-
+     Ton, bevor das eigentliche Vorschaubild geladen ist -- bewusst hell statt eines --scrim-*-
+     Tokens, da diese für dunkle Overlays AUF einem Bild gedacht sind, nicht für die Fläche
+     DAHINTER. */
+  --media-tile-placeholder-bg: rgba(255, 255, 255, 0.08);
+  --media-tile-radius: 8px;
+
   /* Navigations-/Disclosure-Pfeil (Chevron) des Design-Systems */
   --ui-arrow: #7c3c4f;
   /* Wein-Header-Linie des Design-Systems (dev-ui tableWrapHeaderLineWine) */
@@ -181,6 +188,9 @@
   --font-size-h2: 1.25rem;
   --font-size-h3: 1rem;
   --font-size-h4: 0.875rem;
+  /* Kleinste allgemeine Textgrößenstufe (identisch zu Texts "small"-Variante) -- für kompakten
+     Hinweistext außerhalb von Heading/Text, z. B. YearPickers Auslöser-Hinweis. */
+  --font-size-sm: 0.75rem;
   --font-weight-heading: 700;
   /* Kompaktes Label-Gewicht (z. B. MetricList-Bezeichner). */
   --font-weight-label: 600;
@@ -273,6 +283,12 @@
   --picker-tile-today-border-color: color-mix(in srgb, var(--accent-primary) 34%, transparent);
   --picker-tile-muted-border-color: color-mix(in srgb, var(--text-secondary) 12%, transparent);
   --picker-tile-muted-bg: color-mix(in srgb, #fff 84%, var(--bg-secondary));
+  /* Blätter-Pfeile-Zeile über dem Jahres-Raster (YearPicker): eigener, etwas kompakterer
+     Abstand/Schriftgröße als die allgemeine Spacing-/Typografie-Skala, da die Zeile zwischen zwei
+     NavArrow-Pfeilen sitzt und knapp bemessen sein soll -- vorher als eigenes px-/rem-Literal
+     kopiert (Review-Runde 3, 2026-10-31). */
+  --picker-toolbar-gap: 10px;
+  --picker-toolbar-font-size: 0.86rem;
 
   /* DatePickers Kalender-Panel-Abmessungen: fest statt eines Prozentwerts, da die Breite exakt
      auf das 7-Spalten-Tages-Raster abgestimmt ist, nicht auf eine responsive Inhaltsgröße. */

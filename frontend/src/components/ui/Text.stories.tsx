@@ -37,6 +37,25 @@ export const Eyebrow: Story = {
   args: { variant: 'eyebrow', children: 'Fansub-Gruppe' },
 }
 
+export const InlineAusgabe: Story = {
+  name: 'Inline-Ausgabe (as="span")',
+  render: () => (
+    <dl style={{ display: 'flex', gap: 16, margin: 0 }}>
+      <div>
+        <dt><Text as="span" variant="small">Folgen</Text></dt>
+        <dd style={{ margin: 0 }}><Text as="span" variant="body">13</Text></dd>
+      </div>
+    </dl>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'as="span" rendert ein echtes <span> statt eines <p> -- für Kontexte wie <dt>/<dd> (siehe MetricList), die keinen eigenständigen Absatz-Außenabstand vertragen.',
+      },
+    },
+  },
+}
+
 export const AufDunklemHintergrund: Story = {
   name: 'Auf dunklem Hintergrund',
   args: { variant: 'small', tone: 'onScrim', children: '15 von 24 angezeigt' },

@@ -134,7 +134,7 @@
 
 .datePickerWeekdays span {
   color: var(--text-muted);
-  font-size: 0.74rem;
+  font-size: var(--font-size-sm);
   font-weight: 900;
   text-align: center;
 }

@@ -120,4 +120,3 @@
 .error {
   color: color-mix(in srgb, var(--color-error) 82%, var(--text-primary));
 }
-

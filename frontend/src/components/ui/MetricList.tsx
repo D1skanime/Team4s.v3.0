@@ -38,7 +38,9 @@ export interface MetricListProps {
  * oder als kompakte, durch Punkte getrennte Reihe ("inline"). Eine Kennzahl kann klickbar sein
  * (z. B. um zu einem passenden Abschnitt der Seite zu springen) -- dann rendert der Wert über
  * `Button` (Größe/Ton über dessen offizielle `size`/`tone`-Optionen) statt `Heading`/`Text`, da
- * deren Elemente nicht gültig in einen Button verschachtelt werden dürfen.
+ * deren Elemente nicht gültig in einen Button verschachtelt werden dürfen. Alle `Text`-Ausgaben
+ * innerhalb von `<dt>`/`<dd>` nutzen dessen offizielle `as="span"`-Option -- ein `<p>` würde dort
+ * einen eigenen Absatz-Außenabstand einbringen und die kompakte Beschriftung-Wert-Zeile stören.
  */
 export function MetricList({ items, ariaLabel, className, variant = 'default', valueHeadingLevel, tone = 'default' }: MetricListProps) {
   if (items.length === 0) return null
@@ -52,20 +54,20 @@ export function MetricList({ items, ariaLabel, className, variant = 'default', v
         <div key={item.label} className={styles.metricItem}>
           {variant === 'inline' ? (
             <>
-              <dt className={styles.metricInlineLabel}><Text variant="small" tone={labelTone}>{item.label}</Text></dt>
+              <dt className={styles.metricInlineLabel}><Text as="span" variant="small" tone={labelTone}>{item.label}</Text></dt>
               <dd>
                 {item.onActivate ? (
                   <Button type="button" variant="text" size="prose" tone="strong" onClick={item.onActivate} aria-label={item.activateLabel}>
                     {item.value}<span aria-hidden="true"> {item.label}</span>
                   </Button>
                 ) : (
-                  <Text variant="body" tone={labelTone}>{item.value}<span aria-hidden="true"> {item.label}</span></Text>
+                  <Text as="span" variant="body" tone={labelTone}>{item.value}<span aria-hidden="true"> {item.label}</span></Text>
                 )}
               </dd>
             </>
           ) : (
             <>
-              <dt><Text variant="small" tone={labelTone}>{item.label}</Text></dt>
+              <dt><Text as="span" variant="small" tone={labelTone}>{item.label}</Text></dt>
               <dd>
                 {item.onActivate ? (
                   <Button type="button" variant="text" size="hero" tone="accent" onClick={item.onActivate} aria-label={item.activateLabel}>

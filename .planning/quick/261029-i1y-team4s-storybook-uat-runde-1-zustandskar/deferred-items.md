@@ -90,4 +90,3 @@ Schritt-Dateien mit nativem `<input>`/`<select>` (bereits vor diesem Auftrag
 bestehende Admin-UI-Konvention, unverändert) ersetzen den alten Dateinamen in der
 `LEGACY_NO_RESTRICTED_SYNTAX_FILES`-Ratchet-Liste 1:1 -- keine neue Altlast, nur
 umbenannt.
-

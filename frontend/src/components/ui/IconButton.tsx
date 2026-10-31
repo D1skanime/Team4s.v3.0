@@ -4,7 +4,7 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ElementType, ReactNode
 import { classNames } from './classNames'
 import styles from './IconButton.module.css'
 
-export type IconButtonVariant = 'default' | 'ghost' | 'onImage' | 'field' | 'tile' | 'accent'
+export type IconButtonVariant = 'default' | 'ghost' | 'onImage' | 'field' | 'tile' | 'accent' | 'media'
 export type IconButtonSize = 'sm' | 'md' | 'lg' | 'fill'
 export type IconButtonShape = 'square' | 'round'
 /** 'arrow' färbt in der Pfeil-Akzentfarbe (--ui-arrow). 'muted' dämpft die Textfarbe (--text-muted,
@@ -77,6 +77,7 @@ function iconButtonClassName(
     variant === 'field' && styles.iconButtonField,
     variant === 'tile' && styles.iconButtonTile,
     variant === 'accent' && styles.iconButtonAccent,
+    variant === 'media' && styles.iconButtonMedia,
     size === 'sm' && styles.iconButtonSm,
     size === 'lg' && styles.iconButtonLg,
     size === 'fill' && styles.iconButtonFill,
@@ -111,7 +112,10 @@ export interface IconButtonProps extends IconButtonVisualProps, Omit<ButtonHTMLA
  * aria-pressed, z. B. Tages-/Monats-/Jahres-Kacheln) decken zusammen mit `size="fill"` die
  * Picker-Bausteine ab, ohne dass diese IconButtons Basis-Rezept von außen überschreiben müssen.
  * `accent` liefert eine gefüllte, akzentfarbene Fläche für einen klickbaren Zähler-/Überlauf-
- * Knopf (z. B. AvatarStacks "+N weitere"). `weight`, `minHeight`, `tileFill`, `dimmed`,
+ * Knopf (z. B. AvatarStacks "+N weitere"). `media` ist eine rechteckige Vorschau-Kachel für
+ * Bildinhalte (z. B. ThumbnailStrips Bild-Vorschauen): anders als `tile` deckt "ausgewählt" NICHT
+ * die Fläche mit einer Farbe ab (das Vorschaubild bliebe sonst verdeckt), sondern setzt nur einen
+ * Rahmen-Akzent. `weight`, `minHeight`, `tileFill`, `dimmed`,
  * `highlighted` und `overlap` ergänzen die field-/tile-/accent-Varianten um die restlichen
  * lokalen Feinheiten, die DatePicker/YearPicker/AvatarStack zuvor per Element+Klasse-Selektor
  * (`button.<klasse>`, höhere Spezifität als eine einzelne Klasse) von außen erzwungen hatten --
