@@ -13,15 +13,14 @@
   background: var(--bg-card);
   text-align: center;
   cursor: pointer;
-  /* container-type: size deliberately does NOT live here (Live-UAT/code-review follow-up
-     2026-10-13): it forces the box's own height to ignore its content (CSS size containment),
-     collapsing to `min-height` (8rem) whenever a non-MediaSlot caller lets this box size itself
-     from its own content (no explicit/aspect-ratio-driven height up the ancestor chain) --
-     exactly the kind of caller this component serves by default (density="roomy", no MediaSlot).
-     MediaSlot.module.css's .mediaSlotDropzone opts specific instances INTO size containment
-     instead, since only THOSE have a definite, aspect-ratio-driven height that can safely shrink
-     below the content's natural size -- see the comment there for the original clipping bug this
-     mechanism fixes. */
+  /* container-type: size steht bewusst NICHT hier: es zwänge die Box, ihre eigene Höhe unabhängig
+     vom Inhalt zu bestimmen (CSS-Größen-Containment) und würde auf `min-height` (8rem)
+     kollabieren, sobald ein Aufrufer ohne MediaSlot diese Box aus ihrem eigenen Inhalt heraus
+     bemisst (kein expliziter/aspect-ratio-bestimmter Höhen-Vorfahre) -- genau der Standardfall
+     dieses Bausteins (density="roomy", ohne MediaSlot). MediaSlot.module.css's
+     .mediaSlotDropzone bindet NUR die eigenen Instanzen in das Größen-Containment ein, da nur
+     diese über aspect-ratio eine feste Höhe haben, die gefahrlos unter die natürliche
+     Inhaltsgröße schrumpfen kann. */
 }
 
 .dropzoneRoomy {
@@ -49,9 +48,9 @@
   cursor: not-allowed;
 }
 
-/* Preview-as-drop-target mode (children present): shrink-wrap to the preview's own size/shape
-   instead of imposing the default icon/prompt/button box, and leave the preview's own
-   border/background alone. */
+/* Vorschau-als-Drop-Fläche-Modus (children gesetzt): schrumpft auf die Größe/Form der Vorschau
+   selbst statt die Standard-Icon-/Hinweis-/Button-Fläche zu erzwingen, und lässt deren eigenen
+   Rahmen/Hintergrund unangetastet. */
 .dropzoneOverlay {
   display: inline-block;
   min-height: 0;
@@ -115,12 +114,12 @@
   flex-shrink: 0;
 }
 
-/* Live-UAT follow-up 2026-10-12 (resolveUploadDropzoneLayout's 'inline' tier, see
-   UploadDropzone.tsx -- keep the threshold in sync, INLINE_LAYOUT_MAX_HEIGHT_PX): below this
-   available height, the vertical icon/text/button stack no longer fits -- switch to a single
-   compact row (icon + short prompt text only, no separate hint, no separate button). The whole
-   dropzone stays clickable via its own role="button", so dropping the button costs no
-   functionality, only the dedicated visible affordance for it. */
+/* Spiegelt resolveUploadDropzoneLayouts 'inline'-Stufe (UploadDropzone.tsx,
+   INLINE_LAYOUT_MAX_HEIGHT_PX -- Schwelle synchron halten): unterhalb dieser verfügbaren Höhe
+   passt der senkrechte Icon-/Text-/Button-Stapel nicht mehr -- Wechsel auf eine einzelne,
+   kompakte Zeile (nur Icon + kurzer Hinweistext, kein separater Zusatzhinweis, kein separater
+   Button). Die ganze Dropzone bleibt über ihre eigene role="button" klickbar, das Weglassen des
+   Buttons kostet also keine Funktion, nur dessen eigene sichtbare Affordanz. */
 @container (max-height: 110px) {
   .dropzoneRoomy,
   .dropzoneCompact {

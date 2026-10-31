@@ -12,44 +12,47 @@ import { classNames } from './classNames'
 import { visuallyHiddenClassName } from './VisuallyHidden'
 import styles from './UploadDropzone.module.css'
 
-/** Imperative handle for callers that need an EXTERNAL trigger (e.g. an action-row "Ersetzen"
- * button next to an existing preview) to open the SAME file picker as the dropzone itself,
- * instead of maintaining a second, redundant native `<input type="file">`. */
+/** Imperative Handle für Aufrufer, die einen EXTERNEN Auslöser (z. B. einen "Ersetzen"-Button
+ * neben einer bestehenden Vorschau) brauchen, um denselben Datei-Dialog wie die Dropzone selbst
+ * zu öffnen, statt ein zweites, redundantes natives `<input type="file">` zu pflegen. */
 export interface UploadDropzoneHandle {
   open: () => void
 }
 
 export interface UploadDropzoneProps {
-  /** Fires with the picked or dropped files (already sliced to one file for single-slot dropzones). */
+  /** Feuert mit den ausgewählten oder abgelegten Dateien (für Einzel-Slot-Dropzones bereits auf
+   * eine Datei gekürzt). */
   onFilesSelected: (files: File[]) => void
-  /** Native `<input accept>` — browser-level hint only, never the sole validation. */
+  /** Natives `<input accept>` — nur ein Hinweis auf Browser-Ebene, nie die alleinige Validierung. */
   accept?: string
-  /** `false` keeps the dropzone single-slot: only the first file of a multi-file drop/pick is kept. */
+  /** `false` hält die Dropzone einzel-slot-fähig: von mehreren abgelegten/ausgewählten Dateien
+   * bleibt nur die erste erhalten. */
   multiple?: boolean
-  /** `false` disables the drag&drop surface and falls back to click-only. */
+  /** `false` deaktiviert die Drag&Drop-Fläche, Klick-Auswahl bleibt möglich. */
   allowDrop?: boolean
   disabled?: boolean
   /** Eckig (Standard) oder rund -- muss zur Form der eventuellen Vorschau passen (z. B. ein
    *  rundes Avatar-Slot), damit der gestrichelte Leer-Zustand und ein per `children` übergebener
    *  Ersetzen-Rahmen dieselbe Form wie die umgebende Fläche haben. */
   shape?: 'rect' | 'round'
-  /** Controls padding/typography only — never a fixed pixel width/height. */
+  /** Bestimmt nur Innenabstand/Typografie — nie eine feste Pixel-Breite/-Höhe. */
   density?: 'roomy' | 'compact'
   promptLabel?: string
   dropHintLabel?: string
   multiFileOnSingleSlotWarning?: string
-  /** Extra class on the dropzone's own root — lets a caller size/shape an EMPTY-state dropzone
-   * to match the eventual preview (e.g. square for an avatar/logo slot, a fixed banner ratio for
-   * a banner slot) instead of a generic oversized box. */
+  /** Zusätzliche Klasse auf der eigenen Wurzel der Dropzone — lässt einen Aufrufer die
+   * Leer-Zustand-Dropzone auf die künftige Vorschau zuschneiden (z. B. quadratisch für ein
+   * Avatar-/Logo-Slot, ein festes Banner-Seitenverhältnis) statt einer generischen, übergroßen
+   * Fläche. */
   className?: string
-  /** When provided, rendered INSIDE the dropzone instead of the default icon/prompt/button chrome
-   * — turns an EXISTING preview (image, etc.) into the drop target itself, so there is no second,
-   * redundant drop area shown alongside an already-filled slot. Click and drag&drop both still
-   * open/accept via the same picker; pass `overlayHintLabel` for a short hint shown only while a
-   * file is dragged over. */
+  /** Wenn gesetzt, rendert INNERHALB der Dropzone statt des Standard-Icon-/Hinweis-/Button-Aufbaus
+   * — macht eine BESTEHENDE Vorschau (Bild o. Ä.) selbst zur Drop-Fläche, damit keine zweite,
+   * redundante Drop-Fläche neben einem bereits befüllten Slot erscheint. Klick und Drag&Drop
+   * öffnen/übernehmen weiterhin über denselben Datei-Dialog; `overlayHintLabel` zeigt einen
+   * kurzen Hinweis nur während eine Datei darüber gezogen wird. */
   children?: ReactNode
-  /** Short hint (e.g. "Zum Ersetzen loslassen") shown only while dragging over the dropzone AND
-   * `children` are present. Ignored in the default (no-children) chrome. */
+  /** Kurzer Hinweis (z. B. "Zum Ersetzen loslassen"), nur sichtbar während über der Dropzone
+   * gezogen wird UND `children` gesetzt ist. Ohne `children` ohne Wirkung. */
   overlayHintLabel?: string
 }
 
@@ -76,10 +79,10 @@ export function sliceToSingleFileIfNeeded(
 export type UploadSlotPresentation = 'empty-dropzone' | 'replace-overlay'
 
 /**
- * Pure state switch (Live-UAT follow-up 2026-10-12): a slot that already has a value must NOT
- * show a second, large empty dropzone alongside its preview — the preview itself becomes the
- * drop target ('replace-overlay'). Only a slot with no value yet shows the full empty-state
- * dropzone ('empty-dropzone'). Shared by every upload-slot caller instead of each re-deriving it.
+ * Reine Zustands-Weiche: ein Slot mit bestehendem Wert zeigt KEINE zweite, große Leer-Dropzone
+ * neben seiner Vorschau -- die Vorschau selbst wird zur Drop-Fläche ('replace-overlay'). Nur ein
+ * noch leerer Slot zeigt die volle Leer-Zustand-Dropzone ('empty-dropzone'). Geteilt von jedem
+ * Upload-Slot-Aufrufer, statt dass jeder es selbst neu herleitet.
  */
 export function resolveUploadSlotPresentation(hasExistingValue: boolean): UploadSlotPresentation {
   return hasExistingValue ? 'replace-overlay' : 'empty-dropzone'
@@ -87,18 +90,19 @@ export function resolveUploadSlotPresentation(hasExistingValue: boolean): Upload
 
 export type UploadDropzoneLayout = 'roomy' | 'compact' | 'inline'
 
-/** Below this available block-size (height, px), the vertical icon/text/button stack no longer
- * fits without clipping — a flat slot (e.g. a 5.4:1 banner tile) can be well under 90px tall.
- * Mirrored by the `@container (max-height: ...)` rule in UploadDropzone.module.css, which is the
- * actual runtime mechanism (CSS container queries, not a JS-measured ResizeObserver) — this
- * constant/function documents and tests the threshold the CSS implements. */
+/** Unterhalb dieser verfügbaren Block-Größe (Höhe, px) passt der senkrechte Icon-/Text-/Button-
+ * Stapel nicht mehr ohne Abschneiden -- ein flacher Slot (z. B. eine 5,4:1-Banner-Kachel) kann
+ * deutlich unter 90px hoch sein. Spiegelt die `@container (max-height: ...)`-Regel in
+ * UploadDropzone.module.css, dem eigentlichen Laufzeit-Mechanismus (CSS-Container-Queries, kein
+ * per JS gemessener ResizeObserver) -- diese Konstante/Funktion dokumentiert und testet die
+ * Schwelle, die das CSS umsetzt. */
 export const INLINE_LAYOUT_MAX_HEIGHT_PX = 110
 
 /**
- * Pure decision table (Live-UAT follow-up 2026-10-12: empty dropzone content got clipped in
- * flat/short slots — aspect-ratio sized the box smaller than the vertical icon+text+button
- * stack needs). Below the inline threshold, layout switches to a single compact row regardless
- * of the caller's requested density; otherwise the caller's own roomy/compact choice stands.
+ * Reine Entscheidungstabelle: unterhalb der Inline-Schwelle wechselt das Layout unabhängig von
+ * der angeforderten Dichte auf eine einzelne, kompakte Zeile (sonst würde der senkrechte
+ * Icon-/Text-/Button-Stapel in einem flachen, über aspect-ratio bemessenen Slot abgeschnitten);
+ * darüber gilt die vom Aufrufer gewählte roomy/compact-Dichte unverändert.
  */
 export function resolveUploadDropzoneLayout(
   density: 'roomy' | 'compact',

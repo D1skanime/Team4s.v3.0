@@ -23,6 +23,8 @@ const FORBIDDEN_PATTERNS: Array<{ name: string; regex: RegExp }> = [
   { name: 'Phasen-Nummer', regex: /Phase\s*\d+/g },
   { name: 'D-Kennung', regex: /\bD-\d{2}\b/g },
   { name: 'In-App-Showcase-Jargon', regex: /In-App-Showcase/g },
+  { name: 'Live-UAT-follow-up-Verweis', regex: /Live-UAT[\s/-]*follow-up/gi },
+  { name: 'Code-Review-finding-Verweis', regex: /code-review finding/gi },
 ]
 
 /** Dateien, die das Muster selbst als GEPRÜFTEN Gegenstand enthalten (dieser Test hier), nicht
