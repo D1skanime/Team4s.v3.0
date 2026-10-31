@@ -13,8 +13,13 @@ type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | '
 type ButtonSize = 'sm' | 'md' | 'lg' | 'hero' | 'prose'
 /** 'accent' färbt in der Akzentfarbe (--accent-deep, wie Heading tone="accent"), 'strong' in der
  *  Fließtextfarbe (--text-body) mit stärkerem Schriftgewicht -- beide setzen sich zuverlässig
- *  gegen `variant="text"`s eigenes `color`/`font-weight: inherit` durch. */
-type ButtonTone = 'default' | 'accent' | 'strong'
+ *  gegen `variant="text"`s eigenes `color`/`font-weight: inherit` durch. 'primary' (--accent-
+ *  primary) und 'line' (--ui-line, dieselbe geteilte Akzentlinienfarbe wie IconButtons
+ *  tone="line") ergänzen zwei weitere Akzentfarben für `variant="ghost"`-Aktionen, deren
+ *  Standardfarbe (gemischt aus --accent-primary/--text-body) zu zurückhaltend wäre -- z. B.
+ *  DatePickers Fußzeilen-Aktionen „Heute“/„Leeren“. Setzen sich aus demselben Grund zuverlässig
+ *  gegen `variant="ghost"`s eigene Farbmischung durch wie 'accent'/'strong' gegen `variant="text"`. */
+type ButtonTone = 'default' | 'accent' | 'strong' | 'primary' | 'line'
 
 type CommonButtonProps = {
   variant?: ButtonVariant
@@ -77,6 +82,8 @@ export function Button(props: ButtonProps) {
     size === 'prose' && styles.buttonProse,
     tone === 'accent' && styles.buttonToneAccent,
     tone === 'strong' && styles.buttonToneStrong,
+    tone === 'primary' && styles.buttonTonePrimary,
+    tone === 'line' && styles.buttonToneLine,
     fullWidth && styles.buttonBlock,
     iconOnly && styles.buttonIcon,
     disabled || loading ? styles.buttonDisabled : '',

@@ -61,18 +61,11 @@
   color: var(--field-placeholder-color);
 }
 
-/* Element+Klasse-Selektor (Spezifität 0,1,1): schmales Leeren-Symbol am Ende der Feldzeile statt
-   eines eigenen Textlinks unterhalb des Felds -- schlägt IconButtons eigene Farb-Regel
-   zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge. Rahmen/Hintergrund/Fokus/
-   Deaktiviert kommen bewusst von IconButtons eigener ghost-Variante, nur die Farbe wird hier als
-   lokaler Akzent überschrieben (keine eigene Breite/Höhe/Radius-Neudefinition). */
-button.datePickerClearButton {
+/* Schmales Leeren-Symbol am Ende der Feldzeile statt eines eigenen Textlinks unterhalb des Felds --
+   nur die Flex-Einbettung bleibt hier lokal, die Farbe (dezent im Ruhezustand, deutlich bei Hover)
+   kommt aus IconButtons offizieller tone="clear"-Option (DatePicker.tsx). */
+.datePickerClearButton {
   flex-shrink: 0;
-  color: var(--field-placeholder-color);
-}
-
-button.datePickerClearButton:hover {
-  color: var(--ui-line);
 }
 
 .datePickerPanel {
@@ -151,35 +144,13 @@ button.datePickerClearButton:hover {
   color: var(--ui-line);
 }
 
-/* Tages-Kacheln (IconButton variant="tile" size="fill") brauchen eine eigene Mindesthöhe --
-   diese Grundfläche/-form/-radius/-hover/-"ausgewählt"-Optik kommt jetzt aus IconButtons eigener
-   tile-Variante (siehe IconButton.module.css), nicht mehr aus einem externen Element+Klasse-
-   Override dieser Datei. */
+/* Reines Layout: Mindesthöhe, Dämpfung, Wochenend-/Heute-Akzent der Tages-Kacheln kommen jetzt
+   vollständig aus IconButtons offiziellen Optionen (minHeight="sm", dimmed, tone="muted"/"line",
+   highlighted -- siehe DatePicker.tsx), nicht mehr aus einem externen Element+Klasse-Override
+   dieser Datei. */
 .datePickerDay {
   min-width: 0;
-  min-height: var(--control-height-sm);
   text-align: center;
-}
-
-/* Element+Klasse-Selektor: schlägt IconButtons eigene tile-Textfarbe zuverlässig (ein
-   reiner Klassen-Selektor hätte gegen die höhere Spezifität von button.datePickerDay nie
-   gewonnen -- vorbestehende, bislang unbemerkte Lücke, hier mitbehoben). */
-button.datePickerDayMuted {
-  color: var(--text-muted);
-  opacity: 0.62;
-}
-
-button.datePickerDayWeekend {
-  color: var(--ui-line);
-}
-
-/* Element+Klasse-Selektor (Spezifität 0,1,1): "heute"-Markierung als lokaler Akzent über
-   IconButtons eigener tile-Grundfarbe -- kein !important mehr nötig, da der "ausgewählt"-
-   Zustand jetzt über aria-current direkt in IconButton.module.css mit höherer Spezifität
-   (Attribut-Selektor-Kombination) entschieden wird, statt zwei gleich spezifischen externen
-   Klassen hier gegeneinander auszuspielen. */
-button.datePickerDayToday {
-  border-color: var(--picker-tile-today-border-color);
 }
 
 .datePickerMonthGrid,
@@ -189,32 +160,12 @@ button.datePickerDayToday {
   gap: var(--space-2);
 }
 
-/* Element+Klasse-Selektor: Monats-/Jahres-Kacheln bleiben -- im Unterschied zu Tages-Kacheln --
-   auch unausgewählt sichtbar gedämpft gefüllt statt komplett transparent; eigene Mindesthöhe,
-   da hier weniger, größere Kacheln als im Tages-Raster sitzen. */
-button.datePickerMonthTile,
-button.datePickerYearTile {
-  min-height: var(--control-height-md);
-  border-color: var(--picker-tile-muted-border-color);
-  background: var(--picker-tile-muted-bg);
-}
-
 .datePickerFooter {
   display: flex;
   justify-content: space-between;
   gap: var(--space-2);
   border-top: 1px solid var(--border-subtle);
   padding-top: var(--space-3);
-}
-
-/* Element+Klasse-Selektor: Akzentfarbe der Fußzeilen-Aktionen -- Rahmen/Hintergrund/Größe
-   kommen bereits aus Buttons eigener ghost/sm-Kombination. */
-button.datePickerFooterButton {
-  color: var(--accent-primary);
-}
-
-button.datePickerFooterButtonDanger {
-  color: var(--ui-line);
 }
 
 @media (max-width: 560px) {

@@ -228,6 +228,25 @@
   font-weight: var(--font-weight-label);
 }
 
+/* Nach .buttonGhost/.buttonGhost:hover deklariert, damit die Akzentfarbe zuverlässig gegen dessen
+   eigene --button-text-Mischung gewinnt (identisches Muster wie .buttonToneAccent/.buttonToneStrong
+   oben gegen .buttonText). */
+.buttonTonePrimary {
+  color: var(--accent-primary);
+}
+
+.buttonTonePrimary:hover {
+  color: color-mix(in srgb, var(--accent-primary) 85%, var(--text-strong) 15%);
+}
+
+.buttonToneLine {
+  color: var(--ui-line);
+}
+
+.buttonToneLine:hover {
+  color: color-mix(in srgb, var(--ui-line) 85%, var(--text-strong) 15%);
+}
+
 .buttonBlock {
   width: 100%;
 }

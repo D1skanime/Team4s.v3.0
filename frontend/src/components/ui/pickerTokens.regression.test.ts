@@ -94,10 +94,17 @@ describe('Picker-Token-Regression (DatePicker/YearPicker/IconButton)', () => {
     expect(selectedRule).not.toMatch(/!important/)
   })
 
-  it('DatePickers "heute"/"gedämpft"-Akzente bleiben lokal und beziehen Farben aus den --picker-tile-*-Tokens statt eigener color-mix()-Literale', () => {
-    expect(datePickerCss).toMatch(/border-color:\s*var\(--picker-tile-today-border-color\);/)
-    expect(datePickerCss).toMatch(/border-color:\s*var\(--picker-tile-muted-border-color\);/)
-    expect(datePickerCss).toMatch(/background:\s*var\(--picker-tile-muted-bg\);/)
+  it('"heute"/"gedämpft"-Akzente sind IconButtons offizielle highlighted-/tileFill-Optionen und beziehen Farben aus den --picker-tile-*-Tokens statt eigener color-mix()-Literale -- DatePicker.module.css referenziert diese Tokens nicht mehr selbst', () => {
+    const highlightedRule = mergedBlocks(iconButtonCss, '.iconButtonHighlighted')
+    expect(highlightedRule).toMatch(/border-color:\s*var\(--picker-tile-today-border-color\);/)
+
+    const tileFilledRule = mergedBlocks(iconButtonCss, '.iconButtonTileFilled')
+    expect(tileFilledRule).toMatch(/border-color:\s*var\(--picker-tile-muted-border-color\);/)
+    expect(tileFilledRule).toMatch(/background:\s*var\(--picker-tile-muted-bg\);/)
+
+    expect(datePickerCss).not.toMatch(/--picker-tile-today-border-color/)
+    expect(datePickerCss).not.toMatch(/--picker-tile-muted-border-color/)
+    expect(datePickerCss).not.toMatch(/--picker-tile-muted-bg/)
   })
 
   it('DatePicker.module.css und IconButton.module.css enthalten kein !important mehr (außerhalb erklärender Kommentare)', () => {

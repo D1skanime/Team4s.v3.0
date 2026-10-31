@@ -42,9 +42,12 @@ function pageStartForYear(rawYear: string, minYear: number, maxYear: number): nu
  * (Blätter-Pfeile) und einem Jahres-Raster. Auslöser und "Keine Angabe"-/Jahres-Kacheln nutzen
  * `IconButton`s offizielle `field`- bzw. `tile`-Variante mit `size="fill"` (identisches Muster
  * wie `DatePicker`) -- der "ausgewählt"-Zustand kommt über `aria-current`, derselbe Mechanismus
- * wie bei `Button`. Der Auslöser nutzt `IconButton`s `icon`-Prop für sein zweizeiliges
- * Wert-/Hinweis-Layout statt eines Icons, da `Button` aktuell keinen Ref weiterleitet, dieser
- * Baustein aber für die Panel-Positionierung einen echten `HTMLButtonElement`-Ref benötigt.
+ * wie bei `Button`. Der fett wirkende Auslöser-Wert (`weight="bold"`) und die Mindesthöhe der
+ * Jahres-Kacheln (`minHeight="sm"`) sind ebenfalls offizielle `IconButton`-Optionen, keine von
+ * außen injizierten CSS-Klassen. Der Auslöser nutzt `IconButton`s `icon`-Prop für sein
+ * zweizeiliges Wert-/Hinweis-Layout statt eines Icons, da `Button` aktuell keinen Ref
+ * weiterleitet, dieser Baustein aber für die Panel-Positionierung einen echten
+ * `HTMLButtonElement`-Ref benötigt.
  */
 export function YearPicker({
   id,
@@ -167,10 +170,11 @@ export function YearPicker({
         <IconButton
           variant="tile"
           size="fill"
+          minHeight="sm"
           icon="Keine Angabe"
           aria-label="Keine Angabe"
           aria-current={!value ? 'true' : undefined}
-          className={classNames(styles.yearPickerYear, styles.yearPickerClear)}
+          className={styles.yearPickerClear}
           onClick={() => closeAfterSelect('')}
         />
         {pageYears.map((year) => {
@@ -180,10 +184,10 @@ export function YearPicker({
               key={year}
               variant="tile"
               size="fill"
+              minHeight="sm"
               icon={year}
               aria-label={String(year)}
               aria-current={value === yearValue ? 'true' : undefined}
-              className={styles.yearPickerYear}
               onClick={() => closeAfterSelect(yearValue)}
             />
           )
@@ -206,6 +210,7 @@ export function YearPicker({
           ref={triggerRef}
           variant="field"
           size="fill"
+          weight="bold"
           icon={
             <>
               <span>{value || 'Keine Angabe'}</span>

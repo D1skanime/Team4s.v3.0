@@ -47,15 +47,20 @@ type PickerView = 'day' | 'month' | 'year'
 /**
  * Datums-Auswahl mit Tages-/Monats-/Jahres-Panel. Auslöser und Leeren-Symbol nutzen `IconButton`s
  * offizielle `field`-Variante (Feld-Zeilen-Auslöser, kein eigener Rahmen/Hintergrund) bzw.
- * `ghost`-Variante; Tages-/Monats-/Jahres-Kacheln nutzen `IconButton`s offizielle `tile`-Variante
- * mit `size="fill"` -- der "ausgewählt"-Zustand kommt über `aria-current`, denselben Mechanismus
- * wie bei `Button`, statt einer von außen injizierten CSS-Klasse. Monats-/Jahres-Titel-Umschalter
- * und Fußzeilen-Aktionen nutzen `Button`s `ghost`-Variante. Der Auslöser nutzt `IconButton`s
- * `icon`-Prop für sein Wert-/Symbol-Layout, da `Button` keinen Ref weiterleitet, dieser Baustein
- * aber für die Panel-Positionierung (Rand-Erkennung oben/unten) einen echten
- * `HTMLButtonElement`-Ref benötigt. Die reinen Datums-/Kalender-Hilfsfunktionen (Parsen/
- * Formatieren, Auswählbarkeit, Kalenderraster, Jahres-Seiten) liegen in `DatePicker.dateLogic.ts`
- * (Datei-Zeilenlimit, ohne React-Abhängigkeit unabhängig testbar).
+ * `ghost`-Variante mit `tone="clear"` (dezent im Ruhezustand, deutlich bei Hover); Tages-/Monats-/
+ * Jahres-Kacheln nutzen `IconButton`s offizielle `tile`-Variante mit `size="fill"` -- der
+ * "ausgewählt"-Zustand kommt über `aria-current`, denselben Mechanismus wie bei `Button`. Mindest-
+ * höhe (`minHeight`), gedämpfte Vormonats-/Folgemonats-Tage (`dimmed`), Wochenend-/Leeren-Akzent
+ * (`tone="muted"`/`"line"`), die "heute"-Markierung (`highlighted`) sowie die gefüllte Optik der
+ * größeren Monats-/Jahres-Kacheln (`tileFill`) sind ebenfalls offizielle `IconButton`-Optionen,
+ * keine von außen injizierten CSS-Klassen. Monats-/Jahres-Titel-Umschalter und Fußzeilen-Aktionen
+ * nutzen `Button`s `ghost`-Variante, die Fußzeile zusätzlich `tone="primary"`/`"line"` für ihre
+ * Akzentfarbe. Der Auslöser nutzt `IconButton`s `icon`-Prop für sein Wert-/Symbol-Layout, da
+ * `Button` keinen Ref weiterleitet, dieser Baustein aber für die Panel-Positionierung (Rand-
+ * Erkennung oben/unten) einen echten `HTMLButtonElement`-Ref benötigt. Die reinen Datums-/
+ * Kalender-Hilfsfunktionen (Parsen/Formatieren, Auswählbarkeit, Kalenderraster, Jahres-Seiten)
+ * liegen in `DatePicker.dateLogic.ts` (Datei-Zeilenlimit, ohne React-Abhängigkeit unabhängig
+ * testbar).
  */
 export function DatePicker({
   id,
@@ -216,6 +221,7 @@ export function DatePicker({
         <IconButton
           variant="ghost"
           size="sm"
+          tone="clear"
           icon={<X size={14} aria-hidden="true" />}
           aria-label="Datum leeren"
           className={styles.datePickerClearButton}
@@ -307,15 +313,14 @@ export function DatePicker({
                       key={toIsoDate(date)}
                       variant="tile"
                       size="fill"
+                      minHeight="sm"
+                      dimmed={!isCurrentMonth}
+                      tone={isWeekend ? 'line' : !isCurrentMonth ? 'muted' : undefined}
+                      highlighted={isToday}
                       icon={date.getDate()}
                       aria-label={String(date.getDate())}
                       aria-current={isSelected ? 'true' : undefined}
-                      className={classNames(
-                        styles.datePickerDay,
-                        !isCurrentMonth && styles.datePickerDayMuted,
-                        isWeekend && styles.datePickerDayWeekend,
-                        isToday && styles.datePickerDayToday,
-                      )}
+                      className={styles.datePickerDay}
                       disabled={!isSelectable}
                       onClick={() => selectDay(date)}
                     />
@@ -332,10 +337,11 @@ export function DatePicker({
                   key={month}
                   variant="tile"
                   size="fill"
+                  minHeight="md"
+                  tileFill
                   icon={month}
                   aria-label={month}
                   aria-current={index === visibleMonth.getMonth() ? 'true' : undefined}
-                  className={styles.datePickerMonthTile}
                   disabled={!monthIsSelectable(visibleMonth.getFullYear(), index, minSelectableDate, maxSelectableDate)}
                   onClick={() => selectMonth(index)}
                 />
@@ -350,10 +356,11 @@ export function DatePicker({
                   key={year}
                   variant="tile"
                   size="fill"
+                  minHeight="md"
+                  tileFill
                   icon={year}
                   aria-label={String(year)}
                   aria-current={year === visibleMonth.getFullYear() ? 'true' : undefined}
-                  className={styles.datePickerYearTile}
                   disabled={!yearIsSelectable(year, minSelectableDate, maxSelectableDate)}
                   onClick={() => selectYear(year)}
                 />
@@ -363,17 +370,10 @@ export function DatePicker({
 
           {view === 'day' ? (
             <div className={styles.datePickerFooter}>
-              <Button type="button" variant="ghost" size="sm" className={styles.datePickerFooterButton} disabled={!isSelectableDate(today)} onClick={selectToday}>
+              <Button type="button" variant="ghost" size="sm" tone="primary" disabled={!isSelectableDate(today)} onClick={selectToday}>
                 Heute
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className={classNames(styles.datePickerFooterButton, styles.datePickerFooterButtonDanger)}
-                disabled={!value}
-                onClick={clearDate}
-              >
+              <Button type="button" variant="ghost" size="sm" tone="line" disabled={!value} onClick={clearDate}>
                 Leeren
               </Button>
             </div>

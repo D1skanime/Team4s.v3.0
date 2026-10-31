@@ -160,3 +160,64 @@
 .iconButtonTile[aria-pressed="true"]:hover {
   background: var(--selection-tile-gradient-hover);
 }
+
+/* Ab hier: offizielle Zusatz-Optionen für die restlichen lokalen Feinheiten, die DatePicker/
+   YearPicker/AvatarStack zuvor per `button.<klasse>`-Element-Selektor (Spezifität 0,1,1, schlägt
+   eine einzelne Klasse wie .iconButtonField/.iconButtonTile/.iconButtonAccent oben zuverlässig)
+   von außen erzwungen hatten. Alle Klassen hier stehen bewusst NACH den Basis-Varianten, damit
+   sie bei gleicher Spezifität (ebenfalls einzelne Klassen, 0,1,0) über die Deklarationsreihenfolge
+   zuverlässig gewinnen -- identisches Muster wie .iconButtonRound oben bzw. .buttonSmall/
+   .buttonHero in Button.module.css. Der ausgewählte Zustand (Attribut-Selektor-Kombination oben)
+   hat weiterhin Vorrang, da er eine höhere Spezifität trägt als jede dieser Klassen. */
+
+.iconButtonWeightBold {
+  font-weight: 700;
+}
+
+.iconButtonMinHeightSm {
+  min-height: var(--control-height-sm);
+}
+
+.iconButtonMinHeightMd {
+  min-height: var(--control-height-md);
+}
+
+/* Größere, weniger zahlreiche Kacheln (z. B. Monats-/Jahres-Raster) bleiben auch unausgewählt
+   sichtbar gefüllt statt komplett transparent -- im Unterschied zu kompakten Tages-Kacheln. */
+.iconButtonTileFilled {
+  border-color: var(--picker-tile-muted-border-color);
+  background: var(--picker-tile-muted-bg);
+}
+
+.iconButtonDimmed {
+  opacity: 0.62;
+}
+
+.iconButtonToneMuted {
+  color: var(--text-muted);
+}
+
+.iconButtonToneLine {
+  color: var(--ui-line);
+}
+
+/* Dezent im Ruhezustand (verschmilzt mit dem umgebenden Feld), deutlich sichtbar erst bei Hover --
+   für einen Leeren/Entfernen-Auslöser innerhalb einer Feldzeile. */
+.iconButtonToneClear {
+  color: var(--field-placeholder-color);
+}
+
+.iconButtonToneClear:hover {
+  color: var(--ui-line);
+}
+
+.iconButtonHighlighted {
+  border-color: var(--picker-tile-today-border-color);
+}
+
+/* Für Elemente in einer sich überlappenden Reihe -- identisches Muster wie Avatar/AvatarStacks
+   eigener Überlapp-Effekt (negativer Abstand, heller Trennring). */
+.iconButtonOverlap {
+  margin-inline-start: calc(var(--space-2) * -1);
+  border: 2px solid var(--surface-card);
+}

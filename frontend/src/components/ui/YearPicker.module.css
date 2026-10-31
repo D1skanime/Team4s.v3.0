@@ -44,13 +44,6 @@
   min-width: 0;
 }
 
-/* Element+Klasse-Selektor (Spezifität 0,1,1): schlägt IconButtons field-Variante (font: inherit,
-   Spezifität 0,1,0) zuverlässig -- der Auslöser-Wert soll fett wirken, unabhängig vom ambienten
-   Kontext, in den YearPicker eingebettet wird. */
-button.yearPickerTrigger {
-  font-weight: 700;
-}
-
 /* Farbe kommt aus dem geteilten --picker-hint-Token (globals.css) statt eines eigenen Literals. */
 .yearPickerHint {
   color: var(--picker-hint-color);
@@ -89,13 +82,6 @@ button.yearPickerTrigger {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-}
-
-/* Element+Klasse-Selektor (Spezifität 0,1,1): einzige verbleibende lokale Ergänzung zu
-   IconButtons tile-Variante (Fläche/Form/Radius/Hover/"ausgewählt" kommen von dort, identisches
-   Muster wie DatePickers Tages-/Monats-/Jahres-Kacheln) ist die Mindesthöhe der Rasterzelle. */
-button.yearPickerYear {
-  min-height: var(--control-height-sm);
 }
 
 .yearPickerClear {

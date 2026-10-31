@@ -44,8 +44,8 @@ export function AvatarStack({
             variant="accent"
             shape="round"
             size="sm"
+            overlap
             icon={`+${overflow}`}
-            className={styles.avatarStackOverflowButton}
             aria-label={overflowAriaLabel ?? `${overflow} weitere anzeigen`}
             aria-expanded={overflowExpanded}
             aria-controls={overflowControls}

@@ -12,10 +12,3 @@
   border: 2px solid var(--surface-card);
 }
 
-/* Element+Klasse-Selektor (Spezifität 0,1,1): ergänzt nur den lokalen Überlapp-Effekt (negativer
-   Abstand, weißer Trennring) -- Fläche/Farbe kommen jetzt aus IconButtons offizieller
-   accent-Variante, kein Spezifitäts-Override von Hintergrund/Farbe mehr nötig. */
-button.avatarStackOverflowButton {
-  margin-inline-start: calc(var(--space-2) * -1);
-  border: 2px solid var(--surface-card);
-}
