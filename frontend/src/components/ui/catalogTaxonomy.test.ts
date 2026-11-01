@@ -23,6 +23,10 @@ const EXCEPTIONS: Record<string, string[]> = {
   // Modal+DialogHeader+IconButton (die deshalb bereits unter "Zusammengesetzte Bausteine"
   // stehen).
   Button: ['Spinner'],
+  // Gleiche Begründung wie bei Button oben: Spinner ist nur ein internes Implementierungsdetail
+  // von IconButtons loading-Zustand (ersetzt das übergebene icon durch einen Lade-Kreisel), kein
+  // sichtbarer, eigenständig komponierter Baustein-Verbund.
+  IconButton: ['Spinner'],
   // ResponsiveImage ist nur die interne Bildquelle (entscheidet lediglich, ob optimiert oder
   // unoptimiert geladen wird); VisuallyHidden liefert nur den vorlesbaren Namen neben dem Bild/
   // den Initialen. Beides sind interne Implementierungsdetails der EINEN Avatar-Fläche, kein vom
@@ -42,6 +46,11 @@ const EXCEPTIONS: Record<string, string[]> = {
   // für dieselbe Optik wie EmptyState) -- kein vom Aufrufer sichtbar komponierter Baustein-
   // Verbund, den die Tabelle selbst erzwingt.
   Table: ['Heading', 'StatusIcon', 'Text'],
+  // VisuallyHidden liefert nur den zusätzlichen, nur für Screenreader vorhandenen Pflichtfeld-
+  // Hinweistext neben dem sichtbaren Sternchen -- ein internes Implementierungsdetail der EINEN
+  // Label-Fläche, kein vom Aufrufer sichtbar komponierter Baustein-Verbund (gleiche Begründung
+  // wie bei Avatar oben).
+  Label: ['VisuallyHidden'],
 }
 
 /** Story-Dateien unter "Grundbausteine/*", die bewusst KEINE eigene X.tsx haben, weil sie reine

@@ -33,3 +33,9 @@
 .textToneOnScrim {
   color: var(--scrim-icon);
 }
+
+/* Gleiche Deklarationsreihenfolge-Regel wie .textToneOnScrim oben -- nach allen Variant-Klassen,
+   damit der Fehler-Rotton deren jeweilige Farbe zuverlässig überschreibt. */
+.textToneError {
+  color: var(--text-error);
+}

@@ -44,6 +44,11 @@ describe('Text', () => {
     expect((container.firstElementChild as HTMLElement).className).not.toMatch(/textToneOnScrim/)
   })
 
+  it('rendert tone="error" mit der textToneError-Klasse', () => {
+    const { container } = render(<Text tone="error">Pflichtfeld darf nicht leer sein.</Text>)
+    expect((container.firstElementChild as HTMLElement).className).toMatch(/textToneError/)
+  })
+
   it('rendert as="span" als echtes span-Element statt eines p mit derselben Variantenklasse -- für Kontexte wie <dt>/<dd>, die kein eigenständiges <p> vertragen', () => {
     const { container } = render(<Text as="span" variant="small">12</Text>)
     const element = container.firstElementChild as HTMLElement

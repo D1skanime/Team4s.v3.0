@@ -56,6 +56,18 @@ export const InlineAusgabe: Story = {
   },
 }
 
+export const FehlerTon: Story = {
+  name: 'Fehler-Ton',
+  args: { variant: 'small', tone: 'error', children: 'Pflichtfeld darf nicht leer sein.' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'tone="error" färbt unabhängig von der gewählten Variante in einem kontrastgeprüften Fehler-Rotton gegen den Kartenhintergrund -- für Formular-/Upload-Fehlertext (siehe FormField/MediaSlot) statt einer eigenen, lokalen color-Regel am Aufrufer.',
+      },
+    },
+  },
+}
+
 export const AufDunklemHintergrund: Story = {
   name: 'Auf dunklem Hintergrund',
   args: { variant: 'small', tone: 'onScrim', children: '15 von 24 angezeigt' },

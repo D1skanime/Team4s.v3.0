@@ -26,6 +26,12 @@
   --text-body: #2d2926;
   --text-soft: #625c56;
   --text-faint: #8c857e;
+  /* Kontrastgeprüfter Fehler-Rotton für Fließtext auf Kartenhintergrund -- derselbe Wert wie
+     Badges --badge-danger-text (components.css), bewusst als eigener, semantisch benannter Token
+     statt eines Querverweises auf einen Badge-präfixierten Namen. NICHT mit --color-error
+     (palette.css) verwechseln: jener Token bleibt für Status-Punkte/Icons reserviert und ist
+     gegen den Kartenhintergrund nicht kontrastreich genug für normalen Fließtext. */
+  --text-error: #7b2941;
 
   --border-subtle: rgba(45, 41, 38, 0.12);
   --border-strong: rgba(45, 41, 38, 0.24);
