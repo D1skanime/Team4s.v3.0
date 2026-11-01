@@ -6,7 +6,8 @@ import { Button } from "@/components/ui";
 import type { AdminAnimeAniSearchSearchCandidate } from "@/types/admin";
 
 import styles from "../../../admin.module.css";
-import createStyles from "../../create/page.module.css";
+import pageShellStyles from "../../create/page.pageShell.module.css";
+import providerGridStyles from "../../create/page.providerGrid.module.css";
 
 /**
  * Item 1 (quick-261018-l5r Dedupe-Nachtrag): gemeinsame AniSearch-Such-/Eingabekarte,
@@ -82,8 +83,8 @@ export function AniSearchSearchCard({
   return (
     <>
       <FormField label={searchLabel} htmlFor={searchInputId}>
-        <div className={createStyles.providerInputRow}>
-          <div className={createStyles.providerFieldGrow}>
+        <div className={providerGridStyles.providerInputRow}>
+          <div className={providerGridStyles.providerFieldGrow}>
             <Input
               id={searchInputId}
               value={searchQuery}
@@ -104,8 +105,8 @@ export function AniSearchSearchCard({
       </FormField>
 
       <FormField label={idLabel} htmlFor={idInputId}>
-        <div className={createStyles.providerInputRow}>
-          <div className={createStyles.providerFieldGrow}>
+        <div className={providerGridStyles.providerInputRow}>
+          <div className={providerGridStyles.providerFieldGrow}>
             <Input
               id={idInputId}
               value={idValue}
@@ -127,20 +128,20 @@ export function AniSearchSearchCard({
       </FormField>
 
       {candidates.length > 0 ? (
-        <div className={createStyles.providerResultsBlock}>
-          <div className={createStyles.providerResultsHeader}>
-            <p className={createStyles.resultsEyebrow}>Suchergebnisse</p>
-            <strong className={createStyles.providerResultsCount}>
+        <div className={providerGridStyles.providerResultsBlock}>
+          <div className={providerGridStyles.providerResultsHeader}>
+            <p className={pageShellStyles.resultsEyebrow}>Suchergebnisse</p>
+            <strong className={providerGridStyles.providerResultsCount}>
               {candidates.length} Treffer
             </strong>
           </div>
-          <div className={createStyles.providerList}>
+          <div className={providerGridStyles.providerList}>
             {candidates.map((candidate) => (
-              <div key={candidate.anisearch_id} className={createStyles.providerRowCard}>
-                <div className={createStyles.providerRowIcon}>A</div>
-                <div className={createStyles.providerRowContent}>
-                  <strong className={createStyles.providerRowTitle}>{candidate.title}</strong>
-                  <span className={createStyles.providerRowMeta}>
+              <div key={candidate.anisearch_id} className={providerGridStyles.providerRowCard}>
+                <div className={providerGridStyles.providerRowIcon}>A</div>
+                <div className={providerGridStyles.providerRowContent}>
+                  <strong className={providerGridStyles.providerRowTitle}>{candidate.title}</strong>
+                  <span className={providerGridStyles.providerRowMeta}>
                     {candidate.year ? `${candidate.year} | ` : ""}
                     {candidate.type}
                     {` | AniSearch-ID ${candidate.anisearch_id}`}
@@ -165,7 +166,7 @@ export function AniSearchSearchCard({
             <Button
               type="button"
               variant="ghost"
-              className={createStyles.providerLinkButton}
+              className={providerGridStyles.providerLinkButton}
               onClick={onCandidateDismiss}
             >
               {candidateDismissLabel}

@@ -7,11 +7,11 @@
 
 .previewWrap {
   width: 100%;
-  max-width: 8rem;
+  max-width: var(--upload-file-row-preview-max-width);
 }
 
 .previewWrapCompact {
-  max-width: 4rem;
+  max-width: var(--upload-file-row-preview-max-width-compact);
 }
 
 .fields {
@@ -49,7 +49,7 @@
 
 @container (min-width: 32rem) {
   .row {
-    grid-template-columns: 7rem minmax(0, 1fr);
+    grid-template-columns: var(--upload-file-row-preview-column-width) minmax(0, 1fr);
     align-items: start;
   }
 }

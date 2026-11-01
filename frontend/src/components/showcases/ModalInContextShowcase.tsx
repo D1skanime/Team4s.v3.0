@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { Button, Card, FormField, Input, Modal, Select, Table, TableBody, TableCell, TableRow } from '@/components/ui'
 
-import styles from './showcases.module.css'
+import styles from './showcases.shared.module.css'
 
 /**
  * Demonstriert ein vollständiges Modal im Kontext einer realistischen Seite: eine Mock-Tabelle

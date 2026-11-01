@@ -1,0 +1,46 @@
+/**
+ * Rollen-Katalog-Farbnaht: ordnet jedem bekannten `data-color-key`-Wert eine feste Akzentfarbe
+ * zu (--role-chip-accent), von der sich --role-accent sowie der eigenständige
+ * .role-catalog-chip-Stil ableiten. Einzige Stelle, die Rollenfarben kennt -- Rollen-Codes wählen
+ * ihre Farbe nie selbst. Teil der nach Bereich aufgeteilten globalen Design-Tokens (siehe
+ * ../globals.css).
+ */
+
+[data-color-key='#183b7c'] { --role-chip-accent: #183b7c; }
+[data-color-key='#8c4a16'] { --role-chip-accent: #8c4a16; }
+[data-color-key='#0f766e'] { --role-chip-accent: #0f766e; }
+[data-color-key='#475569'] { --role-chip-accent: #475569; }
+[data-color-key='#7e22ce'] { --role-chip-accent: #7e22ce; }
+[data-color-key='#0369a1'] { --role-chip-accent: #0369a1; }
+[data-color-key='#27664f'] { --role-chip-accent: #27664f; }
+[data-color-key='#6d3f83'] { --role-chip-accent: #6d3f83; }
+[data-color-key='#c26a2e'] { --role-chip-accent: #c26a2e; }
+[data-color-key='#7b3c4e'] { --role-chip-accent: #7b3c4e; }
+[data-color-key='#a16207'] { --role-chip-accent: #a16207; }
+[data-color-key='#506b91'] { --role-chip-accent: #506b91; }
+[data-color-key='#a04444'] { --role-chip-accent: #a04444; }
+[data-color-key='#6b7f2a'] { --role-chip-accent: #6b7f2a; }
+[data-color-key='#b23a78'] { --role-chip-accent: #b23a78; }
+[data-color-key='neutral'] { --role-chip-accent: #596176; }
+
+/* Einzige Ableitungsstelle: --role-accent bezieht die Katalogfarbe aus der obigen
+   data-color-key/--role-chip-accent-Naht, mit demselben neutralen Fallback wie die Naht selbst. */
+:root {
+  --role-accent: #596176;
+}
+[data-color-key] { --role-accent: var(--role-chip-accent, #596176); }
+
+.role-catalog-chip {
+  --role-chip-accent: #596176;
+  --role-chip-text: #111827;
+  --role-chip-border: #475569;
+  --role-chip-focus: #111827;
+  border-color: var(--role-chip-border);
+  background: color-mix(in srgb, var(--role-chip-accent) 14%, var(--surface-card));
+  color: var(--role-chip-text);
+  box-shadow: inset 0 3px 0 var(--role-chip-accent);
+}
+
+.role-catalog-chip:focus-visible {
+  outline-color: var(--role-chip-focus);
+}

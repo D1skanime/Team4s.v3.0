@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
+import { readGlobalsCssResolved } from '@/test/readGlobalsCss'
+
 /**
  * Deterministischer Worst-Case-Kontrastnachweis für den Fansub-Hero-Banner (UAT-Befund 2): wenn
  * ein Bannerfoto vorhanden ist, blendet `FansubHeroSection` einen zusätzlichen dunklen Scrim
@@ -44,7 +46,7 @@ const badgeCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/components/ui/Badge.module.css'),
   'utf8',
 )
-const globalsCss = fs.readFileSync(path.resolve(process.cwd(), 'src/styles/globals.css'), 'utf8')
+const globalsCss = readGlobalsCssResolved()
 
 type RGB = [number, number, number]
 const WHITE: RGB = [255, 255, 255]
@@ -218,8 +220,18 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
   })
 
   it('Badge.module.css behält die unveränderten Fallback-Werte ohne Bannerfoto (kein Verhaltenswechsel für die ~45+ anderen variant="muted"-Verwender)', () => {
-    expect(badgeCss).toMatch(/var\(--badge-muted-bg,\s*rgba\(255,\s*255,\s*255,\s*0\.38\)\)/)
-    expect(badgeCss).toMatch(/var\(--badge-muted-fg,\s*#66758d\)/)
+    // Die Fallbacks kommen seit der Token-Sweep-Runde aus globalen --badge-muted-*-default-
+    // Tokens statt rohen Literalen direkt in Badge.module.css -- der tatsächlich gerenderte Wert
+    // bleibt dabei exakt derselbe, nur die Herkunft ist jetzt ein Token statt eines Literals.
+    const bgFallbackMatch = badgeCss.match(/var\(--badge-muted-bg,\s*var\(--([a-zA-Z0-9-]+)\)\)/)
+    expect(bgFallbackMatch, 'background muss auf var(--badge-muted-bg, var(--...)) verweisen').not.toBeNull()
+    const bgFallback = resolveGlobalVar(bgFallbackMatch![1])
+    expect(bgFallback).toEqual({ rgb: [255, 255, 255], alpha: 0.38 })
+
+    const fgFallbackMatch = badgeCss.match(/var\(--badge-muted-fg,\s*var\(--([a-zA-Z0-9-]+)\)\)/)
+    expect(fgFallbackMatch, 'color muss auf var(--badge-muted-fg, var(--...)) verweisen').not.toBeNull()
+    const fgFallback = resolveGlobalVar(fgFallbackMatch![1])
+    expect(fgFallback).toEqual({ rgb: hexRgb('#66758d'), alpha: 1 })
   })
 
   it('.heroChip (Link-Pills) erreicht im Banner-Fall mindestens 4,5:1 Kontrast gegen seine eigene, auf dem Worst-Case-Scrim aufliegende Chip-Fläche', () => {

@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
+import { readGlobalsCssResolved } from '@/test/readGlobalsCss'
+
 /**
  * Regressionsnachweis für die Picker-Token-Umstellung von DatePicker/YearPicker sowie für
  * IconButtons offizielle field-/tile-Varianten (DatePickers Kachel-/Feld-Grundrezept): liest die
@@ -22,7 +24,7 @@ function readUiFile(file: string): string {
 }
 
 function readGlobalsCss(): string {
-  return fs.readFileSync(path.resolve(process.cwd(), 'src/styles/globals.css'), 'utf8')
+  return readGlobalsCssResolved()
 }
 
 /** Entfernt CSS-Kommentare, damit ein Textcheck (z. B. "kein !important mehr") nicht an einem

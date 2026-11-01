@@ -6,7 +6,8 @@ import { ChevronDown } from 'lucide-react'
 import { Badge, Button, Card, FormField, Input, SectionHeader, Select } from '@/components/ui'
 import { RichTextEditor } from '@/components/editor'
 
-import styles from './showcases.module.css'
+import styles from './showcases.projectNotes.module.css'
+import sharedStyles from './showcases.shared.module.css'
 
 export function ProjectNoteShowcase() {
   const [projectNoteTitle, setProjectNoteTitle] = useState('ffff')
@@ -42,7 +43,7 @@ export function ProjectNoteShowcase() {
             </div>
             <div className={styles.projectNotesHeaderMeta}>
               <span>1 Editor</span>
-              <span className={styles.disclosureIconInline} aria-hidden="true">
+              <span className={sharedStyles.disclosureIconInline} aria-hidden="true">
                 <ChevronDown size={24} />
               </span>
             </div>

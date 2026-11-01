@@ -16,7 +16,9 @@ import {
   TableRow,
 } from '@/components/ui'
 
-import styles from './showcases.module.css'
+import styles from './showcases.releaseAccordion.module.css'
+import rowDetailStyles from './showcases.releaseRowDetail.module.css'
+import sharedStyles from './showcases.shared.module.css'
 
 const releaseRows = [
   {
@@ -116,38 +118,38 @@ const animeReleaseCards = [
 
 function TimelinePreview() {
   return (
-    <div className={styles.releaseTimelinePreview}>
-      <div className={styles.releaseTimelineHeader}>
+    <div className={rowDetailStyles.releaseTimelinePreview}>
+      <div className={rowDetailStyles.releaseTimelineHeader}>
         <div>
           <strong>Theme-Segmente</strong>
         </div>
       </div>
-      <div className={styles.releaseTimelineLegend} aria-label="Timeline-Legende">
-        <span className={styles.releaseTimelineLegendItem}>
-          <Badge variant="danger" className={styles.releaseTimelineLegendBadge}>Global</Badge>
+      <div className={rowDetailStyles.releaseTimelineLegend} aria-label="Timeline-Legende">
+        <span className={rowDetailStyles.releaseTimelineLegendItem}>
+          <Badge variant="danger" className={rowDetailStyles.releaseTimelineLegendBadge}>Global</Badge>
         </span>
-        <span className={styles.releaseTimelineLegendItem}>
-          <Badge variant="success" className={styles.releaseTimelineLegendBadge}>Uploadet</Badge>
+        <span className={rowDetailStyles.releaseTimelineLegendItem}>
+          <Badge variant="success" className={rowDetailStyles.releaseTimelineLegendBadge}>Uploadet</Badge>
         </span>
-        <span className={styles.releaseTimelineLegendItem}>
-          <Badge variant="warning" className={styles.releaseTimelineLegendBadge}>Fehlt</Badge>
+        <span className={rowDetailStyles.releaseTimelineLegendItem}>
+          <Badge variant="warning" className={rowDetailStyles.releaseTimelineLegendBadge}>Fehlt</Badge>
         </span>
       </div>
-      <div className={styles.releaseTimelineScale}>
+      <div className={rowDetailStyles.releaseTimelineScale}>
         <span>Dauer 00:23:03</span>
       </div>
-      <div className={styles.releaseTimelineLane}>
-        <div className={styles.releaseTimelineTrack}>
-          <button type="button" className={`${styles.releaseTimelineSegment} ${styles.releaseTimelineSegmentGlobal} ${styles.releaseTimelineSegmentOp}`} style={{ left: '8%', width: '12%' }}>
+      <div className={rowDetailStyles.releaseTimelineLane}>
+        <div className={rowDetailStyles.releaseTimelineTrack}>
+          <button type="button" className={`${rowDetailStyles.releaseTimelineSegment} ${rowDetailStyles.releaseTimelineSegmentGlobal} ${rowDetailStyles.releaseTimelineSegmentOp}`} style={{ left: '8%', width: '12%' }}>
             OP
           </button>
-          <div className={styles.releaseTimelineMainContent} style={{ left: '0%', width: '100%' }}>
+          <div className={rowDetailStyles.releaseTimelineMainContent} style={{ left: '0%', width: '100%' }}>
             Hauptinhalt
           </div>
-          <button type="button" className={`${styles.releaseTimelineSegment} ${styles.releaseTimelineSegmentSelected} ${styles.releaseTimelineSegmentIn}`} style={{ left: '56%', width: '12%' }}>
+          <button type="button" className={`${rowDetailStyles.releaseTimelineSegment} ${rowDetailStyles.releaseTimelineSegmentSelected} ${rowDetailStyles.releaseTimelineSegmentIn}`} style={{ left: '56%', width: '12%' }}>
             IN
           </button>
-          <button type="button" className={`${styles.releaseTimelineSegment} ${styles.releaseTimelineSegmentRelease} ${styles.releaseTimelineSegmentEd}`} style={{ left: '88%', width: '12%' }}>
+          <button type="button" className={`${rowDetailStyles.releaseTimelineSegment} ${rowDetailStyles.releaseTimelineSegmentRelease} ${rowDetailStyles.releaseTimelineSegmentEd}`} style={{ left: '88%', width: '12%' }}>
             ED
           </button>
         </div>
@@ -215,44 +217,44 @@ export function ReleaseCompositionShowcase() {
                   {anime.helper ? <p>{anime.helper}</p> : null}
                 </div>
                 <div className={`${styles.animeAccordionAside} ${styles.animeAccordionAsideMobile}`}>
-                  <span className={styles.disclosureIcon} aria-hidden="true">
+                  <span className={`${sharedStyles.disclosureIcon} ${styles.disclosureIcon}`} aria-hidden="true">
                     {isOpen ? <ChevronDown size={30} /> : <ChevronRight size={30} />}
                   </span>
                 </div>
               </button>
               {isOpen ? (
                 <div className={`${styles.releaseTableShell} ${styles.tableSurfaceBPrevious}`}>
-                  <div className={styles.mobileEpisodeScroller} onScroll={handleReleaseRowsScroll}>
-                    <div className={styles.mobileEpisodeList}>
+                  <div className={rowDetailStyles.mobileEpisodeScroller} onScroll={handleReleaseRowsScroll}>
+                    <div className={rowDetailStyles.mobileEpisodeList}>
                       {visibleReleaseRows.map((row, index) => (
-                        <Card key={`mobile-episode-${row.episode}`} variant="nestedFlat" className={styles.mobileEpisodeCard}>
+                        <Card key={`mobile-episode-${row.episode}`} variant="nestedFlat" className={rowDetailStyles.mobileEpisodeCard}>
                           <button
                             type="button"
-                            className={styles.mobileEpisodeHeader}
+                            className={rowDetailStyles.mobileEpisodeHeader}
                             onClick={() => { if (index === 0) setReleaseRowOpen((current) => !current) }}
                             aria-expanded={index === 0 ? releaseRowOpen : false}
                             aria-label={index === 0 ? (releaseRowOpen ? `${row.title} einklappen` : `${row.title} ausklappen`) : `${row.title} anzeigen`}
                           >
-                            <div className={styles.mobileEpisodeTitle}>
+                            <div className={rowDetailStyles.mobileEpisodeTitle}>
                               <strong>Episode {row.episode}: {row.title}</strong>
                               <span>Version {row.versions}</span>
                             </div>
-                            <span className={styles.disclosureIconInline} aria-hidden="true">
+                            <span className={sharedStyles.disclosureIconInline} aria-hidden="true">
                               {index === 0 ? (releaseRowOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />) : <ChevronRight size={18} />}
                             </span>
                           </button>
-                          <div className={styles.mobileEpisodeMeta}>
+                          <div className={rowDetailStyles.mobileEpisodeMeta}>
                             {row.assets === '-' ? (
-                              <span className={styles.themeMissingMark}><X size={22} strokeWidth={3.6} /></span>
+                              <span className={rowDetailStyles.themeMissingMark}><X size={22} strokeWidth={3.6} /></span>
                             ) : (
                               <Badge variant="muted">Vorhanden</Badge>
                             )}
                           </div>
-                          <div className={styles.mobileEpisodeActions}>
+                          <div className={rowDetailStyles.mobileEpisodeActions}>
                             <Button size="sm" leftIcon={<Pencil size={14} />}>Editieren</Button>
                           </div>
                           {index === 0 && releaseRowOpen ? (
-                            <div className={styles.mobileEpisodeDetail}>
+                            <div className={rowDetailStyles.mobileEpisodeDetail}>
                               <TimelinePreview />
                             </div>
                           ) : null}
@@ -303,7 +305,7 @@ export function ReleaseCompositionShowcase() {
                       {anime.helper ? <p>{anime.helper}</p> : null}
                     </div>
                     <div className={styles.animeAccordionAside}>
-                      <span className={styles.disclosureIcon} aria-hidden="true">
+                      <span className={`${sharedStyles.disclosureIcon} ${styles.disclosureIcon}`} aria-hidden="true">
                         {isOpen ? <ChevronDown size={30} /> : <ChevronRight size={30} />}
                       </span>
                     </div>
@@ -329,15 +331,15 @@ export function ReleaseCompositionShowcase() {
                                   <TableCell>
                                     <button
                                       type="button"
-                                      className={styles.releaseTitleButton}
+                                      className={rowDetailStyles.releaseTitleButton}
                                       onClick={() => { if (index === 0) setReleaseRowOpen((current) => !current) }}
                                       aria-expanded={index === 0 ? releaseRowOpen : false}
                                       aria-label={index === 0 ? (releaseRowOpen ? `${row.title} einklappen` : `${row.title} ausklappen`) : `${row.title} anzeigen`}
                                     >
-                                      <div className={styles.releaseTitleCell}>
+                                      <div className={rowDetailStyles.releaseTitleCell}>
                                         <strong>{row.title}</strong>
                                       </div>
-                                      <span className={styles.disclosureIconInline} aria-hidden="true">
+                                      <span className={sharedStyles.disclosureIconInline} aria-hidden="true">
                                         {index === 0 ? (releaseRowOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />) : <ChevronRight size={14} />}
                                       </span>
                                     </button>
@@ -345,7 +347,7 @@ export function ReleaseCompositionShowcase() {
                                   <TableCell>{row.versions}</TableCell>
                                   <TableCell>
                                     {row.assets === '-' ? (
-                                      <span className={styles.themeMissingMark}><X size={22} strokeWidth={3.6} /></span>
+                                      <span className={rowDetailStyles.themeMissingMark}><X size={22} strokeWidth={3.6} /></span>
                                     ) : (
                                       'Vorhanden'
                                     )}
@@ -366,9 +368,9 @@ export function ReleaseCompositionShowcase() {
                                   </TableCell>
                                 </TableRow>
                                 {index === 0 && releaseRowOpen ? (
-                                  <tr className={styles.releaseExpandedRow}>
+                                  <tr className={rowDetailStyles.releaseExpandedRow}>
                                     <td colSpan={5}>
-                                      <Card variant="nested" className={styles.releaseExpandedPanel}>
+                                      <Card variant="nested" className={rowDetailStyles.releaseExpandedPanel}>
                                         <TimelinePreview />
                                       </Card>
                                     </td>

@@ -2,7 +2,6 @@
 .hero {
   container: artwork-hero / inline-size;
   min-width: 0;
-  --artwork-hero-copy: 32rem;
 }
 
 .panel {
@@ -44,11 +43,6 @@
       var(--surface-card) 45%,
       color-mix(in srgb, var(--surface-card) 94%, transparent) 65%,
       color-mix(in srgb, var(--surface-card) 25%, transparent) 100%);
-}
-
-.avatarInner {
-  --avatar-bg: var(--surface-sunken);
-  --avatar-fg: var(--accent-deep);
 }
 
 .identity,

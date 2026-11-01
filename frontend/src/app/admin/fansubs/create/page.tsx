@@ -18,7 +18,9 @@ import {
 
 import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../../admin.module.css";
-import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
+import fansubEditHeaderStyles from "../[id]/edit/FansubEdit.header.module.css";
+import fansubEditReleasesStyles from "../[id]/edit/FansubEdit.releases.module.css";
+import fansubEditSharedStyles from "../[id]/edit/FansubEdit.module.css";
 import {
   CommunityLinkDraft,
   FormState,
@@ -35,6 +37,10 @@ import { AdminFansubCreateBasicInfoSection } from "./AdminFansubCreateBasicInfoS
 import { AdminFansubCreateLinksSection } from "./AdminFansubCreateLinksSection";
 import { AdminFansubCreateMediaSection } from "./AdminFansubCreateMediaSection";
 
+const fansubEditStyles = mergeCssModules(
+  fansubEditHeaderStyles,
+  mergeCssModules(fansubEditReleasesStyles, fansubEditSharedStyles),
+);
 const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 const YEAR_MIN = 1900;

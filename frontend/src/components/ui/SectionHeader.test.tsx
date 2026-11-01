@@ -27,7 +27,7 @@ describe('SectionHeader', () => {
     const css = readFileSync('src/components/ui/SectionHeader.module.css', 'utf8')
     const underlineRule = css.match(/\.sectionHeaderUnderline\s*\{[^}]+\}/)?.[0]
 
-    expect(underlineRule).toContain('border-bottom: 2px solid var(--ui-line)')
+    expect(underlineRule).toContain('border-bottom: var(--border-width-thick) solid var(--ui-line)')
     expect(underlineRule).not.toContain('#82122c')
   })
 

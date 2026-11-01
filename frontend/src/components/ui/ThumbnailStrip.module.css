@@ -36,7 +36,7 @@
 
 .counter {
   justify-self: center;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 12px;
+  color: var(--thumbnail-strip-counter-color);
+  font-size: var(--thumbnail-strip-counter-font-size);
   font-weight: 700;
 }

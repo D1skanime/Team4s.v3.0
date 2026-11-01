@@ -6,14 +6,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--button-gap);
   min-height: var(--control-height-md);
-  padding: 0 16px;
-  border-radius: 8px;
+  padding: 0 var(--button-padding-x);
+  border-radius: var(--button-radius);
   border: 1px solid var(--button-border);
   background: var(--button-bg);
   color: var(--button-text);
-  font-size: 14px;
+  font-size: var(--button-font-size);
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
@@ -39,37 +39,34 @@
 
 .buttonPrimary {
   --button-bg:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    var(--button-gloss-standard),
     linear-gradient(to bottom, var(--button-primary-start) 0%, var(--button-primary-mid) 45%, var(--button-primary-end) 100%);
-  --button-border: color-mix(in srgb, var(--button-primary-end) 74%, #24396f 26%);
-  --button-text: #f8fbff;
-  --button-shadow: 0 5px 14px rgba(67, 99, 180, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-border: color-mix(in srgb, var(--button-primary-end) 74%, var(--button-shade-primary) 26%);
+  --button-text: var(--button-text-on-primary);
+  --button-shadow: var(--button-shadow-primary);
 }
 
 .buttonPrimary:hover {
-  border-color: color-mix(in srgb, var(--button-primary-end) 72%, #24396f 28%);
-  box-shadow: 0 7px 18px rgba(67, 99, 180, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: color-mix(in srgb, var(--button-primary-end) 72%, var(--button-shade-primary) 28%);
+  box-shadow: var(--button-shadow-primary-hover);
 }
 
 .buttonPrimary:focus-visible {
-  box-shadow:
-    0 7px 18px rgba(67, 99, 180, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 0 0 3px rgba(122, 160, 240, 0.2);
+  box-shadow: var(--button-shadow-primary-focus);
 }
 
 .buttonSecondary {
   --button-bg:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 22%, rgba(255, 255, 255, 0) 24%),
+    var(--button-gloss-secondary),
     linear-gradient(to bottom, var(--button-secondary-start) 0%, var(--button-secondary-mid) 45%, var(--button-secondary-end) 100%);
   --button-border: color-mix(in srgb, var(--button-secondary-end) 74%, black 26%);
-  --button-text: #f7f9ff;
-  --button-shadow: 0 5px 14px rgba(42, 53, 86, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --button-text: var(--button-text-on-secondary);
+  --button-shadow: var(--button-shadow-secondary);
 }
 
 .buttonSecondary:hover {
   border-color: color-mix(in srgb, var(--button-secondary-end) 72%, black 28%);
-  box-shadow: 0 6px 16px rgba(42, 53, 86, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: var(--button-shadow-secondary-hover);
 }
 
 .buttonGhost {
@@ -98,30 +95,30 @@
 
 .buttonDanger {
   --button-bg:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    var(--button-gloss-standard),
     linear-gradient(to bottom, var(--button-danger-start) 0%, var(--button-danger-mid) 45%, var(--button-danger-end) 100%);
   --button-border: color-mix(in srgb, var(--button-danger-end) 74%, black 26%);
-  --button-text: #fff8fb;
-  --button-shadow: 0 5px 14px rgba(58, 14, 35, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-text: var(--button-text-on-danger);
+  --button-shadow: var(--button-shadow-danger);
 }
 
 .buttonDanger:hover {
   border-color: color-mix(in srgb, var(--button-danger-end) 72%, black 28%);
-  box-shadow: 0 7px 18px rgba(58, 14, 35, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: var(--button-shadow-danger-hover);
 }
 
 .buttonSuccess {
   --button-bg:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    var(--button-gloss-standard),
     linear-gradient(to bottom, var(--button-success-start) 0%, var(--button-success-mid) 45%, var(--button-success-end) 100%);
-  --button-border: color-mix(in srgb, var(--button-success-end) 74%, #1b5d4a 26%);
-  --button-text: #f7fffb;
-  --button-shadow: 0 5px 14px rgba(47, 155, 121, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-border: color-mix(in srgb, var(--button-success-end) 74%, var(--button-shade-success) 26%);
+  --button-text: var(--button-text-on-success);
+  --button-shadow: var(--button-shadow-success);
 }
 
 .buttonSuccess:hover {
-  border-color: color-mix(in srgb, var(--button-success-end) 72%, #1b5d4a 28%);
-  box-shadow: 0 7px 18px rgba(47, 155, 121, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: color-mix(in srgb, var(--button-success-end) 72%, var(--button-shade-success) 28%);
+  box-shadow: var(--button-shadow-success-hover);
 }
 
 /* Offizieller "aktuell/ausgewählt"-Zustand für Pagination, Filter-Knöpfe und Umschalter: reagiert
@@ -153,7 +150,7 @@
      visible before any hover/focus interaction, not just appear on :hover. */
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
-  text-underline-offset: 3px;
+  text-underline-offset: var(--button-text-underline-offset);
 }
 
 .buttonText:hover {
@@ -168,15 +165,15 @@
 .buttonText:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
-  border-radius: 4px;
+  border-radius: var(--button-text-focus-radius);
 }
 
 .buttonFloating {
   --button-bg: color-mix(in srgb, var(--surface-card) 96%, transparent);
   --button-border: var(--border-subtle);
   --button-text: var(--text-soft);
-  --button-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  border-radius: 14px;
+  --button-shadow: inset 0 1px 0 var(--shadow-inset-highlight);
+  border-radius: var(--button-radius-floating);
 }
 
 .buttonFloating:hover {
@@ -191,16 +188,16 @@
 
 .buttonSmall {
   min-height: var(--control-height-sm);
-  padding: 0 12px;
-  border-radius: 7px;
-  font-size: 13px;
+  padding: 0 var(--button-padding-x-sm);
+  border-radius: var(--button-radius-sm);
+  font-size: var(--button-font-size-sm);
 }
 
 .buttonLarge {
   min-height: var(--control-height-lg);
-  padding: 0 18px;
-  border-radius: 10px;
-  font-size: 15px;
+  padding: 0 var(--button-padding-x-lg);
+  border-radius: var(--button-radius-lg);
+  font-size: var(--button-font-size-lg);
 }
 
 /* Nach .buttonText deklariert, damit Größe/Gewicht zuverlässig gegen dessen eigenes
@@ -212,7 +209,7 @@
 }
 
 .buttonProse {
-  font-size: 1rem;
+  font-size: var(--button-font-size-prose);
 }
 
 .buttonToneAccent {

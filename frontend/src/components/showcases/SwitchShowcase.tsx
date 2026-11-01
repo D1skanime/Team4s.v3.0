@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { Card, Switch } from '@/components/ui'
 
-import styles from './showcases.module.css'
+import styles from './showcases.shared.module.css'
 
 export function SwitchShowcase() {
   const [switchBenachrichtigungen, setSwitchBenachrichtigungen] = useState(true)

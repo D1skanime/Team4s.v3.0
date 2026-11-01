@@ -1,20 +1,22 @@
 "use client";
 
-// DiscoveryEntryCard: static, non-destructive entry point to the Discovery
-// library, rendered above the existing provider grid on /admin/anime/create
-// (wired in a later plan — 165-08). Presentational only, no props, no state.
+// DiscoveryEntryCard: statischer, folgenloser Einstiegspunkt in die Discovery-Bibliothek,
+// dargestellt oberhalb des bestehenden Provider-Rasters auf /admin/anime/create. Rein
+// darstellend, ohne eigene Props oder Zustand -- die Verdrahtung mit echten Daten erfolgt in
+// einem späteren Auftrag.
 
 import { Button, Card } from "@/components/ui";
 
-import createStyles from "./page.module.css";
+import createStyles from "./page.pageShell.module.css";
+import sharedStyles from "./page.shared.module.css";
 
 export function DiscoveryEntryCard() {
   return (
     <Card
       header={
-        <div className={createStyles.resultsTitleBlock}>
+        <div className={sharedStyles.resultsTitleBlock}>
           <p className={createStyles.resultsEyebrow}>Neu</p>
-          <h3 className={createStyles.resultsTitle}>Aus meiner Bibliothek</h3>
+          <h3 className={sharedStyles.resultsTitle}>Aus meiner Bibliothek</h3>
         </div>
       }
       footer={

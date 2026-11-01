@@ -1,0 +1,271 @@
+/**
+ * Komponenten-spezifische Design-Tokens: feste Größen/Radien/Farben, die zu genau EINEM
+ * Grundbaustein gehören (z. B. IconButtons drei Größenstufen, Cards Abstände/Verläufe), aber
+ * trotzdem zentral als globale CSS-Custom-Properties geführt werden statt als verstreute
+ * Literale in der jeweiligen *.module.css -- identisches Muster wie die bereits bestehenden
+ * --control-height-, --picker- und --media-tile--Tokens. Teil der nach Bereich aufgeteilten
+ * globalen Design-Tokens (siehe ../globals.css). Jede Sektion ist nach dem Baustein benannt,
+ * den sie versorgt.
+ */
+:root {
+  /* Card */
+  --card-gap: 18px;
+  --card-padding: 18px 20px;
+  --card-border-color: rgba(56, 70, 96, 0.07);
+  --card-border-top-color: rgba(247, 250, 255, 0.82);
+  --card-bg: #e6ebf3;
+  --card-bg-gradient: linear-gradient(to bottom, #f4f7fb, var(--card-bg));
+  --card-shadow: 0 1px 1px rgba(33, 45, 72, 0.18), 0 2px 3px rgba(33, 45, 72, 0.08);
+  --card-shadow-elevated: 0 2px 6px rgba(33, 45, 72, 0.12), 0 10px 24px rgba(33, 45, 72, 0.08);
+  --card-border-color-elevated: rgba(56, 70, 96, 0.09);
+  --card-hover-lift: -2px;
+  --card-shadow-hover: 0 3px 8px rgba(33, 45, 72, 0.14), 0 12px 26px rgba(33, 45, 72, 0.1);
+  --card-border-color-hover: rgba(56, 70, 96, 0.12);
+  --card-section-bg: radial-gradient(circle at top right, color-mix(in srgb, var(--accent-primary) 10%, transparent), transparent 38%), linear-gradient(to bottom, #f5f8fd, #e8edf6);
+  --card-flat-bg: linear-gradient(to bottom, #f7f9fc, #edf1f7);
+  --card-flat-border-color: rgba(56, 70, 96, 0.05);
+  --card-nested-flat-padding: 14px 14px 12px;
+  --card-nested-flat-border-color: rgba(56, 70, 96, 0.06);
+  --card-nested-flat-bg: rgba(246, 249, 253, 0.72);
+
+  /* ArtworkHero */
+  --artwork-hero-copy: 32rem;
+
+  /* IconButton */
+  --icon-button-size-sm: 32px;
+  --icon-button-size-md: 40px;
+  --icon-button-size-lg: 56px;
+  --icon-button-radius-sm: 12px;
+  --icon-button-radius-md: 14px;
+  --icon-button-radius-lg: 18px;
+  --icon-button-media-width: 96px;
+  --icon-button-media-height: 64px;
+
+  /* Avatar */
+  --avatar-font-size-sm: 0.75rem;
+  --avatar-font-size-md: 1rem;
+  --avatar-font-size-lg: 1.25rem;
+
+  /* Spinner */
+  --spinner-size-sm: 14px;
+  --spinner-size-md: 18px;
+  --spinner-size-lg: 48px;
+  --spinner-border-width-sm: var(--border-width-thick);
+  --spinner-border-width-md: var(--border-width-thick);
+  --spinner-border-width-lg: 4px;
+
+  /* StatusIcon */
+  --status-icon-size-sm: 28px;
+  --status-icon-size-md: 38px;
+  --status-icon-size-lg: 48px;
+  --status-icon-radius-sm: 8px;
+  --status-icon-radius-md: 10px;
+  --status-icon-radius-lg: 12px;
+  --status-icon-font-size-sm: 14px;
+  --status-icon-font-size-md: 18px;
+  --status-icon-font-size-lg: 22px;
+
+  /* ProgressBar */
+  --progress-bar-height-sm: 6px;
+  --progress-bar-height-md: 10px;
+
+  /* Button */
+  --button-gap: 10px;
+  --button-padding-x: 16px;
+  --button-padding-x-sm: 12px;
+  --button-padding-x-lg: 18px;
+  --button-radius: 8px;
+  --button-radius-sm: 7px;
+  --button-radius-lg: 10px;
+  --button-radius-floating: 14px;
+  --button-font-size: 14px;
+  --button-font-size-sm: 13px;
+  --button-font-size-lg: 15px;
+  --button-font-size-prose: 1rem;
+  --button-text-underline-offset: 3px;
+  --button-text-focus-radius: 4px;
+  /* Glas-Glanzstreifen oben auf den kräftig gefüllten Varianten (Primary/Danger/Success teilen
+     dieselbe Rezeptur, Secondary ist dezenter abgestuft). */
+  --button-gloss-standard: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%);
+  --button-gloss-secondary: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 22%, rgba(255, 255, 255, 0) 24%);
+  /* Abgedunkelte Mischfarben für den Rahmen jeder gefüllten Variante im Hover-/Ruhezustand. */
+  --button-shade-primary: #24396f;
+  --button-shade-success: #1b5d4a;
+  --button-text-on-primary: #f8fbff;
+  --button-text-on-secondary: #f7f9ff;
+  --button-text-on-danger: #fff8fb;
+  --button-text-on-success: #f7fffb;
+  --button-shadow-primary: 0 5px 14px rgba(67, 99, 180, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-shadow-primary-hover: 0 7px 18px rgba(67, 99, 180, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  --button-shadow-primary-focus: 0 7px 18px rgba(67, 99, 180, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 0 3px rgba(122, 160, 240, 0.2);
+  --button-shadow-secondary: 0 5px 14px rgba(42, 53, 86, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --button-shadow-secondary-hover: 0 6px 16px rgba(42, 53, 86, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-shadow-danger: 0 5px 14px rgba(58, 14, 35, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-shadow-danger-hover: 0 7px 18px rgba(58, 14, 35, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  --button-shadow-success: 0 5px 14px rgba(47, 155, 121, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-shadow-success-hover: 0 7px 18px rgba(47, 155, 121, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+  /* Tabs */
+  --tabs-gap: 12px;
+  --tabs-gap-sm: 8px;
+  --tabs-divider-color: rgba(56, 70, 96, 0.08);
+  --tabs-button-border-color: rgba(92, 105, 131, 0.14);
+  --tabs-button-border-color-hover: rgba(92, 105, 131, 0.22);
+  --tabs-button-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 245, 251, 0.98) 100%);
+  --tabs-button-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(233, 239, 248, 1) 100%);
+  --tabs-button-text-color: #55627a;
+  --tabs-button-radius: 10px;
+  --tabs-button-min-height: 34px;
+  --tabs-button-padding-x: 14px;
+  --tabs-button-font-size: 0.9rem;
+  --tabs-button-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 1px 2px rgba(33, 45, 72, 0.05);
+  --tabs-button-active-border-color: rgba(57, 84, 144, 0.34);
+  --tabs-button-active-bg: linear-gradient(180deg, rgba(117, 152, 235, 0.94) 0%, rgba(72, 103, 180, 0.98) 100%);
+  --tabs-button-active-text-color: #f9fbff;
+  --tabs-badge-size: 18px;
+  --tabs-badge-padding-x: 6px;
+  --tabs-badge-font-size: 12px;
+  --tabs-badge-text-color: #5d6980;
+  --tabs-badge-active-bg: rgba(255, 255, 255, 0.16);
+  --tabs-badge-active-text-color: #f7fbff;
+  --tabs-panel-padding-top: 2px;
+
+  /* Badge */
+  --badge-gap: 6px;
+  --badge-min-height: 28px;
+  --badge-padding-x: 11px;
+  --badge-radius: 8px;
+  --badge-font-size: 12px;
+  --badge-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --badge-neutral-bg: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(230, 235, 243, 0.9));
+  --badge-neutral-text: #43536e;
+  --badge-neutral-border: rgba(92, 105, 131, 0.14);
+  --badge-success-bg: linear-gradient(to bottom, rgba(239, 253, 247, 0.96), rgba(221, 245, 233, 0.96));
+  --badge-success-text: #246b52;
+  --badge-success-border: rgba(82, 168, 132, 0.18);
+  --badge-warning-bg: linear-gradient(to bottom, rgba(255, 247, 226, 0.98), rgba(247, 234, 191, 0.96));
+  --badge-warning-text: #8a6420;
+  --badge-warning-border: rgba(196, 158, 78, 0.2);
+  --badge-danger-bg: linear-gradient(to bottom, rgba(253, 239, 244, 0.98), rgba(245, 220, 228, 0.96));
+  --badge-danger-text: #7b2941;
+  --badge-danger-border: rgba(149, 64, 92, 0.18);
+  --badge-info-bg: linear-gradient(to bottom, rgba(240, 246, 255, 0.98), rgba(222, 232, 248, 0.96));
+  --badge-info-text: #355481;
+  --badge-info-border: rgba(89, 122, 176, 0.2);
+  --badge-muted-bg-default: rgba(255, 255, 255, 0.38);
+  --badge-muted-fg-default: #66758d;
+  --badge-muted-border: rgba(92, 105, 131, 0.1);
+
+  /* AdjacentNavigation */
+  --adjacent-nav-gap: 12px;
+  --adjacent-nav-floating-inset-x: 12px;
+  --adjacent-nav-item-gap: 8px;
+  --adjacent-nav-item-max-width: 320px;
+  --adjacent-nav-item-floating-max-width: 260px;
+  --adjacent-nav-item-padding: 10px 12px;
+  --adjacent-nav-item-border-color: rgba(95, 132, 221, 0.32);
+  --adjacent-nav-item-bg: rgba(255, 255, 255, 0.84);
+  --adjacent-nav-item-font-size: 14px;
+  --adjacent-nav-item-shadow: 0 8px 22px rgba(18, 35, 64, 0.18);
+  --adjacent-nav-item-shadow-hover: 0 10px 24px rgba(18, 35, 64, 0.2);
+  --adjacent-nav-floating-mobile-padding: 0 18px 18px;
+
+  /* FocalCarousel */
+  --focal-carousel-gap: 12px;
+  --focal-carousel-controls-gap: 8px;
+  --focal-carousel-item-max-width: 720px;
+  --focal-carousel-items-gap: 14px;
+  --focal-carousel-items-gap-compact: 10px;
+  --focal-carousel-counter-font-size: 0.8rem;
+  --focal-carousel-grid-item-min-width: 240px;
+
+  /* Switch */
+  --switch-gap: 10px;
+  --switch-padding-x: 4px;
+  --switch-track-width: 44px;
+  --switch-track-height: 26px;
+  --switch-track-bg: rgba(92, 105, 131, 0.24);
+  --switch-track-border-color: rgba(92, 105, 131, 0.18);
+  --switch-thumb-inset: 3px;
+  --switch-thumb-size: 18px;
+  --switch-thumb-shadow: 0 1px 3px rgba(33, 45, 72, 0.22);
+  --switch-thumb-border-color-checked: rgba(57, 84, 144, 0.34);
+  --switch-label-font-size: 14px;
+
+  /* Drawer */
+  --drawer-accent-rail-width: 4px;
+  --drawer-sheet-max-height: 680px;
+  --drawer-header-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 245, 239, 0.96) 100%);
+  --drawer-body-bg: linear-gradient(180deg, rgba(250, 247, 243, 0.94) 0%, rgba(255, 255, 255, 0.98) 100%);
+  --drawer-footer-bg: linear-gradient(180deg, rgba(250, 247, 243, 0.98) 0%, rgba(255, 255, 255, 0.98) 100%);
+  --drawer-footer-shadow: 0 -10px 24px rgba(24, 23, 21, 0.04);
+
+  /* DisclosureIndicator */
+  --disclosure-indicator-size-sm: 24px;
+  --disclosure-indicator-size-md: 30px;
+  --disclosure-indicator-size-lg: 42px;
+  --disclosure-indicator-button-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 4px 12px -12px rgba(58, 14, 35, 0.4);
+
+  /* Select */
+  --select-chevron-gutter: 42px;
+  --select-border-color: rgba(47, 55, 70, 0.18);
+  --select-border-color-hover: rgba(47, 55, 70, 0.24);
+  --select-chevron-position: right 13px center;
+  --select-chevron-size: 16px 16px;
+  --select-chevron-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4.25 6.25L8 10L11.75 6.25' stroke='%2382122C' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+  /* Table */
+  --table-min-width: 640px;
+  --table-cell-padding: 14px 16px;
+  --table-header-font-size: 12px;
+  --table-header-text-color: #2f3746;
+  --table-compact-cell-padding-y: 10px;
+  --table-empty-padding: 32px 16px;
+  --table-empty-content-max-width: 420px;
+
+  /* ui.module.css (geteilte Feld-/Zustands-/Overlay-Bausteine ohne eigene Komponentendatei) */
+  --control-padding: 12px 14px;
+  --date-picker-clear-min-height: 34px;
+  --date-picker-clear-padding-x: 10px;
+  --date-picker-clear-font-size: 0.78rem;
+  --date-picker-clear-focus-shadow: 0 0 0 3px rgba(122, 160, 240, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --overlay-scrim-bg: rgba(23, 21, 19, 0.45);
+  --overlay-scrim-blur: 4px;
+
+  /* FormField */
+  --form-field-gap: 9px;
+  --form-field-label-font-size: 14px;
+  --form-field-label-color: #2f3746;
+  --form-field-required-color: #82122c;
+  --form-field-hint-font-size: 12px;
+  --form-field-hint-color: #748097;
+  --form-field-error-color: #8b2742;
+
+  /* UploadDropzone */
+  --upload-dropzone-min-height: 8rem;
+
+  /* AccentRule */
+  --accent-rule-height-medium: 3px;
+  --accent-rule-height-strong: 4px;
+
+  /* UploadFileRow */
+  --upload-file-row-preview-max-width: 8rem;
+  --upload-file-row-preview-max-width-compact: 4rem;
+  --upload-file-row-preview-column-width: 7rem;
+
+  /* DialogHeader */
+  --dialog-header-description-margin-top: 6px;
+
+  /* ThumbnailStrip */
+  --thumbnail-strip-counter-color: rgba(255, 255, 255, 0.78);
+  --thumbnail-strip-counter-font-size: 12px;
+
+  /* Accordion */
+  --accordion-panel-font-size: 0.92rem;
+
+  /* EmptyState */
+  --empty-state-inline-font-size: 0.9rem;
+
+  /* Textarea */
+  --textarea-min-height: 144px;
+}

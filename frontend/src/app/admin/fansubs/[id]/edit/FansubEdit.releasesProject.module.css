@@ -1,0 +1,174 @@
+/* Projektbezogene Zusatzinhalte rund um Anime-Releases: Projektteam-Panel (Umschalter plus
+   Nur-Lese-Liste), Projekt-Insight-Panel, Abschnittsüberschriften, Zeitleisten-Track, der
+   Segment-Editor (Episodensegment-Formular) sowie die Projekttext-Karte mit ihren
+   `:global(...)`-Überschreibungen für das geteilte Formularfeld-Markup. Ergänzt
+   `FansubEdit.releases.module.css` (Akkordeon/Zeilen) und `FansubEdit.releasesCards.module.css`
+   (Karten-Raster). */
+
+.fansubEditProjectInsightPanel,
+.fansubEditProjectTeamPanel {
+  margin: 0.85rem 1rem 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+}
+
+.fansubEditProjectPanelHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0 0 0.65rem;
+}
+
+.fansubEditProjectPanelHeader h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.fansubEditProjectReleasesHeader {
+  margin: 0.85rem 1rem 0.65rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+}
+
+.fansubEditProjectTeamToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, #fff 82%, #f7efe5);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.68rem 0.78rem;
+  text-align: left;
+}
+
+.fansubEditProjectTeamToggle span {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.fansubEditProjectTeamToggle small {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.fansubEditProjectTeamReadOnly {
+  margin-top: 0.6rem;
+  padding: 0.72rem 0.78rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, #fff 78%, #f7efe5);
+}
+
+.fansubEditProjectTeamReadOnly p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.fansubEditProjectTeamReadOnly ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fansubEditProjectTeamReadOnly li {
+  display: grid;
+  gap: 0.35rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+}
+
+.fansubEditProjectTeamReadOnly li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.fansubEditProjectTeamReadOnly li > span {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.fansubEditTimelineTrack::before {
+  content: "";
+  position: absolute;
+  inset: 3px 3px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--text-secondary) 18%, #d1d5db), color-mix(in srgb, var(--bg-secondary) 90%, #cbd5e1));
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .fansubEditAnimeReleaseActions .fansubEditAnimeContributorsButton {
+      margin-left: 0;
+    }
+}
+
+.fansubEditSegmentEditor h4 {
+  margin: 0;
+}
+
+.fansubEditSegmentEditorGrid {
+  display: grid;
+  gap: 0.65rem 0.95rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fansubEditSegmentEditorGrid > div {
+  display: grid;
+  gap: 0.22rem;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+  background: transparent;
+  padding: 0 0 0.58rem;
+}
+
+.fansubEditSegmentEditorLabel {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fansubEditSegmentEditorGrid strong {
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.fansubEditAnimeProjectNotesCard :global(.admin-module__4WpgRW__field) label {
+  font-size: 0.86rem;
+  color: color-mix(in srgb, var(--text-secondary) 88%, var(--text-primary));
+}
+
+.fansubEditAnimeProjectNotesCard :global(.admin-module__4WpgRW__field) input,
+.fansubEditAnimeProjectNotesCard :global(.admin-module__4WpgRW__field) select {
+  min-height: 40px;
+  border-color: color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 82%, var(--bg-card));
+}
+
+.fansubEditAnimeProjectNotesCard :global(.admin-module__4WpgRW__button) {
+  min-height: 38px;
+  padding-inline: 0.95rem;
+}
+
+@media (max-width: 900px) {
+  .fansubEditSegmentEditorGrid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+

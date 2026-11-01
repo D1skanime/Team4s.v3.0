@@ -1,0 +1,232 @@
+/* Formular "Basisdaten": responsives Feldraster, Namens-/Slug-/Status-Felder, Branding-Karte
+   (Logo/Banner-Upload-Grid), Community-/Links-Karte mit Zeilen-Layout für einzelne Community-Links
+   und das zugehörige Link-Eingabefeld samt Vorschau- und Entfernen-Button. Wird sowohl von den
+   Abschnittskomponenten der Erstellungsseite (`AdminFansubCreate*Section`) als auch indirekt über
+   `FansubBasicInfoTab` auf der Bearbeitungsseite genutzt. */
+
+.responsiveFieldGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .responsiveFieldGrid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.fansubEditBasicWorkspace {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.fansubEditBasicSurface {
+  min-width: 0;
+}
+
+.fansubEditBasicSupplementGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.35fr);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .fansubEditBasicSupplementGrid {
+      grid-template-columns: 1fr;
+    }
+}
+
+.fansubEditBrandingCard {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.fansubEditCommunityCard {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.fansubEditBasicPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditBasicPanelTitle {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+
+.fansubEditCommunityBody {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.fansubEditBasicGrid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: start;
+}
+
+.fansubEditBasicField {
+  grid-column: span 3;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.fansubEditBasicFieldWide {
+  grid-column: span 6;
+}
+
+.fansubEditBasicField label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.fansubEditBasicField input,
+.fansubEditBasicField select {
+  min-height: 2.7rem;
+  border-color: color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  border-radius: calc(var(--radius-sm) + 2px);
+  background: color-mix(in srgb, white 94%, var(--bg-card));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 8px 18px -18px rgba(17, 24, 39, 0.22);
+}
+
+.fansubEditBasicField input:focus,
+.fansubEditBasicField select:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent-primary) 54%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent),
+    0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.fansubEditSlugRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+}
+
+.fansubEditMediaGrid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: minmax(360px, 400px) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.fansubEditBrandingCard {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 760px) {
+  .fansubEditMediaGrid {
+      grid-template-columns: 1fr;
+    }
+}
+
+.fansubEditLinksHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.fansubEditLinksList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.fansubEditLinkRow {
+  display: grid;
+  gap: 0.72rem;
+  padding: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  border-radius: calc(var(--radius-sm) + 5px);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 98%, #fff), color-mix(in srgb, var(--bg-secondary) 90%, transparent));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 46%, transparent),
+    0 14px 24px -24px rgba(17, 24, 39, 0.16);
+}
+
+@media (min-width: 992px) {
+  .fansubEditLinkRow {
+      grid-template-columns: minmax(150px, 180px) minmax(0, 220px) minmax(0, 1fr) auto;
+      align-items: end;
+    }
+}
+
+.fansubEditMediaCard h3 {
+  margin: 0;
+}
+
+.fansubEditLinkInput {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  border-radius: calc(var(--radius-sm) + 2px);
+  background: color-mix(in srgb, white 92%, var(--bg-card));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0 0.55rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 8px 18px -18px rgba(17, 24, 39, 0.3);
+}
+
+.fansubEditLinkInputInvalid {
+  border-color: color-mix(in srgb, var(--color-error) 62%, transparent);
+}
+
+.fansubEditLinkInput input {
+  border: 0;
+  background: transparent;
+  min-width: 0;
+  color: var(--text-primary);
+  padding: 0.65rem 0;
+}
+
+.fansubEditPreviewLinkButton {
+  width: 30px;
+  height: 30px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-secondary) 90%, #fff);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fansubEditLinkRemoveButton {
+  align-self: end;
+  margin-bottom: 0.1rem;
+}
+
+@media (max-width: 900px) {
+  .fansubEditBasicGrid {
+      grid-template-columns: 1fr;
+    }
+
+  .fansubEditBasicField,
+  .fansubEditBasicFieldWide {
+      grid-column: auto;
+    }
+}
+

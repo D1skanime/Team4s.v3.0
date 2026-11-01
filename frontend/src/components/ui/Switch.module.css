@@ -1,10 +1,10 @@
 .switchRoot {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0 4px;
+  gap: var(--switch-gap);
+  min-width: var(--control-height-md);
+  min-height: var(--control-height-md);
+  padding: 0 var(--switch-padding-x);
   border: none;
   background: transparent;
   cursor: pointer;
@@ -13,18 +13,18 @@
 
 .switchRoot:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring, 0 0 0 3px rgba(122, 160, 240, 0.22));
-  border-radius: 999px;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-pill);
 }
 
 .switchThumb {
   position: relative;
   display: inline-block;
-  width: 44px;
-  height: 26px;
-  border-radius: 999px;
-  background: rgba(92, 105, 131, 0.24);
-  border: 1px solid rgba(92, 105, 131, 0.18);
+  width: var(--switch-track-width);
+  height: var(--switch-track-height);
+  border-radius: var(--radius-pill);
+  background: var(--switch-track-bg);
+  border: 1px solid var(--switch-track-border-color);
   flex-shrink: 0;
   transition:
     background-color 180ms ease,
@@ -34,23 +34,23 @@
 .switchThumb::after {
   content: '';
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
+  top: var(--switch-thumb-inset);
+  left: var(--switch-thumb-inset);
+  width: var(--switch-thumb-size);
+  height: var(--switch-thumb-size);
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(33, 45, 72, 0.22);
+  background: var(--surface-card);
+  box-shadow: var(--switch-thumb-shadow);
   transition: transform 180ms ease;
 }
 
 .switchChecked .switchThumb {
-  background: linear-gradient(to bottom, var(--button-primary-start, #5383e8), var(--button-primary-end, #3563d0));
-  border-color: rgba(57, 84, 144, 0.34);
+  background: linear-gradient(to bottom, var(--button-primary-start), var(--button-primary-end));
+  border-color: var(--switch-thumb-border-color-checked);
 }
 
 .switchChecked .switchThumb::after {
-  transform: translateX(18px);
+  transform: translateX(var(--switch-thumb-size));
 }
 
 .switchDisabled {
@@ -59,8 +59,8 @@
 }
 
 .switchLabel {
-  font-size: 14px;
-  color: var(--text-body, #334155);
+  font-size: var(--switch-label-font-size);
+  color: var(--text-body);
   line-height: 1.4;
   font-weight: 600;
   user-select: none;

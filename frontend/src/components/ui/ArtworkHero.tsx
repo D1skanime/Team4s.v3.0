@@ -48,7 +48,7 @@ export function ArtworkHero({
           </div>
         ) : null}
         <div className={styles.avatar}>
-          <Avatar label={avatarLabel} src={avatarSrc} size="lg" className={styles.avatarInner} />
+          <Avatar label={avatarLabel} src={avatarSrc} size="lg" tone="accent" />
         </div>
         <div className={styles.identity}>
           <div className={styles.titleRow}>

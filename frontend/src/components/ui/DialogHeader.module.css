@@ -1,7 +1,7 @@
 .dialogHeader {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: flex-start;
   flex-wrap: nowrap;
 }
@@ -21,5 +21,5 @@
 .dialogDescription {
   /* font-size 1rem/color var(--text-soft) entsprechen bereits exakt Texts variant="soft"-
      Default -- keine CSS-Variablen-Überschreibung nötig, nur margin bleibt hier. */
-  margin: 6px 0 0;
+  margin: var(--dialog-header-description-margin-top) 0 0;
 }

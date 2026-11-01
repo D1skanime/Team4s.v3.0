@@ -3,7 +3,8 @@
 import Image from "next/image";
 
 import styles from "../../admin.module.css";
-import createStyles from "./page.module.css";
+import sharedStyles from "./page.shared.module.css";
+import searchDialogStyles from "./page.searchDialog.module.css";
 import type {
   AdminAnimeAssetKind,
   AdminAnimeAssetSearchCandidate,
@@ -110,45 +111,45 @@ export function CreateAssetSearchDialog({
   const selectedCount = selectedCandidateIDs.length;
   const canAdopt = selectedCount > 0 && !isAdopting;
   const candidateGridClass = [
-    createStyles.assetCandidateGrid,
-    activeKind === "cover" ? createStyles.assetCandidateGridCover : "",
+    searchDialogStyles.assetCandidateGrid,
+    activeKind === "cover" ? searchDialogStyles.assetCandidateGridCover : "",
   ]
     .filter(Boolean)
     .join(" ");
   const candidatePreviewClass = [
-    createStyles.assetCandidatePreview,
-    activeKind === "cover" ? createStyles.assetCandidatePreviewCover : "",
-    activeKind === "logo" ? createStyles.assetCandidatePreviewLogo : "",
+    searchDialogStyles.assetCandidatePreview,
+    activeKind === "cover" ? searchDialogStyles.assetCandidatePreviewCover : "",
+    activeKind === "logo" ? searchDialogStyles.assetCandidatePreviewLogo : "",
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
     <div
-      className={createStyles.candidateModalBackdrop}
+      className={searchDialogStyles.candidateModalBackdrop}
       role="presentation"
       onClick={onClose}
     >
       <div
-        className={`${createStyles.candidateModal} ${createStyles.assetModal}`}
+        className={`${searchDialogStyles.candidateModal} ${searchDialogStyles.assetModal}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-asset-search-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className={createStyles.candidateModalHeader}>
+        <div className={searchDialogStyles.candidateModalHeader}>
           <div>
             <h3
               id="create-asset-search-title"
-              className={createStyles.candidateModalTitle}
+              className={searchDialogStyles.candidateModalTitle}
             >
               {copy.title}
             </h3>
-            <p className={createStyles.candidateModalText}>{copy.helper}</p>
+            <p className={searchDialogStyles.candidateModalText}>{copy.helper}</p>
           </div>
           <button
             type="button"
-            className={createStyles.secondaryAction}
+            className={sharedStyles.secondaryAction}
             onClick={onClose}
           >
             Schließen
@@ -166,7 +167,7 @@ export function CreateAssetSearchDialog({
           </label>
           <button
             type="button"
-            className={createStyles.primaryAction}
+            className={sharedStyles.primaryAction}
             aria-busy={isSearching}
             disabled={isSearching || !query.trim()}
             onClick={onSearch}
@@ -175,8 +176,8 @@ export function CreateAssetSearchDialog({
           </button>
         </div>
 
-        <div className={createStyles.assetSearchToolbar}>
-          <p className={createStyles.assetSearchStatus} aria-live="polite">
+        <div className={searchDialogStyles.assetSearchToolbar}>
+          <p className={searchDialogStyles.assetSearchStatus} aria-live="polite">
             {isSearching
               ? "Treffer werden geladen..."
               : selectedCount > 0
@@ -187,7 +188,7 @@ export function CreateAssetSearchDialog({
           </p>
           <button
             type="button"
-            className={createStyles.secondaryAction}
+            className={sharedStyles.secondaryAction}
             disabled={!canAdopt}
             onClick={onAdoptSelection}
           >
@@ -206,8 +207,8 @@ export function CreateAssetSearchDialog({
                   <button
                     key={candidate.id}
                     type="button"
-                    className={`${createStyles.assetCandidateCard} ${
-                      isSelected ? createStyles.assetCandidateCardSelected : ""
+                    className={`${searchDialogStyles.assetCandidateCard} ${
+                      isSelected ? searchDialogStyles.assetCandidateCardSelected : ""
                     }`}
                     onClick={() => onToggleCandidate(candidate.id)}
                   >
@@ -217,25 +218,25 @@ export function CreateAssetSearchDialog({
                         alt={candidate.title || `${candidate.source} Asset`}
                         fill
                         sizes="(max-width: 720px) 50vw, 220px"
-                        className={createStyles.assetCandidateImage}
+                        className={searchDialogStyles.assetCandidateImage}
                         unoptimized
                       />
-                      <span className={createStyles.assetSourceBadge}>
+                      <span className={searchDialogStyles.assetSourceBadge}>
                         {candidate.source}
                       </span>
                       {isSelected ? (
-                        <span className={createStyles.assetCandidateSelectedBadge}>
+                        <span className={searchDialogStyles.assetCandidateSelectedBadge}>
                           Ausgewählt
                         </span>
                       ) : null}
                     </div>
-                    <div className={createStyles.assetCandidateBody}>
+                    <div className={searchDialogStyles.assetCandidateBody}>
                       {candidate.title ? (
-                        <strong className={createStyles.assetCandidateTitle}>
+                        <strong className={searchDialogStyles.assetCandidateTitle}>
                           {candidate.title}
                         </strong>
                       ) : null}
-                      <p className={createStyles.assetMetaText}>
+                      <p className={searchDialogStyles.assetMetaText}>
                         {candidate.width && candidate.height
                           ? `${candidate.width} x ${candidate.height}`
                           : "Größe unbekannt"}
@@ -248,10 +249,10 @@ export function CreateAssetSearchDialog({
             </div>
 
             {hasMore ? (
-              <div className={createStyles.assetLoadMoreRow}>
+              <div className={searchDialogStyles.assetLoadMoreRow}>
                 <button
                   type="button"
-                  className={createStyles.secondaryAction}
+                  className={sharedStyles.secondaryAction}
                   aria-busy={isSearching}
                   disabled={isSearching}
                   onClick={onLoadMore}

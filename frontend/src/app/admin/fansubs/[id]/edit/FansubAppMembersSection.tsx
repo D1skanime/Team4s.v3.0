@@ -13,7 +13,8 @@ import { mergeCssModules } from '@/lib/mergeCssModules'
 import { orderForContext } from '@/lib/roleCatalog'
 
 import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditMembershipStyles from './FansubEdit.membership.module.css'
+import fansubEditReleasesStyles from './FansubEdit.releases.module.css'
 import ownStyles from './FansubAppMembersSection.module.css'
 import { FansubAppMemberAddModal, FansubAppMemberChoiceModal } from './FansubAppMemberAddModal'
 import { FansubAppMemberEditorPanel } from './FansubAppMemberEditorPanel'
@@ -21,6 +22,7 @@ import { FansubAppMembersOverview } from './FansubAppMembersOverview'
 import { GroupMembersTab } from './GroupMembersTab'
 import { useFansubAppMembersSection } from './useFansubAppMembersSection'
 
+const fansubEditStyles = mergeCssModules(fansubEditMembershipStyles, fansubEditReleasesStyles)
 const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 type FansubAppMembersSectionProps = {

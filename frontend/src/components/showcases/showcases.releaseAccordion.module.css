@@ -1,0 +1,434 @@
+/* Anime-Akkordeon- und Release-Tabellen-Darstellung von `ReleaseCompositionShowcase.tsx`
+ * (Desktop- und Mobile-Variante): Karten-/Kopfzeilen-Layout, Banner-Mock, Meta-Zeilen sowie
+ * die Tabellenflaechen-Kopplung fuer das feste Kopfzeilen-Overlay beim Scrollen.
+ *
+ * WICHTIG (CSS-Modules-Kopplung): `.tableSurfaceA`/`.tableSurfaceBPrevious` bilden zusammen
+ * mit `.tableWrapHeaderLineBlack`/`.tableWrapHeaderLineWine` und `.releaseTableSticky`
+ * verschachtelte Nachfahren-Selektoren (`.tableSurfaceBPrevious .releaseTableSticky thead th`
+ * u. ae.). CSS Modules hasht Klassennamen pro Quelldatei; wuerden diese Klassen aus
+ * unterschiedlichen `.module.css`-Dateien importiert, wuerde der Nachfahren-Selektor nie
+ * greifen (totes CSS ohne sichtbaren Fehler). Darum bleiben alle beteiligten Klassen hier in
+ * einer Datei, auch wenn `.tableSurfaceA`/`.tableWrapHeaderLineBlack` fuer sich genommen
+ * aktuell nicht mehr direkt referenziert werden. */
+
+
+
+.tableSurfaceA,
+.tableSurfaceBPrevious {
+  padding: 16px;
+  border-radius: 4px;
+}
+
+.tableSurfaceA {
+  border: 1px solid rgba(72, 58, 48, 0.06);
+  border-top-color: rgba(246, 241, 235, 0.9);
+  background-color: #f4efe9;
+  background-image: linear-gradient(to bottom, #faf7f3, #f4efe9);
+  box-shadow:
+    0 1px 1px rgba(42, 30, 21, 0.2),
+    0 2px 3px rgba(42, 30, 21, 0.08);
+}
+
+.tableSurfaceBPrevious {
+  border: 1px solid rgba(72, 58, 48, 0.06);
+  border-top-color: rgba(255, 248, 240, 0.78);
+  background-color: #ece4dc;
+  background-image: linear-gradient(to bottom, #f7f1eb, #ece4dc);
+  box-shadow:
+    0 1px 1px rgba(42, 30, 21, 0.2),
+    0 2px 3px rgba(42, 30, 21, 0.08);
+}
+
+.tableWrapHeaderLineBlack,
+.tableWrapHeaderLineWine {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.tableSurfaceA .tableWrapHeaderLineBlack thead th,
+.tableSurfaceBPrevious .tableWrapHeaderLineWine thead th {
+  background: transparent;
+}
+
+.tableSurfaceA .tableWrapHeaderLineBlack thead th {
+  border-bottom: 3px solid #1f2430;
+}
+
+.tableSurfaceBPrevious .tableWrapHeaderLineWine thead th {
+  border-bottom: 3px solid #82122c;
+}
+
+.releaseCompositionShell {
+  display: grid;
+  gap: 18px;
+  grid-column: 1 / -1;
+}
+
+.releaseCompositionIntro {
+  display: grid;
+  gap: 6px;
+}
+
+.releaseCompositionIntro h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.3;
+  color: #1f2430;
+}
+
+.releaseCompositionIntro p {
+  margin: 0;
+  color: #6b7486;
+  line-height: 1.55;
+}
+
+.releaseViewportGrid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  align-items: start;
+}
+
+.releaseViewportPane {
+  display: grid;
+  gap: 10px;
+}
+
+.releaseViewportLabel {
+  font-size: 12px;
+  color: #6b7486;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.releaseViewportMobileFrame {
+  width: 380px;
+  max-width: 100%;
+  padding: 14px;
+  border-radius: 24px;
+  border: 1px solid rgba(56, 70, 96, 0.1);
+  background: linear-gradient(180deg, rgba(248, 250, 255, 0.98), rgba(235, 240, 249, 0.98));
+  box-shadow: 0 12px 28px rgba(33, 45, 72, 0.08);
+}
+
+.releaseAreaCardMobile {
+  gap: 14px;
+}
+
+.animeAccordionCardMobile {
+  padding: 12px 12px 8px 10px;
+  margin-top: 0;
+  border-radius: 12px;
+  gap: 8px;
+}
+
+.animeAccordionHeaderMobile {
+  grid-template-columns: 80px minmax(0, 1fr) auto;
+  min-height: auto;
+  align-items: start;
+  gap: 8px;
+}
+
+.animeAccordionAsideMobile {
+  justify-items: end;
+  align-content: start;
+  gap: 4px;
+  padding-top: 2px;
+  padding-bottom: 0;
+  font-size: 0.74rem;
+}
+
+.animeAccordionHeaderMobile .animeAccordionMeta strong {
+  font-size: 0.94rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.animeAccordionHeaderMobile .animeAccordionMeta p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.76rem;
+  line-height: 1.3;
+}
+
+.releaseAreaCard {
+  gap: 2px;
+}
+
+.animeAccordionCard {
+  gap: 8px;
+  padding: 0 16px 0 0;
+  margin-top: 10px;
+  border-radius: 12px 0 0 12px;
+  border: 1px solid rgba(72, 58, 48, 0.08);
+  background: linear-gradient(to bottom, rgba(250, 247, 243, 0.96), rgba(244, 239, 233, 0.92));
+  box-shadow:
+    0 1px 1px rgba(42, 30, 21, 0.12),
+    0 2px 6px rgba(42, 30, 21, 0.05);
+}
+
+.animeAccordionHeader {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  min-height: 88px;
+}
+
+.animeBannerMock {
+  width: 176px;
+  aspect-ratio: 2 / 1;
+  margin-top: 0;
+  margin-left: -1px;
+  align-self: center;
+  border-radius: 10px 0 0 10px;
+  border: 1px solid rgba(92, 105, 131, 0.12);
+  background:
+    radial-gradient(circle at top left, rgba(255, 163, 77, 0.45), transparent 38%),
+    linear-gradient(160deg, #f4a844 0%, #ea6a2a 32%, #264472 100%);
+  box-shadow: 0 8px 20px rgba(33, 45, 72, 0.1);
+  color: #fff6e8;
+  font-size: 0.96rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  display: grid;
+  align-items: end;
+  justify-items: start;
+  padding: 10px 12px;
+  line-height: 1;
+}
+
+.animeAccordionMeta {
+  display: grid;
+  gap: 3px;
+  align-content: start;
+  align-self: start;
+  padding-bottom: 0;
+  padding-top: 10px;
+}
+
+.animeAccordionMeta strong {
+  color: #1f2430;
+  font-size: 1.08rem;
+  line-height: 1.15;
+}
+
+.animeAccordionType {
+  color: var(--ui-arrow);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.animeAccordionReleaseCount {
+  color: #7a8395;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.animeAccordionMeta p {
+  margin: 0;
+  color: #6b7486;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  max-width: 48ch;
+}
+
+.animeAccordionAside {
+  display: grid;
+  gap: 3px;
+  justify-items: end;
+  align-content: center;
+  padding-bottom: 0;
+  color: #7a8395;
+  font-size: 0.86rem;
+  min-width: 78px;
+}
+
+.disclosureIcon {
+  width: 42px;
+  height: 42px;
+}
+
+.releaseTableShell {
+  display: grid;
+  padding-top: 2px;
+  margin-right: -16px;
+}
+
+.releaseTableScroller {
+  max-height: 25rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.releaseTableSticky {
+  overflow: visible;
+}
+
+.releaseTableSticky table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.tableSurfaceA .releaseTableSticky thead th,
+.tableSurfaceBPrevious .releaseTableSticky thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: color-mix(in srgb, #f8f2ea 97%, #fff);
+  background-clip: padding-box;
+  border-bottom: 3px solid #82122c;
+  box-shadow: none;
+}
+
+.releaseTableShell table {
+  min-width: 0;
+}
+
+.releaseTableShell th,
+.releaseTableShell td {
+  padding: 12px 10px;
+}
+
+.releaseTableShell td {
+  vertical-align: middle;
+}
+
+.releaseRowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.releaseRowDisclosure {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ui-arrow);
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .animeAccordionHeader {
+      grid-template-columns: 80px minmax(0, 1fr) auto;
+      align-items: start;
+      min-height: auto;
+      gap: 10px;
+    }
+
+  .animeAccordionAside {
+      justify-items: end;
+      align-content: start;
+      padding-top: 2px;
+    }
+}
+
+@media (max-width: 900px) {
+  .animeAccordionCard {
+      padding: 11px 14px 8px 12px;
+      margin-top: 0;
+      border-radius: 12px;
+    }
+
+  .animeAccordionHeader {
+      grid-template-columns: 128px minmax(0, 1fr) auto;
+      align-items: start;
+      min-height: auto;
+      gap: 10px;
+    }
+
+  .animeBannerMock {
+      width: 128px;
+      margin-top: 0;
+      margin-left: 0;
+      align-self: start;
+      border-radius: 10px;
+    }
+
+  .animeAccordionMeta {
+      align-content: start;
+      align-self: start;
+      padding-top: 2px;
+      gap: 2px;
+    }
+
+  .animeAccordionMeta strong {
+      font-size: 1rem;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+
+  .animeAccordionMeta p {
+      font-size: 0.8rem;
+      line-height: 1.35;
+      max-width: none;
+    }
+
+  .animeAccordionAside {
+      gap: 4px;
+      justify-items: end;
+      align-content: start;
+      padding-top: 0;
+      font-size: 0.8rem;
+      min-width: 64px;
+    }
+
+  .disclosureIcon {
+      width: 36px;
+      height: 36px;
+    }
+}
+
+@media (max-width: 640px) {
+  .animeAccordionHeader {
+      grid-template-columns: 112px minmax(0, 1fr) auto;
+      gap: 8px;
+    }
+
+  .animeBannerMock {
+      width: 108px;
+    }
+
+  .animeAccordionMeta strong {
+      font-size: 0.96rem;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+
+  .animeAccordionMeta p,
+    .animeAccordionAside {
+      font-size: 0.78rem;
+    }
+
+  .disclosureIcon {
+      width: 32px;
+      height: 32px;
+    }
+}

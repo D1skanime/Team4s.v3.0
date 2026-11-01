@@ -3,7 +3,7 @@ import { ReactNode } from 'react'
 import { AdminAnimeEditorMode } from '@/types/admin'
 
 import { CreatePageStepper } from '../../create/CreatePageStepper'
-import createStyles from '../../create/page.module.css'
+import createStyles from '../../create/page.pageShell.module.css'
 
 interface SharedAnimeEditorWorkspaceProps {
   mode: AdminAnimeEditorMode

@@ -106,8 +106,8 @@ frontend/src/
 ├── types/                     # Domain-Typen (anime.ts, fansub.ts, …)
 ├── hooks/                      # zentrale, feature-übergreifende Hooks (nur 4 Dateien)
 ├── providers/                    # schmale React-Contexts (RoleCatalogProvider)
-├── styles/                        # globals.css mit Design-Tokens
-└── test/                           # Test-Setup (axeSetup.ts)
+├── styles/                        # globals.css (Einstiegspunkt) + tokens/*.css (nach Bereich aufgeteilte Design-Tokens) + base.css (Element-Reset)
+└── test/                           # Test-Setup (axeSetup.ts), readGlobalsCss.ts (löst globals.css' @import-Kette für Tests auf)
 ```
 
 ## 4. Anwendungs-Lebenszyklus
@@ -240,7 +240,7 @@ Wiederverwendbare interne Bausteine (nicht aus `index.ts` exportiert, da kein ei
 
 ## 10. Theming & Styling
 
-Design-Tokens sind als CSS Custom Properties in `src/styles/globals.css` definiert (`--color-primary`, `--bg-*`, `--text-*`, `--accent-*`, `--avatar-N-bg`/`-fg` u. a.) und werden genau einmal im Root-Layout importiert. `src/lib/cssCustomProperties.ts` (mit begleitendem `.guard.test.ts`) bindet JavaScript-Zugriffe an dieselben CSS-Variablen, um Drift zwischen Token-Quelle und Code zu verhindern.
+Design-Tokens sind als CSS Custom Properties definiert und werden genau einmal im Root-Layout über `src/styles/globals.css` importiert. `globals.css` selbst enthält (wegen der 450-Zeilen-Regel) nur noch `@import`-Anweisungen auf fachlich aufgeteilte Token-Dateien unter `src/styles/tokens/` (`palette.css` Grundfarben/Markenpaletten, `layout.css` Radien/Abstände/Steuerelement-Höhen/Breiten, `typography.css` Schriftgrößen/-gewichte, `colors.css` semantische Oberflächen-/Text-/Schatten-/Fokus-Tokens, `fields.css` Feld-/Dialog-/Picker-Stil, `components.css` komponentenspezifische Tokens wie `--card-*`/`--icon-button-*`/`--button-*`, `roleCatalog.css` die Rollen-Katalog-Farbnaht) plus `src/styles/base.css` für den Element-Reset — `@import` fügt alle Deklarationen weiterhin in DIESELBE `:root`-Kaskade ein, an der Auflösung von `var(...)` über Dateigrenzen hinweg ändert sich nichts. `src/lib/cssCustomProperties.ts` (mit begleitendem `.guard.test.ts`) bindet JavaScript-Zugriffe an dieselben CSS-Variablen, um Drift zwischen Token-Quelle und Code zu verhindern. `src/components/ui/foreignVariableOverrides.regression.test.ts` prüft zusätzlich generisch über alle `components/ui/*.module.css`-Dateien, dass keine Datei die private Override-Variable eines anderen Bausteins setzt und dass keine Datei feste px-/rem-Größen, Hex-Farben oder rgba-Literale statt eines globalen Tokens enthält (Ausnahmen: `0`, `1px`-Haarlinien, Prozentwerte, `@media`/`@container`-Bedingungen).
 
 Komponentenspezifisches Styling liegt pervasiv in colokierten `*.module.css`-Dateien neben der jeweiligen Komponente — dies ist der Normalfall für fachliche Speziallayouts, während Standardelemente (Buttons, Cards, Badges, FormFields, Header, EmptyStates) über die globalen Primitives aus Abschnitt 8 abgedeckt werden, statt erneut lokal gebaut zu werden.
 

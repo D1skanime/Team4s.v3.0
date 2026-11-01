@@ -24,7 +24,7 @@ import {
 import { MediaManagementCompositionShowcase } from './MediaManagementCompositionShowcase'
 import { ProjectNoteShowcase } from './ProjectNoteShowcase'
 import { ReleaseCompositionShowcase } from './ReleaseCompositionShowcase'
-import styles from './showcases.module.css'
+import styles from './showcases.shared.module.css'
 
 const tableRows = [
   { name: 'Anime no Hikari', status: 'Aktiv', owners: '3 Rollen', progress: '12 Versionen' },

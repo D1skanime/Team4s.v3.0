@@ -9,7 +9,9 @@ import { Button } from "@/components/ui";
 import { FormField } from "@/components/ui/FormField";
 import { Textarea } from "@/components/ui/Textarea";
 import styles from "../../admin.module.css";
-import createStyles from "./page.module.css";
+import pageShellStyles from "./page.pageShell.module.css";
+import providerGridStyles from "./page.providerGrid.module.css";
+import sharedStyles from "./page.shared.module.css";
 import workspaceStyles from "../components/ManualCreate/ManualCreateWorkspace.module.css";
 import { AnimeCreateGenreField } from "../components/CreatePage/AnimeCreateGenreField";
 import { AnimeCreateTagField } from "../components/CreatePage/AnimeCreateTagField";
@@ -110,13 +112,13 @@ function AdminAnimeCreateContent() {
 
   const sourceSection = (
     <>
-      <div className={createStyles.sourceToolbar}>
+      <div className={sharedStyles.sourceToolbar}>
         <Button href="/admin/anime/create/library" variant="primary">
           Bibliothek durchsuchen
         </Button>
       </div>
 
-      <div className={createStyles.providerGrid}>
+      <div className={providerGridStyles.providerGrid}>
         <CreateAniSearchIntakeCard
           anisearchID={anisearch.input}
           searchQuery={anisearch.searchQuery}
@@ -187,7 +189,7 @@ function AdminAnimeCreateContent() {
   );
 
   const detailsSection = (
-    <div className={createStyles.detailsStack}>
+    <div className={pageShellStyles.detailsStack}>
       <section className={workspaceStyles.sectionCard}>
         <div className={workspaceStyles.sectionHeader}>
           <h2 className={workspaceStyles.sectionTitle}>Basisdaten</h2>
@@ -254,11 +256,11 @@ function AdminAnimeCreateContent() {
             </div>
           </div>
 
-          <div className={`${styles.field} ${createStyles.folderPathField}`}>
+          <div className={`${styles.field} ${sharedStyles.folderPathField}`}>
             <label htmlFor="create-folder-path">Ordnerpfad</label>
             <input
               id="create-folder-path"
-              className={createStyles.folderPathInput}
+              className={sharedStyles.folderPathInput}
               value={jellyfin.folderPath}
               placeholder="Noch kein Jellyfin-Ordner verknüpft"
               readOnly
@@ -398,20 +400,20 @@ function AdminAnimeCreateContent() {
       {assetCropGate.cropDialog}
 
       {debug.showDebugPanel ? (
-        <details className={createStyles.developerDetails}>
-          <summary className={createStyles.developerSummary}>
+        <details className={sharedStyles.developerDetails}>
+          <summary className={sharedStyles.developerSummary}>
             Debug Request/Response
           </summary>
-          <div className={createStyles.developerBody}>
+          <div className={sharedStyles.developerBody}>
             {debug.lastRequest ? (
-              <pre className={createStyles.developerBlock}>
+              <pre className={sharedStyles.developerBlock}>
                 <strong>Request</strong>
                 {"\n"}
                 {debug.lastRequest}
               </pre>
             ) : null}
             {debug.lastResponse ? (
-              <pre className={createStyles.developerBlock}>
+              <pre className={sharedStyles.developerBlock}>
                 <strong>Response</strong>
                 {"\n"}
                 {debug.lastResponse}

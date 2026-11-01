@@ -8,7 +8,7 @@ import { Button } from '@/components/ui'
 import { mergeCssModules } from '@/lib/mergeCssModules'
 import sharedStyles from '../../../admin.module.css'
 import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditStyles from './FansubEdit.releases.module.css'
 
 const styles = mergeCssModules(editorScaffoldStyles, mergeCssModules(fansubEditStyles, sharedStyles))
 

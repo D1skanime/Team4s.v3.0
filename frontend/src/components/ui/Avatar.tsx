@@ -7,6 +7,7 @@ import styles from './Avatar.module.css'
 
 export type AvatarSize = 'sm' | 'md' | 'lg'
 export type AvatarColorIndex = 1 | 2 | 3 | 4 | 5 | 6
+export type AvatarTone = 'neutral' | 'accent'
 
 export interface AvatarProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'children'> {
   /** Name oder Bezeichnung der Person/Gruppe -- liefert die Initialen-Abkürzung und den
@@ -15,8 +16,12 @@ export interface AvatarProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'chil
   src?: string | null
   size?: AvatarSize
   /** Wählt eine der sechs vordefinierten Initialen-Farbpaarungen aus. Ohne Angabe nutzt der
-   *  Avatar eine neutrale Standardfarbe. */
+   *  Avatar eine neutrale Standardfarbe. Schließt sich mit `tone` gegenseitig aus. */
   colorIndex?: AvatarColorIndex
+  /** 'accent' färbt die Initialen in der Akzentfarbe (--accent-deep, wie Heading tone="accent")
+   *  statt der Standardfarbe --text-strong -- für Identitätsflächen auf hellem Untergrund (siehe
+   *  ArtworkHero). Ohne Angabe ('neutral') bleibt die Standardfarbe erhalten. */
+  tone?: AvatarTone
   /** Zeigt statt Bild/Initialen eine Zähler-Beschriftung ("+3"). `label` bleibt der vorlesbare
    *  Name (z. B. "3 weitere"). */
   count?: number
@@ -38,7 +43,7 @@ const SIZE_PX: Record<AvatarSize, number> = { sm: 32, md: 48, lg: 64 }
  * Bild zeigt der Avatar die Initialen des übergebenen Namens; mit `count` stattdessen eine
  * Zähler-Beschriftung ("+3") für "N weitere".
  */
-export function Avatar({ label, src, size = 'md', colorIndex, count, className, ...rest }: AvatarProps) {
+export function Avatar({ label, src, size = 'md', colorIndex, tone = 'neutral', count, className, ...rest }: AvatarProps) {
   const pixelSize = SIZE_PX[size]
   const accessibleLabel = typeof count === 'number' ? label : undefined
 
@@ -50,6 +55,7 @@ export function Avatar({ label, src, size = 'md', colorIndex, count, className, 
         size === 'sm' && styles.avatarSm,
         size === 'lg' && styles.avatarLg,
         colorIndex && styles[`avatarColor${colorIndex}` as keyof typeof styles],
+        tone === 'accent' && styles.avatarToneAccent,
         className,
       )}
       aria-label={accessibleLabel}

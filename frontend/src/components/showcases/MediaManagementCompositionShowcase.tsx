@@ -6,7 +6,8 @@ import { GripVertical } from 'lucide-react'
 import { Badge, Button, Card, Input, UploadDropzone, UploadFileRow } from '@/components/ui'
 import type { UploadFileRowProps } from '@/components/ui'
 
-import styles from './showcases.module.css'
+import styles from './showcases.mediaManagement.module.css'
+import sharedStyles from './showcases.shared.module.css'
 
 interface DemoQueueItem {
   key: string
@@ -114,7 +115,7 @@ export function MediaManagementCompositionShowcase() {
       title="Komposition 5 – Media Management Layout"
       description="Upload-Warteschlange und Medien-Grid im aktuellen Karten-Stil (Phase 180) -- reine Präsentation mit Mock-Daten, keine Fachlogik."
     >
-      <div className={styles.stack}>
+      <div className={sharedStyles.stack}>
         <UploadDropzone onFilesSelected={handleFilesSelected} density="compact" multiple />
         {queue.map((item) => (
           <UploadFileRow
@@ -130,7 +131,7 @@ export function MediaManagementCompositionShowcase() {
             density="compact"
           />
         ))}
-        <div className={styles.rowActions}>
+        <div className={sharedStyles.rowActions}>
           <Badge variant="muted">{pendingCount} wartend</Badge>
           <Button disabled={pendingCount === 0}>Upload starten</Button>
         </div>

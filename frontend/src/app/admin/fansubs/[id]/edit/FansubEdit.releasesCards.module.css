@@ -1,0 +1,242 @@
+/* Karten-Rasteransicht der Anime-Releases (Grid-Darstellung statt Akkordeon-Liste): Episoden-Badge,
+   Karten-Titel/-Meta/-Statuszeile, Auf-/Zuklapp-Pfeil, Personen-Box mit Avatar-Stapel sowie die
+   Theme-Box mit Liste und Einzel-Eintrag. Ergänzt `FansubEdit.releases.module.css`, das die
+   Akkordeon-/Zeilen-Darstellung derselben Releases enthält. */
+
+@media (max-width: 760px) {
+  .fansubEditReleaseEpisodeBadge { grid-area: badge; }
+
+  .fansubEditReleaseCardTitle { grid-area: title; }
+
+  .fansubEditReleaseCardDisclosure { grid-area: disclosure; }
+}
+
+.fansubEditReleaseCardList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 0.7rem;
+  padding: 0.75rem;
+}
+
+.fansubEditReleaseEpisodeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  min-height: 30px;
+  border: 1px solid color-mix(in srgb, #82122c 18%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, #82122c 8%, white);
+  color: #6c1630;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.fansubEditReleaseCardTitle {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.fansubEditReleaseCardTitle strong {
+  overflow-wrap: anywhere;
+  color: var(--text-primary);
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.fansubEditReleaseCardTitle span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.fansubEditReleaseCardMeta {
+  display: grid;
+  align-items: start;
+  gap: 0.55rem;
+}
+
+.fansubEditReleaseCardPrimaryMeta {
+  display: block;
+}
+
+.fansubEditReleaseCardStats {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditReleaseCardStats > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.fansubEditReleaseThemeMeta {
+  color: #18794e;
+}
+
+.fansubEditReleaseThemeMetaMuted {
+  color: var(--text-secondary);
+}
+
+.fansubEditReleaseCardDisclosure {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--ui-arrow);
+}
+
+.fansubEditReleasePeopleBox {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.8rem;
+  border-bottom: 1px solid rgba(72, 58, 48, 0.08);
+  background: color-mix(in srgb, #fff 70%, #f7efe5);
+}
+
+.fansubEditReleaseAvatarStack {
+  display: flex;
+  align-items: center;
+  padding-left: 0.4rem;
+}
+
+.fansubEditReleaseAvatarStack span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: -0.4rem;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: linear-gradient(145deg, #40506c, #6f839f);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  overflow: hidden;
+}
+
+.fansubEditReleaseAvatarStack img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fansubEditReleasePeopleNames {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.fansubEditReleasePeopleNames strong {
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
+
+.fansubEditReleasePeopleNames span {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.fansubEditReleaseThemeBox {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem;
+}
+
+.fansubEditReleaseThemeBoxHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  color: var(--text-primary);
+}
+
+.fansubEditReleaseThemeBoxHeader span {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.fansubEditReleaseThemeList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.fansubEditReleaseThemeItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, #fff 82%, #f7efe5);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.58rem 0.65rem;
+  text-align: left;
+}
+
+.fansubEditReleaseThemeItem span {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.fansubEditReleaseThemeItem small {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.fansubEditReleaseThemeItemActive {
+  border-color: color-mix(in srgb, var(--accent-primary) 36%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
+.fansubEditReleaseCardActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0 0.8rem 0.8rem;
+}
+
+.fansubEditReleaseCardActions > * {
+  min-height: 44px;
+}
+
+@media (max-width: 760px) {
+  .fansubEditReleaseCardList {
+      grid-template-columns: 1fr;
+      padding: 0.6rem;
+    }
+
+  .fansubEditReleaseCardActions {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+  .fansubEditReleaseThemeList {
+      grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .fansubEditReleaseCardList {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+

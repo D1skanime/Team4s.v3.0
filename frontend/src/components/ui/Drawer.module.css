@@ -37,7 +37,7 @@
   content: '';
   position: absolute;
   inset: 0 auto 0 0;
-  width: 4px;
+  width: var(--drawer-accent-rail-width);
   background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 72%, white), var(--ui-arrow) 58%, color-mix(in srgb, var(--surface-sunken) 82%, white));
 }
 
@@ -48,9 +48,9 @@
 }
 
 .drawerPanelSheet {
-  width: min(var(--drawer-width-lg), calc(100vw - 48px));
-  height: min(680px, calc(100dvh - 48px));
-  max-height: calc(100dvh - 48px);
+  width: min(var(--drawer-width-lg), calc(100vw - var(--dialog-viewport-margin)));
+  height: min(var(--drawer-sheet-max-height), calc(100dvh - var(--dialog-viewport-margin)));
+  max-height: calc(100dvh - var(--dialog-viewport-margin));
   border-radius: var(--radius-surface);
   border-left-color: var(--border-subtle);
 }
@@ -72,7 +72,7 @@
   flex-wrap: nowrap;
   padding: var(--space-5) var(--space-5) var(--space-4) var(--space-6);
   border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 88%, white);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 245, 239, 0.96) 100%);
+  background: var(--drawer-header-bg);
 }
 
 .drawerHeader > div {
@@ -87,14 +87,14 @@
   display: grid;
   gap: var(--space-4);
   align-content: start;
-  background: linear-gradient(180deg, rgba(250, 247, 243, 0.94) 0%, rgba(255, 255, 255, 0.98) 100%);
+  background: var(--drawer-body-bg);
 }
 
 .drawerFooter {
   padding: var(--space-4) var(--space-5) var(--space-5) var(--space-6);
   border-top: 1px solid color-mix(in srgb, var(--border-subtle) 88%, white);
-  background: linear-gradient(180deg, rgba(250, 247, 243, 0.98) 0%, rgba(255, 255, 255, 0.98) 100%);
-  box-shadow: 0 -10px 24px rgba(24, 23, 21, 0.04);
+  background: var(--drawer-footer-bg);
+  box-shadow: var(--drawer-footer-shadow);
 }
 
 @media (max-width: 767px) {

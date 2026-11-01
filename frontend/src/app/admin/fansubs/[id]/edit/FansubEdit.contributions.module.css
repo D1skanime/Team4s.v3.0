@@ -1,0 +1,229 @@
+/* Mitwirkenden-Verwaltung für Releases: Werkzeugleiste mit Meta-Information, Sheet-Einleitung,
+   Bearbeitungszeilen je Mitwirkendem (Personen-Zelle, Rollen-Zelle mit Rollen-Umschaltern und
+   -Zusammenfassungs-Chips, Zeilen-Aktionen) sowie das Formular zum Hinzufügen neuer Mitwirkender.
+   Gemeinsam genutzt von `AnimeContributionModal` und `ReleaseContributionDrawer`. */
+
+.contributionToolbarMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.contributionSheetIntro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.contributionSheetIntro > button {
+  min-height: 44px;
+}
+
+.contributionRows {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-4);
+  min-height: 0;
+  overflow: visible;
+}
+
+.contributionEditRow {
+  display: grid;
+  grid-template-areas:
+    "person actions"
+    "roles roles";
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: var(--space-3);
+  row-gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.contributionEditRow:focus-within,
+.contributionEditRow:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 32%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-primary) 4%, var(--bg-secondary));
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
+.contributionPersonCell {
+  grid-area: person;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.contributionPersonCell > div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.contributionPersonCell strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contributionPersonCell span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.contributionRolesCell {
+  grid-area: roles;
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.contributionEditRow .contributionRoleToggles {
+  margin-top: 0.1rem;
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-primary) 55%, var(--bg-secondary));
+}
+
+.contributionRoleSummaryLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.contributionRoleSummaryChips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.contributionRoleSummaryChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.7rem;
+  max-width: 100%;
+  padding: 0.26rem 0.62rem;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, var(--border-subtle));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-primary) 7%, white);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.contributionRoleSummaryEmpty {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.contributionRoleToggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.contributionRowActions {
+  grid-area: actions;
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  align-items: center;
+  align-self: start;
+  white-space: nowrap;
+}
+
+.contributionRowActions button {
+  min-height: 44px;
+}
+
+.contributionRemoveButton {
+  color: var(--color-error);
+}
+
+.contributionRoleLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.contributionAddPanel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin-bottom: 0;
+  border: 1px dashed color-mix(in srgb, #82122c 24%, var(--border-subtle));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, #fff 86%, #f7efe5);
+}
+
+.contributionAddActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.contributionAddActions button {
+  min-height: 44px;
+}
+
+.contributionInlineWarning {
+  margin: var(--space-2) 0 0;
+  color: var(--color-error);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .contributionRows {
+      margin-bottom: var(--space-3);
+    }
+
+  .contributionEditRow {
+      grid-template-areas:
+        "person"
+        "roles"
+        "actions";
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+
+  .contributionRolesCell {
+      padding-left: 0;
+    }
+
+  .contributionRowActions {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+  .contributionSheetIntro {
+      align-items: stretch;
+    }
+
+  .contributionSheetIntro > button {
+      width: 100%;
+    }
+}
+

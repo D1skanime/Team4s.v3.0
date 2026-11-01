@@ -28,7 +28,7 @@ export function Card({
   const cardHeader = header ?? (title || description ? (
     <div>
       {title ? <Heading level={3} size={3} className={styles.cardTitle}>{title}</Heading> : null}
-      {description ? <Text variant="soft" className={styles.cardDescription}>{description}</Text> : null}
+      {description ? <Text variant="meta" className={styles.cardDescription}>{description}</Text> : null}
     </div>
   ) : null)
 

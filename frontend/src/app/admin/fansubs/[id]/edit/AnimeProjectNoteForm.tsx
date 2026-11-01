@@ -11,8 +11,10 @@ import type { AnimeFansubProjectNote, UpsertAnimeFansubProjectNoteRequest } from
 
 import sharedStyles from '../../../admin.module.css'
 import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditReleasesStyles from './FansubEdit.releases.module.css'
+import fansubEditSharedStyles from './FansubEdit.module.css'
 
+const fansubEditStyles = mergeCssModules(fansubEditReleasesStyles, fansubEditSharedStyles)
 const styles = mergeCssModules(editorScaffoldStyles, mergeCssModules(fansubEditStyles, sharedStyles))
 
 export const ANIME_PROJECT_NOTE_PLACEHOLDER = `Beschreibe hier das Fansubprojekt dieser Gruppe zu diesem Anime.

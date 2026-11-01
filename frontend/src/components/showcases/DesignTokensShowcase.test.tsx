@@ -1,15 +1,19 @@
 // @vitest-environment jsdom
-import { readFileSync } from 'node:fs'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import { readGlobalsCssResolved } from '@/test/readGlobalsCss'
+
 import { DesignTokensShowcase } from './DesignTokensShowcase'
 
-/** Lädt die echte globals.css als Stylesheet ins Test-DOM -- dieselbe Quelle, die Storybooks
- *  `preview.tsx` auch in der echten Seite einbindet (siehe `.storybook/preview.tsx`). Die
- *  Komponente liest ihre Tokens über `document.styleSheets`, nicht über einen Test-Mock. */
+/** Lädt die echte globals.css (mit aufgelöster @import-Kette) als Stylesheet ins Test-DOM --
+ *  dieselbe effektive Token-Menge, die Webpack/Storybooks `preview.tsx` auch in der echten Seite
+ *  einbindet (siehe `.storybook/preview.tsx`): der Bundler löst `@import` beim Build genauso auf,
+ *  jsdom kann relative `@import`-URLs in einem per `textContent` gesetzten `<style>`-Tag dagegen
+ *  nicht selbst nachladen. Die Komponente liest ihre Tokens über `document.styleSheets`, nicht
+ *  über einen Test-Mock. */
 function loadGlobalsCssIntoDocument() {
-  const css = readFileSync('src/styles/globals.css', 'utf8')
+  const css = readGlobalsCssResolved()
   const style = document.createElement('style')
   style.textContent = css
   document.head.appendChild(style)
@@ -22,7 +26,7 @@ describe('DesignTokensShowcase', () => {
     try {
       const { container } = render(<DesignTokensShowcase />)
 
-      const css = readFileSync('src/styles/globals.css', 'utf8')
+      const css = readGlobalsCssResolved()
       const rootBlocks = [...css.matchAll(/:root\s*\{([^}]*)\}/g)].map((match) => match[1])
       const independentNames = new Set<string>()
       for (const block of rootBlocks) {

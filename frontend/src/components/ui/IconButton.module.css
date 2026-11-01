@@ -1,8 +1,8 @@
 .iconButton {
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
+  width: var(--icon-button-size-md);
+  height: var(--icon-button-size-md);
+  border-radius: var(--icon-button-radius-md);
   border: 1px solid var(--border-subtle);
   background: color-mix(in srgb, var(--surface-card) 96%, transparent);
   color: var(--text-soft);
@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 var(--shadow-inset-highlight);
 }
 
 .iconButton:hover {
@@ -28,15 +28,15 @@
 }
 
 .iconButtonSm {
-  width: 32px;
-  height: 32px;
-  border-radius: 12px;
+  width: var(--icon-button-size-sm);
+  height: var(--icon-button-size-sm);
+  border-radius: var(--icon-button-radius-sm);
 }
 
 .iconButtonLg {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: var(--icon-button-size-lg);
+  height: var(--icon-button-size-lg);
+  border-radius: var(--icon-button-radius-lg);
 }
 
 /* Nach den Größen-Regeln deklariert, damit ein runder Button bei gleicher Spezifität (0,1,0)
@@ -97,10 +97,10 @@
 .iconButtonMedia {
   position: relative;
   overflow: hidden;
-  width: 96px;
-  height: 64px;
+  width: var(--icon-button-media-width);
+  height: var(--icon-button-media-height);
   padding: 0;
-  border: 2px solid transparent;
+  border: var(--border-width-thick) solid transparent;
   border-radius: var(--media-tile-radius);
   background: var(--media-tile-placeholder-bg);
 }
@@ -241,5 +241,5 @@
    eigener Überlapp-Effekt (negativer Abstand, heller Trennring). */
 .iconButtonOverlap {
   margin-inline-start: calc(var(--space-2) * -1);
-  border: 2px solid var(--surface-card);
+  border: var(--border-width-thick) solid var(--surface-card);
 }

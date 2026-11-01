@@ -1,0 +1,255 @@
+/* Alte Vergleichsgalerien (Karten-, Tabellen- und Formular-Varianten nebeneinander) aus der
+ * fruehen Showcase-Seite. Wie bei `showcases.tokenPreviews.module.css` referenziert aktuell
+ * keine `.tsx`-Datei diese Klassen mehr -- unveraendert mitgezogene Altlast des mechanischen
+ * Datei-Splits. */
+
+
+
+.cardCompareGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.cardCompareA {
+  border-radius: 4px;
+  border: 1px solid rgba(44, 44, 44, 0.06);
+  border-top-color: rgba(255, 255, 255, 0.72);
+  background-color: #eaeaea;
+  background-image: linear-gradient(to bottom, #f6f6f6, #eaeaea);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.25),
+    0 2px 3px rgba(0, 0, 0, 0.1);
+  padding: 18px 20px;
+}
+
+.cardCompareB {
+  border-radius: 4px;
+  border: 1px solid rgba(72, 58, 48, 0.06);
+  border-top-color: rgba(255, 248, 240, 0.78);
+  background-color: #ece4dc;
+  background-image: linear-gradient(to bottom, #f7f1eb, #ece4dc);
+  box-shadow:
+    0 1px 1px rgba(42, 30, 21, 0.2),
+    0 2px 3px rgba(42, 30, 21, 0.08);
+  padding: 18px 20px;
+}
+
+.cardCompareC {
+  border-radius: 10px;
+  border: 1px solid rgba(45, 41, 38, 0.16);
+  background: #fdfdfd;
+  box-shadow: none;
+  padding: 24px;
+}
+
+.cardCompareD {
+  border-radius: 4px;
+  border: 1px solid rgba(56, 70, 96, 0.07);
+  border-top-color: rgba(247, 250, 255, 0.82);
+  background-color: #e6ebf3;
+  background-image: linear-gradient(to bottom, #f4f7fb, #e6ebf3);
+  box-shadow:
+    0 1px 1px rgba(33, 45, 72, 0.18),
+    0 2px 3px rgba(33, 45, 72, 0.08);
+  padding: 18px 20px;
+}
+
+.cardCompareE {
+  border-radius: 4px;
+  border: 1px solid rgba(78, 68, 98, 0.07);
+  border-top-color: rgba(250, 246, 255, 0.82);
+  background-color: #ebe7f2;
+  background-image: linear-gradient(to bottom, #f7f4fb, #ebe7f2);
+  box-shadow:
+    0 1px 1px rgba(50, 39, 67, 0.18),
+    0 2px 3px rgba(50, 39, 67, 0.08);
+  padding: 18px 20px;
+}
+
+.compareCardTitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #6f5860;
+}
+
+.compareCardText {
+  margin: 8px 0 0;
+  color: #9f8187;
+  line-height: 1.5;
+}
+
+.nestedCompareGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nestedComparePanel {
+  display: grid;
+  gap: 14px;
+}
+
+.nestedCompareHeader {
+  display: grid;
+  gap: 6px;
+}
+
+.nestedCompareText {
+  margin: 0;
+  color: #788396;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.nestedCardVisible,
+.nestedCardFlat,
+.nestedCardTransparent {
+  gap: 12px;
+}
+
+.nestedCardVisible {
+  border-color: rgba(56, 70, 96, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 1px 2px rgba(33, 45, 72, 0.06);
+}
+
+.nestedCardFlat {
+  border-color: rgba(56, 70, 96, 0.06);
+  background: rgba(246, 249, 253, 0.72);
+}
+
+.nestedCardTransparent {
+  padding-top: 4px;
+}
+
+.nestedCardMedia {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.nestedCardTransparent .nestedCardMedia {
+  padding: 6px 0;
+}
+
+.nestedMeta {
+  display: grid;
+  gap: 3px;
+}
+
+.nestedMeta strong {
+  color: #30415e;
+  font-size: 0.96rem;
+}
+
+.nestedMeta span {
+  color: #748097;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.nestedThumbRound,
+.nestedThumbWide {
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #5c6983;
+  border: 1px solid rgba(92, 105, 131, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(231, 238, 247, 0.92) 100%);
+}
+
+.nestedThumbRound {
+  width: 74px;
+  height: 74px;
+  border-radius: 999px;
+}
+
+.nestedThumbWide {
+  width: 140px;
+  height: 64px;
+  border-radius: 10px;
+}
+
+.tableSurfaceCompareGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tableSurfacePanel {
+  display: grid;
+  gap: 14px;
+}
+
+.radiusSample,
+.spacingSample {
+  min-width: 88px;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid rgba(45, 41, 38, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  display: grid;
+  place-items: center;
+}
+
+.shadowSample {
+  min-width: 140px;
+  min-height: 88px;
+  padding: 14px;
+  background: white;
+  border-radius: 18px;
+}
+
+.fieldGrid {
+  align-items: start;
+}
+
+.fieldGrid > * {
+  flex: 1 1 240px;
+}
+
+.formCompareGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.formComparePanel {
+  display: grid;
+  gap: 14px;
+}
+
+.formCompareField {
+  display: grid;
+  gap: 8px;
+}
+
+.formCompareLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #455164;
+}
+
+.formCompareControlBefore {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(92, 105, 131, 0.12);
+  background: rgba(255, 255, 255, 0.94);
+  color: #475467;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.56);
+}
+
+.formCompareControlBefore::placeholder {
+  color: #95a0b1;
+}
+
+.formCompareTextareaBefore {
+  min-height: 132px;
+  resize: vertical;
+}

@@ -1,6 +1,6 @@
 import { contributionRoleDefinitions } from './contributionRoles'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
-import styles from './FansubEdit.module.css'
+import styles from './FansubEdit.contributions.module.css'
 import ownStyles from './RoleToggleGroup.module.css'
 
 interface RoleToggleGroupProps {

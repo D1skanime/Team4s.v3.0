@@ -2,7 +2,7 @@
 
 import { Card, FormField, Input, Select, Textarea } from '@/components/ui'
 
-import styles from './showcases.module.css'
+import styles from './showcases.shared.module.css'
 
 /**
  * Formular mit mehreren gleichzeitig fehlerhaften Feldern -- bei JEDEM Feld ist NUR `error` am

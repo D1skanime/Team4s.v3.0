@@ -17,7 +17,7 @@ import { mergeCssModules } from '@/lib/mergeCssModules'
 import type { MemberRequestRow } from '@/types/profile'
 
 import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditStyles from './FansubEdit.membership.module.css'
 import ownStyles from './GroupMemberRequestsTable.module.css'
 
 const styles = mergeCssModules(fansubEditStyles, sharedStyles)

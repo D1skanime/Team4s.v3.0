@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui'
 
-import styles from './FansubEdit.module.css'
+import styles from './FansubEdit.membership.module.css'
 import ownStyles from './AnimeReleasesFilterBar.module.css'
 
 export type CockpitFilter = 'all' | 'no-contributions' | 'no-note'

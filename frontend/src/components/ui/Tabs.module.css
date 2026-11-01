@@ -1,17 +1,17 @@
 .tabs {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  gap: var(--tabs-gap);
   align-content: start;
 }
 
 .tabList {
   display: flex;
-  gap: 8px;
+  gap: var(--tabs-gap-sm);
   flex-wrap: wrap;
   align-items: flex-start;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(56, 70, 96, 0.08);
+  padding-bottom: var(--tabs-gap-sm);
+  border-bottom: 1px solid var(--tabs-divider-color);
 }
 
 .tabButton {
@@ -20,20 +20,18 @@
   justify-content: center;
   align-self: flex-start;
   flex: 0 0 auto;
-  gap: 8px;
-  border: 1px solid rgba(92, 105, 131, 0.14);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 245, 251, 0.98) 100%);
-  color: #55627a;
-  border-radius: 10px;
-  min-height: 34px;
-  padding: 0 14px;
+  gap: var(--tabs-gap-sm);
+  border: 1px solid var(--tabs-button-border-color);
+  background: var(--tabs-button-bg);
+  color: var(--tabs-button-text-color);
+  border-radius: var(--tabs-button-radius);
+  min-height: var(--tabs-button-min-height);
+  padding: 0 var(--tabs-button-padding-x);
   line-height: 1.1;
   white-space: nowrap;
   font-weight: 700;
   cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 1px 2px rgba(33, 45, 72, 0.05);
+  box-shadow: var(--tabs-button-shadow);
   transition:
     border-color 120ms ease,
     box-shadow 120ms ease,
@@ -41,46 +39,44 @@
 }
 
 .tabButton:hover {
-  border-color: rgba(92, 105, 131, 0.22);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(233, 239, 248, 1) 100%);
+  border-color: var(--tabs-button-border-color-hover);
+  background: var(--tabs-button-bg-hover);
   transform: translateY(-1px);
 }
 
 .tabButtonActive {
-  border-color: rgba(57, 84, 144, 0.34);
-  background: linear-gradient(180deg, rgba(117, 152, 235, 0.94) 0%, rgba(72, 103, 180, 0.98) 100%);
-  color: #f9fbff;
-  box-shadow:
-    0 7px 18px rgba(67, 99, 180, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-color: var(--tabs-button-active-border-color);
+  background: var(--tabs-button-active-bg);
+  color: var(--tabs-button-active-text-color);
+  box-shadow: var(--button-shadow-primary-hover);
 }
 
 .tabButton,
 .tabButtonActive {
-  font-size: 0.9rem;
+  font-size: var(--tabs-button-font-size);
 }
 
 .tabBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
-  border-radius: 999px;
+  min-width: var(--tabs-badge-size);
+  height: var(--tabs-badge-size);
+  padding: 0 var(--tabs-badge-padding-x);
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--surface-sunken) 74%, white);
-  font-size: 12px;
+  font-size: var(--tabs-badge-font-size);
   font-weight: 700;
-  color: #5d6980;
+  color: var(--tabs-badge-text-color);
 }
 
 .tabButtonActive .tabBadge {
-  background: rgba(255, 255, 255, 0.16);
-  color: #f7fbff;
+  background: var(--tabs-badge-active-bg);
+  color: var(--tabs-badge-active-text-color);
 }
 
 .tabPanel {
   min-width: 0;
   align-self: start;
-  padding-top: 2px;
+  padding-top: var(--tabs-panel-padding-top);
 }

@@ -1,0 +1,341 @@
+/* Akkordeon-Darstellung der Anime-Releases: Karten-Kopfzeile mit Auf-/Zuklapp-Umschalter, Leer-/
+   Ladezustand, die eigentliche Anime-Release-Karte (Kopf, Poster/Querformat-Bild, Kopf-Zeile, Typ/
+   Anzahl), die Zeilenliste samt Lade-weitere-Zeile sowie die aufgeklappte Detailansicht (Zuordnungs-
+   Kopie, Kopfzeile). `.fansubEditHint` und `.errorBox` haben HIER ihre für diese Datei gültige
+   Basis- bzw. einzige Definition, obwohl `.fansubEditHint` eigentlich eine fachfremde, sehr breit
+   genutzte Hinweiszeile ist (von Formular-Feldern bis zu Mitgliederlisten) und `.errorBox` seine
+   eigentliche optische Gestaltung (Rahmen/Hintergrund) aus admin.module.css bezieht. Grund ist die
+   Nachfahren-Kopplung `.fansubEditAnimeReleaseCard > .fansubEditReleaseState`,
+   `.fansubEditAnimeReleaseCard > .errorBox`, `.fansubEditAnimeReleaseCard > .fansubEditHint`,
+   `.fansubEditAnimeReleaseCard > .fansubEditReleaseRows` (Randabstand als direktes Kind der
+   Release-Karte). CSS-Module vergeben pro Datei einen EIGENEN gehashten Bezeichner je Klassenname --
+   empirisch gegen die kompilierte Ausgabe geprüft (`fansubEditStyles.errorBox` und
+   `sharedStyles.errorBox` erhalten unterschiedliche Hashes, siehe `_errorBox_23f79b` vs.
+   `_errorBox_991292`). Läge `.fansubEditAnimeReleaseCard` in einer anderen Datei als `.fansubEditHint`
+   oder `.errorBox`, würde die Nachfahren-Regel nicht mehr greifen -- UND, noch wichtiger: Jede
+   Komponente, die `mergeCssModules(fansubEditStyles, sharedStyles)` bildet (z. B. die
+   Erstellungsseite, `NotesTab`, `NotesTab.helpers`, `AnimeProjectNoteForm`), erhielte dann plötzlich
+   den echten, sichtbar gestalteten `.errorBox` aus admin.module.css statt des bisherigen (optisch
+   leeren, aber bislang vorrangigen) `fansubEditStyles.errorBox`-Schlüssels -- eine sichtbare
+   Verhaltensänderung, obwohl dieser Umbau rein mechanisch sein soll. Deshalb bleibt `.fansubEditHint`
+   bewusst HIER statt in der allgemeinen `FansubEdit.module.css`; alle Komponenten, die einen
+   Hinweistext rendern, importieren deshalb weiterhin diese Datei. Die Karten-Rasteransicht (Badges,
+   Titel, Meta-Zeile, Theme-Liste) wurde nach `FansubEdit.releasesCards.module.css` ausgelagert,
+   Projektteam-/Insight-/Zeitleisten-/Segment-Editor-Inhalte nach
+   `FansubEdit.releasesProject.module.css`, der Release-Drawer nach
+   `FansubEdit.releaseDrawer.module.css`. */
+
+.fansubEditHint {
+  margin: 0.3rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.fansubEditReleaseCardHeader {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.fansubEditReleaseCardToggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.fansubEditReleaseHeaderActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.fansubEditReleaseHeaderActions :global(a),
+.fansubEditReleaseHeaderActions :global(button) {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .fansubEditReleaseCardHeader {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+
+  .fansubEditReleaseCardToggle {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas: "badge title disclosure" "chips chips chips";
+    }
+
+  .fansubEditReleaseHeaderActions {
+      justify-content: stretch;
+    }
+
+  .fansubEditReleaseHeaderActions :global(a),
+  .fansubEditReleaseHeaderActions :global(button) {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+}
+
+.fansubEditReleaseState {
+  border: 1px dashed color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  color: var(--text-secondary);
+  padding: 0.8rem;
+}
+
+.fansubEditReleaseList {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.fansubEditAnimeReleaseCard {
+  border: 1px solid rgba(72, 58, 48, 0.08);
+  border-radius: 12px 0 0 12px;
+  background: linear-gradient(180deg, rgba(251, 248, 244, 0.98), rgba(244, 239, 233, 0.94));
+  padding: 0 16px 0 0;
+  display: grid;
+  gap: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    0 1px 1px rgba(42, 30, 21, 0.12),
+    0 2px 6px rgba(42, 30, 21, 0.05);
+}
+
+.fansubEditAnimeReleaseHeader {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  min-height: 86px;
+  transition: background 160ms ease;
+}
+
+.fansubEditAnimeReleaseHeaderRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fansubEditAnimeReleaseCard > .fansubEditReleaseState,
+.fansubEditAnimeReleaseCard > .errorBox,
+.fansubEditAnimeReleaseCard > .fansubEditHint,
+.fansubEditAnimeReleaseCard > .fansubEditReleaseRows {
+  margin-right: 1rem;
+  margin-left: 1rem;
+}
+
+.fansubEditAnimeReleaseCard > .fansubEditReleaseRows,
+.fansubEditAnimeReleaseCard > .fansubEditHint {
+  margin-bottom: 1rem;
+}
+
+.fansubEditAnimeReleaseHeader:hover {
+  background: color-mix(in srgb, #82122c 2%, transparent);
+}
+
+.fansubEditAnimeReleaseHeader:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, #82122c 3%, transparent);
+}
+
+.fansubEditAnimeReleaseBody {
+  display: grid;
+  gap: 3px;
+  align-content: start;
+  align-self: start;
+  padding-top: 9px;
+}
+
+.fansubEditAnimeReleaseHeader h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.15;
+}
+
+.fansubEditAnimeReleaseType {
+  color: var(--ui-arrow);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fansubEditAnimeReleaseCount {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.fansubEditAnimeToggle {
+  border: 0;
+  background: transparent;
+  color: var(--ui-arrow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+
+.fansubEditAnimePoster {
+  width: 176px;
+  height: 88px;
+  flex-shrink: 0;
+  border-radius: 10px 0 0 10px;
+  border: 1px solid rgba(92, 105, 131, 0.12);
+  object-fit: cover;
+  object-position: center;
+  background: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  box-shadow: 0 8px 18px rgba(33, 45, 72, 0.1);
+}
+
+.fansubEditAnimeLandscape {
+  width: 176px;
+  height: 88px;
+  flex-shrink: 0;
+  border-radius: 10px 0 0 10px;
+  border: 1px solid rgba(92, 105, 131, 0.12);
+  object-fit: cover;
+  object-position: center;
+  background: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  box-shadow: 0 8px 18px rgba(33, 45, 72, 0.1);
+}
+
+.fansubEditReleaseRows {
+  display: grid;
+  gap: 0;
+  border: 1px solid rgba(117, 98, 83, 0.16);
+  border-radius: calc(var(--radius-sm) + 4px);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #fbf7f1 0%, #f6efe7 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    0 12px 24px -26px rgba(56, 45, 36, 0.22);
+}
+
+.fansubEditReleaseItem {
+  display: grid;
+  background: rgba(255, 252, 248, 0.84);
+}
+
+.fansubEditReleaseItem + .fansubEditReleaseItem {
+  border-top: 1px solid rgba(117, 98, 83, 0.12);
+}
+
+.fansubEditReleaseLoadMore {
+  display: flex;
+  justify-content: center;
+  padding: 0.85rem;
+  border-top: 1px solid rgba(117, 98, 83, 0.12);
+  background: rgba(255, 252, 248, 0.9);
+}
+
+.fansubEditReleaseRow:hover {
+  background: color-mix(in srgb, #82122c 3%, #fff9f4);
+}
+
+.fansubEditReleaseRow:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, #82122c 4%, #fff9f4);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, #82122c 16%, transparent);
+}
+
+@media (max-width: 720px) {
+  .fansubEditAnimeReleaseCard > .fansubEditReleaseRows {
+      margin-right: 0.65rem;
+      margin-left: 0.65rem;
+    }
+}
+
+.fansubEditReleaseTitleCell span {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.fansubEditReleaseExpandButton {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  border-radius: calc(var(--radius-sm) + 2px);
+  background: color-mix(in srgb, white 96%, var(--bg-card));
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  width: 2.05rem;
+  height: 2.05rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 8px 18px -18px rgba(17, 24, 39, 0.3);
+}
+
+.fansubEditReleaseExpanded {
+  border-top: 1px solid rgba(45, 41, 38, 0.08);
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  background: linear-gradient(180deg, #faf5ee 0%, #f7efe5 100%);
+  padding: 0 0 0.85rem;
+  display: grid;
+  gap: 0;
+}
+
+.fansubEditReleaseAssignmentCopy strong {
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+.fansubEditReleaseAssignmentCopy span {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.fansubEditReleaseExpandedHeader h4 {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+@media (max-width: 900px) {
+  .fansubEditAnimeReleaseHeaderRow {
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+      padding-bottom: 0.65rem;
+    }
+
+  .fansubEditAnimeLandscape {
+      width: 140px;
+      height: 84px;
+    }
+
+  .fansubEditAnimePoster {
+      width: 96px;
+      height: 136px;
+    }
+}
+

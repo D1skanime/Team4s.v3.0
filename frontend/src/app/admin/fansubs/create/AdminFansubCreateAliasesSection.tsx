@@ -10,8 +10,14 @@ import { Input } from "@/components/ui";
 
 import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../../admin.module.css";
-import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
+import fansubEditMembershipStyles from "../[id]/edit/FansubEdit.membership.module.css";
+import fansubEditReleasesStyles from "../[id]/edit/FansubEdit.releases.module.css";
+import fansubEditSharedStyles from "../[id]/edit/FansubEdit.module.css";
 
+const fansubEditStyles = mergeCssModules(
+  fansubEditMembershipStyles,
+  mergeCssModules(fansubEditReleasesStyles, fansubEditSharedStyles),
+);
 const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 interface AdminFansubCreateAliasesSectionProps {

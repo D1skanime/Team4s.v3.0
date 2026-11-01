@@ -43,7 +43,7 @@ import {
   roleCatalogFixture,
   roleProgressFixture,
 } from './achievementBadgeGalleryFixtures'
-import playgroundStyles from './showcases.module.css'
+import playgroundStyles from './showcases.shared.module.css'
 
 type AchievementBadgeShowcaseProps = {
   sourceFiles: readonly string[]

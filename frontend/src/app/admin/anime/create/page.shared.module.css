@@ -1,0 +1,190 @@
+/* Gemeinsame Seiten-Bausteine der Anime-Erstellung: Status-/Ergebnis-Anzeigen, generische
+   Primär-/Sekundär-Aktions-Buttons und die Entwickler-Detailbox. Wird von page.tsx sowie
+   mehreren Quellenkarten (Jellyfin, AniSearch, Discovery) gemeinsam genutzt -- beim
+   Datei-Split aus page.module.css herausgelöst (Übergroße-Dateien-Regel), da diese
+   Klassen ausschließlich innerhalb dieses Ordners verwendet werden. */
+
+.statusBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d8dde3;
+  background: #f8fafb;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.statusPillReady {
+  border-color: rgba(18, 183, 106, 0.24);
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+.statusPillWarning {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.statusPillMuted {
+  border-color: rgba(255, 106, 61, 0.18);
+  background: #fff7f4;
+  color: #b54b28;
+}
+
+.workspaceSection {
+  display: grid;
+}
+
+.sourceActionStack {
+  display: grid;
+  gap: 16px;
+  width: min(440px, 100%);
+}
+
+.resultsPanel,
+.developerDetails {
+  margin: 0;
+  border: 1px solid #dfe3e8;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.resultsPanel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.resultsHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.resultsTitleBlock {
+  display: grid;
+  gap: 4px;
+}
+
+.resultsTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  color: #13161a;
+}
+
+.resultsText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #667085;
+}
+
+.resultsSubtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #4b5563;
+}
+
+.primaryAction {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #ff6a3d;
+  background: #ff6a3d;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.primaryAction:disabled,
+.secondaryAction:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.secondaryAction {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.developerSummary {
+  cursor: pointer;
+  padding: 16px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #344054;
+}
+
+.developerBody {
+  display: grid;
+  gap: 16px;
+  padding: 0 18px 18px;
+}
+
+.developerBlock {
+  margin: 0;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #eaecf0;
+  background: #f8fafc;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.folderPathField {
+  grid-column: 1 / -1;
+}
+
+.folderPathInput {
+  color: #475569;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+.sourceToolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 720px) {
+  .sourceActionStack {
+    width: 100%;
+  }
+
+  .resultsPanel,
+  .developerDetails {
+    border-radius: 16px;
+  }
+
+  .resultsPanel {
+    padding: 16px;
+  }
+}

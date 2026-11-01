@@ -2,7 +2,7 @@
 
 import { Accordion, AvatarStack, Badge, Card } from '@/components/ui'
 
-import styles from './showcases.module.css'
+import styles from './showcases.shared.module.css'
 
 export function AccordionShowcase() {
   return (

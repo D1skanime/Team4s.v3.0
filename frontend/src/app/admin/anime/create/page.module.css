@@ -1,772 +1,26 @@
-.pageShell {
-  display: grid;
-  gap: 12px;
-}
-
-.pageHeader {
-  display: grid;
-  gap: 12px;
-}
-
-.editHeaderShell {
-  overflow: hidden;
-  border: 1px solid #e1e1e6;
-  border-radius: 12px;
-  background: #ffffff;
-}
-
-.editHeaderShell > .stepper {
-  margin: 0;
-  border: 0;
-  border-top: 1px solid #e2e6ea;
-  border-radius: 0;
-}
-
-.pageTitleBlock {
-  display: grid;
-  gap: 4px;
-}
-
-.pageTitle {
-  margin: 0;
-  font-size: clamp(2rem, 2.8vw, 2.6rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  color: #13161a;
-}
-
-.pageIntro {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #667085;
-}
-
-.statusBar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.statusPill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid #d8dde3;
-  background: #f8fafb;
-  color: #344054;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.statusPillReady {
-  border-color: rgba(18, 183, 106, 0.24);
-  background: #ecfdf3;
-  color: #027a48;
-}
-
-.statusPillWarning {
-  border-color: rgba(248, 113, 113, 0.28);
-  background: #fef3f2;
-  color: #b42318;
-}
-
-.statusPillMuted {
-  border-color: rgba(255, 106, 61, 0.18);
-  background: #fff7f4;
-  color: #b54b28;
-}
-
-.workspaceSection {
-  display: grid;
-}
-
-.sourceActionStack {
-  display: grid;
-  gap: 16px;
-  width: min(440px, 100%);
-}
-
-.resultsPanel,
-.developerDetails {
-  margin: 0;
-  border: 1px solid #dfe3e8;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-}
-
-.resultsPanel {
-  display: grid;
-  gap: 12px;
-  padding: 16px;
-}
-
-.resultsHeader {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.resultsTitleBlock {
-  display: grid;
-  gap: 4px;
-}
-
-.resultsEyebrow {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #8a5b49;
-}
-
-.resultsTitle {
-  margin: 0;
-  font-size: 20px;
-  line-height: 1.2;
-  color: #13161a;
-}
-
-.resultsText {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
-  color: #667085;
-}
-
-.resultsSubtitle {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-  color: #4b5563;
-}
-
-.primaryAction {
-  min-height: 44px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: 1px solid #ff6a3d;
-  background: #ff6a3d;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.primaryAction:disabled,
-.secondaryAction:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.secondaryAction {
-  min-height: 44px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.developerSummary {
-  cursor: pointer;
-  padding: 16px 18px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #344054;
-}
-
-.developerBody {
-  display: grid;
-  gap: 16px;
-  padding: 0 18px 18px;
-}
-
-.developerBlock {
-  margin: 0;
-  padding: 14px;
-  border-radius: 12px;
-  border: 1px solid #eaecf0;
-  background: #f8fafc;
-  overflow-x: auto;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.candidateModalBackdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.44);
-}
-
-.candidateModal {
-  width: min(560px, 100%);
-  max-height: min(80vh, 720px);
-  overflow: auto;
-  display: grid;
-  gap: 16px;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #dfe3e8;
-  background: #ffffff;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
-}
-
-.assetModal {
-  width: min(980px, 100%);
-}
-
-.candidateModalHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.candidateModalTitle {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.2;
-  color: #13161a;
-}
-
-.candidateModalText {
-  margin: 4px 0 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #667085;
-}
-
-.candidateList {
-  display: grid;
-  gap: 8px;
-}
-
-.candidateItem {
-  display: grid;
-  gap: 4px;
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #dfe3e8;
-  background: #ffffff;
-  color: #13161a;
-  text-align: left;
-}
-
-.candidateItem span {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #667085;
-}
-
-.candidateItem:hover {
-  border-color: #ff6a3d;
-  background: #fff7f4;
-}
-
-.assetSearchToolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.assetSearchStatus {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #667085;
-}
-
-.assetCandidateGrid {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-}
-
-.assetCandidateGridCover {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-}
-
-.assetLoadMoreRow {
-  display: flex;
-  justify-content: center;
-  padding-top: 8px;
-}
-
-.assetCandidateCard {
-  display: grid;
-  gap: 0;
-  padding: 0;
-  overflow: hidden;
-  border-radius: 14px;
-  border: 1px solid #dfe3e8;
-  background: #ffffff;
-  text-align: left;
-  color: #13161a;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
-}
-
-.assetCandidateCard:hover {
-  border-color: #ff6a3d;
-  background: #fff7f4;
-}
-
-.assetCandidateCardSelected {
-  border-color: #6d4aff;
-  box-shadow:
-    0 0 0 2px rgba(109, 74, 255, 0.18),
-    0 12px 26px rgba(109, 74, 255, 0.12);
-  background: #ffffff;
-}
-
-.assetCandidatePreview {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  border-radius: 0;
-  background:
-    linear-gradient(45deg, #eef2f7 25%, transparent 25%),
-    linear-gradient(-45deg, #eef2f7 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #eef2f7 75%),
-    linear-gradient(-45deg, transparent 75%, #eef2f7 75%);
-  background-color: #fbfcfe;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
-  background-size: 20px 20px;
-}
-
-.assetCandidatePreviewCover {
-  aspect-ratio: 2 / 3;
-}
-
-.assetCandidatePreviewLogo {
-  aspect-ratio: 16 / 8;
-}
-
-.assetCandidateImage {
-  object-fit: cover;
-}
-
-.assetCandidatePreviewLogo .assetCandidateImage {
-  object-fit: contain;
-  padding: 14px;
-}
-
-.assetCandidateBody {
-  display: grid;
-  gap: 5px;
-  min-height: 58px;
-  padding: 10px 12px 12px;
-}
-
-.assetCandidateMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-
-.assetSourceBadge {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 106, 61, 0.24);
-  background: #fff7f4;
-  color: #b54b28;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.assetCandidateSelectedBadge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: #6d4aff;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1;
-  box-shadow: 0 8px 16px rgba(109, 74, 255, 0.24);
-}
-
-.assetCandidateTitle {
-  display: -webkit-box;
-  overflow: hidden;
-  font-size: 13px;
-  line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.assetMetaText {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #667085;
-}
-
-@media (max-width: 720px) {
-  .sourceActionStack {
-    width: 100%;
-  }
-
-  .resultsPanel,
-  .developerDetails {
-    border-radius: 16px;
-  }
-
-  .resultsPanel {
-    padding: 16px;
-  }
-
-  .candidateModalBackdrop {
-    padding: 16px;
-  }
-
-  .candidateModalHeader {
-    flex-direction: column;
-  }
-
-  .assetSearchToolbar {
-    align-items: stretch;
-  }
-}
-
-/* ── Stepper ─────────────────────────────────────────────────────────────── */
-
-.stepper {
-  display: flex;
-  gap: 0;
-  background: #fff;
-  border: 1px solid #e2e6ea;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 12px;
-}
-
-.stepperItem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  padding: 16px 20px;
-  text-decoration: none;
-  color: #6b7280;
-  border-right: 1px solid #e2e6ea;
-  transition: background 0.15s;
-}
-
-.stepperItem:last-child {
-  border-right: none;
-}
-
-.stepperItem:hover {
-  background: #f4f6f8;
-}
-
-.stepperItemActive {
-  color: #6d4aff;
-}
-
-.stepperItemActive .stepperNumber {
-  background: #6d4aff;
-  color: #fff;
-}
-
-.stepperItemDone .stepperNumber {
-  background: #e9e4ff;
-  color: #6d4aff;
-}
-
-.stepperNumber {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #f4f6f8;
-  font-size: 13px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.stepperLabel {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stepperLabel strong {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.stepperLabel small {
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1.3;
-  color: #9ca3af;
-}
-
-/* ── Sektionsstruktur ────────────────────────────────────────────────────── */
-
-.pageSection {
-  margin-bottom: 20px;
-  scroll-margin-top: 80px;
-}
-
-.detailsStack {
-  display: grid;
-  gap: 20px;
-}
-
-.folderPathField {
-  grid-column: 1 / -1;
-}
-
-.folderPathInput {
-  color: #475569;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: 13px;
-  letter-spacing: -0.01em;
-}
-
-.sectionHeading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.sectionNumber {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #6d4aff;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.sectionTitle {
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-}
-
-.sectionSub {
-  font-size: 13px;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* ── Provider Grid (Section 1) ───────────────────────────────────────────── */
-
-.providerGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  align-items: stretch;
-}
-
-.providerGrid > * {
-  min-width: 0;
-}
-
-.sourceToolbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-@media (max-width: 800px) {
-  .providerGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .providerInputRow {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .providerRowCard {
-    grid-template-columns: 1fr;
-  }
-}
-
-.providerCard {
-  background: #fff;
-  border: 1px solid #e2e6ea;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.providerCardHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.providerInputRow {
-  display: flex;
-  align-items: end;
-  gap: 12px;
-}
-
-.providerFieldGrow {
-  flex: 1 1 auto;
-}
-
-.providerFieldGrow input {
-  width: 100%;
-}
-
-.providerResultsBlock {
-  display: grid;
-  gap: 14px;
-  padding: 18px;
-  border: 1px solid #eee2db;
-  border-radius: 22px;
-  background: linear-gradient(180deg, #fffaf8 0%, #ffffff 100%);
-}
-
-.providerResultsHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.providerResultsCount {
-  font-size: 12px;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #8a5b49;
-}
-
-.providerList {
-  display: grid;
-  gap: 12px;
-}
-
-.providerRowCard {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: center;
-  padding: 14px 16px;
-  border: 1px solid #eaded8;
-  border-radius: 18px;
-  background: #ffffff;
-}
-
-.providerRowIcon {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #6d4aff 0%, #7c5cff 100%);
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.providerRowContent {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.providerRowTitle {
-  font-size: 18px;
-  line-height: 1.2;
-  color: #111827;
-}
-
-.providerRowMeta {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #6b7280;
-  overflow-wrap: anywhere;
-}
-
-.providerLinkButton {
-  justify-self: start;
-  border: none;
-  background: transparent;
-  color: #6d4aff;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 0;
-}
-
-/* ── Jellyfin ────────────────────────────────────────────────────────────── */
-
-.jellyfinResultsWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.jellyfinAdoptBar {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.jellyfinAdoptNote {
-  font-size: 13px;
-  color: #15803d;
-  margin: 0;
-  line-height: 1.5;
-}
+/* Asset-Kartenlayout der Erstellungs-/Bearbeitungsseite: Board-Raster (Cover/Banner/Logo,
+   Hintergrund- und Video-Spalte), Aktions-Buttons auf den Asset-Karten sowie die
+   Einzelkarten-Stile selbst (Kopf-/Fußzeile, Quellen-Badge, Bildausschnitt). Alle Klassen hier
+   hängen über Nachfahren- und Verbund-Selektoren zusammen, z. B. `.assetPrimaryGrid .assetCard`,
+   `.assetBackgroundGrid .assetCardHeader`, `.assetVideoGrid .assetCardSourcePill` und
+   `.assetCardSourcePill.assetCardSourceOverlayJellyfin`. CSS-Module vergeben pro Datei einen
+   EIGENEN gehashten Bezeichner je Klassenname -- empirisch an der kompilierten Ausgabe geprüft:
+   derselbe Klassenname erhält in zwei verschiedenen `*.module.css`-Dateien zwei unterschiedliche
+   Hashes (`page_assetCard__Sdlub` vs. `page_assetCardDetails_...`). Würde man z. B. `.assetCard`
+   in eine andere Datei verschieben als `.assetPrimaryGrid .assetCard`, verlören beide Regeln
+   ihren gemeinsamen Bezeichner und die Überschreibung griffe nicht mehr -- die Karte bliebe
+   optisch unformatiert, ohne dass das am Code sichtbar wäre. Deshalb bleibt dieser
+   zusammenhängende Regel-Graph als EIN Modul bestehen und überschreitet bewusst den
+   450-Zeilen-Richtwert. Sowohl `CreateAssetCard`/`CreateAssetSection` in diesem Ordner als auch
+   `AnimeEditAssetSection` außerhalb dieses Ordners importieren deshalb weiterhin genau diese
+   Datei. Alles, was NICHT in diesen Regel-Graphen verwoben ist, wurde bereits ausgelagert nach
+   `page.shared.module.css` (Seiten-Kopf-Statusleiste, Ergebnis-/Entwickler-Panels),
+   `page.searchDialog.module.css` (Asset-Suchdialog), `page.stepper.module.css`
+   (Stepper-Einzelschritte), `page.providers.module.css` (Jellyfin-/Provider-Karten),
+   `page.assetCardDetails.module.css` (Detailstile einzelner Asset-Karten),
+   `page.review.module.css` (Prüfungs-Sektion), `page.pageShell.module.css`
+   (Seiten-Grundgerüst/Kopf/Sektionsstruktur) und `page.providerGrid.module.css`
+   (Provider-Ergebnisliste). */
 
 /* ── Asset Section ───────────────────────────────────────────────────────── */
 
@@ -780,25 +34,6 @@
   border-radius: 12px;
   padding: 14px;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-}
-
-.jellyfinSourceNotice {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 14px 16px;
-  border-radius: 16px;
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
-}
-
-.jellyfinSourceText {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #166534;
 }
 
 .assetPrimaryGrid,
@@ -829,27 +64,12 @@
   max-width: min(100%, 1120px);
 }
 
-.assetBackgroundHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 34px;
-}
-
 .assetBackgroundTitle {
   margin: 0;
   color: #111827;
   font-size: 12px;
   font-weight: 800;
   line-height: 1.2;
-}
-
-.assetBackgroundText {
-  margin: 2px 0 0;
-  color: #6b7280;
-  font-size: 10px;
-  line-height: 1.3;
 }
 
 .assetBackgroundGrid {
@@ -894,41 +114,8 @@
   transition: transform 0.2s ease;
 }
 
-/* MediaSlot (components/ui) besitzt jetzt Groesse (aspectRatio), Leer-/Ersetzen-Umschaltung und
-   die Aktionsleiste unter der Vorschau (Live-UAT-Nachtrag 2026-10-12: Dropzone + Vorschau + Icons
-   quetschten sich vorher in dieselbe Kachel). Der Abstand zum Kartenrand liegt bewusst auf dieser
-   Huelle (nicht auf der MediaSlot-Box selbst), damit die Aktionsleiste unter der Vorschau --
-   ausserhalb der Box, siehe MediaSlot.module.css .mediaSlotActions -- denselben seitlichen Rand
-   erhaelt statt kantig bis zum Kartenrand zu laufen. */
-.assetCardMediaSlotWrap {
-  padding: 8px 16px 14px;
-}
-
-.assetCardMediaSlot {
-  background: linear-gradient(180deg, #eef2f7 0%, #f9fbfd 100%);
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-}
-
 .assetCard:hover .assetCardImage {
   transform: scale(1.025);
-}
-
-.assetCardMeta {
-  min-height: 46px;
-  padding: 7px 9px 8px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-}
-
-.assetCardMetaDefault {
-  background: linear-gradient(180deg, #ffffff 0%, #fdfdff 100%);
-}
-
-.assetCardMetaAdder {
-  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
 }
 
 .assetCardLabel {
@@ -937,18 +124,6 @@
   font-size: 11.5px;
   font-weight: 800;
   color: #111827;
-}
-
-.assetCardRequired {
-  color: #b42318;
-}
-
-.assetStatusNote {
-  order: 3;
-  flex: 1 0 100%;
-  font-size: 9.5px;
-  color: #7a8494;
-  line-height: 1.2;
 }
 
 .assetCardSourceOverlayJellyfin {
@@ -966,26 +141,6 @@
   color: #ffffff;
 }
 
-.assetCardSourceOverlayFanart {
-  background: #0f766e;
-  color: #ffffff;
-}
-
-.assetCardSourceOverlayAniList {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.assetCardSourceOverlayKonachan {
-  background: #be185d;
-  color: #ffffff;
-}
-
-.assetCardSourceOverlaySafebooru {
-  background: #7c3aed;
-  color: #ffffff;
-}
-
 .assetCardSourceOverlayManuell {
   background: #374151;
   color: #ffffff;
@@ -994,12 +149,6 @@
 .assetCardSourceOverlayOnline {
   background: #374151;
   color: #ffffff;
-}
-
-.assetIconActions {
-  display: flex;
-  gap: 6px;
-  margin-top: 2px;
 }
 
 .assetActionRow {
@@ -1064,38 +213,6 @@
   border-color: #fca5a5;
 }
 
-.assetIconBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid #dde3ea;
-  background: #ffffff;
-  cursor: pointer;
-  color: #374151;
-  flex-shrink: 0;
-  padding: 0 10px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.assetIconBtn:hover {
-  background: #f7f8fb;
-  border-color: #c8cfd8;
-}
-
-.assetIconBtnDestructive {
-  color: #b42318;
-  border-color: #fecaca;
-}
-
-.assetIconBtnDestructive:hover {
-  background: #fef2f2;
-  border-color: #fca5a5;
-}
-
 .assetCardCover {
   grid-column: span 4;
 }
@@ -1112,13 +229,6 @@
 .assetCardBackgroundVideo {
   grid-column: span 10;
   max-width: 520px;
-}
-
-/* object-fit kommt jetzt aus MediaSlots eigener objectFit-Option (CreateAssetCard.tsx) statt
-   einer hier gesetzten CSS-Regel -- nur das Logo braucht noch einen eigenen Innenabstand, damit
-   das enthaltene Bild nicht randlos an der Kachel klebt. */
-.assetCardImageLogo {
-  padding: 12px;
 }
 
 @media (max-width: 1080px) {
@@ -1148,75 +258,6 @@
   .assetCardBackgroundVideo {
     grid-column: span 10;
   }
-}
-
-@media (max-width: 720px) {
-  .assetPanel {
-    padding: 14px;
-    border-radius: 16px;
-  }
-
-  .assetPrimaryGrid,
-  .assetSecondaryGrid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .assetBackgroundGrid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .assetBackgroundGrid .assetCardBackground {
-    flex-basis: auto;
-  }
-
-  .assetBackgroundHeader {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .assetCardCover,
-  .assetCardBanner,
-  .assetCardLogo,
-  .assetCardBackground,
-  .assetCardBackgroundVideo {
-    grid-column: span 1;
-  }
-
-  .assetCardBackgroundVideo {
-    max-width: none;
-  }
-}
-
-/* ── Review Section ──────────────────────────────────────────────────────── */
-
-.reviewCard {
-  background: #fff;
-  border: 1px solid #e2e6ea;
-  border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 560px;
-}
-
-.reviewChecklist {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.reviewChecklist li {
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 /* Reference asset layout override: card headers, image actions, split columns. */
@@ -1280,10 +321,6 @@
   font-size: 18px;
   font-weight: 850;
   line-height: 1.1;
-}
-
-.assetCardRequired {
-  color: #111827;
 }
 
 .assetCardSourcePill {
@@ -1479,57 +516,37 @@
   }
 }
 
-.reviewCheckOk {
-  color: #15803d;
-}
+@media (max-width: 720px) {
+  .assetPanel {
+    padding: 14px;
+    border-radius: 16px;
+  }
 
-.reviewCheckWarn {
-  color: #b42318;
-  font-weight: 600;
-}
+  .assetPrimaryGrid,
+  .assetSecondaryGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
 
-.reviewCheckMuted {
-  color: #9ca3af;
-}
+  .assetBackgroundGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
 
-.reviewMissing {
-  font-size: 13px;
-  color: #b42318;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  padding: 10px 14px;
-}
+  .assetBackgroundGrid .assetCardBackground {
+    flex-basis: auto;
+  }
 
-.reviewNote {
-  font-size: 12px;
-  color: #6b7280;
-  margin: 0;
-}
+  .assetCardCover,
+  .assetCardBanner,
+  .assetCardLogo,
+  .assetCardBackground,
+  .assetCardBackgroundVideo {
+    grid-column: span 1;
+  }
 
-.reviewActions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.createCTA {
-  background: #6d4aff;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 28px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.createCTA:hover:not(:disabled) {
-  background: #5b3de8;
-}
-
-.createCTA:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  .assetCardBackgroundVideo {
+    max-width: none;
+  }
 }

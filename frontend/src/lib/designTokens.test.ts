@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+
+import { readGlobalsCssResolved } from '@/test/readGlobalsCss'
 
 import { extractDesignTokens, groupDesignTokens, isColorLikeValue } from './designTokens'
 
@@ -30,7 +31,7 @@ describe('extractDesignTokens', () => {
   })
 
   it('erfasst jede Token-Deklaration aus der echten globals.css -- Vollständigkeitsnachweis gegen eine unabhängige Regex-Zählung derselben Datei', () => {
-    const css = readFileSync('src/styles/globals.css', 'utf8')
+    const css = readGlobalsCssResolved()
     const tokens = extractDesignTokens(css)
 
     const rootBlocks = [...css.matchAll(/:root\s*\{([^}]*)\}/g)].map((match) => match[1])

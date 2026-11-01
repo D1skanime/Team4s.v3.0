@@ -1,4 +1,4 @@
 .textarea {
-  min-height: 144px;
+  min-height: var(--textarea-min-height);
   resize: vertical;
 }

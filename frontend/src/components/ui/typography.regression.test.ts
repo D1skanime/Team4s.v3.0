@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
+import { readGlobalsCssResolved } from '@/test/readGlobalsCss'
+
 /**
  * Regressionsnachweis dafür, dass PageHeader/SectionHeader/DialogHeader/Card ihre Typografie
  * vollständig über die geteilten Heading/Text-Bausteine beziehen, statt eigene font-size-/
@@ -20,7 +22,7 @@ function readUiFile(file: string): string {
 }
 
 function readGlobalsCss(): string {
-  return fs.readFileSync(path.resolve(process.cwd(), 'src/styles/globals.css'), 'utf8')
+  return readGlobalsCssResolved()
 }
 
 /** Fasst ALLE Deklarationsblöcke eines Selektors in einer CSS-Datei zusammen (manche Dateien
@@ -139,7 +141,7 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
     it('Beschreibung: font-size 1rem / color var(--text-soft) entsprechen bereits dem Text-"soft"-Default -- keine CSS-Variablen-Ueberschreibung noetig, nur margin 6px 0 0 bleibt', () => {
       expect(dialogHeaderTsx).toMatch(/<Text\s+variant="soft"/)
       const descriptionRule = mergedBlocks(dialogHeaderCss, '.dialogDescription')
-      expect(descriptionRule).toMatch(/margin:\s*6px 0 0;/)
+      expect(descriptionRule).toMatch(/margin:\s*var\(--dialog-header-description-margin-top\) 0 0;/)
       expect(descriptionRule).not.toMatch(/color:/)
     })
   })
@@ -160,11 +162,11 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
       expect(titleRule).not.toMatch(/color:/)
     })
 
-    it('Beschreibung: font-size 0.92rem ueber --text-soft-size-Override (color-Override nicht noetig, var(--text-soft) ist bereits der Text-"soft"-Default), margin 4px 0 0', () => {
-      expect(cardTsx).toMatch(/<Text\s+variant="soft"/)
+    it('Beschreibung: rendert ueber Text variant="meta" (0.875rem, bereits var(--text-soft) als Standardfarbe) statt einer privaten --text-soft-size-Ueberschreibung, margin ueber --space-1-Token', () => {
+      expect(cardTsx).toMatch(/<Text\s+variant="meta"/)
       const descriptionRule = mergedBlocks(cardCss, '.cardDescription')
-      expect(descriptionRule).toMatch(/margin:\s*4px 0 0;/)
-      expect(descriptionRule).toMatch(/--text-soft-size:\s*0\.92rem;/)
+      expect(descriptionRule).toMatch(/margin:\s*var\(--space-1\) 0 0;/)
+      expect(descriptionRule).not.toMatch(/--text-soft-size/)
       expect(descriptionRule).not.toMatch(/color:/)
     })
   })

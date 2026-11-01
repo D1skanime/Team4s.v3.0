@@ -11,6 +11,7 @@ import {
   ANIME_COVER_CROP_OUTPUT_WIDTH,
 } from "../utils/animeAssetCropConfig";
 import createStyles from "./page.module.css";
+import assetDetailsStyles from "./page.assetCardDetails.module.css";
 
 export type AssetSource =
   | "Jellyfin"
@@ -92,10 +93,10 @@ export function CreateAssetCard({
       Jellyfin: createStyles.assetCardSourceOverlayJellyfin,
       TMDB: createStyles.assetCardSourceOverlayTMDB,
       Zerochan: createStyles.assetCardSourceOverlayZerochan,
-      "Fanart.tv": createStyles.assetCardSourceOverlayFanart,
-      AniList: createStyles.assetCardSourceOverlayAniList,
-      Konachan: createStyles.assetCardSourceOverlayKonachan,
-      Safebooru: createStyles.assetCardSourceOverlaySafebooru,
+      "Fanart.tv": assetDetailsStyles.assetCardSourceOverlayFanart,
+      AniList: assetDetailsStyles.assetCardSourceOverlayAniList,
+      Konachan: assetDetailsStyles.assetCardSourceOverlayKonachan,
+      Safebooru: assetDetailsStyles.assetCardSourceOverlaySafebooru,
       Manuell: createStyles.assetCardSourceOverlayManuell,
       Online: createStyles.assetCardSourceOverlayOnline,
     };
@@ -115,7 +116,7 @@ export function CreateAssetCard({
 
   // Nur das Logo braucht noch eine eigene Klasse (Innenabstand) -- object-fit kommt für alle
   // Varianten aus MediaSlots eigener objectFit-Option statt einer Bild-Klasse je Variante.
-  const imageVariantClass = variant === "logo" ? createStyles.assetCardImageLogo : undefined;
+  const imageVariantClass = variant === "logo" ? assetDetailsStyles.assetCardImageLogo : undefined;
 
   const hasValue = Boolean(previewUrl);
   const sourceBadge = source ? (
@@ -135,12 +136,12 @@ export function CreateAssetCard({
       <div className={createStyles.assetCardHeader}>
         <span className={createStyles.assetCardLabel}>
           {label}
-          {isRequired ? <span className={createStyles.assetCardRequired}> *</span> : null}
+          {isRequired ? <span className={assetDetailsStyles.assetCardRequired}> *</span> : null}
         </span>
         {sourceBadge}
       </div>
 
-      <div className={createStyles.assetCardMediaSlotWrap}>
+      <div className={assetDetailsStyles.assetCardMediaSlotWrap}>
         <MediaSlot
           aspectRatio={resolveAssetCardAspectRatio(variant)}
           label={label}
@@ -154,13 +155,13 @@ export function CreateAssetCard({
           replaceAriaLabel={`${label} ersetzen`}
           actions={actions}
           cornerBadge={sourceBadge}
-          className={createStyles.assetCardMediaSlot}
+          className={assetDetailsStyles.assetCardMediaSlot}
         />
       </div>
 
       {statusNote ? (
         <div className={createStyles.assetCardFooter}>
-          <span className={createStyles.assetStatusNote}>{statusNote}</span>
+          <span className={assetDetailsStyles.assetStatusNote}>{statusNote}</span>
         </div>
       ) : null}
     </div>

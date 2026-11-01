@@ -10,7 +10,7 @@
 .sectionHeaderUnderline {
   padding-bottom: var(--space-4);
   margin-bottom: var(--space-5);
-  border-bottom: 2px solid var(--ui-line);
+  border-bottom: var(--border-width-thick) solid var(--ui-line);
 }
 
 .sectionHeaderContent {

@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { Card, SectionHeader, UploadDropzone, UploadFileRow } from '@/components/ui'
 import type { UploadFileRowProps } from '@/components/ui'
 
-import styles from './showcases.module.css'
+import styles from './showcases.shared.module.css'
 
 interface DemoQueueItem {
   key: string

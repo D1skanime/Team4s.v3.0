@@ -4,7 +4,8 @@ import { useState } from 'react'
 
 import { Button, Drawer, Table, TableBody, TableCell, TableRow, Tabs } from '@/components/ui'
 
-import styles from './showcases.module.css'
+import styles from './showcases.drawerAndModal.module.css'
+import sharedStyles from './showcases.shared.module.css'
 
 interface DrawerShowcaseProps {
   open: boolean
@@ -27,7 +28,7 @@ export function DrawerShowcase({ open, onClose }: DrawerShowcaseProps) {
         </>
       )}
     >
-      <div className={styles.stack}>
+      <div className={sharedStyles.stack}>
         <Button
           type="button"
           variant={size === 'md' ? 'secondary' : 'ghost'}
@@ -49,7 +50,7 @@ export function DrawerShowcase({ open, onClose }: DrawerShowcaseProps) {
             id: 'details',
             label: 'Details',
             content: (
-              <div className={styles.stack}>
+              <div className={sharedStyles.stack}>
                 <div className={styles.drawerDetailGrid}>
                   <div className={styles.drawerDetailItem}><span>Release-ID</span><strong>4821</strong></div>
                   <div className={styles.drawerDetailItem}><span>Anime-ID</span><strong>13</strong></div>
@@ -71,7 +72,7 @@ export function DrawerShowcase({ open, onClose }: DrawerShowcaseProps) {
             id: 'media',
             label: 'Medien',
             content: (
-              <div className={styles.stack}>
+              <div className={sharedStyles.stack}>
                 <div className={styles.drawerMediaIntro}>
                   <h3>Release-Medien im Überblick</h3>
                   <p>Screenshots, Typesetting-Beispiele und weitere Assets auf einen Blick, bevor du in die volle Medienverwaltung springst.</p>

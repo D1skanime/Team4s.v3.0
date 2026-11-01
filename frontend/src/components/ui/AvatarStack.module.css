@@ -9,5 +9,5 @@
    Rundung, Hintergrund und Farbe kommen bereits von Avatar selbst. */
 .avatarStackItem {
   margin-inline-start: calc(var(--space-2) * -1);
-  border: 2px solid var(--surface-card);
+  border: var(--border-width-thick) solid var(--surface-card);
 }

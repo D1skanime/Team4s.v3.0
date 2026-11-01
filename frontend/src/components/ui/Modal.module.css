@@ -20,8 +20,8 @@
 }
 
 .modalPanel {
-  width: min(var(--modal-width-md), calc(100vw - 48px));
-  max-height: calc(100dvh - 48px);
+  width: min(var(--modal-width-md), calc(100vw - var(--dialog-viewport-margin)));
+  max-height: calc(100dvh - var(--dialog-viewport-margin));
   border-radius: var(--radius-surface);
   padding: 0;
   display: grid;
@@ -31,7 +31,7 @@
 }
 
 .modalPanelLg {
-  width: min(var(--modal-width-lg), calc(100vw - 48px));
+  width: min(var(--modal-width-lg), calc(100vw - var(--dialog-viewport-margin)));
 }
 
 .modalBodyStage {
