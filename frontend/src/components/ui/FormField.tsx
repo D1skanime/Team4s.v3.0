@@ -162,9 +162,9 @@ export function FormField({
   }
 
   return (
-    // role="group" macht aria-disabled auf diesem <div> fuer Screenreader wirksam -- ein <div>
-    // ohne eigene ARIA-Rolle gibt aria-disabled sonst nicht weiter (pragmatische Loesung statt
-    // eines <fieldset>-Umbaus, der zusaetzliches Browser-Standard-Styling zuruecksetzen muesste).
+    // role="group" macht aria-disabled auf diesem <div> für Screenreader wirksam -- ein <div>
+    // ohne eigene ARIA-Rolle gibt aria-disabled sonst nicht weiter (pragmatische Lösung statt
+    // eines <fieldset>-Umbaus, der zusätzliches Browser-Standard-Styling zurücksetzen müsste).
     <div className={styles.fieldset} role="group" aria-disabled={disabled}>
       {label ? (
         <div className={styles.fieldLabelRow}>

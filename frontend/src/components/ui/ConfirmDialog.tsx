@@ -24,10 +24,10 @@ type PendingState = ConfirmDialogOptions & { resolve: (value: boolean) => void }
 export function useConfirmDialog(): UseConfirmDialogResult {
   const [pending, setPending] = useState<PendingState | null>(null)
   // `Button` leitet aktuell keinen Ref an sein inneres <button>-Element weiter (siehe
-  // Kommentar in DatePicker.tsx zur gleichen Einschraenkung). Um Modal trotzdem per
-  // `initialFocusRef` auf den Abbrechen-Button fokussieren zu koennen, liest ein
-  // Callback-Ref am umschliessenden, layoutneutralen Span (display: contents nimmt den
-  // Span aus dem Flex-Layout von .dialogFooter heraus) das tatsaechliche <button>-Element aus.
+  // Kommentar in DatePicker.tsx zur gleichen Einschränkung). Um Modal trotzdem per
+  // `initialFocusRef` auf den Abbrechen-Button fokussieren zu können, liest ein
+  // Callback-Ref am umschließenden, layoutneutralen Span (display: contents nimmt den
+  // Span aus dem Flex-Layout von .dialogFooter heraus) das tatsächliche <button>-Element aus.
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null)
 
   function captureCancelButton(node: HTMLSpanElement | null) {

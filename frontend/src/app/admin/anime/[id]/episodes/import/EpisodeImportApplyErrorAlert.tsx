@@ -10,10 +10,10 @@ interface EpisodeImportApplyErrorAlertProps {
 }
 
 /**
- * Rendert eine fehlgeschlagene „Mapping anwenden"-Aktion direkt beim ausloesenden Button statt nur
+ * Rendert eine fehlgeschlagene „Mapping anwenden"-Aktion direkt beim auslösenden Button statt nur
  * im allgemeinen, weit entfernten Fehler-Bereich oben auf der Seite -- sonst wirkt ein
  * Fehlschlag wie ein stiller Nichts-passiert-Klick. Scrollt bei jeder neuen Meldung automatisch
- * dorthin und setzt den Fokus; die role="alert"-Ansage fuer Screenreader kommt bereits vom
+ * dorthin und setzt den Fokus; die role="alert"-Ansage für Screenreader kommt bereits vom
  * verschachtelten ErrorState selbst (kein zweites, redundantes role="alert" auf diesem Wrapper).
  */
 export function EpisodeImportApplyErrorAlert({

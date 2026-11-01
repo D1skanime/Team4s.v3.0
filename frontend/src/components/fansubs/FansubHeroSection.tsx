@@ -47,10 +47,10 @@ function buildInitials(name: string): string {
 }
 
 /**
- * Bildet den Mitgliedschafts-/Aktivitaetsstatus einer Fansub-Gruppe auf eine Badge-Variante ab.
+ * Bildet den Mitgliedschafts-/Aktivitätsstatus einer Fansub-Gruppe auf eine Badge-Variante ab.
  * `onBanner` steuert nur den neutralen "sonstigen Status"-Fall: Sitzt die Badge auf dem dunklen
  * Bild-Scrim des Banner-Headers, braucht sie die helle `onMedia`-Variante statt der auf hellen
- * Hintergruenden gedachten `muted`-Variante, damit der Text lesbar bleibt.
+ * Hintergründen gedachten `muted`-Variante, damit der Text lesbar bleibt.
  */
 function statusVariant(status: FansubGroup['status'], onBanner: boolean): 'success' | 'warning' | 'onMedia' | 'muted' {
   if (status === 'active') return 'success'

@@ -227,9 +227,9 @@ export function YearPicker({
           className={styles.yearPickerTrigger}
           disabled={disabled}
           // aria-labelledby hat laut ARIA-Spezifikation Vorrang vor aria-label, wenn beide gesetzt
-          // sind -- aria-label bleibt als Pflichtprop/Fallback fuer die eigenstaendige Verwendung
-          // ohne FormField gesetzt, wird aber von aria-labelledby ueberdeckt, sobald FormField eines
-          // uebergibt.
+          // sind -- aria-label bleibt als Pflichtprop/Fallback für die eigenständige Verwendung
+          // ohne FormField gesetzt, wird aber von aria-labelledby überdeckt, sobald FormField eines
+          // übergibt.
           aria-label={label}
           aria-labelledby={ariaLabelledBy}
           aria-haspopup="dialog"

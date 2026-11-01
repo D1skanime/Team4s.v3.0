@@ -220,9 +220,9 @@ export function DatePicker({
           }
           className={styles.datePickerTrigger}
           // aria-labelledby hat laut ARIA-Spezifikation Vorrang vor aria-label, wenn beide gesetzt
-          // sind -- aria-label bleibt als Pflichtprop/Fallback fuer die eigenstaendige Verwendung
-          // ohne FormField gesetzt, wird aber von aria-labelledby ueberdeckt, sobald FormField eines
-          // uebergibt.
+          // sind -- aria-label bleibt als Pflichtprop/Fallback für die eigenständige Verwendung
+          // ohne FormField gesetzt, wird aber von aria-labelledby überdeckt, sobald FormField eines
+          // übergibt.
           aria-label={`${label} auswählen`}
           aria-labelledby={ariaLabelledBy}
           aria-expanded={isOpen}

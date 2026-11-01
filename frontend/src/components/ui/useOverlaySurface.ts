@@ -5,13 +5,13 @@ import { createPortal } from 'react-dom'
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 
 /**
- * Gemeinsamer Fokus-/Escape-/Tab-Zyklus-Kern fuer modale Overlay-Flaechen (Modal, Drawer).
- * Kapselt drei zusammengehoerige Barrierefreiheits-Pflichten eines Dialog-artigen Overlays:
- * Beim Oeffnen wird der Fokus in das Panel verschoben und beim Schliessen wieder an das
- * zuvor fokussierte Element zurueckgegeben; Tab/Shift+Tab zykelt innerhalb des Panels statt
- * den Fokus in die dahinterliegende Seite entkommen zu lassen; Escape loest `onClose` aus,
- * sofern kein uebergeordneter Konsument (`onEscapeKeyDown`) das fuer diesen Tastendruck
- * unterdrueckt. Jedes neue modale Overlay sollte diesen Hook wiederverwenden, statt eine
+ * Gemeinsamer Fokus-/Escape-/Tab-Zyklus-Kern für modale Overlay-Flächen (Modal, Drawer).
+ * Kapselt drei zusammengehörige Barrierefreiheits-Pflichten eines Dialog-artigen Overlays:
+ * Beim Öffnen wird der Fokus in das Panel verschoben und beim Schließen wieder an das
+ * zuvor fokussierte Element zurückgegeben; Tab/Shift+Tab zykelt innerhalb des Panels statt
+ * den Fokus in die dahinterliegende Seite entkommen zu lassen; Escape löst `onClose` aus,
+ * sofern kein übergeordneter Konsument (`onEscapeKeyDown`) das für diesen Tastendruck
+ * unterdrückt. Jedes neue modale Overlay sollte diesen Hook wiederverwenden, statt eine
  * eigene Fokus-/Escape-Logik nachzubauen.
  */
 export interface UseOverlaySurfaceOptions {
@@ -19,9 +19,9 @@ export interface UseOverlaySurfaceOptions {
   onClose: () => void
   onEscapeKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => boolean
   /**
-   * Fokussiert nach dem Oeffnen dieses Element statt des Standard-Ziels
+   * Fokussiert nach dem Öffnen dieses Element statt des Standard-Ziels
    * (`closeButtonRef` bzw. ersatzweise das Panel selbst). Wird z. B. von ConfirmDialog
-   * genutzt, um statt des Schliessen-Kreuzes den Abbrechen-Button im Footer zu fokussieren.
+   * genutzt, um statt des Schließen-Kreuzes den Abbrechen-Button im Footer zu fokussieren.
    */
   initialFocusRef?: RefObject<HTMLElement>
 }
@@ -71,7 +71,7 @@ export function useOverlaySurface({
       previouslyFocusedRef.current?.focus()
       previouslyFocusedRef.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- initialFocusRef ist ein Ref-Objekt, dessen Identitaet sich nicht aendert
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initialFocusRef ist ein Ref-Objekt, dessen Identität sich nicht ändert
   }, [open])
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -86,9 +86,9 @@ export function useOverlaySurface({
 
     const activeElement = document.activeElement
     // Per Portal gerenderte Nachkommen (z. B. der YearPicker-Kalender) liegen im DOM
-    // ausserhalb des Panels, obwohl sie logisch zum Dialog gehoeren. Greift der Trap hier
-    // trotzdem zu, reisst er den Fokus aus dem Portal-Inhalt -- also nur zykeln, wenn der
-    // Fokus tatsaechlich im Panel selbst sitzt.
+    // außerhalb des Panels, obwohl sie logisch zum Dialog gehören. Greift der Trap hier
+    // trotzdem zu, reißt er den Fokus aus dem Portal-Inhalt -- also nur zykeln, wenn der
+    // Fokus tatsächlich im Panel selbst sitzt.
     if (!activeElement || !panelRef.current.contains(activeElement)) return
 
     const focusable = getFocusableElements(panelRef.current)
@@ -111,10 +111,10 @@ export function useOverlaySurface({
 }
 
 /**
- * Rendert den uebergebenen Overlay-Baum per Portal direkt unter `document.body`, damit das
- * Overlay allen `isolation`/`z-index`-Kontexten eines umschliessenden Elements entkommt
- * (z. B. Section-Backdrops). Faellt serverseitig (kein `document`) auf direktes Rendering
- * zurueck.
+ * Rendert den übergebenen Overlay-Baum per Portal direkt unter `document.body`, damit das
+ * Overlay allen `isolation`/`z-index`-Kontexten eines umschließenden Elements entkommt
+ * (z. B. Section-Backdrops). Fällt serverseitig (kein `document`) auf direktes Rendering
+ * zurück.
  */
 export function renderInBodyPortal(node: ReactNode): ReactNode {
   return typeof document !== 'undefined' ? createPortal(node, document.body) : node

@@ -47,10 +47,10 @@ export interface ModalProps {
    */
   onEscapeKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => boolean
   /**
-   * Fokussiert nach dem Oeffnen dieses Element statt des Schliessen-Buttons (z. B. fuer
-   * ConfirmDialogs Abbrechen-Button im Footer). Additiv -- jeder bestehende Aufrufer laesst
-   * dieses Feld weg und erhaelt dadurch weiterhin den bisherigen Standard-Fokus auf das
-   * Schliessen-Kreuz.
+   * Fokussiert nach dem Öffnen dieses Element statt des Schließen-Buttons (z. B. für
+   * ConfirmDialogs Abbrechen-Button im Footer). Additiv -- jeder bestehende Aufrufer lässt
+   * dieses Feld weg und erhält dadurch weiterhin den bisherigen Standard-Fokus auf das
+   * Schließen-Kreuz.
    */
   initialFocusRef?: RefObject<HTMLElement>
 }
