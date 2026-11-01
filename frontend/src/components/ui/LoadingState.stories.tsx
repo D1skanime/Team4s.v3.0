@@ -34,3 +34,17 @@ export const OhneBeschreibung: Story = {
     description: '',
   },
 }
+
+export const Kompakt: Story = {
+  name: 'Kompakt',
+  args: {
+    compact: true,
+    title: 'Weitere Einträge werden geladen',
+    description: '',
+  },
+  parameters: {
+    docs: {
+      description: { story: 'Dezenter Infinite-Scroll-Ladeindikator statt eines großen Zustands-Blocks.' },
+    },
+  },
+}

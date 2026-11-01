@@ -13,9 +13,10 @@ const meta = {
     docs: {
       description: {
         component:
-          'Fehlerzustand-Primitive. `Status403` demonstriert den speziellen 403-Sonderfall von ' +
-          '`getErrorStateCopy`/`getStatusAwareMessage` (eigene Berechtigungs-Fehlermeldung statt des ' +
-          `generischen "Fehler beim Laden"). Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')}, ${storybookDocsLink('Grundbausteine/StatusIcon', 'StatusIcon')}, ${storybookDocsLink('Grundbausteine/Heading', 'Heading')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')}.`,
+          'Fehlerzustand-Primitive für einen Bereich, der nicht geladen werden konnte. Zeigt je nach ' +
+          'Ursache eine passende Meldung -- z. B. eine eigene, verständliche Erklärung bei fehlender ' +
+          'Berechtigung statt der generischen "Fehler beim Laden"-Meldung. Besteht aus: ' +
+          `${storybookDocsLink('Grundbausteine/Card', 'Card')}, ${storybookDocsLink('Grundbausteine/StatusIcon', 'StatusIcon')}, ${storybookDocsLink('Grundbausteine/Heading', 'Heading')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')}.`,
       },
     },
   },
@@ -35,8 +36,8 @@ export const Generisch: Story = {
 
 const forbiddenCopy = getErrorStateCopy({ status: 403 })
 
-export const Status403: Story = {
-  name: 'Status403',
+export const KeineBerechtigung: Story = {
+  name: 'Keine Berechtigung',
   args: {
     title: forbiddenCopy.title,
     description: forbiddenCopy.description,
@@ -48,5 +49,14 @@ export const OhneAction: Story = {
   args: {
     title: 'Fehler beim Laden',
     description: 'Die Daten konnten nicht geladen werden.',
+  },
+}
+
+export const Kompakt: Story = {
+  name: 'Kompakt',
+  args: {
+    compact: true,
+    title: 'Vorschau fehlgeschlagen',
+    description: 'Dieser einzelne Bereich konnte nicht geladen werden.',
   },
 }

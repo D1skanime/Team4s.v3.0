@@ -311,17 +311,15 @@ function FansubVersionBrowserContent({
       ) : null}
 
       {switchState.error ? (
-        <div role="alert">
-          <ErrorState
-            title="Episoden konnten nicht geladen werden."
-            description={switchState.error}
-            action={
-              <Button variant="secondary" onClick={() => void switchTo(resolveGroupSlugForFetch(selectedSlug))}>
-                Erneut versuchen
-              </Button>
-            }
-          />
-        </div>
+        <ErrorState
+          title="Episoden konnten nicht geladen werden."
+          description={switchState.error}
+          action={
+            <Button variant="secondary" onClick={() => void switchTo(resolveGroupSlugForFetch(selectedSlug))}>
+              Erneut versuchen
+            </Button>
+          }
+        />
       ) : null}
 
       {/* D-31/D-35: der obere Sentinel und die rueckwaerts-Lade-/Fehlerzustaende sind unabhaengig
@@ -330,13 +328,11 @@ function FansubVersionBrowserContent({
       <div ref={windowing.topSentinelRef} aria-hidden="true" data-testid="top-sentinel" className={styles.sentinel} />
       {windowing.backwardLoading ? <LoadingState compact title="Frühere Episoden werden geladen …" /> : null}
       {windowing.backwardError ? (
-        <div role="alert">
-          <ErrorState
-            title="Frühere Episoden konnten nicht geladen werden."
-            description="Die bereits geladenen Episoden bleiben sichtbar."
-            action={<Button variant="secondary" onClick={() => void windowing.retryPrevious()}>Erneut versuchen</Button>}
-          />
-        </div>
+        <ErrorState
+          title="Frühere Episoden konnten nicht geladen werden."
+          description="Die bereits geladenen Episoden bleiben sichtbar."
+          action={<Button variant="secondary" onClick={() => void windowing.retryPrevious()}>Erneut versuchen</Button>}
+        />
       ) : null}
 
       {!hasAnyEpisodes ? (
@@ -381,13 +377,11 @@ function FansubVersionBrowserContent({
       <div ref={windowing.bottomSentinelRef} aria-hidden="true" data-testid="bottom-sentinel" className={styles.sentinel} />
       {windowing.forwardLoading ? <LoadingState compact title="Weitere Episoden werden geladen …" /> : null}
       {windowing.forwardError ? (
-        <div role="alert">
-          <ErrorState
-            title="Weitere Episoden konnten nicht geladen werden."
-            description="Die bereits geladenen Episoden bleiben sichtbar."
-            action={<Button variant="secondary" onClick={() => void windowing.retryNext()}>Erneut versuchen</Button>}
-          />
-        </div>
+        <ErrorState
+          title="Weitere Episoden konnten nicht geladen werden."
+          description="Die bereits geladenen Episoden bleiben sichtbar."
+          action={<Button variant="secondary" onClick={() => void windowing.retryNext()}>Erneut versuchen</Button>}
+        />
       ) : null}
       {windowing.showEndMarker ? <EmptyState variant="inline" title="Das waren alle Episoden." /> : null}
     </section>

@@ -43,6 +43,16 @@ export const Gross: Story = {
   ),
 }
 
+export const AkzentTon: Story = {
+  name: 'Akzent-Ton',
+  args: { tone: 'accent' },
+  parameters: {
+    docs: {
+      description: { story: 'tone="accent" erzwingt eine feste Akzentfarbe, ohne dass der Aufrufer dafür einen eigenen Farb-Wrapper (wie in den übrigen Stories hier) bauen muss -- genutzt z. B. von LoadingState.' },
+    },
+  },
+}
+
 const SIZES = ['sm', 'md', 'lg'] as const
 
 export const GroessenUndVarianten: Story = {

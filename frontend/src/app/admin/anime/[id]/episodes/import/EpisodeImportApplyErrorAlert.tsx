@@ -10,12 +10,11 @@ interface EpisodeImportApplyErrorAlertProps {
 }
 
 /**
- * GAP-12 (167-UAT.md): vor diesem Fix landete ein fehlgeschlagenes „Mapping
- * anwenden" ausschließlich im allgemeinen, ganz oben gerenderten Fehler-State
- * -- weit entfernt vom Button, ohne role="alert" -- wodurch ein Fehlschlag
- * wie ein stiller Nichts-Passiert-Klick wirkte. Diese Komponente rendert die
- * Fehlermeldung stattdessen direkt beim Button, mit role="alert" und
- * automatischem Scroll/Fokus dorthin bei jeder neuen Meldung.
+ * Rendert eine fehlgeschlagene „Mapping anwenden"-Aktion direkt beim ausloesenden Button statt nur
+ * im allgemeinen, weit entfernten Fehler-Bereich oben auf der Seite -- sonst wirkt ein
+ * Fehlschlag wie ein stiller Nichts-passiert-Klick. Scrollt bei jeder neuen Meldung automatisch
+ * dorthin und setzt den Fokus; die role="alert"-Ansage fuer Screenreader kommt bereits vom
+ * verschachtelten ErrorState selbst (kein zweites, redundantes role="alert" auf diesem Wrapper).
  */
 export function EpisodeImportApplyErrorAlert({
   message,
@@ -35,7 +34,6 @@ export function EpisodeImportApplyErrorAlert({
   return (
     <div
       ref={ref}
-      role="alert"
       tabIndex={-1}
       className={styles.applyErrorAlert}
     >

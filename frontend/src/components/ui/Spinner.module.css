@@ -3,6 +3,10 @@
   align-items: center;
 }
 
+.spinnerToneAccent {
+  color: var(--accent-primary);
+}
+
 .spinner {
   width: var(--spinner-size-md);
   height: var(--spinner-size-md);
