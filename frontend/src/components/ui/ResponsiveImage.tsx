@@ -46,6 +46,14 @@ export function isConfiguredForImageOptimization(src: string): boolean {
 
 export type ResponsiveImageProps = Omit<ImageProps, 'src' | 'unoptimized'> & {
   src: string
+  /** Erzwingt den unoptimierten Pfad unabhängig von der automatischen Pfad-Prüfung -- NICHT für
+   *  einen Optimierer-Fehler-Rückfall gedacht (der wurde bewusst entfernt, siehe Kommentar unten),
+   *  sondern für Fälle, in denen der Aufrufer eine Information hat, die aus der reinen Quell-URL
+   *  nicht ableitbar ist: ein animiertes GIF/WebP, dessen Animation der Next.js-Optimierer beim
+   *  Neukodieren zerstören würde (z. B. MemberAvatarCard, das Mime-Type/Dateiendung des
+   *  tatsächlich gespeicherten Mediums kennt). Ohne Angabe bleibt die automatische Prüfung
+   *  unverändert maßgeblich. */
+  unoptimized?: boolean
 }
 
 /**
@@ -65,7 +73,7 @@ export type ResponsiveImageProps = Omit<ImageProps, 'src' | 'unoptimized'> & {
  * jedem anderen unbehandelten Bildfehler an anderer Stelle dieser Seite; kein neues eigenes
  * Fehler-Visual.
  */
-export function ResponsiveImage({ src, alt, onError, ...props }: ResponsiveImageProps) {
+export function ResponsiveImage({ src, alt, onError, unoptimized, ...props }: ResponsiveImageProps) {
   const [failedOptimizedSource, setFailedOptimizedSource] = useState<string | null>(null)
   const usingDisplayOriginal = failedOptimizedSource === src
   // Retained for observability/testing only (per P154-06) -- deliberately not read by the
@@ -77,7 +85,7 @@ export function ResponsiveImage({ src, alt, onError, ...props }: ResponsiveImage
       {...props}
       src={src}
       alt={alt}
-      unoptimized={!isConfiguredForImageOptimization(src)}
+      unoptimized={unoptimized ?? !isConfiguredForImageOptimization(src)}
       onError={(event) => {
         onError?.(event)
         setFailedOptimizedSource((failedSource) => failedSource === src ? failedSource : src)

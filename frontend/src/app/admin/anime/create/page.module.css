@@ -1114,15 +1114,10 @@
   max-width: 520px;
 }
 
-.assetCardImageCover,
-.assetCardImageBanner,
-.assetCardImageBackground,
-.assetCardImageBackgroundVideo {
-  object-fit: cover;
-}
-
+/* object-fit kommt jetzt aus MediaSlots eigener objectFit-Option (CreateAssetCard.tsx) statt
+   einer hier gesetzten CSS-Regel -- nur das Logo braucht noch einen eigenen Innenabstand, damit
+   das enthaltene Bild nicht randlos an der Kachel klebt. */
 .assetCardImageLogo {
-  object-fit: contain;
   padding: 12px;
 }
 

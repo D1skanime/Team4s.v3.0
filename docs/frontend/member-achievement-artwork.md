@@ -74,8 +74,11 @@ verfügbar, ohne in den aktiven Resolver zurückzukehren.
 
 ## Review im Browser
 
-Öffne `/dev/ui-system/achievements` von `/dev/ui-system` aus. Es verwendet Produktionskomponenten
-und explizite serverförmige visuelle Fixtures; die Fixture ist keine Autorität für den
+Öffne die Storybook-Story „Im Einsatz/Erfolgsbadge-Galerie“ (`AchievementBadgeShowcase.stories.tsx`).
+Storybook startet über `docker compose up -d team4sv30-storybook`, danach erreichbar unter
+`http://192.168.235.196:6006` bzw. über den SSH-Tunnel auf Port 6006 (die frühere `/dev/ui-system`-
+Route wurde vollständig durch Storybook abgelöst und existiert nicht mehr). Die Story verwendet
+Produktionskomponenten und explizite serverförmige visuelle Fixtures; die Fixture ist keine Autorität für den
 Rollenkatalog oder Schwellenwerte. Der Phase-151-Playwright-Collector erfasst alle Quellen und
 zusammengesetzten Badge-Fälle, responsive Geometrie, Karussell-Interaktion/-Performance und
 leere manuelle Abnahme-Zeilen. Prüfe die tatsächlichen Screenshots, bevor du subjektive Urteile

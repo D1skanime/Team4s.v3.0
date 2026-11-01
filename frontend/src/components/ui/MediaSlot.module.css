@@ -4,19 +4,13 @@
   width: 100%;
 }
 
-.mediaSlotDropzone {
+/* Füllt die umgebende MediaFrame-/UploadDropzone-Fläche vollständig aus (Pendant zu
+   ResponsiveImages `fill`-Prop, das <video> selbst nicht kennt). */
+.mediaSlotVideo {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  min-height: 0;
-  /* Bindet NUR diese UploadDropzone-Instanz in CSS-Größen-Containment ein: MediaSlots eigene
-     Box hat eine feste, über aspect-ratio bestimmte Höhe (als Inline-Stil am Elterncontainer
-     gesetzt) -- diese Box darf deshalb unter die natürliche Inhaltsgröße schrumpfen, ohne dass
-     etwas abgeschnitten wird. UploadDropzones eigene @container (max-height: ...)-Regel reagiert
-     auf diese geschrumpfte Höhe und wechselt auf ein Layout, das trotzdem passt. Eine
-     UploadDropzone außerhalb von MediaSlot (density="roomy", durch eigenen Inhalt bestimmte
-     Größe, kein aspect-ratio-Vorfahre) bekommt diese Klasse nie und behält ihre natürliche,
-     inhaltsbestimmte Höhe statt auf UploadDropzones bloße min-height zu schrumpfen. */
-  container-type: size;
 }
 
 /* Nicht-interaktiver Ersatzzustand, wenn der Aufrufer onFilesSelected weglässt (z. B. ein

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { MediaSlot } from "@/components/ui";
+import type { MediaSlotMedia, MediaSlotObjectFit } from "@/components/ui";
 import { classNames } from "@/components/ui/classNames";
 import {
   ANIME_BANNER_CROP_OUTPUT_HEIGHT,
@@ -112,39 +113,22 @@ export function CreateAssetCard({
     return map[variant] ?? createStyles.assetCardCover;
   })();
 
-  const imageVariantClass: string = (() => {
-    const map: Record<CreateAssetCardVariant, string> = {
-      cover: createStyles.assetCardImageCover,
-      banner: createStyles.assetCardImageBanner,
-      logo: createStyles.assetCardImageLogo,
-      background: createStyles.assetCardImageBackground,
-      backgroundVideo: createStyles.assetCardImageBackgroundVideo,
-    };
-    return map[variant] ?? createStyles.assetCardImageCover;
-  })();
+  // Nur das Logo braucht noch eine eigene Klasse (Innenabstand) -- object-fit kommt für alle
+  // Varianten aus MediaSlots eigener objectFit-Option statt einer Bild-Klasse je Variante.
+  const imageVariantClass = variant === "logo" ? createStyles.assetCardImageLogo : undefined;
 
   const hasValue = Boolean(previewUrl);
   const sourceBadge = source ? (
     <span className={classNames(createStyles.assetCardSourcePill, sourceModifierClass)}>{source}</span>
   ) : undefined;
 
-  const previewContent = previewUrl
-    ? variant === "backgroundVideo" ? (
-        <video
-          src={previewUrl}
-          className={classNames(createStyles.assetCardImage, imageVariantClass)}
-          muted
-          playsInline
-          preload="metadata"
-        />
-      ) : (
-        <img
-          src={previewUrl}
-          alt={label}
-          className={classNames(createStyles.assetCardImage, imageVariantClass)}
-        />
-      )
-    : undefined;
+  const objectFit: MediaSlotObjectFit = variant === "logo" ? "contain" : "cover";
+  const mediaClassName = classNames(createStyles.assetCardImage, imageVariantClass);
+  const media: MediaSlotMedia | null = previewUrl
+    ? variant === "backgroundVideo"
+      ? { kind: "video", src: previewUrl, objectFit, className: mediaClassName }
+      : { kind: "image", src: previewUrl, alt: label, objectFit, className: mediaClassName }
+    : null;
 
   return (
     <div className={classNames(createStyles.assetCard, cardVariantClass)}>
@@ -161,7 +145,7 @@ export function CreateAssetCard({
           aspectRatio={resolveAssetCardAspectRatio(variant)}
           label={label}
           hasValue={hasValue}
-          previewContent={previewContent}
+          media={media}
           disabled={uploadDisabled}
           onFilesSelected={onFilesSelected}
           accept={uploadAccept}

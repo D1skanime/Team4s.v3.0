@@ -32,10 +32,6 @@ const EXCEPTIONS: Record<string, string[]> = {
   // Sonderfall geführt (0.92rem passt zu keiner bestehenden Text-Variante exakt) -- nicht Teil
   // dieser Runde, da im Befund nicht genannt.
   'Card.module.css': ['--text-soft-size'],
-  // .promptLabel (UploadDropzone, @container-Regel): verkleinert die Schrift unterhalb der
-  // Inline-Layout-Schwelle -- nicht Teil dieser Runde (Befund nennt nur MediaSlot/UploadDropzone-
-  // Kommentare, keine CSS-Architektur).
-  'UploadDropzone.module.css': ['--text-body-size'],
 }
 
 function listCssFiles(): string[] {

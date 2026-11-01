@@ -251,4 +251,32 @@ describe('UploadDropzone', () => {
       expect(clickSpy).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('aspectRatio (MediaFrame-Fundament statt generischer, inhaltsbestimmter Fläche)', () => {
+    it('rendert ohne aspectRatio als generischen div ohne MediaFrames Klasse', () => {
+      render(<UploadDropzone onFilesSelected={vi.fn()} />)
+      const dropzone = screen.getByRole('button', { name: PROMPT })
+      expect(dropzone.className).not.toMatch(/mediaFrame/)
+      expect(dropzone.tagName).toBe('DIV')
+    })
+
+    it('rendert mit aspectRatio über den offiziellen MediaFrame-Grundbaustein, inklusive dessen Eckmarke', () => {
+      render(<UploadDropzone onFilesSelected={vi.fn()} aspectRatio={1} cornerBadge={<span>Jellyfin</span>} />)
+      const dropzone = screen.getByRole('button', { name: PROMPT })
+      expect(dropzone.className).toMatch(/mediaFrame/)
+      expect(dropzone.style.aspectRatio).toBe('1')
+      expect(screen.getByText('Jellyfin')).not.toBeNull()
+    })
+
+    it('zeigt den Leer-Zustand über StatusIcon/Heading/Text statt eigener Icon-/Text-Bausteine', () => {
+      render(<UploadDropzone onFilesSelected={vi.fn()} aspectRatio={1} dropHintLabel="Oder klicken" />)
+      expect(screen.getByRole('heading', { level: 4, name: PROMPT })).not.toBeNull()
+      expect(screen.getByText('Oder klicken')).not.toBeNull()
+    })
+
+    it('überschreibt das Heading-Level der Eingabeaufforderung über headingLevel', () => {
+      render(<UploadDropzone onFilesSelected={vi.fn()} aspectRatio={1} headingLevel={2} />)
+      expect(screen.getByRole('heading', { level: 2, name: PROMPT })).not.toBeNull()
+    })
+  })
 })

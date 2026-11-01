@@ -6,7 +6,11 @@ import { UploadCloud } from 'lucide-react'
 
 import { Badge } from './Badge'
 import { Button } from './Button'
+import { Heading } from './Heading'
+import type { HeadingLevel } from './Heading'
 import { Input } from './Input'
+import { MediaFrame } from './MediaFrame'
+import { StatusIcon } from './StatusIcon'
 import { Text } from './Text'
 import { classNames } from './classNames'
 import { visuallyHiddenClassName } from './VisuallyHidden'
@@ -45,6 +49,20 @@ export interface UploadDropzoneProps {
    * Avatar-/Logo-Slot, ein festes Banner-Seitenverhältnis) statt einer generischen, übergroßen
    * Fläche. */
   className?: string
+  /** Wenn gesetzt, rendert die Dropzone über den offiziellen `MediaFrame`-Grundbaustein mit
+   * diesem festen Seitenverhältnis (z. B. 1 für ein Logo-/Avatar-Slot) -- Form (`shape`) und
+   * Eckmarke (`cornerBadge`) kommen dann ebenfalls von `MediaFrame`, keine eigene, parallele
+   * Flächen-Logik mehr. Weglassen für eine generische, mehrdateifähige Upload-Fläche ohne festes
+   * Seitenverhältnis (natürliche, inhaltsbestimmte Höhe, z. B. ein Mehrfach-Datei-Formularfeld). */
+  aspectRatio?: number
+  /** Nur zusammen mit `aspectRatio` wirksam -- kleine Markenüberlagerung in der Ecke der Fläche
+   * (z. B. eine Herkunfts-Kennzeichnung), identisch zu `MediaFrame`s eigener Option. */
+  cornerBadge?: ReactNode
+  /** Überschreibt das semantische Überschriften-Level der Eingabeaufforderung (Standard: 4, das
+   * tiefste verfügbare `Heading`-Level). Ein Aufrufer mit flacherer umgebender Überschriften-
+   * Hierarchie (z. B. direkt nach einem h2 ohne zwischenliegenden h3) sollte hier explizit ein
+   * passendes Level setzen, sonst überspringt die Seite eine Überschriften-Ebene. */
+  headingLevel?: HeadingLevel
   /** Wenn gesetzt, rendert INNERHALB der Dropzone statt des Standard-Icon-/Hinweis-/Button-Aufbaus
    * — macht eine BESTEHENDE Vorschau (Bild o. Ä.) selbst zur Drop-Fläche, damit keine zweite,
    * redundante Drop-Fläche neben einem bereits befüllten Slot erscheint. Klick und Drag&Drop
@@ -90,9 +108,9 @@ export function resolveUploadSlotPresentation(hasExistingValue: boolean): Upload
 
 export type UploadDropzoneLayout = 'roomy' | 'compact' | 'inline'
 
-/** Unterhalb dieser verfügbaren Block-Größe (Höhe, px) passt der senkrechte Icon-/Text-/Button-
- * Stapel nicht mehr ohne Abschneiden -- ein flacher Slot (z. B. eine 5,4:1-Banner-Kachel) kann
- * deutlich unter 90px hoch sein. Spiegelt die `@container (max-height: ...)`-Regel in
+/** Unterhalb dieser verfügbaren Block-Größe (Höhe, px) passt der senkrechte StatusIcon-/Heading-/
+ * Button-Stapel nicht mehr ohne Abschneiden -- ein flacher Slot (z. B. eine 5,4:1-Banner-Kachel)
+ * kann deutlich unter 90px hoch sein. Spiegelt die `@container (max-height: ...)`-Regel in
  * UploadDropzone.module.css, dem eigentlichen Laufzeit-Mechanismus (CSS-Container-Queries, kein
  * per JS gemessener ResizeObserver) -- diese Konstante/Funktion dokumentiert und testet die
  * Schwelle, die das CSS umsetzt. */
@@ -101,8 +119,8 @@ export const INLINE_LAYOUT_MAX_HEIGHT_PX = 110
 /**
  * Reine Entscheidungstabelle: unterhalb der Inline-Schwelle wechselt das Layout unabhängig von
  * der angeforderten Dichte auf eine einzelne, kompakte Zeile (sonst würde der senkrechte
- * Icon-/Text-/Button-Stapel in einem flachen, über aspect-ratio bemessenen Slot abgeschnitten);
- * darüber gilt die vom Aufrufer gewählte roomy/compact-Dichte unverändert.
+ * StatusIcon-/Heading-/Button-Stapel in einem flachen, über aspect-ratio bemessenen Slot
+ * abgeschnitten); darüber gilt die vom Aufrufer gewählte roomy/compact-Dichte unverändert.
  */
 export function resolveUploadDropzoneLayout(
   density: 'roomy' | 'compact',
@@ -114,6 +132,14 @@ export function resolveUploadDropzoneLayout(
   return density
 }
 
+/**
+ * Datei-Auswahl-/Drop-Fläche: Klick öffnet den nativen Datei-Dialog, Drag&Drop übernimmt
+ * abgelegte Dateien, beides über denselben `onFilesSelected`-Callback. Mit gesetztem
+ * `aspectRatio` ist die Fläche selbst eine `MediaFrame`-Instanz (Form/Eckmarke kommen von dort);
+ * ohne `aspectRatio` bleibt die Höhe inhaltsbestimmt (generische Mehrdatei-Flächen ohne festes
+ * Seitenverhältnis). Der Leer-Zustand komponiert sich aus `StatusIcon` (Symbol), `Heading`
+ * (Eingabeaufforderung) und `Text` (optionaler Zusatzhinweis) statt eigener Icon-/Text-Bausteine.
+ */
 export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzoneProps>(function UploadDropzone({
   onFilesSelected,
   accept = 'image/*',
@@ -131,6 +157,9 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
   className,
   children,
   overlayHintLabel,
+  aspectRatio,
+  cornerBadge,
+  headingLevel = 4,
 }: UploadDropzoneProps, ref) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragActive, setIsDragActive] = useState(false)
@@ -194,28 +223,20 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
   }
 
   const hasOverlayContent = Boolean(children)
+  const isSized = aspectRatio !== undefined
 
-  return (
-    <div
-      className={classNames(
-        styles.dropzone,
-        shape === 'round' ? styles.dropzoneRound : null,
-        hasOverlayContent ? styles.dropzoneOverlay : (density === 'compact' ? styles.dropzoneCompact : styles.dropzoneRoomy),
-        isDragActive ? styles.dropzoneDragging : null,
-        disabled ? styles.dropzoneDisabled : null,
-        className,
-      )}
-      role="button"
-      tabIndex={disabled ? -1 : 0}
-      aria-disabled={disabled}
-      aria-label={promptLabel}
-      onClick={onDropzoneClick}
-      onKeyDown={onDropzoneKeyDown}
-      onDragEnter={onDragEnter}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-    >
+  const rootClassName = classNames(
+    styles.dropzone,
+    shape === 'round' ? styles.dropzoneRound : null,
+    hasOverlayContent ? styles.dropzoneOverlay : (density === 'compact' ? styles.dropzoneCompact : styles.dropzoneRoomy),
+    isDragActive ? styles.dropzoneDragging : null,
+    disabled ? styles.dropzoneDisabled : null,
+    isSized && !hasOverlayContent ? styles.dropzoneSized : null,
+    className,
+  )
+
+  const content = (
+    <>
       <Input
         ref={inputRef}
         type="file"
@@ -237,9 +258,9 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
         </>
       ) : (
         <>
-          <UploadCloud size={22} aria-hidden="true" className={styles.icon} />
+          <StatusIcon tone="neutral" size={density === 'compact' ? 'sm' : 'md'} icon={<UploadCloud size={22} aria-hidden="true" />} />
           <div className={styles.copy}>
-            <Text variant="body" className={styles.promptLabel}>{promptLabel}</Text>
+            <Heading level={headingLevel} size={4} className={styles.promptLabel}>{promptLabel}</Heading>
             {dropHintLabel ? <Text variant="soft" className={styles.dropHintLabel}>{dropHintLabel}</Text> : null}
           </div>
           <Button
@@ -262,6 +283,33 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
           {multiFileOnSingleSlotWarning}
         </Text>
       ) : null}
+    </>
+  )
+
+  const interactionProps = {
+    role: 'button' as const,
+    tabIndex: disabled ? -1 : 0,
+    'aria-disabled': disabled,
+    'aria-label': promptLabel,
+    onClick: onDropzoneClick,
+    onKeyDown: onDropzoneKeyDown,
+    onDragEnter,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+  }
+
+  if (isSized) {
+    return (
+      <MediaFrame aspectRatio={aspectRatio} shape={shape} cornerBadge={cornerBadge} className={rootClassName} {...interactionProps}>
+        {content}
+      </MediaFrame>
+    )
+  }
+
+  return (
+    <div className={rootClassName} {...interactionProps}>
+      {content}
     </div>
   )
 })
