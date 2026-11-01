@@ -7,9 +7,23 @@ import { createPortal } from 'react-dom'
 
 import { Drawer } from './Drawer'
 
-/** Simuliert einen per Portal gerenderten Nachkommen wie den YearPicker-Kalender. */
-function PortaledButton({ label }: { label: string }) {
-  return createPortal(<button type="button">{label}</button>, document.body)
+/**
+ * Simuliert ein YearPicker-artiges Popover: ein Auslöser mit aria-expanded/aria-controls im
+ * Panel, dessen Inhalt per Portal außerhalb des Panel-DOM-Teilbaums in document.body liegt.
+ */
+function PortaledPopover() {
+  return (
+    <>
+      <button type="button" aria-expanded="true" aria-controls="kalender-panel">Auslöser</button>
+      {createPortal(
+        <div id="kalender-panel">
+          <button type="button">Tag 1</button>
+          <button type="button">Tag 2</button>
+        </div>,
+        document.body,
+      )}
+    </>
+  )
 }
 
 afterEach(() => {
@@ -76,19 +90,40 @@ describe('Drawer', () => {
     await waitFor(() => expect(document.activeElement).toBe(opener))
   })
 
-  it('lässt Tab-Fokus in per Portal gerenderten Nachkommen unangetastet (z. B. YearPicker-Kalender)', () => {
+  it('bezieht ein per aria-expanded/aria-controls geöffnetes Popover (z. B. YearPicker-Kalender) in den Fokus-Zyklus ein', () => {
     render(
-      <Drawer open onClose={vi.fn()} title="Testdrawer">
-        <PortaledButton label="Kalendertag" />
+      <Drawer
+        open
+        onClose={vi.fn()}
+        title="Testdrawer"
+        footer={<button type="button">Letzter Fokus</button>}
+      >
+        <PortaledPopover />
       </Drawer>,
     )
 
     const dialog = screen.getByRole('dialog')
-    const portaledButton = screen.getByRole('button', { name: 'Kalendertag' })
+    const trigger = screen.getByRole('button', { name: 'Auslöser' })
+    const day1 = screen.getByRole('button', { name: 'Tag 1' })
+    const day2 = screen.getByRole('button', { name: 'Tag 2' })
+    const footerButton = screen.getByRole('button', { name: 'Letzter Fokus' })
 
-    portaledButton.focus()
+    // Vom Auslöser aus geht Tab in das geöffnete Popover hinein, nicht daran vorbei.
+    trigger.focus()
     fireEvent.keyDown(dialog, { key: 'Tab' })
+    expect(document.activeElement).toBe(day1)
 
-    expect(document.activeElement).toBe(portaledButton)
+    // Innerhalb des Popovers zykelt der Trap normal weiter (kein Browser-Tab-Entkommen).
+    fireEvent.keyDown(dialog, { key: 'Tab' })
+    expect(document.activeElement).toBe(day2)
+
+    // Vom letzten Popover-Element geht Tab weiter in den Rest des Panels, nicht hinter den Dialog.
+    fireEvent.keyDown(dialog, { key: 'Tab' })
+    expect(document.activeElement).toBe(footerButton)
+
+    // Shift+Tab vom ersten Popover-Element geht zurück zum Auslöser.
+    day1.focus()
+    fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(trigger)
   })
 })

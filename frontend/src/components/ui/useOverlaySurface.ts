@@ -49,6 +49,31 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
   })
 }
 
+/**
+ * Baut die vollständige Tab-Reihenfolge des Panels, inklusive per Portal gerenderter
+ * Popover-Inhalte (z. B. YearPickers Kalender-Panel, das aus Positionierungsgründen nach
+ * `document.body` statt inline gerendert wird). Ein geöffnetes Popover wird über die
+ * Standard-ARIA-Beziehung `aria-expanded="true"` + `aria-controls` an seinem Auslöser erkannt
+ * -- dessen `aria-controls`-Ziel existiert unabhängig davon, wo es im DOM tatsächlich hängt.
+ * Die fokussierbaren Elemente des Popovers werden direkt nach dessen Auslöser eingefügt, damit
+ * die Zyklus-Reihenfolge der sichtbaren Reihenfolge entspricht: vom letzten Popover-Element
+ * weiter zum nächsten Panel-Feld, vom ersten Popover-Element zurück zum Auslöser.
+ */
+function getTrapOrder(panel: HTMLElement): HTMLElement[] {
+  const ordered: HTMLElement[] = []
+
+  for (const element of getFocusableElements(panel)) {
+    ordered.push(element)
+
+    if (element.getAttribute('aria-expanded') !== 'true') continue
+    const targetId = element.getAttribute('aria-controls')
+    const target = targetId ? document.getElementById(targetId) : null
+    if (target) ordered.push(...getFocusableElements(target))
+  }
+
+  return ordered
+}
+
 export function useOverlaySurface({
   open,
   onClose,
@@ -85,26 +110,27 @@ export function useOverlaySurface({
     if (event.key !== 'Tab' || !panelRef.current) return
 
     const activeElement = document.activeElement
-    // Per Portal gerenderte Nachkommen (z. B. der YearPicker-Kalender) liegen im DOM
-    // außerhalb des Panels, obwohl sie logisch zum Dialog gehören. Greift der Trap hier
-    // trotzdem zu, reißt er den Fokus aus dem Portal-Inhalt -- also nur zykeln, wenn der
-    // Fokus tatsächlich im Panel selbst sitzt.
-    if (!activeElement || !panelRef.current.contains(activeElement)) return
+    if (!activeElement) return
 
-    const focusable = getFocusableElements(panelRef.current)
-    if (focusable.length === 0) {
+    const trapOrder = getTrapOrder(panelRef.current)
+    if (trapOrder.length === 0) {
       event.preventDefault()
       panelRef.current.focus()
       return
     }
 
-    const currentIndex = focusable.findIndex((element) => element === activeElement)
+    const currentIndex = trapOrder.findIndex((element) => element === activeElement)
+    // Der Fokus sitzt weder im Panel noch in einem darüber per aria-expanded/aria-controls
+    // erkannten offenen Popover (z. B. ein Portal-Inhalt ohne diese ARIA-Beziehung) -- dann
+    // greift der Trap nicht, statt den Fokus an eine unbekannte Stelle zu zwingen.
+    if (currentIndex === -1) return
+
     const nextIndex = event.shiftKey
-      ? currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1
-      : currentIndex === focusable.length - 1 ? 0 : currentIndex + 1
+      ? currentIndex <= 0 ? trapOrder.length - 1 : currentIndex - 1
+      : currentIndex === trapOrder.length - 1 ? 0 : currentIndex + 1
 
     event.preventDefault()
-    focusable[nextIndex]?.focus()
+    trapOrder[nextIndex]?.focus()
   }
 
   return { panelRef, closeButtonRef, handleKeyDown }
