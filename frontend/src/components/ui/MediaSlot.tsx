@@ -185,7 +185,7 @@ export const MediaSlot = forwardRef<UploadDropzoneHandle, MediaSlotProps>(functi
       )}
       {actions ? <div className={styles.mediaSlotActions}>{actions}</div> : null}
       {error ? (
-        <Text variant="body" role="alert" className={styles.mediaSlotError}>{error}</Text>
+        <Text variant="body" tone="error" role="alert" className={styles.mediaSlotError}>{error}</Text>
       ) : hint ? (
         <Text variant="soft" className={styles.mediaSlotHint}>{hint}</Text>
       ) : null}

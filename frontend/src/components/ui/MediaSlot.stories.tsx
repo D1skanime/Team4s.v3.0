@@ -91,7 +91,7 @@ function ReplaceOverlayDemo() {
 }
 
 export const ReplaceOverlay: Story = {
-  name: 'Ersetzen-Overlay',
+  name: 'Ersetzen-Überlagerung',
   args: { hasValue: true },
   render: () => <ReplaceOverlayDemo />,
   parameters: {
@@ -230,5 +230,23 @@ export const Disabled: Story = {
     hasValue: false,
     disabled: true,
     onFilesSelected: () => {},
+  },
+}
+
+export const MitHinweis: Story = {
+  name: 'Mit Hinweis',
+  args: {
+    hasValue: false,
+    onFilesSelected: () => {},
+    hint: 'JPG oder PNG, max. 4 MB.',
+  },
+}
+
+export const MitFehler: Story = {
+  name: 'Mit Fehler',
+  args: {
+    hasValue: false,
+    onFilesSelected: () => {},
+    error: 'Die Datei ist zu groß (max. 4 MB).',
   },
 }

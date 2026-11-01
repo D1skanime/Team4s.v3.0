@@ -37,7 +37,3 @@
 .mediaSlotError {
   text-align: center;
 }
-
-.mediaSlotError {
-  color: var(--color-error);
-}
