@@ -3,8 +3,14 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 
 import { Drawer } from './Drawer'
+
+/** Simuliert einen per Portal gerenderten Nachkommen wie den YearPicker-Kalender. */
+function PortaledButton({ label }: { label: string }) {
+  return createPortal(<button type="button">{label}</button>, document.body)
+}
 
 afterEach(() => {
   cleanup()
@@ -68,5 +74,21 @@ describe('Drawer', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Schließen' })[0])
 
     await waitFor(() => expect(document.activeElement).toBe(opener))
+  })
+
+  it('lässt Tab-Fokus in per Portal gerenderten Nachkommen unangetastet (z. B. YearPicker-Kalender)', () => {
+    render(
+      <Drawer open onClose={vi.fn()} title="Testdrawer">
+        <PortaledButton label="Kalendertag" />
+      </Drawer>,
+    )
+
+    const dialog = screen.getByRole('dialog')
+    const portaledButton = screen.getByRole('button', { name: 'Kalendertag' })
+
+    portaledButton.focus()
+    fireEvent.keyDown(dialog, { key: 'Tab' })
+
+    expect(document.activeElement).toBe(portaledButton)
   })
 })

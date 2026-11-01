@@ -64,9 +64,10 @@ export function useOverlaySurface({
 
     previouslyFocusedRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const focusTarget = initialFocusRef?.current ?? closeButtonRef.current ?? panelRef.current
-    window.setTimeout(() => focusTarget?.focus(), 0)
+    const focusTimeoutId = window.setTimeout(() => focusTarget?.focus(), 0)
 
     return () => {
+      window.clearTimeout(focusTimeoutId)
       previouslyFocusedRef.current?.focus()
       previouslyFocusedRef.current = null
     }
@@ -83,6 +84,13 @@ export function useOverlaySurface({
 
     if (event.key !== 'Tab' || !panelRef.current) return
 
+    const activeElement = document.activeElement
+    // Per Portal gerenderte Nachkommen (z. B. der YearPicker-Kalender) liegen im DOM
+    // ausserhalb des Panels, obwohl sie logisch zum Dialog gehoeren. Greift der Trap hier
+    // trotzdem zu, reisst er den Fokus aus dem Portal-Inhalt -- also nur zykeln, wenn der
+    // Fokus tatsaechlich im Panel selbst sitzt.
+    if (!activeElement || !panelRef.current.contains(activeElement)) return
+
     const focusable = getFocusableElements(panelRef.current)
     if (focusable.length === 0) {
       event.preventDefault()
@@ -90,7 +98,6 @@ export function useOverlaySurface({
       return
     }
 
-    const activeElement = document.activeElement
     const currentIndex = focusable.findIndex((element) => element === activeElement)
     const nextIndex = event.shiftKey
       ? currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1

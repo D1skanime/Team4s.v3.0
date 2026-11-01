@@ -133,7 +133,10 @@ export function FormField({
       // dann exakt auf den sichtbaren FormField-Labeltext statt eines zweiten, unabhängigen Textes
       // aus ihrer eigenen label-Prop (siehe DatePicker.tsx/YearPicker.tsx: aria-labelledby hat
       // Vorrang vor deren aria-label-Fallback, sobald gesetzt).
-      const pickerSafeProps = { ...triggerSafeProps, 'aria-labelledby': labelId }
+      // labelId ist nur gesetzt, wenn FormField ein label hat -- ohne label KEINEN
+      // 'aria-labelledby': undefined mitgeben, sonst überschreibt cloneElement ein vom
+      // Aufrufer selbst gesetztes aria-labelledby am Kind mit undefined.
+      const pickerSafeProps = { ...triggerSafeProps, ...(labelId ? { 'aria-labelledby': labelId } : {}) }
 
       if (singleChild.type === Input) {
         renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof Input>>, injectedProps)
