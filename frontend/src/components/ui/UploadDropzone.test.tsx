@@ -139,6 +139,18 @@ describe('UploadDropzone', () => {
     expect(onFilesSelected).toHaveBeenCalledWith([file])
   })
 
+  it('still accepts a dropped file with allowDrop={false} -- the prop is a documented no-op reserved for future use (Phase 180 D-17), not a working disable switch', () => {
+    const onFilesSelected = vi.fn()
+    render(<UploadDropzone onFilesSelected={onFilesSelected} allowDrop={false} />)
+    const file = makeFile('drop.png')
+
+    fireEvent.drop(screen.getByRole('button', { name: PROMPT }), {
+      dataTransfer: { files: [file] },
+    })
+
+    expect(onFilesSelected).toHaveBeenCalledWith([file])
+  })
+
   it('forwards only the first file and renders the locked warning when multiple is false and two files are dropped', () => {
     const onFilesSelected = vi.fn()
     render(<UploadDropzone onFilesSelected={onFilesSelected} multiple={false} />)

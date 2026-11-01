@@ -32,7 +32,10 @@ export interface UploadDropzoneProps {
   /** `false` hält die Dropzone einzel-slot-fähig: von mehreren abgelegten/ausgewählten Dateien
    * bleibt nur die erste erhalten. */
   multiple?: boolean
-  /** `false` deaktiviert die Drag&Drop-Fläche, Klick-Auswahl bleibt möglich. */
+  /** Derzeit wirkungslos: Drag&Drop ist auf allen Einsatzstellen fest aktiv, der frühere
+   * `false`-Codepfad wurde entfernt, nachdem kein Aufrufer ihn mehr nutzte. Die Prop bleibt nur
+   * als reservierter, künftiger Erweiterungspunkt in der öffentlichen API erhalten --
+   * `allowDrop={false}` deaktiviert Drag&Drop AKTUELL NICHT, trotz des Namens. */
   allowDrop?: boolean
   disabled?: boolean
   /** Eckig (Standard) oder rund -- muss zur Form der eventuellen Vorschau passen (z. B. ein
