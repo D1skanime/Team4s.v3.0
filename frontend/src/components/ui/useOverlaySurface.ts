@@ -23,12 +23,12 @@ export interface UseOverlaySurfaceOptions {
    * (`closeButtonRef` bzw. ersatzweise das Panel selbst). Wird z. B. von ConfirmDialog
    * genutzt, um statt des Schliessen-Kreuzes den Abbrechen-Button im Footer zu fokussieren.
    */
-  initialFocusRef?: RefObject<HTMLElement | null>
+  initialFocusRef?: RefObject<HTMLElement>
 }
 
 export interface UseOverlaySurfaceResult {
-  panelRef: RefObject<HTMLDivElement | null>
-  closeButtonRef: RefObject<HTMLButtonElement | null>
+  panelRef: RefObject<HTMLDivElement>
+  closeButtonRef: RefObject<HTMLButtonElement>
   handleKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
 }
 

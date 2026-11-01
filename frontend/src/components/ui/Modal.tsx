@@ -52,7 +52,7 @@ export interface ModalProps {
    * dieses Feld weg und erhaelt dadurch weiterhin den bisherigen Standard-Fokus auf das
    * Schliessen-Kreuz.
    */
-  initialFocusRef?: RefObject<HTMLElement | null>
+  initialFocusRef?: RefObject<HTMLElement>
 }
 
 export function Modal({
