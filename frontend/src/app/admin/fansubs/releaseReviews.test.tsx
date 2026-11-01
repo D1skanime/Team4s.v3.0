@@ -277,14 +277,16 @@ describe('read-only release review detail and decisions', () => {
     })
     render(<ReleaseReviewPage />)
     fireEvent.click(await screen.findByRole('button', { name: 'Ablehnen' }))
-    fireEvent.change(screen.getByLabelText('Ablehnungsgrund'), {
+    // { exact: false }, da Labels von Pflichtfeldern seit der Label-Grundbaustein-Umstellung
+    // zusätzlich den für Screenreader eingebetteten "(Pflichtfeld)"-Hinweis im Textinhalt tragen.
+    fireEvent.change(screen.getByLabelText('Ablehnungsgrund', { exact: false }), {
       target: { value: 'quality.insufficient' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Beitrag ablehnen' }))
 
     expect(screen.getByRole('alert').textContent).toContain('mindestens 10 Zeichen')
 
-    fireEvent.change(screen.getByLabelText('Begründung'), {
+    fireEvent.change(screen.getByLabelText('Begründung', { exact: false }), {
       target: { value: 'Das Bild ist deutlich zu unscharf.' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Beitrag ablehnen' }))

@@ -110,10 +110,12 @@ describe('GuidedRevokeFlow', () => {
     const confirmButton = screen.getByRole('button', { name: 'Recht entziehen' }) as HTMLButtonElement
     expect(confirmButton.disabled).toBe(false)
 
-    fireEvent.change(screen.getByLabelText('Grund'), { target: { value: 'other' } })
+    // { exact: false }, da Labels von Pflichtfeldern seit der Label-Grundbaustein-Umstellung
+    // zusätzlich den für Screenreader eingebetteten "(Pflichtfeld)"-Hinweis im Textinhalt tragen.
+    fireEvent.change(screen.getByLabelText('Grund', { exact: false }), { target: { value: 'other' } })
     expect(confirmButton.disabled).toBe(true)
 
-    fireEvent.change(screen.getByLabelText('Begründung'), { target: { value: 'Testbegründung' } })
+    fireEvent.change(screen.getByLabelText('Begründung', { exact: false }), { target: { value: 'Testbegründung' } })
     expect(confirmButton.disabled).toBe(false)
   })
 

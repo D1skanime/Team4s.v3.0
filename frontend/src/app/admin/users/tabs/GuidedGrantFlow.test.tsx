@@ -76,7 +76,9 @@ describe('GuidedGrantFlow', () => {
 
     expect(screen.queryByText(/wird aktuell gewährt durch/)).toBeNull()
     expect(screen.getByRole('button', { name: 'Recht zusätzlich erlauben' })).not.toBeNull()
-    expect(screen.getByLabelText('Grund')).not.toBeNull()
+    // { exact: false }, da Labels von Pflichtfeldern seit der Label-Grundbaustein-Umstellung
+    // zusätzlich den für Screenreader eingebetteten "(Pflichtfeld)"-Hinweis im Textinhalt tragen.
+    expect(screen.getByLabelText('Grund', { exact: false })).not.toBeNull()
   })
 
   it('ruft mutateCapabilityOverride mit effect=allow auf und zeigt danach den echten activation_status', async () => {
