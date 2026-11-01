@@ -1,9 +1,8 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useEffect, useId, useRef } from 'react'
-import { createPortal } from 'react-dom'
-import type { KeyboardEvent, ReactNode } from 'react'
+import { useId } from 'react'
+import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 
 import { mergeCssModules } from '@/lib/mergeCssModules'
 
@@ -11,6 +10,7 @@ import { Button } from './Button'
 import { DialogHeader } from './DialogHeader'
 import { IconButton } from './IconButton'
 import { VisuallyHidden } from './VisuallyHidden'
+import { renderInBodyPortal, useOverlaySurface } from './useOverlaySurface'
 import ownStyles from './Modal.module.css'
 import sharedStyles from './ui.module.css'
 
@@ -46,23 +46,13 @@ export interface ModalProps {
    * wie heute.
    */
   onEscapeKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => boolean
-}
-
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  const selector = [
-    'button:not([disabled])',
-    '[href]',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    'textarea:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(', ')
-
-  return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter((element) => {
-    if (element.getAttribute('aria-hidden') === 'true') return false
-    if (element.hasAttribute('disabled')) return false
-    return true
-  })
+  /**
+   * Fokussiert nach dem Oeffnen dieses Element statt des Schliessen-Buttons (z. B. fuer
+   * ConfirmDialogs Abbrechen-Button im Footer). Additiv -- jeder bestehende Aufrufer laesst
+   * dieses Feld weg und erhaelt dadurch weiterhin den bisherigen Standard-Fokus auf das
+   * Schliessen-Kreuz.
+   */
+  initialFocusRef?: RefObject<HTMLElement | null>
 }
 
 export function Modal({
@@ -76,51 +66,15 @@ export function Modal({
   panelClassName,
   variant = 'default',
   onEscapeKeyDown,
+  initialFocusRef,
 }: ModalProps) {
   const titleID = useId()
-  const panelRef = useRef<HTMLDivElement | null>(null)
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
-  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
-
-  useEffect(() => {
-    if (!open) return
-
-    previouslyFocusedRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    const focusTarget = closeButtonRef.current ?? panelRef.current
-    window.setTimeout(() => focusTarget?.focus(), 0)
-
-    return () => {
-      previouslyFocusedRef.current?.focus()
-      previouslyFocusedRef.current = null
-    }
-  }, [open])
-
-  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      if (onEscapeKeyDown?.(event)) return
-      onClose()
-      return
-    }
-
-    if (event.key !== 'Tab' || !panelRef.current) return
-
-    const focusable = getFocusableElements(panelRef.current)
-    if (focusable.length === 0) {
-      event.preventDefault()
-      panelRef.current.focus()
-      return
-    }
-
-    const activeElement = document.activeElement
-    const currentIndex = focusable.findIndex((element) => element === activeElement)
-    const nextIndex = event.shiftKey
-      ? currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1
-      : currentIndex === focusable.length - 1 ? 0 : currentIndex + 1
-
-    event.preventDefault()
-    focusable[nextIndex]?.focus()
-  }
+  const { panelRef, closeButtonRef, handleKeyDown } = useOverlaySurface({
+    open,
+    onClose,
+    onEscapeKeyDown,
+    initialFocusRef,
+  })
 
   if (!open) {
     return null
@@ -188,6 +142,5 @@ export function Modal({
     </div>
   )
 
-  // Portal an document.body -> Modal entkommt allen isolation/z-index-Kontexten (z. B. Section-Backdrop)
-  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal
+  return renderInBodyPortal(modal)
 }
