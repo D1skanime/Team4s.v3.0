@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
 
-import { Badge, Button, Card } from '@/components/ui'
+import { Badge, Button, Card, DisclosureIndicator, IconButton } from '@/components/ui'
 import { ROLE_CATALOG_CHIP_CLASS, labelForRole, presentationForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { RoleDefinitionOption } from '@/types/admin-capability'
@@ -208,17 +207,14 @@ export function AnimeGroupCard({
               Projekt öffnen
             </Button>
           ) : null}
-          <Button
+          <IconButton
             size="sm"
-            variant="secondary"
-            iconOnly
+            variant="default"
             aria-label={open ? 'Projektrollen ausblenden' : 'Projektrollen anzeigen'}
             aria-expanded={open}
             onClick={() => setOpen(!open)}
-            className={styles.disclosureButton}
-          >
-            <ChevronDown aria-hidden="true" size={16} strokeWidth={2.4} />
-          </Button>
+            icon={<DisclosureIndicator open={open} variant="button" size="sm" />}
+          />
         </div>
       </div>
 

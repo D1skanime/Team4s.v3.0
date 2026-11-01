@@ -5,6 +5,7 @@ import { Copy, Link2, Pencil, Trash2, UserCheck, UserX } from 'lucide-react'
 import {
   Badge,
   Button,
+  IconButton,
   Input,
   Toolbar,
 } from '@/components/ui'
@@ -195,16 +196,14 @@ function HistoricalMemberCard({
               <Pencil size={16} aria-hidden="true" />
               <span>Bearbeiten</span>
             </Button>
-            <Button
+            <IconButton
               variant="ghost"
               size="sm"
-              iconOnly
               aria-label={`${member.display_name} löschen`}
               title={`${member.display_name} löschen`}
               onClick={() => onDeleteMember(member)}
-            >
-              <Trash2 size={15} aria-hidden="true" />
-            </Button>
+              icon={<Trash2 size={15} aria-hidden="true" />}
+            />
           </div>
         ) : null}
       </div>

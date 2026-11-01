@@ -13,7 +13,7 @@ import { ColorTokenExtension } from './ColorTokenExtension'
 import type { ColorToken } from './ColorTokenExtension'
 import { StoryImageExtension } from './StoryImageExtension'
 import { StoryImageToolbarButton } from './StoryImageToolbarButton'
-import { Button } from '@/components/ui'
+import { Button, IconButton } from '@/components/ui'
 import type { Editor } from '@tiptap/react'
 import styles from './RichTextEditor.module.css'
 
@@ -128,28 +128,24 @@ function EditorToolbar({ editor, variant = 'full', enableImages, onPendingImageA
   if (variant === 'minimal') {
     return (
       <div className={styles.toolbar} role="toolbar" aria-label="Textformatierung">
-        <Button
+        <IconButton
           type="button"
-          variant={editor.isActive('bold') ? 'secondary' : 'subtle'}
+          variant={editor.isActive('bold') ? 'default' : 'ghost'}
           size="sm"
-          iconOnly
           onClick={() => editor.chain().focus().toggleBold().run()}
           title="Fett"
           aria-label="Fett"
-        >
-          <strong>B</strong>
-        </Button>
-        <Button
+          icon={<strong>B</strong>}
+        />
+        <IconButton
           type="button"
-          variant={editor.isActive('italic') ? 'secondary' : 'subtle'}
+          variant={editor.isActive('italic') ? 'default' : 'ghost'}
           size="sm"
-          iconOnly
           onClick={() => editor.chain().focus().toggleItalic().run()}
           title="Kursiv"
           aria-label="Kursiv"
-        >
-          <em>I</em>
-        </Button>
+          icon={<em>I</em>}
+        />
         <Button
           type="button"
           variant={editor.isActive('bulletList') ? 'secondary' : 'subtle'}

@@ -4,7 +4,7 @@ import { type Dispatch, type SetStateAction } from "react";
 import { ExternalLink, Trash2 } from "lucide-react";
 
 import type { FansubGroupLinkType } from "@/types/fansub";
-import { Button, FormField, Input, Select } from "@/components/ui";
+import { FormField, IconButton, Input, Select } from "@/components/ui";
 import { getFansubLinkTypeLabel } from "@/lib/fansub-labels";
 import { createEmptyLink } from "./fansubEditFormMapping";
 import { defaultCommunityLinkURL } from "./fansubEditFormatters";
@@ -126,24 +126,23 @@ export function FansubCommunityLinksList({
                   placeholder={placeholderForLinkType(link.link_type)}
                 />
                 {url && !urlError ? (
-                  <Button
+                  <IconButton
                     type="button"
-                    variant="subtle"
+                    variant="accent"
                     size="sm"
-                    iconOnly
                     aria-label="Link öffnen"
                     onClick={() => window.open(url, "_blank", "noreferrer")}
-                    leftIcon={<ExternalLink size={14} />}
+                    icon={<ExternalLink size={14} />}
                   />
                 ) : null}
               </div>
             </FormField>
             {canManage ? (
-            <Button
+            <IconButton
               type="button"
-              variant="danger"
+              variant="ghost"
+              tone="danger"
               size="sm"
-              iconOnly
               className={styles.fansubEditLinkRemoveButton}
               aria-label="Link entfernen"
               onClick={() =>
@@ -153,7 +152,7 @@ export function FansubCommunityLinksList({
                     : current.filter((item) => item.key !== link.key),
                 )
               }
-              leftIcon={<Trash2 size={14} />}
+              icon={<Trash2 size={14} />}
             />
             ) : null}
           </div>

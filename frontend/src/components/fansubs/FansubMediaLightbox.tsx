@@ -3,7 +3,7 @@
 import { ZoomIn, ZoomOut } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { Button, Modal } from '@/components/ui'
+import { IconButton, Modal } from '@/components/ui'
 import { ThumbnailStrip } from '@/components/ui/ThumbnailStrip'
 import { resolveApiUrl } from '@/lib/api'
 import { resetCaptionPanelOpen, resolveEscapeTarget, resolveWheelOrSwipeTarget } from '@/lib/mediaViewerCaptionPanel'
@@ -167,16 +167,14 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
           imageWidthPx={imageWidthPx}
         />
         <ThumbnailStrip items={thumbnailItems} activeIndex={currentIndex} onSelect={onNavigate} regionLabel="Bildvorschau" />
-        <Button
+        <IconButton
           type="button"
-          variant="floating"
-          iconOnly
+          variant="default"
           aria-label={isZoomed(zoomLevel) ? 'Zoom zurücksetzen' : 'Bild vergrößern'}
           className={styles.zoomButton}
           onClick={() => setZoomLevel(cycleZoomLevel(zoomLevel))}
-        >
-          {isZoomed(zoomLevel) ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
-        </Button>
+          icon={isZoomed(zoomLevel) ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
+        />
       </div>
     </Modal>
   )

@@ -2,7 +2,7 @@ import type { Dispatch, DragEvent, PointerEvent as ReactPointerEvent, SetStateAc
 import { Ban, Check, Edit3, GripVertical, X } from 'lucide-react'
 import Image from 'next/image'
 
-import { Badge, Button, Card, EmptyState, Input } from '@/components/ui'
+import { Badge, Button, Card, EmptyState, IconButton, Input } from '@/components/ui'
 import { classNames } from '@/components/ui/classNames'
 import {
   FansubGroupMediaCategory,
@@ -303,22 +303,22 @@ export function GroupMediaReviewGrid({
                     {canReview ? (
                       <>
                         {persisted.review_status !== 'freigegeben' ? (
-                          <Button
-                            variant="success"
+                          <IconButton
+                            variant="ghost"
+                            tone="success"
                             size="sm"
-                            iconOnly
-                            leftIcon={<Check size={16} />}
+                            icon={<Check size={16} />}
                             aria-label={`${displayTitle} freigeben`}
                             title="Freigeben"
                             disabled={isSavingItem || isBulkSaving}
                             onClick={() => void handleQuickReview(item, 'freigegeben')}
                           />
                         ) : null}
-                        <Button
-                          variant="danger"
+                        <IconButton
+                          variant="ghost"
+                          tone="danger"
                           size="sm"
-                          iconOnly
-                          leftIcon={<Ban size={16} />}
+                          icon={<Ban size={16} />}
                           aria-label={`${displayTitle} ablehnen`}
                           title="Ablehnen"
                           disabled={isSavingItem || isBulkSaving}
@@ -327,11 +327,10 @@ export function GroupMediaReviewGrid({
                       </>
                     ) : null}
                     {canEditItem ? (
-                      <Button
-                        variant={isEditing ? 'secondary' : 'primary'}
+                      <IconButton
+                        variant={isEditing ? 'default' : 'accent'}
                         size="sm"
-                        iconOnly
-                        leftIcon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
+                        icon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
                         aria-label={`${displayTitle} bearbeiten`}
                         title={isEditing ? 'Schließen' : 'Bearbeiten'}
                         disabled={isBulkSaving}

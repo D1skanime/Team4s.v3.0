@@ -20,6 +20,7 @@ import {
   Badge,
   Button,
   DisclosureIndicator,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -170,18 +171,16 @@ export function SegmentsListSection({
                             <Badge variant="warning">Zeit hier überschrieben</Badge>
                           ) : null}
                           <span>{[...new Set((segment.assigned_episodes ?? []).map((episode) => episode.episode_number))].join(', ') || '—'}</span>
-                          <Button
+                          <IconButton
                             type="button"
                             variant="ghost"
                             size="sm"
-                            iconOnly
                             aria-label="Zugewiesene Folgen anzeigen/ausblenden"
                             onClick={() =>
                               setOpenAssignmentsFor(openAssignmentsFor === segment.id ? null : segment.id)
                             }
-                          >
-                            <DisclosureIndicator open={assignmentsOpen} variant="button" size="sm" />
-                          </Button>
+                            icon={<DisclosureIndicator open={assignmentsOpen} variant="button" size="sm" />}
+                          />
                         </div>
                       </TableCell>
                       <TableCell data-label="Zeitbereich" style={{ fontFamily: 'monospace', fontSize: 12 }}>
@@ -221,11 +220,10 @@ export function SegmentsListSection({
                       <TableCell data-label="Aktionen">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           {segment.playback_source_kind && segment.playback_source_kind !== 'uploaded_asset' ? (
-                            <Button
+                            <IconButton
                               type="button"
                               variant="ghost"
                               size="sm"
-                              iconOnly
                               title={segment.render_status === 'ready' ? 'Neu rendern' : 'Segment vorbereiten'}
                               aria-label={segment.render_status === 'ready' ? 'Neu rendern' : 'Segment vorbereiten'}
                               disabled={
@@ -234,31 +232,28 @@ export function SegmentsListSection({
                                 segment.render_status === 'rendering'
                               }
                               onClick={() => onRenderSegment(segment)}
-                            >
-                              <RefreshCw size={14} />
-                            </Button>
+                              icon={<RefreshCw size={14} />}
+                            />
                           ) : null}
-                          <Button
+                          <IconButton
                             type="button"
                             variant="ghost"
                             size="sm"
-                            iconOnly
                             title="Bearbeiten"
+                            aria-label="Bearbeiten"
                             onClick={() => onEditSegment(segment)}
-                          >
-                            <Pencil size={14} />
-                          </Button>
-                          <Button
+                            icon={<Pencil size={14} />}
+                          />
+                          <IconButton
                             type="button"
-                            variant="danger"
+                            variant="ghost"
+                            tone="danger"
                             size="sm"
-                            iconOnly
                             title="Segment löschen"
                             aria-label="Segment löschen"
                             onClick={() => onDeleteSegment(segment)}
-                          >
-                            <Trash2 size={14} />
-                          </Button>
+                            icon={<Trash2 size={14} />}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>

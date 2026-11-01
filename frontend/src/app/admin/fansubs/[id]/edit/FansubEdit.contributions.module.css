@@ -156,10 +156,6 @@
   min-height: 44px;
 }
 
-.contributionRemoveButton {
-  color: var(--color-error);
-}
-
 .contributionRoleLabel {
   font-size: 0.78rem;
   font-weight: 700;

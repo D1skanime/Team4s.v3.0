@@ -2,7 +2,7 @@
 
 import { Plus, X } from 'lucide-react'
 
-import { Badge, Button } from '@/components/ui'
+import { Badge, Button, IconButton } from '@/components/ui'
 import type { AdminThemeSegment } from '@/types/admin'
 import { findAssignedEpisodeHasOverride, findAssignedEpisodeNumber, formatAssignmentChipLabel } from './SegmenteTab.helpers'
 
@@ -56,12 +56,11 @@ export function SegmentAssignmentsRow({
               style={{ display: 'inline-flex', alignItems: 'center', gap: 2, maxWidth: '100%', minWidth: 0 }}
             >
               <Badge variant={chipVariant}>{chipLabel}</Badge>
-              <Button
+              <IconButton
                 type="button"
                 variant="ghost"
                 size="sm"
-                iconOnly
-                leftIcon={<X size={12} />}
+                icon={<X size={12} />}
                 aria-label={`Zuweisung für Folge ${assignedEpisodeNumber} entfernen`}
                 onClick={() => onUnassign(assignedReleaseVersionId)}
                 disabled={isBusy || !canRemove}

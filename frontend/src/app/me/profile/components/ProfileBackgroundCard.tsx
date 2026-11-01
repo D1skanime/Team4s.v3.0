@@ -5,7 +5,7 @@ import type { RefObject } from 'react'
 import { Crop } from 'lucide-react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
-import { Button, MediaSlot } from '@/components/ui'
+import { IconButton, MediaSlot } from '@/components/ui'
 import type { UploadDropzoneHandle } from '@/components/ui'
 import { apiClientFetch } from '@/lib/api'
 import {
@@ -107,17 +107,16 @@ export function ProfileBackgroundCard({
         className={isCompact ? styles.mediaControlBannerSlot : styles.backgroundPreviewSlot}
         media={backgroundURL ? { kind: 'image', src: backgroundURL, alt: 'Aktuelles Profil-Hintergrundbild', objectFit: 'contain' } : null}
         actions={canEditExistingBackground ? (
-          <Button
+          <IconButton
             type="button"
-            variant="secondary"
+            variant="default"
             size="sm"
-            iconOnly
             loading={isPreparingExistingBackground}
             disabled={isUploading || isPreparingExistingBackground}
             onClick={handleEditExistingBackground}
             aria-label="Ausschnitt bearbeiten"
             title="Ausschnitt bearbeiten"
-            leftIcon={<Crop size={16} aria-hidden="true" />}
+            icon={<Crop size={16} aria-hidden="true" />}
           />
         ) : null}
       />

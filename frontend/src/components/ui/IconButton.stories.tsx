@@ -86,6 +86,36 @@ export const Deaktiviert: Story = {
   args: { disabled: true },
 }
 
+export const Laedt: Story = {
+  name: 'Lädt',
+  args: { loading: true, 'aria-label': 'Wird gespeichert' },
+  parameters: {
+    docs: {
+      description: { story: 'Ersetzt das Icon durch einen Lade-Kreisel und deaktiviert den Button zusätzlich -- identisch zu Buttons gleichnamiger Prop.' },
+    },
+  },
+}
+
+export const GefahrTon: Story = {
+  name: 'Gefahr-Ton',
+  args: { icon: <X size={18} />, 'aria-label': 'Eintrag löschen', variant: 'ghost', tone: 'danger' },
+  parameters: {
+    docs: {
+      description: { story: 'Färbt in demselben Status-Ton-Seed wie Buttons variant="danger" -- für einen Icon-only-Löschen-Auslöser innerhalb einer Zeile/Karte.' },
+    },
+  },
+}
+
+export const ErfolgsTon: Story = {
+  name: 'Erfolgs-Ton',
+  args: { icon: <ChevronRight size={18} />, 'aria-label': 'Freigeben', variant: 'ghost', tone: 'success' },
+  parameters: {
+    docs: {
+      description: { story: 'Färbt in demselben Status-Ton-Seed wie Buttons variant="success" -- für einen Icon-only-Freigeben-Auslöser.' },
+    },
+  },
+}
+
 export const FeldAusloeser: Story = {
   name: 'Feld-Auslöser',
   args: {

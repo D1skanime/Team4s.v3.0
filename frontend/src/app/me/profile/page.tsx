@@ -9,7 +9,7 @@ import { ChevronDown, Eye, Pencil, RotateCw, Save } from 'lucide-react'
 import { RecentContributionsSection } from '@/components/profile/RecentContributionsSection'
 import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
-import { Button, Card, ErrorState, FormField, LoadingState, SectionHeader, Textarea } from '@/components/ui'
+import { Button, Card, ErrorState, FormField, IconButton, LoadingState, SectionHeader, Textarea } from '@/components/ui'
 import type { UploadDropzoneHandle } from '@/components/ui'
 import { ApiError, getMyBadges, getMyMemberClaim, getOwnProfile, patchMyBadgeVisibility, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground, uploadOwnProfileStoryImage } from '@/lib/api'
 import { consumeRegistrationCompletion } from '@/lib/registrationCompletion'
@@ -127,15 +127,14 @@ function EditableProfileHeader({
             <span aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span>
           )}
         </div>
-        <Button
+        <IconButton
           type="button"
-          variant="secondary"
+          variant="default"
           size="sm"
-          iconOnly
           className={styles.profileHeaderAvatarButton}
           aria-label="Avatar-Bild ändern"
           disabled={!profile.capabilities.can_upload_own_avatar}
-          leftIcon={<Pencil size={16} aria-hidden="true" />}
+          icon={<Pencil size={16} aria-hidden="true" />}
           onClick={onAvatarEdit}
         />
       </div>

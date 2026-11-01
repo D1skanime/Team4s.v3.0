@@ -9,6 +9,7 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  IconButton,
   Input,
   LoadingState,
   Select,
@@ -298,12 +299,12 @@ export function FansubAliasSection({
                             Umhängen…
                           </Button>
                         )}
-                        <Button
-                          variant="danger"
+                        <IconButton
+                          variant="ghost"
+                          tone="danger"
                           size="sm"
-                          iconOnly
                           disabled={!canManage}
-                          leftIcon={<Trash2 size={14} />}
+                          icon={<Trash2 size={14} />}
                           aria-label={`Alias ${row.alias} löschen`}
                           onClick={() => void handleDelete(row)}
                         />
