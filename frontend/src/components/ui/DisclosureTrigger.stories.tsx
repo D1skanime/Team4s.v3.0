@@ -8,7 +8,7 @@ import { DisclosureTrigger } from './DisclosureTrigger'
 
 /** Vollbreite, aufklappbare Kopfzeile -- Grundlage für Accordion und eigenständig nutzbar. */
 const meta = {
-  title: 'Zusammengesetzte Bausteine/DisclosureTrigger',
+  title: 'Grundbausteine/DisclosureTrigger',
   component: DisclosureTrigger,
   tags: ['autodocs'],
   parameters: {

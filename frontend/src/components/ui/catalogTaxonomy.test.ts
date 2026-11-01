@@ -51,6 +51,10 @@ const EXCEPTIONS: Record<string, string[]> = {
   // Label-Fläche, kein vom Aufrufer sichtbar komponierter Baustein-Verbund (gleiche Begründung
   // wie bei Avatar oben).
   Label: ['VisuallyHidden'],
+  // DisclosureIndicator ist nur das interne Öffner-Symbol (Chevron/Pfeil), kein vom Aufrufer
+  // sichtbar komponierter Baustein-Verbund -- DisclosureTrigger bleibt deshalb trotz dieses
+  // Imports ein Grundbaustein (gleiche Begründung wie bei Avatar/Label oben).
+  DisclosureTrigger: ['DisclosureIndicator'],
 }
 
 /** Story-Dateien unter "Grundbausteine/*", die bewusst KEINE eigene X.tsx haben, weil sie reine
