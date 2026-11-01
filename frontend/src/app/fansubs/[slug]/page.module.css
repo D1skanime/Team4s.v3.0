@@ -108,14 +108,9 @@
 .heroBodyOnBanner {
   position: relative;
   /* MetricList bekommt die helle Beschriftung für den Banner-Fall über die offizielle
-     tone="onDark"-Prop (FansubHeroSection.tsx), nicht mehr über eine hier gesetzte CSS-Variable.
-     Gleiches Muster für den Status-Badge (variant="muted") in der Titelzeile: dessen
-     Standard-Chip (helles Glas, gedämpftes Blaugrau) ist auf dem dunklen Banner-Scrim praktisch
-     unlesbar. Die hier gesetzten hellen Werte sind rechnerisch in
-     FansubHeroSection.accessibility.test.ts gegen den Worst-Case-Scrim-Hintergrund auf
-     mindestens 4,5:1 Kontrast nachgewiesen. */
-  --badge-muted-bg: rgba(255, 255, 255, 0.18);
-  --badge-muted-fg: #ffffff;
+     tone="onDark"-Prop (FansubHeroSection.tsx). Der Status-Badge in der Titelzeile nutzt auf
+     dem Banner die offizielle variant="onMedia" (eigene, kontrastgeprüfte Tokens in
+     components.css) statt der hier vormals injizierten --badge-muted-*-Variablen. */
 }
 
 .heroBodyOnBanner::before {

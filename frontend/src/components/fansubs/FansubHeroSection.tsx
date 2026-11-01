@@ -46,10 +46,16 @@ function buildInitials(name: string): string {
     .toUpperCase()
 }
 
-function statusVariant(status: FansubGroup['status']): 'success' | 'warning' | 'muted' {
+/**
+ * Bildet den Mitgliedschafts-/Aktivitaetsstatus einer Fansub-Gruppe auf eine Badge-Variante ab.
+ * `onBanner` steuert nur den neutralen "sonstigen Status"-Fall: Sitzt die Badge auf dem dunklen
+ * Bild-Scrim des Banner-Headers, braucht sie die helle `onMedia`-Variante statt der auf hellen
+ * Hintergruenden gedachten `muted`-Variante, damit der Text lesbar bleibt.
+ */
+function statusVariant(status: FansubGroup['status'], onBanner: boolean): 'success' | 'warning' | 'onMedia' | 'muted' {
   if (status === 'active') return 'success'
   if (status === 'inactive') return 'warning'
-  return 'muted'
+  return onBanner ? 'onMedia' : 'muted'
 }
 
 interface HeroLinkChip {
@@ -133,7 +139,7 @@ export function FansubHeroSection({
                 <div className={styles.heroIntro}>
                   <div className={styles.heroTitleRow}>
                     <h1 className={styles.title}>{group.name}</h1>
-                    <Badge variant={statusVariant(group.status)}>{statusLabel(group.status)}</Badge>
+                    <Badge variant={statusVariant(group.status, Boolean(bannerURL))}>{statusLabel(group.status)}</Badge>
                   </div>
                   <p className={styles.subtitle}>{factSummary || 'Keine Kurzbeschreibung vorhanden.'}</p>
                 </div>

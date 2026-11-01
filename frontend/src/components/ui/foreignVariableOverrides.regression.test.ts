@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest'
  *    wird ausschließlich innerhalb seiner eigenen Datei gesetzt (alle Varianten-Klassen leben dort
  *    zusammen); (b) eine explizite Registrierung der bekannten "Override-Hook"-Variablen (Baustein
  *    liest sie per `var(--x, Standardwert)`, OHNE sie selbst zu setzen, und erwartet das Setzen
- *    bewusst von außen -- z. B. Badges `--badge-muted-bg`) deckt genau den Fall ab, den (a) allein
+ *    bewusst von außen -- z. B. Avatars `--avatar-bg`) deckt genau den Fall ab, den (a) allein
  *    nicht erkennen würde (ein einzelner fremder Setzer bliebe sonst unter der Zwei-Dateien-
  *    Schwelle unentdeckt).
  * 2. Feste px-/rem-Größen, Hex-Farben oder rgba-Literale direkt in einer `components/ui`-CSS-
@@ -60,8 +60,6 @@ function findSetVariables(cssText: string): string[] {
 const KNOWN_OVERRIDE_HOOK_OWNERS: Record<string, string> = {
   '--avatar-bg': 'Avatar.module.css',
   '--avatar-fg': 'Avatar.module.css',
-  '--badge-muted-bg': 'Badge.module.css',
-  '--badge-muted-fg': 'Badge.module.css',
   '--focal-item-size': 'FocalCarousel.module.css',
   '--grid-scroll-item-size': 'FocalCarousel.module.css',
   '--text-body-size': 'Text.module.css',
