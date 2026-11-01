@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import type { FocalCarouselItemState } from './FocalCarousel'
 import { FocalCarousel } from './FocalCarousel'
 
@@ -40,7 +42,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: Button, NavArrow (über FocalCarouselInternals).',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/Button', 'Button')}, ${storybookDocsLink('Zusammengesetzte Bausteine/NavArrow', 'NavArrow')} (über FocalCarouselInternals).`,
       },
     },
   },

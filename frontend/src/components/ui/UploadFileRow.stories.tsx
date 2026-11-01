@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { UploadFileRow } from './UploadFileRow'
 
 const demoFile = new File(['Team4s Storybook Demo-Inhalt'], 'release-screenshot.png', { type: 'image/png' })
@@ -13,7 +15,13 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: Card, MediaFrame, ResponsiveImage, Heading, Text, ProgressBar, Badge, Button, FormField, Input, Textarea.',
+        component:
+          `Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')}, ${storybookDocsLink('Grundbausteine/MediaFrame', 'MediaFrame')}, ` +
+          `${storybookDocsLink('Grundbausteine/ResponsiveImage', 'ResponsiveImage')}, ${storybookDocsLink('Grundbausteine/Heading', 'Heading')}, ` +
+          `${storybookDocsLink('Grundbausteine/Text', 'Text')}, ${storybookDocsLink('Grundbausteine/ProgressBar', 'ProgressBar')}, ` +
+          `${storybookDocsLink('Grundbausteine/Badge', 'Badge')}, ${storybookDocsLink('Grundbausteine/Button', 'Button')}, ` +
+          `${storybookDocsLink('Zusammengesetzte Bausteine/FormField', 'FormField')}, ${storybookDocsLink('Grundbausteine/Input', 'Input')}, ` +
+          `${storybookDocsLink('Grundbausteine/Textarea', 'Textarea')}.`,
       },
     },
   },

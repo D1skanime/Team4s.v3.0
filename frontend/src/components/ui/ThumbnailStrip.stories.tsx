@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { ThumbnailStrip } from './ThumbnailStrip'
 
 // Lokales Platzhalterbild statt externer Bildquelle — keine Netzwerkabhängigkeit.
@@ -20,7 +22,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: ResponsiveImage.',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/ResponsiveImage', 'ResponsiveImage')}.`,
       },
     },
   },

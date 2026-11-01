@@ -3,10 +3,12 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { DesignTokensShowcase } from './DesignTokensShowcase'
 
 /**
- * Design-Tokens- und Farbfamilien-Vorschau, gruppiert nach Token-Familie.
+ * Automatisch aus globals.css ausgelesener, vollständiger Design-Token-Katalog -- keine von Hand
+ * gepflegte Teilliste. Unter "Grundlagen" statt "Im Einsatz" einsortiert: zeigt die Rohdaten des
+ * Design-Systems selbst, keine domänenspezifische Komposition.
  */
 const meta = {
-  title: 'Im Einsatz/Design-Tokens und Farbfamilien',
+  title: 'Grundlagen/Design-Tokens',
   component: DesignTokensShowcase,
   tags: ['autodocs'],
 } satisfies Meta<typeof DesignTokensShowcase>

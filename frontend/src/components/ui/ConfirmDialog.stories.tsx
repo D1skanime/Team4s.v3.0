@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { Button } from './Button'
 import { useConfirmDialog } from './ConfirmDialog'
 
@@ -12,7 +14,7 @@ const meta = {
         component:
           '`useConfirmDialog()` ist ein Hook+Komponenten-Verbund (kein reines Props-Rendering) — ' +
           'diese Story demonstriert den echten Aufruf-Fluss: Button klicken öffnet das Modal, ' +
-          'Bestätigen/Abbrechen löst das zurückgegebene Promise auf. Besteht aus: Modal, Button.',
+          `Bestätigen/Abbrechen löst das zurückgegebene Promise auf. Besteht aus: ${storybookDocsLink('Zusammengesetzte Bausteine/Modal', 'Modal')}, ${storybookDocsLink('Grundbausteine/Button', 'Button')}.`,
       },
     },
   },

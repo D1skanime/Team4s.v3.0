@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { Badge } from './Badge'
 import { DisclosureTrigger } from './DisclosureTrigger'
 
@@ -12,7 +14,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: DisclosureIndicator.',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/DisclosureIndicator', 'DisclosureIndicator')}.`,
       },
     },
   },

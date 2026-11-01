@@ -141,17 +141,23 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   nutzen (`Button`, `Select`, `FormField`, `Modal`, `Input`, `Textarea`, `Tabs`,
   `Drawer`, `Card`, `Table`, `Heading`, `Text` …). Referenz/Showcase: Storybook —
   Start über `docker compose up -d team4sv30-storybook`, danach
-  `http://192.168.235.196:6006` bzw. über den SSH-Tunnel auf Port 6006. Drei
-  Kategorien: `Grundbausteine/*` zeigt jedes eigenständige Primitiv (26 Stories,
-  keine andere `components/ui`-Komponente intern importiert) mit voller
-  Zustandsabdeckung — inklusive der beiden Typografie-Grundbausteine `Heading`
-  (`level`/`size` getrennt: semantisches Tag vs. visuelle Größenstufe) und `Text`
-  (`variant`: body/soft/meta/small); `Zusammengesetzte Bausteine/*` zeigt
-  Primitives, die sichtbar mehrere benannte Grundbausteine komponieren (18
-  Stories, z. B. FormField, Modal, Drawer, NavArrow — jede mit einem „Besteht
-  aus"-Hinweis in ihrer Autodocs-Beschreibung); `Im Einsatz/*` zeigt die
-  migrierten domänenspezifischen Kompositionen (13 Stories). Eine automatische
-  Katalogprüfung (`catalogTaxonomy.test.ts`) schlägt fehl, wenn ein
+  `http://192.168.235.196:6006` bzw. über den SSH-Tunnel auf Port 6006. Vier
+  Kategorien: `Grundlagen/*` zeigt die Rohdaten des Design-Systems selbst (aktuell
+  `Design-Tokens`: liest ALLE CSS-Custom-Properties automatisch aus `globals.css`
+  über `document.styleSheets` aus und gruppiert sie nach Namens-Familie -- keine
+  von Hand gepflegte Teilliste, siehe `frontend/src/lib/designTokens.ts`);
+  `Grundbausteine/*` zeigt jedes eigenständige Primitiv (26 Stories, keine andere
+  `components/ui`-Komponente intern importiert) mit voller Zustandsabdeckung —
+  inklusive der beiden Typografie-Grundbausteine `Heading` (`level`/`size`
+  getrennt: semantisches Tag vs. visuelle Größenstufe) und `Text` (`variant`:
+  body/soft/meta/small); `Zusammengesetzte Bausteine/*` zeigt Primitives, die
+  sichtbar mehrere benannte Grundbausteine komponieren (18 Stories, z. B.
+  FormField, Modal, Drawer, NavArrow — jede mit einem „Besteht aus"-Hinweis in
+  ihrer Autodocs-Beschreibung, als echte Storybook-Dokumentationslinks über
+  `storybookDocsLink()` aus `frontend/src/lib/storybookLinks.ts`, nicht als
+  reiner Text); `Im Einsatz/*` zeigt die migrierten domänenspezifischen
+  Kompositionen (13 Stories). Eine automatische Katalogprüfung
+  (`catalogTaxonomy.test.ts`) schlägt fehl, wenn ein
   `Grundbausteine/*`-Primitiv stillschweigend eine andere, selbst katalogisierte
   Komponente importiert, statt entweder umsortiert zu werden oder in dessen
   dokumentierter `EXCEPTIONS`-Map zu stehen. `IconButton` hat zusätzlich zu

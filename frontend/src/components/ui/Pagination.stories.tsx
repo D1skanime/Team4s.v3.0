@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 import { useState } from 'react'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { Pagination } from './Pagination'
 
 /** Seitennavigation für lange Listen: Zurück/Weiter plus Seitenfenster mit Lückenanzeige. */
@@ -12,7 +14,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Besteht aus: Button, Text. Unterstützt Klick-Modus (`onPageChange`) und Link-Modus (`hrefForPage`) für Seiten-Sprung-Navigation, sowie `mode="loadMore"` für cursor-/batch-basiertes Nachladen (Fortschrittstext + Weniger-/Mehr-Button statt Seiten-Sprung).',
+          `Besteht aus: ${storybookDocsLink('Grundbausteine/Button', 'Button')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')}. Unterstützt Klick-Modus (\`onPageChange\`) und Link-Modus (\`hrefForPage\`) für Seiten-Sprung-Navigation, sowie \`mode="loadMore"\` für cursor-/batch-basiertes Nachladen (Fortschrittstext + Weniger-/Mehr-Button statt Seiten-Sprung).`,
       },
     },
   },
@@ -21,37 +23,54 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+/** Echter `useState`-Zustand statt eines eingefrorenen `onPageChange: () => {}`-Platzhalters --
+ *  jede Seitenzahl im Canvas ist dadurch tatsächlich klickbar (zeigt die neu ausgewählte Seite
+ *  als "aktuell" an), auch wenn jede Story mit einer anderen Rand-Konfiguration startet. */
+function ControlledPagination({ initialPage, totalPages }: { initialPage: number; totalPages: number }) {
+  const [currentPage, setCurrentPage] = useState(initialPage)
+  return <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+}
+
+// render() ignoriert args und baut seinen eigenen Seitenzahl-Zustand -- Platzhalter-args nur,
+// weil Storybooks Typen bei einem Union-Props-Baustein ein vollständiges args-Objekt verlangen
+// (identisches Muster wie die NachladeModus-Story unten).
+const PLACEHOLDER_PAGES_ARGS = { currentPage: 1, totalPages: 1 }
+
 export const MittenImVerlauf: Story = {
   name: 'Mitten im Verlauf',
-  args: { currentPage: 2, totalPages: 8, onPageChange: () => {} },
+  args: PLACEHOLDER_PAGES_ARGS,
+  render: () => <ControlledPagination initialPage={2} totalPages={8} />,
 }
 
 export const ErsteSeite: Story = {
   name: 'Erste Seite',
-  args: { currentPage: 1, totalPages: 8, onPageChange: () => {} },
+  args: PLACEHOLDER_PAGES_ARGS,
+  render: () => <ControlledPagination initialPage={1} totalPages={8} />,
   parameters: {
     docs: {
-      description: { story: 'Prüft den deaktivierten "Zurück"-Button auf der ersten Seite.' },
+      description: { story: 'Prüft den deaktivierten "Zurück"-Button auf der ersten Seite -- auf eine andere Seitenzahl klicken zeigt, dass er danach wieder aktiv wird.' },
     },
   },
 }
 
 export const LetzteSeite: Story = {
   name: 'Letzte Seite',
-  args: { currentPage: 8, totalPages: 8, onPageChange: () => {} },
+  args: PLACEHOLDER_PAGES_ARGS,
+  render: () => <ControlledPagination initialPage={8} totalPages={8} />,
   parameters: {
     docs: {
-      description: { story: 'Prüft den deaktivierten "Weiter"-Button auf der letzten Seite.' },
+      description: { story: 'Prüft den deaktivierten "Weiter"-Button auf der letzten Seite -- auf eine andere Seitenzahl klicken zeigt, dass er danach wieder aktiv wird.' },
     },
   },
 }
 
 export const LueckeAufBeidenSeiten: Story = {
   name: 'Lücke auf beiden Seiten',
-  args: { currentPage: 10, totalPages: 20, onPageChange: () => {} },
+  args: PLACEHOLDER_PAGES_ARGS,
+  render: () => <ControlledPagination initialPage={10} totalPages={20} />,
   parameters: {
     docs: {
-      description: { story: 'Sehr lange Liste: Erste/letzte Seite bleiben sichtbar, der Rest wird über zwei Lücken ausgeblendet.' },
+      description: { story: 'Sehr lange Liste: Erste/letzte Seite bleiben sichtbar, der Rest wird über zwei Lücken ausgeblendet. Jede sichtbare Seitenzahl ist klickbar.' },
     },
   },
 }

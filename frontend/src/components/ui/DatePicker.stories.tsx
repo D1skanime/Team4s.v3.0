@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { DatePicker } from './DatePicker'
 import { FormField } from './FormField'
 import { Input } from './Input'
@@ -21,7 +23,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: IconButton, NavArrow, Button.',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/IconButton', 'IconButton')}, ${storybookDocsLink('Zusammengesetzte Bausteine/NavArrow', 'NavArrow')}, ${storybookDocsLink('Grundbausteine/Button', 'Button')}.`,
       },
     },
   },

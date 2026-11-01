@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { Button } from './Button'
 import { ErrorState, getErrorStateCopy } from './ErrorState'
 
@@ -13,7 +15,7 @@ const meta = {
         component:
           'Fehlerzustand-Primitive. `Status403` demonstriert den speziellen 403-Sonderfall von ' +
           '`getErrorStateCopy`/`getStatusAwareMessage` (eigene Berechtigungs-Fehlermeldung statt des ' +
-          'generischen "Fehler beim Laden"). Besteht aus: Card, StatusIcon, Heading, Text.',
+          `generischen "Fehler beim Laden"). Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')}, ${storybookDocsLink('Grundbausteine/StatusIcon', 'StatusIcon')}, ${storybookDocsLink('Grundbausteine/Heading', 'Heading')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')}.`,
       },
     },
   },

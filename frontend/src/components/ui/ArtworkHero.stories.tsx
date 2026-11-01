@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Check } from 'lucide-react'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { Badge } from './Badge'
 import { Button } from './Button'
 import { ArtworkHero } from './ArtworkHero'
@@ -15,7 +17,11 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: Card, Avatar, ResponsiveImage, Heading (Hero-Titel), Text sowie die Slot-Bausteine MetricList, Badge, Button.',
+        component:
+          `Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')}, ${storybookDocsLink('Grundbausteine/Avatar', 'Avatar')}, ` +
+          `${storybookDocsLink('Grundbausteine/ResponsiveImage', 'ResponsiveImage')}, ${storybookDocsLink('Grundbausteine/Heading', 'Heading')} (Hero-Titel), ` +
+          `${storybookDocsLink('Grundbausteine/Text', 'Text')} sowie die Slot-Bausteine ${storybookDocsLink('Zusammengesetzte Bausteine/MetricList', 'MetricList')}, ` +
+          `${storybookDocsLink('Grundbausteine/Badge', 'Badge')}, ${storybookDocsLink('Grundbausteine/Button', 'Button')}.`,
       },
     },
   },

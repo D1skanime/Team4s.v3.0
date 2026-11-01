@@ -1,149 +1,78 @@
-import { Card, SectionHeader } from '@/components/ui'
+'use client'
 
-import styles from './showcases.module.css'
+import { useState } from 'react'
+
+import { Card, SectionHeader } from '@/components/ui'
+import { extractDesignTokens, groupDesignTokens, isColorLikeValue } from '@/lib/designTokens'
+import type { DesignTokenGroup } from '@/lib/designTokens'
+
+import styles from './DesignTokensShowcase.module.css'
 
 /**
- * Eigenständige Design-Tokens- und Farbfamilien-Vorschau. Zeigt die Basis-Token-Familien
- * (Canvas/Card/Accent/Success, Radius/Schatten/Spacing/Typografie) sowie die zusätzlichen
- * Farbfamilien der öffentlichen Profile (Avatar-Kreise, Medien-Kategorie-Tags,
- * Community-Logo-Farben) — alles über CSS-Variablen, keine Inline-Hex-Werte in
- * Produktkomponenten.
+ * Liest ALLE in `globals.css` unter `:root` deklarierten CSS-Custom-Properties direkt aus den
+ * tatsächlich geladenen Stylesheets der Seite (`document.styleSheets`, nicht aus einer von Hand
+ * gepflegten JS-Liste mit abgeschriebenen Hex-/Pixel-Werten) und gruppiert sie automatisch nach
+ * Namens-Familie. Ein neu in `globals.css` ergänztes Token erscheint dadurch ohne jede Änderung
+ * an dieser Komponente -- `designTokens.test.ts` weist das gegen eine unabhängige Regex-Zählung
+ * derselben Datei nach.
  */
-
-const tokenSwatches = [
-  { name: 'Canvas', variable: '--surface-canvas', color: '#f6f4ef' },
-  { name: 'Card', variable: '--surface-card', color: '#ffffff' },
-  { name: 'Accent', variable: '--accent-primary', color: '#5f84dd' },
-  { name: 'Success', variable: '--color-success', color: '#28a745' },
-]
-
-const avatarFamily = Array.from({ length: 6 }, (_, index) => ({
-  label: `Avatar ${index + 1}`,
-  variable: `--avatar-${index + 1}`,
-}))
-
-const categoryTagFamily = [
-  { label: 'Galerie', key: 'gallery' },
-  { label: 'Historie', key: 'history' },
-  { label: 'Old-Web', key: 'oldweb' },
-  { label: 'Forum', key: 'forum' },
-  { label: 'IRC', key: 'irc' },
-  { label: 'Event', key: 'event' },
-  { label: 'Artwork', key: 'artwork' },
-  { label: 'Sonstiges', key: 'other' },
-]
-
-const communityLinkFamily = [
-  { label: 'Discord', variable: '--link-discord' },
-  { label: 'IRC', variable: '--link-irc' },
-  { label: 'Twitter/X', variable: '--link-twitter' },
-  { label: 'GitHub', variable: '--link-github' },
-]
+function readRootDeclarationsFromDocument(): string {
+  const blocks: string[] = []
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList
+    try {
+      rules = sheet.cssRules
+    } catch {
+      // Cross-Origin-Stylesheets (im Projekt nicht vorhanden) werfen beim Zugriff auf cssRules --
+      // defensiv überspringen statt die ganze Seite abstürzen zu lassen.
+      continue
+    }
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSStyleRule && rule.selectorText === ':root') {
+        blocks.push(rule.cssText)
+      }
+    }
+  }
+  return blocks.join('\n')
+}
 
 export function DesignTokensShowcase() {
-  return (
-    <div className={styles.stack}>
-      <Card variant="section">
-        <SectionHeader
-          eyebrow="01"
-          title="Design-Tokens-Vorschau"
-          description="Die visuelle Basis bleibt ruhig und neutral, mit einem kühleren blau-tealigen Akzent für Primäraktionen und klare Hierarchie."
-        />
-        <div className={styles.tokenGrid}>
-          {tokenSwatches.map((swatch) => (
-            <div key={swatch.variable} className={styles.swatch} style={{ background: swatch.color }}>
-              <strong>{swatch.name}</strong>
-              <code>{swatch.variable}</code>
-            </div>
-          ))}
-        </div>
-        <div className={styles.showcaseGrid}>
-          <Card variant="flat" title="Radius" description="Harmonische Rundungen statt vieler Zufallswerte.">
-            <div className={styles.radiusRow}>
-              <div className={styles.radiusSample} style={{ borderRadius: '12px' }}><code>sm</code></div>
-              <div className={styles.radiusSample} style={{ borderRadius: '14px' }}><code>md</code></div>
-              <div className={styles.radiusSample} style={{ borderRadius: '20px' }}><code>lg</code></div>
-            </div>
-          </Card>
-          <Card variant="flat" title="Schatten" description="Zurückhaltend und nur zur Hierarchie, nicht als 2015-Panel-Effekt.">
-            <div className={styles.shadowRow}>
-              <div className={styles.shadowSample} style={{ boxShadow: 'var(--shadow-xs)' }}><code>xs</code></div>
-              <div className={styles.shadowSample} style={{ boxShadow: 'var(--shadow-sm)' }}><code>sm</code></div>
-              <div className={styles.shadowSample} style={{ boxShadow: 'var(--shadow-md)' }}><code>md</code></div>
-            </div>
-          </Card>
-          <Card variant="flat" title="Spacing" description="Abstände werden über Tokens statt über page-lokale Magic Numbers geführt.">
-            <div className={styles.spacingRow}>
-              <div className={styles.spacingSample}><code>space-3</code></div>
-              <div className={styles.spacingSample}><code>space-5</code></div>
-              <div className={styles.spacingSample}><code>space-7</code></div>
-            </div>
-          </Card>
-          <Card variant="flat" title="Typografie" description="Klare Hierarchie mit ruhigen Fließtextfarben und kräftigeren Titeln.">
-            <div className={styles.stack}>
-              <div className={styles.tokenLine}><strong>Titel</strong><code>--text-strong</code></div>
-              <div className={styles.tokenLine}><span>Body Copy</span><code>--text-body</code></div>
-              <div className={styles.tokenLine}><span>Metatext</span><code>--text-soft / --text-faint</code></div>
-            </div>
-          </Card>
-        </div>
-      </Card>
+  // Lazy-Initializer statt useEffect: document.styleSheets steht bereits vor dem ersten Rendern
+  // zur Verfügung (Storybook/Next.js laden globals.css, bevor React überhaupt mountet) -- ein
+  // Effekt mit synchronem setState wäre nur eine unnötige zweite Rendering-Runde.
+  const [groups] = useState<DesignTokenGroup[]>(() => {
+    if (typeof document === 'undefined') return []
+    return groupDesignTokens(extractDesignTokens(readRootDeclarationsFromDocument()))
+  })
 
-      <Card variant="section">
-        <SectionHeader
-          eyebrow="01b"
-          title="Farbfamilien – öffentliche Profile"
-          description="Zusätzliche Token-Familien für die öffentlichen Fansub-Seiten: farbige Avatar-Kreise, Medien-Kategorie-Tags und Community-Logo-Farben. Alle über CSS-Variablen, keine Inline-Hex-Werte in den Komponenten."
-        />
-        <div className={styles.stack}>
-          <div>
-            <div className={styles.tokenLine}><strong>Avatar-Kreise</strong><code>--avatar-N-bg / -fg</code></div>
-            <div className={styles.colorFamilyGrid}>
-              {avatarFamily.map((item) => (
-                <span
-                  key={item.variable}
-                  className={styles.colorChip}
-                  style={{ background: `var(${item.variable}-bg)`, color: `var(${item.variable}-fg)` }}
-                >
-                  {item.label}
-                  <code>{item.variable}</code>
-                </span>
-              ))}
-            </div>
+  const totalTokenCount = groups.reduce((sum, group) => sum + group.tokens.length, 0)
+
+  return (
+    <div className={styles.stack} data-token-count={totalTokenCount}>
+      <SectionHeader
+        eyebrow="Grundlagen"
+        title="Design-Tokens"
+        description={`${totalTokenCount} CSS-Custom-Properties aus globals.css, automatisch ausgelesen und nach Namens-Familie gruppiert -- keine von Hand gepflegte Liste.`}
+      />
+      {groups.map((group) => (
+        <Card key={group.key} variant="section" title={group.label} description={`${group.tokens.length} Token${group.tokens.length === 1 ? '' : 's'}`}>
+          <div className={styles.groupGrid}>
+            {group.tokens.map((token) => (
+              <div key={token.name} className={styles.tokenRow}>
+                {isColorLikeValue(token.value) ? (
+                  <span className={styles.tokenSwatch} style={{ background: `var(${token.name})` }} aria-hidden="true" />
+                ) : (
+                  <span className={styles.tokenSwatchPlaceholder} aria-hidden="true" />
+                )}
+                <div className={styles.tokenRowDetails}>
+                  <code>{token.name}</code>
+                  <code>{token.value}</code>
+                </div>
+              </div>
+            ))}
           </div>
-          <div>
-            <div className={styles.tokenLine}><strong>Medien-Kategorie-Tags</strong><code>--tag-KEY-bg / -fg</code></div>
-            <div className={styles.colorFamilyGrid}>
-              {categoryTagFamily.map((item) => (
-                <span
-                  key={item.key}
-                  className={styles.colorChip}
-                  style={{ background: `var(--tag-${item.key}-bg)`, color: `var(--tag-${item.key}-fg)` }}
-                >
-                  {item.label}
-                  <code>{`--tag-${item.key}`}</code>
-                </span>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className={styles.tokenLine}><strong>Community-Logo-Farben</strong><code>--link-KEY</code></div>
-            <div className={styles.colorFamilyGrid}>
-              {communityLinkFamily.map((item) => (
-                <span key={item.variable} className={styles.colorChip}>
-                  <span className={styles.colorDot} style={{ background: `var(${item.variable})` }} />
-                  {item.label}
-                  <code>{item.variable}</code>
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className={styles.tokenLine}>
-            <span>Weitere Tokens</span>
-            <code>--accent-deep · --scrim-strong · --scrim-icon</code>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      ))}
     </div>
   )
 }

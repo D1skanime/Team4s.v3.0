@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { Badge } from './Badge'
 import { Button } from './Button'
 import { Heading } from './Heading'
@@ -14,7 +16,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: DisclosureTrigger.',
+        component: `Besteht aus: ${storybookDocsLink('Zusammengesetzte Bausteine/DisclosureTrigger', 'DisclosureTrigger')}.`,
       },
     },
   },

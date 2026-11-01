@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { MediaSlot } from './MediaSlot'
 
 /** Einzel-Bild/-Video-Upload-Slot: zeigt nie eine zweite, große Dropzone neben einer
@@ -11,7 +13,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: MediaFrame, UploadDropzone.',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/MediaFrame', 'MediaFrame')}, ${storybookDocsLink('Zusammengesetzte Bausteine/UploadDropzone', 'UploadDropzone')}.`,
       },
     },
   },

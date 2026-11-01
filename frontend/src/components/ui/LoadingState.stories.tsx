@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { LoadingState } from './LoadingState'
 
 const meta = {
@@ -9,7 +11,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Ladezustand-Primitive für Bereiche, die noch keine Daten haben. Besteht aus: Card, Spinner, Heading, Text.',
+        component: `Ladezustand-Primitive für Bereiche, die noch keine Daten haben. Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')}, ${storybookDocsLink('Grundbausteine/Spinner', 'Spinner')}, ${storybookDocsLink('Grundbausteine/Heading', 'Heading')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')}.`,
       },
     },
   },

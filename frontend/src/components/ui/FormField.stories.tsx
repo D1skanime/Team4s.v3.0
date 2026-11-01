@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { FormField } from './FormField'
 import { Input } from './Input'
 import { Select } from './Select'
@@ -16,8 +18,10 @@ const meta = {
     docs: {
       description: {
         component:
-          'Beschriftungs-/Hinweis-/Fehler-Hülle für ein einzelnes Formularfeld. Besteht aus: Input, ' +
-          'Select, Textarea, DatePicker, YearPicker oder Switch als umschlossenes Feld.',
+          'Beschriftungs-/Hinweis-/Fehler-Hülle für ein einzelnes Formularfeld. Besteht aus: ' +
+          `${storybookDocsLink('Grundbausteine/Input', 'Input')}, ${storybookDocsLink('Grundbausteine/Select', 'Select')}, ` +
+          `${storybookDocsLink('Grundbausteine/Textarea', 'Textarea')}, ${storybookDocsLink('Zusammengesetzte Bausteine/DatePicker', 'DatePicker')}, ` +
+          `${storybookDocsLink('Zusammengesetzte Bausteine/YearPicker', 'YearPicker')} oder ${storybookDocsLink('Grundbausteine/Switch', 'Switch')} als umschlossenes Feld.`,
       },
     },
   },

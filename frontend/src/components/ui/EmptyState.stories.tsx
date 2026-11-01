@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Info } from 'lucide-react'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { Button } from './Button'
 import { EmptyState } from './EmptyState'
 
@@ -11,7 +13,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Leerzustand-Primitive für Listen/Übersichten ohne Einträge. Besteht aus: Card, StatusIcon, Heading, Text.',
+        component: `Leerzustand-Primitive für Listen/Übersichten ohne Einträge. Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')}, ${storybookDocsLink('Grundbausteine/StatusIcon', 'StatusIcon')}, ${storybookDocsLink('Grundbausteine/Heading', 'Heading')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')}.`,
       },
     },
   },

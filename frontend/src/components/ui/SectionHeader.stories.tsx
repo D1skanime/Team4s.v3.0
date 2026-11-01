@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { Badge } from './Badge'
 import { SectionHeader } from './SectionHeader'
 
@@ -11,7 +13,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: Heading, Text.',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/Heading', 'Heading')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')}.`,
       },
     },
   },

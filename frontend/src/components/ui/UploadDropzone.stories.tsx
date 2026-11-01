@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { UploadDropzone } from './UploadDropzone'
 
 /**
@@ -15,7 +17,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: Button, Input.',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/Button', 'Button')}, ${storybookDocsLink('Grundbausteine/Input', 'Input')}.`,
       },
     },
   },

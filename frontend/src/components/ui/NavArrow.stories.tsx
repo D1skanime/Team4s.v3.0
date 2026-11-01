@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { NavArrow } from './NavArrow'
 
 /**
@@ -13,7 +15,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: IconButton.',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/IconButton', 'IconButton')}.`,
       },
     },
   },

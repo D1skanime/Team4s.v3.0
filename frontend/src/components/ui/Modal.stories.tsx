@@ -1,5 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 import { useState } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
+
+import { storybookDocsLink } from '@/lib/storybookLinks'
 
 import { Button } from './Button'
 import { Modal } from './Modal'
@@ -17,9 +20,7 @@ const meta = {
       description: {
         component:
           'Overlay-Primitive mit Fokus-Trap (Tab bleibt innerhalb des Panels) und Escape-Schließen. ' +
-          'Storybook rendert statisch, daher `open: true` als Default-Arg — ein Modal, das erst per ' +
-          'Klick geöffnet werden müsste, wäre in der Story unsichtbar. Besteht aus: DialogHeader ' +
-          '(intern), IconButton, Button.',
+          `Besteht aus: ${storybookDocsLink('Grundbausteine/IconButton', 'IconButton')}, ${storybookDocsLink('Grundbausteine/Button', 'Button')} (DialogHeader liefert die Kopfzeile, aber als internes Implementierungsdetail ohne eigene Story).`,
       },
     },
   },
@@ -28,32 +29,62 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+type ControlledModalProps = Omit<ComponentProps<typeof Modal>, 'open' | 'onClose' | 'footer'> & {
+  /** Render-Funktion statt eines fertigen `ReactNode` wie bei Modals eigenem `footer`-Prop --
+   *  die Footer-Buttons brauchen Zugriff auf das lokale `close`, das erst innerhalb dieser
+   *  Komponente entsteht. */
+  footer?: (close: () => void) => ReactNode
+}
+
+/** Echter `useState`-Zustand statt eines eingefrorenen `open: true`/`onClose: () => {}`-
+ *  Platzhalters -- das Modal startet geöffnet (sofort sichtbar), Escape/Backdrop-Klick/die
+ *  Footer-Aktionen schließen es tatsächlich; ein "Modal erneut öffnen"-Button erscheint danach,
+ *  damit die Story kein Sackgassen-Zustand wird. */
+function ControlledModal({ footer, ...props }: ControlledModalProps) {
+  const [open, setOpen] = useState(true)
+  const close = () => setOpen(false)
+  return (
+    <>
+      {!open ? <Button onClick={() => setOpen(true)}>Modal erneut öffnen</Button> : null}
+      <Modal {...props} open={open} onClose={close} footer={footer ? footer(close) : undefined} />
+    </>
+  )
+}
+
 export const Standard: Story = {
-  args: {
-    title: 'Release-Version archivieren?',
-    description: 'Die Version bleibt nachvollziehbar, verschwindet aber aus der aktiven Arbeitsliste.',
-    children: <p>Das Modal bleibt bewusst kurz und zeigt nur den nötigen Kontext vor einer klaren Entscheidung.</p>,
-    footer: (
-      <>
-        <Button variant="secondary">Abbrechen</Button>
-        <Button variant="danger">Archivieren</Button>
-      </>
-    ),
-  },
+  // render() ignoriert args und baut seinen eigenen Öffnen-/Schließen-Zustand -- Platzhalter-args
+  // nur, weil Storybooks Typen bei Pflicht-Props (title/children) ein vollständiges args-Objekt
+  // verlangen, identisches Muster wie Pagination.stories.tsx' NachladeModus-Story.
+  args: { title: 'Release-Version archivieren?', children: null },
+  render: () => (
+    <ControlledModal
+      title="Release-Version archivieren?"
+      description="Die Version bleibt nachvollziehbar, verschwindet aber aus der aktiven Arbeitsliste."
+      footer={(close) => (
+        <>
+          <Button variant="secondary" onClick={close}>Abbrechen</Button>
+          <Button variant="danger" onClick={close}>Archivieren</Button>
+        </>
+      )}
+    >
+      <p>Das Modal bleibt bewusst kurz und zeigt nur den nötigen Kontext vor einer klaren Entscheidung.</p>
+    </ControlledModal>
+  ),
   parameters: {
     docs: {
       description: {
         story:
-          'Der Fokus-Trap hält Tab-Navigation innerhalb des Panels; das addon-a11y-Panel dieser Story zeigt automatisierte Fokus-/Kontrast-Hinweise.',
+          'Der Fokus-Trap hält Tab-Navigation innerhalb des Panels; das addon-a11y-Panel dieser Story zeigt automatisierte Fokus-/Kontrast-Hinweise. Escape, Backdrop-Klick und die Footer-Aktionen schließen das Modal tatsächlich.',
       },
     },
   },
 }
 
 /**
- * Echte Öffnen-/Schließen-Interaktion statt des eingefrorenen `open: true`-Standard-Arg der
- * übrigen Stories: ein Klick auf den Auslöser-Button öffnet das Modal, Escape/Backdrop-Klick/
- * der Schließen-Button schließen es wieder über den eigenen `onClose`-Callback.
+ * Identisch zu Standard, zusätzlich mit den vollständigen `args` aus `meta` (inklusive des
+ * eingefrorenen `open: true`-Platzhalters) als Storybook-Controls bedienbar -- demonstriert,
+ * dass ein Aufrufer beliebige Props über `args` überschreiben kann, ohne die lokale
+ * Öffnen-/Schließen-Logik zu verlieren.
  */
 export const OeffnenUndSchliessen: Story = {
   name: 'Öffnen und Schließen',
@@ -88,10 +119,10 @@ export const OeffnenUndSchliessen: Story = {
 
 export const LangerInhalt: Story = {
   name: 'Langer Inhalt',
-  args: {
-    title: 'Ausführliche Release-Notizen',
-    size: 'lg',
-    children: (
+  // Platzhalter-args aus demselben Grund wie bei Standard oben.
+  args: { title: 'Ausführliche Release-Notizen', children: null },
+  render: () => (
+    <ControlledModal title="Ausführliche Release-Notizen" size="lg">
       <div>
         {Array.from({ length: 12 }, (_, index) => (
           <p key={index}>
@@ -100,6 +131,6 @@ export const LangerInhalt: Story = {
           </p>
         ))}
       </div>
-    ),
-  },
+    </ControlledModal>
+  ),
 }

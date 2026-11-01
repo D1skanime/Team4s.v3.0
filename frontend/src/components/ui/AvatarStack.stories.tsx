@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { AvatarStack } from './AvatarStack'
 
 /** Überlappende Identitäten mit `+N`-Overflow, optional als zugänglicher Button. */
@@ -10,7 +12,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: IconButton (Überlauf-Auslöser, wenn onOverflowClick gesetzt ist).',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/IconButton', 'IconButton')} (Überlauf-Auslöser, wenn onOverflowClick gesetzt ist).`,
       },
     },
   },

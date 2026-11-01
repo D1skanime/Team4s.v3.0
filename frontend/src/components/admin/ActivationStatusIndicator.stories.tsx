@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { ActivationStatusIndicator } from './ActivationStatusIndicator'
 
 /**
@@ -13,7 +15,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: Badge, Button.',
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/Badge', 'Badge')}, ${storybookDocsLink('Grundbausteine/Button', 'Button')}.`,
       },
     },
   },

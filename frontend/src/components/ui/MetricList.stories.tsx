@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { MetricList } from './MetricList'
 
 /** Liste von Kennzahlen (Bezeichnung + Wert) für Hero-Flächen und Statistik-Abschnitte. */
@@ -10,7 +12,9 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Besteht aus: Text, Heading (Hero-Titel), Button (nur bei klickbaren Kennzahlen).',
+        component:
+          `Besteht aus: ${storybookDocsLink('Grundbausteine/Text', 'Text')}, ${storybookDocsLink('Grundbausteine/Heading', 'Heading')} (Hero-Titel), ` +
+          `${storybookDocsLink('Grundbausteine/Button', 'Button')} (nur bei klickbaren Kennzahlen).`,
       },
     },
   },
