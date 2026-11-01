@@ -18,6 +18,23 @@ remediation:
     (452/453 Dateien, 5374 Tests, 0 Fehlschläge), typecheck/lint/build-storybook
     erneut bestätigt. Status nach Remediation: effektiv passed (9/9 relevante
     Truths jetzt erfüllt, inkl. Nr. 10).
+remediation_round2:
+  applied: 2026-11-01T22:05:00Z
+  commit: 197f27d63
+  source: "Unabhängiger Folge-Review (Codex, Runde 1 von 2)"
+  summary: >
+    Unabhängiger Folge-Review fand einen Folgefehler aus dem CR-01-Fix (commit 105d07294,
+    Teil der ersten Remediation-Runde oben): das Freigeben des Traps bei Portal-Fokus verhinderte
+    zwar das fälschliche Herausreißen des Fokus, ließ aber am Rand des Portal-Popovers (letztes
+    Element vorwärts, erstes Element rückwärts) die native Browser-Tabreihenfolge greifen --
+    Elemente hinter Modal/Drawer wurden dadurch erreichbar. Der eigene Drawer-Test aus Runde 1
+    kodierte dieses Fehlverhalten sogar als Erwartung. Behoben per getTrapOrder() in
+    useOverlaySurface.ts: Popover-Inhalte werden über die Standard-ARIA-Beziehung
+    aria-expanded="true"/aria-controls erkannt und an der Stelle ihres Auslösers in die
+    Tab-Reihenfolge eingefügt, sodass der Trap über die vollständige Vereinigung aus Panel- und
+    Popover-Elementen zykelt. Drawer.test.tsx-Test ersetzt (prüft beide Ränder plus
+    Popover-interne Navigation). Vollständiger Testlauf danach erneut grün (452/453 Dateien,
+    5374 Tests), typecheck/lint erneut bestätigt.
 gaps:
   - truth: "Code-Kommentare in neu angelegten/umbenannten Bausteinen sind Deutsch mit korrekten Umlauten (CLAUDE.md 'Sprachqualität' + 'Dokumentation wächst mit dem Code'; explizit auch Task-1-Akzeptanzkriterium: 'Kommentare in der neuen Datei sind fachlich, deutsch, mit korrekten Umlauten')."
     status: failed
