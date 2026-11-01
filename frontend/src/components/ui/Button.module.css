@@ -121,6 +121,34 @@
   box-shadow: var(--button-shadow-success-hover);
 }
 
+.buttonWarning {
+  --button-bg:
+    var(--button-gloss-standard),
+    linear-gradient(to bottom, var(--button-warning-start) 0%, var(--button-warning-mid) 45%, var(--button-warning-end) 100%);
+  --button-border: color-mix(in srgb, var(--button-warning-end) 74%, var(--button-shade-warning) 26%);
+  --button-text: var(--button-text-on-warning);
+  --button-shadow: var(--button-shadow-warning);
+}
+
+.buttonWarning:hover {
+  border-color: color-mix(in srgb, var(--button-warning-end) 72%, var(--button-shade-warning) 28%);
+  box-shadow: var(--button-shadow-warning-hover);
+}
+
+.buttonInfo {
+  --button-bg:
+    var(--button-gloss-standard),
+    linear-gradient(to bottom, var(--button-info-start) 0%, var(--button-info-mid) 45%, var(--button-info-end) 100%);
+  --button-border: color-mix(in srgb, var(--button-info-end) 74%, var(--button-shade-info) 26%);
+  --button-text: var(--button-text-on-info);
+  --button-shadow: var(--button-shadow-info);
+}
+
+.buttonInfo:hover {
+  border-color: color-mix(in srgb, var(--button-info-end) 72%, var(--button-shade-info) 28%);
+  box-shadow: var(--button-shadow-info-hover);
+}
+
 /* Offizieller "aktuell/ausgewählt"-Zustand für Pagination, Filter-Knöpfe und Umschalter: reagiert
    auf die Standard-ARIA-Attribute aria-current/aria-pressed, keine eigene Prop nötig. Greift
    unabhängig von der gewählten variant, damit z. B. eine ausgewählte Seitenzahl innerhalb einer
@@ -146,8 +174,10 @@
   font-weight: inherit;
   line-height: inherit;
   color: inherit;
-  /* GAP-03 F2 (157-15): a permanent, hover-independent affordance -- the underline must be
-     visible before any hover/focus interaction, not just appear on :hover. */
+  /* Die Unterstreichung ist ein dauerhaftes, von Hover unabhängiges Erkennungsmerkmal für
+     text-artige Aktionen -- sie muss schon im Ruhezustand sichtbar sein, nicht erst bei
+     Hover/Fokus erscheinen, da sonst der klickbare Charakter des Elements ohne Interaktion nicht
+     erkennbar ist. */
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
   text-underline-offset: var(--button-text-underline-offset);

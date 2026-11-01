@@ -91,10 +91,17 @@
   /* Abgedunkelte Mischfarben für den Rahmen jeder gefüllten Variante im Hover-/Ruhezustand. */
   --button-shade-primary: #24396f;
   --button-shade-success: #1b5d4a;
+  /* warning/info (Task 7, Status-Ton-Konsolidierung): abgedunkelte Rahmenfarbe per color-mix()
+     vom jeweiligen Seed statt eines weiteren unabhängigen Hex-Werts -- analog zum bestehenden
+     Primary-/Success-Muster, nur aus dem geteilten Seed statt von Hand abgestimmt. */
+  --button-shade-warning: color-mix(in srgb, var(--button-warning-seed) 55%, black 45%);
+  --button-shade-info: color-mix(in srgb, var(--button-info-seed) 55%, black 45%);
   --button-text-on-primary: #f8fbff;
   --button-text-on-secondary: #f7f9ff;
   --button-text-on-danger: #fff8fb;
   --button-text-on-success: #f7fffb;
+  --button-text-on-warning: #fffaf0;
+  --button-text-on-info: #f5f9ff;
   --button-shadow-primary: 0 5px 14px rgba(67, 99, 180, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18);
   --button-shadow-primary-hover: 0 7px 18px rgba(67, 99, 180, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   --button-shadow-primary-focus: 0 7px 18px rgba(67, 99, 180, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 0 3px rgba(122, 160, 240, 0.2);
@@ -104,6 +111,10 @@
   --button-shadow-danger-hover: 0 7px 18px rgba(58, 14, 35, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   --button-shadow-success: 0 5px 14px rgba(47, 155, 121, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.18);
   --button-shadow-success-hover: 0 7px 18px rgba(47, 155, 121, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  --button-shadow-warning: 0 5px 14px rgba(196, 158, 78, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-shadow-warning-hover: 0 7px 18px rgba(196, 158, 78, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  --button-shadow-info: 0 5px 14px rgba(89, 122, 176, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-shadow-info-hover: 0 7px 18px rgba(89, 122, 176, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 
   /* Tabs */
   --tabs-gap: 12px;

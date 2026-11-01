@@ -116,12 +116,30 @@
   --button-secondary-start: #4b5f8c;
   --button-secondary-mid: #394a72;
   --button-secondary-end: #2a3556;
-  --button-danger-start: #82122c;
-  --button-danger-mid: #580c22;
-  --button-danger-end: #3a0e23;
-  --button-success-start: #79e0b5;
-  --button-success-mid: #51c99d;
-  --button-success-end: #2f9b79;
+
+  /* Status-Ton-Gradienten (danger/success/warning/info): EINE Quelle für "dieser Ton" über
+     Badge UND Button hinweg statt zwei unabhängiger Hex-Paletten. Jeder Seed-Wert ist dieselbe
+     RGB-Farbfamilie wie Badges gleichnamiger --badge-<ton>-border-Ton (components.css) --
+     dort als teiltransparenter rgba()-Wert für Rahmen-Striche hinterlegt, hier als deckender
+     Hex-Wert, da color-mix() eine bestehende Transparenz nicht nachträglich entfernen kann.
+     Die drei Gradient-Stopps je Ton leiten sich einheitlich per color-mix() vom Seed ab (heller
+     oben, dunkler unten -- derselbe 3-Stopp-Verlaufsstil wie primary/secondary). */
+  --button-danger-seed: #95405c;
+  --button-danger-start: color-mix(in srgb, var(--button-danger-seed) 80%, white 20%);
+  --button-danger-mid: var(--button-danger-seed);
+  --button-danger-end: color-mix(in srgb, var(--button-danger-seed) 80%, black 20%);
+  --button-success-seed: #52a884;
+  --button-success-start: color-mix(in srgb, var(--button-success-seed) 80%, white 20%);
+  --button-success-mid: var(--button-success-seed);
+  --button-success-end: color-mix(in srgb, var(--button-success-seed) 80%, black 20%);
+  --button-warning-seed: #c49e4e;
+  --button-warning-start: color-mix(in srgb, var(--button-warning-seed) 80%, white 20%);
+  --button-warning-mid: var(--button-warning-seed);
+  --button-warning-end: color-mix(in srgb, var(--button-warning-seed) 80%, black 20%);
+  --button-info-seed: #597ab0;
+  --button-info-start: color-mix(in srgb, var(--button-info-seed) 80%, white 20%);
+  --button-info-mid: var(--button-info-seed);
+  --button-info-end: color-mix(in srgb, var(--button-info-seed) 80%, black 20%);
 
   /* Tokenisierung der vormals in ui.module.css hartcodierten Neutral-Tönung für StatusIcon
      (reine Benennung bestehender Werte, keine Verhaltensänderung). */

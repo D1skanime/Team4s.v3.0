@@ -6,7 +6,7 @@ import { classNames } from './classNames'
 import styles from './Button.module.css'
 import { Spinner } from './Spinner'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'text' | 'floating'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'warning' | 'info' | 'text' | 'floating'
 /** 'hero' (Größe/Gewicht wie Heading size="hero") und 'prose' (1rem, wie Text variant="body")
  *  ergänzen die Steuerelement-Größen sm/md/lg um zwei Textfluss-Größen -- für `variant="text"`,
  *  das Größe/Gewicht sonst vom umgebenden Kontext erbt. */
@@ -74,6 +74,8 @@ export function Button(props: ButtonProps) {
     variant === 'subtle' && styles.buttonSubtle,
     variant === 'danger' && styles.buttonDanger,
     variant === 'success' && styles.buttonSuccess,
+    variant === 'warning' && styles.buttonWarning,
+    variant === 'info' && styles.buttonInfo,
     variant === 'text' && styles.buttonText,
     variant === 'floating' && styles.buttonFloating,
     size === 'sm' && styles.buttonSmall,

@@ -49,6 +49,16 @@ export const Erfolg: Story = {
   args: { variant: 'success', children: 'Speichern' },
 }
 
+export const Warnung: Story = {
+  name: 'Warnung',
+  args: { variant: 'warning', children: 'Warnung' },
+}
+
+export const Hinweis: Story = {
+  name: 'Hinweis',
+  args: { variant: 'info', children: 'Hinweis' },
+}
+
 export const NurSymbol: Story = {
   name: 'Nur Symbol',
   args: {
@@ -133,7 +143,7 @@ export const AktuellAusgewaehlt: Story = {
   },
 }
 
-const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'text', 'floating'] as const
+const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'warning', 'info', 'text', 'floating'] as const
 const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   primary: 'Primär',
   secondary: 'Sekundär',
@@ -141,6 +151,8 @@ const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   subtle: 'Zurückhaltend',
   danger: 'Gefahr',
   success: 'Erfolg',
+  warning: 'Warnung',
+  info: 'Hinweis',
   text: 'Text',
   floating: 'Schwebend',
 }
