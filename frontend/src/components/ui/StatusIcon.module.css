@@ -1,0 +1,51 @@
+.statusIcon {
+  width: var(--status-icon-size-md);
+  height: var(--status-icon-size-md);
+  border-radius: var(--status-icon-radius-md);
+  display: grid;
+  place-items: center;
+  font-size: var(--status-icon-font-size-md);
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.statusIconNeutral {
+  background: color-mix(in srgb, var(--state-icon-neutral-bg) 68%, white);
+  color: var(--state-icon-neutral-fg);
+}
+
+.statusIconDanger {
+  background: color-mix(in srgb, var(--button-danger-mid) 12%, white);
+  color: var(--button-danger-end);
+}
+
+.statusIconInfo {
+  background: color-mix(in srgb, var(--accent-primary) 14%, white);
+  color: var(--accent-primary);
+}
+
+.statusIconSuccess {
+  background: color-mix(in srgb, var(--color-success) 14%, white);
+  color: var(--color-success);
+}
+
+.statusIconWarning {
+  background: color-mix(in srgb, var(--color-warning) 20%, white);
+  /* Reiner --color-warning-Text ist auf hellem Grund kaum lesbar -- abgedunkelte Mischung nur
+     für die Textfarbe, der Hintergrund bleibt hell/warnend. */
+  color: color-mix(in srgb, var(--color-warning) 65%, black);
+}
+
+.statusIconSm {
+  width: var(--status-icon-size-sm);
+  height: var(--status-icon-size-sm);
+  border-radius: var(--status-icon-radius-sm);
+  font-size: var(--status-icon-font-size-sm);
+}
+
+.statusIconLg {
+  width: var(--status-icon-size-lg);
+  height: var(--status-icon-size-lg);
+  border-radius: var(--status-icon-radius-lg);
+  font-size: var(--status-icon-font-size-lg);
+}

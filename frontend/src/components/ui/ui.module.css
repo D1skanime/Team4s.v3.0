@@ -1,15 +1,16 @@
+/* Werte kommen aus den gemeinsamen --field-*-Tokens (globals.css) -- denselben, die auch
+   YearPickers und DatePickers Auslöser nutzen, damit alle Formularfelder optisch identisch
+   bleiben. */
 .control {
   width: 100%;
   min-width: 0;
   min-height: var(--control-height-md);
-  padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(92, 105, 131, 0.14);
-  background: rgba(255, 255, 255, 0.94);
-  color: #334155;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.52),
-    0 1px 1px rgba(33, 45, 72, 0.04);
+  padding: var(--control-padding);
+  border-radius: var(--field-radius);
+  border: 1px solid var(--field-border-color);
+  background: var(--field-bg);
+  color: var(--field-text-color);
+  box-shadow: var(--field-shadow);
   transition:
     border-color 120ms ease,
     box-shadow 120ms ease,
@@ -18,54 +19,48 @@
 }
 
 .control::placeholder {
-  color: #8a95a8;
+  color: var(--field-placeholder-color);
 }
 
 .control:hover {
-  border-color: rgba(92, 105, 131, 0.22);
-  background: rgba(255, 255, 255, 0.98);
+  border-color: var(--field-border-color-hover);
+  background: var(--field-bg-hover);
 }
 
 .control:focus-visible {
   outline: none;
   border-color: var(--border-accent);
-  box-shadow:
-    0 0 0 3px rgba(122, 160, 240, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  box-shadow: var(--field-focus-shadow);
 }
 
 .controlInvalid {
-  border-color: rgba(130, 18, 44, 0.34);
-  box-shadow:
-    0 0 0 3px rgba(130, 18, 44, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  border-color: var(--field-invalid-border-color);
+  box-shadow: var(--field-invalid-shadow);
 }
 
 .controlDisabled,
 .control:disabled {
   opacity: 0.62;
   cursor: not-allowed;
-  background: rgba(244, 247, 251, 0.94);
+  background: var(--field-disabled-bg);
 }
 
 .control:read-only {
-  border-color: rgba(92, 105, 131, 0.12);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 247, 251, 0.96) 100%);
-  color: #2f3746;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 10px 18px -18px rgba(17, 24, 39, 0.18);
+  border-color: var(--field-readonly-border-color);
+  background: var(--field-readonly-bg);
+  color: var(--field-readonly-text-color);
+  box-shadow: var(--field-readonly-shadow);
   cursor: default;
 }
 
 .datePickerClear {
-  min-height: 34px;
-  padding: 0 10px;
+  min-height: var(--date-picker-clear-min-height);
+  padding: 0 var(--date-picker-clear-padding-x);
   border: 0;
   background: transparent;
   color: var(--accent-primary);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: var(--date-picker-clear-font-size);
   font-weight: 800;
   cursor: pointer;
 }
@@ -78,9 +73,7 @@
 .datePickerClear:focus-visible {
   outline: none;
   border-color: var(--border-accent);
-  box-shadow:
-    0 0 0 3px rgba(122, 160, 240, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  box-shadow: var(--date-picker-clear-focus-shadow);
 }
 
 .datePickerClear:disabled {
@@ -88,101 +81,26 @@
   opacity: 0.52;
 }
 
-.eyebrow {
-  margin: 0 0 4px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #7c3c4f;
-}
-
-.breadcrumbs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 0 0 10px;
-  padding: 0;
-  list-style: none;
-  color: #7d8799;
-  font-size: 12px;
-  letter-spacing: 0.01em;
-}
-
-.breadcrumbs li {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.breadcrumbs li:not(:last-child)::after {
-  content: "/";
-  color: var(--text-faint);
-}
-
-.stateCard {
-  padding: 20px;
-  border-radius: 14px;
-  border: 1px solid var(--border-subtle);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 248, 252, 0.98) 100%);
-  display: grid;
-  gap: 10px;
-  text-align: left;
-  align-content: start;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 1px 3px rgba(33, 45, 72, 0.05);
-}
-
-.stateCompact {
-  padding: 16px;
-  gap: 8px;
-}
-
+/* Größe/Gewicht/Farbe kommen jetzt von Heading (level=3 size=3, Standard-Farbe --text-strong);
+   nur der Zeilenabstand bleibt hier als Override. Gemeinsam genutzt von EmptyState/ErrorState/
+   LoadingState. */
 .stateTitle {
   margin: 0;
-  font-size: 0.98rem;
-  color: var(--text-strong);
   line-height: 1.25;
 }
 
+/* Farbe kommt jetzt von Text (variant="soft", identischer --text-soft-Wert); nur Zeilenabstand
+   bleibt hier als Override. Gemeinsam genutzt von EmptyState/ErrorState/LoadingState. */
 .stateDescription {
   margin: 0;
-  color: var(--text-soft);
   line-height: 1.55;
-}
-
-.stateIcon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.stateNeutral .stateIcon {
-  background: color-mix(in srgb, #dfe6f1 68%, white);
-  color: #6d778a;
-}
-
-.stateDanger .stateIcon {
-  background: color-mix(in srgb, var(--button-danger-mid) 12%, white);
-  color: var(--button-danger-end);
-}
-
-.stateInfo .stateIcon {
-  background: color-mix(in srgb, var(--accent-primary) 14%, white);
-  color: var(--accent-primary);
 }
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(23, 21, 19, 0.45);
-  backdrop-filter: blur(4px);
+  background: var(--overlay-scrim-bg);
+  backdrop-filter: blur(var(--overlay-scrim-blur));
 }
 
 .overlayClose {
@@ -191,29 +109,4 @@
   border: 0;
   background: transparent;
   cursor: pointer;
-}
-
-.dialogTitle {
-  margin: 0;
-  font-size: 1.25rem;
-  color: var(--text-strong);
-}
-
-.dialogDescription {
-  margin: 6px 0 0;
-  color: var(--text-soft);
-}
-
-.closeButton {
-  flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  border: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--surface-card) 96%, transparent);
-  color: var(--text-soft);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }

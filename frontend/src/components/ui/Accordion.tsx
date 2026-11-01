@@ -4,6 +4,7 @@ import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { classNames } from './classNames'
+import { DisclosureTrigger } from './DisclosureTrigger'
 import styles from './Accordion.module.css'
 
 export interface AccordionItemDef {
@@ -25,6 +26,9 @@ export interface AccordionProps {
   openIds?: Set<string>
   /** Controlled-Modus: Callback bei Toggle; erhält die neue Menge offener IDs. */
   onOpenChange?: (next: Set<string>) => void
+  /** Unkontrollierter Modus: welche Items beim ersten Rendern bereits offen sind. Wird
+   *  ignoriert, sobald `openIds` gesetzt ist. */
+  defaultOpenIds?: Set<string>
   /**
    * Optional: IDs, deren Panel-Inhalt auch im geschlossenen Zustand im DOM
    * gemountet bleibt (nur visuell via `hidden` versteckt statt unmounted).
@@ -40,11 +44,12 @@ export function Accordion({
   className,
   openIds: controlledOpenIds,
   onOpenChange,
+  defaultOpenIds,
   keepMountedIds,
 }: AccordionProps) {
   const baseId = useId()
   const isControlled = controlledOpenIds !== undefined
-  const [internalOpenIds, setInternalOpenIds] = useState<Set<string>>(new Set())
+  const [internalOpenIds, setInternalOpenIds] = useState<Set<string>>(() => new Set(defaultOpenIds))
   const openIds = isControlled ? controlledOpenIds : internalOpenIds
 
   function toggle(id: string) {
@@ -74,28 +79,13 @@ export function Accordion({
 
         return (
           <div key={item.id} className={styles.accordionItem}>
-            <button
-              type="button"
+            <DisclosureTrigger
               id={headerId}
-              className={classNames(
-                styles.accordionHeader,
-                isOpen && styles.accordionHeaderOpen,
-              )}
-              aria-expanded={isOpen}
+              title={item.title}
+              open={isOpen}
               aria-controls={panelId}
               onClick={() => toggle(item.id)}
-            >
-              <div className={styles.accordionTitle}>{item.title}</div>
-              <span
-                className={classNames(
-                  styles.accordionChevron,
-                  isOpen && styles.accordionChevronOpen,
-                )}
-                aria-hidden="true"
-              >
-                ▾
-              </span>
-            </button>
+            />
 
             {isMounted ? (
               <div

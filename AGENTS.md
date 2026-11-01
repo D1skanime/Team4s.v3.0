@@ -131,6 +131,13 @@ Core rules:
     bzw. Komponenten fachliche Kommentare, werden sie ergänzt.
   - Englische Kommentare in der angefassten Datei werden ins Deutsche
     übersetzt.
+- **Stories ziehen mit:** Wer eine Datei unter `frontend/src/components/ui/` oder
+  `frontend/src/components/showcases/` sichtbar ändert (neue Variante, neuer
+  Zustand, geändertes Props-Verhalten, entfernte Variante), zieht im selben
+  Auftrag die zugehörige `*.stories.tsx` nach — neue Variante/Zustand ergänzen,
+  entfernte Variante/Zustand streichen. Storybook (`frontend/.storybook`) ist die
+  verbindliche visuelle Referenz; eine Primitive ohne aktuelle Story gilt als
+  unvollständig geändert.
 - **Prüfung:** Pläne enthalten einen Doku-Task bzw. Doku-Akzeptanzkriterien;
   Review und Verifikation prüfen, ob Kommentare fachlich sind und die
   Architektur-Doku zum geänderten Code passt.
@@ -207,6 +214,7 @@ For any non-trivial UI redesign or new public/admin surface:
 10. After implementation, perform a live visual comparison against the approved reference or prototype. A material visual difference is a UI gap, not an acceptable interpretation.
 11. A UI task is not complete merely because tests, typecheck, or build pass; it must also pass the agreed live visual and responsive verification.
 12. Reuse existing Team4s components, tokens, APIs, authorization, and domain logic where appropriate. A prototype defines the desired UX, not permission to build parallel architecture.
+13. Storybook (`frontend/.storybook`, categories `Grundbausteine/*`, `Zusammengesetzte Bausteine/*`, and `Im Einsatz/*`) is the binding visual reference for existing primitives — before building a new variant, check whether a matching story already exists.
 
 When a ChatGPT/GSD Discuss phase creates a visual sketch, the agent must verify before Execute that an HTML prototype and a UI specification also exist. For a larger visual change, if either is missing, do not interpret the image autonomously; record the missing UI Contract as a planning gap.
 ### Responsive UI Standard
@@ -275,6 +283,18 @@ Always run the most relevant available checks:
 - `lint`
 - relevant tests
 - `build` if feasible
+- For the frontend, `npm run build-storybook` (in the frontend container) is an
+  additional required check once a file under `frontend/src/components/ui/` or
+  `frontend/src/components/showcases/` has changed — a broken story build is a
+  regression finding just like a broken `npm run build`.
+- Never run `npm run build` (production build) via `docker compose exec` against the
+  already-running `team4sv30-frontend` dev container while `npm run dev` is active there:
+  both processes share the same `/app/.next` volume, and a production build writes
+  artifacts that corrupt the dev server's manifest, breaking the live site on port 3000
+  with HTTP 500 for anyone testing in the browser (observed 2026-10-29, quick task
+  261029-d3k). If a production-build check is genuinely needed, either restart
+  `team4sv30-frontend` immediately afterward, or use a separate container that does not
+  share the `frontend_next` volume.
 - migration up/down tests for DB migration tasks
 - `git diff --check`
 

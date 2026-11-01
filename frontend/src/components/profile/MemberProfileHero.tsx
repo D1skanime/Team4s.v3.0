@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { CalendarDays, Eye, Save } from 'lucide-react'
 
-import { Button, HeroMetrics, PageHeader } from '@/components/ui'
+import { Button, MetricList, PageHeader } from '@/components/ui'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import type { MemberProfileData, PublicMemberBadge, PublicMemberProfileData } from '@/types/profile'
 
@@ -319,10 +319,11 @@ export function MemberProfileHero({
             ) : null}
           </div>
           {isPublicView && totalPoints !== null ? (
-            <HeroMetrics
+            <MetricList
               className={styles.heroPoints}
               items={[{ label: 'Punkte', value: totalPoints }]}
               ariaLabel="Mitglied-Punktzahl"
+              valueHeadingLevel={2}
             />
           ) : null}
           {profile.bio ? (

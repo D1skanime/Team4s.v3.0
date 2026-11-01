@@ -20,10 +20,12 @@ import {
 } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditMembershipStyles from './FansubEdit.membership.module.css'
+import fansubEditReleasesStyles from './FansubEdit.releases.module.css'
 import ownStyles from './FansubAppMemberAddModal.module.css'
 import type { HistoricalIdentityOption } from './GroupMembersTab'
 
+const fansubEditStyles = mergeCssModules(fansubEditMembershipStyles, fansubEditReleasesStyles)
 const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 // Add-Choice-Modal

@@ -65,7 +65,7 @@
   padding-bottom: 20px;
 }
 
-/* Nur Layout-Huelle: Banner und Projektidentitaet stehen ohne sichtbare Karte im Hero. */
+/* Nur Layout-Hülle: Banner und Projektidentität stehen ohne sichtbare Karte im Hero. */
 .heroCard {
   position: relative;
   display: grid;
@@ -92,6 +92,55 @@
   padding: 16px 24px 20px;
 }
 
+/* Nur aktiv, wenn tatsächlich ein Bannerfoto vorhanden ist (gleiche Bedingung wie das
+   Bannerbild selbst in FansubHeroSection.tsx) -- ohne Bannerfoto bleibt die bisherige dunkle
+   Schrift auf hellem Hintergrund unverändert korrekt. Nutzerfotos können beliebig hell sein,
+   daher reicht der großflächige Banner-Verlauf (max. 42% Schwarzanteil) allein NICHT für
+   garantiert lesbare helle Schrift -- ein zusätzlicher, deutlich blickdichterer Scrim direkt
+   hinter dem Textblock sichert WCAG AA (4,5:1) auch im Worst Case (rein weißes Foto) ab. Die
+   88%-Opazität ist rechnerisch in FansubHeroSection.accessibility.test.ts nachgewiesen (worst
+   case effektive Hintergrund-Leuchtdichte ~0,013, reiner weißer Text erreicht >16:1). Live-UAT-
+   Befund: ein vormaliger Verlauf (0% transparent bis 30% Boxhöhe) ließ genau den oberen Bereich
+   dieser Box -- wo Titel/Status-Badge/Kennzahlen als allererste Inhalte direkt nach dem
+   16px-Padding beginnen -- unzureichend verdunkelt. Der Scrim ist daher jetzt eine FLÄCHIGE,
+   gleichmäßig deckende Farbe über die gesamte Box (kein Verlauf mehr) -- so ist unabhängig von
+   Box-Höhe und tatsächlicher Text-Position immer die volle 88%-Deckkraft vorhanden. */
+.heroBodyOnBanner {
+  position: relative;
+  /* MetricList bekommt die helle Beschriftung für den Banner-Fall über die offizielle
+     tone="onDark"-Prop (FansubHeroSection.tsx), nicht mehr über eine hier gesetzte CSS-Variable.
+     Gleiches Muster für den Status-Badge (variant="muted") in der Titelzeile: dessen
+     Standard-Chip (helles Glas, gedämpftes Blaugrau) ist auf dem dunklen Banner-Scrim praktisch
+     unlesbar. Die hier gesetzten hellen Werte sind rechnerisch in
+     FansubHeroSection.accessibility.test.ts gegen den Worst-Case-Scrim-Hintergrund auf
+     mindestens 4,5:1 Kontrast nachgewiesen. */
+  --badge-muted-bg: rgba(255, 255, 255, 0.18);
+  --badge-muted-fg: #ffffff;
+}
+
+.heroBodyOnBanner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: rgba(10, 8, 14, 0.88);
+}
+
+.heroBodyOnBanner > * {
+  position: relative;
+  z-index: 1;
+}
+
+.heroBodyOnBanner .title {
+  color: #ffffff;
+}
+
+.heroBodyOnBanner .subtitle {
+  color: rgba(255, 255, 255, 0.88);
+}
+
 .title {
   margin: 0;
   /* Titel skaliert gemeinsam mit dem Logo (--logo auf .heroHeader) */
@@ -101,7 +150,7 @@
 
 .subtitle {
   margin: 6px 0 0;
-  /* kraeftiger fuer Kontrast auf dem Glas */
+  /* kräftiger für Kontrast auf dem Glas */
   color: rgba(28, 24, 38, 0.74);
   line-height: 1.5;
   font-size: 14px;
@@ -206,7 +255,7 @@
   border-top: 0.5px solid var(--border-subtle);
 }
 
-/* Inline rechts neben der Identität (fuellt die Kopfzeile, keine tote Flaeche) */
+/* Inline rechts neben der Identität (füllt die Kopfzeile, keine tote Fläche) */
 .collaborationPanel {
   display: grid;
   gap: 8px;

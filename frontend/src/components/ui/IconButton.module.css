@@ -1,0 +1,245 @@
+.iconButton {
+  flex: 0 0 auto;
+  width: var(--icon-button-size-md);
+  height: var(--icon-button-size-md);
+  border-radius: var(--icon-button-radius-md);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--surface-card) 96%, transparent);
+  color: var(--text-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 var(--shadow-inset-highlight);
+}
+
+.iconButton:hover {
+  background: var(--surface-card);
+}
+
+.iconButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.iconButton:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.iconButtonSm {
+  width: var(--icon-button-size-sm);
+  height: var(--icon-button-size-sm);
+  border-radius: var(--icon-button-radius-sm);
+}
+
+.iconButtonLg {
+  width: var(--icon-button-size-lg);
+  height: var(--icon-button-size-lg);
+  border-radius: var(--icon-button-radius-lg);
+}
+
+/* Nach den Größen-Regeln deklariert, damit ein runder Button bei gleicher Spezifität (0,1,0)
+   immer den vollen Kreis statt der größenabhängigen eckigen Rundung erhält. */
+.iconButtonRound {
+  border-radius: 50%;
+}
+
+.iconButtonGhost {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.iconButtonGhost:hover {
+  background: transparent;
+  opacity: 0.72;
+}
+
+/* Dunkel-transparente Variante für Icon-Buttons direkt auf einem Bild oder dunklen Hintergrund
+   (z. B. das Schließen-Kreuz im Bild-Viewer) -- nutzt dieselben Scrim-Tokens wie andere
+   Bild-Overlays. */
+.iconButtonOnImage {
+  border-color: transparent;
+  background: var(--scrim-strong);
+  color: var(--scrim-icon);
+  box-shadow: none;
+}
+
+.iconButtonOnImage:hover {
+  background: color-mix(in srgb, var(--scrim-strong) 85%, black);
+}
+
+.iconButtonToneArrow {
+  color: var(--ui-arrow);
+}
+
+/* Gefüllte Akzent-Variante (z. B. ein klickbarer "+N weitere"-Überlauf-Knopf, der optisch wie
+   eine akzentfarbene Zähler-Fläche wirken soll statt wie ein transparenter Dezent-Knopf). */
+.iconButtonAccent {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  box-shadow: none;
+}
+
+.iconButtonAccent:hover {
+  background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface-card));
+  opacity: 1;
+}
+
+/* Medien-Vorschau-Kachel: zeigt ein Bild-Thumbnail als klickbaren Vorschau-Auslöser (z. B.
+   ThumbnailStrip). Anders als die tile-Variante deckt "ausgewählt" NICHT die Fläche mit einer
+   Farbe ab (das Vorschaubild bliebe sonst verdeckt) -- stattdessen ein reiner Rahmen-Akzent.
+   Feste Maße statt sm/md/lg/fill, da die Größe (96x64, passend zu ResponsiveImages
+   sizes="96px") Teil des festen Rezepts dieser Variante ist, nicht vom umgebenden Layout
+   bestimmt wird. */
+.iconButtonMedia {
+  position: relative;
+  overflow: hidden;
+  width: var(--icon-button-media-width);
+  height: var(--icon-button-media-height);
+  padding: 0;
+  border: var(--border-width-thick) solid transparent;
+  border-radius: var(--media-tile-radius);
+  background: var(--media-tile-placeholder-bg);
+}
+
+.iconButtonMedia[aria-current]:not([aria-current="false"]),
+.iconButtonMedia[aria-pressed="true"] {
+  border-color: var(--accent-primary);
+}
+
+.iconButtonFloating {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  /* variant="onImage"-Verwender (z. B. der Bild-Viewer) können einen deckenden Layer unterhalb
+     dieses Buttons rendern -- darüber bleiben, damit der Schließen-Button nie verdeckt wird. */
+  z-index: 3;
+}
+
+.iconButtonFill {
+  width: 100%;
+  height: auto;
+}
+
+/* Feld-Variante: IconButton als Auslöser INNERHALB einer umgebenden Feld-Zeile (z. B. DatePickers
+   Datums-Auslöser neben seinem Leeren-Symbol) -- kein eigener Rahmen/Hintergrund/Radius/Schatten,
+   da das umgebende Feld (--field-*-Tokens) sie liefert; Inhalt linksbündig mit Platz zwischen
+   Wert und Symbol statt zentriert. */
+.iconButtonField {
+  justify-content: space-between;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--field-text-color);
+  font: inherit;
+  text-align: left;
+}
+
+.iconButtonField:hover {
+  background: transparent;
+}
+
+.iconButtonField:focus-visible {
+  outline: none;
+  box-shadow: var(--field-focus-shadow);
+}
+
+/* Kachel-Variante: Tages-/Monats-/Jahres-Auswahlkachel eines Pickers -- transparent, eigener
+   Radius-Token statt IconButtons Standard-Eckenrundung. "Ausgewählt" kommt über aria-current/
+   aria-pressed (derselbe Mechanismus wie bei Button), nicht über eine externe Klasse mit
+   !important -- die Attribut-Selektor-Kombination unten hat zuverlässig höhere Spezifität als
+   jede einzelne lokale Zustands-Klasse (z. B. "heute"), ganz ohne !important. */
+.iconButtonTile {
+  border: 1px solid transparent;
+  border-radius: var(--picker-tile-radius);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 800;
+}
+
+.iconButtonTile:hover:not(:disabled) {
+  border-color: var(--picker-tile-hover-border-color);
+  background: var(--picker-tile-hover-bg);
+  opacity: 1;
+}
+
+.iconButtonTile[aria-current]:not([aria-current="false"]),
+.iconButtonTile[aria-pressed="true"] {
+  border-color: var(--selection-tile-border-color);
+  background: var(--selection-tile-gradient);
+  color: var(--selection-tile-text-color);
+  box-shadow: var(--selection-tile-shadow);
+  opacity: 1;
+}
+
+.iconButtonTile[aria-current]:not([aria-current="false"]):hover,
+.iconButtonTile[aria-pressed="true"]:hover {
+  background: var(--selection-tile-gradient-hover);
+}
+
+/* Ab hier: offizielle Zusatz-Optionen für die restlichen lokalen Feinheiten, die DatePicker/
+   YearPicker/AvatarStack zuvor per `button.<klasse>`-Element-Selektor (Spezifität 0,1,1, schlägt
+   eine einzelne Klasse wie .iconButtonField/.iconButtonTile/.iconButtonAccent oben zuverlässig)
+   von außen erzwungen hatten. Alle Klassen hier stehen bewusst NACH den Basis-Varianten, damit
+   sie bei gleicher Spezifität (ebenfalls einzelne Klassen, 0,1,0) über die Deklarationsreihenfolge
+   zuverlässig gewinnen -- identisches Muster wie .iconButtonRound oben bzw. .buttonSmall/
+   .buttonHero in Button.module.css. Der ausgewählte Zustand (Attribut-Selektor-Kombination oben)
+   hat weiterhin Vorrang, da er eine höhere Spezifität trägt als jede dieser Klassen. */
+
+.iconButtonWeightBold {
+  font-weight: 700;
+}
+
+.iconButtonMinHeightSm {
+  min-height: var(--control-height-sm);
+}
+
+.iconButtonMinHeightMd {
+  min-height: var(--control-height-md);
+}
+
+/* Größere, weniger zahlreiche Kacheln (z. B. Monats-/Jahres-Raster) bleiben auch unausgewählt
+   sichtbar gefüllt statt komplett transparent -- im Unterschied zu kompakten Tages-Kacheln. */
+.iconButtonTileFilled {
+  border-color: var(--picker-tile-muted-border-color);
+  background: var(--picker-tile-muted-bg);
+}
+
+.iconButtonDimmed {
+  opacity: 0.62;
+}
+
+.iconButtonToneMuted {
+  color: var(--text-muted);
+}
+
+.iconButtonToneLine {
+  color: var(--ui-line);
+}
+
+/* Dezent im Ruhezustand (verschmilzt mit dem umgebenden Feld), deutlich sichtbar erst bei Hover --
+   für einen Leeren/Entfernen-Auslöser innerhalb einer Feldzeile. */
+.iconButtonToneClear {
+  color: var(--field-placeholder-color);
+}
+
+.iconButtonToneClear:hover {
+  color: var(--ui-line);
+}
+
+.iconButtonHighlighted {
+  border-color: var(--picker-tile-today-border-color);
+}
+
+/* Für Elemente in einer sich überlappenden Reihe -- identisches Muster wie Avatar/AvatarStacks
+   eigener Überlapp-Effekt (negativer Abstand, heller Trennring). */
+.iconButtonOverlap {
+  margin-inline-start: calc(var(--space-2) * -1);
+  border: var(--border-width-thick) solid var(--surface-card);
+}

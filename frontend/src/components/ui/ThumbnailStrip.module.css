@@ -23,30 +23,20 @@
   gap: var(--space-2);
 }
 
+/* Fläche/Form/Radius/Hintergrund/"ausgewählt" kommen jetzt vollständig aus IconButtons
+   offizieller media-Variante (siehe IconButton.module.css) -- nur die Flex-Einbettung
+   (keine Stauchung in der scrollenden Leiste) bleibt hier lokal. */
 .thumb {
-  position: relative;
   flex: 0 0 auto;
-  width: 96px;
-  height: 64px;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
-  cursor: pointer;
 }
 
 .thumbImage {
   object-fit: cover;
 }
 
-.thumbActive {
-  border-color: var(--accent-primary);
-}
-
 .counter {
   justify-self: center;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 12px;
+  color: var(--thumbnail-strip-counter-color);
+  font-size: var(--thumbnail-strip-counter-font-size);
   font-weight: 700;
 }

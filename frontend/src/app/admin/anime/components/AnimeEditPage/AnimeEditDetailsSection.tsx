@@ -6,7 +6,7 @@ import type { AnimeType } from '@/types/admin'
 import type { AnimeStatus, ContentType } from '@/types/anime'
 
 import styles from '../../../admin.module.css'
-import createStyles from '../../create/page.module.css'
+import createStyles from '../../create/page.pageShell.module.css'
 import workspaceStyles from '../ManualCreate/ManualCreateWorkspace.module.css'
 import { AnimeCreateGenreField } from '../CreatePage/AnimeCreateGenreField'
 import { AnimeCreateTagField } from '../CreatePage/AnimeCreateTagField'

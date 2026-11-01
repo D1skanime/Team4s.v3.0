@@ -1,0 +1,73 @@
+.avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--avatar-size-md);
+  height: var(--avatar-size-md);
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--avatar-bg, var(--surface-sunken));
+  color: var(--avatar-fg, var(--text-strong));
+  font-weight: var(--font-weight-heading);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.avatarSm {
+  width: var(--avatar-size-sm);
+  height: var(--avatar-size-sm);
+  font-size: var(--avatar-font-size-sm);
+}
+
+.avatarLg {
+  width: var(--avatar-size-lg);
+  height: var(--avatar-size-lg);
+  font-size: var(--avatar-font-size-lg);
+}
+
+.avatar:not(.avatarSm):not(.avatarLg) {
+  font-size: var(--avatar-font-size-md);
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarColor1 {
+  --avatar-bg: var(--avatar-1-bg);
+  --avatar-fg: var(--avatar-1-fg);
+}
+
+.avatarColor2 {
+  --avatar-bg: var(--avatar-2-bg);
+  --avatar-fg: var(--avatar-2-fg);
+}
+
+.avatarColor3 {
+  --avatar-bg: var(--avatar-3-bg);
+  --avatar-fg: var(--avatar-3-fg);
+}
+
+.avatarColor4 {
+  --avatar-bg: var(--avatar-4-bg);
+  --avatar-fg: var(--avatar-4-fg);
+}
+
+.avatarColor5 {
+  --avatar-bg: var(--avatar-5-bg);
+  --avatar-fg: var(--avatar-5-fg);
+}
+
+.avatarColor6 {
+  --avatar-bg: var(--avatar-6-bg);
+  --avatar-fg: var(--avatar-6-fg);
+}
+
+.avatarToneAccent {
+  /* --avatar-bg bleibt bewusst unangetastet: der Standard-Fallback oben (var(--surface-sunken))
+     deckt den gewünschten hellen Untergrund bereits ab. */
+  --avatar-fg: var(--accent-deep);
+}

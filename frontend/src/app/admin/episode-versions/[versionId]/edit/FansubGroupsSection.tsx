@@ -4,7 +4,7 @@ import type { FansubGroupDependents } from '@/types/episodeVersion'
 import type { FansubGroup, FansubGroupSummary } from '@/types/fansub'
 
 import { formatDependentsReason } from './episodeVersionEditorUtils'
-import styles from './EpisodeVersionEditor.module.css'
+import styles from './EpisodeVersionEditor.styles'
 
 interface FansubGroupsSectionProps {
   groupQuery: string

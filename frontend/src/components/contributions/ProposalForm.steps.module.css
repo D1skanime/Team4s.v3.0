@@ -37,7 +37,7 @@
 .choiceSelectTrigger svg {
   flex: 0 0 auto;
   margin-left: auto;
-  color: #7c3c4f;
+  color: var(--ui-arrow);
 }
 
 .choiceAvatar {

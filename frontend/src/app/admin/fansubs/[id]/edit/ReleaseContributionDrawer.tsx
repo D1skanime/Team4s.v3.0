@@ -28,7 +28,7 @@ import { ContributorAvatar } from './ContributorAvatar'
 import { normalizeRoleCodes, roleLabels } from './contributionRoles'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import { RoleToggleGroup } from './RoleToggleGroup'
-import styles from './FansubEdit.module.css'
+import styles from './FansubEdit.contributions.module.css'
 
 type EditableContributionRow = EffectiveContributionRow & { isNew?: boolean }
 

@@ -1,16 +1,16 @@
 'use client'
 
-import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
+
+import { mergeCssModules } from '@/lib/mergeCssModules'
 
 import { Button } from './Button'
 import { classNames } from './classNames'
+import { DialogHeader } from './DialogHeader'
 import ownStyles from './Drawer.module.css'
 import sharedStyles from './ui.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(ownStyles, sharedStyles)
 
 export interface DrawerProps {
   open: boolean
@@ -36,7 +36,11 @@ export function Drawer({ open, onClose, title, description, children, footer, va
       aria-labelledby="ui-drawer-title"
     >
       <div className={styles.overlay} aria-hidden="true" />
-      <button type="button" className={styles.overlayClose} aria-label="Drawer schließen" onClick={onClose} />
+      {/* Reiner Maus-Komfort-Layer (Klick auf den abgedunkelten Hintergrund schließt den Drawer).
+          Kein <button>, um das Lint-Verbot für native Buttons in components/ui nicht zu verletzen -- Escape (über
+          den umschließenden Dialog) und der IconButton-basierte Schließen-Knopf bleiben die
+          tastaturzugänglichen Wege. */}
+      <div role="presentation" aria-hidden="true" className={styles.overlayClose} onClick={onClose} />
       <aside
         className={classNames(
           styles.drawerPanel,
@@ -44,15 +48,14 @@ export function Drawer({ open, onClose, title, description, children, footer, va
           size === 'lg' && styles.drawerPanelLg,
         )}
       >
-        <div className={styles.drawerHeader}>
-          <div>
-            <h3 className={styles.dialogTitle} id="ui-drawer-title">{title}</h3>
-            {description ? <p className={styles.dialogDescription}>{description}</p> : null}
-          </div>
-          <button type="button" className={styles.closeButton} aria-label="Schließen" onClick={onClose}>
-            <X size={18} />
-          </button>
-        </div>
+        <DialogHeader
+          title={title}
+          description={description}
+          onClose={onClose}
+          titleId="ui-drawer-title"
+          variant="default"
+          className={styles.drawerHeader}
+        />
         <div className={styles.drawerBody}>{children}</div>
         <div className={styles.drawerFooter}>
           {footer ?? <Button variant="secondary" onClick={onClose}>Fertig</Button>}

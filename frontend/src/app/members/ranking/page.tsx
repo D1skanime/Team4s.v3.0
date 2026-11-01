@@ -1,10 +1,9 @@
 import Link from 'next/link'
 
-import { EmptyState, ErrorState, getErrorStateCopy, PageHeader, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@/components/ui'
+import { EmptyState, ErrorState, getErrorStateCopy, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@/components/ui'
 import { getMemberPointRanking } from '@/lib/api'
 import { toNumber } from '@/lib/utils'
 
-import { RankingPaginationNav } from './RankingPaginationNav'
 import styles from './page.module.css'
 
 // Backend-Seitengröße ist fix (member_point_totals_repository.go, memberRankingPageSize = 50).
@@ -86,7 +85,12 @@ export default async function MemberRankingPage({ searchParams }: RankingPagePro
               ))}
             </TableBody>
           </Table>
-          <RankingPaginationNav currentPage={result.page} totalPages={Math.ceil(result.total / RANKING_PAGE_SIZE)} />
+          <Pagination
+            currentPage={result.page}
+            totalPages={Math.ceil(result.total / RANKING_PAGE_SIZE)}
+            hrefForPage={(page) => (page > 1 ? `/members/ranking?page=${page}` : '/members/ranking')}
+            linkComponent={Link}
+          />
         </>
       ) : null}
     </main>

@@ -1,7 +1,8 @@
 "use client";
 
 import styles from "../../admin.module.css";
-import createStyles from "./page.module.css";
+import createStyles from "./page.pageShell.module.css";
+import sharedStyles from "./page.shared.module.css";
 import { AniSearchDuplicateDecision } from "./AniSearchDuplicateDecision";
 import { AniSearchSearchCard } from "../components/shared/AniSearchSearchCard";
 import type {
@@ -49,9 +50,9 @@ export function CreateAniSearchIntakeCard({
   const statusID = "create-anisearch-status";
 
   return (
-    <section className={createStyles.resultsPanel}>
-      <div className={createStyles.resultsHeader}>
-        <div className={createStyles.resultsTitleBlock}>
+    <section className={sharedStyles.resultsPanel}>
+      <div className={sharedStyles.resultsHeader}>
+        <div className={sharedStyles.resultsTitleBlock}>
           <p className={createStyles.resultsEyebrow}>AniSearch</p>
         </div>
       </div>

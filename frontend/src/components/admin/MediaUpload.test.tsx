@@ -6,10 +6,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 
 const deleteFansubMediaMock = vi.fn()
 const uploadFansubMediaMock = vi.fn()
+const NativeURL = URL
 
 vi.mock('next/image', () => ({
-  default: ({ alt, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
+  default: ({ alt, unoptimized, fill, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean; fill?: boolean }) => {
     void unoptimized
+    void fill
     // eslint-disable-next-line @next/next/no-img-element
     return <img alt={alt} {...props} />
   },
@@ -99,10 +101,15 @@ afterEach(() => {
 })
 
 beforeEach(() => {
-  vi.stubGlobal('URL', {
+  // Echte URL-Klasse als Basis behalten (nicht durch ein reines Objekt ersetzen, identisches
+  // Muster wie UploadFileRow.test.tsx u. a.): MediaSlot rendert Vorschaubilder inzwischen über
+  // ResponsiveImage, das `new URL(...)` zur Prüfung konfigurierter Bildquellen nutzt -- ein
+  // reines { createObjectURL, revokeObjectURL }-Objekt ohne Konstruktor-Fähigkeit würde dort mit
+  // "URL is not a constructor" abstürzen.
+  vi.stubGlobal('URL', Object.assign(class extends NativeURL {}, {
     createObjectURL: vi.fn(() => 'blob:media-upload-edit'),
     revokeObjectURL: vi.fn(),
-  })
+  }))
 })
 
 describe('MediaUpload', () => {
@@ -163,6 +170,8 @@ describe('MediaUpload', () => {
 
     uploadOptions.onProgress?.(42)
     expect(await screen.findByText('42%')).not.toBeNull()
+    // Nutzt den gemeinsamen ProgressBar-Baustein statt eines eigenen div-Fortschrittsbalkens.
+    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('42')
     expect(onBusyChange).toHaveBeenCalledWith(true)
 
     resolveUpload()

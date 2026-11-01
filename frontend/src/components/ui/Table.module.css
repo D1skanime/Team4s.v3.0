@@ -1,6 +1,8 @@
 .tableWrap {
   overflow: auto;
-  border-radius: 18px;
+  /* Teilt denselben Radius-Token wie Card/Modal/Drawer (var(--radius-surface)) statt eines
+     eigenen Literals -- EINE Formensprache für alle Flächen. */
+  border-radius: var(--radius-surface);
   border: 1px solid var(--border-subtle);
   background: color-mix(in srgb, var(--surface-card) 95%, transparent);
 }
@@ -8,29 +10,29 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 640px;
+  min-width: var(--table-min-width);
 }
 
 .table caption {
   caption-side: top;
-  padding: 0 0 12px;
+  padding: 0 0 var(--space-3);
   text-align: left;
   color: var(--text-soft);
 }
 
 .table th,
 .table td {
-  padding: 14px 16px;
+  padding: var(--table-cell-padding);
   text-align: left;
   border-bottom: 1px solid var(--border-subtle);
   vertical-align: top;
 }
 
 .table th {
-  font-size: 12px;
+  font-size: var(--table-header-font-size);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #2f3746;
+  color: var(--table-header-text-color);
   background: color-mix(in srgb, var(--surface-sunken) 60%, white);
 }
 
@@ -40,8 +42,8 @@
 
 .tableCompact th,
 .tableCompact td {
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: var(--table-compact-cell-padding-y);
+  padding-bottom: var(--table-compact-cell-padding-y);
 }
 
 .tableSelectable tbody tr {
@@ -57,7 +59,24 @@
   text-align: right;
 }
 
-.tableEmpty {
+/* Element+Klasse-Selektor (Spezifität 0,1,1) statt reinem Klassen-Selektor: ".table td" hat
+   dieselbe Spezifität und würde das hier gewünschte größere Padding sonst überschreiben. */
+td.tableEmpty {
   text-align: center;
-  color: var(--text-soft);
+  padding: var(--table-empty-padding);
+}
+
+.tableEmptyContent {
+  display: inline-grid;
+  justify-items: center;
+  gap: var(--space-2);
+  max-width: var(--table-empty-content-max-width);
+}
+
+.tableEmptyTitle {
+  color: var(--text-strong);
+}
+
+.tableEmptyDescription {
+  margin: 0;
 }

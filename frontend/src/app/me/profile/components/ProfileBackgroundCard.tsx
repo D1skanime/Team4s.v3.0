@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Crop } from 'lucide-react'
@@ -106,15 +105,7 @@ export function ProfileBackgroundCard({
         accept="image/jpeg,image/png,image/webp"
         disabled={isUploading || isPreparingExistingBackground || !canUpload}
         className={isCompact ? styles.mediaControlBannerSlot : styles.backgroundPreviewSlot}
-        previewContent={backgroundURL ? (
-          <Image
-            src={backgroundURL}
-            alt="Aktuelles Profil-Hintergrundbild"
-            fill
-            unoptimized
-            style={{ objectFit: 'contain' }}
-          />
-        ) : null}
+        media={backgroundURL ? { kind: 'image', src: backgroundURL, alt: 'Aktuelles Profil-Hintergrundbild', objectFit: 'contain' } : null}
         actions={canEditExistingBackground ? (
           <Button
             type="button"

@@ -2,6 +2,6 @@
   margin: 0;
   padding: var(--space-2) 0;
   color: var(--text-soft);
-  font-size: 0.9rem;
+  font-size: var(--empty-state-inline-font-size);
   line-height: 1.5;
 }

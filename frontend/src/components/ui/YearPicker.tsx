@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 
+import { classNames } from './classNames'
+import { IconButton } from './IconButton'
+import { NavArrow } from './NavArrow'
 import styles from './YearPicker.module.css'
 
 const YEARS_PER_PAGE = 12
@@ -16,6 +19,8 @@ type YearPickerProps = {
   maxYear: number
   disabled?: boolean
   invalid?: boolean
+  /** Von FormField automatisch verknüpfte Fehler-/Hinweis-IDs (additiv, siehe FormField.tsx). */
+  'aria-describedby'?: string
   onChange: (value: string) => void
 }
 
@@ -32,6 +37,18 @@ function pageStartForYear(rawYear: string, minYear: number, maxYear: number): nu
   return maxYear - Math.floor(offset / YEARS_PER_PAGE) * YEARS_PER_PAGE
 }
 
+/**
+ * Kompakte Jahres-Auswahl: ein Auslöser-Button öffnet ein Portal-Panel mit Seiten-Navigation
+ * (Blätter-Pfeile) und einem Jahres-Raster. Auslöser und "Keine Angabe"-/Jahres-Kacheln nutzen
+ * `IconButton`s offizielle `field`- bzw. `tile`-Variante mit `size="fill"` (identisches Muster
+ * wie `DatePicker`) -- der "ausgewählt"-Zustand kommt über `aria-current`, derselbe Mechanismus
+ * wie bei `Button`. Der fett wirkende Auslöser-Wert (`weight="bold"`) und die Mindesthöhe der
+ * Jahres-Kacheln (`minHeight="sm"`) sind ebenfalls offizielle `IconButton`-Optionen, keine von
+ * außen injizierten CSS-Klassen. Der Auslöser nutzt `IconButton`s `icon`-Prop für sein
+ * zweizeiliges Wert-/Hinweis-Layout statt eines Icons, da `Button` aktuell keinen Ref
+ * weiterleitet, dieser Baustein aber für die Panel-Positionierung einen echten
+ * `HTMLButtonElement`-Ref benötigt.
+ */
 export function YearPicker({
   id,
   label,
@@ -40,6 +57,7 @@ export function YearPicker({
   maxYear,
   disabled = false,
   invalid = false,
+  'aria-describedby': ariaDescribedBy,
   onChange,
 }: YearPickerProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -132,43 +150,46 @@ export function YearPicker({
       onMouseDown={(event) => event.preventDefault()}
     >
       <div className={styles.yearPickerToolbar}>
-        <button
-          type="button"
-          className={styles.yearPickerNav}
+        <NavArrow
+          direction="previous"
+          label="Frühere Jahre"
+          size="sm"
           disabled={!canShowEarlier}
           onClick={() => setPageStartYear((current) => Math.max(minYear, current - YEARS_PER_PAGE))}
-        >
-          Früher
-        </button>
+        />
         <strong>{rangeLabel}</strong>
-        <button
-          type="button"
-          className={styles.yearPickerNav}
+        <NavArrow
+          direction="next"
+          label="Spätere Jahre"
+          size="sm"
           disabled={!canShowLater}
           onClick={() => setPageStartYear((current) => Math.min(maxYear, current + YEARS_PER_PAGE))}
-        >
-          Später
-        </button>
+        />
       </div>
       <div className={styles.yearPickerGrid}>
-        <button
-          type="button"
-          className={`${styles.yearPickerYear} ${!value ? styles.yearPickerYearSelected : ''} ${styles.yearPickerClear}`}
+        <IconButton
+          variant="tile"
+          size="fill"
+          minHeight="sm"
+          icon="Keine Angabe"
+          aria-label="Keine Angabe"
+          aria-current={!value ? 'true' : undefined}
+          className={styles.yearPickerClear}
           onClick={() => closeAfterSelect('')}
-        >
-          Keine Angabe
-        </button>
+        />
         {pageYears.map((year) => {
           const yearValue = String(year)
           return (
-            <button
+            <IconButton
               key={year}
-              type="button"
-              className={`${styles.yearPickerYear} ${value === yearValue ? styles.yearPickerYearSelected : ''}`}
+              variant="tile"
+              size="fill"
+              minHeight="sm"
+              icon={year}
+              aria-label={String(year)}
+              aria-current={value === yearValue ? 'true' : undefined}
               onClick={() => closeAfterSelect(yearValue)}
-            >
-              {year}
-            </button>
+            />
           )
         })}
       </div>
@@ -183,21 +204,29 @@ export function YearPicker({
         if (!event.currentTarget.contains(nextTarget) && !panelRef.current?.contains(nextTarget)) setIsOpen(false)
       }}
     >
-      <button
-        id={id}
-        ref={triggerRef}
-        type="button"
-        className={`${styles.yearPickerTrigger} ${invalid ? styles.yearPickerTriggerInvalid : ''}`}
-        disabled={disabled}
-        aria-label={label}
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
-        aria-controls={isOpen ? `${id}-picker` : undefined}
-        onClick={togglePicker}
-      >
-        <span>{value || 'Keine Angabe'}</span>
-        <span className={styles.yearPickerHint}>Jahr wählen</span>
-      </button>
+      <div className={classNames(styles.yearPickerField, invalid && styles.yearPickerFieldInvalid, disabled && styles.yearPickerFieldDisabled)}>
+        <IconButton
+          id={id}
+          ref={triggerRef}
+          variant="field"
+          size="fill"
+          weight="bold"
+          icon={
+            <>
+              <span>{value || 'Keine Angabe'}</span>
+              <span className={styles.yearPickerHint}>Jahr wählen</span>
+            </>
+          }
+          className={styles.yearPickerTrigger}
+          disabled={disabled}
+          aria-label={label}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
+          aria-controls={isOpen ? `${id}-picker` : undefined}
+          aria-describedby={ariaDescribedBy}
+          onClick={togglePicker}
+        />
+      </div>
       {pickerPanel && typeof document !== 'undefined' ? createPortal(pickerPanel, document.body) : null}
     </div>
   )

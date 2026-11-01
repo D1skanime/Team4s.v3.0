@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Download, ExternalLink, Eye, Play } from 'lucide-react'
 
+import { Button } from '@/components/ui'
 import { ApiError, getEpisodeByID, getReleaseAssets } from '@/lib/api'
 import { getPreferredEmbyEpisodeUrl } from '@/lib/emby'
 import { EpisodeStatus } from '@/types/anime'
@@ -156,42 +157,41 @@ export default async function EpisodeDetailPage({ params, searchParams }: Episod
         <h2>Episode Navigation</h2>
         <div className={styles.actionGrid}>
           {!hasGroupReleaseContext && episode.previous_episode_id ? (
-            <Link href={`/episodes/${episode.previous_episode_id}`} className={styles.navButton}>
-              <ArrowLeft size={16} />
+            <Button as={Link} href={`/episodes/${episode.previous_episode_id}`} variant="secondary" className={styles.navButton} leftIcon={<ArrowLeft size={16} />}>
               Vorherige Folge
-            </Link>
+            </Button>
           ) : (
-            <span className={`${styles.navButton} ${styles.navButtonDisabled}`}>
+            <Button variant="secondary" disabled className={styles.navButton}>
               {hasGroupReleaseContext ? 'Release-Kontext aktiv' : 'Keine vorherige Folge'}
-            </span>
+            </Button>
           )}
 
-          <a href={playbackProxyUrl} className={styles.navButton} target="_blank" rel="noopener noreferrer">
-            <Play size={16} />
+          <Button href={playbackProxyUrl} variant="secondary" className={styles.navButton} target="_blank" rel="noopener noreferrer" leftIcon={<Play size={16} />}>
             Direkt abspielen
-          </a>
+          </Button>
 
           {embyEpisodeUrl ? (
-            <a
+            <Button
               href={embyEpisodeUrl}
               target="_blank"
               rel="noopener noreferrer"
+              variant="secondary"
               className={styles.navButton}
               aria-label="Folge in Emby öffnen"
+              leftIcon={<ExternalLink size={16} />}
             >
-              <ExternalLink size={16} />
               In Emby öffnen
-            </a>
+            </Button>
           ) : null}
 
           {!hasGroupReleaseContext && episode.next_episode_id ? (
-            <Link href={`/episodes/${episode.next_episode_id}`} className={styles.navButton}>
+            <Button as={Link} href={`/episodes/${episode.next_episode_id}`} variant="secondary" className={styles.navButton}>
               Nächste Folge
-            </Link>
+            </Button>
           ) : (
-            <span className={`${styles.navButton} ${styles.navButtonDisabled}`}>
-              {hasGroupReleaseContext ? 'Zurück ueber Gruppen-Releases' : 'Keine nächste Folge'}
-            </span>
+            <Button variant="secondary" disabled className={styles.navButton}>
+              {hasGroupReleaseContext ? 'Zurück über Gruppen-Releases' : 'Keine nächste Folge'}
+            </Button>
           )}
         </div>
       </section>

@@ -144,17 +144,6 @@ export interface UnifiedGroupMember {
   group_roles: string[];
 }
 
-// --- Standard-Team (fansub_group_default_crew) (D-04) ---
-
-export interface DefaultCrewEntry {
-  id: number;
-  fansub_group_id: number;
-  member_id: number;
-  role_code: string;
-  created_by: number | null;
-  created_at: string;
-}
-
 // --- Effektive Mitwirkende für Release-Version (D-02, Phase 83) ---
 
 export interface EffectiveContributionRow {

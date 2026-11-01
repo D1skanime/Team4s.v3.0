@@ -1,6 +1,9 @@
 "use client";
 
-import createStyles from "./page.module.css";
+import pageShellStyles from "./page.pageShell.module.css";
+import providerGridStyles from "./page.providerGrid.module.css";
+import providersStyles from "./page.providers.module.css";
+import sharedStyles from "./page.shared.module.css";
 import styles from "../../admin.module.css";
 import { JellyfinCandidateCard } from "../components/JellyfinIntake/JellyfinCandidateCard";
 import type { AdminJellyfinIntakeSearchItem } from "@/types/admin";
@@ -41,13 +44,13 @@ export function CreateJellyfinCard({
   onDiscard,
 }: CreateJellyfinCardProps) {
   return (
-    <section className={createStyles.providerCard}>
-      <div className={createStyles.providerCardHeader}>
-        <p className={createStyles.resultsEyebrow}>Jellyfin</p>
+    <section className={providersStyles.providerCard}>
+      <div className={providersStyles.providerCardHeader}>
+        <p className={pageShellStyles.resultsEyebrow}>Jellyfin</p>
       </div>
 
-      <div className={createStyles.providerInputRow}>
-        <label className={[styles.field, createStyles.providerFieldGrow].join(" ")}>
+      <div className={providerGridStyles.providerInputRow}>
+        <label className={[styles.field, providerGridStyles.providerFieldGrow].join(" ")}>
           <input
             aria-label="Jellyfin-Suche"
             value={query}
@@ -59,7 +62,7 @@ export function CreateJellyfinCard({
           />
         </label>
         <button
-          className={createStyles.primaryAction}
+          className={sharedStyles.primaryAction}
           type="button"
           disabled={!canSearch || isSearching || isSubmitting}
           onClick={onSearch}
@@ -69,7 +72,7 @@ export function CreateJellyfinCard({
       </div>
 
       {hasAdoptedAssets ? (
-        <div className={createStyles.jellyfinSourceNotice}>
+        <div className={providersStyles.jellyfinSourceNotice}>
           <button
             className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
             type="button"
@@ -79,14 +82,14 @@ export function CreateJellyfinCard({
           </button>
         </div>
       ) : showResults && candidates.length > 0 ? (
-        <div className={createStyles.providerResultsBlock}>
-          <div className={createStyles.providerResultsHeader}>
-            <p className={createStyles.resultsEyebrow}>Gefundene Ordner</p>
-            <strong className={createStyles.providerResultsCount}>
+        <div className={providerGridStyles.providerResultsBlock}>
+          <div className={providerGridStyles.providerResultsHeader}>
+            <p className={pageShellStyles.resultsEyebrow}>Gefundene Ordner</p>
+            <strong className={providerGridStyles.providerResultsCount}>
               {candidates.length} Treffer
             </strong>
           </div>
-          <div className={createStyles.providerList}>
+          <div className={providerGridStyles.providerList}>
             {candidates.map((candidate) => (
               <JellyfinCandidateCard
                 key={candidate.jellyfin_series_id}
@@ -106,7 +109,7 @@ export function CreateJellyfinCard({
       ) : null}
 
       {!hasAdoptedAssets && showResults && candidates.length === 0 && !isSearching ? (
-        <p className={createStyles.resultsText}>
+        <p className={sharedStyles.resultsText}>
           Keine Ordner gefunden. Pruefe die Schreibweise.
         </p>
       ) : null}

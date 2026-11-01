@@ -5,13 +5,16 @@ import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { KeyboardEvent, ReactNode } from 'react'
 
+import { mergeCssModules } from '@/lib/mergeCssModules'
+
 import { Button } from './Button'
+import { DialogHeader } from './DialogHeader'
+import { IconButton } from './IconButton'
+import { VisuallyHidden } from './VisuallyHidden'
 import ownStyles from './Modal.module.css'
 import sharedStyles from './ui.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(ownStyles, sharedStyles)
 
 export interface ModalProps {
   open: boolean
@@ -20,27 +23,27 @@ export interface ModalProps {
   description?: string
   children: ReactNode
   footer?: ReactNode
-  /** 'md' (Standard) oder 'lg' fuer breite Inhalte wie Bild-Lightboxen. */
+  /** 'md' (Standard) oder 'lg' für breite Inhalte wie Bild-Lightboxen. */
   size?: 'md' | 'lg'
   /**
-   * Optionale zusaetzliche Klasse fuer das Panel-Element eines einzelnen Modal-Callers
-   * (additiv, kein Default -- jeder bestehende Aufrufer laesst dieses Feld weg und ist
+   * Optionale zusätzliche Klasse für das Panel-Element eines einzelnen Modal-Callers
+   * (additiv, kein Default -- jeder bestehende Aufrufer lässt dieses Feld weg und ist
    * dadurch byte-identisch zu vorher). Siehe RoleCapabilityImpactPreviewModal.module.css's
-   * .narrowHeightFix fuer das erste/einzige Beispiel (Plan 138-18, GAP-02).
+   * .narrowHeightFix für das erste/einzige Beispiel.
    */
   panelClassName?: string
   /**
-   * 'default' (Standard) oder 'stage' fuer eine chrome-unterdrueckende Variante ohne
-   * Header, ohne Footer und ohne Backdrop-Click-Close -- fuer den dunklen Bild-Viewer-Stage
-   * (Phase 177, Sketch 010). Additiv: jeder bestehende Aufrufer laesst dieses Feld weg und
-   * rendert dadurch byte-identisch zu vorher.
+   * 'default' (Standard) oder 'stage' für eine chrome-unterdrückende Variante ohne
+   * Header, ohne Footer und ohne Backdrop-Click-Close -- für den dunklen Bild-Viewer-Stage.
+   * Additiv: jeder bestehende Aufrufer lässt dieses Feld weg und rendert dadurch
+   * byte-identisch zu vorher.
    */
   variant?: 'default' | 'stage'
   /**
-   * Phase 177 Gap-Fix D-31: wenn gesetzt und der Rückgabewert `true` ist, überspringt Modal
-   * das eigene `onClose` für diesen Escape-Tastendruck (z. B. um zuerst nur ein internes
-   * Panel zu schliessen). Additiv -- jeder bestehende Aufrufer lässt dieses Feld weg und
-   * schliesst per Escape weiterhin genauso wie heute.
+   * Wenn gesetzt und der Rückgabewert `true` ist, überspringt Modal das eigene `onClose` für
+   * diesen Escape-Tastendruck (z. B. um zuerst nur ein internes Panel zu schließen). Additiv --
+   * jeder bestehende Aufrufer lässt dieses Feld weg und schließt per Escape weiterhin genauso
+   * wie heute.
    */
   onEscapeKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => boolean
 }
@@ -135,7 +138,10 @@ export function Modal({
     >
       <div className={styles.overlay} aria-hidden="true" />
       {variant !== 'stage' ? (
-        <button type="button" className={styles.overlayClose} aria-label="Modal schließen" onClick={onClose} />
+        // Reiner Maus-Komfort-Layer (Klick auf den abgedunkelten Hintergrund schließt das Modal).
+        // Kein <button>, um das Lint-Verbot für native Buttons in components/ui nicht zu verletzen -- Escape und
+        // der IconButton-basierte Schließen-Knopf bleiben die tastaturzugänglichen Wege.
+        <div role="presentation" aria-hidden="true" className={styles.overlayClose} onClick={onClose} />
       ) : null}
       <div
         className={[
@@ -151,21 +157,26 @@ export function Modal({
       >
         {variant === 'stage' ? (
           <>
-            <span id={titleID} className="visually-hidden">{title}</span>
-            <button type="button" ref={closeButtonRef} className={styles.closeButtonFloating} aria-label="Schließen" onClick={onClose}>
-              <X size={18} />
-            </button>
+            <VisuallyHidden id={titleID}>{title}</VisuallyHidden>
+            <IconButton
+              ref={closeButtonRef}
+              icon={<X size={18} />}
+              aria-label="Schließen"
+              variant="onImage"
+              floating
+              onClick={onClose}
+            />
           </>
         ) : (
-          <div className={styles.dialogHeader}>
-            <div>
-              <h3 className={styles.dialogTitle} id={titleID}>{title}</h3>
-              {description ? <p className={styles.dialogDescription}>{description}</p> : null}
-            </div>
-            <button type="button" ref={closeButtonRef} className={styles.closeButton} aria-label="Schließen" onClick={onClose}>
-              <X size={18} />
-            </button>
-          </div>
+          <DialogHeader
+            title={title}
+            description={description}
+            onClose={onClose}
+            titleId={titleID}
+            closeButtonRef={closeButtonRef}
+            variant="default"
+            className={styles.dialogHeader}
+          />
         )}
         <div className={[styles.modalBody, variant === 'stage' ? styles.modalBodyStage : null].filter(Boolean).join(' ')}>{children}</div>
         {variant !== 'stage' ? (

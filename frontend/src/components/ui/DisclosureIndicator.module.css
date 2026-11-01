@@ -2,28 +2,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: var(--disclosure-indicator-size-md);
+  height: var(--disclosure-indicator-size-md);
   flex: none;
   color: var(--ui-arrow);
   line-height: 1;
 }
 
 .disclosureIndicatorSm {
-  width: 24px;
-  height: 24px;
+  width: var(--disclosure-indicator-size-sm);
+  height: var(--disclosure-indicator-size-sm);
 }
 
 .disclosureIndicatorLg {
-  width: 42px;
-  height: 42px;
+  width: var(--disclosure-indicator-size-lg);
+  height: var(--disclosure-indicator-size-lg);
 }
 
 .disclosureIndicatorButton {
   border: 1px solid color-mix(in srgb, var(--ui-line) 18%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--ui-line) 8%, white);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 4px 12px -12px rgba(58, 14, 35, 0.4);
+  box-shadow: var(--disclosure-indicator-button-shadow);
 }

@@ -1,9 +1,10 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
 
 import type { ActiveTab } from "./episodeVersionEditorUtils";
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 
 interface EpisodeVersionActionBarProps {
   backHref: string;
@@ -46,9 +47,7 @@ export function EpisodeVersionActionBar({
             type="submit"
             disabled={isSaving}
           >
-            {isSaving ? (
-              <span className={styles.spinner} aria-hidden="true" />
-            ) : null}
+            {isSaving ? <Spinner size="sm" label="" /> : null}
             {isSaving ? "Speichert..." : "Speichern"}
           </button>
           {isPlatformAdmin ? (

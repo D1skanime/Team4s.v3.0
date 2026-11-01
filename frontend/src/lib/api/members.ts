@@ -7,7 +7,6 @@ import type {
   PublicMemberViewer,
   UpdateMemberProfileRequest,
 } from "@/types/profile";
-import type { DefaultCrewEntry } from "@/types/fansub";
 import {
   apiClientFetch,
   ApiError,
@@ -243,129 +242,6 @@ export async function updateOwnProfile(
   }
 
   return response.json() as Promise<MemberProfileResponse>;
-}
-
-export async function listDefaultCrew(
-  fansubId: number,
-  authToken?: string,
-): Promise<DefaultCrewEntry[]> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/default-crew`,
-    { authToken },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const body = await response.json() as { data: DefaultCrewEntry[] };
-  return body.data;
-}
-
-export async function upsertDefaultCrewEntry(
-  fansubId: number,
-  memberID: number,
-  roleCode: string,
-  authToken?: string,
-): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/default-crew`,
-    {
-      method: "PUT",
-      authToken,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ member_id: memberID, role_code: roleCode }),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-}
-
-export async function deleteDefaultCrewEntry(
-  fansubId: number,
-  memberID: number,
-  roleCode: string,
-  authToken?: string,
-): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/default-crew/${memberID}/${roleCode}`,
-    {
-      method: "DELETE",
-      authToken,
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-}
-
-export async function applyDefaultCrew(
-  fansubId: number,
-  animeIds?: number[],
-  authToken?: string,
-): Promise<{ applied_count: number }> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/default-crew/apply`,
-    {
-      method: "POST",
-      authToken,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ anime_ids: animeIds ?? [] }),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  return response.json() as Promise<{ applied_count: number }>;
 }
 
 export async function setMemberMemorial(

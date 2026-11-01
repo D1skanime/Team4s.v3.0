@@ -103,22 +103,10 @@
   color: var(--text-primary);
 }
 
-/* Nachlade-Leiste: Fortschritt ("X von Y angezeigt" / "Alle Y angezeigt") + weniger/mehr. */
+/* Nur Abstand -- die Nachlade-Leiste selbst kommt vollständig von @/components/ui Pagination
+   (mode="loadMore"). */
 .pager {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 16px;
-}
-.pagerInfo {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-.pagerButtons {
-  display: flex;
-  gap: 8px;
+  margin-top: var(--space-4);
 }
 
 /* Rollen-Chip mit Team4s-Rollenfarbe (data-color-key -> --role-accent aus globals.css). */

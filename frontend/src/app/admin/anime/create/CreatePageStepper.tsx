@@ -1,6 +1,7 @@
 "use client";
 
-import createStyles from "./page.module.css";
+import createStyles from "./page.pageShell.module.css";
+import stepperStyles from "./page.stepper.module.css";
 
 const STEPS = [
   { id: 1, label: "Anime finden", sub: "AniSearch & Jellyfin" },
@@ -32,16 +33,16 @@ export function CreatePageStepper({
             key={step.id}
             href={`#section-${step.id}`}
             className={[
-              createStyles.stepperItem,
-              isActive ? createStyles.stepperItemActive : "",
-              isDone ? createStyles.stepperItemDone : "",
+              stepperStyles.stepperItem,
+              isActive ? stepperStyles.stepperItemActive : "",
+              isDone ? stepperStyles.stepperItemDone : "",
             ]
               .filter(Boolean)
               .join(" ")}
             aria-current={isActive ? "step" : undefined}
           >
-            <span className={createStyles.stepperNumber}>{step.id}</span>
-            <span className={createStyles.stepperLabel}>
+            <span className={stepperStyles.stepperNumber}>{step.id}</span>
+            <span className={stepperStyles.stepperLabel}>
               <strong>{step.label}</strong>
               <small>{step.sub}</small>
             </span>

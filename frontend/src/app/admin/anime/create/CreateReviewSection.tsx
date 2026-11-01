@@ -1,6 +1,6 @@
 "use client";
 
-import createStyles from "./page.module.css";
+import createStyles from "./page.review.module.css";
 import styles from "../../admin.module.css";
 
 interface CreateReviewSectionProps {

@@ -2,15 +2,29 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
+import { CalendarDays, X } from 'lucide-react'
 
+import { Button } from './Button'
 import { classNames } from './classNames'
-import ownStyles from './DatePicker.module.css'
-import sharedStyles from './ui.module.css'
-
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+import {
+  MONTH_LABELS,
+  WEEKDAY_LABELS,
+  YEARS_PER_PAGE,
+  clampYear,
+  compareDateOnly,
+  monthIsSelectable,
+  pageStartForYear,
+  parseDateValue,
+  sameDate,
+  startOfCalendarGrid,
+  toDisplayDate,
+  toIsoDate,
+  yearIsSelectable,
+  yearRangeLabel,
+} from './DatePicker.dateLogic'
+import { IconButton } from './IconButton'
+import { NavArrow } from './NavArrow'
+import styles from './DatePicker.module.css'
 
 type DatePickerProps = {
   id: string
@@ -23,95 +37,31 @@ type DatePickerProps = {
   disabled?: boolean
   panelAlign?: 'start' | 'end'
   invalid?: boolean
+  /** Von FormField automatisch verknüpfte Fehler-/Hinweis-IDs (additiv, siehe FormField.tsx). */
+  'aria-describedby'?: string
   onChange: (value: string) => void
 }
 
 type PickerView = 'day' | 'month' | 'year'
 
-const MONTH_LABELS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
-const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
-const YEARS_PER_PAGE = 12
-
-function clampYear(year: number, minYear: number, maxYear: number): number {
-  return Math.min(maxYear, Math.max(minYear, year))
-}
-
-function isIsoDate(value: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value.trim())
-}
-
-function parseDateValue(value: string, minYear: number, maxYear: number): Date | null {
-  const trimmed = value.trim()
-  if (!trimmed) return null
-  if (/^\d{4}$/.test(trimmed)) {
-    return new Date(clampYear(Number(trimmed), minYear, maxYear), 0, 1)
-  }
-  if (!isIsoDate(trimmed)) return null
-  const [yearRaw, monthRaw, dayRaw] = trimmed.split('-')
-  const year = Number(yearRaw)
-  const month = Number(monthRaw) - 1
-  const day = Number(dayRaw)
-  const date = new Date(year, month, day)
-  if (Number.isNaN(date.getTime())) return null
-  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) return null
-  return new Date(clampYear(year, minYear, maxYear), month, day)
-}
-
-function toIsoDate(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function toDisplayDate(value: string, minYear: number, maxYear: number): string {
-  const date = parseDateValue(value, minYear, maxYear)
-  if (!date) return ''
-  return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`
-}
-
-function sameDate(left: Date, right: Date): boolean {
-  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate()
-}
-
-function compareDateOnly(left: Date, right: Date): number {
-  const leftTime = new Date(left.getFullYear(), left.getMonth(), left.getDate()).getTime()
-  const rightTime = new Date(right.getFullYear(), right.getMonth(), right.getDate()).getTime()
-  return leftTime - rightTime
-}
-
-function startOfCalendarGrid(year: number, month: number): Date {
-  const first = new Date(year, month, 1)
-  const mondayBasedDay = (first.getDay() + 6) % 7
-  return new Date(year, month, 1 - mondayBasedDay)
-}
-
-function pageStartForYear(year: number): number {
-  return Math.floor(year / YEARS_PER_PAGE) * YEARS_PER_PAGE
-}
-
-function yearRangeLabel(start: number, minYear: number, maxYear: number): string {
-  const from = Math.max(start, minYear)
-  const to = Math.min(start + YEARS_PER_PAGE - 1, maxYear)
-  return `${from} - ${to}`
-}
-
-function yearIsSelectable(year: number, minDate: Date | null, maxDate: Date | null): boolean {
-  const start = new Date(year, 0, 1)
-  const end = new Date(year, 11, 31)
-  if (minDate && compareDateOnly(end, minDate) < 0) return false
-  if (maxDate && compareDateOnly(start, maxDate) > 0) return false
-  return true
-}
-
-function monthIsSelectable(year: number, month: number, minDate: Date | null, maxDate: Date | null): boolean {
-  const start = new Date(year, month, 1)
-  const end = new Date(year, month + 1, 0)
-  if (minDate && compareDateOnly(end, minDate) < 0) return false
-  if (maxDate && compareDateOnly(start, maxDate) > 0) return false
-  return true
-}
-
+/**
+ * Datums-Auswahl mit Tages-/Monats-/Jahres-Panel. Auslöser und Leeren-Symbol nutzen `IconButton`s
+ * offizielle `field`-Variante (Feld-Zeilen-Auslöser, kein eigener Rahmen/Hintergrund) bzw.
+ * `ghost`-Variante mit `tone="clear"` (dezent im Ruhezustand, deutlich bei Hover); Tages-/Monats-/
+ * Jahres-Kacheln nutzen `IconButton`s offizielle `tile`-Variante mit `size="fill"` -- der
+ * "ausgewählt"-Zustand kommt über `aria-current`, denselben Mechanismus wie bei `Button`. Mindest-
+ * höhe (`minHeight`), gedämpfte Vormonats-/Folgemonats-Tage (`dimmed`), Wochenend-/Leeren-Akzent
+ * (`tone="muted"`/`"line"`), die "heute"-Markierung (`highlighted`) sowie die gefüllte Optik der
+ * größeren Monats-/Jahres-Kacheln (`tileFill`) sind ebenfalls offizielle `IconButton`-Optionen,
+ * keine von außen injizierten CSS-Klassen. Monats-/Jahres-Titel-Umschalter und Fußzeilen-Aktionen
+ * nutzen `Button`s `ghost`-Variante, die Fußzeile zusätzlich `tone="primary"`/`"line"` für ihre
+ * Akzentfarbe. Der Auslöser nutzt `IconButton`s `icon`-Prop für sein Wert-/Symbol-Layout, da
+ * `Button` keinen Ref weiterleitet, dieser Baustein aber für die Panel-Positionierung (Rand-
+ * Erkennung oben/unten) einen echten `HTMLButtonElement`-Ref benötigt. Die reinen Datums-/
+ * Kalender-Hilfsfunktionen (Parsen/Formatieren, Auswählbarkeit, Kalenderraster, Jahres-Seiten)
+ * liegen in `DatePicker.dateLogic.ts` (Datei-Zeilenlimit, ohne React-Abhängigkeit unabhängig
+ * testbar).
+ */
 export function DatePicker({
   id,
   label,
@@ -123,6 +73,7 @@ export function DatePicker({
   disabled = false,
   invalid = false,
   panelAlign = 'start',
+  'aria-describedby': ariaDescribedBy,
   onChange,
 }: DatePickerProps) {
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -246,30 +197,37 @@ export function DatePicker({
 
   return (
     <div className={styles.datePicker} ref={rootRef}>
-      <div className={styles.datePickerTopRow}>
-        <button
+      <div className={classNames(styles.datePickerField, invalid && styles.datePickerFieldInvalid, disabled && styles.datePickerFieldDisabled)}>
+        <IconButton
           id={id}
           ref={triggerRef}
-          type="button"
-          className={classNames(styles.datePickerTrigger, invalid && styles.controlInvalid)}
+          variant="field"
+          size="fill"
+          icon={
+            <>
+              <span className={displayValue ? styles.datePickerValue : styles.datePickerPlaceholder}>
+                {displayValue || 'TT.MM.JJJJ'}
+              </span>
+              <CalendarDays size={16} aria-hidden="true" />
+            </>
+          }
+          className={styles.datePickerTrigger}
           aria-label={`${label} auswählen`}
           aria-expanded={isOpen}
+          aria-describedby={ariaDescribedBy}
           disabled={disabled}
           onClick={openPicker}
-        >
-          <span className={displayValue ? styles.datePickerValue : styles.datePickerPlaceholder}>
-            {displayValue || 'TT.MM.JJJJ'}
-          </span>
-          <CalendarDays size={16} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className={styles.datePickerInlineClear}
+        />
+        <IconButton
+          variant="ghost"
+          size="sm"
+          tone="clear"
+          icon={<X size={14} aria-hidden="true" />}
+          aria-label="Datum leeren"
+          className={styles.datePickerClearButton}
           disabled={disabled || !value}
           onClick={clearDate}
-        >
-          Leeren
-        </button>
+        />
       </div>
 
       {isOpen ? (
@@ -284,50 +242,56 @@ export function DatePicker({
           aria-label={`${label} Kalender`}
         >
           <div className={styles.datePickerPanelHeader}>
-            <button
-              type="button"
-              className={styles.datePickerNavButton}
+            <NavArrow
+              direction="previous"
+              label="Zurück"
+              size="sm"
               disabled={view === 'year' ? !canGoPreviousYears : view === 'month' ? visibleMonth.getFullYear() <= minYear : !canGoPreviousMonth}
               onClick={() => {
                 if (view === 'year') setYearPageStart((current) => Math.max(minYear, current - YEARS_PER_PAGE))
                 else if (view === 'month') setVisibleMonth((current) => new Date(clampYear(current.getFullYear() - 1, minYear, maxYear), current.getMonth(), 1))
                 else changeMonth(-1)
               }}
-              aria-label="Zurück"
-            >
-              <ChevronLeft size={16} aria-hidden="true" />
-            </button>
+            />
             <div className={styles.datePickerPanelTitle}>
               {view === 'year' ? (
                 <span>{yearRangeLabel(yearPageStart, minYear, maxYear)}</span>
               ) : view === 'month' ? (
-                <button type="button" onClick={() => { setYearPageStart(pageStartForYear(visibleMonth.getFullYear())); setView('year') }}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setYearPageStart(pageStartForYear(visibleMonth.getFullYear())); setView('year') }}
+                >
                   {visibleMonth.getFullYear()}
-                </button>
+                </Button>
               ) : (
                 <>
-                  <button type="button" onClick={() => setView('month')}>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setView('month')}>
                     {MONTH_LABELS[visibleMonth.getMonth()]}
-                  </button>
-                  <button type="button" onClick={() => { setYearPageStart(pageStartForYear(visibleMonth.getFullYear())); setView('year') }}>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setYearPageStart(pageStartForYear(visibleMonth.getFullYear())); setView('year') }}
+                  >
                     {visibleMonth.getFullYear()}
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
-            <button
-              type="button"
-              className={styles.datePickerNavButton}
+            <NavArrow
+              direction="next"
+              label="Weiter"
+              size="sm"
               disabled={view === 'year' ? !canGoNextYears : view === 'month' ? visibleMonth.getFullYear() >= maxYear : !canGoNextMonth}
               onClick={() => {
                 if (view === 'year') setYearPageStart((current) => Math.min(maxYear, current + YEARS_PER_PAGE))
                 else if (view === 'month') setVisibleMonth((current) => new Date(clampYear(current.getFullYear() + 1, minYear, maxYear), current.getMonth(), 1))
                 else changeMonth(1)
               }}
-              aria-label="Weiter"
-            >
-              <ChevronRight size={16} aria-hidden="true" />
-            </button>
+            />
           </div>
 
           {view === 'day' ? (
@@ -345,21 +309,21 @@ export function DatePicker({
                   const isWeekend = date.getDay() === 0 || date.getDay() === 6
                   const isSelectable = isSelectableDate(date)
                   return (
-                    <button
+                    <IconButton
                       key={toIsoDate(date)}
-                      type="button"
-                      className={classNames(
-                        styles.datePickerDay,
-                        !isCurrentMonth && styles.datePickerDayMuted,
-                        isWeekend && styles.datePickerDayWeekend,
-                        isToday && styles.datePickerDayToday,
-                        isSelected && styles.datePickerDaySelected,
-                      )}
+                      variant="tile"
+                      size="fill"
+                      minHeight="sm"
+                      dimmed={!isCurrentMonth}
+                      tone={isWeekend ? 'line' : !isCurrentMonth ? 'muted' : undefined}
+                      highlighted={isToday}
+                      icon={date.getDate()}
+                      aria-label={String(date.getDate())}
+                      aria-current={isSelected ? 'true' : undefined}
+                      className={styles.datePickerDay}
                       disabled={!isSelectable}
                       onClick={() => selectDay(date)}
-                    >
-                      {date.getDate()}
-                    </button>
+                    />
                   )
                 })}
               </div>
@@ -369,15 +333,18 @@ export function DatePicker({
           {view === 'month' ? (
             <div className={styles.datePickerMonthGrid}>
               {MONTH_LABELS.map((month, index) => (
-                <button
+                <IconButton
                   key={month}
-                  type="button"
-                  className={classNames(index === visibleMonth.getMonth() && styles.datePickerTileSelected)}
+                  variant="tile"
+                  size="fill"
+                  minHeight="md"
+                  tileFill
+                  icon={month}
+                  aria-label={month}
+                  aria-current={index === visibleMonth.getMonth() ? 'true' : undefined}
                   disabled={!monthIsSelectable(visibleMonth.getFullYear(), index, minSelectableDate, maxSelectableDate)}
                   onClick={() => selectMonth(index)}
-                >
-                  {month}
-                </button>
+                />
               ))}
             </div>
           ) : null}
@@ -385,23 +352,30 @@ export function DatePicker({
           {view === 'year' ? (
             <div className={styles.datePickerYearGrid}>
               {years.map((year) => (
-                <button
+                <IconButton
                   key={year}
-                  type="button"
-                  className={classNames(year === visibleMonth.getFullYear() && styles.datePickerTileSelected)}
+                  variant="tile"
+                  size="fill"
+                  minHeight="md"
+                  tileFill
+                  icon={year}
+                  aria-label={String(year)}
+                  aria-current={year === visibleMonth.getFullYear() ? 'true' : undefined}
                   disabled={!yearIsSelectable(year, minSelectableDate, maxSelectableDate)}
                   onClick={() => selectYear(year)}
-                >
-                  {year}
-                </button>
+                />
               ))}
             </div>
           ) : null}
 
           {view === 'day' ? (
             <div className={styles.datePickerFooter}>
-              <button type="button" disabled={!isSelectableDate(today)} onClick={selectToday}>Heute</button>
-              <button type="button" disabled={!value} onClick={clearDate}>Leeren</button>
+              <Button type="button" variant="ghost" size="sm" tone="primary" disabled={!isSelectableDate(today)} onClick={selectToday}>
+                Heute
+              </Button>
+              <Button type="button" variant="ghost" size="sm" tone="line" disabled={!value} onClick={clearDate}>
+                Leeren
+              </Button>
             </div>
           ) : null}
         </div>

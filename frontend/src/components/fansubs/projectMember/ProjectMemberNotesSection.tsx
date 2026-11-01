@@ -3,7 +3,7 @@
 import { FileText } from 'lucide-react'
 import { useCallback } from 'react'
 
-import { Button, SectionHeader } from '@/components/ui'
+import { Pagination, SectionHeader } from '@/components/ui'
 import { getProjectMemberNotes } from '@/lib/api'
 import type { ProjectMemberNote } from '@/types/projectMember'
 
@@ -24,7 +24,9 @@ interface ProjectMemberNotesSectionProps {
   hasMultipleRoles: boolean
 }
 
-// Projektweite Texte-&-Notizen-Sektion (Brief 3.2/10): cursor-nachgeladen mit weniger/mehr.
+// Projektweite Texte-&-Notizen-Sektion: lädt cursor-basiert nach (Pagination mode="loadMore"),
+// statt zu einer festen Seitenzahl zu springen -- bereits angezeigte Einträge bleiben beim
+// Nachladen erhalten.
 export function ProjectMemberNotesSection({
   animeID,
   groupID,
@@ -73,30 +75,21 @@ export function ProjectMemberNotesSection({
         ))}
       </div>
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
-      <div className={pageStyles.pager}>
-        {canShowMore ? (
-          <span className={pageStyles.pagerInfo}>{`${shown.length} von ${count} angezeigt`}</span>
-        ) : null}
-        <div className={pageStyles.pagerButtons}>
-          {canShowLess ? (
-            <Button type="button" variant="ghost" size="sm" onClick={showLess}>
-              Weniger anzeigen
-            </Button>
-          ) : null}
-          {canShowMore
-            ? (() => {
-                const nextBatch = Math.min(PAGE_LIMIT, count - shown.length)
-                const label =
-                  nextBatch === 1 ? 'Weiteren 1 Beitrag anzeigen' : `Weitere ${nextBatch} Beiträge anzeigen`
-                return (
-                  <Button type="button" variant="secondary" size="sm" onClick={showMore} disabled={loading}>
-                    {label}
-                  </Button>
-                )
-              })()
-            : null}
-        </div>
-      </div>
+      <Pagination
+        mode="loadMore"
+        className={pageStyles.pager}
+        shownCount={shown.length}
+        totalCount={count}
+        canShowMore={canShowMore}
+        canShowLess={canShowLess}
+        onShowMore={showMore}
+        onShowLess={showLess}
+        loading={loading}
+        showMoreLabel={(() => {
+          const nextBatch = Math.min(PAGE_LIMIT, count - shown.length)
+          return nextBatch === 1 ? 'Weiteren 1 Beitrag anzeigen' : `Weitere ${nextBatch} Beiträge anzeigen`
+        })()}
+      />
     </section>
   )
 }

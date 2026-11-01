@@ -1,0 +1,121 @@
+/* Seiten-Grundgerüst, Kopfbereich (Titel/Intro), äußerer Stepper-Rahmen und die wiederkehrende
+   Abschnitts-Struktur (Sektionsüberschrift mit Nummernkreis, Titel, Unterzeile) samt der
+   Detail-Stack-Anordnung. Diese Klassen werden sowohl von Komponenten in diesem Ordner
+   (`CreatePageStepper`, `page.tsx`) als auch von der gemeinsamen Bearbeitungs-Workspace-Komponente
+   `SharedAnimeEditorWorkspace` sowie `AnimeEditDetailsSection` außerhalb dieses Ordners genutzt --
+   beide Seiten importieren deshalb gezielt diese Datei. `.editHeaderShell > .stepper` und die
+   eigenständige `.stepper`-Leiste bleiben zusammen in dieser Datei, weil CSS-Module jeder Datei
+   einen eigenen gehashten Bezeichner je Klassenname zuweisen: Läge `.stepper` in einer anderen
+   Datei als dieser Nachfahren-Selektor, würden beide unterschiedliche Hashes erhalten und die
+   Verschachtelungs-Regel griffe nicht mehr. */
+
+.pageShell {
+  display: grid;
+  gap: 12px;
+}
+
+.pageHeader {
+  display: grid;
+  gap: 12px;
+}
+
+.editHeaderShell {
+  overflow: hidden;
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.editHeaderShell > .stepper {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #e2e6ea;
+  border-radius: 0;
+}
+
+.pageTitleBlock {
+  display: grid;
+  gap: 4px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: clamp(2rem, 2.8vw, 2.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #13161a;
+}
+
+.pageIntro {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #667085;
+}
+
+.resultsEyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a5b49;
+}
+
+/* ── Stepper ─────────────────────────────────────────────────────────────── */
+
+.stepper {
+  display: flex;
+  gap: 0;
+  background: #fff;
+  border: 1px solid #e2e6ea;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+/* ── Sektionsstruktur ────────────────────────────────────────────────────── */
+
+.pageSection {
+  margin-bottom: 20px;
+  scroll-margin-top: 80px;
+}
+
+.detailsStack {
+  display: grid;
+  gap: 20px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sectionNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #6d4aff;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.sectionSub {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}

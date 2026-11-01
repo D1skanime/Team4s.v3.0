@@ -1,0 +1,42 @@
+.mediaFrame {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--radius-surface);
+  background: var(--surface-sunken);
+}
+
+.mediaFrameRound {
+  border-radius: 50%;
+}
+
+.mediaFrameEmpty {
+  border: 1px dashed var(--border-subtle);
+  background: var(--surface-canvas);
+}
+
+.mediaFrameDragging {
+  border-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--surface-canvas));
+}
+
+.mediaFrameDisabled {
+  opacity: 0.56;
+}
+
+.mediaFrameCorner {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+}
+
+.mediaFrameBottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-1);
+}

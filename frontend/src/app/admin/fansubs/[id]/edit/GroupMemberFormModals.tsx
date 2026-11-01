@@ -19,7 +19,7 @@ import type { HistFansubGroupMember, HistoricalContributionVisibility } from '@/
 import { findDuplicateMemberMatches, type InlineMemberRoleDraft } from './useGroupMembersTab'
 
 import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditStyles from './FansubEdit.membership.module.css'
 import ownStyles from './GroupMemberFormModals.module.css'
 
 const styles = mergeCssModules(fansubEditStyles, sharedStyles)

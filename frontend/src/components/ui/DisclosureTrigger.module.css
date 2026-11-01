@@ -1,0 +1,43 @@
+/* font-size entspricht exakt --font-size-h3, min-height exakt --control-height-md -- als Tokens
+   referenziert statt zufällig übereinstimmender Literale. */
+.disclosureTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--control-height-md);
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--text-strong);
+  font: inherit;
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-heading);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast) ease,
+    color var(--transition-fast) ease;
+}
+
+.disclosureTrigger:hover {
+  background: color-mix(in srgb, var(--accent-primary) 4%, transparent);
+  color: var(--accent-primary);
+}
+
+.disclosureTrigger:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 var(--border-width-thick) var(--border-accent);
+  border-radius: var(--radius-surface);
+}
+
+.disclosureTriggerOpen {
+  color: var(--accent-primary);
+}
+
+.disclosureTriggerTitle {
+  min-width: 0;
+  flex: 1;
+  text-align: start;
+}

@@ -1,13 +1,14 @@
 "use client";
 
-// CreateJellyfinResultsPanel: extracted Jellyfin candidate review section for
-// the create page. Keeping this panel separate reduces the main page component
-// size while co-locating the Jellyfin UI logic with its CSS module.
+// CreateJellyfinResultsPanel: ausgelagerter Prüfbereich für die gefundenen Jellyfin-Kandidaten
+// der Erstellungsseite. Die eigenständige Komponente hält die Hauptseite kompakter und bündelt
+// die Jellyfin-UI-Logik zusammen mit dem zugehörigen CSS-Modul.
 
 import { JellyfinCandidateReview } from "../components/JellyfinIntake/JellyfinCandidateReview";
 import type { AdminJellyfinIntakeSearchItem } from "@/types/admin";
 
-import createStyles from "./page.module.css";
+import createStyles from "./page.pageShell.module.css";
+import sharedStyles from "./page.shared.module.css";
 
 /**
  * Props des CreateJellyfinResultsPanel. Enthält die Suchanfrage, gefundene
@@ -38,19 +39,19 @@ export function CreateJellyfinResultsPanel({
   onLoadCandidatePreview,
 }: CreateJellyfinResultsPanelProps) {
   return (
-    <section className={createStyles.resultsPanel}>
-      <div className={createStyles.resultsHeader}>
-        <div className={createStyles.resultsTitleBlock}>
+    <section className={sharedStyles.resultsPanel}>
+      <div className={sharedStyles.resultsHeader}>
+        <div className={sharedStyles.resultsTitleBlock}>
           <p className={createStyles.resultsEyebrow}>Jellyfin</p>
-          <h2 className={createStyles.resultsTitle}>Treffer prüfen</h2>
-          <p className={createStyles.resultsText}>
+          <h2 className={sharedStyles.resultsTitle}>Treffer prüfen</h2>
+          <p className={sharedStyles.resultsText}>
             Erst Details prüfen, dann die ausgewählte Serie aktiv in den
             Entwurf laden. Beim Laden wird die bisherige Jellyfin-Vorschau
             vollständig ersetzt.
           </p>
         </div>
         {hasActivePreview ? (
-          <span className={createStyles.statusPill}>Vorschau aktiv</span>
+          <span className={sharedStyles.statusPill}>Vorschau aktiv</span>
         ) : null}
       </div>
       <JellyfinCandidateReview

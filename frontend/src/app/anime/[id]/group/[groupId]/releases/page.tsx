@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback } from 'react'
 
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { GroupEdgeNavigation } from '@/components/groups/GroupEdgeNavigation'
-import { Pagination } from '@/components/anime/Pagination'
+import { Pagination } from '@/components/ui/Pagination'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { buildGroupNavigationGroups } from '@/lib/groupNavigation'
 import { getGroupReleases, getAnimeByID, getAnimeFansubs, ApiError } from '@/lib/api'
@@ -406,7 +406,12 @@ export default function GroupReleasesPage({ params }: GroupReleasesPageProps) {
               <Pagination
                 currentPage={meta.page}
                 totalPages={meta.total_pages}
-                baseUrl={`/anime/${animeID}/group/${groupID}/releases`}
+                hrefForPage={(page) => {
+                  const query = new URLSearchParams(urlSearchParams.toString())
+                  query.set('page', String(page))
+                  return `/anime/${animeID}/group/${groupID}/releases?${query.toString()}`
+                }}
+                linkComponent={Link}
               />
             ) : null}
           </section>

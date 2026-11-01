@@ -40,10 +40,6 @@
   padding: 0.25rem 0.6rem;
 }
 
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
 /* MediaSlot (components/ui) owns sizing (aspect-ratio/shape) and the empty-vs-replace-overlay
    state switch -- these two classes only add the decorative border/background and, for the
    logo, the max-width that keeps its 1:1 slot a modest fixed size instead of stretching to the
@@ -79,22 +75,8 @@
   gap: 0.6rem;
 }
 
-.progressTrack {
-  position: relative;
+.progressBarTrack {
   flex: 1;
-  height: 8px;
-  background: color-mix(in srgb, var(--text-secondary) 12%, transparent);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.progressBar {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 0;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-primary) 88%, #88a9ff) 0%, color-mix(in srgb, var(--accent-primary) 70%, #3a5ea9) 100%);
-  border-radius: inherit;
-  transition: width 100ms linear;
 }
 
 .progressLabel {
@@ -137,13 +119,4 @@
 
 .error {
   color: color-mix(in srgb, var(--color-error) 82%, var(--text-primary));
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }

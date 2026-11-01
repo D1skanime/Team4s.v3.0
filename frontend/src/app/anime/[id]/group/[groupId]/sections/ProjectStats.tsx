@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useId, useState } from 'react'
 
-import { Button, HeroMetrics } from '@/components/ui'
+import { Button, MetricList } from '@/components/ui'
 import { buildFansubProjectPath } from '@/lib/fansubProjectRoutes'
 import type { FansubGroupSummary } from '@/types/fansub'
 
@@ -45,8 +45,9 @@ export function ProjectStats({ contributorCount, releaseCount, coopGroups, anime
 
   return (
     <div className={styles.projectStats}>
-      <HeroMetrics
+      <MetricList
         ariaLabel="Projektkennzahlen"
+        valueHeadingLevel={2}
         items={[
           { label: 'Mitwirkende', value: contributorCount },
           { label: 'Releases', value: releaseCount },

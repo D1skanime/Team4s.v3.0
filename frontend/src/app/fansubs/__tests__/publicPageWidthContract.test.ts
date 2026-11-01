@@ -3,9 +3,11 @@ import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
+import { readGlobalsCssResolved } from '@/test/readGlobalsCss'
+
 const readSource = (path: string) => readFileSync(join(process.cwd(), path), 'utf8')
 
-const globalStyles = readSource('src/styles/globals.css')
+const globalStyles = readGlobalsCssResolved()
 const fansubStyles = readSource('src/app/fansubs/[slug]/page.module.css')
 const projectStyles = readSource('src/app/anime/[id]/group/[groupId]/page.module.css')
 const focalCarouselStyles = readSource('src/components/ui/FocalCarousel.module.css')

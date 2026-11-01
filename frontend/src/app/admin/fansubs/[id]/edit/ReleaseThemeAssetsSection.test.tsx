@@ -36,6 +36,9 @@ describe('ReleaseThemeAssetsSection', () => {
     expect(markup).toContain('Video-Datei')
     expect(markup).toContain('Video hochladen')
     expect(markup).toContain('OP1 - Again')
+    // Nutzt den gemeinsamen ProgressBar-Baustein statt eines eigenen nativen <progress>.
+    expect(markup).toContain('role="progressbar"')
+    expect(markup).not.toContain('<progress')
   })
 
   it('does not fetch assets when authToken is null', () => {

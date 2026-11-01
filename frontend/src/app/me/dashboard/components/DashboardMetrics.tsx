@@ -1,4 +1,4 @@
-import { HeroMetrics, SectionHeader } from '@/components/ui'
+import { MetricList, SectionHeader } from '@/components/ui'
 import type { OwnDashboardData } from '@/types/dashboard'
 
 export interface DashboardMetricsProps {
@@ -15,8 +15,9 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
   return (
     <section>
       <SectionHeader title="Deine Zahlen" />
-      <HeroMetrics
+      <MetricList
         ariaLabel="Deine Kennzahlen"
+        valueHeadingLevel={3}
         items={[
           { label: 'Punkte', value: data.total_points.toLocaleString('de-DE') },
           { label: 'Badges', value: data.badges_count },

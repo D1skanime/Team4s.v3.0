@@ -1,0 +1,100 @@
+/**
+ * Globale Basis-Stile (Reset, Grundtypografie, wenige repo-weite Hilfsklassen). Getrennt von
+ * den Design-Tokens (siehe ./tokens/), da dies echte Element-/Klassen-Regeln sind, keine
+ * `:root`-Variablen-Deklarationen. Wird von ../globals.css per @import eingebunden.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  /* Full-Bleed-Elemente (100vw, z. B. Hero-Backdrop) dürfen keine Horizontalscrollbar erzeugen.
+     'clip' statt 'hidden' -> erzeugt keinen Scroll-Container, bricht kein position: sticky.
+     MUSS auf BEIDEN Elementen stehen (quick-261022-g17, live per Playwright verifiziert):
+     body { overflow-x: clip } allein genügt NICHT, wenn ein Full-Bleed-Kind zusätzlich
+     transform:scale(...) trägt (z. B. der Hero-Backdrop-Zoom-Effekt) -- der Browser
+     propagiert dessen Overflow nicht zuverlässig auf <html>/den Viewport herunter, sodass
+     document.documentElement.scrollWidth trotzdem wächst und die Seite real horizontal
+     scrollbar wird. Mit overflow-x:clip auf <html> selbst bleibt scrollWidth === clientWidth. */
+  overflow-x: clip;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.page-shell {
+  width: min(1280px, 100% - 48px);
+  margin: 0 auto;
+  padding: var(--space-6) 0;
+}
+
+.hero {
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+
+/* TipTap Color Tokens — Anwendung in body_html public output */
+.color-token-gray   { color: #6b7280; }
+.color-token-red    { color: #dc2626; }
+.color-token-orange { color: #ea580c; }
+.color-token-yellow { color: #ca8a04; }
+.color-token-green  { color: #16a34a; }
+.color-token-blue   { color: #2563eb; }
+.color-token-purple { color: #9333ea; }

@@ -1,0 +1,271 @@
+/* Alte Vorschau-Kacheln fuer Farb-/Radius-/Schatten-Tokens, Interaktions-Primitive und
+ * Button-Zustandsraster aus der fruehen, noch nicht auf Storybook migrierten Showcase-Seite.
+ * Die zugehoerigen Komponenten wurden inzwischen durch dedizierte Storybook-Storys ersetzt
+ * (siehe `DesignTokensShowcase.tsx`); keine der hier definierten Klassen wird aktuell von
+ * einer `.tsx`-Datei referenziert. Als unveraenderte Altlast mitgezogen, damit der mechanische
+ * Datei-Split keine Regeln verliert. */
+
+
+
+.swatch {
+  min-height: 96px;
+  border-radius: 18px;
+  border: 1px solid rgba(45, 41, 38, 0.12);
+  padding: 16px;
+  display: grid;
+  align-content: end;
+  gap: 4px;
+  box-shadow: 0 8px 24px rgba(25, 21, 18, 0.05);
+}
+
+.swatch code,
+.tokenLine code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.tokenLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.colorFamilyGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.colorChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 41, 38, 0.1);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.colorChip code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.colorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  flex: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.interactionPrimitiveGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.interactionPrimitivePanel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(92, 105, 131, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.interactionPrimitivePanel strong {
+  color: #2f3746;
+  font-size: 0.92rem;
+}
+
+.disclosurePreviewRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.disclosurePreviewItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: #48556b;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.accentRulePreviewStack {
+  display: grid;
+  gap: 10px;
+}
+
+.accentRulePreviewStack span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 10px;
+  align-items: center;
+  color: #6b7486;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.previewWine {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    linear-gradient(to bottom, #82122c 0%, #580c22 45%, #3a0e23 100%);
+  --button-border: color-mix(in srgb, #3a0e23 74%, black 26%);
+  --button-shadow: 0 5px 14px rgba(58, 14, 35, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.previewPetrol {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    linear-gradient(to bottom, #79e0b5 0%, #51c99d 45%, #2f9b79 100%);
+  --button-border: color-mix(in srgb, #2f9b79 74%, #1b5d4a 26%);
+  --button-shadow: 0 5px 14px rgba(47, 155, 121, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.previewSlate {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    linear-gradient(to bottom, #4b5f8c 0%, #394a72 45%, #2a3556 100%);
+  --button-border: color-mix(in srgb, #2a3556 74%, black 26%);
+  --button-shadow: 0 5px 14px rgba(42, 53, 86, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.previewCobalt {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    linear-gradient(to bottom, #7aa0f0 0%, #5f84dd 45%, #4363b4 100%);
+  --button-border: color-mix(in srgb, #4363b4 74%, #24396f 26%);
+  --button-shadow: 0 5px 14px rgba(67, 99, 180, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.previewButtonStack {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.previewLabel {
+  font-size: 12px;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stateGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: start;
+}
+
+.stateCard {
+  display: grid;
+  gap: 10px;
+}
+
+.stateTitle {
+  font-size: 12px;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stateHover {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 20%, rgba(255, 255, 255, 0) 22%),
+    linear-gradient(to top, #7aa0f0 0%, #5f84dd 45%, #4363b4 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(67, 99, 180, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.stateHoverSlate {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 20%, rgba(255, 255, 255, 0) 22%),
+    linear-gradient(to top, #4b5f8c 0%, #394a72 45%, #2a3556 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(42, 53, 86, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.stateHoverWine {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 20%, rgba(255, 255, 255, 0) 22%),
+    linear-gradient(to top, #82122c 0%, #580c22 45%, #3a0e23 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(58, 14, 35, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.stateHoverPetrol {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 20%, rgba(255, 255, 255, 0) 22%),
+    linear-gradient(to top, #79e0b5 0%, #51c99d 45%, #2f9b79 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(47, 155, 121, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.stateActive {
+  transform: translateY(1px);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.08),
+    0 0 0 5px rgba(122, 160, 240, 0.32),
+    0 0 18px rgba(122, 160, 240, 0.45),
+    inset 0 2px 6px rgba(35, 52, 95, 0.24);
+  filter: saturate(1.04) brightness(0.97);
+}
+
+.stateActiveSlate {
+  transform: translateY(1px);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.08),
+    0 0 0 5px rgba(75, 95, 140, 0.26),
+    0 0 16px rgba(75, 95, 140, 0.34),
+    inset 0 2px 6px rgba(30, 38, 62, 0.18);
+  filter: brightness(0.98);
+}
+
+.stateActiveWine {
+  transform: translateY(1px);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.08),
+    0 0 0 5px rgba(130, 18, 44, 0.26),
+    0 0 16px rgba(130, 18, 44, 0.34),
+    inset 0 2px 6px rgba(36, 8, 22, 0.26);
+  filter: brightness(0.97);
+}
+
+.stateActivePetrol {
+  transform: translateY(1px);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.08),
+    0 0 0 5px rgba(121, 224, 181, 0.28),
+    0 0 16px rgba(121, 224, 181, 0.34),
+    inset 0 2px 6px rgba(22, 77, 62, 0.22);
+  filter: brightness(0.98);
+}
+
+.stateFocus {
+  box-shadow: 0 0 0 3px rgba(122, 160, 240, 0.2), 0 5px 14px rgba(67, 99, 180, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.stateFocusSlate {
+  box-shadow: 0 0 0 3px rgba(75, 95, 140, 0.18), 0 5px 14px rgba(42, 53, 86, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.stateFocusWine {
+  box-shadow: 0 0 0 3px rgba(130, 18, 44, 0.18), 0 5px 14px rgba(58, 14, 35, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.stateFocusPetrol {
+  box-shadow: 0 0 0 3px rgba(121, 224, 181, 0.22), 0 5px 14px rgba(47, 155, 121, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}

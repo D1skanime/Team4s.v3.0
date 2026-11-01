@@ -6,7 +6,7 @@ import { Button } from '@/components/ui'
 import type { AnimeDetail } from '@/types/anime'
 
 import styles from '../../../admin.module.css'
-import createStyles from '../../create/page.module.css'
+import createStyles from '../../create/page.providerGrid.module.css'
 import workspaceStyles from '../ManualCreate/ManualCreateWorkspace.module.css'
 import { CreateJellyfinCard } from '../../create/CreateJellyfinCard'
 import { AniSearchSearchCard } from '../shared/AniSearchSearchCard'

@@ -1,0 +1,429 @@
+/* Mitgliederverwaltung der Fansubgruppe: Mitgliedschafts-Avatar/-Identität/-Meta-Infos, die
+   Bearbeiten-/Verlaufs-Modale samt Rollen-Inline-Zeilen, kompakte und mobile Mitgliederkarten,
+   Status-Punkte, Medien-Berechtigungs-Zusammenfassung, Tabellen-Oberflächen (Desktop-Tabelle vs.
+   mobile Karten) sowie die generische Chip-Zeile (`chipRow`), die von mehreren Mitglieder-Komponenten
+   gemeinsam genutzt wird. */
+
+.chipRow {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.fansubEditMembershipSurface {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.fansubEditMembershipAvatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 32% 20%, color-mix(in srgb, white 18%, transparent), transparent 38%),
+    linear-gradient(145deg, #15254b, #50688f);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.18rem;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
+    0 12px 26px -22px rgba(17, 24, 39, 0.65);
+  overflow: hidden;
+}
+
+.fansubEditMembershipAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fansubEditMembershipIdentity strong,
+.fansubEditMembershipIdentity span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fansubEditMembershipNameRow strong {
+  font-size: 1.02rem;
+}
+
+.fansubEditMembershipMetaLine > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+
+.fansubEditMembershipRoleSummary > span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fansubEditMembershipRoleItemMain strong,
+.fansubEditMembershipRoleItemMain span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fansubEditMembershipRoleItemMain span {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+@media (max-width: 720px) {
+  .fansubEditMembershipAvatar {
+      width: 44px;
+      height: 44px;
+      font-size: 0.95rem;
+    }
+
+  .fansubEditInlineRoleRow {
+      grid-template-columns: 1fr;
+    }
+
+  .fansubEditInlineRoleRow > button {
+      width: 100%;
+    }
+}
+
+.fansubEditMembershipModalStack {
+  display: grid;
+  gap: 0.9rem;
+  align-content: start;
+  align-self: start;
+  grid-auto-rows: max-content;
+  height: fit-content;
+  min-height: 0;
+}
+
+.fansubEditMembershipModalStack > *,
+.fansubEditMembershipModalSection > * {
+  align-self: start;
+  min-height: 0;
+}
+
+.fansubEditMembershipModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditInlineRoleRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+  padding-top: 0.75rem;
+}
+
+.fansubEditInlineRoleRow > button {
+  justify-self: start;
+}
+
+.fansubEditInlineRoleFooter {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 0.2rem;
+}
+
+.fansubEditMemberHistoryRoleRow > .fansubEditDangerOutlineButton {
+  grid-column: 1 / -1;
+}
+
+.fansubEditMemberAddCard {
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.fansubEditMembershipMetaGrid > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.fansubEditMembershipMetaGrid span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fansubEditMembershipMetaGrid strong {
+  overflow-wrap: anywhere;
+}
+
+.fansubEditTableSurface {
+  padding: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(72, 58, 48, 0.06);
+  border-top-color: rgba(255, 248, 240, 0.78);
+  background-color: #ece4dc;
+  background-image: linear-gradient(to bottom, #f7f1eb, #ece4dc);
+  box-shadow:
+    0 1px 1px rgba(42, 30, 21, 0.2),
+    0 2px 3px rgba(42, 30, 21, 0.08);
+}
+
+.fansubEditTableWrapWine {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.fansubEditTableSurface .fansubEditTableWrapWine thead th {
+  background: transparent;
+  border-bottom: 3px solid #82122c;
+}
+
+.fansubEditMemberMobileCard {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(72, 58, 48, 0.1);
+  border-radius: 6px;
+  background: color-mix(in srgb, #ffffff 78%, #f7f1eb);
+  box-shadow: 0 1px 2px rgba(42, 30, 21, 0.08);
+}
+
+.fansubEditMediaPermissionSummary span {
+  overflow-wrap: anywhere;
+}
+
+.fansubEditMembersCompactList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 360px));
+  justify-content: start;
+  gap: 10px;
+  min-width: 0;
+  align-items: start;
+}
+
+.fansubEditMemberCompactCard {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(72, 58, 48, 0.1);
+  border-radius: 6px;
+  background: color-mix(in srgb, #ffffff 78%, #f7f1eb);
+  align-self: start;
+  container-type: inline-size;
+  box-shadow: 0 1px 2px rgba(42, 30, 21, 0.08);
+}
+
+.fansubEditMemberCompactHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fansubEditMemberCompactIdentity {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fansubEditMemberCompactIdentity .fansubEditMembershipAvatar {
+  width: 40px;
+  height: 40px;
+  font-size: 0.82rem;
+}
+
+.fansubEditMemberCompactIdentity strong,
+.fansubEditMemberCompactIdentity span {
+  overflow-wrap: anywhere;
+}
+
+.fansubEditMemberCompactIdentity > div:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fansubEditMemberCompactMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.fansubEditMemberStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  background: var(--text-muted);
+}
+
+.fansubEditMemberStatusDotActive {
+  background: var(--color-success);
+}
+
+.fansubEditMemberStatusDotInactive {
+  background: var(--color-warning);
+}
+
+.fansubEditMemberEditButton {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  border-radius: 999px;
+}
+
+.fansubEditMemberEditButton span {
+  display: none;
+}
+
+.fansubEditMemberCompactBody {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+  padding-left: 50px;
+}
+
+.fansubEditHistoricalRoleChip strong,
+.fansubEditHistoricalRoleChip span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fansubEditHistoricalRoleChip span {
+  grid-column: 1 / -1;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.fansubEditHistoricalRoleActions > button {
+  min-width: 34px;
+  width: 34px;
+  min-height: 34px;
+  height: 34px;
+}
+
+.fansubEditHistoricalMemberActions > button,
+.fansubEditHistoricalClaimActions button {
+  min-height: 36px;
+}
+
+.fansubEditMemberEditorPanel {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  grid-auto-rows: max-content;
+  min-width: 0;
+  padding-bottom: 6px;
+}
+
+.fansubEditMediaSwitchRowActive .fansubEditMediaSwitchTrack {
+  background: var(--accent-primary);
+}
+
+.fansubEditMediaSwitchRowActive .fansubEditMediaSwitchTrack span {
+  transform: translateX(18px);
+}
+
+@media (max-width: 430px) {
+  .fansubEditMemberCompactCard {
+      padding: 10px;
+    }
+
+  .fansubEditMemberCompactBody {
+      padding-left: 0;
+    }
+}
+
+@media (max-width: 767px) {
+  .fansubEditMembershipModalStack {
+      gap: 0.75rem;
+      align-self: start;
+      height: fit-content;
+    }
+
+  .fansubEditMembershipModalStack input,
+  .fansubEditMembershipModalStack select,
+  .fansubEditMembershipModalStack button,
+  .fansubEditMembershipModalSection button {
+      align-self: start;
+      height: auto;
+    }
+
+  .fansubEditMemberAddCard {
+      padding: 12px;
+    }
+
+  .fansubEditMemberAddCard .chipRow {
+      gap: 0.38rem;
+    }
+
+  .fansubEditMemberAddCard .chipRow > button,
+  .fansubEditMemberEditorPanel .chipRow > button {
+      min-height: 40px;
+      padding-inline: 10px;
+    }
+
+  .fansubEditMembershipModalActions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+  .fansubEditMembershipModalActions > * {
+      width: 100%;
+    }
+
+  .fansubEditMembersDesktopTable {
+      display: none;
+    }
+
+  .fansubEditMemberMobileCard {
+      min-width: 0;
+    }
+
+  .fansubEditMemberMobileCard .fansubEditClaimActions > *,
+  .fansubEditMemberMobileCard .fansubEditMembershipRoleControls > *,
+  .fansubEditMemberCompactCard .chipRow > *,
+  .fansubEditMemberMobileCard .chipRow > * {
+      min-height: 44px;
+    }
+
+  .fansubEditMemberMobileCard .fansubEditMembershipRoleControls > * {
+      min-width: 44px;
+    }
+
+  .fansubEditMemberEditButton {
+      width: auto;
+      min-width: 0;
+      min-height: 44px;
+      height: auto;
+      padding-inline: 14px;
+      border-radius: 8px;
+    }
+
+  .fansubEditMemberEditButton span {
+      display: inline;
+    }
+}
+
+.fansubEditClaimItem span {
+  overflow-wrap: anywhere;
+}
+

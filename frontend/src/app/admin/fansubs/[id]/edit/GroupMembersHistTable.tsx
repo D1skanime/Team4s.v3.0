@@ -22,9 +22,11 @@ import type {
 } from '@/types/profile'
 
 import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditMembershipStyles from './FansubEdit.membership.module.css'
+import fansubEditReleasesStyles from './FansubEdit.releases.module.css'
 import ownStyles from './GroupMembersHistTable.module.css'
 
+const fansubEditStyles = mergeCssModules(fansubEditMembershipStyles, fansubEditReleasesStyles)
 const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 type CopyState = 'copied' | 'selected'

@@ -1,7 +1,6 @@
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
-import Image from 'next/image'
 
-import { ArtworkHero, Badge, Button, HeroMetrics } from '@/components/ui'
+import { ArtworkHero, Badge, Button, MetricList } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import { getCoverUrl } from '@/lib/utils'
 import { presentationForRole } from '@/lib/roleCatalog'
@@ -9,7 +8,6 @@ import { scrollToSection } from '@/lib/scrollToSection'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { ProjectMemberSummary } from '@/types/projectMember'
 
-import { getMemberInitials } from '../fansubTeamInitials'
 import styles from './ProjectMemberPage.module.css'
 
 interface ProjectMemberHeroProps {
@@ -63,9 +61,8 @@ export function ProjectMemberHero({
       title={summary.member_display_name}
       imageUrl={bannerUrl?.trim() ? resolveApiUrl(bannerUrl) : null}
       fallbackImageUrl={coverImage?.trim() ? getCoverUrl(coverImage) : null}
-      avatar={summary.member_avatar_url ? (
-        <Image src={resolveApiUrl(summary.member_avatar_url)} alt="" width={64} height={64} unoptimized />
-      ) : getMemberInitials(summary.member_display_name)}
+      avatarLabel={summary.member_display_name}
+      avatarSrc={summary.member_avatar_url ? resolveApiUrl(summary.member_avatar_url) : null}
       status={summary.is_verified ? <Badge variant="success"><Check size={14} aria-hidden="true" />Verifiziert</Badge> : null}
       roles={presentedRoles.length > 0 ? presentedRoles.map((role) => (
         <Badge
@@ -78,7 +75,7 @@ export function ProjectMemberHero({
         </Badge>
       )) : null}
       context={<>{animeTitle} · {groupName}</>}
-      metrics={<HeroMetrics items={metrics} ariaLabel="Projektbeiträge" variant="inline" />}
+      metrics={<MetricList items={metrics} ariaLabel="Projektbeiträge" variant="inline" valueHeadingLevel={2} />}
       actions={<>
         <Button href={projectPath} variant="subtle" size="sm" leftIcon={<ArrowLeft size={14} aria-hidden="true" />}>
           Zurück zum Projekt

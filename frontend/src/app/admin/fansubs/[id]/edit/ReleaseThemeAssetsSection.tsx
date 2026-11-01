@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-import { Button, FormField, Select, UploadDropzone } from '@/components/ui'
+import { Button, FormField, ProgressBar, Select, UploadDropzone } from '@/components/ui'
 import {
   deleteAdminReleaseThemeAsset,
   getAdminCanonicalFansubRelease,
@@ -181,7 +181,7 @@ export function ReleaseThemeAssetsSection({
 
         <div className={styles.progressWrap}>
           <span>Upload</span>
-          <progress value={progress} max={100} />
+          <ProgressBar value={progress} label="Upload-Fortschritt" size="sm" />
         </div>
 
         <Button

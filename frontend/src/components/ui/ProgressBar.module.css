@@ -1,0 +1,48 @@
+.progressBar {
+  width: 100%;
+  height: var(--progress-bar-height-md);
+  border-radius: var(--radius-surface);
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.progressBarSm {
+  height: var(--progress-bar-height-sm);
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-primary);
+  transition: width 160ms ease;
+}
+
+.progressBarFillSuccess {
+  background: var(--color-success);
+}
+
+.progressBarFillDanger {
+  background: var(--color-error);
+}
+
+.progressBarFillIndeterminate {
+  width: 40%;
+  animation: progressBarIndeterminate 1.1s ease-in-out infinite;
+}
+
+@keyframes progressBarIndeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressBarFillIndeterminate {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}

@@ -8,21 +8,21 @@
 .modalWrap {
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: var(--space-5);
 }
 
 .modalPanel {
   position: relative;
   z-index: 1;
   border: 1px solid var(--border-subtle);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 247, 243, 0.98) 100%);
+  background: var(--surface-dialog-panel);
   box-shadow: var(--shadow-lg);
 }
 
 .modalPanel {
-  width: min(560px, calc(100vw - 48px));
-  max-height: calc(100dvh - 48px);
-  border-radius: 24px;
+  width: min(var(--modal-width-md), calc(100vw - var(--dialog-viewport-margin)));
+  max-height: calc(100dvh - var(--dialog-viewport-margin));
+  border-radius: var(--radius-surface);
   padding: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -31,28 +31,7 @@
 }
 
 .modalPanelLg {
-  width: min(1100px, calc(100vw - 48px));
-}
-
-.closeButtonFloating {
-  flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  border: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--surface-card) 96%, transparent);
-  color: var(--text-soft);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  position: absolute;
-  top: var(--space-5);
-  right: var(--space-5);
-  /* variant="stage" consumers (e.g. the Phase 177 image viewer) can render an opaque
-     overlay (MediaViewerCaption's .panel, z-index: 2) below this button -- stay above it
-     so the viewer's own close control is never covered. No effect on variant="default". */
-  z-index: 3;
+  width: min(var(--modal-width-lg), calc(100vw - var(--dialog-viewport-margin)));
 }
 
 .modalBodyStage {
@@ -63,7 +42,7 @@
 .dialogHeader {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: flex-start;
   flex-wrap: nowrap;
 }
@@ -76,29 +55,29 @@
 .dialogFooter {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
   flex-wrap: wrap;
 }
 
 .dialogHeader {
-  padding: 22px 22px 16px;
-  border-bottom: 1px solid rgba(45, 41, 38, 0.08);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .modalBody {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 18px 22px 20px;
+  padding: var(--space-4) var(--space-5) var(--space-5);
 }
 
 .dialogFooter {
-  padding: 16px 22px 22px;
-  border-top: 1px solid rgba(45, 41, 38, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(248, 244, 240, 0.92) 100%);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-dialog-footer);
 }
 
 @media (max-width: 767px) {
@@ -113,13 +92,16 @@
   }
 
   .modalPanel {
-    border-radius: 20px 0 0 20px;
+    /* Gleicher Radius-Token wie Card/Drawer (var(--radius-surface)) -- nur der Zahlenwert
+       wandert zum Token, die Eckenkombination bleibt unverändert. */
+    border-radius: var(--radius-surface) 0 0 var(--radius-surface);
   }
 
   .modalPanel {
     width: 100%;
     height: 100dvh;
     max-height: 100dvh;
+    /* Echter Vollbild-Sonderfall: "kein Radius", keine Reduktion eines Radius-Tokens. */
     border-radius: 0;
   }
 
@@ -127,15 +109,15 @@
     flex-direction: row;
     align-items: flex-start;
     flex-wrap: nowrap;
-    padding: 18px 18px 14px;
+    padding: var(--space-4) var(--space-4) var(--space-3);
   }
 
   .modalBody {
-    padding: 16px 18px 18px;
+    padding: var(--space-4);
   }
 
   .dialogFooter {
-    padding: 14px 18px 18px;
+    padding: var(--space-3) var(--space-4) var(--space-4);
   }
 }
 

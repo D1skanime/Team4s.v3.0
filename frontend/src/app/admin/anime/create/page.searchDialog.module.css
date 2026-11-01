@@ -1,0 +1,250 @@
+/* Styling des Asset-Suchdialogs (CreateAssetSearchDialog): Modal-Rahmen, Kandidaten-Grid
+   und -Karten für die Auswahl von Cover-/Banner-/Logo-Bildern aus externen Quellen.
+   Beim Datei-Split aus page.module.css herausgelöst, da ausschließlich von dieser
+   Komponente verwendet. */
+
+.candidateModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.44);
+}
+
+.candidateModal {
+  width: min(560px, 100%);
+  max-height: min(80vh, 720px);
+  overflow: auto;
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #dfe3e8;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+}
+
+.assetModal {
+  width: min(980px, 100%);
+}
+
+.candidateModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.candidateModalTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  color: #13161a;
+}
+
+.candidateModalText {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #667085;
+}
+
+.candidateList {
+  display: grid;
+  gap: 8px;
+}
+
+.candidateItem {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #dfe3e8;
+  background: #ffffff;
+  color: #13161a;
+  text-align: left;
+}
+
+.candidateItem span {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #667085;
+}
+
+.candidateItem:hover {
+  border-color: #ff6a3d;
+  background: #fff7f4;
+}
+
+.assetSearchToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.assetSearchStatus {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #667085;
+}
+
+.assetCandidateGrid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.assetCandidateGridCover {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.assetLoadMoreRow {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.assetCandidateCard {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid #dfe3e8;
+  background: #ffffff;
+  text-align: left;
+  color: #13161a;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.assetCandidateCard:hover {
+  border-color: #ff6a3d;
+  background: #fff7f4;
+}
+
+.assetCandidateCardSelected {
+  border-color: #6d4aff;
+  box-shadow:
+    0 0 0 2px rgba(109, 74, 255, 0.18),
+    0 12px 26px rgba(109, 74, 255, 0.12);
+  background: #ffffff;
+}
+
+.assetCandidatePreview {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 0;
+  background:
+    linear-gradient(45deg, #eef2f7 25%, transparent 25%),
+    linear-gradient(-45deg, #eef2f7 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eef2f7 75%),
+    linear-gradient(-45deg, transparent 75%, #eef2f7 75%);
+  background-color: #fbfcfe;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+  background-size: 20px 20px;
+}
+
+.assetCandidatePreviewCover {
+  aspect-ratio: 2 / 3;
+}
+
+.assetCandidatePreviewLogo {
+  aspect-ratio: 16 / 8;
+}
+
+.assetCandidateImage {
+  object-fit: cover;
+}
+
+.assetCandidatePreviewLogo .assetCandidateImage {
+  object-fit: contain;
+  padding: 14px;
+}
+
+.assetCandidateBody {
+  display: grid;
+  gap: 5px;
+  min-height: 58px;
+  padding: 10px 12px 12px;
+}
+
+.assetCandidateMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.assetSourceBadge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 106, 61, 0.24);
+  background: #fff7f4;
+  color: #b54b28;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.assetCandidateSelectedBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #6d4aff;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 8px 16px rgba(109, 74, 255, 0.24);
+}
+
+.assetCandidateTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.assetMetaText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #667085;
+}
+
+@media (max-width: 720px) {
+  .candidateModalBackdrop {
+    padding: 16px;
+  }
+
+  .candidateModalHeader {
+    flex-direction: column;
+  }
+
+  .assetSearchToolbar {
+    align-items: stretch;
+  }
+}

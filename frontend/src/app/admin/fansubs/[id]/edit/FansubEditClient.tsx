@@ -27,8 +27,42 @@ import { useFansubReleaseData } from "./useFansubReleaseData";
 import { useReleaseContributions } from "./useReleaseContributions";
 import { useReleaseMediaDrawer } from "./useReleaseMediaDrawer";
 import sharedStyles from "../../../admin.module.css";
-import fansubEditStyles from "./FansubEdit.module.css";
+import fansubEditHeaderStyles from "./FansubEdit.header.module.css";
+import fansubEditBasicInfoStyles from "./FansubEdit.basicInfo.module.css";
+import fansubEditMembershipStyles from "./FansubEdit.membership.module.css";
+import fansubEditReleasesStyles from "./FansubEdit.releases.module.css";
+import fansubEditReleasesCardsStyles from "./FansubEdit.releasesCards.module.css";
+import fansubEditReleasesProjectStyles from "./FansubEdit.releasesProject.module.css";
+import fansubEditReleaseDrawerStyles from "./FansubEdit.releaseDrawer.module.css";
+import fansubEditContributionsStyles from "./FansubEdit.contributions.module.css";
+import fansubEditSharedStyles from "./FansubEdit.module.css";
 
+// Diese Komponente reicht ihr Stil-Objekt per `styles`-Prop an sehr viele Kindkomponenten
+// weiter (z. B. `FansubEditWorkspaceSection`, `ReleaseMediaDrawer` und darüber transitiv an
+// Tabs/Drawer-Komponenten, die selbst keine eigene FansubEdit-CSS-Datei importieren). Deshalb
+// muss hier -- anders als in den schlanken Einzelkomponenten, die nur ihr eigenes Themenmodul
+// importieren -- die VOLLSTÄNDIGE Menge aller aus `FansubEdit.module.css` hervorgegangenen
+// Themenmodule zusammengeführt werden, damit jede Kindkomponente weiterhin jede Klasse findet,
+// die sie vor dem Datei-Split über `fansubEditStyles` erreichen konnte.
+const fansubEditStyles = mergeCssModules(
+  fansubEditHeaderStyles,
+  mergeCssModules(
+    fansubEditBasicInfoStyles,
+    mergeCssModules(
+      fansubEditMembershipStyles,
+      mergeCssModules(
+        fansubEditReleasesStyles,
+        mergeCssModules(
+          fansubEditReleasesCardsStyles,
+          mergeCssModules(
+            fansubEditReleasesProjectStyles,
+            mergeCssModules(fansubEditReleaseDrawerStyles, mergeCssModules(fansubEditContributionsStyles, fansubEditSharedStyles)),
+          ),
+        ),
+      ),
+    ),
+  ),
+);
 const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 type FansubEditClientProps = {

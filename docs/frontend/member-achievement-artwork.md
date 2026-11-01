@@ -74,13 +74,18 @@ verfügbar, ohne in den aktiven Resolver zurückzukehren.
 
 ## Review im Browser
 
-Öffne `/dev/ui-system/achievements` von `/dev/ui-system` aus. Es verwendet Produktionskomponenten
-und explizite serverförmige visuelle Fixtures; die Fixture ist keine Autorität für den
-Rollenkatalog oder Schwellenwerte. Der Phase-151-Playwright-Collector erfasst alle Quellen und
-zusammengesetzten Badge-Fälle, responsive Geometrie, Karussell-Interaktion/-Performance und
-leere manuelle Abnahme-Zeilen. Prüfe die tatsächlichen Screenshots, bevor du subjektive Urteile
-eintägst. Genaue Befehle, Matrix und Lücken stehen in
-`.planning/phases/151-erfolgsbadge-karussell-konsolidierung/`.
+Öffne die Storybook-Story „Im Einsatz/Erfolgsbadge-Galerie“ (`AchievementBadgeShowcase.stories.tsx`).
+Storybook startet über `docker compose up -d team4sv30-storybook`, danach erreichbar unter
+`http://192.168.235.196:6006` bzw. über den SSH-Tunnel auf Port 6006 (die frühere `/dev/ui-system`-
+Route wurde vollständig durch Storybook abgelöst und existiert nicht mehr). Die Story verwendet
+Produktionskomponenten und explizite serverförmige visuelle Fixtures; die Fixture ist keine Autorität für den
+Rollenkatalog oder Schwellenwerte. Prüfe die tatsächlichen Screenshots in Storybook, bevor du
+subjektive Urteile einträgst. Der frühere Phase-151-Playwright-Collector (erfasste Quellen,
+zusammengesetzte Badge-Fälle, responsive Geometrie, Karussell-Interaktion/-Performance) ist seit
+der Storybook-Einführung stillgelegt (`frontend/scripts/capture-phase151-badge-evidence.mjs`
+wurde entfernt, da er sich auf die entfernte `/dev/ui-system`-Route stützte); die damals erhobene
+Evidenz bleibt vollständig und abgenommen in
+`.planning/phases/151-erfolgsbadge-karussell-konsolidierung/` dokumentiert.
 
 Karaoke FX liefert sechs 1254 × 1254 RGBA-Quellen: Entry, Motiv und die vier Rang-Rahmen. Motiv
 und Rahmen setzen sich über dieselbe geschichtete Strategie wie die anderen geschichteten Rollen

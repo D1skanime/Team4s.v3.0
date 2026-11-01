@@ -27,10 +27,12 @@ import { mergeCssModules } from '@/lib/mergeCssModules'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 
 import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditMembershipStyles from './FansubEdit.membership.module.css'
+import fansubEditReleasesStyles from './FansubEdit.releases.module.css'
 import ownStyles from './FansubAppMembersOverview.module.css'
 import { useFansubEditMediaQuery } from './hooks/useFansubEditViewport'
 
+const fansubEditStyles = mergeCssModules(fansubEditMembershipStyles, fansubEditReleasesStyles)
 const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 const MEDIA_PERMISSION_KEYS: Array<keyof FansubGroupMediaPermissions> = [

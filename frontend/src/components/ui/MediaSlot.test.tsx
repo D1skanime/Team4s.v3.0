@@ -16,12 +16,15 @@ describe('MediaSlot', () => {
     render(<MediaSlot aspectRatio={1} label="Logo" hasValue={false} onFilesSelected={vi.fn()} />)
 
     expect(screen.getByRole('button', { name: 'Logo hierher ziehen oder klicken zum Hochladen' })).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Dateien auswählen' })).not.toBeNull()
+    // Rein visuelle Call-to-Action (aria-hidden, kein eigenes role="button") -- die Fläche
+    // selbst ist bereits das einzige für Tastatur/Screenreader exponierte Bedienziel, siehe
+    // UploadDropzone.tsx. Deshalb per Text statt per Rolle geprüft.
+    expect(screen.getByText('Dateien auswählen')).not.toBeNull()
   })
 
   it('shows only the preview as the drop target when hasValue is true -- no second dropzone chrome', () => {
     render(
-      <MediaSlot aspectRatio={1} label="Logo" hasValue onFilesSelected={vi.fn()} previewContent={<img alt="Logo Vorschau" src="x" />} />,
+      <MediaSlot aspectRatio={1} label="Logo" hasValue onFilesSelected={vi.fn()} media={{ kind: 'image', src: 'x', alt: 'Logo Vorschau' }} />,
     )
 
     expect(screen.getByAltText('Logo Vorschau')).not.toBeNull()
@@ -33,7 +36,7 @@ describe('MediaSlot', () => {
   it('accepts a dropped replacement file on the preview itself', () => {
     const onFilesSelected = vi.fn()
     render(
-      <MediaSlot aspectRatio={1} label="Logo" hasValue onFilesSelected={onFilesSelected} previewContent={<img alt="Logo Vorschau" src="x" />} />,
+      <MediaSlot aspectRatio={1} label="Logo" hasValue onFilesSelected={onFilesSelected} media={{ kind: 'image', src: 'x', alt: 'Logo Vorschau' }} />,
     )
     const file = new File(['x'], 'neu.png', { type: 'image/png' })
 
@@ -49,7 +52,7 @@ describe('MediaSlot', () => {
         label="Logo"
         hasValue
         onFilesSelected={vi.fn()}
-        previewContent={<img alt="Logo Vorschau" src="x" />}
+        media={{ kind: 'image', src: 'x', alt: 'Logo Vorschau' }}
         replaceOverlayHintLabel="Zum Ersetzen loslassen"
       />,
     )
@@ -58,6 +61,14 @@ describe('MediaSlot', () => {
     expect(screen.queryByText('Zum Ersetzen loslassen')).toBeNull()
     fireEvent.dragEnter(slot, { dataTransfer: { files: [] } })
     expect(screen.getByText('Zum Ersetzen loslassen')).not.toBeNull()
+  })
+
+  it('gibt shape="round" an MediaFrame und die leere UploadDropzone weiter, statt den Radius selbst zu überschreiben', () => {
+    render(<MediaSlot aspectRatio={1} shape="round" label="Logo" hasValue={false} onFilesSelected={vi.fn()} />)
+
+    const dropzone = screen.getByRole('button', { name: 'Logo hierher ziehen oder klicken zum Hochladen' })
+    expect(dropzone.className).toMatch(/dropzoneRound/)
+    expect(dropzone.className).toMatch(/mediaFrameRound/)
   })
 
   it('exposes the imperative open() handle regardless of hasValue', () => {
@@ -80,7 +91,7 @@ describe('MediaSlot', () => {
         label="Logo"
         hasValue
         onFilesSelected={onFilesSelected}
-        previewContent={<img alt="Logo Vorschau" src="x" />}
+        media={{ kind: 'image', src: 'x', alt: 'Logo Vorschau' }}
         actions={<button type="button">Löschen</button>}
       />,
     )
@@ -103,7 +114,7 @@ describe('MediaSlot', () => {
         label="Cover"
         hasValue
         onFilesSelected={onFilesSelected}
-        previewContent={<img alt="Cover Vorschau" src="x" />}
+        media={{ kind: 'image', src: 'x', alt: 'Cover Vorschau' }}
         cornerBadge={<span>Jellyfin</span>}
       />,
     )
@@ -120,7 +131,7 @@ describe('MediaSlot', () => {
         aspectRatio={16 / 9}
         label="Background 1"
         hasValue
-        previewContent={<img alt="Background Vorschau" src="x" />}
+        media={{ kind: 'image', src: 'x', alt: 'Background Vorschau' }}
         actions={<button type="button">Entfernen</button>}
       />,
     )
@@ -140,7 +151,7 @@ describe('MediaSlot', () => {
         aspectRatio={16 / 9}
         label="Background 1"
         hasValue
-        previewContent={<img alt="Background Vorschau" src="x" />}
+        media={{ kind: 'image', src: 'x', alt: 'Background Vorschau' }}
       />,
     )
 
@@ -160,5 +171,52 @@ describe('MediaSlot', () => {
 
     expect(screen.getByText('Kein Hintergrund')).not.toBeNull()
     expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('zeigt den Fehlertext statt des Hinweistexts, wenn beide gesetzt sind', () => {
+    render(
+      <MediaSlot
+        aspectRatio={1}
+        label="Logo"
+        hasValue={false}
+        onFilesSelected={vi.fn()}
+        hint="JPG oder PNG, max. 4 MB"
+        error="Datei zu groß"
+      />,
+    )
+
+    expect(screen.getByRole('alert').textContent).toBe('Datei zu groß')
+    expect(screen.queryByText('JPG oder PNG, max. 4 MB')).toBeNull()
+  })
+
+  it('rendert ein Bild über ResponsiveImage statt eines vom Aufrufer gebauten img/next-image -- objectFit steuert den Bildausschnitt', () => {
+    render(
+      <MediaSlot
+        aspectRatio={16 / 9}
+        label="Hintergrund"
+        hasValue
+        media={{ kind: 'image', src: 'x', alt: 'Hintergrund Vorschau', objectFit: 'contain' }}
+      />,
+    )
+
+    const image = screen.getByAltText('Hintergrund Vorschau') as HTMLImageElement
+    expect(image.tagName).toBe('IMG')
+    expect(image.style.objectFit).toBe('contain')
+  })
+
+  it('rendert ein Video statt eines Bildes, wenn media.kind "video" ist -- kein Aufrufer baut mehr ein eigenes <video>', () => {
+    const { container } = render(
+      <MediaSlot
+        aspectRatio={16 / 9}
+        label="Hintergrundvideo"
+        hasValue
+        media={{ kind: 'video', src: 'movie.mp4' }}
+      />,
+    )
+
+    const video = container.querySelector('video')
+    expect(video).not.toBeNull()
+    expect(video?.getAttribute('src')).toBe('movie.mp4')
+    expect(video?.muted).toBe(true)
   })
 })

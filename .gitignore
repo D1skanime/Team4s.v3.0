@@ -5,6 +5,7 @@ frontend/out/
 frontend/tmp-edge-profile-check/
 frontend/tmp-edge-profile-scan-Default/
 frontend/tsconfig*.tsbuildinfo
+frontend/storybook-static/
 
 # Backend
 backend/bin/

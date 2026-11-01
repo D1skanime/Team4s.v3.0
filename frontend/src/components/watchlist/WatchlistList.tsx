@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { StatusBadge } from '@/components/anime/StatusBadge'
+import { Pagination } from '@/components/ui'
 import { ApiError, removeWatchlistEntry } from '@/lib/api'
 import { PaginationMeta } from '@/types/anime'
 import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
@@ -36,8 +37,6 @@ export function WatchlistList({ items, meta, page, perPage }: WatchlistListProps
   const countLabel = useMemo(() => `${totalEntries.toLocaleString('de-DE')} Einträge`, [totalEntries])
   const currentPage = Math.max(meta.page || page, 1)
   const totalPages = Math.max(meta.total_pages, 1)
-  const hasPreviousPage = currentPage > 1
-  const hasNextPage = currentPage < totalPages
 
   useEffect(() => {
     if (!isRefreshing && message === 'Watchlist wird aktualisiert...') {
@@ -84,27 +83,13 @@ export function WatchlistList({ items, meta, page, perPage }: WatchlistListProps
           </button>
         </div>
       </div>
-      <div className={styles.paginationRow}>
-        <span className={styles.pageInfo}>
-          Seite {currentPage} von {totalPages}
-        </span>
-        <div className={styles.paginationActions}>
-          {hasPreviousPage ? (
-            <Link className={styles.pageLink} href={buildWatchlistHref(currentPage - 1, perPage)}>
-              Zurück
-            </Link>
-          ) : (
-            <span className={styles.pageLinkDisabled}>Zurück</span>
-          )}
-          {hasNextPage ? (
-            <Link className={styles.pageLink} href={buildWatchlistHref(currentPage + 1, perPage)}>
-              Weiter
-            </Link>
-          ) : (
-            <span className={styles.pageLinkDisabled}>Weiter</span>
-          )}
-        </div>
-      </div>
+      <Pagination
+        className={styles.paginationRow}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        hrefForPage={(page) => buildWatchlistHref(page, perPage)}
+        linkComponent={Link}
+      />
 
       {message ? <p className={styles.message}>{message}</p> : null}
 

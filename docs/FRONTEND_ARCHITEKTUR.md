@@ -86,7 +86,6 @@ frontend/src/
 │   ├── archiv/                # Archiv-Ansichten
 │   ├── claim-invitations/     # Einladungs-Claim-Flow
 │   ├── covers/                 # Cover-Datei-/Display-Varianten-Routen
-│   ├── dev/                    # UI-System-Showcase (/dev/ui-system)
 │   ├── episodes/               # öffentliche Episodenansichten
 │   ├── fansubs/                 # öffentliche Fansub-/Gruppenseiten
 │   ├── invitations/             # Einladungsverwaltung
@@ -107,8 +106,8 @@ frontend/src/
 ├── types/                     # Domain-Typen (anime.ts, fansub.ts, …)
 ├── hooks/                      # zentrale, feature-übergreifende Hooks (nur 4 Dateien)
 ├── providers/                    # schmale React-Contexts (RoleCatalogProvider)
-├── styles/                        # globals.css mit Design-Tokens
-└── test/                           # Test-Setup (axeSetup.ts)
+├── styles/                        # globals.css (Einstiegspunkt) + tokens/*.css (nach Bereich aufgeteilte Design-Tokens) + base.css (Element-Reset)
+└── test/                           # Test-Setup (axeSetup.ts), readGlobalsCss.ts (löst globals.css' @import-Kette für Tests auf)
 ```
 
 ## 4. Anwendungs-Lebenszyklus
@@ -154,7 +153,6 @@ Routing folgt vollständig dem Next.js-App-Router-Dateisystem unter `src/app/`. 
 | `/admin/roles`, `/admin/role-capabilities` | Rollen-/Rechte-Verwaltung |
 | `/admin/tags-genres` | Taxonomie-Verwaltung |
 | `/admin/profile` | Admin-Eigenprofil |
-| `/dev/ui-system`, `/admin/dev/ui-system` | UI-System-Showcase (öffentlich bzw. admin-gescoped) |
 
 **Guards/Rechte:** `PlatformAdminGate` (`src/components/auth/PlatformAdminGate.tsx`) ist eine Client-Komponente. Sie liest `useAuthSession()` (`hasAccessToken`, `hasRefreshToken`, `isClientInitialized`) aus `src/lib/useAuthSession.ts`, ruft bei vorhandener Session `getCurrentUser()` auf und zeigt inline einen "Anmeldung erforderlich"- oder Fehlerzustand, solange kein berechtigter Nutzer ermittelt ist. Da jede Admin-Seite ihr eigenes Gate einbindet, gibt es keinen zentralen Middleware-Schutz auf Routenebene — die Autorisierung entsteht konsequent pro Seite plus serverseitiger Backend-Durchsetzung.
 
@@ -218,7 +216,11 @@ Wichtige Varianten-Entscheidungen: `Button` kennt `primary` (Cobalt-Farbfamilie)
 
 Globale Komponenten bleiben varianten-begrenzt: Ist ein neuer Fall mit einer vorhandenen Variante lösbar, wird keine neue Variante ergänzt; ergibt ein Fall nur für ein einzelnes Fachfeature Sinn, gehört er nicht unter `src/components/ui`. Lokale Styles bleiben erlaubt für fachliche Speziallayouts, komplexe Domain-Grids, einmalige Sonderfälle und hochspezifische Editor-/Media-/Story-Kompositionen — sie sind aber nicht mehr die erste Wahl für Standard-Buttons, -Cards, -Badges, -FormFields, -Header oder -EmptyStates.
 
-**Showcase/Referenz:** `src/app/dev/ui-system/page.tsx` (öffentliche Referenzseite) und `src/app/admin/dev/ui-system/` (admin-gescopte zweite Showcase) dienen ausschließlich der visuellen Prüfung, Design-Iteration, Komponenten- und Kompositions-Review sowie späteren Referenzmigrationen — sie sind explizit kein Produktfeature und nicht API-, auth- oder permission-gebunden.
+**Showcase/Referenz:** Storybook (`frontend/.storybook/main.ts`, Start über den `team4sv30-storybook`-Compose-Service, Port 6006) ist die verbindliche visuelle Referenz, gegliedert in drei Kategorien: `Grundbausteine/*` zeigt jedes eigenständige Primitiv (26 Stories) mit voller Zustandsabdeckung (Standard/disabled/Fehler/Laden/leer/lange Inhalte/Fokus, soweit zutreffend) — ein Grundbaustein importiert intern keine andere `components/ui`-Komponente. Dazu gehören seit der UAT-Nachbesserungsrunde zwei neue Typografie-Grundbausteine: `Heading` (Props `level`/`size` als zwei getrennte, optionale Werte — `level` bestimmt das semantische Tag h1-h4, `size` die davon unabhängige visuelle Größenstufe, Standard = `level`) und `Text` (Prop `variant`: `body`/`soft`/`meta`/`small`, jeweils per `var(--text-*-size/-color, Fallback)` vom Aufrufer überschreibbar). Eine automatische Katalogprüfung (`frontend/src/components/ui/catalogTaxonomy.test.ts`) liest alle `Grundbausteine/*`-Stories per `fs` und lässt den zugehörigen Testfall fehlschlagen, sobald eine Komponente stillschweigend eine andere, selbst katalogisierte Komponente importiert — Ausnahmen (aktuell nur `Button` → `Spinner`, als reines internes Implementierungsdetail) müssen in der Testdatei begründet dokumentiert sein. `Zusammengesetzte Bausteine/*` (18 Stories: FormField, Modal, Drawer, EmptyState, ErrorState, LoadingState, ConfirmDialog, NavArrow sowie die zehn in dieser Runde aus `Grundbausteine/*` umsortierten Komponenten Accordion, FocalCarousel, ThumbnailStrip, UploadFileRow, UploadDropzone, MediaSlot, Pagination, HeroMetrics, ActivationStatusIndicator, ArtworkHero) zeigt Primitives, die sichtbar mehrere benannte Grundbausteine komponieren, jeweils mit einem „Besteht aus"-Hinweis in der Autodocs-Beschreibung. `Im Einsatz/*` zeigt die migrierten domänenspezifischen Kompositionen unter `frontend/src/components/showcases/` sowie `FansubHeroSection` (13 Stories, inkl. eines Modal-über-Seite- und eines Formular-mit-Fehlern-Beispiels). `npm run build-storybook` ist Teil der Quality-Gate-Prüfung.
+
+`IconButton` hat neben `default`/`floating` eine dritte Variante `ghost` (transparenter Hintergrund, kein Rahmen/Schatten, nur Opazitäts-Hover) — Basis für `NavArrow`, das seit dieser Runde über `IconButton` rendert statt eines eigenen nativen `<button>`-Nachbaus, dabei aber sein abweichendes visuelles Rezept (kein Rahmen, kein Hüpf-Effekt) per höher-spezifischen Element+Klasse-Selektoren behält. `NavArrow`s Größennamen sind `sm`/`md`/`lg` (vormals `default`/`large`).
+
+Wiederverwendbare interne Bausteine (nicht aus `index.ts` exportiert, da kein eigenständiges Primitiv): `DialogHeader` (`frontend/src/components/ui/DialogHeader.tsx`) ist die gemeinsame Titelzeile für `Modal` und `Drawer` (Titel/Beschreibung links, Schließen-`IconButton` rechts) — vor einem neuen, eigenen Dialog-Header-Markup prüfen, ob `DialogHeader` wiederverwendbar ist. `Spinner` (rotierender Lade-Kreisel, sm/md/lg) und `StatusIcon` (tonaler Icon-Kreis, neutral/info/success/warning/danger) sind Grundbausteine für Lade- und Status-Zustände — vor einer neuen, lokalen Lade-Animation oder Icon-Tönung immer zuerst `Spinner`/`StatusIcon` prüfen. `IconButton` (Icon-only-Button mit Pflicht-`aria-label`, eigene `forwardRef`-Implementierung) ist der globale Standard für Icon-only-Schaltflächen wie Schließen-Kreuze.
 
 ## 9. Seiten nach Fachbereich
 
@@ -238,7 +240,7 @@ Globale Komponenten bleiben varianten-begrenzt: Ist ein neuer Fall mit einer vor
 
 ## 10. Theming & Styling
 
-Design-Tokens sind als CSS Custom Properties in `src/styles/globals.css` definiert (`--color-primary`, `--bg-*`, `--text-*`, `--accent-*`, `--avatar-N-bg`/`-fg` u. a.) und werden genau einmal im Root-Layout importiert. `src/lib/cssCustomProperties.ts` (mit begleitendem `.guard.test.ts`) bindet JavaScript-Zugriffe an dieselben CSS-Variablen, um Drift zwischen Token-Quelle und Code zu verhindern.
+Design-Tokens sind als CSS Custom Properties definiert und werden genau einmal im Root-Layout über `src/styles/globals.css` importiert. `globals.css` selbst enthält (wegen der 450-Zeilen-Regel) nur noch `@import`-Anweisungen auf fachlich aufgeteilte Token-Dateien unter `src/styles/tokens/` (`palette.css` Grundfarben/Markenpaletten, `layout.css` Radien/Abstände/Steuerelement-Höhen/Breiten, `typography.css` Schriftgrößen/-gewichte, `colors.css` semantische Oberflächen-/Text-/Schatten-/Fokus-Tokens, `fields.css` Feld-/Dialog-/Picker-Stil, `components.css` komponentenspezifische Tokens wie `--card-*`/`--icon-button-*`/`--button-*`, `roleCatalog.css` die Rollen-Katalog-Farbnaht) plus `src/styles/base.css` für den Element-Reset — `@import` fügt alle Deklarationen weiterhin in DIESELBE `:root`-Kaskade ein, an der Auflösung von `var(...)` über Dateigrenzen hinweg ändert sich nichts. `src/lib/cssCustomProperties.ts` (mit begleitendem `.guard.test.ts`) bindet JavaScript-Zugriffe an dieselben CSS-Variablen, um Drift zwischen Token-Quelle und Code zu verhindern. `src/components/ui/foreignVariableOverrides.regression.test.ts` prüft zusätzlich generisch über alle `components/ui/*.module.css`-Dateien, dass keine Datei die private Override-Variable eines anderen Bausteins setzt und dass keine Datei feste px-/rem-Größen, Hex-Farben oder rgba-Literale statt eines globalen Tokens enthält (Ausnahmen: `0`, `1px`-Haarlinien, Prozentwerte, `@media`/`@container`-Bedingungen).
 
 Komponentenspezifisches Styling liegt pervasiv in colokierten `*.module.css`-Dateien neben der jeweiligen Komponente — dies ist der Normalfall für fachliche Speziallayouts, während Standardelemente (Buttons, Cards, Badges, FormFields, Header, EmptyStates) über die globalen Primitives aus Abschnitt 8 abgedeckt werden, statt erneut lokal gebaut zu werden.
 
@@ -250,7 +252,7 @@ Responsive Layout folgt einem Container-first-Ansatz: Wiederverwendbare/eingebet
 
 `src/components/ui/ResponsiveImage.tsx` kapselt `next/image` und validiert `src` vorab gegen dasselbe Pattern-Modul (`isConfiguredForImageOptimization`), um den SSR-Crash von Next bei nicht migrierten Pfaden zu vermeiden — bei Nichtübereinstimmung fällt die Komponente auf unoptimiertes Rendering zurück, statt die ganze Seite abstürzen zu lassen.
 
-**Upload:** `src/components/ui/MediaSlot.tsx` ist der gemeinsame Upload-Slot für ein einzelnes Bild/Video, gesteuert über Seitenverhältnis und Form, aufgebaut auf `UploadDropzone.tsx`. Er wird für Fansub-Logo/-Banner, das Anime-Asset-Board und Profil-Avatar/-Hintergrund wiederverwendet. `src/hooks/useUploadQueue.ts` kapselt die Warteschlangen-Logik für Multi-File-Upload-Flows, etwa in Media-Review-/Upload-Panels.
+**Upload:** `src/components/ui/MediaSlot.tsx` ist der gemeinsame Upload-Slot für ein einzelnes Bild/Video, gesteuert über Seitenverhältnis und Form, aufgebaut auf `UploadDropzone.tsx`. Die Medienvorschau wird über die `media`-Prop (`{ kind: 'image' | 'video', src, ... }`) beschrieben und von MediaSlot selbst über `ResponsiveImage`/`<video>` gerendert -- kein Aufrufer baut mehr seine eigene img-/next-image-/video-Vorschau. `UploadDropzone.tsx` selbst nutzt mit gesetztem `aspectRatio`-Prop den `MediaFrame`-Grundbaustein als eigenes Fundament (statt MediaSlot diese Fläche separat außen herum zu wrappen) und komponiert den Leer-Zustand aus `StatusIcon`/`Heading`/`Text`. Beide werden für Fansub-Logo/-Banner, das Anime-Asset-Board und Profil-Avatar/-Hintergrund wiederverwendet. `src/hooks/useUploadQueue.ts` kapselt die Warteschlangen-Logik für Multi-File-Upload-Flows, etwa in Media-Review-/Upload-Panels.
 
 **Galerie-/Viewer-Hilfslogik** liegt als reine Helfer-Module vor (keine eigenständigen Komponenten): `src/lib/mediaViewerZoom.ts`, `mediaViewerNavigation.ts`, `mediaViewerMetadata.ts`, `mediaViewerCaptionPanel.ts`.
 

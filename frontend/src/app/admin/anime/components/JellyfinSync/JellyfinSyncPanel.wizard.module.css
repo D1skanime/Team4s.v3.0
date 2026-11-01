@@ -1,0 +1,204 @@
+/*
+ * Ausgelagert aus JellyfinSyncPanel.module.css (das über 450-Zeilen-Limit wuchs): die Stile des
+ * einzelnen Wizard-Schritt-Panels -- Felder, "Erweitert"-Klappbereich, Umschalter, Warnbox,
+ * Aktionsleiste. Wird über JellyfinSyncPanel.styles.ts zusammen mit den übrigen drei
+ * Teil-Stylesheets zu EINEM `styles`-Objekt gemergt.
+ */
+.stepPanel {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.stepPanelHeader {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.stepIndex {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #fff4ef;
+  color: #ff6a3d;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.stepPanelHeading {
+  display: grid;
+  gap: 4px;
+}
+
+.stepTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #1c1c1e;
+}
+
+.stepHelper {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b6b70;
+}
+
+.inlineFieldRow {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.inlineFieldGrow {
+  min-width: 0;
+}
+
+.readonlyGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.metaLine {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b6b70;
+  overflow-wrap: anywhere;
+}
+
+.optionGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.labelRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.infoBadge {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f3f3f5;
+  color: #6b6b70;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: help;
+}
+
+.compactHelper {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #6b6b70;
+}
+
+.advancedPanel {
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: #f9f9f9;
+  overflow: hidden;
+}
+
+.advancedSummary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1c1c1e;
+}
+
+.advancedHint {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b6b70;
+}
+
+.advancedBody {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.toggleCard {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.toggleCard input {
+  margin: 3px 0 0;
+}
+
+.toggleCopy {
+  display: grid;
+  gap: 4px;
+}
+
+.toggleTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1c1c1e;
+}
+
+.warningBox {
+  padding: 12px 14px;
+  border: 1px solid #ffc107;
+  border-radius: 12px;
+  background: #fff9e5;
+  color: #8a6200;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.stepActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.actionHint {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b6b70;
+}
+
+@media (max-width: 767px) {
+  .stepPanel {
+    padding: 16px;
+  }
+
+  .inlineFieldRow,
+  .optionGrid {
+    grid-template-columns: 1fr;
+  }
+}

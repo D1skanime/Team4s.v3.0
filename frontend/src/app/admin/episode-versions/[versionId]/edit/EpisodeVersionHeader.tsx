@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import type { ActiveTab } from "./episodeVersionEditorUtils";
 import { EpisodeNavigationControls } from "./EpisodeNavigationControls";
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 
 interface NeighborNavState {
   prevVersionId: number | null;
@@ -53,7 +53,7 @@ export function EpisodeVersionHeader({
 }: EpisodeVersionHeaderProps) {
   return (
     <>
-      {/* Breadcrumb */}
+      {/* Brotkrümelnavigation */}
       <nav className={styles.topLinks}>
         <Link href="/admin/anime">Anime</Link>
         <span>/</span>

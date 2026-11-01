@@ -1,16 +1,30 @@
 'use client'
 
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react'
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ElementType, MouseEvent, ReactNode } from 'react'
 
 import { classNames } from './classNames'
 import styles from './Button.module.css'
+import { Spinner } from './Spinner'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'text' | 'floating'
-type ButtonSize = 'sm' | 'md' | 'lg'
+/** 'hero' (Größe/Gewicht wie Heading size="hero") und 'prose' (1rem, wie Text variant="body")
+ *  ergänzen die Steuerelement-Größen sm/md/lg um zwei Textfluss-Größen -- für `variant="text"`,
+ *  das Größe/Gewicht sonst vom umgebenden Kontext erbt. */
+type ButtonSize = 'sm' | 'md' | 'lg' | 'hero' | 'prose'
+/** 'accent' färbt in der Akzentfarbe (--accent-deep, wie Heading tone="accent"), 'strong' in der
+ *  Fließtextfarbe (--text-body) mit stärkerem Schriftgewicht -- beide setzen sich zuverlässig
+ *  gegen `variant="text"`s eigenes `color`/`font-weight: inherit` durch. 'primary' (--accent-
+ *  primary) und 'line' (--ui-line, dieselbe geteilte Akzentlinienfarbe wie IconButtons
+ *  tone="line") ergänzen zwei weitere Akzentfarben für `variant="ghost"`-Aktionen, deren
+ *  Standardfarbe (gemischt aus --accent-primary/--text-body) zu zurückhaltend wäre -- z. B.
+ *  DatePickers Fußzeilen-Aktionen „Heute“/„Leeren“. Setzen sich aus demselben Grund zuverlässig
+ *  gegen `variant="ghost"`s eigene Farbmischung durch wie 'accent'/'strong' gegen `variant="text"`. */
+type ButtonTone = 'default' | 'accent' | 'strong' | 'primary' | 'line'
 
 type CommonButtonProps = {
   variant?: ButtonVariant
   size?: ButtonSize
+  tone?: ButtonTone
   loading?: boolean
   fullWidth?: boolean
   iconOnly?: boolean
@@ -29,6 +43,9 @@ type NativeButtonProps = CommonButtonProps &
 type LinkButtonProps = CommonButtonProps &
   AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string
+    /** Link-Komponente für interne Ziele (z. B. `next/link`s `Link`, für clientseitige
+     *  Navigation statt eines vollen Seiten-Neuladens). Standard: natives `<a>`. */
+    as?: ElementType
   }
 
 export type ButtonProps = NativeButtonProps | LinkButtonProps
@@ -37,6 +54,7 @@ export function Button(props: ButtonProps) {
   const {
     variant = 'primary',
     size = 'md',
+    tone = 'default',
     loading = false,
     fullWidth = false,
     iconOnly = false,
@@ -60,6 +78,12 @@ export function Button(props: ButtonProps) {
     variant === 'floating' && styles.buttonFloating,
     size === 'sm' && styles.buttonSmall,
     size === 'lg' && styles.buttonLarge,
+    size === 'hero' && styles.buttonHero,
+    size === 'prose' && styles.buttonProse,
+    tone === 'accent' && styles.buttonToneAccent,
+    tone === 'strong' && styles.buttonToneStrong,
+    tone === 'primary' && styles.buttonTonePrimary,
+    tone === 'line' && styles.buttonToneLine,
     fullWidth && styles.buttonBlock,
     iconOnly && styles.buttonIcon,
     disabled || loading ? styles.buttonDisabled : '',
@@ -68,14 +92,18 @@ export function Button(props: ButtonProps) {
 
   const content = (
     <>
-      {loading ? <span className={styles.buttonSpinner} aria-hidden="true" /> : leftIcon}
+      {/* label="" unterdrückt den vorlesbaren Spinner-Text bewusst: der Button-Inhalt selbst
+          (z. B. „Lädt...") ist bereits die vorgesehene Statusmeldung für Screenreader; ein
+          zusätzlicher Spinner-Text würde den Accessible Name um einen zweiten, redundanten
+          Textknoten verlängern und bestehende namensbasierte Lookups brechen. */}
+      {loading ? <Spinner size="sm" label="" /> : leftIcon}
       {children}
       {rightIcon}
     </>
   )
 
   if ('href' in domProps && typeof domProps.href === 'string') {
-    const { href, onClick, target, rel, ...anchorProps } = domProps
+    const { href, onClick, target, rel, as: Tag = 'a', ...anchorProps } = domProps
     const isDisabled = Boolean(disabled || loading)
     const handleAnchorClick =
       isDisabled || onClick
@@ -89,7 +117,7 @@ export function Button(props: ButtonProps) {
         : undefined
 
     return (
-      <a
+      <Tag
         {...anchorProps}
         href={isDisabled ? undefined : href}
         target={target}
@@ -99,7 +127,7 @@ export function Button(props: ButtonProps) {
         onClick={handleAnchorClick}
       >
         {content}
-      </a>
+      </Tag>
     )
   }
 

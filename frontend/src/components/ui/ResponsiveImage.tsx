@@ -17,22 +17,20 @@ const REMOTE_IMAGE_PATTERNS = [
 ]
 
 /**
- * 173-16 Task 0a (live-UAT finding, E426 crash on GET /fansubs/new-subs):
- * mirrors next/image's OWN src validation (next/dist/shared/lib/image-loader.js's
- * `defaultLoader`, which next's client bundle already runs this exact check
- * from during SSR) using the SAME images.localPatterns/remotePatterns this
- * app configures in next.config.mjs, via the shared `publicImagePatterns`
- * data module -- one source of truth, never a second hand-maintained list.
+ * Spiegelt next/images EIGENE src-Validierung (dieselbe Prüfung, die next/dist/shared/
+ * lib/image-loader.js's `defaultLoader` während des SSR bereits durchführt) über dieselben
+ * images.localPatterns/remotePatterns, die diese App in next.config.mjs konfiguriert, via das
+ * geteilte `publicImagePatterns`-Datenmodul -- eine einzige Quelle der Wahrheit, nie eine
+ * zweite, von Hand gepflegte Liste.
  *
- * Pre-existing data can contain image paths outside the configured
- * allow-list (flat legacy `/media/image_*.jpg`, `/api/v1/media/files/...`,
- * the Jellyfin proxy `/api/v1/media/image?...`) -- before the Phase 173
- * backfill runs, and potentially again any time an unmigrated path slips
- * through. Next.js's own validation throws (E426/E231) for those, which,
- * unhandled during SSR, crashes the entire page with an HTTP 500. One
- * unmatched image must never take down a whole public route (D-10) -- so
- * this check runs FIRST and falls back to unoptimized rendering (the image
- * loads directly, unresized) instead of letting next/image throw.
+ * Bestehende Daten können Bildpfade außerhalb der konfigurierten Erlaubnisliste enthalten
+ * (flache Alt-Pfade wie `/media/image_*.jpg`, `/api/v1/media/files/...`, der Jellyfin-Proxy
+ * `/api/v1/media/image?...`) -- vor einem Datenabgleich und potenziell erneut, sobald ein
+ * nicht migrierter Pfad durchrutscht. Next.js' eigene Validierung wirft dafür einen Fehler
+ * (E426/E231), der während des SSR unbehandelt die gesamte Seite mit einem HTTP-500 zum
+ * Absturz bringt. Ein einzelnes nicht passendes Bild darf niemals eine ganze öffentliche
+ * Route lahmlegen -- deshalb läuft diese Prüfung ZUERST und fällt auf unoptimiertes Rendern
+ * zurück (das Bild lädt direkt, ohne Größenänderung), statt next/image werfen zu lassen.
  */
 export function isConfiguredForImageOptimization(src: string): boolean {
   if (src.startsWith('/')) {
@@ -48,30 +46,34 @@ export function isConfiguredForImageOptimization(src: string): boolean {
 
 export type ResponsiveImageProps = Omit<ImageProps, 'src' | 'unoptimized'> & {
   src: string
+  /** Erzwingt den unoptimierten Pfad unabhängig von der automatischen Pfad-Prüfung -- NICHT für
+   *  einen Optimierer-Fehler-Rückfall gedacht (der wurde bewusst entfernt, siehe Kommentar unten),
+   *  sondern für Fälle, in denen der Aufrufer eine Information hat, die aus der reinen Quell-URL
+   *  nicht ableitbar ist: ein animiertes GIF/WebP, dessen Animation der Next.js-Optimierer beim
+   *  Neukodieren zerstören würde (z. B. MemberAvatarCard, das Mime-Type/Dateiendung des
+   *  tatsächlich gespeicherten Mediums kennt). Ohne Angabe bleibt die automatische Prüfung
+   *  unverändert maßgeblich. */
+  unoptimized?: boolean
 }
 
 /**
- * Always routes through the Next.js image optimizer, bounded by next.config.mjs's
- * images.deviceSizes/imageSizes ladder -- the SAME bounded path used on success.
- *
- * P154-06 (154-03 plan, RCA-06): the previous optimizer-error fallback unconditionally
- * escaped that bound by re-requesting the unmodified src with unoptimized={true},
- * transferring the raw, full-size original file uncapped (measured up to 9.49MB/2.93MB
- * per profile for `AUDIT_FAIL_BADGES=1`-blocked badge artwork). That escape hatch is
- * removed: `frontend/scripts/audit-public-member-performance.mjs` blocks the ENTIRE
- * `/_next/image` route for the affected URL prefix regardless of requested width, so a
- * second request through the same route would fail identically anyway, and no smaller
- * same-origin static derivative exists for this asset class (no backend resize service --
- * `media_service.go` has no `imaging.Resize` call). There is therefore no bounded retry
- * to make: `failedOptimizedSource`/`usingDisplayOriginal` are still tracked for
- * observability/testing but no longer drive `unoptimized`, `src`, or any render branch --
- * width/height/fill and the wrapping CSS slot class stay identical in both states, so
- * there is no layout shift and exactly one (no-op) state transition, never a retry loop.
- * If the optimizer genuinely cannot serve the image, the browser's own default
- * broken-image behavior applies -- unchanged from every other unhandled <img> failure
- * already elsewhere on this site; this is not a new custom error visual.
+ * Läuft immer durch den Next.js-Bildoptimierer, begrenzt durch next.config.mjs'
+ * images.deviceSizes/imageSizes-Stufenleiter -- denselben begrenzten Pfad, der auch im
+ * Erfolgsfall genutzt wird. Ein früherer Fallback bei Optimierer-Fehlern entkam dieser
+ * Begrenzung bedingungslos, indem er dieselbe Quelle erneut mit unoptimized={true} anfragte
+ * und dabei die rohe, unverkleinerte Originaldatei unbegrenzt übertrug. Diese Ausweichmöglichkeit
+ * wurde entfernt: Es gibt keinen kleineren, selbst gehosteten Bildableger für diese Asset-Klasse
+ * (kein Backend-Resize-Dienst), daher gibt es auch keinen sinnvollen begrenzten Wiederholungs-
+ * versuch. `failedOptimizedSource`/`usingDisplayOriginal` werden weiterhin für Beobachtbarkeit/
+ * Tests erfasst, steuern aber kein `unoptimized`, `src` oder einen Render-Zweig mehr --
+ * width/height/fill und die umschließende CSS-Klasse bleiben in beiden Zuständen identisch,
+ * es gibt also keinen Layout-Sprung und genau einen (folgenlosen) Zustandsübergang, nie eine
+ * Wiederholungsschleife. Kann der Optimierer das Bild tatsächlich nicht liefern, greift das
+ * native Standardverhalten des Browsers für fehlgeschlagene Bilder -- unverändert gegenüber
+ * jedem anderen unbehandelten Bildfehler an anderer Stelle dieser Seite; kein neues eigenes
+ * Fehler-Visual.
  */
-export function ResponsiveImage({ src, alt, onError, ...props }: ResponsiveImageProps) {
+export function ResponsiveImage({ src, alt, onError, unoptimized, ...props }: ResponsiveImageProps) {
   const [failedOptimizedSource, setFailedOptimizedSource] = useState<string | null>(null)
   const usingDisplayOriginal = failedOptimizedSource === src
   // Retained for observability/testing only (per P154-06) -- deliberately not read by the
@@ -83,7 +85,7 @@ export function ResponsiveImage({ src, alt, onError, ...props }: ResponsiveImage
       {...props}
       src={src}
       alt={alt}
-      unoptimized={!isConfiguredForImageOptimization(src)}
+      unoptimized={unoptimized ?? !isConfiguredForImageOptimization(src)}
       onError={(event) => {
         onError?.(event)
         setFailedOptimizedSource((failedSource) => failedSource === src ? failedSource : src)

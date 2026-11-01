@@ -1,0 +1,71 @@
+/**
+ * Layout-Skalen: Rundungen, Abstände, Steuerelement-Höhen, Ebenen (z-index) und
+ * Inhaltsbreiten. Teil der nach Bereich aufgeteilten globalen Design-Tokens (siehe
+ * ../globals.css).
+ */
+:root {
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 12px;
+  /* Gemeinsamer Eckenradius für Card (alle Varianten), Modal- und Drawer-Panel -- EIN Token
+     statt verstreuter, teils zufällig übereinstimmender Pixelwerte. Richtwert ist Cards
+     eigentliche, repo-weit dominante Formensprache (die Standard-Card .card/.cardCompact,
+     4px), nicht Modal/Drawers vormals eigenständiger 10px-Wert: die UAT-Vorgabe verlangt
+     ausdrücklich, Modal/Drawer an Card anzugleichen, nicht umgekehrt. */
+  --radius-surface: 4px;
+  /* Vollständig durchgerundete "Pillenform" (Badges, Tabs, Schalter, Trennlinien) -- 999px statt
+     50%, da mehrere Verwender (Tabs/Switch) kein quadratisches Seitenverhältnis haben und 50%
+     dort nur eine Ellipse ergäbe. */
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 80px;
+
+  --control-height-sm: 36px;
+  --control-height-md: 44px;
+  --control-height-lg: 52px;
+
+  /* Betonte Rahmen-/Outline-Stärke -- wiederkehrend für Trennringe (AvatarStack/IconButton-
+     Überlapp), Fokus-Outlines (FocalCarousel/UploadDropzone) und Akzentlinien (SectionHeader/
+     AccentRule), bewusst EIN Token statt an jeder Stelle zufällig übereinstimmender 2px-Literale. */
+  --border-width-thick: 2px;
+
+  --z-base: 1;
+  --z-dropdown: 20;
+  --z-sticky: 40;
+  --z-drawer: 80;
+  --z-modal: 90;
+  --z-toast: 100;
+
+  /* Semantische Inhaltsbreiten: normale Seiten bleiben am Public-Alias, visuelle Bänder optieren explizit ein. */
+  --content-width-narrow: 820px;
+  --content-width-normal: 1360px;
+  --content-width-wide: 1520px;
+  --content-width-visual: 1660px;
+  --content-width-visual-cap: 1760px;
+
+  /* Gemeinsamer Breitenvertrag für öffentliche Fansub-Oberflächen. */
+  --public-page-max-width: 1360px;
+  --public-page-gutter: 48px;
+
+  /* Seitenverhältnis des Profil-Banners (5:1 == 1920x384), gemeinsam für alle
+     Anzeige-Container (profileHeaderCard, heroPanel) -- muss mit PROFILE_BANNER_ASPECT_RATIO
+     in frontend/src/lib/profileBanner.ts übereinstimmen (Live-UAT-Fix 2026-10-12: eine fest
+     min-height ohne aspect-ratio schnitt bei breiten Viewports oben/unten vom gespeicherten
+     Zuschnitt ab). */
+  --profile-banner-aspect-ratio: 1920 / 384;
+}
+
+@media (min-width: 1600px) {
+  :root {
+    --public-page-max-width: 1480px;
+    --public-page-gutter: 64px;
+  }
+}

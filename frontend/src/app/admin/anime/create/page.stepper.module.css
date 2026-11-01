@@ -1,0 +1,71 @@
+/* Einzelschritt-Darstellung des Erstellungs-Steppers (CreatePageStepper): Schrittkachel,
+   Nummern-Kreis und Beschriftung. Die äußere `.stepper`-Leiste selbst bleibt in
+   page.module.css, weil sie dort über einen Nachfahren-Selektor mit `.editHeaderShell`
+   verknüpft ist, das auch außerhalb dieses Ordners (SharedAnimeEditorWorkspace) verwendet
+   wird. */
+
+.stepperItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  padding: 16px 20px;
+  text-decoration: none;
+  color: #6b7280;
+  border-right: 1px solid #e2e6ea;
+  transition: background 0.15s;
+}
+
+.stepperItem:last-child {
+  border-right: none;
+}
+
+.stepperItem:hover {
+  background: #f4f6f8;
+}
+
+.stepperItemActive {
+  color: #6d4aff;
+}
+
+.stepperItemActive .stepperNumber {
+  background: #6d4aff;
+  color: #fff;
+}
+
+.stepperItemDone .stepperNumber {
+  background: #e9e4ff;
+  color: #6d4aff;
+}
+
+.stepperNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f4f6f8;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.stepperLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stepperLabel strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.stepperLabel small {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #9ca3af;
+}

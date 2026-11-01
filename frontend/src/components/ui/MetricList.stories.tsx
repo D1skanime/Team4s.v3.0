@@ -1,0 +1,79 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
+import { MetricList } from './MetricList'
+
+/** Liste von Kennzahlen (Bezeichnung + Wert) für Hero-Flächen und Statistik-Abschnitte. */
+const meta = {
+  title: 'Zusammengesetzte Bausteine/MetricList',
+  component: MetricList,
+  tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          `Besteht aus: ${storybookDocsLink('Grundbausteine/Text', 'Text')}, ${storybookDocsLink('Grundbausteine/Heading', 'Heading')} (Hero-Titel), ` +
+          `${storybookDocsLink('Grundbausteine/Button', 'Button')} (nur bei klickbaren Kennzahlen).`,
+      },
+    },
+  },
+  args: {
+    ariaLabel: 'Beispiel-Kennzahlen',
+    valueHeadingLevel: 2,
+    items: [
+      { label: 'Anime-Projekte', value: 20 },
+      { label: 'Release-Versionen', value: 59 },
+      { label: 'Mitglieder', value: 4 },
+    ],
+  },
+} satisfies Meta<typeof MetricList>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Standard: Story = {}
+
+export const Inline: Story = {
+  args: { variant: 'inline' },
+}
+
+export const KlickbareKennzahl: Story = {
+  name: 'Klickbare Kennzahl',
+  args: {
+    items: [
+      { label: 'Anime-Projekte', value: 20 },
+      { label: 'Mitglieder', value: 4, onActivate: () => window.alert('Zu Mitglieder gesprungen'), activateLabel: 'Zu Mitglieder springen' },
+    ],
+  },
+}
+
+export const KlickbareKennzahlInline: Story = {
+  name: 'Klickbare Kennzahl (Inline)',
+  args: {
+    variant: 'inline',
+    items: [
+      { label: 'Folgen', value: 13 },
+      { label: 'Beiträge', value: 12, onActivate: () => window.alert('Zu Beiträge gesprungen'), activateLabel: 'Zu Beiträge springen' },
+    ],
+  },
+}
+
+export const AufDunklemHintergrund: Story = {
+  name: 'Auf dunklem Hintergrund',
+  args: { tone: 'onDark' },
+  decorators: [
+    (Story) => (
+      <div style={{ padding: 16, background: '#1c1c1e', borderRadius: 8 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story: 'tone="onDark" reicht Heading/Text tone="onScrim" durch, z. B. für ein Foto-Banner mit Scrim (siehe FansubHeroSection), WCAG-kontrastgeprüft.',
+      },
+    },
+  },
+}

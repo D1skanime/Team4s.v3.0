@@ -1,0 +1,244 @@
+/* Gemeinsame Layout- und Seiten-Chrome-Klassen des Showcase-Katalogs: Seiten-/Shell-Grids,
+ * generische Stack-/Reihen-Utilities (u. a. `.stack`, `.rowActions`) sowie die wiederkehrenden
+ * "Öffentliche Oberfläche"-Rahmen (Fansub-/Release-Vorschau-Viewports). Diese Klassen werden
+ * von mehreren Showcase-Komponenten gemeinsam importiert, darum liegen sie hier statt in einer
+ * einzelnen Komponenten-Datei. */
+
+
+
+.page {
+  min-height: 100vh;
+  padding: 32px 0 64px;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at top right, rgba(255, 106, 61, 0.12), transparent 30%),
+    linear-gradient(180deg, #f8f8f8 0%, #f8f8f8 100%);
+}
+
+.shell {
+  width: min(1320px, calc(100% - 32px));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+}
+
+.shell > * {
+  min-width: 0;
+}
+
+.introGrid,
+.showcaseGrid,
+.tokenGrid,
+.compositionGrid,
+.feedbackGrid,
+.overlayGrid {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  width: 100%;
+}
+
+.introGrid > *,
+.showcaseGrid > *,
+.tokenGrid > *,
+.compositionGrid > *,
+.feedbackGrid > *,
+.overlayGrid > *,
+.stack > *,
+.publicSurfaceStack > *,
+.publicSurfaceFrame > * {
+  min-width: 0;
+}
+
+.introGrid,
+.showcaseGrid,
+.compositionGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tokenGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.feedbackGrid,
+.overlayGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.publicSurfaceStack {
+  display: grid;
+  gap: 22px;
+}
+
+.publicSurfaceFrames {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.publicSurfaceFrame {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.publicSurfaceFrameHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.publicSurfaceFrameHeader strong {
+  color: var(--text-primary);
+}
+
+.publicSurfaceFrameHeader code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.publicSurfaceViewport {
+  width: 100%;
+  max-width: min(100%, var(--surface-width));
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(92, 105, 131, 0.14);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(95, 132, 221, 0.12), transparent 34%),
+    linear-gradient(180deg, var(--surface-canvas), #eef3f8);
+}
+
+.publicSurfaceViewport > section,
+.publicSurfaceViewport > div {
+  min-width: 0;
+}
+
+.publicSurfaceActionRow {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 14px;
+}
+
+.adjacentNavDemoStack {
+  display: grid;
+  gap: 16px;
+}
+
+.adjacentNavFloatingDemo {
+  position: relative;
+  min-height: 104px;
+  border-radius: 16px;
+  border: 1px solid rgba(92, 105, 131, 0.14);
+  background:
+    radial-gradient(circle at top left, rgba(95, 132, 221, 0.22), transparent 34%),
+    linear-gradient(135deg, rgba(37, 52, 82, 0.38), rgba(240, 244, 251, 0.9));
+  overflow: hidden;
+}
+
+.radiusRow,
+.shadowRow,
+.spacingRow,
+.buttonRow,
+.badgeRow,
+.fieldGrid,
+.headerStack,
+.metaList,
+.rowActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(45, 41, 38, 0.1);
+}
+
+.listItem:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.disclosureIcon,
+.disclosureIconInline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-arrow);
+}
+
+.drawerDetailList {
+  display: grid;
+  gap: 12px;
+}
+
+.detailRow {
+  display: grid;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(45, 41, 38, 0.08);
+}
+
+.detailRow:last-child {
+  border-bottom: 0;
+}
+
+.searchInput {
+  min-width: min(320px, 100%);
+}
+
+.formWithErrorsHint {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--surface-card));
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+@media (max-width: 1080px) {
+  .introGrid,
+    .showcaseGrid,
+    .compositionGrid,
+    .feedbackGrid,
+    .overlayGrid,
+    .tokenGrid,
+    .mediaManagementGrid,
+    .stateGrid,
+    .cardCompareGrid,
+    .nestedCompareGrid,
+    .tableSurfaceCompareGrid,
+    .formCompareGrid,
+    .releaseExpandedGrid,
+    .interactionPrimitiveGrid,
+    .drawerContextGrid {
+      grid-template-columns: 1fr;
+    }
+}

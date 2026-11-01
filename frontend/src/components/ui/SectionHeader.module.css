@@ -1,58 +1,53 @@
 .sectionHeader {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
   align-items: flex-start;
   flex-wrap: wrap;
+  gap: var(--space-4) var(--space-5);
 }
 
 /* Opt-in: Wein-Header-Linie des Design-Systems unter dem Section-Header */
 .sectionHeaderUnderline {
-  padding-bottom: 14px;
-  margin-bottom: 18px;
-  border-bottom: 2px solid var(--ui-line);
-}
-
-.sectionHeader {
-  gap: 14px 20px;
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
+  border-bottom: var(--border-width-thick) solid var(--ui-line);
 }
 
 .sectionHeaderContent {
   display: grid;
   min-width: 0;
-}
-
-.sectionHeaderContent {
   gap: 1px;
 }
 
 .sectionHeaderActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-2);
   align-items: center;
   justify-content: flex-end;
 }
 
-.sectionTitle {
-  margin: 0;
-  color: var(--text-strong);
+/* Nur Abstand -- Schriftgröße/-farbe kommen von Text (variant="eyebrow"). */
+.eyebrow {
+  margin: 0 0 var(--space-1);
 }
 
 .sectionTitle {
-  font-size: 1rem;
+  margin: 0;
+  /* font-size/color kommen von Heading (.headingSize3 + --font-size-h3, Standard-Farbe
+     --text-strong) -- hier bewusst nicht mehr deklariert. */
   line-height: 1.15;
   letter-spacing: -0.015em;
 }
 
-/* Optional icon/counter slots inside the header's own title row (157-15, GAP-03 F1): kept
-   deliberately outside the mobile .sectionHeader column-wrap rule below so the counter never
-   wraps onto its own line, and inside the same top-level element as .sectionHeaderUnderline so
-   the underline still spans the full header width. */
+/* Optionale Icon-/Zähler-Slots innerhalb der eigenen Titelzeile des Headers: bewusst außerhalb
+   der mobilen .sectionHeader-Spaltenumbruch-Regel weiter unten gehalten, damit der Zähler nie in
+   eine eigene Zeile umbricht, und innerhalb desselben Top-Level-Elements wie
+   .sectionHeaderUnderline, damit der Unterstrich weiterhin die volle Header-Breite überspannt. */
 .sectionHeaderTitleRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .sectionHeaderIcon {
@@ -63,21 +58,19 @@
 
 .sectionHeaderCounter {
   flex-shrink: 0;
-  /* Matches .sectionTitle's line-height (not the inherited 1.5 body default) so the flex-centered
-     counter's own line box is the same height as the heading's -- otherwise align-items: center
-     visibly offsets the two baselines by a few pixels even though both sit in the same row. */
+  /* Entspricht .sectionTitles line-height (nicht dem vererbten 1.5-Body-Standard), damit die
+     eigene, flex-zentrierte Zeilenbox des Zählers dieselbe Höhe wie die der Überschrift hat --
+     sonst verschiebt align-items: center die beiden Grundlinien sichtbar um wenige Pixel,
+     obwohl beide in derselben Zeile stehen. */
   line-height: 1.15;
 }
 
+/* VOLLE Margin-Shorthand (nicht nur margin-top): Text (variant="meta") setzt bewusst KEINEN
+   eigenen margin-Reset, ein unvollständiges margin-top würde den Browser-Standard-Absatzabstand
+   unten/seitlich wieder durchschlagen lassen. font-size/color kommen vollständig von Texts
+   "meta"-Variante (0.875rem, --text-soft) -- keine private Text-Variable mehr von außen gesetzt. */
 .sectionDescription {
-  margin: 8px 0 0;
-  max-width: 72ch;
-  color: #657086;
-}
-
-.sectionDescription {
-  margin-top: 6px;
-  font-size: 0.92rem;
+  margin: var(--space-2) 0 0;
   line-height: 1.5;
   max-width: 58ch;
 }

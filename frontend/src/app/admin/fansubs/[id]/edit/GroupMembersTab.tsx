@@ -18,7 +18,7 @@ import { type RoleDefinitionOption } from '@/types/admin-capability'
 import { labelForRole } from '@/lib/roleCatalog'
 
 import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditStyles from './FansubEdit.membership.module.css'
 import ownStyles from './GroupMembersTab.module.css'
 import { GroupHistRoleDialog } from './GroupHistRoleDialog'
 import { GroupMemberFormModals } from './GroupMemberFormModals'

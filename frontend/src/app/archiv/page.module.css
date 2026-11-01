@@ -104,34 +104,11 @@
   gap: 16px; /* --space-4 */
 }
 
+/* Nur Abstand/Zentrierung -- die Seitennavigation selbst kommt vollständig von @/components/ui
+   Pagination. */
 .archivPagination {
-  display: flex;
-  gap: 16px; /* --space-4 */
-  align-items: center;
   justify-content: center;
-  margin-top: 24px; /* --space-5 */
-}
-
-.paginationLink {
-  min-height: 36px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 16px;
-  background: var(--surface-card, #ffffff);
-  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.12));
-  border-radius: 6px;
-  color: var(--text-body, #3d3733);
-  font-size: 14px;
-  text-decoration: none;
-}
-
-.paginationLink:hover {
-  background: var(--surface-card-muted, #fbfaf8);
-}
-
-.paginationInfo {
-  font-size: 14px;
-  color: var(--text-soft, #625c56);
+  margin-top: var(--space-5);
 }
 
 .archivEmptyState {

@@ -1,13 +1,12 @@
 'use client'
 
-import Image from 'next/image'
-import { Crop, Loader2, Trash2 } from 'lucide-react'
+import { Crop, Trash2 } from 'lucide-react'
 
-import { Button, MediaSlot } from '@/components/ui'
+import { Button, MediaSlot, ProgressBar, Spinner } from '@/components/ui'
 import { classNames } from '@/components/ui/classNames'
 
 import type { EditableMediaValue } from './MediaUpload'
-import { BANNER_CROP_OUTPUT_HEIGHT, BANNER_CROP_OUTPUT_WIDTH, LOGO_CROP_OUTPUT_SIZE } from './MediaUpload'
+import { BANNER_CROP_OUTPUT_HEIGHT, BANNER_CROP_OUTPUT_WIDTH } from './MediaUpload'
 import styles from './MediaUpload.module.css'
 
 export interface MediaUploadCoreProps {
@@ -74,7 +73,7 @@ export function MediaUploadCore({
         <h3>{title}</h3>
         {busy ? (
           <span className={styles.statusPill} aria-live="polite">
-            <Loader2 size={14} className={styles.spinner} />
+            <Spinner size="sm" label="" />
             {preparingEdit ? 'Bearbeiten...' : busyAction === 'upload' ? 'Upload...' : 'Löschen...'}
           </span>
         ) : null}
@@ -93,29 +92,13 @@ export function MediaUploadCore({
           isLogo ? styles.logoSlot : null,
           error ? styles.dropzoneError : null,
         )}
-        previewContent={
-          isLogo ? (
-            <Image
-              src={previewURL}
-              alt="Logo Vorschau"
-              className={styles.previewImageRound}
-              width={LOGO_CROP_OUTPUT_SIZE}
-              height={LOGO_CROP_OUTPUT_SIZE}
-              unoptimized
-              draggable={false}
-            />
-          ) : (
-            <Image
-              src={previewURL}
-              alt="Banner Vorschau"
-              className={styles.previewImageWide}
-              width={BANNER_CROP_OUTPUT_WIDTH}
-              height={BANNER_CROP_OUTPUT_HEIGHT}
-              unoptimized
-              draggable={false}
-            />
-          )
-        }
+        media={{
+          kind: 'image',
+          src: previewURL,
+          alt: isLogo ? 'Logo Vorschau' : 'Banner Vorschau',
+          objectFit: 'contain',
+          className: isLogo ? styles.previewImageRound : styles.previewImageWide,
+        }}
         actions={
           hasValue ? (
             <>
@@ -148,10 +131,8 @@ export function MediaUploadCore({
 
       {busyAction === 'upload' ? (
         <div className={styles.progressWrap}>
-          <div className={styles.progressTrack}>
-            <div className={styles.progressBar} style={{ width: `${progress}%` }} />
-          </div>
-          <span className={styles.progressLabel}>{progress}%</span>
+          <ProgressBar value={progress} label={`${title}-Upload: ${progress}%`} size="sm" className={styles.progressBarTrack} />
+          <span className={styles.progressLabel} aria-hidden="true">{progress}%</span>
         </div>
       ) : null}
 

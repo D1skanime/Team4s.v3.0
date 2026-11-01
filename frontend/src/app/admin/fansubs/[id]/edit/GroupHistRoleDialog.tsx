@@ -16,7 +16,7 @@ import { type RoleDefinitionOption } from '@/types/admin-capability'
 import { type HistFansubGroupMember } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditStyles from './FansubEdit.membership.module.css'
 import ownStyles from './GroupHistRoleDialog.module.css'
 
 const styles = mergeCssModules(fansubEditStyles, sharedStyles)

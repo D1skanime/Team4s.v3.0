@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 
-import styles from "./EpisodeVersionEditor.module.css";
+import styles from './EpisodeVersionEditor.styles'
 
 export interface EpisodeNavigationControlsProps {
   prevVersionId: number | null;

@@ -1,0 +1,33 @@
+.heading {
+  margin: 0;
+  color: var(--text-strong);
+  font-weight: var(--font-weight-heading);
+}
+
+.headingSizeHero {
+  font-size: var(--font-size-hero);
+}
+
+.headingSize1 {
+  font-size: var(--font-size-h1);
+}
+
+.headingSize2 {
+  font-size: var(--font-size-h2);
+}
+
+.headingSize3 {
+  font-size: var(--font-size-h3);
+}
+
+.headingSize4 {
+  font-size: var(--font-size-h4);
+}
+
+.headingToneAccent {
+  color: var(--accent-deep);
+}
+
+.headingToneOnScrim {
+  color: var(--scrim-text);
+}

@@ -1,11 +1,8 @@
 import type { ReactNode } from 'react'
 
-import ownStyles from './PageHeader.module.css'
-import sharedStyles from './ui.module.css'
-
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+import { Heading } from './Heading'
+import { Text } from './Text'
+import styles from './PageHeader.module.css'
 
 export interface PageHeaderProps {
   eyebrow?: string
@@ -20,9 +17,9 @@ export function PageHeader({ eyebrow, title, description, actions, breadcrumbs }
     <header className={styles.pageHeader}>
       <div className={styles.pageHeaderContent}>
         {breadcrumbs ? <div>{breadcrumbs}</div> : null}
-        {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
-        <h1 className={styles.pageTitle}>{title}</h1>
-        {description ? <p className={styles.pageDescription}>{description}</p> : null}
+        {eyebrow ? <Text variant="eyebrow" className={styles.eyebrow}>{eyebrow}</Text> : null}
+        <Heading level={1} className={styles.pageTitle}>{title}</Heading>
+        {description ? <Text variant="meta" className={styles.pageDescription}>{description}</Text> : null}
       </div>
       {actions ? <div className={styles.pageHeaderActions}>{actions}</div> : null}
     </header>

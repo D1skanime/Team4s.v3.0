@@ -1,15 +1,17 @@
+import Link from 'next/link'
 import { Suspense } from 'react'
 
 import { AnimeGrid } from '@/components/anime/AnimeGrid'
 import { AnimeGridScrollRestorer } from '@/components/anime/AnimeGridScrollRestorer'
 import { LetterFilter } from '@/components/anime/LetterFilter'
-import { Pagination } from '@/components/anime/Pagination'
+import { Pagination } from '@/components/ui'
 import { getAnimeList } from '@/lib/api'
 import { buildAnimeGridQuery } from '@/lib/animeGridContext'
 import { toNumber } from '@/lib/utils'
 import { AnimeStatus, ContentType } from '@/types/anime'
 
 import AnimeListLoading from './AnimeListLoading'
+import { buildAnimeListPageHref } from './animeListPageHref'
 import styles from './page.module.css'
 
 // Diese Route haengt von Query-Parametern (A-Z-Buchstabenfilter, Pagination usw.) ab.
@@ -27,14 +29,6 @@ interface AnimePageProps {
         content_type?: string | string[]
         status?: string | string[]
       }>
-    | {
-        page?: string | string[]
-        per_page?: string | string[]
-        q?: string | string[]
-        letter?: string | string[]
-        content_type?: string | string[]
-        status?: string | string[]
-      }
     | undefined
 }
 
@@ -129,10 +123,8 @@ async function AnimeListContent({ searchParams }: AnimePageProps) {
       <Pagination
         currentPage={response.meta.page}
         totalPages={response.meta.total_pages}
-        letter={letter}
-        perPage={perPage}
-        contentType={contentType}
-        status={status}
+        hrefForPage={(page) => buildAnimeListPageHref(page, { letter, perPage, contentType, status })}
+        linkComponent={Link}
       />
     </main>
   )

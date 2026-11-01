@@ -13,15 +13,15 @@
   position: relative;
   z-index: 1;
   border: 1px solid var(--border-subtle);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 247, 243, 0.98) 100%);
+  background: var(--surface-dialog-panel);
   box-shadow: var(--shadow-lg);
 }
 
 .drawerPanel {
-  width: min(620px, 100%);
+  width: min(var(--drawer-width-md), 100%);
   height: 100%;
   padding: 0;
-  border-radius: 28px 0 0 28px;
+  border-radius: var(--radius-surface) 0 0 var(--radius-surface);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   overflow: hidden;
@@ -30,28 +30,28 @@
 }
 
 .drawerPanelLg {
-  width: min(760px, 100vw);
+  width: min(var(--drawer-width-lg), 100vw);
 }
 
 .drawerPanel::before {
   content: '';
   position: absolute;
   inset: 0 auto 0 0;
-  width: 4px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 72%, white), #7c3c4f 58%, color-mix(in srgb, var(--surface-sunken) 82%, white));
+  width: var(--drawer-accent-rail-width);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 72%, white), var(--ui-arrow) 58%, color-mix(in srgb, var(--surface-sunken) 82%, white));
 }
 
 .drawerWrapSheet {
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: var(--space-5);
 }
 
 .drawerPanelSheet {
-  width: min(760px, calc(100vw - 48px));
-  height: min(680px, calc(100dvh - 48px));
-  max-height: calc(100dvh - 48px);
-  border-radius: 22px;
+  width: min(var(--drawer-width-lg), calc(100vw - var(--dialog-viewport-margin)));
+  height: min(var(--drawer-sheet-max-height), calc(100dvh - var(--dialog-viewport-margin)));
+  max-height: calc(100dvh - var(--dialog-viewport-margin));
+  border-radius: var(--radius-surface);
   border-left-color: var(--border-subtle);
 }
 
@@ -63,16 +63,16 @@
 .drawerFooter {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: flex-start;
   flex-wrap: wrap;
 }
 
 .drawerHeader {
   flex-wrap: nowrap;
-  padding: 24px 24px 18px 28px;
+  padding: var(--space-5) var(--space-5) var(--space-4) var(--space-6);
   border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 88%, white);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 245, 239, 0.96) 100%);
+  background: var(--drawer-header-bg);
 }
 
 .drawerHeader > div {
@@ -83,18 +83,18 @@
 .drawerBody {
   min-height: 0;
   overflow: auto;
-  padding: 22px 24px 24px 28px;
+  padding: var(--space-5) var(--space-5) var(--space-5) var(--space-6);
   display: grid;
-  gap: 18px;
+  gap: var(--space-4);
   align-content: start;
-  background: linear-gradient(180deg, rgba(250, 247, 243, 0.94) 0%, rgba(255, 255, 255, 0.98) 100%);
+  background: var(--drawer-body-bg);
 }
 
 .drawerFooter {
-  padding: 18px 24px 24px 28px;
+  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-6);
   border-top: 1px solid color-mix(in srgb, var(--border-subtle) 88%, white);
-  background: linear-gradient(180deg, rgba(250, 247, 243, 0.98) 0%, rgba(255, 255, 255, 0.98) 100%);
-  box-shadow: 0 -10px 24px rgba(24, 23, 21, 0.04);
+  background: var(--drawer-footer-bg);
+  box-shadow: var(--drawer-footer-shadow);
 }
 
 @media (max-width: 767px) {
@@ -105,19 +105,20 @@
   }
 
   .drawerPanel {
-    border-radius: 20px 0 0 20px;
+    /* Gleicher Radius-Token wie Card/Modal (var(--radius-surface)). */
+    border-radius: var(--radius-surface) 0 0 var(--radius-surface);
   }
 
   .drawerHeader {
-    padding: 18px 18px 14px 22px;
+    padding: var(--space-4) var(--space-4) var(--space-3) var(--space-5);
   }
 
   .drawerBody {
-    padding: 16px 18px 18px 22px;
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
   }
 
   .drawerFooter {
-    padding: 14px 18px 18px 22px;
+    padding: var(--space-3) var(--space-4) var(--space-4) var(--space-5);
   }
 }
 
@@ -125,14 +126,15 @@
   .drawerWrapSheet {
     align-items: flex-end;
     justify-content: center;
-    padding: 12px 0 0;
+    padding: var(--space-3) 0 0;
   }
 
   .drawerPanelSheet {
     width: 100%;
     height: auto;
     max-height: 88vh;
-    border-radius: 22px 22px 0 0;
+    /* Gleicher Radius-Token wie Card/Modal (var(--radius-surface)). */
+    border-radius: var(--radius-surface) var(--radius-surface) 0 0;
     border-right: 0;
     border-bottom: 0;
     border-left: 0;
@@ -142,17 +144,17 @@
     flex-direction: row;
     align-items: flex-start;
     flex-wrap: nowrap;
-    padding: 16px 16px 12px;
+    padding: var(--space-4);
   }
 
   .drawerPanelSheet .drawerBody {
-    padding: 14px 16px 16px;
+    padding: var(--space-3) var(--space-4) var(--space-4);
   }
 
   .drawerPanelSheet .drawerFooter {
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
-    padding: 12px 16px 16px;
+    padding: var(--space-3) var(--space-4) var(--space-4);
   }
 }

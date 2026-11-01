@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Crop } from 'lucide-react'
@@ -149,15 +148,15 @@ export function MemberAvatarCard({
         accept="image/jpeg,image/png,image/webp,image/gif"
         disabled={isUploading || isPreparingExistingAvatar || !canUpload}
         className={isCompact ? styles.mediaControlAvatarSlot : styles.avatarPreviewSlot}
-        previewContent={avatarURL ? (
-          <Image
-            src={avatarURL}
-            alt={`${label} Avatar`}
-            fill
-            unoptimized
-            style={{ objectFit: 'cover' }}
-          />
-        ) : null}
+        media={avatarURL ? {
+          kind: 'image',
+          src: avatarURL,
+          alt: `${label} Avatar`,
+          objectFit: 'cover',
+          // Ein animiertes GIF/WebP-Avatar würde der Next.js-Optimierer beim Neukodieren auf ein
+          // Standbild reduzieren -- Animation bleibt nur erhalten, wenn der Pfad unoptimiert bleibt.
+          unoptimized: isGIFAvatar(profile, avatarURL),
+        } : null}
         actions={canEditExistingAvatar ? (
           <Button
             type="button"

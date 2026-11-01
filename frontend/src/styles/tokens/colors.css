@@ -1,0 +1,48 @@
+/**
+ * Semantische Farb-/Schatten-/Fokus-Tokens (Oberflächen, Fließtextfarben, Rahmen, Schatten).
+ * Teil der nach Bereich aufgeteilten globalen Design-Tokens (siehe ../globals.css).
+ */
+:root {
+  --surface-canvas: #f6f4ef;
+  --surface-sunken: #f0ece5;
+  --surface-card: #ffffff;
+  --surface-card-muted: #fbfaf8;
+  --surface-overlay: rgba(255, 255, 255, 0.9);
+  /* Ausschließlich für die dunkle Bild-Stage des Bild-Viewers reserviert (Phase 177,
+     D-21/Sketch 010) -- kein sitetweiter Ersatz der dominanten/sekundären Oberflächenfarbe. */
+  --surface-stage: #10141c;
+  /* Phase 177 Gap-Fix D-33 (Live-UAT Runde 2): durchscheinender "Schleier" für das Bild-Viewer-
+     Chrome, abgeleitet von --text-strong (kein neuer, roher Hex-Wert) -- ersetzt die flache
+     --surface-stage-Füllung NUR auf Modals Stage-Panel, kombiniert mit einem backdrop-filter-
+     Weichzeichner, damit die echte Seite hinter dem Viewer schwach sichtbar/abgedunkelt bleibt,
+     statt einer vollständig deckenden Füllung. Dieser Token darf NIEMALS als zweiter,
+     ungeschärfter flacher Hintergrund an anderer Stelle im Viewer-Chrome eingesetzt werden --
+     siehe den Kommentar zu Modal.module.css's .modalPanelStage dazu, warum ein zweifaches
+     Stapeln sich zu nahezu voller Deckkraft aufsummiert. */
+  --surface-stage-veil: color-mix(in srgb, var(--text-strong) 86%, transparent);
+  --surface-stage-veil-blur: 20px;
+
+  --text-strong: #171513;
+  --text-body: #2d2926;
+  --text-soft: #625c56;
+  --text-faint: #8c857e;
+
+  --border-subtle: rgba(45, 41, 38, 0.12);
+  --border-strong: rgba(45, 41, 38, 0.24);
+  --border-accent: rgba(255, 106, 61, 0.35);
+
+  --shadow-xs: 0 1px 2px rgba(25, 21, 18, 0.06);
+  --shadow-sm: 0 8px 24px rgba(25, 21, 18, 0.06);
+  --shadow-md: 0 18px 48px rgba(25, 21, 18, 0.1);
+  --shadow-lg: 0 28px 68px rgba(25, 21, 18, 0.16);
+
+  --focus-ring: 0 0 0 3px rgba(255, 106, 61, 0.18);
+  --focus-outline: rgba(255, 106, 61, 0.62);
+
+  --transition-fast: 120ms;
+
+  /* Dünner, halbtransparenter Glanzstreifen am oberen Rand erhabener Flächen (IconButton,
+     Buttons Floating-Variante) -- EIN Token statt an beiden Stellen zufällig übereinstimmender
+     rgba-Literale. */
+  --shadow-inset-highlight: rgba(255, 255, 255, 0.7);
+}

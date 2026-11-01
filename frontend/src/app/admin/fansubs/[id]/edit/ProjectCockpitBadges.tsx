@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui'
 import type { AnimeFansubProjectNote } from '@/types/fansubNotes'
 
-import styles from './FansubEdit.module.css'
+import styles from './FansubEdit.membership.module.css'
 
 type Props = {
   /** null = noch nicht geladen (neutral zeigen, D-12); 0 = geladen und leer (danger) */

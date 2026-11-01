@@ -1,0 +1,140 @@
+/* Detailstile einzelner Asset-Karten (CreateAssetCard): Medien-Slot-Rahmen, Pflichtfeld-
+   Markierung, Status-Hinweis und Quellen-Overlays für Anbieter ohne eigene Kachel-Variante
+   im Haupt-Kartenlayout (Fanart.tv, AniList, Konachan, Safebooru). Beim Datei-Split aus
+   page.module.css herausgelöst, da ausschließlich von dieser Komponente verwendet. */
+
+.assetBackgroundHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+}
+
+.assetBackgroundText {
+  margin: 2px 0 0;
+  color: #6b7280;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+/* MediaSlot (components/ui) besitzt jetzt Größe (aspectRatio), Leer-/Ersetzen-Umschaltung und
+   die Aktionsleiste unter der Vorschau (Live-UAT-Nachtrag 2026-10-12: Dropzone + Vorschau + Icons
+   quetschten sich vorher in dieselbe Kachel). Der Abstand zum Kartenrand liegt bewusst auf dieser
+   Hülle (nicht auf der MediaSlot-Box selbst), damit die Aktionsleiste unter der Vorschau --
+   außerhalb der Box, siehe MediaSlot.module.css .mediaSlotActions -- denselben seitlichen Rand
+   erhält statt kantig bis zum Kartenrand zu laufen. */
+.assetCardMediaSlotWrap {
+  padding: 8px 16px 14px;
+}
+
+.assetCardMediaSlot {
+  background: linear-gradient(180deg, #eef2f7 0%, #f9fbfd 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.assetCardMeta {
+  min-height: 46px;
+  padding: 7px 9px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.assetCardMetaDefault {
+  background: linear-gradient(180deg, #ffffff 0%, #fdfdff 100%);
+}
+
+.assetCardMetaAdder {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+}
+
+.assetCardRequired {
+  color: #b42318;
+}
+
+.assetStatusNote {
+  order: 3;
+  flex: 1 0 100%;
+  font-size: 9.5px;
+  color: #7a8494;
+  line-height: 1.2;
+}
+
+.assetCardSourceOverlayFanart {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlayAniList {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlayKonachan {
+  background: #be185d;
+  color: #ffffff;
+}
+
+.assetCardSourceOverlaySafebooru {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+.assetIconActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.assetIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #dde3ea;
+  background: #ffffff;
+  cursor: pointer;
+  color: #374151;
+  flex-shrink: 0;
+  padding: 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.assetIconBtn:hover {
+  background: #f7f8fb;
+  border-color: #c8cfd8;
+}
+
+.assetIconBtnDestructive {
+  color: #b42318;
+  border-color: #fecaca;
+}
+
+.assetIconBtnDestructive:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+/* object-fit kommt jetzt aus MediaSlots eigener objectFit-Option (CreateAssetCard.tsx) statt
+   einer hier gesetzten CSS-Regel -- nur das Logo braucht noch einen eigenen Innenabstand, damit
+   das enthaltene Bild nicht randlos an der Kachel klebt. */
+.assetCardImageLogo {
+  padding: 12px;
+}
+
+.assetCardRequired {
+  color: #111827;
+}
+
+@media (max-width: 720px) {
+  .assetBackgroundHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

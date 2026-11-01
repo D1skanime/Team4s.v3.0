@@ -1,7 +1,8 @@
 import Link from 'next/link'
 
 import { PublicHeaderBackdrop } from '@/components/public/PublicHeaderBackdrop'
-import { Badge, HeroMetrics } from '@/components/ui'
+import { Badge, MetricList } from '@/components/ui'
+import { classNames } from '@/components/ui/classNames'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
 import { getFansubLinkTypeLabel } from '@/lib/fansub-labels'
@@ -110,7 +111,7 @@ export function FansubHeroSection({
             </div>
           ) : null}
 
-          <div className={styles.heroBody}>
+          <div className={classNames(styles.heroBody, bannerURL ? styles.heroBodyOnBanner : null)}>
             <div className={styles.heroHeader}>
               <div className={styles.heroIdentity}>
                 <div className={styles.heroLogo} aria-label={`${group.name} Logo`}>
@@ -138,7 +139,12 @@ export function FansubHeroSection({
                 </div>
               </div>
 
-              <HeroMetrics items={heroStats} ariaLabel="Gruppenkennzahlen" />
+              <MetricList
+                items={heroStats}
+                ariaLabel="Gruppenkennzahlen"
+                valueHeadingLevel={2}
+                tone={bannerURL ? 'onDark' : 'default'}
+              />
             </div>
 
             {heroLinks.length > 0 ? (

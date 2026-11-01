@@ -1,4 +1,7 @@
-import { classNames } from './classNames'
+import { Card } from './Card'
+import { Heading } from './Heading'
+import { Spinner } from './Spinner'
+import { Text } from './Text'
 import ownStyles from './LoadingState.module.css'
 import sharedStyles from './ui.module.css'
 
@@ -9,7 +12,7 @@ const styles = new Proxy({} as Record<string, string>, {
 export interface LoadingStateProps {
   title?: string
   description?: string
-  /** Dezenter Infinite-Scroll-Ladeindikator (D-36) statt eines grossen Zustands-Blocks. */
+  /** Dezenter Infinite-Scroll-Ladeindikator statt eines großen Zustands-Blocks. */
   compact?: boolean
 }
 
@@ -19,12 +22,12 @@ export function LoadingState({
   compact = false,
 }: LoadingStateProps) {
   return (
-    <div className={classNames(styles.stateCard, styles.stateInfo, compact && styles.stateCompact)}>
-      <div className={styles.stateIcon} aria-hidden="true">
-        <span className={styles.stateSpinner} />
-      </div>
-      <h3 className={styles.stateTitle}>{title}</h3>
-      <p className={styles.stateDescription}>{description}</p>
-    </div>
+    <Card variant={compact ? 'compact' : 'flat'}>
+      <span className={styles.stateSpinnerWrap}>
+        <Spinner size="md" />
+      </span>
+      <Heading level={3} size={3} className={styles.stateTitle}>{title}</Heading>
+      <Text variant="soft" className={styles.stateDescription}>{description}</Text>
+    </Card>
   )
 }

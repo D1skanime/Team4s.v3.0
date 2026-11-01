@@ -40,7 +40,7 @@ function makeDashboardData(
 }
 
 describe("DashboardMetrics (Phase 116, D-03)", () => {
-  it("rendert genau 5 HeroMetrics-Kacheln in fester Reihenfolge", () => {
+  it("rendert genau 5 MetricList-Kacheln in fester Reihenfolge", () => {
     const { container } = render(
       <DashboardMetrics data={makeDashboardData()} />,
     );

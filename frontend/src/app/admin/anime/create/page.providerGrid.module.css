@@ -1,0 +1,129 @@
+/* Layout-Raster der Provider-Ergebnisliste (Jellyfin-/AniSearch-Suche): Grid-Anordnung der
+   Eingabezeile, das Ergebnis-Panel samt Kopfzeile/Zähler und die einzelnen Treffer-Zeilen
+   (Icon, Titel, Metazeile, Verlinkungs-Button). Wird sowohl von `CreateJellyfinCard`/`page.tsx`
+   in diesem Ordner als auch von `AnimeEditSourceSection`/`AniSearchSearchCard` außerhalb dieses
+   Ordners importiert -- beide Seiten importieren deshalb gezielt diese Datei statt
+   `page.module.css`. */
+
+/* ── Provider Grid (Section 1) ───────────────────────────────────────────── */
+
+.providerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.providerGrid > * {
+  min-width: 0;
+}
+
+@media (max-width: 800px) {
+  .providerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .providerInputRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .providerRowCard {
+    grid-template-columns: 1fr;
+  }
+}
+
+.providerInputRow {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+
+.providerFieldGrow {
+  flex: 1 1 auto;
+}
+
+.providerFieldGrow input {
+  width: 100%;
+}
+
+.providerResultsBlock {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #eee2db;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffaf8 0%, #ffffff 100%);
+}
+
+.providerResultsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.providerResultsCount {
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a5b49;
+}
+
+.providerList {
+  display: grid;
+  gap: 12px;
+}
+
+.providerRowCard {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid #eaded8;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.providerRowIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6d4aff 0%, #7c5cff 100%);
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.providerRowContent {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.providerRowTitle {
+  font-size: 18px;
+  line-height: 1.2;
+  color: #111827;
+}
+
+.providerRowMeta {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b7280;
+  overflow-wrap: anywhere;
+}
+
+.providerLinkButton {
+  justify-self: start;
+  border: none;
+  background: transparent;
+  color: #6d4aff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0;
+}

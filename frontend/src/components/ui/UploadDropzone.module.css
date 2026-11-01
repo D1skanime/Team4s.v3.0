@@ -6,22 +6,20 @@
   gap: var(--space-3);
   width: 100%;
   height: 100%;
-  min-height: 8rem;
+  min-height: var(--upload-dropzone-min-height);
   box-sizing: border-box;
-  border: 2px dashed color-mix(in srgb, var(--text-secondary) 24%, transparent);
+  border: var(--border-width-thick) dashed color-mix(in srgb, var(--text-secondary) 24%, transparent);
   border-radius: var(--radius-lg);
   background: var(--bg-card);
   text-align: center;
   cursor: pointer;
-  /* container-type: size deliberately does NOT live here (Live-UAT/code-review follow-up
-     2026-10-13): it forces the box's own height to ignore its content (CSS size containment),
-     collapsing to `min-height` (8rem) whenever a non-MediaSlot caller lets this box size itself
-     from its own content (no explicit/aspect-ratio-driven height up the ancestor chain) --
-     exactly the kind of caller this component serves by default (density="roomy", no MediaSlot).
-     MediaSlot.module.css's .mediaSlotDropzone opts specific instances INTO size containment
-     instead, since only THOSE have a definite, aspect-ratio-driven height that can safely shrink
-     below the content's natural size -- see the comment there for the original clipping bug this
-     mechanism fixes. */
+  /* container-type: size steht bewusst NICHT hier: es zwänge die Box, ihre eigene Höhe unabhängig
+     vom Inhalt zu bestimmen (CSS-Größen-Containment) und würde auf `min-height` (8rem)
+     kollabieren, sobald ein Aufrufer ohne `aspectRatio` diese Box aus ihrem eigenen Inhalt heraus
+     bemisst (kein expliziter, über `aspectRatio` bestimmter Höhen-Vorfahre) -- genau der
+     Standardfall dieses Bausteins (density="roomy", generische Mehrdatei-Fläche). Nur
+     `.dropzoneSized` (gesetztes `aspectRatio`-Prop) bindet sich selbst in dieses
+     Größen-Containment ein, siehe dort. */
 }
 
 .dropzoneRoomy {
@@ -30,6 +28,13 @@
 
 .dropzoneCompact {
   padding: var(--space-3);
+}
+
+/* Muss exakt MediaFrames eigenen Rund-Radius (50%) treffen -- die Leer-Dropzone sitzt innerhalb
+   derselben MediaFrame-Fläche und braucht denselben Rundungswert, sonst würde der gestrichelte
+   Rahmen an der kreisförmigen Außenkante der Fläche sichtbar eckig abgeschnitten. */
+.dropzoneRound {
+  border-radius: 50%;
 }
 
 .dropzoneDragging {
@@ -42,9 +47,23 @@
   cursor: not-allowed;
 }
 
-/* Preview-as-drop-target mode (children present): shrink-wrap to the preview's own size/shape
-   instead of imposing the default icon/prompt/button box, and leave the preview's own
-   border/background alone. */
+/* Aktiv, wenn das `aspectRatio`-Prop gesetzt ist: die Fläche ist dann selbst eine `MediaFrame`-
+   Instanz mit einer über `aspect-ratio` bestimmten, von der Breite abgeleiteten Höhe -- die
+   eigene `height: 100%`/`min-height: 8rem` der Basis-Regel oben würde dieser abgeleiteten Höhe
+   entgegenwirken (ein Elter ohne eigene definite Höhe ließe `height: 100%` sonst wirkungslos
+   bzw. auf `min-height` kollabieren). `container-type: size` lässt die eigene
+   @container-Abfrage unten (Wechsel auf die flache Inline-Zeile) auf die so bestimmte, ggf.
+   kleine Höhe reagieren, ohne den Inhalt abzuschneiden. */
+.dropzoneSized {
+  height: auto;
+  min-height: 0;
+  container-type: size;
+}
+
+/* Vorschau-als-Drop-Fläche-Modus (children gesetzt): hebt die eigene Standard-Optik (gestrichelter
+   Rahmen, Innenabstand, Hintergrundfarbe der Basisregel oben) auf, damit bei gesetztem
+   `aspectRatio` die darunterliegende MediaFrame-Fläche (Rahmen/Rundung/Hintergrund) ungestört
+   durchscheint und die übergebene Vorschau sie vollständig ausfüllt. */
 .dropzoneOverlay {
   display: inline-block;
   min-height: 0;
@@ -55,41 +74,24 @@
 }
 
 .dropzoneOverlay.dropzoneDragging {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
+  outline: var(--border-width-thick) solid var(--accent-primary);
+  outline-offset: var(--border-width-thick);
   background: none;
 }
 
+/* Sitzt über einer beliebigen gezogenen Datei-Vorschau -- nutzt dieselben Scrim-Tokens wie
+   IconButtons onImage-Variante statt eines eigenen Verlaufs, damit der Hinweis auf jedem
+   Bildinhalt lesbar bleibt (Badges helle Varianten reichen dafür nicht aus). */
 .dropzoneOverlayHint {
   position: absolute;
   left: 50%;
-  bottom: 6px;
+  bottom: var(--space-2);
   transform: translateX(-50%);
-  margin: 0;
-  background: color-mix(in srgb, var(--text-primary) 82%, transparent);
-  color: white;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
+  background: var(--scrim-strong);
+  color: var(--scrim-icon);
+  border-color: transparent;
   white-space: nowrap;
   pointer-events: none;
-}
-
-.hiddenFileInput {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.icon {
-  color: var(--text-secondary);
 }
 
 .copy {
@@ -97,27 +99,22 @@
   gap: var(--space-1);
 }
 
+/* Margin/Farbe/Gewicht kommen bereits von Heading selbst (size=4); nur die kompaktere
+   Zeilenhöhe bleibt als lokale Ergänzung für den mehrzeiligen Eingabeaufforderungs-Text. */
 .promptLabel {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: 1.125rem;
-  font-weight: 700;
   line-height: 1.25;
 }
 
+/* font-size/color kommen von Text (variant="soft"). */
 .dropHintLabel {
   margin: 0;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  font-weight: 400;
   line-height: 1.5;
 }
 
+/* font-size kommt von Text (variant="body"); nur die Fehlerfarbe bleibt als Override. */
 .singleSlotWarning {
   margin: 0;
   color: var(--color-error);
-  font-size: 1rem;
-  font-weight: 400;
   line-height: 1.5;
 }
 
@@ -125,12 +122,12 @@
   flex-shrink: 0;
 }
 
-/* Live-UAT follow-up 2026-10-12 (resolveUploadDropzoneLayout's 'inline' tier, see
-   UploadDropzone.tsx -- keep the threshold in sync, INLINE_LAYOUT_MAX_HEIGHT_PX): below this
-   available height, the vertical icon/text/button stack no longer fits -- switch to a single
-   compact row (icon + short prompt text only, no separate hint, no separate button). The whole
-   dropzone stays clickable via its own role="button", so dropping the button costs no
-   functionality, only the dedicated visible affordance for it. */
+/* Spiegelt resolveUploadDropzoneLayouts 'inline'-Stufe (UploadDropzone.tsx,
+   INLINE_LAYOUT_MAX_HEIGHT_PX -- Schwelle synchron halten): unterhalb dieser verfügbaren Höhe
+   passt der senkrechte StatusIcon-/Heading-/Button-Stapel nicht mehr -- Wechsel auf eine einzelne,
+   kompakte Zeile (nur Icon + kurzer Hinweistext, kein separater Zusatzhinweis, kein separater
+   Button). Die ganze Dropzone bleibt über ihre eigene role="button" klickbar, das Weglassen des
+   Buttons kostet also keine Funktion, nur dessen eigene sichtbare Affordanz. */
 @container (max-height: 110px) {
   .dropzoneRoomy,
   .dropzoneCompact {
@@ -151,8 +148,12 @@
     display: none;
   }
 
+  /* Headings eigene Größe (size=4) bleibt hier bewusst unverändert: Heading hat -- anders als
+     Text mit seinem offiziellen var(--text-*-size, Fallback)-Muster -- keinen sanktionierten
+     Override-Hook für die Schriftgröße; ein Element+Klasse-Selektor gegen Headings
+     .headingSize4 wäre genau der CSS-Spezifitäts-Trick, den dieses Projekt an anderer Stelle
+     bereits konsequent entfernt hat (siehe iconButtonOverrides.regression.test.ts). */
   .promptLabel {
-    font-size: 0.85rem;
     line-height: 1.2;
   }
 }

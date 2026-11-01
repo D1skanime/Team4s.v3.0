@@ -1,0 +1,25 @@
+.dialogHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: flex-start;
+  flex-wrap: nowrap;
+}
+
+.dialogHeader > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.dialogTitle {
+  margin: 0;
+  /* font-size/color kommen jetzt von Heading (level=3 size=2 -> .headingSize2 + --font-size-h2,
+     identisch zum bisherigen 1.25rem; Standard-Farbe --text-strong); semantisches Tag bleibt
+     h3. */
+}
+
+.dialogDescription {
+  /* font-size 1rem/color var(--text-soft) entsprechen bereits exakt Texts variant="soft"-
+     Default -- keine CSS-Variablen-Überschreibung nötig, nur margin bleibt hier. */
+  margin: var(--dialog-header-description-margin-top) 0 0;
+}

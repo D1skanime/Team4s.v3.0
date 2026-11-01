@@ -17,7 +17,8 @@ import type { AnimeFansubProjectNote } from '@/types/fansubNotes'
 
 import sharedStyles from '../../../admin.module.css'
 import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditReleasesStyles from './FansubEdit.releases.module.css'
+import fansubEditSharedStyles from './FansubEdit.module.css'
 import ownStyles from './AnimeProjectNotesSection.module.css'
 
 import {
@@ -27,6 +28,7 @@ import {
 } from './AnimeProjectNoteForm'
 import type { AnimeEntry } from './AnimeProjectNoteForm'
 
+const fansubEditStyles = mergeCssModules(fansubEditReleasesStyles, fansubEditSharedStyles)
 const styles = mergeCssModules(editorScaffoldStyles, mergeCssModules(fansubEditStyles, sharedStyles))
 
 function previewText(value?: string | null): string {

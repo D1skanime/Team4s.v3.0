@@ -1,26 +1,23 @@
 import type { ReactNode } from 'react'
 
-import ownStyles from './SectionHeader.module.css'
-import sharedStyles from './ui.module.css'
-
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+import { Heading } from './Heading'
+import { Text } from './Text'
+import styles from './SectionHeader.module.css'
 
 export interface SectionHeaderProps {
   eyebrow?: string
   title: string
-  /** Semantic heading level. Defaults to the section-level h2. */
+  /** Semantisches Überschriften-Level. Standard ist das Section-Level h2. */
   level?: 2 | 3
   description?: string
   actions?: ReactNode
   /** Wein-Unterstrich (dev-ui Header-Linie) unter dem Header. */
   underline?: boolean
-  /** Optional icon rendered directly before the title, inside the title's own row. */
+  /** Optionales Icon, das direkt vor dem Titel in dessen eigener Zeile gerendert wird. */
   icon?: ReactNode
-  /** Optional counter rendered directly after the title, inside the title's own row (never wraps). */
+  /** Optionaler Zähler, der direkt nach dem Titel in dessen eigener Zeile gerendert wird (bricht nie um). */
   counter?: ReactNode
-  /** Optional class for the heading element when a section needs a local scale. */
+  /** Optionale Klasse für das Heading-Element, wenn eine Sektion eine abweichende Größe braucht. */
   titleClassName?: string
 }
 
@@ -35,23 +32,22 @@ export function SectionHeader({
   counter,
   titleClassName,
 }: SectionHeaderProps) {
-  const Heading = level === 3 ? 'h3' : 'h2'
   const hasTitleRow = Boolean(icon || counter)
 
   return (
     <div className={underline ? `${styles.sectionHeader} ${styles.sectionHeaderUnderline}` : styles.sectionHeader}>
       <div className={styles.sectionHeaderContent}>
-        {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
+        {eyebrow ? <Text variant="eyebrow" className={styles.eyebrow}>{eyebrow}</Text> : null}
         {hasTitleRow ? (
           <div className={styles.sectionHeaderTitleRow}>
             {icon ? <span className={styles.sectionHeaderIcon}>{icon}</span> : null}
-            <Heading className={`${styles.sectionTitle} ${titleClassName ?? ''}`.trim()}>{title}</Heading>
+            <Heading level={level} size={3} className={`${styles.sectionTitle} ${titleClassName ?? ''}`.trim()}>{title}</Heading>
             {counter ? <span className={styles.sectionHeaderCounter}>{counter}</span> : null}
           </div>
         ) : (
-          <Heading className={`${styles.sectionTitle} ${titleClassName ?? ''}`.trim()}>{title}</Heading>
+          <Heading level={level} size={3} className={`${styles.sectionTitle} ${titleClassName ?? ''}`.trim()}>{title}</Heading>
         )}
-        {description ? <p className={styles.sectionDescription}>{description}</p> : null}
+        {description ? <Text variant="meta" className={styles.sectionDescription}>{description}</Text> : null}
       </div>
       {actions ? <div className={styles.sectionHeaderActions}>{actions}</div> : null}
     </div>

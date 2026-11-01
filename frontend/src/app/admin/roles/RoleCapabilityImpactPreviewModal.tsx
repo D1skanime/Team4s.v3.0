@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import {
-  ActivationStatusIndicator,
   Badge,
   Button,
   Card,
@@ -17,6 +16,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from '@/components/ui'
+import { ActivationStatusIndicator } from '@/components/admin/ActivationStatusIndicator'
 import {
   ApiError,
   getRoleCapabilityImpactPreview,

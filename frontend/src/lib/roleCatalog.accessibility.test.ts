@@ -2,9 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
+import { readGlobalsCssResolved } from '@/test/readGlobalsCss'
+
 import { NEUTRAL_ROLE_COLOR_KEY, ROLE_COLOR_KEYS } from './roleCatalog'
 
-const css = fs.readFileSync(path.resolve(process.cwd(), 'src/styles/globals.css'), 'utf8')
+const css = readGlobalsCssResolved()
 
 function hexRgb(hex: string): [number, number, number] {
   const value = hex.replace('#', '')

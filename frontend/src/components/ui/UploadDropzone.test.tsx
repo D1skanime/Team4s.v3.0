@@ -86,6 +86,27 @@ describe('resolveUploadDropzoneLayout', () => {
 })
 
 describe('UploadDropzone', () => {
+  it('rendert eckig (Standard) ohne Rund-Klasse', () => {
+    render(<UploadDropzone onFilesSelected={vi.fn()} />)
+    expect(screen.getByRole('button', { name: PROMPT }).className).not.toMatch(/dropzoneRound/)
+  })
+
+  it('rendert rund, wenn shape="round" übergeben wird', () => {
+    render(<UploadDropzone onFilesSelected={vi.fn()} shape="round" />)
+    expect(screen.getByRole('button', { name: PROMPT }).className).toMatch(/dropzoneRound/)
+  })
+
+  it('exposes exactly one interactive control (the dropzone itself) -- the visible "Dateien auswählen" call-to-action is not a nested accessible button, avoiding invalid interactive-in-interactive ARIA nesting', () => {
+    render(<UploadDropzone onFilesSelected={vi.fn()} />)
+
+    expect(screen.getAllByRole('button')).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Dateien auswählen' })).toBeNull()
+
+    const visualButton = screen.getByText('Dateien auswählen')
+    expect(visualButton.getAttribute('aria-hidden')).toBe('true')
+    expect(visualButton.getAttribute('tabindex')).toBe('-1')
+  })
+
   it('opens the native file picker when clicked', () => {
     const onFilesSelected = vi.fn()
     render(<UploadDropzone onFilesSelected={onFilesSelected} />)
@@ -120,6 +141,18 @@ describe('UploadDropzone', () => {
   it('calls onFilesSelected with the dropped files (drag&drop is always active per D-17)', () => {
     const onFilesSelected = vi.fn()
     render(<UploadDropzone onFilesSelected={onFilesSelected} />)
+    const file = makeFile('drop.png')
+
+    fireEvent.drop(screen.getByRole('button', { name: PROMPT }), {
+      dataTransfer: { files: [file] },
+    })
+
+    expect(onFilesSelected).toHaveBeenCalledWith([file])
+  })
+
+  it('still accepts a dropped file with allowDrop={false} -- the prop is a documented no-op reserved for future use (Phase 180 D-17), not a working disable switch', () => {
+    const onFilesSelected = vi.fn()
+    render(<UploadDropzone onFilesSelected={onFilesSelected} allowDrop={false} />)
     const file = makeFile('drop.png')
 
     fireEvent.drop(screen.getByRole('button', { name: PROMPT }), {
@@ -239,6 +272,34 @@ describe('UploadDropzone', () => {
       ref.current?.open()
 
       expect(clickSpy).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('aspectRatio (MediaFrame-Fundament statt generischer, inhaltsbestimmter Fläche)', () => {
+    it('rendert ohne aspectRatio als generischen div ohne MediaFrames Klasse', () => {
+      render(<UploadDropzone onFilesSelected={vi.fn()} />)
+      const dropzone = screen.getByRole('button', { name: PROMPT })
+      expect(dropzone.className).not.toMatch(/mediaFrame/)
+      expect(dropzone.tagName).toBe('DIV')
+    })
+
+    it('rendert mit aspectRatio über den offiziellen MediaFrame-Grundbaustein, inklusive dessen Eckmarke', () => {
+      render(<UploadDropzone onFilesSelected={vi.fn()} aspectRatio={1} cornerBadge={<span>Jellyfin</span>} />)
+      const dropzone = screen.getByRole('button', { name: PROMPT })
+      expect(dropzone.className).toMatch(/mediaFrame/)
+      expect(dropzone.style.aspectRatio).toBe('1')
+      expect(screen.getByText('Jellyfin')).not.toBeNull()
+    })
+
+    it('zeigt den Leer-Zustand über StatusIcon/Heading/Text statt eigener Icon-/Text-Bausteine', () => {
+      render(<UploadDropzone onFilesSelected={vi.fn()} aspectRatio={1} dropHintLabel="Oder klicken" />)
+      expect(screen.getByRole('heading', { level: 4, name: PROMPT })).not.toBeNull()
+      expect(screen.getByText('Oder klicken')).not.toBeNull()
+    })
+
+    it('überschreibt das Heading-Level der Eingabeaufforderung über headingLevel', () => {
+      render(<UploadDropzone onFilesSelected={vi.fn()} aspectRatio={1} headingLevel={2} />)
+      expect(screen.getByRole('heading', { level: 2, name: PROMPT })).not.toBeNull()
     })
   })
 })

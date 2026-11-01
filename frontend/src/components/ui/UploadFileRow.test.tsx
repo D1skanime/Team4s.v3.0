@@ -68,11 +68,18 @@ describe('UploadFileRow', () => {
     expect(screen.queryByText('*')).toBeNull()
   })
 
-  it('renders a progress element with the given value while uploading', () => {
+  it('renders einen Fortschrittsbalken mit dem gegebenen Wert während des Uploads', () => {
     render(<UploadFileRow file={makeFile()} status="uploading" progress={42} showMetadataFields={false} />)
 
     const progressEl = screen.getByRole('progressbar')
-    expect(progressEl.getAttribute('value')).toBe('42')
+    expect(progressEl.getAttribute('aria-valuenow')).toBe('42')
+  })
+
+  it('rendert einen unbestimmten Fortschrittsbalken ohne aria-valuenow während der Verarbeitung', () => {
+    render(<UploadFileRow file={makeFile()} status="processing" showMetadataFields={false} />)
+
+    const progressEl = screen.getByRole('progressbar')
+    expect(progressEl.hasAttribute('aria-valuenow')).toBe(false)
   })
 
   it('renders no progress and no retry button when ready', () => {

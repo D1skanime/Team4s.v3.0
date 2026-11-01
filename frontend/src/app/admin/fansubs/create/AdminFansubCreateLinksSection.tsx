@@ -12,9 +12,15 @@ import { FansubGroupLinkType } from "@/types/fansub";
 
 import { mergeCssModules } from "@/lib/mergeCssModules";
 import sharedStyles from "../../admin.module.css";
-import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
+import fansubEditBasicInfoStyles from "../[id]/edit/FansubEdit.basicInfo.module.css";
+import fansubEditReleasesStyles from "../[id]/edit/FansubEdit.releases.module.css";
+import fansubEditSharedStyles from "../[id]/edit/FansubEdit.module.css";
 import { CommunityLinkDraft } from "./adminFansubCreateHelpers";
 
+const fansubEditStyles = mergeCssModules(
+  fansubEditBasicInfoStyles,
+  mergeCssModules(fansubEditReleasesStyles, fansubEditSharedStyles),
+);
 const styles = mergeCssModules(fansubEditStyles, sharedStyles);
 
 const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [

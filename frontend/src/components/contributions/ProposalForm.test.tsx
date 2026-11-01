@@ -195,11 +195,11 @@ describe('ProposalForm — Drei-Schritte-Assistent (D-09: keine Hinweisart-Wahl 
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
 
     fireEvent.click(screen.getByLabelText('Von Jahr auswählen'))
-    fireEvent.click(screen.getByRole('button', { name: 'Früher' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Frühere Jahre' }))
     fireEvent.click(screen.getByRole('button', { name: '2013' }))
 
     fireEvent.click(screen.getByLabelText('Bis Jahr auswählen'))
-    fireEvent.click(screen.getByRole('button', { name: 'Früher' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Frühere Jahre' }))
     fireEvent.click(screen.getByRole('button', { name: '2012' }))
 
     expect(screen.getByText('Das Bis-Jahr darf nicht vor dem Von-Jahr liegen.')).toBeTruthy()

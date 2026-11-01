@@ -19,7 +19,8 @@ import {
   UpdateFansubGroupNoteRequest,
 } from '@/types/fansubNotes'
 import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
+import fansubEditReleasesStyles from './FansubEdit.releases.module.css'
+import fansubEditSharedStyles from './FansubEdit.module.css'
 import {
   emptyGroupNoteDraft,
   ensureRichTextValue,
@@ -28,6 +29,7 @@ import {
   GroupNotePreview,
 } from './NotesTab.helpers'
 
+const fansubEditStyles = mergeCssModules(fansubEditReleasesStyles, fansubEditSharedStyles)
 const styles = mergeCssModules(fansubEditStyles, sharedStyles)
 
 function errMessage(error: unknown): string {

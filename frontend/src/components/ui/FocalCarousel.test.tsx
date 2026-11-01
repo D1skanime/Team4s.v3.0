@@ -129,7 +129,7 @@ describe('FocalCarousel', () => {
     expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*grid-row:\s*1;/s)
     expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*--focal-item-size:\s*88%;/s)
     expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*scroll-padding-inline:\s*6%;/s)
-    expect(focalCarouselCss).toMatch(/@container focal-carousel \(max-width: 480px\)[\s\S]*\.items\s*\{[^}]*gap:\s*10px;/s)
+    expect(focalCarouselCss).toMatch(/@container focal-carousel \(max-width: 480px\)[\s\S]*\.items\s*\{[^}]*gap:\s*var\(--focal-carousel-items-gap-compact\);/s)
     expect(focalCarouselCss).toMatch(/\.arrow:first-child\s*\{[^}]*grid-column:\s*1;/s)
     expect(focalCarouselCss).toMatch(/\.arrow:last-child\s*\{[^}]*grid-column:\s*3;/s)
   })
@@ -1181,14 +1181,14 @@ describe('FocalCarousel PMFE-06 full-mount contract', () => {
 })
 
 describe('Quick 260812-rps responsive carousel contract', () => {
-  it('bounds cards to the component container and preserves 44px controls', () => {
+  it('bounds cards to the component container and preserves control-height-md-sized controls', () => {
     const rootRule = focalCarouselCss.match(/\.root\s*\{[^}]*\}/s)?.[0] ?? ''
     expect(rootRule).toContain('min-width: 0;')
     expect(rootRule).toContain('max-width: 100%;')
     expect(rootRule).toContain('container: focal-carousel / inline-size;')
     expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*width:\s*100%;[^}]*max-width:\s*100%;[^}]*overflow-x:\s*auto;/s)
     expect(focalCarouselCss).toMatch(/\.itemWindow\s*\{[^}]*flex:\s*0 0 var\(--focal-item-size\);[^}]*max-width:\s*100%;/s)
-    expect(focalCarouselCss).toMatch(/\.arrow\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s)
+    expect(focalCarouselCss).toMatch(/\.arrow\s*\{[^}]*min-width:\s*var\(--control-height-md\);[^}]*min-height:\s*var\(--control-height-md\);/s)
     expect(focalCarouselCss).toContain('@container focal-carousel (min-width: 1100px)')
     expect(focalCarouselCss).not.toContain('@media (min-width: 1100px)')
   })

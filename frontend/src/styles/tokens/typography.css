@@ -1,0 +1,40 @@
+/**
+ * Typografie-Skala für die Heading-/Text-Grundbausteine. Teil der nach Bereich aufgeteilten
+ * globalen Design-Tokens (siehe ../globals.css).
+ */
+:root {
+  /* Typografie-Skala für die Heading/Text-Grundbausteine: die vier Größen
+     entsprechen 1:1 den bereits produktiven Überschriftsgrößen von PageHeader (H1),
+     DialogHeader (H2), SectionHeader/Card (H3); H4 ist eine neue, kleinere Stufe ohne
+     bestehenden Pflicht-Einsatzort. --font-weight-heading entspricht dem unveränderten
+     Browser-Standard für h1-h6 (keine bestehende Regel setzt ein abweichendes font-weight
+     auf diesen Elementen) -- die Tokenisierung macht das bisher implizite Gewicht nur
+     explizit, ändert es nicht. */
+  --font-size-h1: clamp(2rem, 3vw, 2.75rem);
+  /* Zusätzliche Heading-Größenstufe zwischen H1 und H2 für prominente, aber kompakte
+     Hero-Titel (ArtworkHero) und große Kennzahlen (MetricList) -- über Heading size="hero"
+     wählbar, kein eigener Baustein. */
+  --font-size-hero: 1.5rem;
+  --font-size-h2: 1.25rem;
+  --font-size-h3: 1rem;
+  --font-size-h4: 0.875rem;
+  /* Kleinste allgemeine Textgrößenstufe (identisch zu Texts "small"-Variante) -- für kompakten
+     Hinweistext außerhalb von Heading/Text, z. B. YearPickers Auslöser-Hinweis. */
+  --font-size-sm: 0.75rem;
+  --font-weight-heading: 700;
+  /* Kompaktes Label-Gewicht (z. B. MetricList-Bezeichner). */
+  --font-weight-label: 600;
+
+  /* Überzeilen-Farbe: verweist bewusst auf --text-soft, nicht auf einen eigenen Hex-Wert --
+     eine Überzeile ist typografisch dasselbe gedämpfte Grau wie anderer Nebentext. */
+  --text-eyebrow: var(--text-soft);
+
+  /* Text-Grundbausteins Varianten-Standardgrößen (Text.module.css var(--text-*-size, ...)-
+     Fallbacks) -- als Tokens statt roher rem-Literale direkt im Komponenten-Modul, auch wenn sie
+     bislang nur von Text selbst als Fallback gelesen werden. */
+  --text-body-font-size: 1rem;
+  --text-soft-font-size: 1rem;
+  --text-meta-font-size: 0.875rem;
+  --text-small-font-size: 0.75rem;
+  --text-eyebrow-font-size: 0.6875rem;
+}

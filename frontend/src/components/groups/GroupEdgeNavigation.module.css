@@ -8,31 +8,10 @@
   pointer-events: none;
 }
 
-.navButton {
+.navButtonWrap {
   pointer-events: auto;
   margin: 0 8px;
-  width: var(--group-nav-button-size, 40px);
-  height: var(--group-nav-button-size, 40px);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--group-nav-border-color, var(--color-border));
-  background: var(--group-nav-bg, var(--color-white));
-  color: var(--group-nav-color, var(--color-text-primary));
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
-}
-
-.navButton:hover:not(:disabled),
-.navButton:focus-visible:not(:disabled) {
-  border-color: var(--group-nav-hover-border-color, var(--color-primary));
-  color: var(--group-nav-hover-color, var(--color-primary));
-}
-
-.navButton:disabled {
-  opacity: 0.42;
-  cursor: not-allowed;
 }
 
 .groupLabel {

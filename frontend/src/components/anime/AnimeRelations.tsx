@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { NavArrow } from '@/components/ui'
 import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 import styles from './AnimeRelations.module.css'
 
@@ -123,24 +123,18 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
         <h2 className={styles.title}>Verwandte Anime</h2>
         {relations.length > 3 && (
           <div className={styles.sliderControls}>
-            <button
-              type="button"
-              className={styles.navButton}
+            <NavArrow
+              direction="previous"
+              label="Verwandte Anime nach links scrollen"
               onClick={() => scrollByCards('left')}
               disabled={!canScrollLeft}
-              aria-label="Verwandte Anime nach links scrollen"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button
-              type="button"
-              className={styles.navButton}
+            />
+            <NavArrow
+              direction="next"
+              label="Verwandte Anime nach rechts scrollen"
               onClick={() => scrollByCards('right')}
               disabled={!canScrollRight}
-              aria-label="Verwandte Anime nach rechts scrollen"
-            >
-              <ChevronRight size={18} />
-            </button>
+            />
           </div>
         )}
       </div>
