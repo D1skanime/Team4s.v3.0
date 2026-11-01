@@ -1,9 +1,9 @@
 "use client";
 
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 import { resolveApiUrl } from "@/lib/api";
-import { Button, Modal, UploadDropzone } from "@/components/ui";
+import { Button, Drawer, Modal, UploadDropzone } from "@/components/ui";
 import {
   episodeReleaseTitle,
   themeSegmentEpisodeRange,
@@ -73,189 +73,167 @@ export function ReleaseThemeDrawerSection({
 
   return (
     <>
-      {themeDrawerOpen && selectedReleaseSegment && themeSelectedCard ? (
-        <div
-          className={styles.fansubEditReleaseDrawerOverlay}
-          onClick={closeThemeDrawer}
-        >
-          <aside
-            className={`${styles.fansubEditReleaseDrawer} ${styles.fansubEditThemeDrawer}`}
-            aria-label="Theme bearbeiten"
-            onClick={(event) => event.stopPropagation()}
+      <Drawer
+        open={Boolean(themeDrawerOpen && selectedReleaseSegment && themeSelectedCard)}
+        onClose={closeThemeDrawer}
+        title={
+          themeSelectedCard
+            ? `${timelineLabelFor(themeSelectedCard.theme_type_name)} bearbeiten`
+            : ""
+        }
+        description={
+          selectedReleaseSegment
+            ? episodeReleaseTitle(selectedReleaseSegment.release)
+            : undefined
+        }
+        footer={
+          <Button type="button" variant="secondary" onClick={closeThemeDrawer}>
+            Schließen
+          </Button>
+        }
+      >
+        {themeSelectedCard ? (
+          <div
+            className={`${styles.fansubEditReleaseDrawerPanel} ${styles.fansubEditThemeDrawerPanel}`}
           >
-            <header className={styles.fansubEditReleaseDrawerHeader}>
-              <div>
-                <p className={styles.fansubEditHint}>
-                  {episodeReleaseTitle(selectedReleaseSegment.release)}
-                </p>
-                <h2>
-                  {timelineLabelFor(themeSelectedCard.theme_type_name)}{" "}
-                  bearbeiten
-                </h2>
-                <p>{themeSelectedCard.theme_title || "Ohne Titel"}</p>
-              </div>
-              <button
-                type="button"
-                className={styles.fansubEditReleaseExpandButton}
-                onClick={closeThemeDrawer}
-                aria-label="Theme Drawer schließen"
-              >
-                <X size={16} />
-              </button>
-            </header>
-            <div className={styles.fansubEditReleaseDrawerBody}>
-              <div
-                className={`${styles.fansubEditReleaseDrawerPanel} ${styles.fansubEditThemeDrawerPanel}`}
-              >
-                {drawerError ? (
-                  <div className={styles.errorBox}>{drawerError}</div>
-                ) : null}
-                <div className={styles.fansubEditReleaseDrawerAssetBox}>
-                  <div className={styles.fansubEditSegmentEditorGrid}>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Status
-                      </span>
-                      <strong>
-                        {themeSelectedCard.status === "global"
-                          ? "Global gesetzt"
-                          : themeSelectedCard.status === "release"
-                            ? "Uploadet"
-                            : "Fehlt noch"}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Theme
-                      </span>
-                      <strong>
-                        {themeSelectedCard.theme_title || "Ohne Titel"}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Quelle
-                      </span>
-                      <strong>
-                        {themeSelectedCard.source_label || "Keine Quelle"}
-                      </strong>
-                    </div>
-                    {canUseAdminReleaseDetails ? (
-                      <div>
-                        <span className={styles.fansubEditSegmentEditorLabel}>
-                          Release
-                        </span>
-                        <strong>
-                          #{selectedReleaseSegment.release.release_id}
-                        </strong>
-                      </div>
-                    ) : null}
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Episode
-                      </span>
-                      <strong>
-                        {themeSegmentEpisodeRange(themePrimarySegment)}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Zeitbereich
-                      </span>
-                      <strong>
-                        {themeSegmentTimeRange(themePrimarySegment)}
-                      </strong>
-                    </div>
+            {drawerError ? (
+              <div className={styles.errorBox}>{drawerError}</div>
+            ) : null}
+            <div className={styles.fansubEditReleaseDrawerAssetBox}>
+              <div className={styles.fansubEditSegmentEditorGrid}>
+                <div>
+                  <span className={styles.fansubEditSegmentEditorLabel}>
+                    Status
+                  </span>
+                  <strong>
+                    {themeSelectedCard.status === "global"
+                      ? "Global gesetzt"
+                      : themeSelectedCard.status === "release"
+                        ? "Uploadet"
+                        : "Fehlt noch"}
+                  </strong>
+                </div>
+                <div>
+                  <span className={styles.fansubEditSegmentEditorLabel}>
+                    Theme
+                  </span>
+                  <strong>
+                    {themeSelectedCard.theme_title || "Ohne Titel"}
+                  </strong>
+                </div>
+                <div>
+                  <span className={styles.fansubEditSegmentEditorLabel}>
+                    Quelle
+                  </span>
+                  <strong>
+                    {themeSelectedCard.source_label || "Keine Quelle"}
+                  </strong>
+                </div>
+                {canUseAdminReleaseDetails && selectedReleaseSegment ? (
+                  <div>
+                    <span className={styles.fansubEditSegmentEditorLabel}>
+                      Release
+                    </span>
+                    <strong>
+                      #{selectedReleaseSegment.release.release_id}
+                    </strong>
                   </div>
-                  {themeAssetPreviewUrl ? (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      leftIcon={<ExternalLink size={16} />}
-                      className={styles.fansubEditReleaseDrawerMediaLink}
-                      onClick={() => setThemePreviewOpen(true)}
-                    >
-                      Aktuelles Asset ansehen
-                    </Button>
-                  ) : null}
-                  {themeSelectedLocked ? (
-                    themeSelectedCard.release_asset_upload_locked ? (
-                      <p className={styles.fansubEditHint}>
-                        Dieses Theme gilt für einen Episodenbereich. Der Upload wird am Segmentstart verwaltet, nicht an dieser Folge.
-                      </p>
-                    ) : null
-                  ) : !canManageReleaseThemeAssets ? (
-                    <p className={styles.fansubEditHint}>
-                      Du kannst die Theme-Zuordnung ansehen. Hochladen oder
-                      Entfernen ist nur mit Release-Media-Recht möglich.
-                    </p>
-                  ) : (
-                    <div className={styles.fansubEditReleaseDrawerDropzone}>
-                      <div className={styles.fansubEditThemeUploadHeader}>
-                        <strong>Theme-Video hochladen</strong>
-                        {drawerUploadStatusLabel ? (
-                          <span className={styles.fansubEditThemeUploadMeta}>
-                            {drawerUploadStatusLabel}
-                          </span>
-                        ) : null}
-                      </div>
-                      <UploadDropzone
-                        accept="video/*"
-                        multiple={false}
-                        allowDrop={true}
-                        density="compact"
-                        disabled={drawerBusy || !hasAuthSession}
-                        onFilesSelected={(files) =>
-                          handleThemeUploadInputChange(files[0] ?? null)
-                        }
-                        promptLabel="Video-Datei auswählen"
-                      />
-                      <div className={styles.fansubEditThemeUploadPicker}>
-                        <span className={styles.fansubEditThemeUploadFileName}>
-                          {themeUploadName || "Keine Datei ausgewählt"}
-                        </span>
-                      </div>
-                      <div className={styles.fansubEditThemeUploadActions}>
-                        <Button
-                          type="button"
-                          variant="primary"
-                          onClick={() => void handleDrawerUploadClick()}
-                          disabled={drawerBusy || !hasAuthSession}
-                          loading={drawerBusy}
-                        >
-                          Upload starten
-                        </Button>
-                        {themeSelectedCard.status === "release" &&
-                        themeSelectedCard.media_id ? (
-                          <Button
-                            type="button"
-                            variant="danger"
-                            onClick={() => void handleDrawerDelete()}
-                            disabled={drawerBusy}
-                            loading={drawerBusy}
-                          >
-                            Asset entfernen
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-                  )}
+                ) : null}
+                <div>
+                  <span className={styles.fansubEditSegmentEditorLabel}>
+                    Episode
+                  </span>
+                  <strong>
+                    {themeSegmentEpisodeRange(themePrimarySegment)}
+                  </strong>
+                </div>
+                <div>
+                  <span className={styles.fansubEditSegmentEditorLabel}>
+                    Zeitbereich
+                  </span>
+                  <strong>
+                    {themeSegmentTimeRange(themePrimarySegment)}
+                  </strong>
                 </div>
               </div>
+              {themeAssetPreviewUrl ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<ExternalLink size={16} />}
+                  className={styles.fansubEditReleaseDrawerMediaLink}
+                  onClick={() => setThemePreviewOpen(true)}
+                >
+                  Aktuelles Asset ansehen
+                </Button>
+              ) : null}
+              {themeSelectedLocked ? (
+                themeSelectedCard.release_asset_upload_locked ? (
+                  <p className={styles.fansubEditHint}>
+                    Dieses Theme gilt für einen Episodenbereich. Der Upload wird am Segmentstart verwaltet, nicht an dieser Folge.
+                  </p>
+                ) : null
+              ) : !canManageReleaseThemeAssets ? (
+                <p className={styles.fansubEditHint}>
+                  Du kannst die Theme-Zuordnung ansehen. Hochladen oder
+                  Entfernen ist nur mit Release-Media-Recht möglich.
+                </p>
+              ) : (
+                <div className={styles.fansubEditReleaseDrawerDropzone}>
+                  <div className={styles.fansubEditThemeUploadHeader}>
+                    <strong>Theme-Video hochladen</strong>
+                    {drawerUploadStatusLabel ? (
+                      <span className={styles.fansubEditThemeUploadMeta}>
+                        {drawerUploadStatusLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                  <UploadDropzone
+                    accept="video/*"
+                    multiple={false}
+                    allowDrop={true}
+                    density="compact"
+                    disabled={drawerBusy || !hasAuthSession}
+                    onFilesSelected={(files) =>
+                      handleThemeUploadInputChange(files[0] ?? null)
+                    }
+                    promptLabel="Video-Datei auswählen"
+                  />
+                  <div className={styles.fansubEditThemeUploadPicker}>
+                    <span className={styles.fansubEditThemeUploadFileName}>
+                      {themeUploadName || "Keine Datei ausgewählt"}
+                    </span>
+                  </div>
+                  <div className={styles.fansubEditThemeUploadActions}>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      onClick={() => void handleDrawerUploadClick()}
+                      disabled={drawerBusy || !hasAuthSession}
+                      loading={drawerBusy}
+                    >
+                      Upload starten
+                    </Button>
+                    {themeSelectedCard.status === "release" &&
+                    themeSelectedCard.media_id ? (
+                      <Button
+                        type="button"
+                        variant="danger"
+                        onClick={() => void handleDrawerDelete()}
+                        disabled={drawerBusy}
+                        loading={drawerBusy}
+                      >
+                        Asset entfernen
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              )}
             </div>
-            <footer className={styles.fansubEditReleaseDrawerFooter}>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={closeThemeDrawer}
-              >
-                Schließen
-              </Button>
-            </footer>
-          </aside>
-        </div>
-      ) : null}
+          </div>
+        ) : null}
+      </Drawer>
       {themeAssetPreviewUrl ? (
         <Modal
           open={themePreviewOpen}
