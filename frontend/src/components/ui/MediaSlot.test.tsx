@@ -16,7 +16,10 @@ describe('MediaSlot', () => {
     render(<MediaSlot aspectRatio={1} label="Logo" hasValue={false} onFilesSelected={vi.fn()} />)
 
     expect(screen.getByRole('button', { name: 'Logo hierher ziehen oder klicken zum Hochladen' })).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Dateien auswählen' })).not.toBeNull()
+    // Rein visuelle Call-to-Action (aria-hidden, kein eigenes role="button") -- die Fläche
+    // selbst ist bereits das einzige für Tastatur/Screenreader exponierte Bedienziel, siehe
+    // UploadDropzone.tsx. Deshalb per Text statt per Rolle geprüft.
+    expect(screen.getByText('Dateien auswählen')).not.toBeNull()
   })
 
   it('shows only the preview as the drop target when hasValue is true -- no second dropzone chrome', () => {

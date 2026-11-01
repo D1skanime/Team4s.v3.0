@@ -266,11 +266,20 @@ export const UploadDropzone = forwardRef<UploadDropzoneHandle, UploadDropzonePro
             <Heading level={headingLevel} size={4} className={styles.promptLabel}>{promptLabel}</Heading>
             {dropHintLabel ? <Text variant="soft" className={styles.dropHintLabel}>{dropHintLabel}</Text> : null}
           </div>
+          {/* aria-hidden + tabIndex=-1: die ganze Fläche ist bereits ein eigenständiges
+              role="button" (Klick/Enter/Space öffnen denselben Datei-Dialog) -- ein zusätzlich
+              fokussierbarer, für AT sichtbarer <button> DARIN wäre verschachtelte interaktive
+              Semantik (ARIA verbietet interaktive Nachfahren einer Button-Rolle) und würde
+              Tastatur-/Screenreader-Nutzer zweimal zum selben Ziel springen lassen. Bleibt rein
+              visuelle Call-to-Action für Maus-Nutzer; Klicks laufen unverändert über ihren
+              eigenen Handler (nicht über das Bubbling zum Wurzel-onClick). */}
           <Button
             type="button"
             variant="secondary"
             size="sm"
             disabled={disabled}
+            tabIndex={-1}
+            aria-hidden="true"
             className={styles.selectButton}
             onClick={(event) => {
               event.stopPropagation()

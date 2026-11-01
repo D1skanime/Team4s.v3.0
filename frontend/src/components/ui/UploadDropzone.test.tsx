@@ -96,6 +96,17 @@ describe('UploadDropzone', () => {
     expect(screen.getByRole('button', { name: PROMPT }).className).toMatch(/dropzoneRound/)
   })
 
+  it('exposes exactly one interactive control (the dropzone itself) -- the visible "Dateien auswählen" call-to-action is not a nested accessible button, avoiding invalid interactive-in-interactive ARIA nesting', () => {
+    render(<UploadDropzone onFilesSelected={vi.fn()} />)
+
+    expect(screen.getAllByRole('button')).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Dateien auswählen' })).toBeNull()
+
+    const visualButton = screen.getByText('Dateien auswählen')
+    expect(visualButton.getAttribute('aria-hidden')).toBe('true')
+    expect(visualButton.getAttribute('tabindex')).toBe('-1')
+  })
+
   it('opens the native file picker when clicked', () => {
     const onFilesSelected = vi.fn()
     render(<UploadDropzone onFilesSelected={onFilesSelected} />)
