@@ -1,14 +1,13 @@
 "use client";
 
-import { X } from "lucide-react";
-
 import type { FansubGroupCapabilities } from "@/types/fansub";
-import { Button } from "@/components/ui";
+import { Button, Drawer, Tabs } from "@/components/ui";
+import type { TabItem } from "@/components/ui";
 import { ReleaseVersionMediaSection } from "@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection";
 import { ReleaseThemeDrawerSection } from "./ReleaseThemeDrawerSection";
 import { releaseDrawerTitle, releaseFansubDisplayName } from "./fansubEditFormatters";
 import { animeFansubReleaseContextKey } from "./fansubEditReleaseHelpers";
-import type { ReleaseSegmentCard, SelectedReleaseSegment } from "./fansubEditTypes";
+import type { ReleaseDrawerTab, ReleaseSegmentCard, SelectedReleaseSegment } from "./fansubEditTypes";
 import type { ReleaseMediaDrawer as ReleaseMediaDrawerState } from "./useReleaseMediaDrawer";
 
 type ReleaseMediaDrawerProps = {
@@ -83,187 +82,131 @@ export function ReleaseMediaDrawer({
     ? (drawerRelease.episode_title || "").trim() ||
       `Episode ${drawerRelease.episode_number || "?"}`
     : "";
-  const releaseDrawerTabs = drawerRelease
+
+  const detailsPanel = drawerRelease ? (
+    <div className={styles.fansubEditReleaseDrawerPanel}>
+      <div className={styles.fansubEditReleaseDrawerDetailGrid}>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Release-ID</span>
+          <strong>{String(selectedReleaseId ?? drawerRelease.release_id)}</strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Anime-ID</span>
+          <strong>{String(selectedAnimeId ?? drawerRelease.anime_id)}</strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Fansub-Gruppe</span>
+          <strong>{drawerFansubName}</strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Kontext-Key</span>
+          <strong>
+            {selectedAnimeFansubContextKey ??
+              animeFansubReleaseContextKey(
+                drawerRelease.fansub_group_id,
+                drawerRelease.anime_id,
+              )}
+          </strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Anime</span>
+          <strong>{drawerRelease.anime_title}</strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Episode</span>
+          <strong>{drawerRelease.episode_number || "?"}</strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Titel</span>
+          <strong>
+            {(drawerRelease.episode_title || "").trim() || "Ohne Episodentitel"}
+          </strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Versionen</span>
+          <strong>{String(drawerRelease.version_count)}</strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Datum</span>
+          <strong>
+            {new Date(drawerRelease.created_at).toLocaleDateString("de-CH")}
+          </strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Theme-Übersicht</span>
+          <strong>{drawerReleaseThemeSummary}</strong>
+        </div>
+        <div className={styles.fansubEditReleaseDrawerDetailItem}>
+          <span>Theme-Definitionen</span>
+          <strong>
+            {drawerReleaseCards.length > 0
+              ? `${drawerReleaseCards.length} geladen`
+              : "Noch keine geladen"}
+          </strong>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  const mediaPanel = drawerRelease ? (
+    <div className={styles.fansubEditReleaseDrawerPanel}>
+      {drawerRelease.release_version_id > 0 ? (
+        <ReleaseVersionMediaSection
+          versionId={drawerRelease.release_version_id}
+          contextTitle={drawerEpisodeLabel + " · " + drawerFansubName + " · Release-Version " + drawerRelease.release_version_id}
+        />
+      ) : (
+        <div className={styles.fansubEditReleaseState}>
+          Für diesen Release ist keine konkrete Release-Version verfügbar.
+        </div>
+      )}
+    </div>
+  ) : null;
+
+  const releaseDrawerTabs: TabItem[] = drawerRelease
     ? [
         ...(canUseAdminReleaseDetails
-          ? [{ key: "details" as const, label: "Details", disabled: false }]
+          ? [{ id: "details", label: "Details", content: detailsPanel }]
           : []),
         ...(canUseReleaseMedia
-          ? [{ key: "media" as const, label: "Media", disabled: false }]
+          ? [{ id: "media", label: "Media", content: mediaPanel }]
           : []),
       ]
     : [];
 
   return (
     <>
-      {releaseDrawerOpen && drawerRelease ? (
-        <div
-          className={styles.fansubEditReleaseDrawerOverlay}
-          onClick={closeReleaseDrawer}
-        >
-          <aside
-            className={styles.fansubEditReleaseDrawer}
-            aria-label="Release bearbeiten"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <header className={styles.fansubEditReleaseDrawerHeader}>
-              <div>
-                <div className={styles.fansubEditReleaseDrawerTitleRow}>
-                  <h2>{releaseDrawerTitle(drawerRelease)}</h2>
-                </div>
-                <p>
-                  {drawerFansubName} · {drawerRelease.version_count}{" "}
-                  Version{drawerRelease.version_count === 1 ? "" : "en"}
-                </p>
-              </div>
-              <button
-                type="button"
-                className={styles.fansubEditReleaseExpandButton}
-                onClick={closeReleaseDrawer}
-                aria-label="Drawer schließen"
-              >
-                <X size={16} />
-              </button>
-            </header>
-
-            <div
-              className={styles.fansubEditReleaseDrawerTabs}
-              role="tablist"
-              aria-label="Release Drawer Bereiche"
-            >
-              {releaseDrawerTabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  className={
-                    drawerTab === tab.key
-                      ? styles.fansubEditReleaseDrawerTabActive
-                      : undefined
-                  }
-                  disabled={tab.disabled}
-                  aria-disabled={tab.disabled}
-                  onClick={() => {
-                    if (!tab.disabled) setDrawerTab(tab.key);
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div className={styles.fansubEditReleaseDrawerBody}>
-              {drawerReleaseLoading ? (
-                <div className={styles.fansubEditReleaseState}>
-                  Release-Details werden geladen...
-                </div>
-              ) : null}
-              {drawerReleaseError ? (
-                <div className={styles.errorBox}>{drawerReleaseError}</div>
-              ) : null}
-              {drawerTab === "details" && canUseAdminReleaseDetails ? (
-                <div className={styles.fansubEditReleaseDrawerPanel}>
-                  <div className={styles.fansubEditReleaseDrawerDetailGrid}>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Release-ID</span>
-                      <strong>
-                        {String(selectedReleaseId ?? drawerRelease.release_id)}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Anime-ID</span>
-                      <strong>
-                        {String(selectedAnimeId ?? drawerRelease.anime_id)}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Fansub-Gruppe</span>
-                      <strong>
-                        {drawerFansubName}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Kontext-Key</span>
-                      <strong>
-                        {selectedAnimeFansubContextKey ??
-                          animeFansubReleaseContextKey(
-                            drawerRelease.fansub_group_id,
-                            drawerRelease.anime_id,
-                          )}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Anime</span>
-                      <strong>{drawerRelease.anime_title}</strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Episode</span>
-                      <strong>{drawerRelease.episode_number || "?"}</strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Titel</span>
-                      <strong>
-                        {(drawerRelease.episode_title || "").trim() ||
-                          "Ohne Episodentitel"}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Versionen</span>
-                      <strong>{String(drawerRelease.version_count)}</strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Datum</span>
-                      <strong>
-                        {new Date(drawerRelease.created_at).toLocaleDateString(
-                          "de-CH",
-                        )}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Theme-Übersicht</span>
-                      <strong>{drawerReleaseThemeSummary}</strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Theme-Definitionen</span>
-                      <strong>
-                        {drawerReleaseCards.length > 0
-                          ? `${drawerReleaseCards.length} geladen`
-                          : "Noch keine geladen"}
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              {drawerTab === "media" && canUseReleaseMedia ? (
-                <div className={styles.fansubEditReleaseDrawerPanel}>
-                  {drawerRelease.release_version_id > 0 ? (
-                    <>
-                      <ReleaseVersionMediaSection
-                        versionId={drawerRelease.release_version_id}
-                        contextTitle={drawerEpisodeLabel + ' · ' + drawerFansubName + ' · Release-Version ' + drawerRelease.release_version_id}
-                      />
-                    </>
-                  ) : (
-                    <div className={styles.fansubEditReleaseState}>
-                      Für diesen Release ist keine konkrete Release-Version verfügbar.
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </div>
-
-            <footer className={styles.fansubEditReleaseDrawerFooter}>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={closeReleaseDrawer}
-              >
-                Schließen
-              </Button>
-            </footer>
-          </aside>
-        </div>
-      ) : null}
+      <Drawer
+        open={releaseDrawerOpen && Boolean(drawerRelease)}
+        onClose={closeReleaseDrawer}
+        title={drawerRelease ? releaseDrawerTitle(drawerRelease) : ""}
+        description={
+          drawerRelease
+            ? `${drawerFansubName} · ${drawerRelease.version_count} Version${drawerRelease.version_count === 1 ? "" : "en"}`
+            : undefined
+        }
+        footer={
+          <Button type="button" variant="secondary" onClick={closeReleaseDrawer}>
+            Schließen
+          </Button>
+        }
+      >
+        {drawerReleaseLoading ? (
+          <div className={styles.fansubEditReleaseState}>
+            Release-Details werden geladen...
+          </div>
+        ) : null}
+        {drawerReleaseError ? (
+          <div className={styles.errorBox}>{drawerReleaseError}</div>
+        ) : null}
+        {drawerRelease && releaseDrawerTabs.length > 0 ? (
+          <Tabs
+            items={releaseDrawerTabs}
+            activeId={drawerTab}
+            onActiveIdChange={(id) => setDrawerTab(id as ReleaseDrawerTab)}
+          />
+        ) : null}
+      </Drawer>
       <ReleaseThemeDrawerSection
         styles={styles}
         themeDrawerOpen={themeDrawerOpen}
