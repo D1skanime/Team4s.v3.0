@@ -10,18 +10,6 @@
   flex-wrap: wrap;
 }
 
-.fieldLabel {
-  font-size: var(--form-field-label-font-size);
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: var(--form-field-label-color);
-}
-
-.fieldRequired {
-  color: var(--form-field-required-color);
-  font-weight: 800;
-}
-
 .fieldHint {
   margin: 0;
   font-size: var(--form-field-hint-font-size);
@@ -33,5 +21,4 @@
   margin: 0;
   font-size: var(--form-field-hint-font-size);
   line-height: 1.45;
-  color: var(--form-field-error-color);
 }

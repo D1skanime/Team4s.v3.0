@@ -3,8 +3,10 @@ import type { ComponentProps, ReactElement, ReactNode } from 'react'
 
 import { DatePicker } from './DatePicker'
 import { Input } from './Input'
+import { Label } from './Label'
 import { Select } from './Select'
 import { Switch } from './Switch'
+import { Text } from './Text'
 import { Textarea } from './Textarea'
 import { YearPicker } from './YearPicker'
 import styles from './FormField.module.css'
@@ -82,14 +84,23 @@ export function FormField({
     const mergedDescribedBy = mergeDescribedBy(existingDescribedBy, hintId, errorId)
     const effectiveDisabled = disabled || Boolean(childProps.disabled)
 
+    // Pflicht an das Kind durchreichen: required=true am Formular-Element selbst nur dort, wo das
+    // native HTML-Attribut auf diesem Elementtyp tatsächlich greift (Input/Select/Textarea);
+    // aria-required ist rollenunabhängig gültig und wird daher überall gesetzt.
+    const effectiveRequired = required || Boolean(childProps.required)
+
     if (singleChild.type === Switch) {
       // Switch kennt kein invalid-Konzept -- aria-invalid kommt hier ausschließlich aus
       // FormField.error, ohne ODER-Verknüpfung mit einer am Kind nicht existierenden Prop.
+      // required hat auf einem <button role="switch"> keine native HTML-Semantik -- nur
+      // aria-required wird gesetzt (analog zur aria-invalid-Begründung unten bei DatePicker/
+      // YearPicker, die aus demselben Grund ebenfalls auf einem Button rendern).
       const effectiveAriaInvalid = Boolean(error)
       renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof Switch>>, {
         id: resolvedId,
         disabled: effectiveDisabled,
         ...(effectiveAriaInvalid ? { 'aria-invalid': true as const } : {}),
+        ...(effectiveRequired ? { 'aria-required': true as const } : {}),
         'aria-describedby': mergedDescribedBy,
       })
     } else {
@@ -98,15 +109,19 @@ export function FormField({
         id: resolvedId,
         disabled: effectiveDisabled,
         invalid: effectiveInvalid,
+        required: effectiveRequired,
         ...(effectiveInvalid ? { 'aria-invalid': true as const } : {}),
+        ...(effectiveRequired ? { 'aria-required': true as const } : {}),
         'aria-describedby': mergedDescribedBy,
       }
       // DatePicker/YearPicker rendern ihren Trigger als <button> -- aria-invalid ist laut
       // ARIA-Spezifikation für die implizite button-Rolle nicht unterstützt (nur für
-      // formularfeldartige Rollen wie textbox/combobox). Der Fehlerzustand bleibt dort über die
-      // bereits vorhandene visuelle invalid-Klasse plus aria-describedby (rollenunabhängig
-      // gültig) erkennbar, nur ohne das spec-widrige aria-invalid-Attribut.
-      const { 'aria-invalid': _unusedAriaInvalid, ...triggerSafeProps } = injectedProps
+      // formularfeldartige Rollen wie textbox/combobox), und das native required-Attribut hat
+      // auf einem Button ebenfalls keine Wirkung. Der Fehlerzustand bleibt dort über die bereits
+      // vorhandene visuelle invalid-Klasse plus aria-describedby (rollenunabhängig gültig)
+      // erkennbar, Pflicht bleibt über aria-required erkennbar -- beides ohne das jeweils
+      // spec-widrige bzw. wirkungslose native Attribut.
+      const { 'aria-invalid': _unusedAriaInvalid, required: _unusedRequired, ...triggerSafeProps } = injectedProps
 
       if (singleChild.type === Input) {
         renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof Input>>, injectedProps)
@@ -138,13 +153,15 @@ export function FormField({
   }
 
   return (
-    <div className={styles.fieldset} aria-disabled={disabled}>
+    // role="group" macht aria-disabled auf diesem <div> fuer Screenreader wirksam -- ein <div>
+    // ohne eigene ARIA-Rolle gibt aria-disabled sonst nicht weiter (pragmatische Loesung statt
+    // eines <fieldset>-Umbaus, der zusaetzliches Browser-Standard-Styling zuruecksetzen muesste).
+    <div className={styles.fieldset} role="group" aria-disabled={disabled}>
       {label ? (
         <div className={styles.fieldLabelRow}>
-          <label htmlFor={labelHtmlFor} id={labelId} className={styles.fieldLabel}>
+          <Label htmlFor={labelHtmlFor} id={labelId} required={required}>
             {label}
-          </label>
-          {required ? <span className={styles.fieldRequired}>*</span> : null}
+          </Label>
         </div>
       ) : null}
       {renderedChildren}
@@ -154,9 +171,9 @@ export function FormField({
         </p>
       ) : null}
       {error ? (
-        <p id={errorId} className={styles.fieldError}>
+        <Text as="p" tone="error" id={errorId} role="alert" className={styles.fieldError}>
           {error}
-        </p>
+        </Text>
       ) : null}
     </div>
   )

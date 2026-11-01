@@ -25,7 +25,7 @@ export interface LabelProps {
 export function Label({ htmlFor, id, required = false, children, className }: LabelProps) {
   return (
     <label htmlFor={htmlFor} id={id} className={classNames(styles.label, className)}>
-      <span>{children}</span>
+      {children}
       {required ? (
         <>
           <span aria-hidden="true" className={styles.labelRequired}> *</span>

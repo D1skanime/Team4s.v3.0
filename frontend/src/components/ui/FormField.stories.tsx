@@ -1,11 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
+import { useState } from 'react'
 
 import { storybookDocsLink } from '@/lib/storybookLinks'
 
+import { DatePicker } from './DatePicker'
 import { FormField } from './FormField'
 import { Input } from './Input'
 import { Select } from './Select'
+import { Switch } from './Switch'
 import { Textarea } from './Textarea'
+import { YearPicker } from './YearPicker'
 
 const meta = {
   title: 'Zusammengesetzte Bausteine/FormField',
@@ -19,6 +23,7 @@ const meta = {
       description: {
         component:
           'Beschriftungs-/Hinweis-/Fehler-Hülle für ein einzelnes Formularfeld. Besteht aus: ' +
+          `${storybookDocsLink('Grundbausteine/Label', 'Label')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')}, ` +
           `${storybookDocsLink('Grundbausteine/Input', 'Input')}, ${storybookDocsLink('Grundbausteine/Select', 'Select')}, ` +
           `${storybookDocsLink('Grundbausteine/Textarea', 'Textarea')}, ${storybookDocsLink('Zusammengesetzte Bausteine/DatePicker', 'DatePicker')}, ` +
           `${storybookDocsLink('Zusammengesetzte Bausteine/YearPicker', 'YearPicker')} oder ${storybookDocsLink('Grundbausteine/Switch', 'Switch')} als umschlossenes Feld.`,
@@ -30,15 +35,19 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+/** Alle Stories ab hier nutzen ausschließlich das Auto-Verknüpfungs-Muster: nur FormField-Props
+ *  (label/hint/error/required/disabled) setzen, kein manuelles htmlFor/id/invalid am Kind mehr --
+ *  FormField verknüpft id/aria-invalid/aria-describedby/required selbst (siehe
+ *  `AutomatischVerknuepft*`-Stories unten für den direkten Vorher/Nachher-Vergleich). */
+
 export const Standard: Story = {
   args: {
     label: 'Titel',
-    htmlFor: 'form-field-standard',
     hint: 'Knappe, klare Primärinformation.',
   },
   render: (args) => (
     <FormField {...args}>
-      <Input id="form-field-standard" placeholder="Tokyo Night Stories" />
+      <Input placeholder="Tokyo Night Stories" />
     </FormField>
   ),
 }
@@ -47,12 +56,11 @@ export const MitFehler: Story = {
   name: 'Mit Fehler',
   args: {
     label: 'Beschreibung',
-    htmlFor: 'form-field-error',
     error: 'Beispiel für einen validierten Zustand.',
   },
   render: (args) => (
     <FormField {...args}>
-      <Input id="form-field-error" invalid defaultValue="Die Oberfläche bleibt mockbasiert und generisch." />
+      <Input defaultValue="Die Oberfläche bleibt mockbasiert und generisch." />
     </FormField>
   ),
 }
@@ -61,12 +69,11 @@ export const Pflichtfeld: Story = {
   name: 'Pflichtfeld',
   args: {
     label: 'Status',
-    htmlFor: 'form-field-required',
     required: true,
   },
   render: (args) => (
     <FormField {...args}>
-      <Input id="form-field-required" placeholder="Pflichtangabe" />
+      <Input placeholder="Pflichtangabe" />
     </FormField>
   ),
 }
@@ -75,12 +82,11 @@ export const Disabled: Story = {
   name: 'Deaktiviert',
   args: {
     label: 'Gesperrtes Feld',
-    htmlFor: 'form-field-disabled',
     disabled: true,
   },
   render: (args) => (
     <FormField {...args}>
-      <Input id="form-field-disabled" disabled defaultValue="Nicht editierbar" />
+      <Input defaultValue="Nicht editierbar" />
     </FormField>
   ),
 }
@@ -166,4 +172,60 @@ export const AutomatischVerknuepfteTextarea: Story = {
       <Textarea placeholder="Beschreibung eingeben" />
     </FormField>
   ),
+}
+
+function DatePickerDemo() {
+  const [value, setValue] = useState('')
+  return (
+    <FormField label="Erscheinungsdatum" hint="Format TT.MM.JJJJ.">
+      <DatePicker id="form-field-datepicker" label="Erscheinungsdatum" value={value} minYear={1960} maxYear={2030} onChange={setValue} />
+    </FormField>
+  )
+}
+
+export const AutomatischVerknuepfterDatePicker: Story = {
+  name: 'Automatisch verknüpft: DatePicker',
+  render: () => <DatePickerDemo />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'FormField verknüpft den DatePicker-Trigger über aria-describedby (ohne aria-invalid, siehe FormField.tsx-Kommentar zur impliziten Button-Rolle).',
+      },
+    },
+  },
+}
+
+function YearPickerDemo() {
+  const [value, setValue] = useState('')
+  return (
+    <FormField label="Erschienen" error="Bitte ein Jahr wählen.">
+      <YearPicker id="form-field-yearpicker" label="Erschienen" value={value} minYear={1960} maxYear={2030} onChange={setValue} />
+    </FormField>
+  )
+}
+
+export const AutomatischVerknuepfterYearPicker: Story = {
+  name: 'Automatisch verknüpft: YearPicker',
+  render: () => <YearPickerDemo />,
+}
+
+function SwitchDemo() {
+  const [checked, setChecked] = useState(false)
+  return (
+    <FormField label="Benachrichtigungen" hint="Gilt nur für diesen Browser.">
+      <Switch checked={checked} onCheckedChange={setChecked} />
+    </FormField>
+  )
+}
+
+export const AutomatischVerknuepfterSwitch: Story = {
+  name: 'Automatisch verknüpft: Switch',
+  render: () => <SwitchDemo />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'FormField verknüpft den Switch über id/aria-describedby; aria-invalid kommt ausschließlich aus FormField.error, da Switch kein eigenes invalid-Konzept kennt.',
+      },
+    },
+  },
 }
