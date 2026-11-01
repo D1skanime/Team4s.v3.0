@@ -16,7 +16,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: `Besteht aus: ${storybookDocsLink('Zusammengesetzte Bausteine/DisclosureTrigger', 'DisclosureTrigger')}.`,
+        component: `Besteht aus: ${storybookDocsLink('Grundbausteine/DisclosureTrigger', 'DisclosureTrigger')}.`,
       },
     },
   },

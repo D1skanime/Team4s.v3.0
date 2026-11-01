@@ -90,7 +90,9 @@ describe('GroupHistorySection', () => {
     render(createElement(GroupHistorySection, { fansubGroupId: 88, foundedYear: null }))
 
     fireEvent.click(screen.getByRole('button', { name: 'Meilenstein hinzufügen' }))
-    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Versteckter Meilenstein' } })
+    // { exact: false }, da Labels von Pflichtfeldern seit der Label-Grundbaustein-Umstellung
+    // zusätzlich den für Screenreader eingebetteten "(Pflichtfeld)"-Hinweis im Textinhalt tragen.
+    fireEvent.change(screen.getByLabelText('Titel', { exact: false }), { target: { value: 'Versteckter Meilenstein' } })
     fireEvent.click(screen.getByRole('button', { name: 'Meilenstein speichern' }))
 
     await waitFor(() => {
@@ -112,7 +114,7 @@ describe('GroupHistorySection', () => {
     }))
 
     fireEvent.click(await screen.findByRole('button', { name: 'Meilenstein hinzufügen' }))
-    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Erstes Projekt' } })
+    fireEvent.change(screen.getByLabelText('Titel', { exact: false }), { target: { value: 'Erstes Projekt' } })
     fireEvent.click(screen.getByRole('button', { name: 'Meilenstein speichern' }))
 
     await waitFor(() => {
