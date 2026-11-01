@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 import { centeredScrollLeft, directItemElements } from './FocalCarouselInternals'
 import { IconButton } from './IconButton'
 import { ResponsiveImage } from './ResponsiveImage'
+import { Text } from './Text'
 import styles from './ThumbnailStrip.module.css'
 
 export interface ThumbnailStripItem {
@@ -73,9 +74,9 @@ export function ThumbnailStrip({ items, activeIndex, onSelect, regionLabel }: Th
           ))}
         </div>
       </div>
-      <span className={styles.counter}>
+      <Text as="span" variant="meta" className={styles.counter}>
         {activeIndex + 1} / {items.length}
-      </span>
+      </Text>
     </div>
   )
 }
