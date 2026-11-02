@@ -5,6 +5,8 @@ import { storybookDocsLink } from '@/lib/storybookLinks'
 
 import { ResponsiveImage } from './ResponsiveImage'
 import { UploadDropzone } from './UploadDropzone'
+import { UploadFileRow } from './UploadFileRow'
+import type { UploadFileRowProps } from './UploadFileRow'
 
 /**
  * Datei-Auswahl-/Drop-Fläche. Der tatsächliche `isDragActive`-Zustand entsteht nur über
@@ -136,6 +138,84 @@ export const MehrfachdateiWarnung: Story = {
       description: {
         story:
           'Bei `multiple={false}` lässt die native Dateiauswahl nur eine Datei zu, ein Drop mit mehreren Dateien aber nicht -- im Canvas mehrere Dateien gleichzeitig auf die Fläche ziehen, um den Warnhinweis ("Nur die erste Datei wurde übernommen …") live zu sehen (per Prop nicht erzwingbar, da `showSingleSlotWarning` interner State ist, identisch zum Drag-Zustand oben).',
+      },
+    },
+  },
+}
+
+interface DemoQueueItem {
+  key: string
+  file: File
+  title: string
+  caption: string
+  status: UploadFileRowProps['status']
+  progress: number | null
+}
+
+function demoKey(file: File): string {
+  return `${file.name}:${file.size}:${file.lastModified}`
+}
+
+function MitWarteschlangeDemo() {
+  const [queue, setQueue] = useState<DemoQueueItem[]>([])
+
+  function handleFilesSelected(files: File[]) {
+    setQueue((current) => {
+      const seen = new Set(current.map((item) => item.key))
+      const next = [...current]
+      for (const file of files) {
+        const key = demoKey(file)
+        if (seen.has(key)) continue
+        seen.add(key)
+        next.push({ key, file, title: '', caption: '', status: 'idle', progress: null })
+      }
+      return next
+    })
+  }
+
+  function handleChange(key: string, field: 'title' | 'caption', value: string) {
+    setQueue((current) => current.map((item) => (item.key === key ? { ...item, [field]: value } : item)))
+  }
+
+  function handleRetry(key: string) {
+    setQueue((current) => current.map((item) => (item.key === key ? { ...item, status: 'idle', progress: null } : item)))
+  }
+
+  function handleRemove(key: string) {
+    setQueue((current) => current.filter((item) => item.key !== key))
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <UploadDropzone onFilesSelected={handleFilesSelected} density="roomy" multiple />
+      {queue.map((item) => (
+        <UploadFileRow
+          key={item.key}
+          file={item.file}
+          title={item.title}
+          caption={item.caption}
+          onChange={(field, value) => handleChange(item.key, field, value)}
+          status={item.status}
+          progress={item.progress}
+          onRetry={() => handleRetry(item.key)}
+          onRemove={() => handleRemove(item.key)}
+        />
+      ))}
+    </div>
+  )
+}
+
+/** Dropzone + `UploadFileRow`-Warteschlange mit lokalem Zustand (Datei-Key, Titel/Caption-
+ *  Felder, Status, Retry/Remove) -- zeigt das Zusammenspiel beider Bausteine bei mehreren
+ *  gleichzeitig laufenden Uploads, analog zum `ErsetzenMitVorschauDemo`-Muster oben. */
+export const MitWarteschlange: Story = {
+  name: 'Mit Warteschlange',
+  render: () => <MitWarteschlangeDemo />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'UploadDropzone und UploadFileRow sind rein darstellende Bausteine ohne Team4s-Fachlogik -- diese Story verwaltet nur lokalen Demo-Zustand, keine echten API-Aufrufe.',
       },
     },
   },
