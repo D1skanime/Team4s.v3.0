@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
+import { Heading } from '@/components/ui/Heading'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { classNames } from '@/components/ui/classNames'
 
@@ -295,8 +296,13 @@ function FansubVersionBrowserContent({
 
   return (
     <section className={styles.section}>
-      {/* D-12: die Trefferzahl kommt aus dem Client-Zustand, aktualisiert sich bei jedem Wechsel. */}
-      <h2>Episoden ({windowing.episodeCount})</h2>
+      {/* D-12: die Trefferzahl kommt aus dem Client-Zustand, aktualisiert sich bei jedem Wechsel.
+          tone="onScrim" macht die Lesbarkeit auf der dunklen .episodesSection-Fläche explizit
+          (statt sich auf die seiteneigene `.episodesSection h2`-Regel zu verlassen, die zufällig
+          dieselbe helle Farbe über das rendernde <h2>-Element erzwingt) -- Heading rendert für
+          `level={2}` ein echtes <h2>, die bestehende Selektor-/Größen-/Abstand-Regel in
+          page.episodes.module.css bleibt deshalb unverändert gültig (261102-hlg, Task 10). */}
+      <Heading level={2} tone="onScrim">Episoden ({windowing.episodeCount})</Heading>
 
       {fansubOptions.length > 0 ? (
         <>
