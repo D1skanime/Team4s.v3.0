@@ -67,6 +67,51 @@
   box-shadow: none;
 }
 
+/* Öffentliche Glas-Fläche (zweite offizielle Erscheinung, keine Admin-Karte, siehe Card.tsx) --
+   reproduziert den bisherigen EpisodeGlassCard-Look (6% Deckkraft, 12px Radius). Padding wird
+   bewusst auf 0 zurückgesetzt: Aufrufer wie EpisodeGlassCard bringen ihre eigene interne
+   Abstands-/Flex-Struktur mit (Kopfzeile + aufklappbare Liste), eine zusätzliche Card-Polsterung
+   würde das bestehende Layout doppelt polstern. */
+.cardGlass {
+  padding: 0;
+  overflow: hidden;
+  border-color: var(--card-glass-border);
+  border-top-color: var(--card-glass-border);
+  border-radius: var(--card-glass-radius);
+  background-color: var(--card-glass-surface);
+  background-image: none;
+  color: var(--card-glass-text);
+  box-shadow: none;
+  backdrop-filter: blur(var(--card-glass-blur)) saturate(var(--card-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--card-glass-blur)) saturate(var(--card-glass-saturate));
+}
+
+/* Zweite, kräftigere Deckkraft-Stufe (reproduziert den bisherigen ReleasePreviewRow-Look, 10%
+   Deckkraft, 6px Radius) -- bewusst OHNE overflow:hidden (anders als .cardGlass): Aufrufer wie
+   ReleasePreviewRow haben einen fokussierbaren Button nahe am Kartenrand, dessen Fokusring sonst
+   am Kartenrand abgeschnitten würde (im Bestand ebenfalls nicht geclippt). */
+.cardGlassStrong {
+  padding: 0;
+  border-color: var(--card-glass-border-strong);
+  border-top-color: var(--card-glass-border-strong);
+  border-radius: var(--card-glass-radius-strong);
+  background-color: var(--card-glass-surface-strong);
+  background-image: none;
+  color: var(--card-glass-text);
+  box-shadow: none;
+  backdrop-filter: blur(var(--card-glass-blur-strong)) saturate(var(--card-glass-saturate-strong));
+  -webkit-backdrop-filter: blur(var(--card-glass-blur-strong)) saturate(var(--card-glass-saturate-strong));
+}
+
+/* Generischer Tönungs-Hook: Card setzt per `tintHue`-Prop nur den Farbton (--card-tint-hue), die
+   Sättigung/Helligkeit/Deckkraft-Formel ist für JEDE Tönung identisch (--card-tint-*-Tokens) --
+   Card kennt dabei keine Fachnamen wie canon/filler/mixed/recap. */
+.cardGlass.cardTinted,
+.cardGlassStrong.cardTinted {
+  background-color: hsl(var(--card-tint-hue) var(--card-tint-saturation) var(--card-tint-lightness) / var(--card-tint-surface-alpha));
+  border-color: hsl(var(--card-tint-hue) var(--card-tint-saturation) var(--card-tint-lightness) / var(--card-tint-border-alpha));
+}
+
 .cardHeader,
 .cardFooter {
   display: flex;

@@ -1,8 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { BannerSection } from './BannerSection'
 import { Card } from './Card'
+import { Text } from './Text'
 
-/** Card-Primitive: alle acht dokumentierten Varianten aus CardProps. */
+/** Card-Primitive: alle zehn dokumentierten Varianten aus CardProps, inkl. der beiden
+ *  öffentlichen Glas-Varianten (261102-hlg) -- zweite offizielle Erscheinung derselben
+ *  Kartenfläche auf Foto-/Bannerhintergrund statt der hellen Admin-Optik. */
 const meta = {
   title: 'Grundbausteine/Card',
   component: Card,
@@ -61,4 +65,69 @@ export const Nested: Story = {
 export const NestedFlat: Story = {
   name: 'Verschachtelt flach',
   args: { variant: 'nestedFlat', title: 'Flache verschachtelte Karte', description: 'Flache Variante für verschachtelte Karten.' },
+}
+
+export const Glass: Story = {
+  name: 'Glas',
+  args: { variant: 'glass' },
+  render: (args) => (
+    <div style={{ position: 'relative', height: 200 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, padding: 20 }}>
+          <Card {...args}>
+            <Text tone="onScrim">Durchscheinende Fläche auf Bannerhintergrund (6% Deckkraft, 12px Radius).</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
+}
+
+export const GlassStrong: Story = {
+  name: 'Glas kräftig',
+  args: { variant: 'glassStrong' },
+  render: (args) => (
+    <div style={{ position: 'relative', height: 200 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, padding: 20 }}>
+          <Card {...args}>
+            <Text tone="onScrim">Kräftigere Deckkraft-Stufe (10%, 6px Radius) -- für Reihen/Listenzeilen.</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
+}
+
+export const GlasAufHintergrund: Story = {
+  name: 'Glas auf Hintergrund (alle Tönungen)',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Abnahme-Pflicht D-07: alle vier Episoden-Tönungen des generischen tintHue-Hooks ' +
+          'nebeneinander -- Haupthandlung (222°), Filler (2°), Gemischt (272°), Rückblick (42°).',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ position: 'relative', height: 260 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 12, padding: 20, flexWrap: 'wrap' }}>
+          <Card variant="glass" tintHue={222} style={{ padding: 12 }}>
+            <Text tone="onScrim">Haupthandlung</Text>
+          </Card>
+          <Card variant="glass" tintHue={2} style={{ padding: 12 }}>
+            <Text tone="onScrim">Filler</Text>
+          </Card>
+          <Card variant="glass" tintHue={272} style={{ padding: 12 }}>
+            <Text tone="onScrim">Gemischt</Text>
+          </Card>
+          <Card variant="glass" tintHue={42} style={{ padding: 12 }}>
+            <Text tone="onScrim">Rückblick</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
 }
