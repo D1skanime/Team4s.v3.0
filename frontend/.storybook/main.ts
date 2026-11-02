@@ -22,6 +22,10 @@ const config: StorybookConfig = {
     // unter components/fansubs/) -- ohne dieses Glob würde Storybook solche Dateien gar nicht
     // erst einlesen.
     '../src/components/fansubs/**/*.stories.@(ts|tsx)',
+    // "Ganze Seiten"-Pilot-Stories (Server/Ansicht-Split, z. B. AnimeListView.stories.tsx) liegen
+    // neben der jeweiligen Route unter app/ statt unter components/ -- ohne dieses Glob würde
+    // Storybook sie nicht einlesen.
+    '../src/app/**/*.stories.@(ts|tsx)',
   ],
   framework: {
     name: '@storybook/nextjs',
