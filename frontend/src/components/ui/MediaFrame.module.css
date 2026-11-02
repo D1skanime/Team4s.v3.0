@@ -28,12 +28,14 @@
 .mediaFramePosterFade {
   overflow: visible;
   background: transparent;
+  isolation: isolate;
+  z-index: 0;
 }
 
 .mediaFramePosterFade::before {
   content: '';
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   inset: var(--media-frame-poster-bleed-inset-x) var(--media-frame-poster-bleed-inset-x) var(--media-frame-poster-bleed-bottom);
   background-image: var(--media-frame-backdrop-image);
   background-size: var(--media-frame-poster-bleed-size);
@@ -46,10 +48,17 @@
 }
 
 .mediaFramePosterFade :global(img) {
+  position: relative;
+  z-index: 1;
   border-radius: inherit;
   object-fit: cover;
   mask-image: var(--media-frame-poster-image-mask);
   -webkit-mask-image: var(--media-frame-poster-image-mask);
+}
+
+.mediaFramePosterFade .mediaFrameCorner,
+.mediaFramePosterFade .mediaFrameBottom {
+  z-index: 2;
 }
 
 .mediaFrameCorner {

@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -23,5 +25,13 @@ describe('MediaFrame', () => {
     const frame = screen.getByTestId('frame')
     expect(frame.className).toMatch(/mediaFramePosterFade/)
     expect(frame.style.getPropertyValue('--media-frame-backdrop-image')).toBe('url("/covers/demo.jpg")')
+  })
+
+  it('hält die Poster-Farbverlängerung im lokalen Ebenenkontext hinter dem Bild sichtbar', () => {
+    const css = readFileSync('src/components/ui/MediaFrame.module.css', 'utf8')
+
+    expect(css).toMatch(/\.mediaFramePosterFade\s*\{[^}]*isolation:\s*isolate;[^}]*z-index:\s*0;/s)
+    expect(css).toMatch(/\.mediaFramePosterFade::before\s*\{[^}]*z-index:\s*0;/s)
+    expect(css).toMatch(/\.mediaFramePosterFade :global\(img\)\s*\{[^}]*z-index:\s*1;/s)
   })
 })
