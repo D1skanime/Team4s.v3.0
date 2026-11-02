@@ -2,11 +2,10 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Children, isValidElement, Suspense, type ReactElement, type ReactNode } from 'react'
 import { cookies } from 'next/headers'
-import Link from 'next/link'
 import { AnimeInfoBanner } from '@/components/anime/AnimeMediaProvider'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
-import { LinkChip, MediaFrame } from '@/components/ui'
+import { Button, Card, ErrorState, LinkChip, MediaFrame } from '@/components/ui'
 import AnimeListPage from '../page'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -154,7 +153,7 @@ describe('anime detail integration without invented data', () => {
   it('removes the fabricated rating and anime view metrics while preserving the Anime 22 Emby target', async () => {
     const content = await loadContent()
     expect(textContent(content)).not.toMatch(/7\.8|Views/)
-    const embyLink = elements(content).find((item) => item.type === 'a' && textContent(item.props.children as ReactNode).includes('Emby'))
+    const embyLink = elements(content).find((item) => item.type === Button && textContent(item.props.children as ReactNode).includes('Emby'))
     expect(embyLink?.props.href).toBe('https://anime.team4s.de/web/index.html#!/item?id=2112&serverId=8bc8ae6fe2d946fcbd21cb341832072d&context=tvshows')
   })
 
@@ -171,13 +170,18 @@ describe('anime detail integration without invented data', () => {
     }] } })
     groupedMock.mockRejectedValue(new ApiError(500, 'Versionen nicht verfügbar'))
     const content = await loadContent()
-    const text = textContent(content)
     // Der Episoden-Badge auf dem Poster (Badge variant="onMedia", 261102-hlg) ist unabhaengig
     // vom D-16-Bug und bleibt unveraendert -- deutsche Pluralisierung "Folgen" statt "Episodes".
     expect(posterBadgeText(content)).toBe('12 Folgen')
     // D-16: die alte Notfall-Liste (anime.episodes, ungefiltert nach Release) darf nicht mehr rendern.
     expect(elements(content).some((item) => item.type === FansubVersionBrowser)).toBe(false)
-    expect(text).toContain('Episoden konnten nicht geladen werden.')
+    // Seit 261102-hlg Task 7 rendert dieser Zweig ueber die offizielle ErrorState-Primitive --
+    // title/description sind PROPS, keine materialisierten Children, deshalb Props-Prüfung
+    // statt textContent() (das nur ueber `.props.children` laeuft).
+    const errorState = elements(content).find((item) => item.type === ErrorState)
+    expect(errorState?.props.title).toBe('Episoden konnten nicht geladen werden')
+    expect(errorState?.props.description).toBe('Die Episodenliste ist derzeit nicht verfügbar. Bitte laden Sie die Seite neu.')
+    expect(errorState?.props.compact).toBe(true)
   })
 
   it('zeigt die Einzahl "1 Folge" statt "1 Folgen" (261102-hlg D-03)', async () => {
@@ -275,6 +279,14 @@ describe('anime detail integration without invented data', () => {
       /\.relatedRailWrapper|\.relatedRailSection|\.episodeList|\.episodeItem|\.episodeNumber|\.episodeTitle|\.episodeMeta|\.episodeActions|\.actionButton/,
     )
   })
+
+  // 261102-hlg Task 7: die Info-Karte ist keine seiteneigene Glas-Fläche mehr, sondern nutzt die
+  // offizielle Card-Variante -- Datei:Zeile-Beleg für 261102-cb2-EINORDNUNG.md (Task 15).
+  it('die Info-Karte nutzt Card variant="glass" statt seiteneigenem CSS (261102-hlg D-05)', async () => {
+    const content = await loadContent()
+    const infoCard = elements(content).find((item) => item.type === Card && String(item.props.className ?? '').includes('infoCard'))
+    expect(infoCard?.props.variant).toBe('glass')
+  })
 })
 
 describe('bounded public SSR inventory', () => {
@@ -306,7 +318,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     const content = await loadContent()
     const all = elements(content)
     expect(textContent(content)).toMatch(/Tags/)
-    const tagLinks = all.filter((item) => item.type === Link && String((item.props.href as string)).includes('tag='))
+    const tagLinks = all.filter((item) => item.type === LinkChip && String((item.props.href as string)).includes('tag='))
     expect(tagLinks).toHaveLength(3)
     expect(tagLinks.map((item) => textContent(item.props.children as ReactNode))).toEqual(['Real Robot', 'Amnesia', 'Zeitreise'])
   })
@@ -314,7 +326,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
   it('rendert exakt einen Chip bei genau einem Tag (kein Leer-Container)', async () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Amnesia'] } })
     const content = await loadContent()
-    const tagLinks = elements(content).filter((item) => item.type === Link && String(item.props.href as string).includes('tag='))
+    const tagLinks = elements(content).filter((item) => item.type === LinkChip && String(item.props.href as string).includes('tag='))
     expect(tagLinks).toHaveLength(1)
     expect(textContent(tagLinks[0]?.props.children as ReactNode)).toBe('Amnesia')
   })
@@ -333,7 +345,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
   it('kodiert Leerzeichen und Umlaute im Tag-Link ueber URLSearchParams korrekt und rundreist zum Originalnamen (D-09)', async () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Real Robot', 'PSI-Kräfte'] } })
     const content = await loadContent()
-    const tagLinks = elements(content).filter((item) => item.type === Link && String(item.props.href as string).includes('tag='))
+    const tagLinks = elements(content).filter((item) => item.type === LinkChip && String(item.props.href as string).includes('tag='))
     const realRobot = tagLinks.find((item) => textContent(item.props.children as ReactNode) === 'Real Robot')
     const psiKraefte = tagLinks.find((item) => textContent(item.props.children as ReactNode) === 'PSI-Kräfte')
     expect(paramsFromHref(realRobot?.props.href as string).get('tag')).toBe('Real Robot')
@@ -344,8 +356,8 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
   it('jeder Tag-Chip ist ein echter Link mit dem Namen als einzigem sichtbarem/zugaenglichem Text (Tastatur-erreichbar per Anker-Semantik)', async () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Amnesia'] } })
     const content = await loadContent()
-    const tagLink = elements(content).find((item) => item.type === Link && String(item.props.href as string).includes('tag='))
-    expect(tagLink?.type).toBe(Link)
+    const tagLink = elements(content).find((item) => item.type === LinkChip && String(item.props.href as string).includes('tag='))
+    expect(tagLink?.type).toBe(LinkChip)
     expect(tagLink?.props).not.toHaveProperty('tabIndex')
     expect(tagLink?.props).not.toHaveProperty('onClick')
     expect(textContent(tagLink?.props.children as ReactNode)).toBe('Amnesia')

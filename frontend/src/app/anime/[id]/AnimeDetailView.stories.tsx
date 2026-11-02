@@ -78,3 +78,10 @@ export const FehlendesCover: Story = {
     coverUrl: '',
   },
 }
+
+export const OhneGenresUndTags: Story = {
+  name: 'Ohne Genres und Tags',
+  args: {
+    anime: buildAnimeDetailFixture({ genres: [], tags: [] }),
+  },
+}

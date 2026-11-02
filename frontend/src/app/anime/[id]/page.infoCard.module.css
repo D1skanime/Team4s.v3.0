@@ -7,26 +7,18 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Info Card (Right) - White top, glass bottom
+   Info Card (Right) -- Fläche kommt jetzt komplett von Card variant="glass" (261102-hlg, D-05);
+   .infoCard liefert nur noch Layout-Feinschliff (Innenabstand, Grid-Position, abweichende
+   Eckenrundung für die Einbettung neben der bereits eigenständig gerundeten Poster-Spalte).
    -------------------------------------------------------------------------- */
 .infoCard {
-  position: relative;
-  border-radius: 0 24px 24px 0;
+  /* Override-Hook aus Card.module.css (--card-radius-override): die Info-Karte sitzt rechts
+     neben der Poster-Spalte innerhalb EINES gemeinsam gerundeten heroContainer-Rahmens, braucht
+     deshalb eine abweichende, asymmetrische Eckenrundung statt Cards generischem 12px-Radius. */
+  --card-radius-override: 0 24px 24px 0;
   padding: 28px;
-  color: #1a1a1a;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 255, 255, 0.95) 35%,
-    rgba(255, 255, 255, 0.6) 45%,
-    rgba(255, 255, 255, 0.15) 60%,
-    rgba(255, 255, 255, 0.08) 100%
-  );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
 }
 
 /* Title + Logo Row */
@@ -61,22 +53,10 @@
   margin-bottom: 20px;
 }
 
-.badge {
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: #f0f0f0;
-  color: #444;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
 /* Description */
 .description {
   font-size: 15px;
   line-height: 1.7;
-  color: #444;
   margin: 0 0 20px;
 }
 
@@ -108,37 +88,6 @@
   margin: 0;
 }
 
-/*
- * Feature-lokale, selbsttragende dunkle Chip-Farben (GAP-10): die globalen Light-Card-Tokens
- * (--surface-sunken/--text-primary) sind fuer eine opake helle Karte kalibriert und verlieren
- * Kontrast im nahezu transparenten unteren Bereich von .infoCard's Gradient. Eigenstaendig
- * ausreichend deckendes dunkles Chip statt Kontrastberechnung gegen den variablen Hintergrund.
- */
-.tagChip {
-  display: inline-block;
-  padding: 8px 14px;
-  border-radius: 14px;
-  background: rgba(20, 18, 16, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 13px;
-  font-weight: 500;
-  text-decoration: none;
-  text-transform: none;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.tagChip:hover {
-  background: rgba(20, 18, 16, 0.78);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.tagChip:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
 /* Stats Row */
 .statsRow {
   display: flex;
@@ -146,21 +95,7 @@
   align-items: center;
   gap: 20px;
   padding-top: 16px;
-  border-top: 1px solid #e5e5e5;
-}
-
-.embyLink {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #666;
-  font-size: 13px;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.embyLink:hover {
-  color: #ff8a4c;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Info Banner */
@@ -177,7 +112,7 @@
 .relatedSection {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
   min-width: 0;
   overflow: hidden;
 }
@@ -222,12 +157,15 @@
 }
 
 @media (max-width: 767px) {
+  /* Hintergrund/Rand/Radius/Text-Farbe kommen jetzt einheitlich von Card variant="glass" --
+     Mobil und Desktop zeigen dieselbe Glas-Fläche, kein eigener Farb-Umschlag mehr nötig
+     (261102-hlg, D-05: löst die bisherige CSS-Variablen-Override-Lösung für den mobilen
+     Badge-Kontrast ab, siehe CONTEXT.md). Nur noch Layout-Feinschliff (Innenabstand, Ausrichtung,
+     asymmetrische Eckenrundung für die mobile Stapelung unter der Poster-Spalte). */
   .infoCard {
     padding: 20px;
     text-align: center;
-    border-radius: 0 0 24px 24px;
-    background: rgba(30, 30, 35, 0.95);
-    color: #fff;
+    --card-radius-override: 0 0 24px 24px;
   }
 
   .titleRow {
@@ -237,26 +175,14 @@
 
   .title {
     font-size: 20px;
-    color: #fff;
   }
 
   .badges {
     justify-content: center;
   }
 
-  .badge {
-    background: rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.9);
-  }
-
   .description {
-    color: rgba(255, 255, 255, 0.8);
     font-size: 14px;
-  }
-
-  /* Mobil ist die Infokarte dunkel: Tags-Überschrift hell, Chips zentriert wie die Karte. */
-  .tagsLabel {
-    color: rgba(255, 255, 255, 0.75);
   }
 
   .tagsList {
@@ -265,17 +191,11 @@
 
   .statsRow {
     justify-content: center;
-    border-top-color: rgba(255, 255, 255, 0.15);
-  }
-
-  .divider {
-    background: rgba(255, 255, 255, 0.15);
   }
 
   .relatedSection {
     margin-top: 16px;
     padding-top: 16px;
-    border-top-color: rgba(255, 255, 255, 0.15);
   }
 
   .edgeNavigationOverlay {

@@ -77,7 +77,12 @@
   overflow: hidden;
   border-color: var(--card-glass-border);
   border-top-color: var(--card-glass-border);
-  border-radius: var(--card-glass-radius);
+  /* --card-radius-override ist ein bewusster, generischer Override-Hook (wie --card-tint-hue):
+     ein Aufrufer, dessen Glas-Fläche in ein größeres, bereits eigenständig gerundetes Layout
+     eingebettet ist (z. B. die Info-Karte neben der Poster-Spalte der Anime-Detailseite), darf
+     NUR diese eine CSS-Variable setzen (eigene Datei, eigene Klasse) statt Cards private
+     Radius-Tokens zu überschreiben. */
+  border-radius: var(--card-radius-override, var(--card-glass-radius));
   background-color: var(--card-glass-surface);
   background-image: none;
   color: var(--card-glass-text);
@@ -94,7 +99,7 @@
   padding: 0;
   border-color: var(--card-glass-border-strong);
   border-top-color: var(--card-glass-border-strong);
-  border-radius: var(--card-glass-radius-strong);
+  border-radius: var(--card-radius-override, var(--card-glass-radius-strong));
   background-color: var(--card-glass-surface-strong);
   background-image: none;
   color: var(--card-glass-text);

@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { ExternalLink } from 'lucide-react'
 
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
@@ -9,7 +8,7 @@ import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { StatusBadge } from '@/components/anime/StatusBadge'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
-import { Badge, BannerSection, LinkChip, MediaFrame, ResponsiveImage } from '@/components/ui'
+import { Badge, BannerSection, Button, Card, ErrorState, Heading, LinkChip, MediaFrame, ResponsiveImage, Text } from '@/components/ui'
 import { getAnimeFansubs, getAnimeRelations } from '@/lib/api'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import type { AnimeDetail } from '@/types/anime'
@@ -132,26 +131,32 @@ export function AnimeDetailView({
             </div>
           </div>
 
-          {/* Right: Info Card */}
-          <div className={styles.infoCard}>
+          {/* Right: Info Card -- öffentliche Glas-Fläche (Card variant="glass") statt
+              seiteneigenem CSS (261102-hlg, D-05). Die Fläche selbst kommt jetzt komplett aus
+              Card/Tokens, .infoCard liefert nur noch Layout-Feinschliff. */}
+          <Card variant="glass" className={styles.infoCard}>
             {/* Title + Logo Row */}
             <div className={styles.titleRow}>
-              <h1 className={styles.title}>{anime.title}</h1>
+              <Heading level={1} tone="onScrim" className={styles.title}>{anime.title}</Heading>
               <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
             </div>
 
-            {/* Badges */}
+            {/* Badges -- StatusBadge bleibt bewusst ein eigenständiger Fachbaustein (eigenes
+                CSS-Modul, eigene Status-Farblogik); die drei übrigen Pillen (Typ/Content-Type/
+                Jahr) sind reine Metadaten ohne Statusbedeutung und werden deshalb auf das
+                offizielle Badge-Grundelement umgestellt -- zwei getrennte, nebeneinander
+                bestehende "Badge-Familien" (261102-hlg, D-04). */}
             <div className={styles.badges}>
               <StatusBadge status={anime.status} />
-              <span className={styles.badge}>{anime.type.toUpperCase()}</span>
-              <span className={styles.badge}>{anime.content_type}</span>
-              <span className={styles.badge}>{anime.year ?? 'n/a'}</span>
+              <Badge variant="neutral">{anime.type.toUpperCase()}</Badge>
+              <Badge variant="neutral">{anime.content_type}</Badge>
+              <Badge variant="neutral">{anime.year ?? 'n/a'}</Badge>
             </div>
 
             {/* Description */}
-            <p className={styles.description}>
+            <Text tone="onScrim" className={styles.description}>
               {anime.description ?? 'Keine Beschreibung vorhanden.'}
-            </p>
+            </Text>
 
             {/* Tags direkt unter der Beschreibung -- die Trennlinie zum nächsten Block folgt erst
                 mit dem Banner, nicht schon hier, damit Tags optisch noch zur Beschreibung gehören */}
@@ -162,9 +167,9 @@ export function AnimeDetailView({
                   <ul className={styles.tagsList} aria-labelledby="tags-heading">
                     {anime.tags.map((tag) => (
                       <li key={tag}>
-                        <Link className={styles.tagChip} href={buildFilterHref('tag', tag)}>
+                        <LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>
                           {tag}
-                        </Link>
+                        </LinkChip>
                       </li>
                     ))}
                   </ul>
@@ -174,15 +179,16 @@ export function AnimeDetailView({
 
             {embySeriesUrl && (
               <div className={styles.statsRow}>
-                <a
-                  className={styles.embyLink}
+                <Button
                   href={embySeriesUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  variant="text"
+                  size="sm"
+                  leftIcon={<ExternalLink size={14} aria-hidden="true" />}
                 >
-                  <ExternalLink size={14} />
                   Emby
-                </a>
+                </Button>
               </div>
             )}
 
@@ -195,7 +201,7 @@ export function AnimeDetailView({
                 <AnimeRelations relations={relationsResponse.data} />
               </div>
             )}
-          </div>
+          </Card>
 
           {/* Edge Navigation Overlay - positioned on heroContainer */}
           {gridQuery && (
@@ -223,16 +229,14 @@ export function AnimeDetailView({
             />
           ) : (
             // Neutraler Fehlerhinweis statt der ungefilterten anime.episodes-Notfallliste, falls
-            // die Episoden nicht geladen werden konnten. Bewusst Literal-Text statt der
-            // ErrorState-Primitive: die zugehörigen Tests prüfen diesen Zweig über eine flache
-            // Baumwanderung der JSX-Kinder, die nicht in fremde Komponenten hinein rendert --
-            // ErrorStates title/description wären für eine solche Prüfung unsichtbare Props,
-            // keine eigenen JSX-Kinder. FansubVersionBrowser nutzt ErrorState/EmptyState an
-            // anderer Stelle regulär, dort läuft ein echter React-DOM-Render in den Tests mit.
-            <div className={styles.emptyEpisodes} role="alert">
-              <p>Episoden konnten nicht geladen werden.</p>
-              <p>Die Episodenliste ist derzeit nicht verfügbar. Bitte laden Sie die Seite neu.</p>
-            </div>
+            // die Episoden nicht geladen werden konnten -- jetzt über die offizielle, kompakte
+            // ErrorState-Primitive statt eines Eigenbau-<div> (261102-hlg, D-04); role="alert"
+            // kommt bereits aus ErrorState selbst.
+            <ErrorState
+              compact
+              title="Episoden konnten nicht geladen werden"
+              description="Die Episodenliste ist derzeit nicht verfügbar. Bitte laden Sie die Seite neu."
+            />
           )}
         </section>
       </div>
