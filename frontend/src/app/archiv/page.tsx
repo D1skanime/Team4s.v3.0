@@ -16,22 +16,15 @@ import styles from './page.module.css'
 export const dynamic = 'force-dynamic'
 
 interface ArchivePageProps {
-  searchParams:
-    | Promise<{
-        rolle?: string
-        gruppe?: string
-        von?: string
-        bis?: string
-        page?: string
-      }>
-    | {
-        rolle?: string
-        gruppe?: string
-        von?: string
-        bis?: string
-        page?: string
-      }
-    | undefined
+  // Next 16 übergibt App-Routen-Suchparameter asynchron; nur dieses Promise-Format erfüllt
+  // den von Next generierten PageProps-Vertrag.
+  searchParams?: Promise<{
+    rolle?: string
+    gruppe?: string
+    von?: string
+    bis?: string
+    page?: string
+  }>
 }
 
 export default async function ArchivPage({ searchParams }: ArchivePageProps) {

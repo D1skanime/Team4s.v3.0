@@ -25,7 +25,7 @@ describe('ArchivPage', () => {
   })
 
   it('builds role filters from the public context catalogs', async () => {
-    render(await ArchivPage({ searchParams: {} }))
+    render(await ArchivPage({ searchParams: Promise.resolve({}) }))
     expect(screen.getByRole('option', { name: 'Karaoke-FX' })).toBeDefined()
     expect(apiMocks.listRoleDefinitions).toHaveBeenCalledWith('anime_contribution')
     expect(apiMocks.listRoleDefinitions).toHaveBeenCalledWith('group_history')
@@ -33,7 +33,7 @@ describe('ArchivPage', () => {
 
   it('shows no static role choices when catalog loading fails', async () => {
     apiMocks.listRoleDefinitions.mockRejectedValue(new Error('offline'))
-    render(await ArchivPage({ searchParams: {} }))
+    render(await ArchivPage({ searchParams: Promise.resolve({}) }))
     expect(screen.queryByRole('option', { name: 'Übersetzung' })).toBeNull()
     expect(screen.getByText('Rollenfilter konnten nicht geladen werden')).toBeDefined()
   })
