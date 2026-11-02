@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { AnimeInfoBanner } from '@/components/anime/AnimeMediaProvider'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
+import { LinkChip, MediaFrame } from '@/components/ui'
 import AnimeListPage from '../page'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -108,6 +109,17 @@ function textContent(node: ReactNode): string {
     isValidElement<{ children?: ReactNode }>(child) ? textContent(child.props.children) : String(child),
   ).join('')
 }
+/** Der Episoden-Badge haengt seit 261102-hlg als `bottomBadge`-PROP an `MediaFrame`, nicht als
+ *  eigenes `.props.children` -- `elements()`/`textContent()` laufen nur ueber materialisierte
+ *  Children, nicht ueber beliebig benannte Props. Diese Hilfsfunktion findet `MediaFrame` zuerst
+ *  und liest dessen `bottomBadge`-Prop gezielt aus (selbst wieder ein noch nicht gerendertes
+ *  React-Element, `textContent` kann direkt darauf angewendet werden). */
+function posterBadgeText(content: ReactNode): string | null {
+  const frame = elements(content).find((item) => item.type === MediaFrame)
+  const badge = frame?.props.bottomBadge as ReactNode | null | undefined
+  return badge ? textContent(badge) : null
+}
+
 async function loadContent(id = '22') {
   const boundary = await AnimeDetailPage(paramsFor(id))
   const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
@@ -160,18 +172,32 @@ describe('anime detail integration without invented data', () => {
     groupedMock.mockRejectedValue(new ApiError(500, 'Versionen nicht verfügbar'))
     const content = await loadContent()
     const text = textContent(content)
-    // Der Poster-Stat "12 Episodes" (anime.max_episodes) ist unabhaengig vom D-16-Bug und bleibt unveraendert.
-    expect(text).toContain('12 Episodes')
+    // Der Episoden-Badge auf dem Poster (Badge variant="onMedia", 261102-hlg) ist unabhaengig
+    // vom D-16-Bug und bleibt unveraendert -- deutsche Pluralisierung "Folgen" statt "Episodes".
+    expect(posterBadgeText(content)).toBe('12 Folgen')
     // D-16: die alte Notfall-Liste (anime.episodes, ungefiltert nach Release) darf nicht mehr rendern.
     expect(elements(content).some((item) => item.type === FansubVersionBrowser)).toBe(false)
     expect(text).toContain('Episoden konnten nicht geladen werden.')
   })
 
-  it('clips only the decorative hero banner, leaving the hero controls outside its clipping boundary', () => {
-    const css = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
-    expect(css.match(/\.heroBanner\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*(hidden|clip)/)
-    expect(css.match(/\.heroContainer\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*visible/)
-    expect(css.match(/\.page\s*\{([^}]+)\}/)?.[1]).not.toMatch(/overflow/)
+  it('zeigt die Einzahl "1 Folge" statt "1 Folgen" (261102-hlg D-03)', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, max_episodes: 1 } })
+    const content = await loadContent()
+    expect(posterBadgeText(content)).toBe('1 Folge')
+  })
+
+  it.each([0, undefined])('blendet das Episoden-Badge bei max_episodes=%s komplett aus (261102-hlg D-03)', async (maxEpisodes) => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, max_episodes: maxEpisodes } })
+    const content = await loadContent()
+    expect(posterBadgeText(content)).toBeNull()
+  })
+
+  it('clips only the decorative banner backdrop, leaving the hero controls outside its clipping boundary', () => {
+    const bannerCss = readFileSync(join(process.cwd(), 'src/components/ui/BannerSection.module.css'), 'utf8')
+    const pageCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
+    expect(bannerCss.match(/\.bannerSection\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*(hidden|clip)/)
+    expect(pageCss.match(/\.heroContainer\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*visible/)
+    expect(pageCss.match(/\.page\s*\{([^}]+)\}/)?.[1]).not.toMatch(/overflow/)
   })
 
   it('reicht searchParams.fansub unveraendert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
@@ -348,7 +374,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, genres: ['Action', 'Mecha'] } })
     const content = await loadContent()
     const all = elements(content)
-    const genreLinks = all.filter((item) => item.type === Link && String(item.props.href as string).includes('genre='))
+    const genreLinks = all.filter((item) => item.type === LinkChip && String(item.props.href as string).includes('genre='))
     expect(genreLinks).toHaveLength(2)
     expect(genreLinks.map((item) => textContent(item.props.children as ReactNode)).sort()).toEqual(['Action', 'Mecha'])
     for (const link of genreLinks) {

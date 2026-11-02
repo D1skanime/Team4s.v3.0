@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { ExternalLink } from 'lucide-react'
 
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
@@ -10,6 +9,7 @@ import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { StatusBadge } from '@/components/anime/StatusBadge'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
+import { Badge, BannerSection, LinkChip, MediaFrame, ResponsiveImage } from '@/components/ui'
 import { getAnimeFansubs, getAnimeRelations } from '@/lib/api'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import type { AnimeDetail } from '@/types/anime'
@@ -64,20 +64,21 @@ export function AnimeDetailView({
   coverUrl,
   rawFansubParam,
 }: AnimeDetailViewProps) {
+  // D-03 (Badge onMedia statt Eigenbau-Stats-Overlay): 0/unbekannte Episodenzahl zeigt bewusst
+  // KEIN Badge (kein "0 Folgen"), Einzahl "1 Folge" statt "1 Folgen".
+  const posterEpisodeCount = anime.max_episodes ?? 0
+  const posterEpisodeBadge = posterEpisodeCount > 0
+    ? <Badge variant="onMedia">{posterEpisodeCount === 1 ? '1 Folge' : `${posterEpisodeCount} Folgen`}</Badge>
+    : null
+
   return (
     <AnimeMediaProvider key={anime.id} animeID={anime.id}>
       <main className={styles.page}>
-      {/* Backdrop Rotator (Videos & Images from Jellyfin) */}
-      <AnimeBackdropRotator fallbackImageURL={coverUrl} />
-
-      {/* Banner with blurred background (fallback) */}
-      <div className={styles.heroBanner}>
-        <div
-          className={styles.bannerImage}
-          style={{ backgroundImage: `url("${coverUrl}")` }}
-        />
-        <div className={styles.bannerOverlay} />
-      </div>
+      {/* Banner-Hintergrund: BannerSection übernimmt die bisherige .heroBanner-Positionierung,
+          AnimeBackdropRotator (eigenständiger Fachbaustein, position:fixed) wird darin komponiert. */}
+      <BannerSection imageUrl={coverUrl} imageAlt={`${anime.title} Hintergrundbild`}>
+        <AnimeBackdropRotator fallbackImageURL={coverUrl} />
+      </BannerSection>
 
       {/* Breadcrumbs */}
       <div className={styles.breadcrumbsWrapper}>
@@ -93,19 +94,17 @@ export function AnimeDetailView({
               className={styles.posterWrapper}
               style={{ '--poster-image': `url("${coverUrl}")` } as React.CSSProperties}
             >
-              <Image
-                src={coverUrl}
-                alt={anime.title}
-                width={260}
-                height={390}
-                className={styles.poster}
-                priority
-                unoptimized
-              />
-              {/* Stats Overlay on Poster */}
-              <div className={styles.posterStats}>
-                <span className={styles.posterEpisodes}>{anime.max_episodes ?? 0} Episodes</span>
-              </div>
+              <MediaFrame aspectRatio={2 / 3} bottomBadge={posterEpisodeBadge} className={styles.poster}>
+                <ResponsiveImage
+                  src={coverUrl}
+                  alt={anime.title}
+                  fill
+                  sizes="(max-width: 767px) 160px, (max-width: 1023px) 220px, 260px"
+                  priority
+                  unoptimized
+                  className={styles.posterImage}
+                />
+              </MediaFrame>
             </div>
 
             {/* Poster Meta (Watchlist + Genres) */}
@@ -121,12 +120,12 @@ export function AnimeDetailView({
                 <div className={styles.genres}>
                   {anime.genres && anime.genres.length > 0 ? (
                     anime.genres.map((genre) => (
-                      <Link key={genre} className={styles.genreChip} href={buildFilterHref('genre', genre)}>
+                      <LinkChip key={genre} href={buildFilterHref('genre', genre)}>
                         {genre}
-                      </Link>
+                      </LinkChip>
                     ))
                   ) : (
-                    <span className={styles.genreChip}>Anime</span>
+                    <span className={styles.genrePlaceholder}>Anime</span>
                   )}
                 </div>
               </div>

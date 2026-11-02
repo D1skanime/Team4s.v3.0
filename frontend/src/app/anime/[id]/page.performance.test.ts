@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Children, createElement, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { cleanup, render } from '@testing-library/react'
-import Image from 'next/image'
 import { imageConfigDefault } from 'next/dist/shared/lib/image-config'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { BannerSection, ResponsiveImage } from '@/components/ui'
 import nextConfig from '../../../../next.config.mjs'
 
 vi.mock('react', async (importOriginal) => ({
@@ -91,14 +91,14 @@ describe('one bounded cover for every detail consumer', () => {
       contentElement.props,
     ) as ReactNode
     const all = elements(content)
-    const poster = all.find((element) => element.type === Image && element.props.alt === 'Coverfixture')
-    const hero = all.find((element) => (element.props.style as Record<string, string> | undefined)?.backgroundImage)
+    const poster = all.find((element) => element.type === ResponsiveImage && element.props.alt === 'Coverfixture')
+    const hero = all.find((element) => element.type === BannerSection)
     const reflection = all.find((element) => (element.props.style as Record<string, string> | undefined)?.['--poster-image'])
     const rotator = all.find((element) => element.type === AnimeBackdropRotator)
     expect(resolveCover).toHaveBeenCalledExactlyOnceWith(rawCover)
     expect(poster?.props.src).toBe(expected)
     expect(poster?.props.unoptimized).toBe(true)
-    expect((hero?.props.style as Record<string, string>).backgroundImage).toBe('url("' + expected + '")')
+    expect(hero?.props.imageUrl).toBe(expected)
     expect((reflection?.props.style as Record<string, string>)['--poster-image']).toBe('url("' + expected + '")')
     expect(rotator?.props.fallbackImageURL).toBe(expected)
     expect(rotator?.props).not.toHaveProperty('coverImage')

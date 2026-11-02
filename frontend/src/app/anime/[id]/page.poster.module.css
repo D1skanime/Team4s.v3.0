@@ -63,15 +63,20 @@
   overflow: visible;
 }
 
+/* Rahmen um MediaFrame (261102-hlg, Task 6) -- z-index:2 ist Pflicht, nicht kosmetisch: muss
+   über dem per `::after` erzeugten unscharfen Verlängerungs-Layer (z-index:1) liegen bleiben,
+   genau wie die bisherige <Image class="poster">. */
 .poster {
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  border-radius: 24px 0 0 0;
   position: relative;
   z-index: 2;
-  /* Poster fades at bottom */
+  border-radius: 24px 0 0 0;
+}
+
+/* Auf dem eigentlichen Bild (ResponsiveImage mit fill) statt auf MediaFrames Rahmen, damit das
+   Badge im `bottomBadge`-Slot von MediaFrame NICHT vom auslaufenden Verblassen betroffen ist
+   (bleibt wie im Bestand voll deckend). */
+.posterImage {
+  object-fit: cover;
   mask-image: linear-gradient(
     to bottom,
     black 0%,
@@ -125,26 +130,6 @@
   z-index: 1;
 }
 
-/* Stats Overlay on Poster */
-.posterStats {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  z-index: 3;
-  gap: 12px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.posterEpisodes {
-  opacity: 0.9;
-  font-size: 13px;
-}
-
 /* Watchlist Button */
 .watchlistButton {
   width: 100%;
@@ -179,7 +164,11 @@
   gap: 8px;
 }
 
-.genreChip {
+/* Leerfall-Platzhalter (keine Genres) bleibt bewusst außerhalb von LinkChip: statische Glas-
+   Optik ohne Fokus/Hover, da hier nichts klickbar ist (261102-hlg, Task 6). Werte 1:1 identisch
+   zu LinkChips tone="glass", aber lokal gehalten statt eines deaktivierten Link-Zustands. */
+.genrePlaceholder {
+  display: inline-flex;
   padding: 8px 14px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.1);
@@ -187,18 +176,6 @@
   color: rgba(255, 255, 255, 0.9);
   font-size: 13px;
   font-weight: 500;
-  text-decoration: none;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.genreChip:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.genreChip:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
 }
 
 /* --------------------------------------------------------------------------
@@ -231,15 +208,11 @@
 
   .poster {
     border-radius: 12px;
-    mask-image: none;
-    -webkit-mask-image: none;
   }
 
-  .posterStats {
-    bottom: 8px;
-    left: 8px;
-    right: 8px;
-    font-size: 12px;
+  .posterImage {
+    mask-image: none;
+    -webkit-mask-image: none;
   }
 
   .posterMeta {
