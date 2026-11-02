@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react'
+import type { CSSProperties } from 'react'
 
 import { AnimeRelations } from '@/components/anime/AnimeRelations'
 import { AnimeInfoBanner, AnimeTitleLogo } from '@/components/anime/AnimeMediaProvider'
@@ -33,7 +34,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
   return (
     <>
       <div className={styles.posterColumn}>
-        <div className={styles.posterWrapper}>
+        <div className={styles.posterWrapper} style={{ '--poster-image': `url("${coverUrl}")` } as CSSProperties}>
           <MediaFrame variant="posterFade" backdropImage={coverUrl} aspectRatio={2 / 3} bottomBadge={posterEpisodeBadge} className={styles.poster}>
             <ResponsiveImage
               src={coverUrl}
@@ -54,7 +55,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
             <div className={styles.genres}>
               {anime.genres && anime.genres.length > 0 ? anime.genres.map((genre) => (
                 <LinkChip key={genre} tone="scrim" href={buildFilterHref('genre', genre)}>{genre}</LinkChip>
-              )) : <Badge variant="onMedia">Anime</Badge>}
+              )) : <Text as="span" tone="onScrim">Anime</Text>}
             </div>
           </div>
         </div>
@@ -75,7 +76,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
           <Text tone="onScrim" className={styles.description}>{anime.description ?? 'Keine Beschreibung vorhanden.'}</Text>
           {anime.tags && anime.tags.length > 0 ? (
             <div className={styles.tagsSection}>
-              <Text as="span" variant="eyebrow" tone="onScrim" id="tags-heading">Tags</Text>
+              <Heading level={2} size={4} tone="onScrim" id="tags-heading">Tags</Heading>
               <ul className={styles.tagsList} aria-labelledby="tags-heading">
                 {anime.tags.map((tag) => <li key={tag}><LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>{tag}</LinkChip></li>)}
               </ul>

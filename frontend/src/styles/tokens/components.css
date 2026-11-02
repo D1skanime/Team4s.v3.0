@@ -342,6 +342,8 @@
   --media-frame-poster-bleed-blur: 50px;
   --media-frame-poster-bleed-saturate: 1.3;
   --media-frame-poster-bleed-opacity: 0.9;
+  --media-frame-poster-bleed-mask: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.4) 10%, rgba(0, 0, 0, 0.8) 25%, #000 40%, rgba(0, 0, 0, 0.8) 70%, rgba(0, 0, 0, 0.3) 90%, transparent 100%);
+  --media-frame-poster-image-mask: linear-gradient(to bottom, #000 0%, #000 60%, rgba(0, 0, 0, 0.6) 80%, transparent 100%);
   /* Generischer Tönungs-Hook: Card kennt nur EINE Standard-Sättigung/Helligkeit/Deckkraft-Formel
      für jede Tönung (diese vier Tokens), der Aufrufer (z. B. EpisodeGlassCard) liefert nur den
      Farbton (--card-tint-hue, 0-360). canon(222)/filler(2) reproduzieren damit exakt die
