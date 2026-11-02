@@ -22,5 +22,5 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const MitGeschichte: Story = {}
-export const OhneGeschichte: Story = { args: { activeGroup: { id: 102, slug: 'lazy-subs', name: 'LazySubs' } } }
+export const MitGeschichte: Story = { name: 'Mit Geschichte' }
+export const OhneGeschichte: Story = { name: 'Ohne Geschichte', args: { activeGroup: { id: 102, slug: 'lazy-subs', name: 'LazySubs' } } }

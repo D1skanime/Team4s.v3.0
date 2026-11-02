@@ -23,6 +23,7 @@ import * as media from '@/lib/animeBackdrops'
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import type { PublicGroupedEpisodesOptions, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 import AnimeDetailPage from './page'
+import { AnimeDetailHero } from './AnimeDetailHero'
 
 const groupedMock = vi.mocked(getGroupedEpisodes as (id: number, options: PublicGroupedEpisodesOptions) => Promise<PublicGroupedEpisodesResponse>)
 
@@ -39,8 +40,16 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
-  return Children.toArray(node).flatMap((child) => isValidElement<Record<string, unknown>>(child)
-    ? [child, ...elements(child.props.children as ReactNode)] : [])
+  return Children.toArray(node).flatMap((child) => {
+    if (!isValidElement<Record<string, unknown>>(child)) return []
+    // Der Kopf ist seit der Storybook-Komposition eine eigene reine Darstellungskomponente.
+    // Für die unveränderte Cover-Invariante wird er hier wie die Seitenansicht materialisiert,
+    // damit Poster, Reflexion und die an den Rotator gereichte Quelle weiterhin geprüft werden.
+    if (child.type === AnimeDetailHero) {
+      return [child, ...elements(AnimeDetailHero(child.props as unknown as Parameters<typeof AnimeDetailHero>[0]))]
+    }
+    return [child, ...elements(child.props.children as ReactNode)]
+  })
 }
 
 
