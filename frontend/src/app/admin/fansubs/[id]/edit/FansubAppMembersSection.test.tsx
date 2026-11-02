@@ -177,7 +177,12 @@ describe("FansubAppMembersSection", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: "Ema Encoder bearbeiten" }));
     fireEvent.click(screen.getByRole("tab", { name: /Historische Rollen/ }));
-    fireEvent.change(await screen.findByLabelText("Rolle 1"), { target: { value: "quality_checker" } });
+    // { exact: false, selector: 'select' }: Labels von Pflichtfeldern tragen seit der Label-
+    // Grundbaustein-Umstellung zusätzlich den für Screenreader eingebetteten "(Pflichtfeld)"-
+    // Hinweis im Textinhalt; der selector grenzt zusätzlich auf das <select> ein, da die
+    // benachbarten Eintritts-/Austrittsdatum-Picker-Buttons ebenfalls "Rolle 1" in ihrem eigenen
+    // aria-label führen und sonst fälschlich mitträfen.
+    fireEvent.change(await screen.findByLabelText("Rolle 1", { exact: false, selector: 'select' }), { target: { value: "quality_checker" } });
     fireEvent.click(screen.getByRole("button", { name: "Speichern" }));
 
     await waitFor(() => {

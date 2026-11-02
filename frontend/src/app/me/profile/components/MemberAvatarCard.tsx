@@ -3,7 +3,7 @@ import type { RefObject } from 'react'
 import { Crop } from 'lucide-react'
 
 import { AvatarCropDialog } from '@/components/media/crop/AvatarCropDialog'
-import { Button, MediaSlot } from '@/components/ui'
+import { IconButton, MediaSlot } from '@/components/ui'
 import type { UploadDropzoneHandle } from '@/components/ui'
 import type { MemberProfileData } from '@/types/profile'
 
@@ -158,17 +158,16 @@ export function MemberAvatarCard({
           unoptimized: isGIFAvatar(profile, avatarURL),
         } : null}
         actions={canEditExistingAvatar ? (
-          <Button
+          <IconButton
             type="button"
-            variant="secondary"
+            variant="default"
             size="sm"
-            iconOnly
             loading={isPreparingExistingAvatar}
             disabled={isUploading || isPreparingExistingAvatar}
             onClick={handleEditExistingAvatar}
             aria-label="Ausschnitt bearbeiten"
             title="Ausschnitt bearbeiten"
-            leftIcon={<Crop size={16} aria-hidden="true" />}
+            icon={<Crop size={16} aria-hidden="true" />}
           />
         ) : null}
       />

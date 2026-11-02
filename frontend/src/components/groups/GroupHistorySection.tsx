@@ -9,6 +9,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  IconButton,
   LoadingState,
   Modal,
   SectionHeader,
@@ -612,25 +613,22 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
                 </div>
                 {canEditEntry(entry) ? (
                   <div className={styles.historyRowActions}>
-                    <Button
+                    <IconButton
                       variant="ghost"
                       size="sm"
-                      iconOnly
                       aria-label="Eintrag bearbeiten"
                       onClick={() => openEditForm(entry)}
-                    >
-                      <Pencil size={14} />
-                    </Button>
+                      icon={<Pencil size={14} />}
+                    />
                     {canDeleteEntry ? (
-                      <Button
-                        variant="danger"
+                      <IconButton
+                        variant="ghost"
+                        tone="danger"
                         size="sm"
-                        iconOnly
                         aria-label="Eintrag löschen"
                         onClick={() => setDeleteTarget(entry)}
-                      >
-                        <Trash2 size={14} />
-                      </Button>
+                        icon={<Trash2 size={14} />}
+                      />
                     ) : null}
                   </div>
                 ) : null}

@@ -70,11 +70,14 @@ vi.mock('@/components/ui', () => ({
   Button: ({ children, href, onClick }: { children: ReactNode; href?: string; onClick?: () => void }) => href
     ? <a href={href}>{children}</a>
     : <button type="button" onClick={onClick}>{children}</button>,
+  // Spiegelt den echten LoadingState/ErrorState-Vertrag (role=status/alert, bei LoadingState
+  // zusätzlich aria-live="polite") nach, damit dieser Mock nicht stärker/anders zugänglich ist
+  // als die echten Bausteine.
   LoadingState: ({ title, description }: { title: string; description: string }) => (
-    <div><h1>{title}</h1><p>{description}</p></div>
+    <div role="status" aria-live="polite"><h1>{title}</h1><p>{description}</p></div>
   ),
   ErrorState: ({ title, description, action }: { title: string; description: string; action?: ReactNode }) => (
-    <div><h1>{title}</h1><p>{description}</p>{action}</div>
+    <div role="alert"><h1>{title}</h1><p>{description}</p>{action}</div>
   ),
   SectionHeader: ({ title }: { title: string }) => <h2>{title}</h2>,
 }))

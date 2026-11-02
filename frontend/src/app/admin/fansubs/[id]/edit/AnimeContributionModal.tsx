@@ -9,6 +9,7 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  IconButton,
   Select,
 } from '@/components/ui'
 import {
@@ -422,16 +423,14 @@ export default function AnimeContributionModal({
                   >
                     {editing ? 'Fertig' : 'Rollen ändern'}
                   </Button>
-                  <Button
+                  <IconButton
                     variant="ghost"
-                    iconOnly
+                    tone="danger"
                     size="sm"
                     aria-label={`${row.member_display_name} entfernen`}
-                    className={styles.contributionRemoveButton}
                     onClick={() => handleRemove(row)}
-                  >
-                    <Trash2 size={18} />
-                  </Button>
+                    icon={<Trash2 size={18} />}
+                  />
                 </div>
               </div>
             )

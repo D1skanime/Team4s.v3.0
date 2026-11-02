@@ -2,6 +2,7 @@ import { forwardRef } from 'react'
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ElementType, ReactNode } from 'react'
 
 import { classNames } from './classNames'
+import { Spinner } from './Spinner'
 import styles from './IconButton.module.css'
 
 export type IconButtonVariant = 'default' | 'ghost' | 'onImage' | 'field' | 'tile' | 'accent' | 'media'
@@ -12,8 +13,10 @@ export type IconButtonShape = 'square' | 'round'
  *  Akzentlinienfarbe (--ui-line, z. B. ein Wochenend-Tag oder ein "Leeren"-Auslöser). 'clear'
  *  blendet die Farbe im Ruhezustand dezent ins Feld ein (--field-placeholder-color) und färbt
  *  erst bei Hover deutlich sichtbar (--ui-line) -- für einen Leeren/Entfernen-Auslöser innerhalb
- *  einer Feldzeile. */
-export type IconButtonTone = 'default' | 'arrow' | 'muted' | 'line' | 'clear'
+ *  einer Feldzeile. 'danger'/'success' färben in denselben Status-Ton-Seeds wie Buttons
+ *  gleichnamige Varianten (palette.css) -- für einen Icon-only-Löschen- bzw. -Bestätigen-Auslöser,
+ *  der farblich seine volle Button-Entsprechung signalisiert, ohne die Fläche komplett zu füllen. */
+export type IconButtonTone = 'default' | 'arrow' | 'muted' | 'line' | 'clear' | 'danger' | 'success'
 export type IconButtonWeight = 'regular' | 'bold'
 export type IconButtonMinHeight = 'sm' | 'md'
 
@@ -86,6 +89,8 @@ function iconButtonClassName(
     tone === 'muted' && styles.iconButtonToneMuted,
     tone === 'line' && styles.iconButtonToneLine,
     tone === 'clear' && styles.iconButtonToneClear,
+    tone === 'danger' && styles.iconButtonToneDanger,
+    tone === 'success' && styles.iconButtonToneSuccess,
     floating && styles.iconButtonFloating,
     weight === 'bold' && styles.iconButtonWeightBold,
     minHeight === 'sm' && styles.iconButtonMinHeightSm,
@@ -101,6 +106,10 @@ function iconButtonClassName(
 export interface IconButtonProps extends IconButtonVisualProps, Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   icon: ReactNode
   'aria-label': string
+  /** Zeigt statt `icon` einen rotierenden Lade-Kreisel und deaktiviert den Button zusätzlich --
+   *  analog zu Buttons gleichnamiger Prop (z. B. während ein bestehendes Bild für den
+   *  Zuschnitt-Dialog vorbereitet wird). */
+  loading?: boolean
 }
 
 /**
@@ -119,10 +128,12 @@ export interface IconButtonProps extends IconButtonVisualProps, Omit<ButtonHTMLA
  * `highlighted` und `overlap` ergänzen die field-/tile-/accent-Varianten um die restlichen
  * lokalen Feinheiten, die DatePicker/YearPicker/AvatarStack zuvor per Element+Klasse-Selektor
  * (`button.<klasse>`, höhere Spezifität als eine einzelne Klasse) von außen erzwungen hatten --
- * jetzt echte, typgeprüfte Optionen statt eines CSS-Spezifitäts-Tricks.
+ * jetzt echte, typgeprüfte Optionen statt eines CSS-Spezifitäts-Tricks. `loading` ersetzt das
+ * übergebene Icon durch einen Lade-Kreisel und deaktiviert den Button, identisch zu Buttons
+ * gleichnamiger Prop.
  */
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  { icon, variant, size, shape, tone, floating, weight, minHeight, tileFill, dimmed, highlighted, overlap, className, type, ...rest },
+  { icon, variant, size, shape, tone, floating, weight, minHeight, tileFill, dimmed, highlighted, overlap, className, type, loading = false, disabled, ...rest },
   ref,
 ) {
   return (
@@ -130,9 +141,12 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       {...rest}
       ref={ref}
       type={type ?? 'button'}
+      disabled={disabled || loading}
       className={iconButtonClassName({ variant, size, shape, tone, floating, weight, minHeight, tileFill, dimmed, highlighted, overlap }, className)}
     >
-      {icon}
+      {/* label="" unterdrückt den vorlesbaren Spinner-Text bewusst -- das aria-label des Buttons
+          selbst ist bereits die vorgesehene Statusmeldung für Screenreader. */}
+      {loading ? <Spinner size="sm" label="" /> : icon}
     </button>
   )
 })

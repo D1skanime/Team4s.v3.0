@@ -162,18 +162,39 @@ describe('FormField Autoverknüpfung', () => {
         />
       </FormField>,
     )
-    const dateTrigger = screen.getByRole('button', { name: 'Geburtsdatum auswählen' })
+    // Die zugängliche Bezeichnung kommt jetzt über aria-labelledby vom sichtbaren FormField-Label
+    // ("Datum"), nicht mehr von DatePickers eigener, unabhängiger label-Prop ("Geburtsdatum") --
+    // genau das behebt den zuvor möglichen Auseinanderlauf zwischen vorgelesenem und sichtbarem Text.
+    const dateTrigger = screen.getByRole('button', { name: 'Datum' })
     expect(dateTrigger.getAttribute('aria-invalid')).toBeNull()
     expect(dateTrigger.getAttribute('aria-describedby')).toBeTruthy()
+    const dateLabel = screen.getByText('Datum')
+    expect(dateTrigger.getAttribute('aria-labelledby')).toBe(dateLabel.id)
 
     render(
       <FormField label="Jahr" error="Ungültiges Jahr">
         <YearPicker id="erschienen" label="Erschienen" value="" minYear={1900} maxYear={2100} onChange={() => {}} />
       </FormField>,
     )
-    const yearTrigger = screen.getByRole('button', { name: 'Erschienen' })
+    const yearTrigger = screen.getByRole('button', { name: 'Jahr' })
     expect(yearTrigger.getAttribute('aria-invalid')).toBeNull()
     expect(yearTrigger.getAttribute('aria-describedby')).toBeTruthy()
+    const yearLabel = screen.getByText('Jahr')
+    expect(yearTrigger.getAttribute('aria-labelledby')).toBe(yearLabel.id)
+  })
+
+  it('belässt DatePicker/YearPicker bei ihrer eigenständigen label-Prop als aria-label-Quelle, wenn sie ohne FormField (also ohne sichtbares Label) verwendet werden', () => {
+    render(
+      <DatePicker id="eigenstaendig-datum" label="Veröffentlichungsdatum" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
+    )
+    const dateTrigger = screen.getByRole('button', { name: 'Veröffentlichungsdatum auswählen' })
+    expect(dateTrigger.getAttribute('aria-labelledby')).toBeNull()
+
+    render(
+      <YearPicker id="eigenstaendig-jahr" label="Erschienen" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
+    )
+    const yearTrigger = screen.getByRole('button', { name: 'Erschienen' })
+    expect(yearTrigger.getAttribute('aria-labelledby')).toBeNull()
   })
 
   it('rendert ein nicht unterstütztes Kind (mehrere Kinder oder unbekannter Typ) unverändert ohne Fehler', () => {

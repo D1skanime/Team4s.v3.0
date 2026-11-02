@@ -71,7 +71,9 @@ describe('GroupMemberFormModals duplicate confirmation reset (render-time state 
   it('resets duplicate confirmation when the display name changes after confirming', () => {
     render(<Harness />)
 
-    fireEvent.change(screen.getByLabelText('Anzeigename'), { target: { value: 'Sora' } })
+    // { exact: false }, da Labels von Pflichtfeldern seit der Label-Grundbaustein-Umstellung
+    // zusätzlich den für Screenreader eingebetteten "(Pflichtfeld)"-Hinweis im Textinhalt tragen.
+    fireEvent.change(screen.getByLabelText('Anzeigename', { exact: false }), { target: { value: 'Sora' } })
     expect(screen.getByText(/existiert bereits/)).toBeDefined()
     const saveButton = screen.getByRole('button', { name: 'Speichern' }) as HTMLButtonElement
     expect(saveButton.disabled).toBe(true)
@@ -79,10 +81,10 @@ describe('GroupMemberFormModals duplicate confirmation reset (render-time state 
     fireEvent.click(screen.getByRole('switch', { name: 'Ja, trotzdem als neuen Eintrag anlegen' }))
     expect(saveButton.disabled).toBe(false)
 
-    fireEvent.change(screen.getByLabelText('Anzeigename'), { target: { value: 'Sora2' } })
+    fireEvent.change(screen.getByLabelText('Anzeigename', { exact: false }), { target: { value: 'Sora2' } })
     expect(screen.queryByText(/existiert bereits/)).toBeNull()
 
-    fireEvent.change(screen.getByLabelText('Anzeigename'), { target: { value: 'Sora' } })
+    fireEvent.change(screen.getByLabelText('Anzeigename', { exact: false }), { target: { value: 'Sora' } })
     expect(screen.getByText(/existiert bereits/)).toBeDefined()
     expect(saveButton.disabled).toBe(true)
   })

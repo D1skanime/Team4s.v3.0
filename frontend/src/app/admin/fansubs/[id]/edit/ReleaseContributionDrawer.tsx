@@ -10,6 +10,7 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  IconButton,
   LoadingState,
   Select,
 } from '@/components/ui'
@@ -371,16 +372,14 @@ export function ReleaseContributionDrawer({
                       >
                         {editingRoleIds.has(row.contribution_id) ? 'Fertig' : 'Rollen ändern'}
                       </Button>
-                      <Button
+                      <IconButton
                         variant="ghost"
-                        iconOnly
+                        tone="danger"
                         size="sm"
                         aria-label={`${row.member_display_name} entfernen`}
-                        className={styles.contributionRemoveButton}
                         onClick={() => handleRemove(row)}
-                      >
-                        <Trash2 size={18} />
-                      </Button>
+                        icon={<Trash2 size={18} />}
+                      />
                     </div>
                   </div>
                 )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useState } from 'react'
+import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { Button } from './Button'
@@ -23,15 +23,16 @@ type PendingState = ConfirmDialogOptions & { resolve: (value: boolean) => void }
 
 export function useConfirmDialog(): UseConfirmDialogResult {
   const [pending, setPending] = useState<PendingState | null>(null)
-  const cancelButtonId = useId()
+  // `Button` leitet aktuell keinen Ref an sein inneres <button>-Element weiter (siehe
+  // Kommentar in DatePicker.tsx zur gleichen Einschränkung). Um Modal trotzdem per
+  // `initialFocusRef` auf den Abbrechen-Button fokussieren zu können, liest ein
+  // Callback-Ref am umschließenden, layoutneutralen Span (display: contents nimmt den
+  // Span aus dem Flex-Layout von .dialogFooter heraus) das tatsächliche <button>-Element aus.
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null)
 
-  useEffect(() => {
-    if (!pending) return
-    const timer = window.setTimeout(() => {
-      document.getElementById(cancelButtonId)?.focus()
-    }, 0)
-    return () => window.clearTimeout(timer)
-  }, [pending, cancelButtonId])
+  function captureCancelButton(node: HTMLSpanElement | null) {
+    cancelButtonRef.current = node?.querySelector('button') ?? null
+  }
 
   function confirm(options: ConfirmDialogOptions): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
@@ -55,11 +56,14 @@ export function useConfirmDialog(): UseConfirmDialogResult {
       onClose={() => settle(false)}
       title={pending.title}
       description={pending.description}
+      initialFocusRef={cancelButtonRef}
       footer={
         <>
-          <Button id={cancelButtonId} variant="secondary" onClick={() => settle(false)}>
-            {pending.cancelLabel ?? 'Abbrechen'}
-          </Button>
+          <span ref={captureCancelButton} style={{ display: 'contents' }}>
+            <Button variant="secondary" onClick={() => settle(false)}>
+              {pending.cancelLabel ?? 'Abbrechen'}
+            </Button>
+          </span>
           <Button variant={pending.tone === 'danger' ? 'danger' : 'primary'} onClick={() => settle(true)}>
             {pending.confirmLabel ?? 'Bestätigen'}
           </Button>

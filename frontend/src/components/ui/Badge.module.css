@@ -54,3 +54,13 @@
   border-color: var(--badge-muted-border);
   box-shadow: none;
 }
+
+.badgeOnMedia {
+  /* Eigenständige Variante für Badges auf Bild-/dunklen Hintergründen (z. B. Fansub-
+     Banner-Scrim) -- ersetzt die vormals von außen injizierten --badge-muted-bg/-fg-
+     Overrides durch feste, kontrastgeprüft helle Tokens, unabhängig von variant="muted". */
+  background: var(--badge-onmedia-bg);
+  color: var(--badge-onmedia-text);
+  border-color: var(--badge-onmedia-border);
+  box-shadow: none;
+}

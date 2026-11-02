@@ -21,6 +21,12 @@ type YearPickerProps = {
   invalid?: boolean
   /** Von FormField automatisch verknüpfte Fehler-/Hinweis-IDs (additiv, siehe FormField.tsx). */
   'aria-describedby'?: string
+  /** Von FormField automatisch verknüpft, wenn ein sichtbares Label vorhanden ist (additiv,
+   *  siehe FormField.tsx): zeigt auf die ID des sichtbaren FormField-Labels, sodass ein
+   *  Screenreader exakt den sichtbaren Text vorliest statt eines zweiten, unabhängigen Textes aus
+   *  der eigenständigen `label`-Prop. Ohne FormField (eigenständige Verwendung) bleibt `label`
+   *  weiterhin die alleinige aria-label-Quelle. */
+  'aria-labelledby'?: string
   onChange: (value: string) => void
 }
 
@@ -58,6 +64,7 @@ export function YearPicker({
   disabled = false,
   invalid = false,
   'aria-describedby': ariaDescribedBy,
+  'aria-labelledby': ariaLabelledBy,
   onChange,
 }: YearPickerProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -219,7 +226,12 @@ export function YearPicker({
           }
           className={styles.yearPickerTrigger}
           disabled={disabled}
+          // aria-labelledby hat laut ARIA-Spezifikation Vorrang vor aria-label, wenn beide gesetzt
+          // sind -- aria-label bleibt als Pflichtprop/Fallback für die eigenständige Verwendung
+          // ohne FormField gesetzt, wird aber von aria-labelledby überdeckt, sobald FormField eines
+          // übergibt.
           aria-label={label}
+          aria-labelledby={ariaLabelledBy}
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           aria-controls={isOpen ? `${id}-picker` : undefined}

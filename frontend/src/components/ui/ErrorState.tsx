@@ -11,6 +11,10 @@ export interface ErrorStateProps {
   title: string
   description: string
   action?: ReactNode
+  /** Dezentere Darstellung für einen kleineren, lokal begrenzten Fehlerbereich statt eines
+   *  großen Zustands-Blocks -- analog zu EmptyState/LoadingState. */
+  compact?: boolean
+  className?: string
 }
 
 type ErrorStateCopyOptions = {
@@ -62,9 +66,9 @@ export function getErrorStateCopy(
   }
 }
 
-export function ErrorState({ title, description, action }: ErrorStateProps) {
+export function ErrorState({ title, description, action, compact = false, className }: ErrorStateProps) {
   return (
-    <Card variant="flat">
+    <Card variant={compact ? 'compact' : 'flat'} className={className} role="alert">
       <StatusIcon tone="danger" icon={<TriangleAlert size={20} strokeWidth={2} />} />
       <Heading level={3} size={3} className={styles.stateTitle}>{title}</Heading>
       <Text variant="soft" className={styles.stateDescription}>{description}</Text>

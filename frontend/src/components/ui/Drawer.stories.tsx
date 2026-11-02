@@ -55,14 +55,64 @@ function ControlledDrawer({ size }: { size: 'md' | 'lg' }) {
   )
 }
 
-export const NormalGross: Story = {
-  name: 'Normal, groß',
+export const Standard: Story = {
+  name: 'Standard',
   render: () => <ControlledDrawer size="md" />,
 }
 
 export const Gross: Story = {
   name: 'Groß',
   render: () => <ControlledDrawer size="lg" />,
+}
+
+/** Lässt `footer` bewusst weg -- zeigt den in `Drawer.tsx` eingebauten Standard-Footer-Button
+ *  "Fertig", der in den übrigen Stories durch einen eigenen "Schließen"-Button überschrieben wird. */
+function DrawerWithDefaultFooter() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Drawer öffnen</Button>
+      <Drawer
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Release-Details"
+        description="Ohne eigenen Footer -- der Drawer-Baustein zeigt seinen Standard-Button."
+      >
+        <p>Mock-Detailinhalt ohne API-Seam.</p>
+      </Drawer>
+    </>
+  )
+}
+
+export const StandardFusszeile: Story = {
+  name: 'Standard-Fußzeile',
+  render: () => <DrawerWithDefaultFooter />,
+}
+
+/** Demonstriert `variant="responsiveSheet"`: auf schmalen Bildschirmen wandert der Drawer als
+ *  Bottom-Sheet ein, auf breiten Bildschirmen bleibt er als zentriertes, abgerundetes Panel sichtbar. */
+function ResponsiveSheetDrawer() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Drawer öffnen</Button>
+      <Drawer
+        open={open}
+        onClose={() => setOpen(false)}
+        variant="responsiveSheet"
+        title="Release-Details"
+        description="Responsives Sheet -- zentriertes Panel auf breiten, Bottom-Sheet auf schmalen Bildschirmen."
+        footer={<Button variant="secondary" onClick={() => setOpen(false)}>Schließen</Button>}
+      >
+        <p>Mock-Detailinhalt ohne API-Seam.</p>
+      </Drawer>
+    </>
+  )
+}
+
+export const ResponsivesSheet: Story = {
+  name: 'Responsives Sheet',
+  render: () => <ResponsiveSheetDrawer />,
 }
 
 /**

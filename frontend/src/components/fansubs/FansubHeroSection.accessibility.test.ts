@@ -46,6 +46,10 @@ const badgeCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/components/ui/Badge.module.css'),
   'utf8',
 )
+const componentsTokensCss = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/styles/tokens/components.css'),
+  'utf8',
+)
 const globalsCss = readGlobalsCssResolved()
 
 type RGB = [number, number, number]
@@ -205,17 +209,20 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
     expect(metricListCss).not.toMatch(/font-weight:/)
   })
 
-  it('Status-Badge (variant="muted") erreicht im Banner-Fall mindestens 4,5:1 Kontrast gegen seine eigene, auf dem Worst-Case-Scrim aufliegende Chip-Fläche', () => {
+  it('Status-Badge (variant="onMedia") erreicht im Banner-Fall mindestens 4,5:1 Kontrast gegen seine eigene, auf dem Worst-Case-Scrim aufliegende Chip-Fläche', () => {
     // Zweistufige Mischung: zuerst der Badge-eigene Chip-Hintergrund über dem Worst-Case-Scrim-
     // Hintergrund (Chip ist selbst teiltransparent), danach der Badge-Text über diesem bereits
     // gemischten Chip-Hintergrund -- nicht nur direkt gegen den Scrim, da der Text optisch auf
-    // der Chip-Fläche liegt, nicht auf dem rohen Scrim.
-    const bgOverride = extractVarValue(pageCss, '.heroBodyOnBanner', 'badge-muted-bg')
-    const fgOverride = extractVarValue(pageCss, '.heroBodyOnBanner', 'badge-muted-fg')
+    // der Chip-Fläche liegt, nicht auf dem rohen Scrim. Die Werte kommen seit der onMedia-
+    // Migration aus den festen --badge-onmedia-bg/-text-Tokens in components.css (identisch zu
+    // den vormals von page.module.css injizierten --badge-muted-bg/-fg-Overrides), nicht mehr
+    // aus einer von außen gesetzten CSS-Variable.
+    const bgToken = extractVarValue(componentsTokensCss, ':root', 'badge-onmedia-bg')
+    const fgToken = extractVarValue(componentsTokensCss, ':root', 'badge-onmedia-text')
     const chipBackground =
-      bgOverride.alpha < 1 ? mix(bgOverride.rgb, worstCaseBackground, bgOverride.alpha) : bgOverride.rgb
+      bgToken.alpha < 1 ? mix(bgToken.rgb, worstCaseBackground, bgToken.alpha) : bgToken.rgb
     const renderedText =
-      fgOverride.alpha < 1 ? mix(fgOverride.rgb, chipBackground, fgOverride.alpha) : fgOverride.rgb
+      fgToken.alpha < 1 ? mix(fgToken.rgb, chipBackground, fgToken.alpha) : fgToken.rgb
     expect(contrast(renderedText, chipBackground)).toBeGreaterThanOrEqual(4.5)
   })
 

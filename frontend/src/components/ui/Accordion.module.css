@@ -13,12 +13,10 @@
 }
 
 /* Panel-Inhalt ist beliebiger, vom Aufrufer gelieferter ReactNode -- gibt deshalb nur Abstand
-   und Fläche vor, keine eigene Typografie: font-size/color kommen aus globalen Tokens, keine
-   fremde Text-Variable mehr referenziert. */
+   und Fläche vor, wirklich KEINE eigene Typografie mehr: jeder Aufrufer bestimmt Farbe/Schriftgröße/
+   Zeilenabstand seines eigenen children-Inhalts selbst (z. B. über Text), statt dass das Panel sie
+   stillschweigend für alle Inhalte gleich vorschreibt. */
 .accordionPanel {
   overflow: hidden;
   padding: 0 var(--space-4) var(--space-3);
-  color: var(--text-body);
-  font-size: var(--accordion-panel-font-size);
-  line-height: 1.55;
 }

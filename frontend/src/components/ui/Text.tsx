@@ -4,13 +4,15 @@ import { classNames } from './classNames'
 import styles from './Text.module.css'
 
 export type TextVariant = 'body' | 'soft' | 'meta' | 'small' | 'eyebrow'
-export type TextTone = 'default' | 'onScrim'
+export type TextTone = 'default' | 'onScrim' | 'error'
 export type TextAs = 'p' | 'span'
 
 export interface TextProps extends HTMLAttributes<HTMLElement> {
   variant?: TextVariant
   /** 'onScrim' hält den Text auf einem dunklen Hintergrund (z. B. ein Foto-Banner mit Scrim)
-   *  lesbar, unabhängig von der gewählten `variant` (WCAG-kontrastgeprüft). */
+   *  lesbar, unabhängig von der gewählten `variant` (WCAG-kontrastgeprüft). 'error' färbt in
+   *  einem kontrastgeprüften Fehler-Rotton gegen den Kartenhintergrund -- für Formular-/Upload-
+   *  Fehlertext statt einer eigenen, lokalen color-Regel am Aufrufer. */
   tone?: TextTone
   /** 'p' (Standard) für einen eigenständigen Absatz-Block. 'span' für eine reine Inline-Ausgabe
    *  ohne eigenen Block-Umbruch/-Außenabstand -- z. B. MetricLists Bezeichnung/Wert innerhalb von
@@ -30,6 +32,7 @@ const VARIANT_CLASS: Record<TextVariant, string> = {
 const TONE_CLASS: Record<TextTone, string | undefined> = {
   default: undefined,
   onScrim: styles.textToneOnScrim,
+  error: styles.textToneError,
 }
 
 /**

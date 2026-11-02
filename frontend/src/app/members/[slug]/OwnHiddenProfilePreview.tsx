@@ -19,7 +19,7 @@ function getStoredSlug(pathname: string): string | null {
 function LoadingProfile() {
   return (
     <main className={styles.page}>
-      <div className={styles.stateRegion} role="status" aria-live="polite">
+      <div className={styles.stateRegion}>
         <LoadingState
           title="Profil wird geladen."
           description="Team4s prüft, ob dieses Profil angezeigt werden kann."

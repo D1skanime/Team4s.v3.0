@@ -39,6 +39,12 @@ type DatePickerProps = {
   invalid?: boolean
   /** Von FormField automatisch verknüpfte Fehler-/Hinweis-IDs (additiv, siehe FormField.tsx). */
   'aria-describedby'?: string
+  /** Von FormField automatisch verknüpft, wenn ein sichtbares Label vorhanden ist (additiv,
+   *  siehe FormField.tsx): zeigt auf die ID des sichtbaren FormField-Labels, sodass ein
+   *  Screenreader exakt den sichtbaren Text vorliest statt eines zweiten, unabhängigen
+   *  `${label} auswählen`-Textes aus der eigenständigen `label`-Prop. Ohne FormField (eigenständige
+   *  Verwendung) bleibt `label` weiterhin die alleinige aria-label-Quelle. */
+  'aria-labelledby'?: string
   onChange: (value: string) => void
 }
 
@@ -74,6 +80,7 @@ export function DatePicker({
   invalid = false,
   panelAlign = 'start',
   'aria-describedby': ariaDescribedBy,
+  'aria-labelledby': ariaLabelledBy,
   onChange,
 }: DatePickerProps) {
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -212,7 +219,12 @@ export function DatePicker({
             </>
           }
           className={styles.datePickerTrigger}
+          // aria-labelledby hat laut ARIA-Spezifikation Vorrang vor aria-label, wenn beide gesetzt
+          // sind -- aria-label bleibt als Pflichtprop/Fallback für die eigenständige Verwendung
+          // ohne FormField gesetzt, wird aber von aria-labelledby überdeckt, sobald FormField eines
+          // übergibt.
           aria-label={`${label} auswählen`}
+          aria-labelledby={ariaLabelledBy}
           aria-expanded={isOpen}
           aria-describedby={ariaDescribedBy}
           disabled={disabled}

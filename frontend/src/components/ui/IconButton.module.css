@@ -233,6 +233,25 @@
   color: var(--ui-line);
 }
 
+/* Teilen denselben Status-Ton-Seed wie Buttons gleichnamige Varianten (palette.css) -- ein
+   Icon-only-Löschen-/Bestätigen-Auslöser signalisiert so farblich dieselbe Bedeutung wie sein
+   volles Button-Äquivalent, ohne dessen gefüllte Fläche zu übernehmen. */
+.iconButtonToneDanger {
+  color: var(--button-danger-seed);
+}
+
+.iconButtonToneDanger:hover {
+  color: color-mix(in srgb, var(--button-danger-seed) 80%, black 20%);
+}
+
+.iconButtonToneSuccess {
+  color: var(--button-success-seed);
+}
+
+.iconButtonToneSuccess:hover {
+  color: color-mix(in srgb, var(--button-success-seed) 80%, black 20%);
+}
+
 .iconButtonHighlighted {
   border-color: var(--picker-tile-today-border-color);
 }

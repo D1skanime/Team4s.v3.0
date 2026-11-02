@@ -1,5 +1,11 @@
 /* font-size entspricht exakt --font-size-h3, min-height exakt --control-height-md -- als Tokens
-   referenziert statt zufällig übereinstimmender Literale. */
+   referenziert statt zufällig übereinstimmender Literale. Bewusst weiterhin direkt auf diesem
+   <button> gesetzt statt eines inneren Text-/Heading-Wrappers: `title` ist als ReactNode typisiert
+   und erlaubt beliebigen Inhalt (z. B. zusätzlich ein Badge neben dem Titeltext, siehe
+   DisclosureTrigger.stories.tsx "Mit Badge im Titel") -- ein erzwungener Heading/Text-Wrapper
+   würde diese freie Komposition einschränken, ohne dass Heading/Text aktuell eine zu
+   --font-size-h3/--font-weight-heading passende Kombinationsstufe anbieten. Die Tokens selbst
+   sind hier bereits die geforderte Abstraktion. */
 .disclosureTrigger {
   display: flex;
   align-items: center;

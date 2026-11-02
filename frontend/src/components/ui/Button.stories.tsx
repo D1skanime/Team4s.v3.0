@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
-import { MoreHorizontal } from 'lucide-react'
+import { Download, ExternalLink, Save } from 'lucide-react'
 
 import { Button } from './Button'
 
@@ -49,12 +49,59 @@ export const Erfolg: Story = {
   args: { variant: 'success', children: 'Speichern' },
 }
 
-export const NurSymbol: Story = {
-  name: 'Nur Symbol',
-  args: {
-    iconOnly: true,
-    'aria-label': 'Mehr Optionen',
-    children: <MoreHorizontal size={16} />,
+export const Warnung: Story = {
+  name: 'Warnung',
+  args: { variant: 'warning', children: 'Warnung' },
+}
+
+export const Hinweis: Story = {
+  name: 'Hinweis',
+  args: { variant: 'info', children: 'Hinweis' },
+}
+
+export const MitLinkemIcon: Story = {
+  name: 'Mit linkem Icon',
+  args: { leftIcon: <Save size={16} aria-hidden="true" />, children: 'Speichern' },
+  parameters: {
+    docs: {
+      description: { story: 'Icon-only-Fälle (kein sichtbarer Text) laufen ausschließlich über IconButton -- leftIcon/rightIcon sind für Button-Aufrufe mit sichtbarem Text gedacht.' },
+    },
+  },
+}
+
+export const MitRechtemIcon: Story = {
+  name: 'Mit rechtem Icon',
+  args: { rightIcon: <Download size={16} aria-hidden="true" />, children: 'Herunterladen' },
+}
+
+export const AlsLink: Story = {
+  name: 'Als Link',
+  args: { href: '/anime', variant: 'secondary', rightIcon: <ExternalLink size={14} aria-hidden="true" /> },
+  render: (args) => <Button {...args}>Zum Katalog</Button>,
+  parameters: {
+    docs: {
+      description: { story: 'Rendert ein `<a>` statt eines `<button>`, wenn `href` gesetzt ist -- gleiche Optik/Props wie der native Button, inklusive deaktiviertem Zustand über aria-disabled statt dem href-Entfernen.' },
+    },
+  },
+}
+
+export const AlsText: Story = {
+  name: 'Als Text',
+  args: { variant: 'text', children: 'Mehr erfahren' },
+  parameters: {
+    docs: {
+      description: { story: 'Fließtext-artiger Link innerhalb von Absätzen/Listen -- erbt Größe/Gewicht vom umgebenden Kontext, zeigt aber dauerhaft eine Unterstreichung als Klickbarkeits-Hinweis.' },
+    },
+  },
+}
+
+export const Schwebend: Story = {
+  name: 'Schwebend',
+  args: { variant: 'floating', children: 'Schließen' },
+  parameters: {
+    docs: {
+      description: { story: 'Dezente, kartenfarbene Fläche für einen Button direkt über einem Bild/Viewer-Hintergrund.' },
+    },
   },
 }
 
@@ -133,7 +180,7 @@ export const AktuellAusgewaehlt: Story = {
   },
 }
 
-const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'text', 'floating'] as const
+const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'warning', 'info', 'text', 'floating'] as const
 const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   primary: 'Primär',
   secondary: 'Sekundär',
@@ -141,6 +188,8 @@ const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   subtle: 'Zurückhaltend',
   danger: 'Gefahr',
   success: 'Erfolg',
+  warning: 'Warnung',
+  info: 'Hinweis',
   text: 'Text',
   floating: 'Schwebend',
 }

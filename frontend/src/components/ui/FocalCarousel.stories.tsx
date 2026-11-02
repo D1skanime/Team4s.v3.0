@@ -2,35 +2,39 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { storybookDocsLink } from '@/lib/storybookLinks'
 
+import { Card } from './Card'
 import type { FocalCarouselItemState } from './FocalCarousel'
 import { FocalCarousel } from './FocalCarousel'
+import { ResponsiveImage } from './ResponsiveImage'
+import { Text } from './Text'
 
 type DemoItem = { id: number; label: string; imageUrl: string }
 
 // Lokales Platzhalterbild statt externer Bildquelle -- ausschließlich Mockdaten, keine
 // Netzwerkabhängigkeit.
-const DEMO_ITEMS: DemoItem[] = Array.from({ length: 5 }, (_, index) => ({
-  id: index,
-  label: `Szene ${index + 1}`,
-  imageUrl: '/covers/placeholder.jpg',
-}))
+function demoItems(count: number): DemoItem[] {
+  return Array.from({ length: count }, (_, index) => ({
+    id: index,
+    label: `Szene ${index + 1}`,
+    imageUrl: '/covers/placeholder.jpg',
+  }))
+}
 
+const DEMO_ITEMS = demoItems(5)
+
+/** Komposition aus Card/ResponsiveImage/Text statt handgebauter Inline-Styles -- die
+ *  Hervorhebung des aktiven Elements kommt über Cards vorhandene elevated-Variante
+ *  (eigener Rahmen-/Schatten-Token), kein eigenes border-Inline-Style mehr. */
 function renderItem(item: DemoItem, state: FocalCarouselItemState) {
   return (
-    <div
-      style={{
-        border: state.active ? '2px solid var(--accent-primary, #2d5fe8)' : '1px solid var(--surface-border, #d8dce1)',
-        borderRadius: 12,
-        overflow: 'hidden',
-        width: 220,
-      }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={item.imageUrl} alt="" style={{ width: '100%', display: 'block' }} />
-      <p style={{ margin: 0, padding: 8, fontSize: 13 }}>
+    <Card variant={state.active ? 'elevated' : 'flat'} style={{ width: '14rem' }}>
+      <div style={{ position: 'relative', aspectRatio: '16 / 10', overflow: 'hidden', borderRadius: 'var(--radius-surface)' }}>
+        <ResponsiveImage src={item.imageUrl} alt="" fill sizes="224px" style={{ objectFit: 'cover' }} />
+      </div>
+      <Text variant="meta">
         {item.label} ({state.position}/{state.total})
-      </p>
-    </div>
+      </Text>
+    </Card>
   )
 }
 
@@ -63,3 +67,48 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Standard: Story = {}
+
+export const VolleBreite: Story = {
+  name: 'Volle Breite',
+  args: { presentation: 'full-width' },
+  parameters: {
+    docs: {
+      description: { story: 'Breite Karten mit Navigation unterhalb statt gedämpfter Nachbar-Vorschau.' },
+    },
+  },
+}
+
+export const GridScroll: Story = {
+  name: 'Raster-Scroll',
+  args: { presentation: 'grid-scroll', items: demoItems(8) },
+  parameters: {
+    docs: {
+      description: { story: 'Links ausgerichtete, kachelgroße Elemente ohne gedämpften Fokus-Mittelpunkt -- für ein scrollendes Raster statt eines zentrierten Fokus-Karussells.' },
+    },
+  },
+}
+
+export const Einzelelement: Story = {
+  name: 'Einzelelement',
+  args: { items: demoItems(1) },
+  parameters: {
+    docs: {
+      description: { story: 'Bei genau einem Element aktiviert FocalCarousel automatisch den internen "quiet"-Modus: keine Pfeile/Zähler, da es nichts zu navigieren gibt.' },
+    },
+  },
+}
+
+export const AlleAnzeigen: Story = {
+  name: 'Alle anzeigen',
+  args: {
+    items: demoItems(9),
+    showAllLabel: 'Alle anzeigen',
+    showLessLabel: 'Weniger anzeigen',
+    listLabel: 'Alle Szenen',
+  },
+  parameters: {
+    docs: {
+      description: { story: 'Mit gesetztem showAllLabel erscheint unterhalb des Karussells ein Erweitern-Auslöser, der alle Elemente als Raster zeigt (showLessLabel klappt wieder ein).' },
+    },
+  },
+}

@@ -262,10 +262,12 @@ describe('header status Badge reflects the decision (UAT-01)', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Ablehnen' }))
 
-    fireEvent.change(await screen.findByLabelText('Ablehnungsgrund'), {
+    // { exact: false }, da Labels von Pflichtfeldern seit der Label-Grundbaustein-Umstellung
+    // zusätzlich den für Screenreader eingebetteten "(Pflichtfeld)"-Hinweis im Textinhalt tragen.
+    fireEvent.change(await screen.findByLabelText('Ablehnungsgrund', { exact: false }), {
       target: { value: 'quality.insufficient' },
     })
-    fireEvent.change(screen.getByLabelText('Begründung'), {
+    fireEvent.change(screen.getByLabelText('Begründung', { exact: false }), {
       target: { value: 'Bitte Qualität vor der Neueinreichung deutlich verbessern.' },
     })
 

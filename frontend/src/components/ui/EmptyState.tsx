@@ -1,6 +1,8 @@
 import { Inbox } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { mergeCssModules } from '@/lib/mergeCssModules'
+
 import { Card } from './Card'
 import { Heading } from './Heading'
 import { StatusIcon } from './StatusIcon'
@@ -8,11 +10,9 @@ import { Text } from './Text'
 import ownStyles from './EmptyState.module.css'
 import sharedStyles from './ui.module.css'
 
-const styles = new Proxy({} as Record<string, string>, {
-  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
-})
+const styles = mergeCssModules(ownStyles, sharedStyles)
 
-type EmptyStateVariant = 'default' | 'withAction' | 'compact' | 'inline' | 'info'
+type EmptyStateVariant = 'default' | 'compact' | 'inline' | 'info'
 
 export interface EmptyStateProps {
   title: string
@@ -33,19 +33,19 @@ export function EmptyState({
 }: EmptyStateProps) {
   if (variant === 'inline') {
     return (
-      <p className={styles.stateInline}>
+      <Text as="p" role="status" aria-live="polite" className={styles.stateInline}>
         {title}
         {description ? ` – ${description}` : null}
-      </p>
+      </Text>
     )
   }
 
   return (
-    <Card variant={variant === 'compact' ? 'compact' : 'flat'} className={className}>
+    <Card variant={variant === 'compact' ? 'compact' : 'flat'} className={className} role="status" aria-live="polite">
       <StatusIcon tone={variant === 'info' ? 'info' : 'neutral'} icon={icon ?? <Inbox size={20} strokeWidth={2} />} />
       <Heading level={3} size={3} className={styles.stateTitle}>{title}</Heading>
       {description ? <Text variant="soft" className={styles.stateDescription}>{description}</Text> : null}
-      {variant === 'withAction' || action ? action : null}
+      {action}
     </Card>
   )
 }

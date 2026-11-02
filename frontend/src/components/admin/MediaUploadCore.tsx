@@ -2,7 +2,7 @@
 
 import { Crop, Trash2 } from 'lucide-react'
 
-import { Button, MediaSlot, ProgressBar, Spinner } from '@/components/ui'
+import { IconButton, MediaSlot, ProgressBar, Spinner } from '@/components/ui'
 import { classNames } from '@/components/ui/classNames'
 
 import type { EditableMediaValue } from './MediaUpload'
@@ -102,27 +102,26 @@ export function MediaUploadCore({
         actions={
           hasValue ? (
             <>
-              <Button
+              <IconButton
                 type="button"
-                variant="secondary"
+                variant="default"
                 size="sm"
-                iconOnly
                 onClick={onEditClick}
                 disabled={disabled || busy}
                 aria-label="Ausschnitt bearbeiten"
                 title="Ausschnitt bearbeiten"
-                leftIcon={<Crop size={14} />}
+                icon={<Crop size={14} />}
               />
-              <Button
+              <IconButton
                 type="button"
-                variant="danger"
+                variant="ghost"
+                tone="danger"
                 size="sm"
-                iconOnly
                 onClick={onRemoveClick}
                 disabled={disabled || busy}
                 aria-label={`${title} löschen`}
                 title="Löschen"
-                leftIcon={<Trash2 size={14} />}
+                icon={<Trash2 size={14} />}
               />
             </>
           ) : null

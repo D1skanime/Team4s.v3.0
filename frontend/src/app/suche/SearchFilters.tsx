@@ -3,7 +3,7 @@
 import { X } from 'lucide-react'
 import { useCallback, useId } from 'react'
 
-import { Badge, Button, FormField, Input, Select, YearPicker } from '@/components/ui'
+import { Badge, Button, FormField, IconButton, Input, Select, YearPicker } from '@/components/ui'
 
 import { useDebouncedSearch } from './useDebouncedSearch'
 import type { SearchFilters as SearchFilterValues } from './useDebouncedSearch'
@@ -200,16 +200,14 @@ export function SearchFilterChips({ filters, onRemove }: ChipsProps) {
           <span className={styles.chipText}>
             {chip.label}: {chip.display}
           </span>
-          <Button
+          <IconButton
             variant="ghost"
             size="sm"
-            iconOnly
             className={styles.chipRemove}
             aria-label={`Filter ${chip.label} entfernen`}
             onClick={() => onRemove(chip.key)}
-          >
-            <X size={14} aria-hidden="true" />
-          </Button>
+            icon={<X size={14} aria-hidden="true" />}
+          />
         </Badge>
       ))}
     </div>

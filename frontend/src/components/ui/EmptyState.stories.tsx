@@ -47,3 +47,26 @@ export const OhneAction: Story = {
     description: 'Für die aktuelle Filterkombination gibt es keine passenden Einträge.',
   },
 }
+
+export const Kompakt: Story = {
+  name: 'Kompakt',
+  args: {
+    variant: 'compact',
+    title: 'Noch keine Mitglieder',
+    description: 'Für diese Gruppe sind noch keine Mitglieder erfasst.',
+  },
+}
+
+export const Inline: Story = {
+  name: 'Inline',
+  args: {
+    variant: 'inline',
+    title: 'Keine Einträge',
+    description: 'Für diesen Zeitraum liegen keine Daten vor.',
+  },
+  parameters: {
+    docs: {
+      description: { story: 'Reiner Fließtext-Hinweis ohne Card/Icon -- für eine schmale Zeile innerhalb einer bestehenden Fläche statt eines eigenständigen Zustands-Blocks.' },
+    },
+  },
+}

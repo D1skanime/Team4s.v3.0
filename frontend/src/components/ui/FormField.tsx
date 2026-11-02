@@ -3,8 +3,10 @@ import type { ComponentProps, ReactElement, ReactNode } from 'react'
 
 import { DatePicker } from './DatePicker'
 import { Input } from './Input'
+import { Label } from './Label'
 import { Select } from './Select'
 import { Switch } from './Switch'
+import { Text } from './Text'
 import { Textarea } from './Textarea'
 import { YearPicker } from './YearPicker'
 import styles from './FormField.module.css'
@@ -73,7 +75,14 @@ export function FormField({
     // die das Kind tatsächlich bekommt.
     const existingId = typeof childProps.id === 'string' ? childProps.id : undefined
     const resolvedId = existingId ?? htmlFor ?? generatedId
-    const usesGeneratedId = !existingId && !htmlFor
+
+    // Immer erzeugt, sobald ein sichtbares Label vorhanden ist (nicht mehr nur, wenn die ID selbst
+    // neu generiert wurde) -- DatePicker/YearPicker verknüpfen ihren Trigger per aria-labelledby
+    // darauf, damit ein Screenreader exakt den sichtbaren Labeltext vorliest statt eines zweiten,
+    // unabhängigen Textes aus ihrer eigenen label-Prop (siehe triggerSafeProps unten). Additiv --
+    // ändert an bereits korrekt verdrahteten Aufrufern nichts, da labelId bisher nur für das
+    // <label id=...>-Attribut selbst genutzt wurde.
+    labelId = label ? `${resolvedId}-label` : undefined
 
     hintId = hint ? `${resolvedId}-hint` : undefined
     errorId = error ? `${resolvedId}-error` : undefined
@@ -82,14 +91,23 @@ export function FormField({
     const mergedDescribedBy = mergeDescribedBy(existingDescribedBy, hintId, errorId)
     const effectiveDisabled = disabled || Boolean(childProps.disabled)
 
+    // Pflicht an das Kind durchreichen: required=true am Formular-Element selbst nur dort, wo das
+    // native HTML-Attribut auf diesem Elementtyp tatsächlich greift (Input/Select/Textarea);
+    // aria-required ist rollenunabhängig gültig und wird daher überall gesetzt.
+    const effectiveRequired = required || Boolean(childProps.required)
+
     if (singleChild.type === Switch) {
       // Switch kennt kein invalid-Konzept -- aria-invalid kommt hier ausschließlich aus
       // FormField.error, ohne ODER-Verknüpfung mit einer am Kind nicht existierenden Prop.
+      // required hat auf einem <button role="switch"> keine native HTML-Semantik -- nur
+      // aria-required wird gesetzt (analog zur aria-invalid-Begründung unten bei DatePicker/
+      // YearPicker, die aus demselben Grund ebenfalls auf einem Button rendern).
       const effectiveAriaInvalid = Boolean(error)
       renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof Switch>>, {
         id: resolvedId,
         disabled: effectiveDisabled,
         ...(effectiveAriaInvalid ? { 'aria-invalid': true as const } : {}),
+        ...(effectiveRequired ? { 'aria-required': true as const } : {}),
         'aria-describedby': mergedDescribedBy,
       })
     } else {
@@ -98,15 +116,27 @@ export function FormField({
         id: resolvedId,
         disabled: effectiveDisabled,
         invalid: effectiveInvalid,
+        required: effectiveRequired,
         ...(effectiveInvalid ? { 'aria-invalid': true as const } : {}),
+        ...(effectiveRequired ? { 'aria-required': true as const } : {}),
         'aria-describedby': mergedDescribedBy,
       }
       // DatePicker/YearPicker rendern ihren Trigger als <button> -- aria-invalid ist laut
       // ARIA-Spezifikation für die implizite button-Rolle nicht unterstützt (nur für
-      // formularfeldartige Rollen wie textbox/combobox). Der Fehlerzustand bleibt dort über die
-      // bereits vorhandene visuelle invalid-Klasse plus aria-describedby (rollenunabhängig
-      // gültig) erkennbar, nur ohne das spec-widrige aria-invalid-Attribut.
-      const { 'aria-invalid': _unusedAriaInvalid, ...triggerSafeProps } = injectedProps
+      // formularfeldartige Rollen wie textbox/combobox), und das native required-Attribut hat
+      // auf einem Button ebenfalls keine Wirkung. Der Fehlerzustand bleibt dort über die bereits
+      // vorhandene visuelle invalid-Klasse plus aria-describedby (rollenunabhängig gültig)
+      // erkennbar, Pflicht bleibt über aria-required erkennbar -- beides ohne das jeweils
+      // spec-widrige bzw. wirkungslose native Attribut.
+      const { 'aria-invalid': _unusedAriaInvalid, required: _unusedRequired, ...triggerSafeProps } = injectedProps
+      // DatePicker/YearPicker bekommen zusätzlich aria-labelledby auf labelId -- ihr Trigger zeigt
+      // dann exakt auf den sichtbaren FormField-Labeltext statt eines zweiten, unabhängigen Textes
+      // aus ihrer eigenen label-Prop (siehe DatePicker.tsx/YearPicker.tsx: aria-labelledby hat
+      // Vorrang vor deren aria-label-Fallback, sobald gesetzt).
+      // labelId ist nur gesetzt, wenn FormField ein label hat -- ohne label KEINEN
+      // 'aria-labelledby': undefined mitgeben, sonst überschreibt cloneElement ein vom
+      // Aufrufer selbst gesetztes aria-labelledby am Kind mit undefined.
+      const pickerSafeProps = { ...triggerSafeProps, ...(labelId ? { 'aria-labelledby': labelId } : {}) }
 
       if (singleChild.type === Input) {
         renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof Input>>, injectedProps)
@@ -115,9 +145,9 @@ export function FormField({
       } else if (singleChild.type === Textarea) {
         renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof Textarea>>, injectedProps)
       } else if (singleChild.type === DatePicker) {
-        renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof DatePicker>>, triggerSafeProps)
+        renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof DatePicker>>, pickerSafeProps)
       } else if (singleChild.type === YearPicker) {
-        renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof YearPicker>>, triggerSafeProps)
+        renderedChildren = cloneElement(singleChild as ReactElement<ComponentProps<typeof YearPicker>>, pickerSafeProps)
       }
     }
 
@@ -127,24 +157,20 @@ export function FormField({
     // zuvor fehlerhaften Fälle ab: ein Kind mit eigener id, aber ohne FormField.htmlFor (zuvor
     // blieb labelHtmlFor undefined, das Label fokussierte nichts), und ein widersprüchliches
     // FormField.htmlFor gegenüber einer abweichenden Kind-id (zuvor zeigte das Label auf die
-    // falsche, nicht auf die tatsächlich gerenderte ID). Ein zusätzliches labelId-Attribut
-    // (für mögliche künftige aria-labelledby-Verknüpfungen) wird nur ergänzt, wenn die ID
-    // tatsächlich neu generiert wurde -- das bleibt rein additiv und ändert an bestehenden,
-    // bereits korrekt verdrahteten Aufrufern nichts.
+    // falsche, nicht auf die tatsächlich gerenderte ID).
     labelHtmlFor = resolvedId
-    if (usesGeneratedId) {
-      labelId = `${resolvedId}-label`
-    }
   }
 
   return (
-    <div className={styles.fieldset} aria-disabled={disabled}>
+    // role="group" macht aria-disabled auf diesem <div> für Screenreader wirksam -- ein <div>
+    // ohne eigene ARIA-Rolle gibt aria-disabled sonst nicht weiter (pragmatische Lösung statt
+    // eines <fieldset>-Umbaus, der zusätzliches Browser-Standard-Styling zurücksetzen müsste).
+    <div className={styles.fieldset} role="group" aria-disabled={disabled}>
       {label ? (
         <div className={styles.fieldLabelRow}>
-          <label htmlFor={labelHtmlFor} id={labelId} className={styles.fieldLabel}>
+          <Label htmlFor={labelHtmlFor} id={labelId} required={required}>
             {label}
-          </label>
-          {required ? <span className={styles.fieldRequired}>*</span> : null}
+          </Label>
         </div>
       ) : null}
       {renderedChildren}
@@ -154,9 +180,9 @@ export function FormField({
         </p>
       ) : null}
       {error ? (
-        <p id={errorId} className={styles.fieldError}>
+        <Text as="p" tone="error" id={errorId} role="alert" className={styles.fieldError}>
           {error}
-        </p>
+        </Text>
       ) : null}
     </div>
   )
