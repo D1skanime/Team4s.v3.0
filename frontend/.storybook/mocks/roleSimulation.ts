@@ -3,7 +3,7 @@ import type { Decorator } from '@storybook/nextjs'
 import { clearAuthSession, persistAuthSession } from '@/lib/api'
 import type { AuthTokenData } from '@/types/auth'
 
-import { setActiveProfileFixture } from './handlers'
+import { resetWatchlistStoryState, setActiveProfileFixture } from './handlers'
 import { anonymProfile, fansubLeadProfile, mitgliedProfile, plattformAdminProfile } from './profileFixtures'
 
 /**
@@ -65,6 +65,7 @@ function buildDemoAuthToken(role: Exclude<Team4sRole, 'anonym'>): AuthTokenData 
  *  keinen visuellen Bühnenaspekt betrifft. */
 export const withRoleSimulation: Decorator = (Story, context) => {
   const role = (context.globals.team4sRole as Team4sRole | undefined) ?? 'anonym'
+  resetWatchlistStoryState()
 
   if (role === 'anonym') {
     clearAuthSession()

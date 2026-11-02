@@ -5,7 +5,7 @@ import { AnimeEdgeNavigation } from './AnimeEdgeNavigation'
 const meta = {
   title: 'Zusammengesetzte Bausteine/Anime-Randnavigation',
   component: AnimeEdgeNavigation,
-  tags: ['autodocs'],
+  tags: ['autodocs', 'anime-navigation-regression'],
   parameters: {
     docs: { description: { component: 'Zurück- und Weiter-Overlay innerhalb eines Anime-Grid-Kontexts. Hover oder Fokus lädt die echten Vorschaukarten über den zentralen MSW-Listenhandler.' } },
   },

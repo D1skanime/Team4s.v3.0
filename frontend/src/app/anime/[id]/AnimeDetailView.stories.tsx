@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
+import { expect, userEvent, within } from 'storybook/test'
 
 import {
   animeBackdropsHandler,
@@ -6,6 +7,7 @@ import {
   groupedEpisodesHandler,
   watchlistAbsentHandler,
   watchlistErrorHandler,
+  watchlistMutationHandlers,
   watchlistPresentHandler,
 } from '../../../../.storybook/mocks/handlers'
 
@@ -73,15 +75,15 @@ type Story = StoryObj<typeof meta>
 export const Normal: Story = {}
 
 export const InWatchlist: Story = {
-  parameters: { msw: { handlers: [animeBackdropsHandler, watchlistPresentHandler] } },
+  parameters: { msw: { handlers: [animeBackdropsHandler, watchlistPresentHandler, ...watchlistMutationHandlers] } },
 }
 
 export const NichtInWatchlist: Story = {
-  parameters: { msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler] } },
+  parameters: { msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler, ...watchlistMutationHandlers] } },
 }
 
 export const WatchlistFehler: Story = {
-  parameters: { msw: { handlers: [animeBackdropsHandler, watchlistErrorHandler] } },
+  parameters: { msw: { handlers: [animeBackdropsHandler, watchlistErrorHandler, ...watchlistMutationHandlers] } },
 }
 
 export const EpisodenFehler: Story = {
@@ -95,7 +97,7 @@ export const KeineEpisoden: Story = {
 export const VieleEpisoden: Story = {
   args: { groupedEpisodesResponse: manyGroupedEpisodesResponse, episodeCount: 48 },
   parameters: {
-    msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler, groupedEpisodesLoadMoreHandler(moreGroupedEpisodesResponse)] },
+    msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler, ...watchlistMutationHandlers, groupedEpisodesLoadMoreHandler(moreGroupedEpisodesResponse)] },
     docs: {
       description: {
         story: 'Beim Erreichen des unteren Listenrands lädt der echte Episoden-Browser die zweite Cursor-Seite nach.',
@@ -115,7 +117,7 @@ export const MehrereFansubgruppen: Story = {
     episodeCount: 1,
   },
   parameters: {
-    msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler, groupedEpisodesHandler(freezingGroupedEpisodesResponse)] },
+    msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler, ...watchlistMutationHandlers, groupedEpisodesHandler(freezingGroupedEpisodesResponse)] },
     docs: { description: { story: 'Die Umschalter zeigen Bloody-Shadow, LazySubs und MelonSubs. Ein Klick lädt die echte gruppengefilterte Episodenansicht über MSW; die Gruppenkarte wechselt mit.' } },
   },
 }
@@ -129,6 +131,18 @@ export const MitRandnavigation: Story = {
   },
   parameters: {
     docs: { description: { story: 'Die beiden Randnavigationen nutzen die zentrale MSW-Liste. Mit Hover oder Fokus erscheinen die echten Vorschaukarten.' } },
+  },
+}
+
+export const MerklistenToggle: Story = {
+  name: 'Merkliste umschalten',
+  globals: { team4sRole: 'mitglied' },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByRole('button', { name: /Zur Watchlist/ }))
+    await expect(canvas.findByText('Zur Watchlist hinzugefügt.')).resolves.toBeTruthy()
+    await userEvent.click(await canvas.findByRole('button', { name: /In Watchlist/ }))
+    await expect(canvas.findByText('Aus Watchlist entfernt.')).resolves.toBeTruthy()
   },
 }
 
