@@ -53,8 +53,8 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
           <div className={styles.identity}>
             {/* Avatar löst Bild+Fallback in einem Baustein: fehlt ein Gruppenlogo, zeigt Avatar
                 automatisch ein Initialen-Kürzel statt -- wie bisher -- gar nichts zu rendern. Das
-                ist eine von der Decision ausdrücklich VERLANGTE Verhaltenserweiterung
-                (261102-hlg, D-08/RESEARCH-CARD.md Abschnitt 5), kein reiner Baustein-Tausch. */}
+                ist eine ausdrücklich gewollte Verhaltenserweiterung, kein reiner
+                Baustein-Tausch. */}
             <div className={styles.logos}>
               {groups.map((group) => (
                 <Avatar
@@ -69,26 +69,26 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
             <div className={styles.identityText}>
               <Text tone="onScrim" className={styles.groupName}>
                 {groupNameLine}
-                {/* UI-SPEC decision 12: reiner Text, kein Chip/Badge/Rahmen -- bleibt deshalb
-                    bewusst Text statt Badge. */}
+                {/* Reiner Text, kein Chip/Badge/Rahmen -- bleibt deshalb bewusst Text statt
+                    Badge. */}
                 {isCoop ? <Text as="span" style={mutedOnGlassTextStyle} className={styles.coopLabel}> COOP</Text> : null}
               </Text>
-              <Text tone="onScrim" style={mutedOnGlassTextStyle} className={styles.releaseName}>
+              <Text style={mutedOnGlassTextStyle} className={styles.releaseName}>
                 {resolveReleaseName(version)}
               </Text>
             </div>
           </div>
 
           {techLine ? (
-            <Text tone="onScrim" style={mutedOnGlassTextStyle} className={styles.techLine}>{techLine}</Text>
+            <Text style={mutedOnGlassTextStyle} className={styles.techLine}>{techLine}</Text>
           ) : null}
 
           {extras.length > 0 ? (
-            <Text tone="onScrim" style={mutedOnGlassTextStyle} className={styles.extrasLine}>{extras.join('   ')}</Text>
+            <Text style={mutedOnGlassTextStyle} className={styles.extrasLine}>{extras.join('   ')}</Text>
           ) : null}
 
           {dateLine ? (
-            <Text tone="onScrim" style={mutedOnGlassTextStyle} className={styles.dateLine}>{dateLine}</Text>
+            <Text style={mutedOnGlassTextStyle} className={styles.dateLine}>{dateLine}</Text>
           ) : null}
         </div>
 

@@ -5,7 +5,7 @@ import { Card } from './Card'
 import { Text } from './Text'
 
 /** Card-Primitive: alle zehn dokumentierten Varianten aus CardProps, inkl. der beiden
- *  öffentlichen Glas-Varianten (261102-hlg) -- zweite offizielle Erscheinung derselben
+ *  öffentlichen Glas-Varianten -- zweite offizielle Erscheinung derselben
  *  Kartenfläche auf Foto-/Bannerhintergrund statt der hellen Admin-Optik. */
 const meta = {
   title: 'Grundbausteine/Card',

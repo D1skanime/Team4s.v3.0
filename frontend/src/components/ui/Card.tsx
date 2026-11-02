@@ -24,6 +24,15 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
    *  bleibt beim jeweiligen Aufrufer (siehe EpisodeGlassCard.tsx), Card setzt nur die generische
    *  CSS-Variable --card-tint-hue. */
   tintHue?: number
+  /** Optionale Feinjustierung der Tönungsformel (Prozentwerte ohne Einheit, z. B. 70 für "70%").
+   *  Ohne Angabe gelten Cards generische --card-tint-saturation/-lightness/-surface-alpha/
+   *  -border-alpha-Tokens. Ermöglicht einem Aufrufer, eine vorher exakt anders eingestellte
+   *  Tönung (z. B. eine der vier Episodenklassifikationen) pixelgenau zu reproduzieren, ohne
+   *  dass Card selbst die einzelnen Werte kennen oder Fachnamen führen müsste. */
+  tintSaturation?: number
+  tintLightness?: number
+  tintSurfaceAlpha?: number
+  tintBorderAlpha?: number
 }
 
 export function Card({
@@ -33,6 +42,10 @@ export function Card({
   header,
   footer,
   tintHue,
+  tintSaturation,
+  tintLightness,
+  tintSurfaceAlpha,
+  tintBorderAlpha,
   className,
   children,
   style,
@@ -48,7 +61,14 @@ export function Card({
   const isGlassVariant = variant === 'glass' || variant === 'glassStrong'
   const hasTint = isGlassVariant && tintHue !== undefined
   const mergedStyle: CSSProperties | undefined = hasTint
-    ? { ...style, '--card-tint-hue': tintHue } as CSSProperties
+    ? {
+        ...style,
+        '--card-tint-hue': tintHue,
+        ...(tintSaturation !== undefined ? { '--card-tint-saturation-override': `${tintSaturation}%` } : {}),
+        ...(tintLightness !== undefined ? { '--card-tint-lightness-override': `${tintLightness}%` } : {}),
+        ...(tintSurfaceAlpha !== undefined ? { '--card-tint-surface-alpha-override': `${tintSurfaceAlpha}%` } : {}),
+        ...(tintBorderAlpha !== undefined ? { '--card-tint-border-alpha-override': `${tintBorderAlpha}%` } : {}),
+      } as CSSProperties
     : style
 
   return (

@@ -1,11 +1,11 @@
 /* ==========================================================================
    AnimeDetail Page -- Poster-Spalte (Glas-Panel links: Poster, Watchlist, Genres)
-   Teil des 450-Zeilen-Splits von page.module.css (261102-hlg, Task 5), zusammengeführt über
+   Teil des 450-Zeilen-Splits von page.module.css, zusammengeführt über
    AnimeDetailView.styles.ts.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Poster Column (Left)
+   Poster-Spalte (links)
    -------------------------------------------------------------------------- */
 .posterColumn {
   display: flex;
@@ -24,7 +24,7 @@
   position: relative;
 }
 
-/* Area below poster for watchlist button and genres */
+/* Bereich unterhalb des Posters für Watchlist-Button und Genres */
 .posterMeta {
   position: relative;
   z-index: 5;
@@ -37,7 +37,7 @@
 
 .posterDivider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--border-on-media);
   border: none;
   margin: 4px 0;
 }
@@ -63,7 +63,7 @@
   overflow: visible;
 }
 
-/* Rahmen um MediaFrame (261102-hlg, Task 6) -- z-index:2 ist Pflicht, nicht kosmetisch: muss
+/* Rahmen um MediaFrame -- z-index:2 ist Pflicht, nicht kosmetisch: muss
    über dem per `::after` erzeugten unscharfen Verlängerungs-Layer (z-index:1) liegen bleiben,
    genau wie die bisherige <Image class="poster">. */
 .poster {
@@ -93,7 +93,7 @@
   );
 }
 
-/* Blurred poster extension - fills entire space below poster */
+/* Unscharfe Poster-Fortsetzung -- füllt die gesamte Fläche unterhalb des Posters */
 .posterWrapper::after {
   content: "";
   position: absolute;
@@ -130,7 +130,7 @@
   z-index: 1;
 }
 
-/* Watchlist Button */
+/* Merklisten-Button */
 .watchlistButton {
   width: 100%;
   height: 46px;
@@ -157,7 +157,7 @@
   background: linear-gradient(90deg, #4ade80, #22c55e);
 }
 
-/* Genres */
+/* Genre-Liste */
 .genres {
   display: flex;
   flex-wrap: wrap;
@@ -165,7 +165,7 @@
 }
 
 /* Leerfall-Platzhalter (keine Genres) bleibt bewusst außerhalb von LinkChip: statische Glas-
-   Optik ohne Fokus/Hover, da hier nichts klickbar ist (261102-hlg, Task 6). Werte 1:1 identisch
+   Optik ohne Fokus/Hover, da hier nichts klickbar ist. Werte 1:1 identisch
    zu LinkChips tone="glass", aber lokal gehalten statt eines deaktivierten Link-Zustands. */
 .genrePlaceholder {
   display: inline-flex;
@@ -179,7 +179,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Responsive Design
+   Responsives Verhalten
    -------------------------------------------------------------------------- */
 @media (max-width: 1023px) {
   .posterWrapper {

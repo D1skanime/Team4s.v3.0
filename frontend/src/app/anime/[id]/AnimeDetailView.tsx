@@ -63,8 +63,8 @@ export function AnimeDetailView({
   coverUrl,
   rawFansubParam,
 }: AnimeDetailViewProps) {
-  // D-03 (Badge onMedia statt Eigenbau-Stats-Overlay): 0/unbekannte Episodenzahl zeigt bewusst
-  // KEIN Badge (kein "0 Folgen"), Einzahl "1 Folge" statt "1 Folgen".
+  // 0/unbekannte Episodenzahl zeigt bewusst KEIN Badge (kein "0 Folgen"), Einzahl "1 Folge"
+  // statt "1 Folgen".
   const posterEpisodeCount = anime.max_episodes ?? 0
   const posterEpisodeBadge = posterEpisodeCount > 0
     ? <Badge variant="onMedia">{posterEpisodeCount === 1 ? '1 Folge' : `${posterEpisodeCount} Folgen`}</Badge>
@@ -106,7 +106,7 @@ export function AnimeDetailView({
               </MediaFrame>
             </div>
 
-            {/* Poster Meta (Watchlist + Genres) */}
+            {/* Poster-Metadaten (Merkliste + Genres) */}
             <div className={styles.posterMeta}>
               <WatchlistAddButton
                 animeID={anime.id}
@@ -131,79 +131,84 @@ export function AnimeDetailView({
             </div>
           </div>
 
-          {/* Right: Info Card -- öffentliche Glas-Fläche (Card variant="glass") statt
-              seiteneigenem CSS (261102-hlg, D-05). Die Fläche selbst kommt jetzt komplett aus
-              Card/Tokens, .infoCard liefert nur noch Layout-Feinschliff. */}
+          {/* Rechts: Info-Karte -- öffentliche Glas-Fläche (Card variant="glass") statt
+              seiteneigenem CSS. Die Fläche selbst kommt jetzt komplett aus Card/Tokens; das
+              Innenlayout (Abstand, Spaltenanordnung) liegt bewusst in einem verschachtelten
+              .infoCardBody-Element statt direkt auf Card (vermeidet einen Cross-Modul-
+              Spezifitätsgleichstand mit Cards eigenem Layout, siehe page.infoCard.module.css). */}
           <Card variant="glass" className={styles.infoCard}>
-            {/* Title + Logo Row */}
-            <div className={styles.titleRow}>
-              <Heading level={1} tone="onScrim" className={styles.title}>{anime.title}</Heading>
-              <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
-            </div>
+            <div className={styles.infoCardBody}>
+              {/* Titel- und Logo-Zeile */}
+              <div className={styles.titleRow}>
+                <Heading level={1} tone="onScrim" className={styles.title}>{anime.title}</Heading>
+                <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
+              </div>
 
-            {/* Badges -- StatusBadge bleibt bewusst ein eigenständiger Fachbaustein (eigenes
-                CSS-Modul, eigene Status-Farblogik); die drei übrigen Pillen (Typ/Content-Type/
-                Jahr) sind reine Metadaten ohne Statusbedeutung und werden deshalb auf das
-                offizielle Badge-Grundelement umgestellt -- zwei getrennte, nebeneinander
-                bestehende "Badge-Familien" (261102-hlg, D-04). */}
-            <div className={styles.badges}>
-              <StatusBadge status={anime.status} />
-              <Badge variant="neutral">{anime.type.toUpperCase()}</Badge>
-              <Badge variant="neutral">{anime.content_type}</Badge>
-              <Badge variant="neutral">{anime.year ?? 'n/a'}</Badge>
-            </div>
+              {/* Status-/Typ-/Jahr-Badges -- StatusBadge bleibt bewusst ein eigenständiger
+                  Fachbaustein (eigenes CSS-Modul, eigene Status-Farblogik); die drei übrigen
+                  Pillen (Typ/Content-Type/Jahr) sind reine Metadaten ohne Statusbedeutung und
+                  werden deshalb auf das offizielle Badge-Grundelement umgestellt -- zwei
+                  getrennte, nebeneinander bestehende "Badge-Familien". */}
+              <div className={styles.badges}>
+                <StatusBadge status={anime.status} />
+                <Badge variant="neutral">{anime.type.toUpperCase()}</Badge>
+                <Badge variant="neutral">{anime.content_type}</Badge>
+                <Badge variant="neutral">{anime.year ?? 'n/a'}</Badge>
+              </div>
 
-            {/* Description */}
-            <Text tone="onScrim" className={styles.description}>
-              {anime.description ?? 'Keine Beschreibung vorhanden.'}
-            </Text>
+              {/* Beschreibung */}
+              <Text tone="onScrim" className={styles.description}>
+                {anime.description ?? 'Keine Beschreibung vorhanden.'}
+              </Text>
 
-            {/* Tags direkt unter der Beschreibung -- die Trennlinie zum nächsten Block folgt erst
-                mit dem Banner, nicht schon hier, damit Tags optisch noch zur Beschreibung gehören */}
-            {anime.tags && anime.tags.length > 0 && (
-              <>
-                <div className={styles.tagsSection}>
-                  <h2 id="tags-heading" className={styles.tagsLabel}>Tags</h2>
-                  <ul className={styles.tagsList} aria-labelledby="tags-heading">
-                    {anime.tags.map((tag) => (
-                      <li key={tag}>
-                        <LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>
-                          {tag}
-                        </LinkChip>
-                      </li>
-                    ))}
-                  </ul>
+              {/* Tags direkt unter der Beschreibung -- die Trennlinie zum nächsten Block folgt
+                  erst mit dem Banner, nicht schon hier, damit Tags optisch noch zur Beschreibung
+                  gehören */}
+              {anime.tags && anime.tags.length > 0 && (
+                <>
+                  <div className={styles.tagsSection}>
+                    <h2 id="tags-heading" className={styles.tagsLabel}>Tags</h2>
+                    <ul className={styles.tagsList} aria-labelledby="tags-heading">
+                      {anime.tags.map((tag) => (
+                        <li key={tag}>
+                          <LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>
+                            {tag}
+                          </LinkChip>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              )}
+
+              {embySeriesUrl && (
+                <div className={styles.statsRow}>
+                  <Button
+                    href={embySeriesUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="text"
+                    size="sm"
+                    leftIcon={<ExternalLink size={14} aria-hidden="true" />}
+                  >
+                    Emby
+                  </Button>
                 </div>
-              </>
-            )}
+              )}
 
-            {embySeriesUrl && (
-              <div className={styles.statsRow}>
-                <Button
-                  href={embySeriesUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="text"
-                  size="sm"
-                  leftIcon={<ExternalLink size={14} aria-hidden="true" />}
-                >
-                  Emby
-                </Button>
-              </div>
-            )}
+              {/* Info-Banner aus Jellyfin */}
+              <AnimeInfoBanner className={styles.infoBanner} dividerClassName={styles.divider} />
 
-            {/* Info Banner from Jellyfin */}
-            <AnimeInfoBanner className={styles.infoBanner} dividerClassName={styles.divider} />
-
-            {/* Related Animes Section - inside infoCard */}
-            {relationsResponse && relationsResponse.data.length > 0 && (
-              <div className={styles.relatedSection}>
-                <AnimeRelations relations={relationsResponse.data} />
-              </div>
-            )}
+              {/* Verwandte Anime -- innerhalb der Info-Karte */}
+              {relationsResponse && relationsResponse.data.length > 0 && (
+                <div className={styles.relatedSection}>
+                  <AnimeRelations relations={relationsResponse.data} />
+                </div>
+              )}
+            </div>
           </Card>
 
-          {/* Edge Navigation Overlay - positioned on heroContainer */}
+          {/* Edge-Navigation-Overlay -- auf dem heroContainer positioniert */}
           {gridQuery && (
             <div className={styles.edgeNavigationOverlay}>
               <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} />
@@ -212,7 +217,7 @@ export function AnimeDetailView({
         </section>
       </div>
 
-      {/* Content Area (Episodes) */}
+      {/* Inhaltsbereich (Episoden) */}
       <div className={styles.contentArea}>
         <section className={styles.episodesSection}>
           {groupedEpisodesResponse ? (
@@ -229,9 +234,9 @@ export function AnimeDetailView({
             />
           ) : (
             // Neutraler Fehlerhinweis statt der ungefilterten anime.episodes-Notfallliste, falls
-            // die Episoden nicht geladen werden konnten -- jetzt über die offizielle, kompakte
-            // ErrorState-Primitive statt eines Eigenbau-<div> (261102-hlg, D-04); role="alert"
-            // kommt bereits aus ErrorState selbst.
+            // die Episoden nicht geladen werden konnten -- über die offizielle, kompakte
+            // ErrorState-Primitive statt eines Eigenbau-<div>; role="alert" kommt bereits aus
+            // ErrorState selbst.
             <ErrorState
               compact
               title="Episoden konnten nicht geladen werden"

@@ -11,10 +11,12 @@ vollständig beantwortet und umgesetzt -- siehe Abschnitt "Antwort umgesetzt (26
 dieser Datei. Beide Tabellen spiegeln den finalen Code nach diesem Auftrag wider (gegen den
 tatsächlichen finalen Code per `grep -n` erneut geprüft, keine Zwischenstände).
 
-**Hinweis:** Die Zeilenangaben wurden nach der abschließenden Code-Review-Korrekturrunde
-(Pagination-Platzhalter-Kollision, Storybook-Cookie-Isolation, Kommentar-Präzisierungen) UND nach
-Schritt 3 (261102-hlg: LinkChip/BannerSection/Card-Glas-Varianten, Design-System-Pflichtnutzung)
-erneut gegen den finalen Code geprüft und aktualisiert.
+**Hinweis:** Die Zeilenangaben wurden nach der abschließenden Code-Review-Korrekturrunde von
+Schritt 2 (Pagination-Platzhalter-Kollision, Storybook-Cookie-Isolation, Kommentar-
+Präzisierungen), nach Schritt 3 (261102-hlg: LinkChip/BannerSection/Card-Glas-Varianten,
+Design-System-Pflichtnutzung) UND nach dessen eigener Code-Review-Korrekturrunde (Card-
+Tönungsformel, Info-Karten-Layout-Wrapper, Token-Referenzen, Kommentar-Übersetzungen -- siehe
+`261102-hlg-REVIEW.md`) jeweils erneut gegen den finalen Code geprüft und aktualisiert.
 
 ## /anime -- `frontend/src/app/anime/AnimeListView.tsx`
 
@@ -38,24 +40,24 @@ erneut gegen den finalen Code geprüft und aktualisiert.
 | Poster-Statistik-Overlay ("N Folgen"/"1 Folge") | vorhandener Grundbaustein (`Badge`, `variant="onMedia"`, im `MediaFrame`-`bottomBadge`-Slot) | `AnimeDetailView.tsx:68-71`/`96` |
 | Watchlist-Button | Eigenbau-Fachkomponente (`WatchlistAddButton`, domänenspezifische Komposition aus `Button` + eigenem Client-Fetch-State, kein `@/components/ui`-Baustein) | `AnimeDetailView.tsx:111-115` (`@/components/watchlist/WatchlistAddButton.tsx`) |
 | Genres-Chip-Liste | neuer Grundbaustein (`LinkChip`, `tone="glass"`) | `AnimeDetailView.tsx:122-124` |
-| Titel + Logo | `AnimeTitleLogo` bleibt vorhandener Fachbaustein; Titel selbst ist jetzt vorhandener Grundbaustein (`Heading`, `tone="onScrim"`) | `AnimeDetailView.tsx:140-141` |
-| Info-Karte (Flächenoptik) | neue Card-Variante (`Card variant="glass"`) | `AnimeDetailView.tsx:137` (`@/components/ui/Card.tsx`) |
-| Status-/Typ-/Jahr-Badges | `StatusBadge` bleibt eigenständiger Fachbaustein (eigenes CSS-Modul, eigene Status-Farblogik); die drei übrigen (`Typ`/`content_type`/`Jahr`) nutzen jetzt den vorhandenen Grundbaustein `Badge` (`variant="neutral"`) | `AnimeDetailView.tsx:150-153` |
-| Beschreibung | vorhandener Grundbaustein (`Text`, `tone="onScrim"`) | `AnimeDetailView.tsx:157-159` |
-| Tags-Liste | neuer Grundbaustein (`LinkChip`, `tone="scrim"`) | `AnimeDetailView.tsx:170-172` |
-| Emby-Link | vorhandener Grundbaustein (`Button`, Link-Modus via `href`) | `AnimeDetailView.tsx:182-191` |
-| Info-Banner (Jellyfin) | vorhandener Fachbaustein (`AnimeInfoBanner`) | `AnimeDetailView.tsx:196` (`@/components/anime/AnimeMediaProvider.tsx`) |
-| Verwandte Anime | vorhandener Fachbaustein (`AnimeRelations`) | `AnimeDetailView.tsx:199-203` (`@/components/anime/AnimeRelations.tsx`; `page.infoCard.module.css` `.relatedSection`) |
-| Edge-Navigation (Vorheriger/Nächster Anime im Grid-Kontext) | vorhandener Fachbaustein (`AnimeEdgeNavigation`) | `AnimeDetailView.tsx:207-211` (`@/components/anime/AnimeEdgeNavigation.tsx`) |
-| Episoden-Browser (Fansub-Filter + Versionsliste) | vorhandener Fachbaustein (`FansubVersionBrowser`), dessen Episoden-/Release-Kartenebene jetzt selbst aus Grundbausteinen besteht (`EpisodeGlassCard`/`ReleasePreviewRow`, siehe unten) | `AnimeDetailView.tsx:219-229` (`@/components/fansubs/FansubVersionBrowser.tsx`) |
-| Episoden-Fehlerzustand ("Episoden konnten nicht geladen werden") | vorhandener zusammengesetzter Baustein (`ErrorState`, kompakt) | `AnimeDetailView.tsx:235-239` |
+| Titel + Logo | `AnimeTitleLogo` bleibt vorhandener Fachbaustein; Titel selbst ist jetzt vorhandener Grundbaustein (`Heading`, `tone="onScrim"`) | `AnimeDetailView.tsx:143-144` |
+| Info-Karte (Flächenoptik) | neue Card-Variante (`Card variant="glass"`), Innenlayout in einem verschachtelten `.infoCardBody`-Element (Cross-Modul-CSS-Konflikt mit `Card`s eigenem Layout vermieden) | `AnimeDetailView.tsx:139-141` (`@/components/ui/Card.tsx`) |
+| Status-/Typ-/Jahr-Badges | `StatusBadge` bleibt eigenständiger Fachbaustein (eigenes CSS-Modul, eigene Status-Farblogik); die drei übrigen (`Typ`/`content_type`/`Jahr`) nutzen jetzt den vorhandenen Grundbaustein `Badge` (`variant="neutral"`) | `AnimeDetailView.tsx:153-156` |
+| Beschreibung | vorhandener Grundbaustein (`Text`, `tone="onScrim"`) | `AnimeDetailView.tsx:160-162` |
+| Tags-Liste | neuer Grundbaustein (`LinkChip`, `tone="scrim"`) | `AnimeDetailView.tsx:174-176` |
+| Emby-Link | vorhandener Grundbaustein (`Button`, Link-Modus via `href`) | `AnimeDetailView.tsx:186-195` |
+| Info-Banner (Jellyfin) | vorhandener Fachbaustein (`AnimeInfoBanner`) | `AnimeDetailView.tsx:200` (`@/components/anime/AnimeMediaProvider.tsx`) |
+| Verwandte Anime | vorhandener Fachbaustein (`AnimeRelations`) | `AnimeDetailView.tsx:204-206` (`@/components/anime/AnimeRelations.tsx`; `page.infoCard.module.css` `.relatedSection`) |
+| Edge-Navigation (Vorheriger/Nächster Anime im Grid-Kontext) | vorhandener Fachbaustein (`AnimeEdgeNavigation`) | `AnimeDetailView.tsx:213-215` (`@/components/anime/AnimeEdgeNavigation.tsx`) |
+| Episoden-Browser (Fansub-Filter + Versionsliste) | vorhandener Fachbaustein (`FansubVersionBrowser`), dessen Episoden-/Release-Kartenebene jetzt selbst aus Grundbausteinen besteht (`EpisodeGlassCard`/`ReleasePreviewRow`, siehe unten) | `AnimeDetailView.tsx:224-234` (`@/components/fansubs/FansubVersionBrowser.tsx`) |
+| Episoden-Fehlerzustand ("Episoden konnten nicht geladen werden") | vorhandener zusammengesetzter Baustein (`ErrorState`, kompakt) | `AnimeDetailView.tsx:240-244` |
 
 ### Episoden-/Release-Kartenebene innerhalb von `FansubVersionBrowser` (261102-hlg, Ebene 2)
 
 | Seitenteil | Bausteintyp | Datei:Zeile |
 |---|---|---|
-| Episodenkarte (Klassifikations-Tönung, Kopfzeile, Versionsliste) | `EpisodeGlassCard` nutzt jetzt `Card variant="glass"` + generischen `tintHue`-Hook + `DisclosureTrigger` + `Text` statt feature-lokaler `--glass-*`-Literale | `frontend/src/components/fansubs/EpisodeGlassCard.tsx:43` (`<Card variant="glass" tintHue={tintHue} ...>`) |
-| Release-/Versionszeile (Gruppenlogo, Technik-/Extras-/Datumszeile) | `ReleasePreviewRow` nutzt jetzt `Card variant="glassStrong"` + `Avatar` (Logo-Fallback) + `Text` | `frontend/src/components/fansubs/ReleasePreviewRow.tsx:44` (`<Card variant="glassStrong">`) |
+| Episodenkarte (Klassifikations-Tönung, Kopfzeile, Versionsliste) | `EpisodeGlassCard` nutzt jetzt `Card variant="glass"` + generischen `tintHue`-Hook (mit optionaler exakter Feinjustierung für die Tönungen `mixed`/`recap`, die von der Standardformel abweichen) + `DisclosureTrigger` + `Text` statt feature-lokaler `--glass-*`-Literale | `frontend/src/components/fansubs/EpisodeGlassCard.tsx:51-58` (`<Card variant="glass" tintHue={tint?.hue} ...>`) |
+| Release-/Versionszeile (Gruppenlogo, Technik-/Extras-/Datumszeile) | `ReleasePreviewRow` nutzt jetzt `Card variant="glassStrong"` + `Avatar` (Logo-Fallback) + `Text` | `frontend/src/components/fansubs/ReleasePreviewRow.tsx:50` (`<Card variant="glassStrong">`) |
 | Episoden-Überschrift ("Episoden (N)") | vorhandener Grundbaustein (`Heading`, `tone="onScrim"`) statt rohem `<h2>` | `frontend/src/components/fansubs/FansubVersionBrowser.tsx:305` |
 
 ## Weitere öffentliche Karten-/Glas-Flächen außerhalb dieses Auftrags

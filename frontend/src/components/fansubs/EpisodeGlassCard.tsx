@@ -10,14 +10,25 @@ import type { PublicGroupedEpisode } from '@/types/episodeVersion'
 import { classificationAndTypeLine, formatVersionCountLabel, mutedOnGlassTextStyle } from './episodePreviewFormat'
 import styles from './EpisodeGlassCard.module.css'
 
-// Episodentyp -> Farbton-Zuordnung für Cards generischen Tönungs-Hook (tintHue, 0-360). Card
-// selbst kennt KEINE Episodentypen -- diese fachliche Zuordnung bleibt bewusst hier (261102-hlg,
-// D-07/D-08, RESEARCH-CARD.md Abschnitt 10). `unknown` bekommt bewusst keine Tönung (`undefined`).
-const TINT_HUE_BY_FILLER_TYPE: Record<PublicGroupedEpisode['filler_type'], number | undefined> = {
-  canon: 222,
-  filler: 2,
-  mixed: 272,
-  recap: 42,
+// Episodentyp -> Tönungszuordnung für Cards generischen Tönungs-Hook. Card selbst kennt KEINE
+// Episodentypen -- diese fachliche Zuordnung bleibt bewusst hier. `canon`/`filler` nutzen Cards
+// Standardformel (Sättigung/Helligkeit/Deckkraft bleiben ungesetzt); `mixed`/`recap` hatten vor
+// dieser Umstellung davon abweichende Einzelwerte und bekommen sie über die optionalen
+// tintSaturation/tintLightness/tintSurfaceAlpha/tintBorderAlpha-Props exakt zurück, damit sich
+// die Optik durch den Wechsel auf den generischen Hook nicht verändert. `unknown` bekommt bewusst
+// keine Tönung (`undefined`).
+interface EpisodeTint {
+  hue: number
+  saturation?: number
+  lightness?: number
+  surfaceAlpha?: number
+  borderAlpha?: number
+}
+const TINT_BY_FILLER_TYPE: Record<PublicGroupedEpisode['filler_type'], EpisodeTint | undefined> = {
+  canon: { hue: 222 },
+  filler: { hue: 2 },
+  mixed: { hue: 272, saturation: 60, lightness: 64 },
+  recap: { hue: 42, saturation: 75, lightness: 58, surfaceAlpha: 14, borderAlpha: 34 },
   unknown: undefined,
 }
 
@@ -27,17 +38,25 @@ export interface EpisodeGlassCardProps {
   expanded: boolean
   onToggle: () => void
   panelId: string
-  /** Bereits gerenderte ReleasePreviewRow-Instanzen des Elternteils (Task 3). */
+  /** Bereits gerenderte ReleasePreviewRow-Instanzen, vom Elternteil durchgereicht. */
   children: ReactNode
 }
 
 export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, panelId, children }: EpisodeGlassCardProps) {
-  const tintHue = TINT_HUE_BY_FILLER_TYPE[episode.filler_type]
+  const tint = TINT_BY_FILLER_TYPE[episode.filler_type]
   const classificationLine = classificationAndTypeLine(episode)
 
   return (
     <li className={styles.listItem} data-classification={episode.filler_type}>
-      <Card variant="glass" tintHue={tintHue} className={styles.card}>
+      <Card
+        variant="glass"
+        tintHue={tint?.hue}
+        tintSaturation={tint?.saturation}
+        tintLightness={tint?.lightness}
+        tintSurfaceAlpha={tint?.surfaceAlpha}
+        tintBorderAlpha={tint?.borderAlpha}
+        className={styles.card}
+      >
         <DisclosureTrigger
           className={styles.header}
           onClick={onToggle}

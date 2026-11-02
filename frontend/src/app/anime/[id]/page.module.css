@@ -1,13 +1,13 @@
 /* ==========================================================================
-   AnimeDetail Page - Plex/AniList Style Layout
+   AnimeDetail-Seite -- Layout im Stil von Plex/AniList
    Seiten-Gerüst (Page/Error/Breadcrumbs/Hero-Rahmen/Content-Area) -- Poster-Spalte, Info-Karte
-   und Episoden-Bereich leben seit dem 450-Zeilen-Split (261102-hlg, Task 5) in eigenen
+   und Episoden-Bereich leben seit dem 450-Zeilen-Split in eigenen
    Teil-Stylesheets (page.poster.module.css/page.infoCard.module.css/page.episodes.module.css),
    zusammengeführt über AnimeDetailView.styles.ts.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Page Container
+   Seiten-Container
    -------------------------------------------------------------------------- */
 .page {
   position: relative;
@@ -58,7 +58,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Hero Container (Glassmorphism Card)
+   Hero-Container (Glasmorphismus-Karte)
    -------------------------------------------------------------------------- */
 .heroWrapper {
   position: relative;
@@ -87,7 +87,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Content Area (Episodes)
+   Inhaltsbereich (Episoden)
    -------------------------------------------------------------------------- */
 .contentArea {
   position: relative;
@@ -98,7 +98,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Responsive Design
+   Responsives Verhalten
    -------------------------------------------------------------------------- */
 @media (max-width: 1023px) {
   .heroContainer {

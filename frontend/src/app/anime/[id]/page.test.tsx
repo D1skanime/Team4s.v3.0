@@ -108,11 +108,11 @@ function textContent(node: ReactNode): string {
     isValidElement<{ children?: ReactNode }>(child) ? textContent(child.props.children) : String(child),
   ).join('')
 }
-/** Der Episoden-Badge haengt seit 261102-hlg als `bottomBadge`-PROP an `MediaFrame`, nicht als
- *  eigenes `.props.children` -- `elements()`/`textContent()` laufen nur ueber materialisierte
- *  Children, nicht ueber beliebig benannte Props. Diese Hilfsfunktion findet `MediaFrame` zuerst
- *  und liest dessen `bottomBadge`-Prop gezielt aus (selbst wieder ein noch nicht gerendertes
- *  React-Element, `textContent` kann direkt darauf angewendet werden). */
+/** Der Episoden-Badge hängt als `bottomBadge`-PROP an `MediaFrame`, nicht als eigenes
+ *  `.props.children` -- `elements()`/`textContent()` laufen nur über materialisierte Children,
+ *  nicht über beliebig benannte Props. Diese Hilfsfunktion findet `MediaFrame` zuerst und liest
+ *  dessen `bottomBadge`-Prop gezielt aus (selbst wieder ein noch nicht gerendertes React-Element,
+ *  `textContent` kann direkt darauf angewendet werden). */
 function posterBadgeText(content: ReactNode): string | null {
   const frame = elements(content).find((item) => item.type === MediaFrame)
   const badge = frame?.props.bottomBadge as ReactNode | null | undefined

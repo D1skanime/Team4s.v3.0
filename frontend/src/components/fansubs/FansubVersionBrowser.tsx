@@ -301,7 +301,7 @@ function FansubVersionBrowserContent({
           (statt sich auf die seiteneigene `.episodesSection h2`-Regel zu verlassen, die zufällig
           dieselbe helle Farbe über das rendernde <h2>-Element erzwingt) -- Heading rendert für
           `level={2}` ein echtes <h2>, die bestehende Selektor-/Größen-/Abstand-Regel in
-          page.episodes.module.css bleibt deshalb unverändert gültig (261102-hlg, Task 10). */}
+          page.episodes.module.css bleibt deshalb unverändert gültig. */}
       <Heading level={2} tone="onScrim">Episoden ({windowing.episodeCount})</Heading>
 
       {fansubOptions.length > 0 ? (

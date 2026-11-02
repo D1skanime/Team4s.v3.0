@@ -1,5 +1,5 @@
 /*
- * Nur noch Layout-Regeln (261102-hlg, Task 8): Flächen-/Rand-/Blur-/Tönungswerte kommen jetzt aus
+ * Nur noch Layout-Regeln: Flächen-/Rand-/Blur-/Tönungswerte kommen jetzt aus
  * Card (variant="glass" + tintHue) und den globalen Card-Glas-/Tönungs-Tokens in
  * styles/tokens/components.css, nicht mehr aus feature-lokalen Glas-Literalen.
  */

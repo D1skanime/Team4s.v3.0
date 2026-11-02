@@ -146,11 +146,33 @@ describe('authoritative anime project navigation', () => {
     const tokensCss = readFileSync(join(process.cwd(), 'src/styles/tokens/components.css'), 'utf8')
     expect(tokensCss).toContain('--card-glass-surface')
     expect(tokensCss).toContain('--card-tint-saturation')
-    const cardTsx = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.tsx'), 'utf8')
-    expect(cardTsx).toMatch(/canon:\s*222/)
-    expect(cardTsx).toMatch(/filler:\s*2\b/)
-    expect(cardTsx).toMatch(/mixed:\s*272/)
-    expect(cardTsx).toMatch(/recap:\s*42/)
+  })
+
+  it('übergibt pro Episodenklassifikation den erwarteten Farbton an Cards generischen Tönungs-Hook', () => {
+    // Prüft das tatsächliche Render-Ergebnis (Cards inline gesetzte --card-tint-hue-Variable je
+    // data-classification), nicht den Quelltext von EpisodeGlassCard.tsx als Rohtext -- eine
+    // Umbenennung/Umstrukturierung der internen Zuordnungstabelle darf diesen Test nicht brechen,
+    // solange das sichtbare Ergebnis (welcher Farbton landet auf der Karte) gleich bleibt.
+    const classifications = ['canon', 'filler', 'mixed', 'recap', 'unknown'] as const
+    const episodes: PublicGroupedEpisode[] = classifications.map((filler_type, index) => ({
+      ...DEFAULT_CLASSIFICATION,
+      filler_type,
+      episode_id: 300 + index,
+      episode_number: index + 1,
+      episode_title: `Klassifikationsfolge ${filler_type}`,
+      version_count: 0,
+      versions: [],
+    }))
+    render(<FansubVersionBrowser animeID={22} animeSlug="stored-anime" fansubs={fansubs} episodes={episodes} />)
+
+    const expectedHueByType: Record<string, string> = { canon: '222', filler: '2', mixed: '272', recap: '42' }
+    for (const type of ['canon', 'filler', 'mixed', 'recap'] as const) {
+      const card = document.querySelector<HTMLElement>(`li[data-classification="${type}"] section`)
+      expect(card?.style.getPropertyValue('--card-tint-hue')).toBe(expectedHueByType[type])
+    }
+    // `unknown` bekommt bewusst keine Tönung.
+    const unknownCard = document.querySelector<HTMLElement>('li[data-classification="unknown"] section')
+    expect(unknownCard?.style.getPropertyValue('--card-tint-hue')).toBe('')
   })
 })
 

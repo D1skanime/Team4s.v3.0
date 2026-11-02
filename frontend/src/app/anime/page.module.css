@@ -1,5 +1,5 @@
 .page {
-  /* Desktop-first: use more horizontal space (FullHD etc.) while keeping a safe gutter. */
+  /* Desktop-first: nutzt mehr horizontalen Raum (FullHD usw.), behält aber einen sicheren Rand. */
   width: min(1680px, 100% - 2rem);
   margin: 0 auto;
   padding: 2rem 0 4rem;

@@ -1,27 +1,35 @@
 /* ==========================================================================
    AnimeDetail Page -- Info-Karte (rechts: Titel, Badges, Beschreibung, Tags, Emby, Related)
-   Teil des 450-Zeilen-Splits von page.module.css (261102-hlg, Task 5), zusammengeführt über
+   Teil des 450-Zeilen-Splits von page.module.css, zusammengeführt über
    AnimeDetailView.styles.ts. Die vormaligen relatedRailWrapper-/relatedRailSection-Klassen wurden
    beim Verschieben ersatzlos entfernt (totes CSS, 0 Treffer in AnimeDetailView.tsx -- AnimeRelations
    rendert über `.relatedSection`, nicht über eine eigene Kartenfläche).
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Info Card (Right) -- Fläche kommt jetzt komplett von Card variant="glass" (261102-hlg, D-05);
-   .infoCard liefert nur noch Layout-Feinschliff (Innenabstand, Grid-Position, abweichende
-   Eckenrundung für die Einbettung neben der bereits eigenständig gerundeten Poster-Spalte).
+   Info-Karte (rechts) -- Fläche kommt jetzt komplett von Card variant="glass"; .infoCard
+   liefert nur noch den Eckenrundungs-Override für die Einbettung neben der bereits
+   eigenständig gerundeten Poster-Spalte, das Innenlayout liegt in .infoCardBody.
    -------------------------------------------------------------------------- */
 .infoCard {
   /* Override-Hook aus Card.module.css (--card-radius-override): die Info-Karte sitzt rechts
      neben der Poster-Spalte innerhalb EINES gemeinsam gerundeten heroContainer-Rahmens, braucht
-     deshalb eine abweichende, asymmetrische Eckenrundung statt Cards generischem 12px-Radius. */
+     deshalb eine abweichende, asymmetrische Eckenrundung statt Cards generischem 12px-Radius.
+     NUR diese eine CSS-Variable wird hier gesetzt -- Layout-Eigenschaften (padding/display) auf
+     demselben Element wie Cards eigene .cardGlass-Klasse würden einen Cross-Modul-
+     Spezifitätsgleichstand erzeugen (Gewinner abhängig von der nicht garantierten Bündel-
+     Ladereihenfolge), deshalb liegt das Innenlayout in .infoCardBody (eigenes, verschachteltes
+     Element, analog zu ReleasePreviewRows .row-Wrapper). */
   --card-radius-override: 0 24px 24px 0;
+}
+
+.infoCardBody {
   padding: 28px;
   display: flex;
   flex-direction: column;
 }
 
-/* Title + Logo Row */
+/* Titel- und Logo-Zeile */
 .titleRow {
   display: flex;
   align-items: center;
@@ -53,7 +61,7 @@
   margin-bottom: 20px;
 }
 
-/* Description */
+/* Beschreibung */
 .description {
   font-size: 15px;
   line-height: 1.7;
@@ -61,7 +69,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Tags (content navigation, not a CTA badge - D-17)
+   Tags -- Inhalts-Navigation zu verwandten Suchtreffern, keine Handlungsaufforderung
    -------------------------------------------------------------------------- */
 .tagsSection {
   display: flex;
@@ -88,17 +96,17 @@
   margin: 0;
 }
 
-/* Stats Row */
+/* Statistik-Zeile */
 .statsRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 20px;
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid var(--border-on-media);
 }
 
-/* Info Banner */
+/* Info-Banner */
 .infoBanner {
   width: 100%;
   height: auto;
@@ -107,18 +115,18 @@
 }
 
 /* --------------------------------------------------------------------------
-   Related Section (inside infoCard, horizontal scroll)
+   Verwandte-Anime-Bereich (innerhalb der Info-Karte, horizontales Scrollen)
    -------------------------------------------------------------------------- */
 .relatedSection {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid var(--border-on-media);
   min-width: 0;
   overflow: hidden;
 }
 
 /* --------------------------------------------------------------------------
-   Edge Navigation Overlay (positioned on heroContainer - buttons centered on edges)
+   Edge-Navigation-Overlay (auf dem heroContainer positioniert -- Buttons mittig an den Rändern)
    -------------------------------------------------------------------------- */
 .edgeNavigationOverlay {
   position: absolute;
@@ -138,17 +146,17 @@
 }
 
 /* --------------------------------------------------------------------------
-   Divider (inside infoCard - glass area)
+   Trennlinie (innerhalb der Info-Karte -- Glasfläche)
    -------------------------------------------------------------------------- */
 .divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--border-on-media-strong);
   border: none;
   margin: 20px 0;
 }
 
 /* --------------------------------------------------------------------------
-   Responsive Design
+   Responsives Verhalten
    -------------------------------------------------------------------------- */
 @media (max-width: 1023px) {
   .title {
@@ -158,14 +166,19 @@
 
 @media (max-width: 767px) {
   /* Hintergrund/Rand/Radius/Text-Farbe kommen jetzt einheitlich von Card variant="glass" --
-     Mobil und Desktop zeigen dieselbe Glas-Fläche, kein eigener Farb-Umschlag mehr nötig
-     (261102-hlg, D-05: löst die bisherige CSS-Variablen-Override-Lösung für den mobilen
-     Badge-Kontrast ab, siehe CONTEXT.md). Nur noch Layout-Feinschliff (Innenabstand, Ausrichtung,
-     asymmetrische Eckenrundung für die mobile Stapelung unter der Poster-Spalte). */
+     Mobil und Desktop zeigen dieselbe Glas-Fläche, kein eigener Farb-Umschlag mehr nötig (löst
+     die bisherige CSS-Variablen-Override-Lösung für den mobilen Badge-Kontrast ab, siehe
+     CONTEXT.md). Nur noch Layout-Feinschliff (Innenabstand, Ausrichtung, asymmetrische
+     Eckenrundung für die mobile Stapelung unter der Poster-Spalte). Innenabstand/Textausrichtung
+     liegen bewusst auf .infoCardBody, nicht auf .infoCard selbst -- derselbe
+     Cross-Modul-Spezifitätsgrund wie beim Desktop-Radius-Override oben. */
   .infoCard {
+    --card-radius-override: 0 0 24px 24px;
+  }
+
+  .infoCardBody {
     padding: 20px;
     text-align: center;
-    --card-radius-override: 0 0 24px 24px;
   }
 
   .titleRow {
@@ -207,9 +220,5 @@
     padding: 0 20px 20px;
     justify-content: center;
     gap: 16px;
-  }
-
-  .edgeNavigation {
-    border-top-color: rgba(255, 255, 255, 0.15);
   }
 }

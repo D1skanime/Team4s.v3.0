@@ -1,6 +1,6 @@
 /* ==========================================================================
    AnimeDetail Page -- Episoden-Bereich (Rahmen um FansubVersionBrowser)
-   Teil des 450-Zeilen-Splits von page.module.css (261102-hlg, Task 5), zusammengeführt über
+   Teil des 450-Zeilen-Splits von page.module.css, zusammengeführt über
    AnimeDetailView.styles.ts. Die vormaligen episodeList-/episodeItem-/episodeNumber-/episodeTitle-/
    episodeMeta-/episodeActions-/actionButton-Klassen wurden beim Verschieben ersatzlos entfernt
    (totes CSS, 0 Treffer in AnimeDetailView.tsx -- ersetzt durch FansubVersionBrowser/

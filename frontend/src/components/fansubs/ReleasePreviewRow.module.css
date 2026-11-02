@@ -1,7 +1,7 @@
 /*
- * Nur noch Layout-Regeln (261102-hlg, Task 9): Flächen-/Rand-/Blur-Werte kommen jetzt aus
- * Card (variant="glassStrong") und den globalen Card-Glas-Tokens in styles/tokens/components.css,
- * nicht mehr aus feature-lokalen Glas-Literalen.
+ * Nur noch Layout-Regeln: Flächen-/Rand-/Blur-Werte kommen jetzt aus Card
+ * (variant="glassStrong") und den globalen Card-Glas-Tokens in
+ * styles/tokens/components.css, nicht mehr aus feature-lokalen Glas-Literalen.
  */
 .row {
   display: flex;
@@ -31,7 +31,8 @@
 }
 
 /* Avatar liefert Fläche/Initialen-Fallback bereits selbst -- nur der dezente Rand "auf dunkler
-   Fläche" (zweite offizielle Rand-Erscheinung, Nachtrag D-06) wird hier ergänzt. */
+   Fläche" (zweite offizielle Rand-Erscheinung neben dem weinroten Admin-Rand) wird hier
+   ergänzt. */
 .logo {
   border: 1px solid var(--border-on-media);
 }

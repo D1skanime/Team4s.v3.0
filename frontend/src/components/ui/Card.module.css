@@ -108,13 +108,16 @@
   -webkit-backdrop-filter: blur(var(--card-glass-blur-strong)) saturate(var(--card-glass-saturate-strong));
 }
 
-/* Generischer Tönungs-Hook: Card setzt per `tintHue`-Prop nur den Farbton (--card-tint-hue), die
-   Sättigung/Helligkeit/Deckkraft-Formel ist für JEDE Tönung identisch (--card-tint-*-Tokens) --
-   Card kennt dabei keine Fachnamen wie canon/filler/mixed/recap. */
+/* Generischer Tönungs-Hook: Card setzt per `tintHue`-Prop nur den Farbton (--card-tint-hue); die
+   Sättigung/Helligkeit/Deckkraft-Formel nutzt standardmäßig dieselben --card-tint-*-Tokens für
+   jede Tönung, kann aber vom Aufrufer über die optionalen *-override-Variablen (gesetzt via
+   Cards tintSaturation/tintLightness/tintSurfaceAlpha/tintBorderAlpha-Props) exakt auf einen
+   vorher abweichenden Einzelwert eingestellt werden -- Card kennt dabei weiterhin keine
+   Fachnamen wie canon/filler/mixed/recap, nur generische Zahlenwerte. */
 .cardGlass.cardTinted,
 .cardGlassStrong.cardTinted {
-  background-color: hsl(var(--card-tint-hue) var(--card-tint-saturation) var(--card-tint-lightness) / var(--card-tint-surface-alpha));
-  border-color: hsl(var(--card-tint-hue) var(--card-tint-saturation) var(--card-tint-lightness) / var(--card-tint-border-alpha));
+  background-color: hsl(var(--card-tint-hue) var(--card-tint-saturation-override, var(--card-tint-saturation)) var(--card-tint-lightness-override, var(--card-tint-lightness)) / var(--card-tint-surface-alpha-override, var(--card-tint-surface-alpha)));
+  border-color: hsl(var(--card-tint-hue) var(--card-tint-saturation-override, var(--card-tint-saturation)) var(--card-tint-lightness-override, var(--card-tint-lightness)) / var(--card-tint-border-alpha-override, var(--card-tint-border-alpha)));
 }
 
 .cardHeader,

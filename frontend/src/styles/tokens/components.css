@@ -279,29 +279,31 @@
   /* Textarea */
   --textarea-min-height: 144px;
 
-  /* LinkChip -- zwei offizielle Erscheinungen desselben Chip-Grundbausteins (261102-hlg):
-     "glass" reproduziert den bisherigen, feature-lokalen .genreChip-Look (heller, durchscheinender
-     Chip auf der Poster-Glasfläche), "scrim" den bisherigen .tagChip-Look (dunkler, blickdichterer
-     Chip auf dem fast transparenten unteren Bereich der Info-Karte) -- Werte 1:1 aus
+  /* LinkChip -- zwei offizielle Erscheinungen desselben Chip-Grundbausteins: "glass" reproduziert
+     den bisherigen, feature-lokalen .genreChip-Look (heller, durchscheinender Chip auf der
+     Poster-Glasfläche), "scrim" den bisherigen .tagChip-Look (dunkler, blickdichterer Chip auf
+     dem fast transparenten unteren Bereich der Info-Karte) -- Werte 1:1 aus
      frontend/src/app/anime/[id]/page.module.css (vormals Zeilen 301-321/425-454) übernommen, nur
-     als globale Tokens geführt statt seiten-lokaler Literale. */
+     als globale Tokens geführt statt seiten-lokaler Literale. Der Rand von "glass" referenziert
+     --border-on-media (unten) statt eines eigenen Literals, da beide dieselbe "Rand auf dunkler
+     Fläche"-Entscheidung tragen und sonst stillschweigend auseinanderlaufen könnten. */
   --linkchip-padding-y: 8px;
   --linkchip-padding-x: 14px;
   --linkchip-radius: 14px;
   --linkchip-font-size: 13px;
   --linkchip-glass-bg: rgba(255, 255, 255, 0.1);
-  --linkchip-glass-border: rgba(255, 255, 255, 0.15);
+  --linkchip-glass-border: var(--border-on-media);
   --linkchip-glass-text: rgba(255, 255, 255, 0.9);
   --linkchip-glass-bg-hover: rgba(255, 255, 255, 0.15);
-  --linkchip-glass-border-hover: rgba(255, 255, 255, 0.25);
+  --linkchip-glass-border-hover: var(--border-on-media-strong);
   --linkchip-scrim-bg: rgba(20, 18, 16, 0.62);
   --linkchip-scrim-border: rgba(255, 255, 255, 0.18);
   --linkchip-scrim-text: rgba(255, 255, 255, 0.92);
   --linkchip-scrim-bg-hover: rgba(20, 18, 16, 0.78);
   --linkchip-scrim-border-hover: rgba(255, 255, 255, 0.3);
 
-  /* BannerSection -- unscharfer Bannerbild-Hintergrund + WCAG-AA-Scrim (261102-hlg). Blur-/
-     Helligkeits-/Sättigungs-/Skalierungs-Rezeptur 1:1 aus FansubHeroSections bereits bewährtem
+  /* BannerSection -- unscharfer Bannerbild-Hintergrund + WCAG-AA-Scrim. Blur-/Helligkeits-/
+     Sättigungs-/Skalierungs-Rezeptur 1:1 aus FansubHeroSections bereits bewährtem
      .heroBackdropTuning übernommen (frontend/src/app/fansubs/[slug]/page.module.css), nicht aus
      der bisherigen, schwächer kontrastierten .bannerImage-Fläche der Anime-Detailseite. */
   --banner-height: 200px;
@@ -312,11 +314,11 @@
   --banner-backdrop-scale: 1.15;
   --banner-scrim-bg-strong: rgba(10, 8, 14, 0.88);
 
-  /* Card -- öffentliche Glas-Varianten (261102-hlg, Nachtrag D-05/D-07/D-08). Globale Form der
-     bisher feature-lokalen --glass-*-Variablen aus EpisodeGlassCard.module.css/
-     ReleasePreviewRow.module.css -- zwei Deckkraft-Stufen EXISTIERTEN bereits im Bestand
-     (EpisodeGlassCard 6%/12px-Radius vs. ReleasePreviewRow 10%/6px-Radius), hier nur als
-     globale Tokens geführt statt doppelt deklarierter Literale. */
+  /* Card -- öffentliche Glas-Varianten. Globale Form der bisher feature-lokalen
+     --glass-*-Variablen aus EpisodeGlassCard.module.css/ReleasePreviewRow.module.css -- zwei
+     Deckkraft-Stufen EXISTIERTEN bereits im Bestand (EpisodeGlassCard 6%/12px-Radius vs.
+     ReleasePreviewRow 10%/6px-Radius), hier nur als globale Tokens geführt statt doppelt
+     deklarierter Literale. */
   --card-glass-surface: rgba(255, 255, 255, 0.06);
   --card-glass-surface-strong: rgba(255, 255, 255, 0.1);
   --card-glass-border: rgba(255, 255, 255, 0.14);
@@ -329,13 +331,15 @@
   --card-glass-blur-strong: 9px;
   --card-glass-saturate: 1.15;
   --card-glass-saturate-strong: 1.65;
-  /* Generischer Tönungs-Hook (RESEARCH-CARD.md Abschnitt 10, Alternative "generische Alpha-
-     Tokens" statt vier Fach-Tokens): Card kennt nur eine Sättigung/Helligkeit/Deckkraft-Formel,
-     der Aufrufer (z. B. EpisodeGlassCard) liefert nur den Farbton (--card-tint-hue, 0-360) --
-     canon(222)/filler(2)/mixed(272) reproduzieren damit exakt die bisherigen Werte (70%/62%/
-     12%/32%), recap(42) weicht dadurch minimal vom ursprünglichen Einzelwert (75%/58%/14%/34%)
-     ab -- eine bewusste, im Review dokumentierte Vereinfachung für einen domänenneutralen
-     Baustein statt vier Fachnamen direkt in Card. */
+  /* Generischer Tönungs-Hook: Card kennt nur EINE Standard-Sättigung/Helligkeit/Deckkraft-Formel
+     für jede Tönung (diese vier Tokens), der Aufrufer (z. B. EpisodeGlassCard) liefert nur den
+     Farbton (--card-tint-hue, 0-360). canon(222)/filler(2) reproduzieren damit exakt die
+     bisherigen Werte (70%/62%/12%/32%) -- mixed und recap hatten im Bestand davon ABWEICHENDE
+     Einzelwerte (mixed: 60%/64%/12%/32%, recap: 75%/58%/14%/34%) und werden daher über Cards
+     optionale tintSaturation/tintLightness/tintSurfaceAlpha/tintBorderAlpha-Props exakt auf ihren
+     ursprünglichen Wert eingestellt, statt die Optik an dieser Stelle zu verändern (siehe
+     EpisodeGlassCard.tsx). Card selbst bleibt dadurch domänenneutral -- keine Fachnamen wie
+     canon/filler/mixed/recap in dieser Datei. */
   --card-tint-saturation: 70%;
   --card-tint-lightness: 62%;
   --card-tint-surface-alpha: 12%;
@@ -343,7 +347,9 @@
 
   /* Rand "auf dunkler/öffentlicher Fläche" -- zweite offizielle Erscheinung neben --ui-line
      (Weinrot) bzw. --border-subtle/--border-strong (warmgrau), aus den bisherigen
-     .posterDivider/.divider-Trennern der Anime-Detailseite übernommen (Nachtrag D-06). */
+     .posterDivider/.divider-Trennern der Anime-Detailseite übernommen; beide Trenner selbst
+     referenzieren diese Tokens jetzt ebenfalls (siehe page.poster.module.css/
+     page.infoCard.module.css), damit Ursprung und globaler Token nicht auseinanderlaufen. */
   --border-on-media: rgba(255, 255, 255, 0.15);
   --border-on-media-strong: rgba(255, 255, 255, 0.25);
 }
