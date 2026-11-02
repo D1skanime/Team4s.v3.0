@@ -80,7 +80,7 @@ export const PosterMitFarbverlaengerung: Story = {
     backdropImage: '/covers/placeholder.jpg',
   },
   render: (args) => (
-    <div style={{ width: 220, paddingBottom: 'var(--space-16)', background: 'var(--surface-page)' }}>
+    <div style={{ width: 220, paddingBottom: 'var(--space-8)', background: 'var(--surface-stage)' }}>
       <MediaFrame {...args}>
         <ResponsiveImage src="/covers/placeholder.jpg" alt="Beispielposter" fill sizes="220px" />
       </MediaFrame>
