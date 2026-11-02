@@ -311,4 +311,39 @@
   --banner-backdrop-saturate: 1.25;
   --banner-backdrop-scale: 1.15;
   --banner-scrim-bg-strong: rgba(10, 8, 14, 0.88);
+
+  /* Card -- öffentliche Glas-Varianten (261102-hlg, Nachtrag D-05/D-07/D-08). Globale Form der
+     bisher feature-lokalen --glass-*-Variablen aus EpisodeGlassCard.module.css/
+     ReleasePreviewRow.module.css -- zwei Deckkraft-Stufen EXISTIERTEN bereits im Bestand
+     (EpisodeGlassCard 6%/12px-Radius vs. ReleasePreviewRow 10%/6px-Radius), hier nur als
+     globale Tokens geführt statt doppelt deklarierter Literale. */
+  --card-glass-surface: rgba(255, 255, 255, 0.06);
+  --card-glass-surface-strong: rgba(255, 255, 255, 0.1);
+  --card-glass-border: rgba(255, 255, 255, 0.14);
+  --card-glass-border-strong: rgba(255, 255, 255, 0.22);
+  --card-glass-text: rgba(255, 255, 255, 0.92);
+  --card-glass-text-muted: rgba(255, 255, 255, 0.6);
+  --card-glass-radius: 12px;
+  --card-glass-radius-strong: 6px;
+  --card-glass-blur: 14px;
+  --card-glass-blur-strong: 9px;
+  --card-glass-saturate: 1.15;
+  --card-glass-saturate-strong: 1.65;
+  /* Generischer Tönungs-Hook (RESEARCH-CARD.md Abschnitt 10, Alternative "generische Alpha-
+     Tokens" statt vier Fach-Tokens): Card kennt nur eine Sättigung/Helligkeit/Deckkraft-Formel,
+     der Aufrufer (z. B. EpisodeGlassCard) liefert nur den Farbton (--card-tint-hue, 0-360) --
+     canon(222)/filler(2)/mixed(272) reproduzieren damit exakt die bisherigen Werte (70%/62%/
+     12%/32%), recap(42) weicht dadurch minimal vom ursprünglichen Einzelwert (75%/58%/14%/34%)
+     ab -- eine bewusste, im Review dokumentierte Vereinfachung für einen domänenneutralen
+     Baustein statt vier Fachnamen direkt in Card. */
+  --card-tint-saturation: 70%;
+  --card-tint-lightness: 62%;
+  --card-tint-surface-alpha: 12%;
+  --card-tint-border-alpha: 32%;
+
+  /* Rand "auf dunkler/öffentlicher Fläche" -- zweite offizielle Erscheinung neben --ui-line
+     (Weinrot) bzw. --border-subtle/--border-strong (warmgrau), aus den bisherigen
+     .posterDivider/.divider-Trennern der Anime-Detailseite übernommen (Nachtrag D-06). */
+  --border-on-media: rgba(255, 255, 255, 0.15);
+  --border-on-media-strong: rgba(255, 255, 255, 0.25);
 }
