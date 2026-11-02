@@ -7,7 +7,7 @@ import { DisclosureTrigger } from '@/components/ui/DisclosureTrigger'
 import { Text } from '@/components/ui/Text'
 import type { PublicGroupedEpisode } from '@/types/episodeVersion'
 
-import { classificationAndTypeLine, formatVersionCountLabel } from './episodePreviewFormat'
+import { classificationAndTypeLine, formatVersionCountLabel, mutedOnGlassTextStyle } from './episodePreviewFormat'
 import styles from './EpisodeGlassCard.module.css'
 
 // Episodentyp -> Farbton-Zuordnung für Cards generischen Tönungs-Hook (tintHue, 0-360). Card
@@ -20,14 +20,6 @@ const TINT_HUE_BY_FILLER_TYPE: Record<PublicGroupedEpisode['filler_type'], numbe
   recap: 42,
   unknown: undefined,
 }
-
-// Die "muted" Textfarbe (60% deckendes Weiß) der Metazeilen hat keine passende offizielle
-// Text-Tonalität (tone="onScrim" ist immer volldeckend weiß, siehe Text.tsx) -- bewusst per
-// Inline-Style statt eines eigenen CSS-Klassen-Overrides gesetzt: eine Klasse in dieser Datei
-// würde mit Texts eigener, variantenabhängiger color-Deklaration um dieselbe Eigenschaft
-// konkurrieren (Cross-Modul-Spezifitätsgleichstand, nicht zuverlässig per Ladereihenfolge
-// entscheidbar) -- ein Inline-Style gewinnt dagegen garantiert, unabhängig von Bündel-Reihenfolge.
-const mutedTextStyle = { color: 'var(--card-glass-text-muted)' } as const
 
 export interface EpisodeGlassCardProps {
   episode: PublicGroupedEpisode
@@ -54,17 +46,17 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
           title={
             <span className={styles.headerTitleRow}>
               <span className={styles.headerText}>
-                <Text as="span" variant="meta" style={mutedTextStyle} className={styles.episodeNumber}>
+                <Text as="span" variant="meta" style={mutedOnGlassTextStyle} className={styles.episodeNumber}>
                   Folge {episode.episode_number}
                 </Text>
                 <Text as="span" variant="body" tone="onScrim" className={styles.episodeTitle}>
                   {episodeTitle}
                 </Text>
-                <Text as="span" variant="small" style={mutedTextStyle} className={styles.classificationLine}>
+                <Text as="span" variant="small" style={mutedOnGlassTextStyle} className={styles.classificationLine}>
                   {classificationLine}
                 </Text>
               </span>
-              <Text as="span" variant="meta" style={mutedTextStyle} className={styles.versionCounter}>
+              <Text as="span" variant="meta" style={mutedOnGlassTextStyle} className={styles.versionCounter}>
                 {formatVersionCountLabel(episode.version_count)}
               </Text>
             </span>

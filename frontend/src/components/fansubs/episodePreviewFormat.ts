@@ -2,6 +2,17 @@ import type { FansubGroupSummary } from '@/types/fansub'
 import type { PublicEpisodeVersion, PublicGroupedEpisode } from '@/types/episodeVersion'
 
 /**
+ * Gemeinsamer Inline-Style für "gedämpften" Text (60% deckendes Weiß) auf den öffentlichen
+ * Glas-Karten (EpisodeGlassCard/ReleasePreviewRow) -- Text selbst kennt nur `tone="onScrim"`
+ * (immer volldeckend weiß), keine gedämpfte Zwischenstufe (261102-hlg). Bewusst per Inline-Style
+ * statt einer eigenen CSS-Klasse: eine Klasse in einer der beiden Feature-Dateien würde mit Texts
+ * eigener, variantenabhängiger `color`-Deklaration um dieselbe Eigenschaft konkurrieren
+ * (Cross-Modul-Spezifitätsgleichstand, nicht zuverlässig über die Bündel-Ladereihenfolge
+ * entscheidbar) -- ein Inline-Style gewinnt dagegen garantiert.
+ */
+export const mutedOnGlassTextStyle = { color: 'var(--card-glass-text-muted)' } as const
+
+/**
  * GAP-11: Anzeigenamen kommen ausschliesslich von der DB (episode_filler_types.label /
  * episode_types.label, 164-10) -- keine hardcodierte Frontend-Map mehr. Die
  * unknown-Klassifikation-versteckt-sich-Regel (UI-SPEC decision 4) bleibt am stabilen Code

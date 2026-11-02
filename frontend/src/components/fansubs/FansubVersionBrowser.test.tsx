@@ -203,12 +203,16 @@ describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)
     expect(screen.getByAltText('').getAttribute('src')).toBeTruthy()
   })
 
-  it('Testfall 11: Release ohne Gruppenlogo rendert weder Bild noch Platzhalter, nur den Gruppennamen (164-08 GAP-01)', async () => {
+  it('Testfall 11: Release ohne Gruppenlogo zeigt jetzt ein Avatar-Kürzel statt des Bildes (261102-hlg Task 9, D-08 -- von der Decision verlangte Verhaltenserweiterung, kein Bug)', async () => {
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode()]} />)
     fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
     expect(screen.queryByAltText('')).toBeNull()
-    expect(screen.queryByText('A')).toBeNull()
-    expect(screen.getByText('Anderer Gruppenname')).toBeTruthy()
+    // Avatar zeigt bei fehlendem Logo automatisch ein Initialen-Kürzel aus dem Gruppennamen
+    // ("Anderer Gruppenname" -> "AG", dekorativ/aria-hidden) statt -- wie bisher -- gar nichts zu
+    // rendern; der vollständige Gruppenname bleibt zusätzlich für Screenreader (VisuallyHidden
+    // in Avatar) UND als sichtbarer Text in der Zeile selbst vorhanden (zwei Treffer).
+    expect(screen.getByText('AG')).toBeTruthy()
+    expect(screen.getAllByText('Anderer Gruppenname').length).toBeGreaterThanOrEqual(2)
   })
 
   it('Testfall 12/13: Release-Datum wird nur gerendert, wenn gepflegt', async () => {

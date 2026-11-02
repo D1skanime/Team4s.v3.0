@@ -1,14 +1,16 @@
 'use client'
 
-import Image from 'next/image'
-
+import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Text } from '@/components/ui/Text'
 import type { PublicEpisodeVersion } from '@/types/episodeVersion'
 
 import {
   formatReleaseDateLine,
   formatSubtitleType,
   formatTechValue,
+  mutedOnGlassTextStyle,
   resolveCoopLinkGroupId,
   resolveLogoUrl,
   resolveReleaseName,
@@ -40,50 +42,66 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
   const linkGroupID = resolveCoopLinkGroupId(groups)
 
   return (
-    <div className={styles.row}>
-      <div className={styles.content}>
-        <div className={styles.identity}>
-          <div className={styles.logos}>
-            {groups.map((group) => {
-              const logoURL = resolveLogoUrl(group.logo_url)
-              return logoURL ? (
-                <Image
+    // Card bringt eigene display:grid-/Padding-Regeln für ALLE Varianten mit (70+
+    // Verwendungsstellen) -- das Flex-Row-Layout + Innenabstand dieser Zeile lebt deshalb in
+    // einem eigenen inneren Wrapper (.row) statt auf Cards Wurzelelement selbst, sonst würden
+    // beide Dateien um dieselbe display-/padding-Eigenschaft konkurrieren (Cross-Modul-
+    // Spezifitätsgleichstand, nicht zuverlässig über die Bündel-Ladereihenfolge entscheidbar).
+    <Card variant="glassStrong">
+      <div className={styles.row}>
+        <div className={styles.content}>
+          <div className={styles.identity}>
+            {/* Avatar löst Bild+Fallback in einem Baustein: fehlt ein Gruppenlogo, zeigt Avatar
+                automatisch ein Initialen-Kürzel statt -- wie bisher -- gar nichts zu rendern. Das
+                ist eine von der Decision ausdrücklich VERLANGTE Verhaltenserweiterung
+                (261102-hlg, D-08/RESEARCH-CARD.md Abschnitt 5), kein reiner Baustein-Tausch. */}
+            <div className={styles.logos}>
+              {groups.map((group) => (
+                <Avatar
                   key={group.id}
-                  src={logoURL}
-                  alt=""
+                  src={resolveLogoUrl(group.logo_url)}
+                  label={group.name}
+                  size="sm"
                   className={styles.logo}
-                  width={36}
-                  height={36}
-                  unoptimized
                 />
-              ) : null
-            })}
+              ))}
+            </div>
+            <div className={styles.identityText}>
+              <Text tone="onScrim" className={styles.groupName}>
+                {groupNameLine}
+                {/* UI-SPEC decision 12: reiner Text, kein Chip/Badge/Rahmen -- bleibt deshalb
+                    bewusst Text statt Badge. */}
+                {isCoop ? <Text as="span" style={mutedOnGlassTextStyle} className={styles.coopLabel}> COOP</Text> : null}
+              </Text>
+              <Text tone="onScrim" style={mutedOnGlassTextStyle} className={styles.releaseName}>
+                {resolveReleaseName(version)}
+              </Text>
+            </div>
           </div>
-          <div className={styles.identityText}>
-            <p className={styles.groupName}>
-              {groupNameLine}
-              {isCoop ? <span className={styles.coopLabel}> COOP</span> : null}
-            </p>
-            <p className={styles.releaseName}>{resolveReleaseName(version)}</p>
-          </div>
+
+          {techLine ? (
+            <Text tone="onScrim" style={mutedOnGlassTextStyle} className={styles.techLine}>{techLine}</Text>
+          ) : null}
+
+          {extras.length > 0 ? (
+            <Text tone="onScrim" style={mutedOnGlassTextStyle} className={styles.extrasLine}>{extras.join('   ')}</Text>
+          ) : null}
+
+          {dateLine ? (
+            <Text tone="onScrim" style={mutedOnGlassTextStyle} className={styles.dateLine}>{dateLine}</Text>
+          ) : null}
         </div>
 
-        {techLine ? <p className={styles.techLine}>{techLine}</p> : null}
-
-        {extras.length > 0 ? <p className={styles.extrasLine}>{extras.join('   ')}</p> : null}
-
-        {dateLine ? <p className={styles.dateLine}>{dateLine}</p> : null}
+        <div className={styles.action}>
+          <Button
+            href={`/anime/${animeID}/group/${linkGroupID}/releases/${version.release_version_id}`}
+            variant="secondary"
+            size="md"
+          >
+            Zum Release →
+          </Button>
+        </div>
       </div>
-
-      <div className={styles.action}>
-        <Button
-          href={`/anime/${animeID}/group/${linkGroupID}/releases/${version.release_version_id}`}
-          variant="secondary"
-          size="md"
-        >
-          Zum Release →
-        </Button>
-      </div>
-    </div>
+    </Card>
   )
 }
