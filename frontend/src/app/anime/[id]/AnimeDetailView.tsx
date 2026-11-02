@@ -22,7 +22,8 @@ import type { PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 
 import styles from './page.module.css'
 
-/** Baut den q-losen Such-Link fuer einen Tag-/Genre-Chip ueber den etablierten URLSearchParams-Mechanismus (D-09). */
+/** Baut den Such-Link für einen Tag-/Genre-Chip -- ohne freien Suchtext (`q`), da der Chip gezielt
+ *  nach genau diesem Tag oder Genre filtert, nicht nach einem Stichwort. */
 function buildFilterHref(kind: 'tag' | 'genre', name: string): string {
   return `/suche?${new URLSearchParams({ type: 'anime', [kind]: name }).toString()}`
 }
@@ -221,12 +222,13 @@ export function AnimeDetailView({
               initialActiveSlug={rawFansubParam}
             />
           ) : (
-            // D-16: neutraler Fehlerhinweis statt der ungefilterten anime.episodes-Notfallliste.
-            // Literal-Text statt ErrorState-Primitive: dieser Server-Component-Ast wird von
-            // page.test.tsx nur ueber eine flache props.children-Baumwanderung geprueft, die
-            // NICHT durch fremde Komponenten hindurch rendert (ErrorStates title/description
-            // sind fuer diese Prüfung unsichtbare Props, keine JSX-Children). FansubVersionBrowser
-            // (Task 2) nutzt ErrorState/EmptyState regulaer, dort rendert echtes RTL react-dom.
+            // Neutraler Fehlerhinweis statt der ungefilterten anime.episodes-Notfallliste, falls
+            // die Episoden nicht geladen werden konnten. Bewusst Literal-Text statt der
+            // ErrorState-Primitive: die zugehörigen Tests prüfen diesen Zweig über eine flache
+            // Baumwanderung der JSX-Kinder, die nicht in fremde Komponenten hinein rendert --
+            // ErrorStates title/description wären für eine solche Prüfung unsichtbare Props,
+            // keine eigenen JSX-Kinder. FansubVersionBrowser nutzt ErrorState/EmptyState an
+            // anderer Stelle regulär, dort läuft ein echter React-DOM-Render in den Tests mit.
             <div className={styles.emptyEpisodes} role="alert">
               <p>Episoden konnten nicht geladen werden.</p>
               <p>Die Episodenliste ist derzeit nicht verfügbar. Bitte laden Sie die Seite neu.</p>

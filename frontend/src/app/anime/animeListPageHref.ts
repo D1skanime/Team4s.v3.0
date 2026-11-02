@@ -18,5 +18,9 @@ export function buildAnimeListPageHref(
   const href = `/anime?${query.toString()}`
   // URLSearchParams kodiert geschweifte Klammern (%7B/%7D) -- beim Platzhalter-Aufruf muss der
   // literale `{page}`-Text erhalten bleiben, damit `Pagination` ihn pro Seitenzahl ersetzen kann.
-  return page === '{page}' ? href.replace('%7Bpage%7D', '{page}') : href
+  // Der Ersatz ist zwingend auf den Query-Schlüssel `page=` verankert (nicht ein blinder erster
+  // Treffer): `letter`/`status` könnten zufällig denselben codierten Wert `%7Bpage%7D` tragen,
+  // wenn ein Aufrufer genau diesen Text als Filterwert übergibt -- ohne Verankerung würde dann
+  // der falsche Query-Parameter entschlüsselt und die Seitennavigation dauerhaft falsch verlinkt.
+  return page === '{page}' ? href.replace(/([?&]page=)%7Bpage%7D(?=&|$)/, '$1{page}') : href
 }

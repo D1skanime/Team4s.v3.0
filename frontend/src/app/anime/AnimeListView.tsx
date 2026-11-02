@@ -57,10 +57,14 @@ export function AnimeListView({ response, letter, perPage, contentType, status, 
       <AnimeGrid anime={response.data} gridQuery={gridQuery} />
       {/* Bewusst ohne `linkComponent={Link}`: next/link ist zwar selbst "use client", aber im
           Next.js-16-Dev-Server lässt sich eine solche Komponentenreferenz nicht zuverlässig über
-          die Server/Client-Grenze serialisieren (live reproduziert -- führte zu HTTP 500 bzw. bei
-          per Suspense gestreamten Seiten zu einem stillen, nur im Log sichtbaren Serialisierungs-
-          fehler). `Pagination` fällt ohne `as`-Prop auf ein natives `<a>` zurück, was für diese
-          `force-dynamic`-Seite funktional gleichwertig ist (voller Seitenwechsel statt Soft-Nav). */}
+          die Server/Client-Grenze serialisieren -- einzeln, isoliert reproduziert (Fehlerzähler
+          im Server-Log stieg bei genau diesem Request um exakt eins, bei entferntem
+          `linkComponent` nicht; auf per Suspense gestreamten Seiten wie dieser bleibt der
+          HTTP-Status dabei 200, der Fehler erscheint nur im Server-Log). `Pagination` fällt ohne
+          `as`-Prop auf ein natives `<a>` zurück -- akzeptierter Kompromiss: voller Seitenwechsel
+          statt Soft-Nav, für diese `force-dynamic`-Seite ohne spürbaren Unterschied. Soft-Nav
+          ließe sich künftig wiederherstellen, indem `Pagination` fertig gerenderte Link-Elemente
+          als Kinder statt einer Komponentenreferenz als Prop entgegennimmt. */}
       <Pagination
         currentPage={response.meta.page}
         totalPages={response.meta.total_pages}

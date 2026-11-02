@@ -10,7 +10,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', '.storybook/**/*.test.ts'],
     setupFiles: ['src/test/axeSetup.ts'],
   },
 })

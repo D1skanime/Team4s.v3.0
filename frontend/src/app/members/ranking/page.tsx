@@ -87,9 +87,14 @@ export default async function MemberRankingPage({ searchParams }: RankingPagePro
           </Table>
           {/* Bewusst ohne `linkComponent={Link}`: next/link ist zwar selbst "use client", aber im
               Next.js-16-Dev-Server lässt sich eine solche Komponentenreferenz nicht zuverlässig
-              über die Server/Client-Grenze serialisieren (live reproduziert -- führte hier zu
-              HTTP 500, siehe scripts/smoke-pagination.sh). `Pagination` fällt ohne `as`-Prop auf
-              ein natives `<a>` zurück, was für diese Seite funktional gleichwertig ist. */}
+              über die Server/Client-Grenze serialisieren -- einzeln, isoliert reproduziert
+              (Fehlerzähler im Server-Log stieg bei genau diesem Request um exakt eins, bei
+              entferntem `linkComponent` nicht; siehe scripts/smoke-pagination.sh für den
+              Live-Nachweis). `Pagination` fällt ohne `as`-Prop auf ein natives `<a>` zurück --
+              akzeptierter Kompromiss: voller Seitenwechsel statt Soft-Nav, für diese
+              `force-dynamic`-Seite ohne spürbaren Unterschied. Soft-Nav ließe sich künftig
+              wiederherstellen, indem `Pagination` fertig gerenderte Link-Elemente als Kinder
+              statt einer Komponentenreferenz als Prop entgegennimmt. */}
           <Pagination
             currentPage={result.page}
             totalPages={Math.ceil(result.total / RANKING_PAGE_SIZE)}

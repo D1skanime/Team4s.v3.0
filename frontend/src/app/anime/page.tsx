@@ -8,7 +8,7 @@ import { AnimeStatus, ContentType } from '@/types/anime'
 import { AnimeListView } from './AnimeListView'
 import AnimeListLoading from './AnimeListLoading'
 
-// Diese Route haengt von Query-Parametern (A-Z-Buchstabenfilter, Pagination usw.) ab.
+// Diese Route hängt von Query-Parametern (A-Z-Buchstabenfilter, Pagination usw.) ab.
 // Daher wird Next.js gezwungen, die Seite nicht als statisch vorzurendern.
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +26,7 @@ interface AnimePageProps {
     | undefined
 }
 
-/** Aufgeloeste (nicht mehr Promise-basierte) Such-Parameter für die Anime-Listenseite. */
+/** Aufgelöste (nicht mehr Promise-basierte) Such-Parameter für die Anime-Listenseite. */
 interface ResolvedAnimeSearchParams {
     page?: string | string[]
     per_page?: string | string[]
@@ -41,7 +41,7 @@ const allowedStatuses: AnimeStatus[] = ['ongoing', 'done', 'aborted', 'licensed'
 
 /**
  * Anime-Listenseite.
- * Laedt die gefilterte Anime-Liste vom Backend und rendert das Raster mit A-Z-Filter und Pagination.
+ * Lädt die gefilterte Anime-Liste vom Backend und rendert das Raster mit A-Z-Filter und Pagination.
  * Unterstützt Query-Parameter: page, per_page, q, letter, content_type, status.
  */
 export default function AnimePage({ searchParams }: AnimePageProps) {

@@ -12,8 +12,16 @@ import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 // Bühnenhintergrund-Klasse unten die App-Tokens nicht überschreibt.
 import './preview.css'
 import '../src/styles/globals.css'
+import { installAuthCookieSandbox } from './mocks/cookieSandbox'
 import { defaultHandlers } from './mocks/handlers'
 import { TEAM4S_ROLE_GLOBAL_TYPE, withRoleSimulation } from './mocks/roleSimulation'
+
+// Muss vor dem ersten Story-Render installiert sein: isoliert die drei Auth-Cookies, die
+// `withRoleSimulation` unten bei JEDEM Render schreibt/löscht, vollständig vom echten
+// Browser-Cookie-Speicher -- sonst würde das bloße Öffnen von Storybook eine im selben
+// Browserprofil laufende, echte Team4s-Sitzung auf demselben Host zerstören (Cookies sind nach
+// RFC 6265 nicht portgebunden). Siehe cookieSandbox.ts für die vollständige Begründung.
+installAuthCookieSandbox()
 
 const TEAM4S_VIEWPORTS = {
   ...MINIMAL_VIEWPORTS,

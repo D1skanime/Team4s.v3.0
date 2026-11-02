@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
-import { watchlistErrorHandler, watchlistPresentHandler } from '../../../../.storybook/mocks/handlers'
+import { watchlistAbsentHandler, watchlistErrorHandler, watchlistPresentHandler } from '../../../../.storybook/mocks/handlers'
 
 import { AnimeDetailView } from './AnimeDetailView'
 import {
@@ -42,15 +42,22 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Normal: Story = {
-  parameters: { msw: { handlers: [watchlistPresentHandler] } },
-}
+// Kein eigenes `parameters.msw.handlers` -- fällt auf den globalen Default aus `preview.tsx`
+// zurück (`watchlistAbsentHandler`), damit "Normal" tatsächlich den neutralen Basiszustand
+// zeigt (nicht in der Watchlist), nicht versehentlich denselben Zustand wie `InWatchlist`.
+export const Normal: Story = {}
 
 export const InWatchlist: Story = {
   parameters: { msw: { handlers: [watchlistPresentHandler] } },
 }
 
-export const NichtInWatchlist: Story = {}
+export const NichtInWatchlist: Story = {
+  parameters: { msw: { handlers: [watchlistAbsentHandler] } },
+}
+
+export const WatchlistFehler: Story = {
+  parameters: { msw: { handlers: [watchlistErrorHandler] } },
+}
 
 export const EpisodenFehler: Story = {
   args: { groupedEpisodesResponse: null, episodeCount: 0 },

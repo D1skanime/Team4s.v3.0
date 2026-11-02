@@ -7,9 +7,12 @@ import { readableCodeLabel } from '@/lib/roleCatalog'
 import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type { FansubGroup } from '@/types/fansub'
 
+import { buildArchivUrl } from './buildArchivUrl'
+import type { ResolvedArchiveParams } from './buildArchivUrl'
 import styles from './page.module.css'
 
-// Diese Seite ist immer live — kein SSG-Caching (force-dynamic, D-15).
+// Diese Seite läuft bei jedem Aufruf frisch gegen das Backend (kein statisches Prerendering),
+// da Filter/Seite über GET-Query-Parameter kommen und sich jederzeit ändern können.
 export const dynamic = 'force-dynamic'
 
 interface ArchivePageProps {
@@ -29,14 +32,6 @@ interface ArchivePageProps {
         page?: string
       }
     | undefined
-}
-
-interface ResolvedArchiveParams {
-  rolle?: string
-  gruppe?: string
-  von?: string
-  bis?: string
-  page?: string
 }
 
 export default async function ArchivPage({ searchParams }: ArchivePageProps) {
@@ -214,11 +209,15 @@ export default async function ArchivPage({ searchParams }: ArchivePageProps) {
               ))}
             </div>
 
-            {/* Bewusst ohne `linkComponent={Link}`: next/link ist zwar selbst "use client", aber im
-                Next.js-16-Dev-Server lässt sich eine solche Komponentenreferenz nicht zuverlässig
-                über die Server/Client-Grenze serialisieren (live reproduziert -- führte bei
-                anderen Server-Seiten zu HTTP 500). `Pagination` fällt ohne `as`-Prop auf ein
-                natives `<a>` zurück, was für diese Seite funktional gleichwertig ist. */}
+            {/* Bewusst ohne `linkComponent={Link}`: next/link ist zwar selbst "use client", aber
+                im Next.js-16-Dev-Server lässt sich eine solche Komponentenreferenz nicht
+                zuverlässig über die Server/Client-Grenze serialisieren -- einzeln, isoliert
+                reproduziert (Fehlerzähler im Server-Log stieg bei genau diesem Request um exakt
+                eins, bei entferntem `linkComponent` nicht). `Pagination` fällt ohne `as`-Prop auf
+                ein natives `<a>` zurück -- akzeptierter Kompromiss: voller Seitenwechsel statt
+                Soft-Nav, für diese `force-dynamic`-Seite ohne spürbaren Unterschied. Soft-Nav
+                ließe sich künftig wiederherstellen, indem `Pagination` fertig gerenderte
+                Link-Elemente als Kinder statt einer Komponentenreferenz als Prop entgegennimmt. */}
             <Pagination
               className={styles.archivPagination}
               currentPage={currentPage}
@@ -230,22 +229,4 @@ export default async function ArchivPage({ searchParams }: ArchivePageProps) {
       </section>
     </main>
   )
-}
-
-/** Baut die Archiv-URL mit allen aktiven Filtern und einer neuen Seite. `page` akzeptiert neben
- *  einer echten Seitenzahl auch den literalen Platzhalter-String `'{page}'`, damit die
- *  Server-Komponente einmalig ein `hrefPattern` für `Pagination` bauen kann, statt eine nicht
- *  über die Server/Client-Grenze serialisierbare Funktion zu übergeben. */
-function buildArchivUrl(params: ResolvedArchiveParams, page: number | string): string {
-  const q = new URLSearchParams()
-  if (params.rolle) q.set('rolle', params.rolle)
-  if (params.gruppe) q.set('gruppe', params.gruppe)
-  if (params.von) q.set('von', params.von)
-  if (params.bis) q.set('bis', params.bis)
-  q.set('page', String(page))
-  const qs = q.toString()
-  // URLSearchParams kodiert geschweifte Klammern (%7B/%7D) -- beim Platzhalter-Aufruf muss der
-  // literale `{page}`-Text erhalten bleiben, damit `Pagination` ihn pro Seitenzahl ersetzen kann.
-  const href = `/archiv${qs ? `?${qs}` : ''}`
-  return page === '{page}' ? href.replace('%7Bpage%7D', '{page}') : href
 }

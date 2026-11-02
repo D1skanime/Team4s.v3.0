@@ -62,15 +62,17 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const rawGridQuery =
     typeof resolvedSearchParams.grid_query === 'string' ? resolvedSearchParams.grid_query : ''
   const gridQuery = normalizeGridQuery(rawGridQuery)
-  // D-04: SSR-Determinismus -- der Rohwert wird unvalidiert als Hinweis-Prop durchgereicht,
-  // FansubVersionBrowser prueft ihn client-seitig gegen die geladene fansubOptions-Allowlist (T-162-06).
+  // Der Rohwert aus der URL wird unvalidiert als Hinweis-Prop durchgereicht, damit das SSR
+  // deterministisch bleibt, ohne selbst zu validieren -- FansubVersionBrowser prüft ihn
+  // client-seitig gegen die geladene fansubOptions-Allowlist und verwirft ihn dort bei Bedarf.
   const rawFansubParam =
     typeof resolvedSearchParams.fansub === 'string' ? resolvedSearchParams.fansub : undefined
 
   const embySeriesUrl = getEmbySeriesUrlForAnime(anime.id)
 
-  // D-11: die Fansub-Relationen werden zuerst geladen, damit der SSR-Episoden-Fetch
-  // bereits mit dem aufgeloesten Filter-Slug startet (kein "Alle"->Gruppe-Flackern).
+  // Die Fansub-Relationen werden zuerst geladen, damit der SSR-Episoden-Fetch bereits mit dem
+  // aufgelösten Filter-Slug startet -- sonst würde die Seite kurz alle Episoden zeigen, bevor
+  // sie auf die gewählte Fansub-Gruppe filtert ("Alle"->Gruppe-Flackern).
   const [animeFansubsResult] = await Promise.allSettled([getAnimeFansubs(anime.id)])
   const animeFansubsResponse = animeFansubsResult.status === 'fulfilled' ? animeFansubsResult.value : null
   const resolvedFansubSlug = resolveActiveFansubSlug(animeFansubsResponse?.data ?? [], rawFansubParam)
@@ -89,8 +91,9 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const fansubStoryGroups = buildFansubStoryGroups(animeFansubsResponse?.data ?? [])
 
   const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
-  // D-12: die Trefferzahl kommt aus der gefilterten Fetch-Antwort, nicht mehr aus
-  // anime.episodes.length -- als episodeCount-Prop an FansubVersionBrowser durchgereicht.
+  // Die Trefferzahl kommt aus der gefilterten Fetch-Antwort, nicht aus anime.episodes.length
+  // (das wäre die ungefilterte Gesamtzahl) -- als episodeCount-Prop an FansubVersionBrowser
+  // durchgereicht.
   const episodeCount = groupedEpisodesResponse?.data.episode_count ?? 0
 
   // Eine einzige, bereits aufgelöste Quelle für das Poster und jeden dekorativen
