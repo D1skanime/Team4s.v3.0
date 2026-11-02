@@ -11,6 +11,7 @@ const meta = {
   title: 'Zusammengesetzte Bausteine/Episoden-Bereich',
   component: AnimeEpisodesSection,
   tags: ['autodocs'],
+  decorators: [(Story) => <div style={{ padding: 24, background: '#0f0f12' }}><Story /></div>],
   parameters: {
     msw: { handlers: [groupedEpisodesHandler(freezingGroupedEpisodesResponse)] },
     docs: {

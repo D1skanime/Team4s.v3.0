@@ -99,6 +99,16 @@ export const GlassStrong: Story = {
   ),
 }
 
+export const RuhigeOeffentlicheFlaeche: Story = {
+  name: 'Ruhige öffentliche Fläche',
+  args: { variant: 'publicSection' },
+  render: (args) => (
+    <div style={{ padding: 20, background: '#1c1c1e' }}>
+      <Card {...args}><Text tone="onScrim">Zurückhaltender Rahmen für einen Bereich mit hervorgehobenen Karten darin.</Text></Card>
+    </div>
+  ),
+}
+
 export const GlasAufHintergrund: Story = {
   name: 'Glas auf Hintergrund (alle Tönungen)',
   parameters: {

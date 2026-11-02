@@ -33,8 +33,8 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
   return (
     <>
       <div className={styles.posterColumn}>
-        <div className={styles.posterWrapper} style={{ '--poster-image': `url("${coverUrl}")` } as React.CSSProperties}>
-          <MediaFrame aspectRatio={2 / 3} bottomBadge={posterEpisodeBadge} className={styles.poster}>
+        <div className={styles.posterWrapper}>
+          <MediaFrame variant="posterFade" backdropImage={coverUrl} aspectRatio={2 / 3} bottomBadge={posterEpisodeBadge} className={styles.poster}>
             <ResponsiveImage
               src={coverUrl}
               alt={anime.title}
@@ -42,7 +42,6 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
               sizes="(max-width: 767px) 160px, (max-width: 1023px) 220px, 260px"
               priority
               unoptimized
-              className={styles.posterImage}
             />
           </MediaFrame>
         </div>
@@ -51,11 +50,11 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
           <WatchlistAddButton animeID={anime.id} className={styles.watchlistButton} activeClassName={styles.watchlistButtonActive} />
           <hr className={styles.posterDivider} />
           <div className={styles.genresSection}>
-            <Text as="span" variant="eyebrow" tone="onScrim" className={styles.genresLabel}>Genres</Text>
+            <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
             <div className={styles.genres}>
               {anime.genres && anime.genres.length > 0 ? anime.genres.map((genre) => (
-                <LinkChip key={genre} href={buildFilterHref('genre', genre)}>{genre}</LinkChip>
-              )) : <Text as="span" tone="onScrim" className={styles.genrePlaceholder}>Anime</Text>}
+                <LinkChip key={genre} tone="scrim" href={buildFilterHref('genre', genre)}>{genre}</LinkChip>
+              )) : <Badge variant="onMedia">Anime</Badge>}
             </div>
           </div>
         </div>
@@ -76,7 +75,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
           <Text tone="onScrim" className={styles.description}>{anime.description ?? 'Keine Beschreibung vorhanden.'}</Text>
           {anime.tags && anime.tags.length > 0 ? (
             <div className={styles.tagsSection}>
-              <Heading level={2} size={4} tone="onScrim" id="tags-heading" className={styles.tagsLabel}>Tags</Heading>
+              <Text as="span" variant="eyebrow" tone="onScrim" id="tags-heading">Tags</Text>
               <ul className={styles.tagsList} aria-labelledby="tags-heading">
                 {anime.tags.map((tag) => <li key={tag}><LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>{tag}</LinkChip></li>)}
               </ul>
@@ -88,7 +87,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
             </div>
           ) : null}
           <AnimeInfoBanner className={styles.infoBanner} dividerClassName={styles.divider} />
-          {relationsResponse && relationsResponse.data.length > 0 ? <div className={styles.relatedSection}><AnimeRelations relations={relationsResponse.data} /></div> : null}
+          {relationsResponse && relationsResponse.data.length > 0 ? <div className={styles.relatedSection}><AnimeRelations relations={relationsResponse.data} variant="compact" /></div> : null}
         </div>
       </Card>
     </>

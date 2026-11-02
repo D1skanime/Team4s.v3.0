@@ -108,6 +108,15 @@
   -webkit-backdrop-filter: blur(var(--card-glass-blur-strong)) saturate(var(--card-glass-saturate-strong));
 }
 
+.cardPublicSection {
+  padding: 0;
+  border-color: transparent;
+  border-radius: var(--card-public-section-radius);
+  background: var(--card-public-section-surface);
+  background-image: none;
+  box-shadow: none;
+}
+
 /* Generischer Tönungs-Hook: Card setzt per `tintHue`-Prop nur den Farbton (--card-tint-hue); die
    Sättigung/Helligkeit/Deckkraft-Formel nutzt standardmäßig dieselben --card-tint-*-Tokens für
    jede Tönung, kann aber vom Aufrufer über die optionalen *-override-Variablen (gesetzt via

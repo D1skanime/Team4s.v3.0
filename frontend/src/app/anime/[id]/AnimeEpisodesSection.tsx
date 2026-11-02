@@ -24,7 +24,7 @@ export function AnimeEpisodesSection({
   animeID, animeSlug, animeFansubsResponse, groupedEpisodesResponse, fansubStoryGroups, episodeCount, rawFansubParam,
 }: AnimeEpisodesSectionProps) {
   return (
-    <Card variant="glass" className={styles.episodesSection}>
+    <Card variant="publicSection" className={styles.episodesSection}>
       {groupedEpisodesResponse ? (
         <FansubVersionBrowser
           key={animeID}

@@ -10,7 +10,7 @@ type CardVariant =
   // Zweite offizielle Erscheinung derselben Kartenfläche: öffentliche, durchscheinende Flächen
   // auf Foto-/Bannerhintergrund statt der hellen Admin-Optik -- keine Ausnahme/Fehler, siehe
   // CLAUDE.md "öffentliche Optik ist eine zweite offizielle Erscheinung".
-  | 'glass' | 'glassStrong'
+  | 'glass' | 'glassStrong' | 'publicSection'
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant
@@ -86,6 +86,7 @@ export function Card({
         variant === 'nestedFlat' && styles.cardNestedFlat,
         variant === 'glass' && styles.cardGlass,
         variant === 'glassStrong' && styles.cardGlassStrong,
+        variant === 'publicSection' && styles.cardPublicSection,
         hasTint && styles.cardTinted,
         className,
       )}

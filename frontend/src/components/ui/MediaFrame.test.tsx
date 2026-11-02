@@ -17,4 +17,11 @@ describe('MediaFrame', () => {
     expect(screen.getByText('Ecke')).not.toBeNull()
     expect(screen.getByText('Unten')).not.toBeNull()
   })
+
+  it('stellt die Poster-Auslauf-Variante mit einem transparenten Rahmen bereit', () => {
+    render(<MediaFrame variant="posterFade" backdropImage="/covers/demo.jpg" data-testid="frame" />)
+    const frame = screen.getByTestId('frame')
+    expect(frame.className).toMatch(/mediaFramePosterFade/)
+    expect(frame.style.getPropertyValue('--media-frame-backdrop-image')).toBe('url("/covers/demo.jpg")')
+  })
 })

@@ -176,23 +176,25 @@ export const freezingFansubStoryGroups = buildFansubStoryGroups(freezingAnimeFan
 export const freezingGroupedEpisodesResponse: PublicGroupedEpisodesResponse = {
   data: {
     anime_id: 13,
-    episodes: [
-      buildGroupedEpisode({
-        episode_id: 1301,
-        episode_number: 1,
-        episode_title: 'Gefrorene Begegnung',
-        versions: [buildEpisodeVersion({
-          anime_id: 13,
-          fansub_groups: [
-            { id: 101, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: '/covers/placeholder.jpg' },
-            { id: 102, slug: 'lazy-subs', name: 'LazySubs' },
-            { id: 103, slug: 'melon-subs', name: 'MelonSubs', logo_url: '/covers/placeholder.jpg' },
-          ],
-          release_name: 'Freezing – Gemeinschaftsrelease',
-        })],
-      }),
-    ],
-    episode_count: 1,
+    episodes: Array.from({ length: 12 }, (_value, index) => buildGroupedEpisode({
+      episode_id: 1301 + index,
+      episode_number: index + 1,
+      episode_title: `Freezing – Folge ${index + 1}`,
+      versions: [buildEpisodeVersion({
+        id: 1301 + index,
+        variant_id: 1301 + index,
+        release_version_id: 1301 + index,
+        anime_id: 13,
+        episode_number: index + 1,
+        fansub_groups: [
+          { id: 101, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: '/covers/placeholder.jpg' },
+          { id: 102, slug: 'lazy-subs', name: 'LazySubs' },
+          { id: 103, slug: 'melon-subs', name: 'MelonSubs', logo_url: '/covers/placeholder.jpg' },
+        ],
+        release_name: 'Freezing – Gemeinschaftsrelease',
+      })],
+    })),
+    episode_count: 12,
     pagination: { has_more: false, next_cursor: null, row_limit: 24 },
   },
 }

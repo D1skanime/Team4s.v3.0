@@ -1,24 +1,29 @@
 .textBody {
+  margin: 0;
   font-size: var(--text-body-size, var(--text-body-font-size));
   color: var(--text-body-color, var(--text-body));
 }
 
 .textSoft {
+  margin: 0;
   font-size: var(--text-soft-size, var(--text-soft-font-size));
   color: var(--text-soft-color, var(--text-soft));
 }
 
 .textMeta {
+  margin: 0;
   font-size: var(--text-meta-size, var(--text-meta-font-size));
   color: var(--text-meta-color, var(--text-soft));
 }
 
 .textSmall {
+  margin: 0;
   font-size: var(--text-small-size, var(--text-small-font-size));
   color: var(--text-small-color, var(--text-faint));
 }
 
 .textEyebrow {
+  margin: 0;
   font-size: var(--text-eyebrow-size, var(--text-eyebrow-font-size));
   color: var(--text-eyebrow-color, var(--text-eyebrow));
   font-weight: 700;

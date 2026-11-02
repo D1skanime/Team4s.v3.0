@@ -109,12 +109,21 @@ export const VieleEpisoden: Story = {
 export const MehrereFansubgruppen: Story = {
   name: 'Mehrere Fansubgruppen',
   args: {
-    anime: buildAnimeDetailFixture({ id: 13, slug: 'freezing', title: 'Freezing', max_episodes: 12 }),
+    anime: buildAnimeDetailFixture({
+      id: 13,
+      slug: 'freezing',
+      title: 'Freezing',
+      max_episodes: 12,
+      genres: ['Action', 'Science-Fiction', 'Drama'],
+      tags: ['Pandora', 'Stigmata', 'Turnier'],
+      description: 'In einer Zukunft nach den Nova-Angriffen kämpfen die Pandora mit ihren Stigmata gegen die Bedrohung. Kazuya begegnet an der West Genetics Academy der ungestümen Satellizer el Bridget.',
+    }),
     breadcrumbItems: [{ label: 'Anime', href: '/anime' }, { label: 'Freezing' }],
     animeFansubsResponse: freezingAnimeFansubsResponse,
     groupedEpisodesResponse: freezingGroupedEpisodesResponse,
     fansubStoryGroups: freezingFansubStoryGroups,
-    episodeCount: 1,
+    relationsResponse: null,
+    episodeCount: 12,
   },
   parameters: {
     msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler, ...watchlistMutationHandlers, groupedEpisodesHandler(freezingGroupedEpisodesResponse)] },

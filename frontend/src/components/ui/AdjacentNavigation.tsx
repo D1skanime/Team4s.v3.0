@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { FocusEventHandler, MouseEventHandler, TouchEventHandler } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { classNames } from './classNames'
@@ -8,6 +9,11 @@ export interface AdjacentNavigationItem {
   href: string
   label: string
   ariaLabel?: string
+  onMouseEnter?: MouseEventHandler<HTMLAnchorElement>
+  onMouseLeave?: MouseEventHandler<HTMLAnchorElement>
+  onFocus?: FocusEventHandler<HTMLAnchorElement>
+  onBlur?: FocusEventHandler<HTMLAnchorElement>
+  onTouchStart?: TouchEventHandler<HTMLAnchorElement>
 }
 
 export interface AdjacentNavigationProps {
@@ -43,6 +49,11 @@ export function AdjacentNavigation({
           href={previous.href}
           className={classNames(styles.adjacentNavItem, styles.adjacentNavPrevious)}
           aria-label={previous.ariaLabel ?? `Vorheriger Inhalt: ${previous.label}`}
+          onMouseEnter={previous.onMouseEnter}
+          onMouseLeave={previous.onMouseLeave}
+          onFocus={previous.onFocus}
+          onBlur={previous.onBlur}
+          onTouchStart={previous.onTouchStart}
         >
           <ChevronLeft size={19} aria-hidden="true" />
           <span className={styles.adjacentNavLabel}>{previous.label}</span>
@@ -53,6 +64,11 @@ export function AdjacentNavigation({
           href={next.href}
           className={classNames(styles.adjacentNavItem, styles.adjacentNavNext)}
           aria-label={next.ariaLabel ?? `Nächster Inhalt: ${next.label}`}
+          onMouseEnter={next.onMouseEnter}
+          onMouseLeave={next.onMouseLeave}
+          onFocus={next.onFocus}
+          onBlur={next.onBlur}
+          onTouchStart={next.onTouchStart}
         >
           <span className={styles.adjacentNavLabel}>{next.label}</span>
           <ChevronRight size={19} aria-hidden="true" />
