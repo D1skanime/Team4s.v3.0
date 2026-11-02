@@ -110,6 +110,55 @@ describe('Pagination', () => {
     })
   })
 
+  describe('Link-Modus mit hrefPattern', () => {
+    it('rendert Seitenzahlen sowie Weiter/Zurück als Links mit der aus hrefPattern gebauten URL', () => {
+      render(<Pagination currentPage={2} totalPages={5} hrefPattern="/anime?page={page}" />)
+
+      expect(screen.getByRole('link', { name: '3' }).getAttribute('href')).toBe('/anime?page=3')
+      expect(screen.getByRole('link', { name: /Weiter/ }).getAttribute('href')).toBe('/anime?page=3')
+      expect(screen.getByRole('link', { name: /Zurück/ }).getAttribute('href')).toBe('/anime?page=1')
+      expect(screen.queryByRole('button')).toBeNull()
+    })
+
+    it('entfernt href bei Zurück auf der ersten Seite, statt den Link zu entfernen', () => {
+      render(<Pagination currentPage={1} totalPages={5} hrefPattern="/anime?page={page}" />)
+
+      const zurueck = screen.getByText('Zurück').closest('a')
+      expect(zurueck).not.toBeNull()
+      expect(zurueck?.getAttribute('href')).toBeNull()
+      expect(zurueck?.getAttribute('aria-disabled')).toBe('true')
+    })
+
+    it('rendert über die Link-Komponente, wenn linkComponent übergeben wird', () => {
+      function StubLink({ href, children, ...rest }: { href: string; children: ReactNode }) {
+        return (
+          <a data-stub-link="true" href={href} {...rest}>
+            {children}
+          </a>
+        )
+      }
+
+      render(
+        <Pagination currentPage={2} totalPages={5} hrefPattern="/anime?page={page}" linkComponent={StubLink} />,
+      )
+
+      expect(screen.getByRole('link', { name: '3' }).getAttribute('data-stub-link')).toBe('true')
+    })
+
+    it('bevorzugt hrefPattern, wenn sowohl hrefPattern als auch hrefForPage gesetzt sind', () => {
+      render(
+        <Pagination
+          currentPage={2}
+          totalPages={5}
+          hrefPattern="/anime?page={page}"
+          hrefForPage={(page) => `/sollte-nicht-verwendet-werden?page=${page}`}
+        />,
+      )
+
+      expect(screen.getByRole('link', { name: '3' }).getAttribute('href')).toBe('/anime?page=3')
+    })
+  })
+
   describe('Nachlade-Modus (mode="loadMore")', () => {
     it('zeigt den Fortschritt und den Mehr-Button, solange weitere Einträge nachladbar sind', () => {
       const onShowMore = vi.fn()

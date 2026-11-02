@@ -17,4 +17,9 @@ describe('buildAnimeListPageHref', () => {
     expect(params.get('content_type')).toBe('anime')
     expect(params.get('status')).toBe('ongoing')
   })
+
+  it('belässt den literalen {page}-Platzhalter unkodiert, wenn er für ein hrefPattern gebaut wird', () => {
+    const href = buildAnimeListPageHref('{page}', { letter: 'A', perPage: 48 })
+    expect(href).toBe('/anime?page={page}&letter=A&per_page=48')
+  })
 })

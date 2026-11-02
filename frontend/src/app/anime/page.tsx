@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { Suspense } from 'react'
 
 import { AnimeGrid } from '@/components/anime/AnimeGrid'
@@ -120,11 +119,16 @@ async function AnimeListContent({ searchParams }: AnimePageProps) {
 
       <LetterFilter currentLetter={letter} perPage={perPage} contentType={contentType} status={status} />
       <AnimeGrid anime={response.data} gridQuery={gridQuery} />
+      {/* Bewusst ohne `linkComponent={Link}`: next/link ist zwar selbst "use client", aber im
+          Next.js-16-Dev-Server lässt sich eine solche Komponentenreferenz nicht zuverlässig über
+          die Server/Client-Grenze serialisieren (live reproduziert -- führte zu HTTP 500 bzw. bei
+          per Suspense gestreamten Seiten zu einem stillen, nur im Log sichtbaren Serialisierungs-
+          fehler). `Pagination` fällt ohne `as`-Prop auf ein natives `<a>` zurück, was für diese
+          `force-dynamic`-Seite funktional gleichwertig ist (voller Seitenwechsel statt Soft-Nav). */}
       <Pagination
         currentPage={response.meta.page}
         totalPages={response.meta.total_pages}
-        hrefForPage={(page) => buildAnimeListPageHref(page, { letter, perPage, contentType, status })}
-        linkComponent={Link}
+        hrefPattern={buildAnimeListPageHref('{page}', { letter, perPage, contentType, status })}
       />
     </main>
   )

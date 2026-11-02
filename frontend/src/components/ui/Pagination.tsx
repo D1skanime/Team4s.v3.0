@@ -20,8 +20,16 @@ interface PagesModeProps {
   onPageChange?: (page: number) => void
   /** Link-Modus: jede Seite bekommt eine echte, über diese Funktion gebaute URL -- Weiter-/
    *  Zurück-/Seitenzahlen rendern als Link statt als reiner Klick-Button. Funktioniert ohne
-   *  JavaScript und ist für Suchmaschinen crawlbar; nötig für öffentliche, SSR-fähige Listen. */
+   *  JavaScript und ist für Suchmaschinen crawlbar; nötig für öffentliche, SSR-fähige Listen.
+   *  NUR aus Client-Komponenten übergeben -- eine Funktion ist nicht über die Server/Client-
+   *  Grenze serialisierbar (siehe `hrefPattern` für Server-Komponenten). */
   hrefForPage?: (page: number) => string
+  /** Link-Modus für Server-Komponenten: URL-Muster mit `{page}`-Platzhalter als reiner
+   *  Datenwert statt einer Funktion -- über die Server/Client-Grenze serialisierbar (eine
+   *  `async`-Serverkomponente darf keine Funktion als Prop an diesen `'use client'`-Baustein
+   *  reichen, sonst bricht Next.js mit "Functions cannot be passed directly to Client
+   *  Components"). Hat Vorrang vor `hrefForPage`, falls beide gesetzt sind. */
+  hrefPattern?: string
   /** Link-Komponente für clientseitige Navigation im Link-Modus (Standard: natives `<a>`),
    *  z. B. `next/link`s `Link`. */
   linkComponent?: ElementType
@@ -105,7 +113,7 @@ function LoadMorePagination({
   )
 }
 
-function PagesPagination({ currentPage, totalPages, onPageChange, hrefForPage, linkComponent, className }: PagesModeProps) {
+function PagesPagination({ currentPage, totalPages, onPageChange, hrefForPage, hrefPattern, linkComponent, className }: PagesModeProps) {
   const items = useMemo(() => computePaginationItems(currentPage, totalPages), [currentPage, totalPages])
 
   if (totalPages <= 1) {
@@ -113,6 +121,9 @@ function PagesPagination({ currentPage, totalPages, onPageChange, hrefForPage, l
   }
 
   function navProps(page: number) {
+    if (hrefPattern) {
+      return { href: hrefPattern.replace('{page}', String(page)), as: linkComponent }
+    }
     return hrefForPage
       ? { href: hrefForPage(page), as: linkComponent }
       : { onClick: () => onPageChange?.(page) }

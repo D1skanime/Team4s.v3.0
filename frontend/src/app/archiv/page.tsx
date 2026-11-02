@@ -214,12 +214,16 @@ export default async function ArchivPage({ searchParams }: ArchivePageProps) {
               ))}
             </div>
 
+            {/* Bewusst ohne `linkComponent={Link}`: next/link ist zwar selbst "use client", aber im
+                Next.js-16-Dev-Server lässt sich eine solche Komponentenreferenz nicht zuverlässig
+                über die Server/Client-Grenze serialisieren (live reproduziert -- führte bei
+                anderen Server-Seiten zu HTTP 500). `Pagination` fällt ohne `as`-Prop auf ein
+                natives `<a>` zurück, was für diese Seite funktional gleichwertig ist. */}
             <Pagination
               className={styles.archivPagination}
               currentPage={currentPage}
               totalPages={totalPages}
-              hrefForPage={(page) => buildArchivUrl(resolved, page)}
-              linkComponent={Link}
+              hrefPattern={buildArchivUrl(resolved, '{page}')}
             />
           </>
         ) : null}
@@ -228,14 +232,20 @@ export default async function ArchivPage({ searchParams }: ArchivePageProps) {
   )
 }
 
-/** Baut die Archiv-URL mit allen aktiven Filtern und einer neuen Seite. */
-function buildArchivUrl(params: ResolvedArchiveParams, page: number): string {
+/** Baut die Archiv-URL mit allen aktiven Filtern und einer neuen Seite. `page` akzeptiert neben
+ *  einer echten Seitenzahl auch den literalen Platzhalter-String `'{page}'`, damit die
+ *  Server-Komponente einmalig ein `hrefPattern` für `Pagination` bauen kann, statt eine nicht
+ *  über die Server/Client-Grenze serialisierbare Funktion zu übergeben. */
+function buildArchivUrl(params: ResolvedArchiveParams, page: number | string): string {
   const q = new URLSearchParams()
   if (params.rolle) q.set('rolle', params.rolle)
   if (params.gruppe) q.set('gruppe', params.gruppe)
   if (params.von) q.set('von', params.von)
   if (params.bis) q.set('bis', params.bis)
-  if (page > 1) q.set('page', String(page))
+  q.set('page', String(page))
   const qs = q.toString()
-  return `/archiv${qs ? `?${qs}` : ''}`
+  // URLSearchParams kodiert geschweifte Klammern (%7B/%7D) -- beim Platzhalter-Aufruf muss der
+  // literale `{page}`-Text erhalten bleiben, damit `Pagination` ihn pro Seitenzahl ersetzen kann.
+  const href = `/archiv${qs ? `?${qs}` : ''}`
+  return page === '{page}' ? href.replace('%7Bpage%7D', '{page}') : href
 }

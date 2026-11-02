@@ -85,11 +85,15 @@ export default async function MemberRankingPage({ searchParams }: RankingPagePro
               ))}
             </TableBody>
           </Table>
+          {/* Bewusst ohne `linkComponent={Link}`: next/link ist zwar selbst "use client", aber im
+              Next.js-16-Dev-Server lässt sich eine solche Komponentenreferenz nicht zuverlässig
+              über die Server/Client-Grenze serialisieren (live reproduziert -- führte hier zu
+              HTTP 500, siehe scripts/smoke-pagination.sh). `Pagination` fällt ohne `as`-Prop auf
+              ein natives `<a>` zurück, was für diese Seite funktional gleichwertig ist. */}
           <Pagination
             currentPage={result.page}
             totalPages={Math.ceil(result.total / RANKING_PAGE_SIZE)}
-            hrefForPage={(page) => (page > 1 ? `/members/ranking?page=${page}` : '/members/ranking')}
-            linkComponent={Link}
+            hrefPattern="/members/ranking?page={page}"
           />
         </>
       ) : null}
