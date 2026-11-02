@@ -1,7 +1,7 @@
 import { AnimeGrid } from '@/components/anime/AnimeGrid'
 import { AnimeGridScrollRestorer } from '@/components/anime/AnimeGridScrollRestorer'
 import { LetterFilter } from '@/components/anime/LetterFilter'
-import { Pagination } from '@/components/ui'
+import { ErrorState, PageHeader, Pagination } from '@/components/ui'
 import { AnimeStatus, ContentType, PaginatedAnimeResponse } from '@/types/anime'
 
 import { buildAnimeListPageHref } from './animeListPageHref'
@@ -31,12 +31,11 @@ export function AnimeListView({ response, letter, perPage, contentType, status, 
   if (!response) {
     return (
       <main className={styles.page}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>Anime Liste</h1>
-        </header>
-        <div className={styles.errorBox}>
-          <p>Die Anime-Liste konnte aktuell nicht geladen werden.</p>
-        </div>
+        <PageHeader title="Anime" />
+        <ErrorState
+          title="Liste konnte nicht geladen werden"
+          description="Die Anime-Liste konnte aktuell nicht geladen werden. Bitte laden Sie die Seite neu."
+        />
       </main>
     )
   }
@@ -45,13 +44,7 @@ export function AnimeListView({ response, letter, perPage, contentType, status, 
     <main className={styles.page}>
       <AnimeGridScrollRestorer gridQuery={gridQuery} />
 
-      <header className={styles.header}>
-        <p className={styles.kicker}>P0 MVP</p>
-        <h1 className={styles.title}>Anime Liste</h1>
-        <p className={styles.subtitle}>
-          {response.meta.total.toLocaleString('de-DE')} Einträge mit A-Z Filter und Pagination
-        </p>
-      </header>
+      <PageHeader title="Anime" description={`${response.meta.total.toLocaleString('de-DE')} Einträge`} />
 
       <LetterFilter currentLetter={letter} perPage={perPage} contentType={contentType} status={status} />
       <AnimeGrid anime={response.data} gridQuery={gridQuery} />
