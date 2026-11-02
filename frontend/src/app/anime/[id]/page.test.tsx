@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 import { AnimeInfoBanner } from '@/components/anime/AnimeMediaProvider'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
-import { Button, Card, ErrorState, LinkChip, MediaFrame } from '@/components/ui'
+import { Button, Card, ErrorState, Heading, LinkChip, MediaFrame, Text } from '@/components/ui'
 import AnimeListPage from '../page'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -24,6 +24,8 @@ import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeRe
 import type { PublicGroupedEpisodesOptions, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 import type { AnimeDetail } from '@/types/anime'
 import AnimeDetailPage, { generateMetadata } from './page'
+import { AnimeDetailHero } from './AnimeDetailHero'
+import { AnimeEpisodesSection } from './AnimeEpisodesSection'
 
 const groupedMock = vi.mocked(getGroupedEpisodes as (animeID: number, options: PublicGroupedEpisodesOptions) => Promise<PublicGroupedEpisodesResponse>)
 
@@ -100,6 +102,10 @@ describe('loading boundaries follow resource validation', () => {
 function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
   return Children.toArray(node).flatMap((child) => {
     if (!isValidElement<Record<string, unknown>>(child)) return []
+    if (child.type === AnimeDetailHero || child.type === AnimeEpisodesSection) {
+      const component = child.type as (props: Record<string, unknown>) => ReactNode
+      return [child, ...elements(component(child.props))]
+    }
     return [child, ...elements(child.props.children as ReactNode)]
   })
 }
@@ -317,7 +323,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Real Robot', 'Amnesia', 'Zeitreise'] } })
     const content = await loadContent()
     const all = elements(content)
-    expect(textContent(content)).toMatch(/Tags/)
+    expect(all.some((item) => item.type === Heading && textContent(item.props.children as ReactNode) === 'Tags')).toBe(true)
     const tagLinks = all.filter((item) => item.type === LinkChip && String((item.props.href as string)).includes('tag='))
     expect(tagLinks).toHaveLength(3)
     expect(tagLinks.map((item) => textContent(item.props.children as ReactNode))).toEqual(['Real Robot', 'Amnesia', 'Zeitreise'])
@@ -395,7 +401,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
 
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, genres: [] } })
     const contentNoGenres = await loadContent()
-    const placeholder = elements(contentNoGenres).find((item) => item.type === 'span' && textContent(item.props.children as ReactNode) === 'Anime')
+    const placeholder = elements(contentNoGenres).find((item) => item.type === Text && textContent(item.props.children as ReactNode) === 'Anime')
     expect(placeholder).toBeDefined()
     expect(placeholder?.props).not.toHaveProperty('href')
   })

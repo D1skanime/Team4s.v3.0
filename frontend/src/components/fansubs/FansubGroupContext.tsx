@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui'
+import { Button, Card, Heading, Text } from '@/components/ui'
 import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 
 import styles from './FansubGroupContext.module.css'
@@ -24,11 +24,11 @@ export function FansubGroupContext({ activeGroup, animeSlug }: FansubGroupContex
   const canLinkToProject = Boolean(animeSlug?.trim() && activeGroup.slug?.trim())
 
   return (
-    <article className={styles.card}>
-      <h3 className={styles.name}>{activeGroup.name}</h3>
+    <Card variant="glass" className={styles.card} data-testid="fansub-group-context">
+      <Heading level={3} tone="onScrim" className={styles.name}>{activeGroup.name}</Heading>
       {trimmedPreview ? (
         <>
-          <p className={styles.storyPreview}>{trimmedPreview}</p>
+          <Text tone="onScrim" className={styles.storyPreview}>{trimmedPreview}</Text>
           <Button href={`/fansubs/${activeGroup.slug}#geschichte`} variant="text" className={styles.moreLink}>
             Mehr lesen →
           </Button>
@@ -44,6 +44,6 @@ export function FansubGroupContext({ activeGroup, animeSlug }: FansubGroupContex
           </Button>
         ) : null}
       </div>
-    </article>
+    </Card>
   )
 }

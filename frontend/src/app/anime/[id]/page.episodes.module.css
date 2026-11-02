@@ -7,15 +7,6 @@
    EpisodeGlassCard).
    ========================================================================== */
 .episodesSection {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 32px;
-}
-
-.episodesSection h2 {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0 0 20px;
-  color: #fff;
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
 }

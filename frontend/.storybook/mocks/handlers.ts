@@ -4,12 +4,16 @@ import type { MemberProfileData } from '@/types/profile'
 import type { WatchlistCreateResponse } from '@/types/watchlist'
 import type { PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 
+import { animeBackdropManifestFixture, animeNavigationFixture } from './animeFixtures'
+
 /**
  * Zentrale MSW-Handler für echte Client-seitige `fetch`-Aufrufe aus Storybook-Stories (nicht für
  * die Server/Ansicht-Split-Pilotseiten selbst -- deren Daten kommen als Props, siehe
  * `AnimeListView`/`AnimeDetailView`). Fängt im Pilot-Scope `GET /api/v1/me/profile`
- * (`AppShellClientWrapper`, Rollen-Umschalter) und `GET /api/v1/watchlist/:animeID`
- * (`WatchlistAddButton`) ab, bevor der Request das Storybook-iframe verlässt.
+ * (`AppShellClientWrapper`, Rollen-Umschalter), `GET /api/v1/watchlist/:animeID`
+ * (`WatchlistAddButton`), `GET /api/v1/anime/:id/backdrops` (`AnimeMediaProvider`) sowie die
+ * interaktiven Detail-Nachfragen für Gruppen und Randnavigation ab, bevor ein Request das
+ * Storybook-iframe verlässt.
  */
 
 /** Von `roleSimulation.ts` gesetzte, aktuell für die Rollen-Simulation aktive Profil-Fixture --
@@ -59,6 +63,18 @@ export const watchlistErrorHandler = http.get('*/api/v1/watchlist/:animeID', () 
   return HttpResponse.json({ error: 'interner Fehler' }, { status: 500 })
 })
 
+/** Standard-Handler für das vom AnimeMediaProvider beim Detail-Render geladene Manifest. */
+export const animeBackdropsHandler = http.get('*/api/v1/anime/:animeID/backdrops', ({ params }) => {
+  return HttpResponse.json({
+    data: { ...animeBackdropManifestFixture.data, anime_id: Number(params.animeID) },
+  })
+})
+
+/** Standard-Handler für die echte Hover-/Klick-Navigation im Listen-Kontext einer Detail-Story. */
+export const animeNavigationHandler = http.get('*/api/v1/anime', () => {
+  return HttpResponse.json(animeNavigationFixture)
+})
+
 /** Liefert für eine Detailseiten-Story genau die nächste Cursor-Seite. Der Cursor ist Pflicht,
  * damit die Story nur den echten Nachladepfad simuliert und keinen SSR-Prop-Datensatz ersetzt. */
 export function groupedEpisodesLoadMoreHandler(page: PublicGroupedEpisodesResponse) {
@@ -69,6 +85,16 @@ export function groupedEpisodesLoadMoreHandler(page: PublicGroupedEpisodesRespon
   })
 }
 
+/** Liefert eine vollständige Gruppenansicht für interaktive Detail-Stories mit mehreren Gruppen. */
+export function groupedEpisodesHandler(page: PublicGroupedEpisodesResponse) {
+  return http.get('*/api/v1/anime/:animeID/episodes', () => HttpResponse.json(page))
+}
+
 /** Default-Handler-Liste für `preview.tsx` -- einzelne Stories überschreiben sie bei Bedarf über
  *  `parameters.msw.handlers`. */
-export const defaultHandlers = [profileHandler, watchlistAbsentHandler]
+export const defaultHandlers = [
+  profileHandler,
+  watchlistAbsentHandler,
+  animeBackdropsHandler,
+  animeNavigationHandler,
+]

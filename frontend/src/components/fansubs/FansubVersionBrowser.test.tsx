@@ -304,15 +304,16 @@ function assertGroup(id: 7 | 9) {
   const selected = fansubs[id === 7 ? 0 : 1].fansub_group!
   expect(screen.getByRole('button', { name: selected.name }).getAttribute('aria-pressed')).toBe('true')
   // D-13: der Gruppenbereich rendert den Gruppennamen als reine Ueberschrift OHNE Link.
-  const heading = within(screen.getByRole('article')).getByRole('heading', { name: selected.name })
+  const context = screen.getByTestId('fansub-group-context')
+  const heading = within(context).getByRole('heading', { name: selected.name })
   expect(heading).toBeTruthy()
-  expect(within(screen.getByRole('article')).queryByRole('link', { name: selected.name })).toBeNull()
+  expect(within(context).queryByRole('link', { name: selected.name })).toBeNull()
   expect(screen.getByText(`Variante ${id}`)).toBeTruthy()
   expect(screen.queryByText(`Variante ${id === 7 ? 9 : 7}`)).toBeNull()
 }
 function assertAllSelected() {
   expect(screen.getByRole('button', { name: 'Alle' }).getAttribute('aria-pressed')).toBe('true')
-  expect(screen.queryByRole('article')).toBeNull()
+  expect(screen.queryByTestId('fansub-group-context')).toBeNull()
 }
 
 describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', () => {
@@ -320,7 +321,7 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     render(<FansubVersionBrowser animeID={22} fansubs={noFansubs} episodes={[]} />)
     expect(screen.queryByRole('group', { name: 'Fansub-Gruppe' })).toBeNull()
     expect(screen.queryByText('Alle')).toBeNull()
-    expect(screen.queryByRole('article')).toBeNull()
+    expect(screen.queryByTestId('fansub-group-context')).toBeNull()
   })
 
   it('Testfall B/C: aktiviert die einzige Gruppe automatisch, ohne Alle-Chip und ohne Klick', () => {

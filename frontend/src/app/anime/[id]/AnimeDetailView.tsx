@@ -1,14 +1,8 @@
-import { ExternalLink } from 'lucide-react'
-
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
-import { AnimeInfoBanner, AnimeMediaProvider, AnimeTitleLogo } from '@/components/anime/AnimeMediaProvider'
-import { AnimeRelations } from '@/components/anime/AnimeRelations'
+import { AnimeMediaProvider } from '@/components/anime/AnimeMediaProvider'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
-import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
-import { StatusBadge } from '@/components/anime/StatusBadge'
-import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
-import { Badge, BannerSection, Button, Card, ErrorState, Heading, LinkChip, MediaFrame, ResponsiveImage, Text } from '@/components/ui'
+import { BannerSection } from '@/components/ui'
 import { getAnimeFansubs, getAnimeRelations } from '@/lib/api'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import type { AnimeDetail } from '@/types/anime'
@@ -20,12 +14,8 @@ import type { AnimeDetail } from '@/types/anime'
 import type { PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 
 import styles from './AnimeDetailView.styles'
-
-/** Baut den Such-Link für einen Tag-/Genre-Chip -- ohne freien Suchtext (`q`), da der Chip gezielt
- *  nach genau diesem Tag oder Genre filtert, nicht nach einem Stichwort. */
-function buildFilterHref(kind: 'tag' | 'genre', name: string): string {
-  return `/suche?${new URLSearchParams({ type: 'anime', [kind]: name }).toString()}`
-}
+import { AnimeDetailHero } from './AnimeDetailHero'
+import { AnimeEpisodesSection } from './AnimeEpisodesSection'
 
 export interface AnimeDetailViewProps {
   anime: AnimeDetail
@@ -46,9 +36,10 @@ export interface AnimeDetailViewProps {
  * Info-Card, Episoden-Browser) -- enthält KEINE eigene Datenbeschaffung mehr. Die
  * Server-Komponente `AnimeDetailContent` (`page.tsx`) lädt `loadAnimeDetail`/`getAnimeFansubs`/
  * `getGroupedEpisodes`/`getAnimeRelations` weiterhin selbst und reicht die Ergebnisse als Props
- * durch. Zweiter Baustein des "ganze Seiten"-Storybook-Pilots (siehe `AnimeListView.tsx`): ihr
- * einziger Client-seitiger Netzwerk-Aufruf, `WatchlistAddButton`s `getWatchlistEntry`, wird in
- * Storybook über MSW abgefangen (`frontend/.storybook/mocks/handlers.ts`), nicht über Props.
+ * durch. Zweiter Baustein des "ganze Seiten"-Storybook-Pilots (siehe `AnimeListView.tsx`): die
+ * Client-Anfragen von Medienkontext, Merkliste, Gruppenwechsel und Randnavigation werden in
+ * Storybook zentral über MSW abgefangen (`frontend/.storybook/mocks/handlers.ts`), nicht über
+ * Props oder ein erreichbares Entwicklungs-Backend.
  */
 export function AnimeDetailView({
   anime,
@@ -63,20 +54,17 @@ export function AnimeDetailView({
   coverUrl,
   rawFansubParam,
 }: AnimeDetailViewProps) {
-  // 0/unbekannte Episodenzahl zeigt bewusst KEIN Badge (kein "0 Folgen"), Einzahl "1 Folge"
-  // statt "1 Folgen".
-  const posterEpisodeCount = anime.max_episodes ?? 0
-  const posterEpisodeBadge = posterEpisodeCount > 0
-    ? <Badge variant="onMedia">{posterEpisodeCount === 1 ? '1 Folge' : `${posterEpisodeCount} Folgen`}</Badge>
-    : null
+  // Ein fehlendes Cover bleibt ein regulärer Darstellungsfall: dieselbe öffentliche
+  // Platzhalterdatei versorgt Banner, Rotator und Poster statt ein leeres Image-Attribut zu senden.
+  const displayCoverUrl = coverUrl || '/covers/placeholder.jpg'
 
   return (
     <AnimeMediaProvider key={anime.id} animeID={anime.id}>
       <main className={styles.page}>
       {/* Banner-Hintergrund: BannerSection übernimmt die bisherige .heroBanner-Positionierung,
           AnimeBackdropRotator (eigenständiger Fachbaustein, position:fixed) wird darin komponiert. */}
-      <BannerSection imageUrl={coverUrl} imageAlt={`${anime.title} Hintergrundbild`}>
-        <AnimeBackdropRotator fallbackImageURL={coverUrl} />
+      <BannerSection imageUrl={displayCoverUrl} imageAlt={`${anime.title} Hintergrundbild`}>
+        <AnimeBackdropRotator fallbackImageURL={displayCoverUrl} />
       </BannerSection>
 
       {/* Breadcrumbs */}
@@ -87,126 +75,7 @@ export function AnimeDetailView({
       {/* Hero Container (Glassmorphism) - 2 Column Grid */}
       <div className={styles.heroWrapper}>
         <section className={styles.heroContainer}>
-          {/* Left: Poster Column */}
-          <div className={styles.posterColumn}>
-            <div
-              className={styles.posterWrapper}
-              style={{ '--poster-image': `url("${coverUrl}")` } as React.CSSProperties}
-            >
-              <MediaFrame aspectRatio={2 / 3} bottomBadge={posterEpisodeBadge} className={styles.poster}>
-                <ResponsiveImage
-                  src={coverUrl}
-                  alt={anime.title}
-                  fill
-                  sizes="(max-width: 767px) 160px, (max-width: 1023px) 220px, 260px"
-                  priority
-                  unoptimized
-                  className={styles.posterImage}
-                />
-              </MediaFrame>
-            </div>
-
-            {/* Poster-Metadaten (Merkliste + Genres) */}
-            <div className={styles.posterMeta}>
-              <WatchlistAddButton
-                animeID={anime.id}
-                className={styles.watchlistButton}
-                activeClassName={styles.watchlistButtonActive}
-              />
-              <hr className={styles.posterDivider} />
-              <div className={styles.genresSection}>
-                <span className={styles.genresLabel}>Genres</span>
-                <div className={styles.genres}>
-                  {anime.genres && anime.genres.length > 0 ? (
-                    anime.genres.map((genre) => (
-                      <LinkChip key={genre} href={buildFilterHref('genre', genre)}>
-                        {genre}
-                      </LinkChip>
-                    ))
-                  ) : (
-                    <span className={styles.genrePlaceholder}>Anime</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Rechts: Info-Karte -- öffentliche Glas-Fläche (Card variant="glass") statt
-              seiteneigenem CSS. Die Fläche selbst kommt jetzt komplett aus Card/Tokens; das
-              Innenlayout (Abstand, Spaltenanordnung) liegt bewusst in einem verschachtelten
-              .infoCardBody-Element statt direkt auf Card (vermeidet einen Cross-Modul-
-              Spezifitätsgleichstand mit Cards eigenem Layout, siehe page.infoCard.module.css). */}
-          <Card variant="glass" className={styles.infoCard}>
-            <div className={styles.infoCardBody}>
-              {/* Titel- und Logo-Zeile */}
-              <div className={styles.titleRow}>
-                <Heading level={1} tone="onScrim" className={styles.title}>{anime.title}</Heading>
-                <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
-              </div>
-
-              {/* Status-/Typ-/Jahr-Badges -- StatusBadge bleibt bewusst ein eigenständiger
-                  Fachbaustein (eigenes CSS-Modul, eigene Status-Farblogik); die drei übrigen
-                  Pillen (Typ/Content-Type/Jahr) sind reine Metadaten ohne Statusbedeutung und
-                  werden deshalb auf das offizielle Badge-Grundelement umgestellt -- zwei
-                  getrennte, nebeneinander bestehende "Badge-Familien". */}
-              <div className={styles.badges}>
-                <StatusBadge status={anime.status} />
-                <Badge variant="neutral">{anime.type.toUpperCase()}</Badge>
-                <Badge variant="neutral">{anime.content_type}</Badge>
-                <Badge variant="neutral">{anime.year ?? 'n/a'}</Badge>
-              </div>
-
-              {/* Beschreibung */}
-              <Text tone="onScrim" className={styles.description}>
-                {anime.description ?? 'Keine Beschreibung vorhanden.'}
-              </Text>
-
-              {/* Tags direkt unter der Beschreibung -- die Trennlinie zum nächsten Block folgt
-                  erst mit dem Banner, nicht schon hier, damit Tags optisch noch zur Beschreibung
-                  gehören */}
-              {anime.tags && anime.tags.length > 0 && (
-                <>
-                  <div className={styles.tagsSection}>
-                    <h2 id="tags-heading" className={styles.tagsLabel}>Tags</h2>
-                    <ul className={styles.tagsList} aria-labelledby="tags-heading">
-                      {anime.tags.map((tag) => (
-                        <li key={tag}>
-                          <LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>
-                            {tag}
-                          </LinkChip>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </>
-              )}
-
-              {embySeriesUrl && (
-                <div className={styles.statsRow}>
-                  <Button
-                    href={embySeriesUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    variant="text"
-                    size="sm"
-                    leftIcon={<ExternalLink size={14} aria-hidden="true" />}
-                  >
-                    Emby
-                  </Button>
-                </div>
-              )}
-
-              {/* Info-Banner aus Jellyfin */}
-              <AnimeInfoBanner className={styles.infoBanner} dividerClassName={styles.divider} />
-
-              {/* Verwandte Anime -- innerhalb der Info-Karte */}
-              {relationsResponse && relationsResponse.data.length > 0 && (
-                <div className={styles.relatedSection}>
-                  <AnimeRelations relations={relationsResponse.data} />
-                </div>
-              )}
-            </div>
-          </Card>
+          <AnimeDetailHero anime={anime} coverUrl={displayCoverUrl} embySeriesUrl={embySeriesUrl} relationsResponse={relationsResponse} />
 
           {/* Edge-Navigation-Overlay -- auf dem heroContainer positioniert */}
           {gridQuery && (
@@ -219,31 +88,7 @@ export function AnimeDetailView({
 
       {/* Inhaltsbereich (Episoden) */}
       <div className={styles.contentArea}>
-        <section className={styles.episodesSection}>
-          {groupedEpisodesResponse ? (
-            <FansubVersionBrowser
-              key={anime.id}
-              animeID={anime.id}
-              animeSlug={anime.slug}
-              fansubs={animeFansubsResponse?.data ?? []}
-              storyGroups={fansubStoryGroups}
-              episodes={groupedEpisodesResponse.data.episodes}
-              pagination={groupedEpisodesResponse.data.pagination}
-              episodeCount={episodeCount}
-              initialActiveSlug={rawFansubParam}
-            />
-          ) : (
-            // Neutraler Fehlerhinweis statt der ungefilterten anime.episodes-Notfallliste, falls
-            // die Episoden nicht geladen werden konnten -- über die offizielle, kompakte
-            // ErrorState-Primitive statt eines Eigenbau-<div>; role="alert" kommt bereits aus
-            // ErrorState selbst.
-            <ErrorState
-              compact
-              title="Episoden konnten nicht geladen werden"
-              description="Die Episodenliste ist derzeit nicht verfügbar. Bitte laden Sie die Seite neu."
-            />
-          )}
-        </section>
+        <AnimeEpisodesSection animeID={anime.id} animeSlug={anime.slug ?? ''} animeFansubsResponse={animeFansubsResponse} groupedEpisodesResponse={groupedEpisodesResponse} fansubStoryGroups={fansubStoryGroups} episodeCount={episodeCount} rawFansubParam={rawFansubParam} />
       </div>
       </main>
     </AnimeMediaProvider>

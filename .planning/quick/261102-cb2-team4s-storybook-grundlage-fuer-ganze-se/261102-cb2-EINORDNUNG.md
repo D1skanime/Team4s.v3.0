@@ -36,7 +36,8 @@ Tönungsformel, Info-Karten-Layout-Wrapper, Token-Referenzen, Kommentar-Überset
 |---|---|---|
 | Breadcrumbs | vorhandener zusammengesetzter Baustein (`Breadcrumbs`) | `AnimeDetailView.tsx:84` (`@/components/navigation/Breadcrumbs.tsx`) |
 | Banner-Hintergrund (unscharfer Fallback + Scrim) | neuer zusammengesetzter Baustein (`BannerSection`) | `AnimeDetailView.tsx:78-80` (`@/components/ui/BannerSection.tsx`) -- `AnimeBackdropRotator` bleibt eigenständiger Fachbaustein, darin komponiert |
-| Poster-Bild | vorhandene Grundbausteine (`MediaFrame` + `ResponsiveImage`) | `AnimeDetailView.tsx:96-105` |
+| Anime-Kopf (Banner-nahe Poster-/Info-Komposition) | neuer zusammengesetzter Baustein (`AnimeDetailHero`: Poster, Merkliste, Genres, Titel, Badges, Beschreibung und Info-Karte) | `AnimeDetailView.tsx:67` / `AnimeDetailHero.tsx:27` |
+| Poster-Bild | vorhandene Grundbausteine (`MediaFrame` + `ResponsiveImage`) innerhalb von `AnimeDetailHero` | `AnimeDetailHero.tsx:35-45` |
 | Poster-Statistik-Overlay ("N Folgen"/"1 Folge") | vorhandener Grundbaustein (`Badge`, `variant="onMedia"`, im `MediaFrame`-`bottomBadge`-Slot) | `AnimeDetailView.tsx:68-71`/`96` |
 | Watchlist-Button | Eigenbau-Fachkomponente (`WatchlistAddButton`, domänenspezifische Komposition aus `Button` + eigenem Client-Fetch-State, kein `@/components/ui`-Baustein) | `AnimeDetailView.tsx:111-115` (`@/components/watchlist/WatchlistAddButton.tsx`) |
 | Genres-Chip-Liste | neuer Grundbaustein (`LinkChip`, `tone="glass"`) | `AnimeDetailView.tsx:122-124` |
@@ -48,9 +49,11 @@ Tönungsformel, Info-Karten-Layout-Wrapper, Token-Referenzen, Kommentar-Überset
 | Emby-Link | vorhandener Grundbaustein (`Button`, Link-Modus via `href`) | `AnimeDetailView.tsx:186-195` |
 | Info-Banner (Jellyfin) | vorhandener Fachbaustein (`AnimeInfoBanner`) | `AnimeDetailView.tsx:200` (`@/components/anime/AnimeMediaProvider.tsx`) |
 | Verwandte Anime | vorhandener Fachbaustein (`AnimeRelations`) | `AnimeDetailView.tsx:204-206` (`@/components/anime/AnimeRelations.tsx`; `page.infoCard.module.css` `.relatedSection`) |
-| Edge-Navigation (Vorheriger/Nächster Anime im Grid-Kontext) | vorhandener Fachbaustein (`AnimeEdgeNavigation`) | `AnimeDetailView.tsx:213-215` (`@/components/anime/AnimeEdgeNavigation.tsx`) |
-| Episoden-Browser (Fansub-Filter + Versionsliste) | vorhandener Fachbaustein (`FansubVersionBrowser`), dessen Episoden-/Release-Kartenebene jetzt selbst aus Grundbausteinen besteht (`EpisodeGlassCard`/`ReleasePreviewRow`, siehe unten) | `AnimeDetailView.tsx:224-234` (`@/components/fansubs/FansubVersionBrowser.tsx`) |
-| Episoden-Fehlerzustand ("Episoden konnten nicht geladen werden") | vorhandener zusammengesetzter Baustein (`ErrorState`, kompakt) | `AnimeDetailView.tsx:240-244` |
+| Edge-Navigation (Vorheriger/Nächster Anime im Grid-Kontext) | zusammengesetzter Fachbaustein (`AnimeEdgeNavigation`) mit eigener Story und zentralem MSW-Listenhandler | `AnimeDetailView.tsx:72-76` (`@/components/anime/AnimeEdgeNavigation.tsx`) |
+| Episoden-Bereich (Glas-Fläche, Gruppenwahl, Gruppenkarte, Episodenkarten) | neuer zusammengesetzter Baustein (`AnimeEpisodesSection`: `Card variant="glass"` + `FansubVersionBrowser`) | `AnimeDetailView.tsx:83` / `AnimeEpisodesSection.tsx:28-45` |
+| Fansubgruppen-Karte | zusammengesetzter Fachbaustein (`FansubGroupContext`: `Card variant="glass"` + `Heading` + `Text` + `Button`) | `frontend/src/components/fansubs/FansubGroupContext.tsx:23-41` |
+| Fansubgruppen-Auswahl | zusammengesetzter Fachbaustein (`FansubGroupPicker`) mit interaktiver Story für Logo-/Ohne-Logo-Zustände | `frontend/src/components/fansubs/FansubGroupPicker.tsx:33-70` |
+| Episoden-Fehlerzustand ("Episoden konnten nicht geladen werden") | vorhandener zusammengesetzter Baustein (`ErrorState`, kompakt) innerhalb von `AnimeEpisodesSection` | `AnimeEpisodesSection.tsx:43` |
 
 ### Episoden-/Release-Kartenebene innerhalb von `FansubVersionBrowser` (261102-hlg, Ebene 2)
 

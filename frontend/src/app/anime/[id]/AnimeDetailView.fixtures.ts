@@ -1,6 +1,7 @@
 import type { AnimeFansubListResponse } from '@/types/fansub'
 import type { PublicEpisodeVersion, PublicGroupedEpisode, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 import type { AnimeDetail, AnimeRelationsResponse } from '@/types/anime'
+import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 
 /** Realistische deutsche `AnimeDetail`-Demo-Fixture für Storybook (keine Lorem-ipsum-Platzhalter,
  *  Felder exakt aus `@/types/anime.ts`). */
@@ -148,6 +149,52 @@ export const normalAnimeFansubsResponse: AnimeFansubListResponse = {
       fansub_group: { id: 1, slug: 'demo-fansub-gruppe', name: 'Demo Fansub-Gruppe' },
     },
   ],
+}
+
+/** Drei echte Gruppen-Kontexte nach dem Vorbild des öffentlichen Anime „Freezing“. */
+export const freezingAnimeFansubsResponse: AnimeFansubListResponse = {
+  data: [
+    {
+      anime_id: 13, fansub_group_id: 101, is_primary: true, created_at: '2011-01-08T00:00:00.000Z',
+      fansub_group: { id: 101, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: '/covers/placeholder.jpg', story_preview: 'Veröffentlicht die Folgen von Freezing als gemeinsames Projekt.' },
+    },
+    {
+      anime_id: 13, fansub_group_id: 102, is_primary: false, created_at: '2011-01-08T00:00:00.000Z',
+      fansub_group: { id: 102, slug: 'lazy-subs', name: 'LazySubs', logo_url: null, story_preview: 'Untertitelt ausgewählte Staffeln und Specials.' },
+    },
+    {
+      anime_id: 13, fansub_group_id: 103, is_primary: false, created_at: '2011-01-08T00:00:00.000Z',
+      fansub_group: { id: 103, slug: 'melon-subs', name: 'MelonSubs', logo_url: '/covers/placeholder.jpg', story_preview: 'Bearbeitet gemeinsam mit anderen Gruppen die Veröffentlichung.' },
+    },
+  ],
+}
+
+/** Gruppenauswahl und Kontext-Karte verwenden dieselben Serverdaten wie die reale Seite. */
+export const freezingFansubStoryGroups = buildFansubStoryGroups(freezingAnimeFansubsResponse.data)
+
+/** Eine gruppenspezifische Antwort für den interaktiven Wechsel in der Mehrgruppen-Story. */
+export const freezingGroupedEpisodesResponse: PublicGroupedEpisodesResponse = {
+  data: {
+    anime_id: 13,
+    episodes: [
+      buildGroupedEpisode({
+        episode_id: 1301,
+        episode_number: 1,
+        episode_title: 'Gefrorene Begegnung',
+        versions: [buildEpisodeVersion({
+          anime_id: 13,
+          fansub_groups: [
+            { id: 101, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: '/covers/placeholder.jpg' },
+            { id: 102, slug: 'lazy-subs', name: 'LazySubs' },
+            { id: 103, slug: 'melon-subs', name: 'MelonSubs', logo_url: '/covers/placeholder.jpg' },
+          ],
+          release_name: 'Freezing – Gemeinschaftsrelease',
+        })],
+      }),
+    ],
+    episode_count: 1,
+    pagination: { has_more: false, next_cursor: null, row_limit: 24 },
+  },
 }
 
 /** Verwandte Anime (Prequel/Sequel) für die "Verwandte Anime"-Sektion. */

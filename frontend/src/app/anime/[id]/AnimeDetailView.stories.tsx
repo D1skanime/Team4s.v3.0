@@ -1,7 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import {
+  animeBackdropsHandler,
   groupedEpisodesLoadMoreHandler,
+  groupedEpisodesHandler,
   watchlistAbsentHandler,
   watchlistErrorHandler,
   watchlistPresentHandler,
@@ -11,6 +13,9 @@ import { AnimeDetailView } from './AnimeDetailView'
 import {
   buildAnimeDetailFixture,
   emptyGroupedEpisodesResponse,
+  freezingAnimeFansubsResponse,
+  freezingFansubStoryGroups,
+  freezingGroupedEpisodesResponse,
   manyGroupedEpisodesResponse,
   moreGroupedEpisodesResponse,
   normalAnimeFansubsResponse,
@@ -29,7 +34,7 @@ import {
 const meta = {
   title: 'Im Einsatz/Öffentlich/Anime-Detail',
   component: AnimeDetailView,
-  tags: ['autodocs'],
+  tags: ['autodocs', 'anime-detail-regression'],
   parameters: {
     docs: {
       description: {
@@ -47,9 +52,7 @@ const meta = {
   args: {
     anime: buildAnimeDetailFixture(),
     breadcrumbItems: [{ label: 'Anime', href: '/anime' }, { label: buildAnimeDetailFixture().title }],
-    // Leer, damit AnimeEdgeNavigation nicht gerendert wird (kein Grid-Kontext in der Story --
-    // identisch zum echten Verhalten ohne gridQuery-Parameter, vermeidet einen zusätzlichen
-    // MSW-Mock für getAnimeList, der laut CONTEXT.md nicht im Scope dieses Auftrags ist).
+    // Ohne Grid-Kontext wird die Randnavigation wie auf einem direkten Detailaufruf ausgeblendet.
     gridQuery: '',
     embySeriesUrl: null,
     animeFansubsResponse: normalAnimeFansubsResponse,
@@ -70,15 +73,15 @@ type Story = StoryObj<typeof meta>
 export const Normal: Story = {}
 
 export const InWatchlist: Story = {
-  parameters: { msw: { handlers: [watchlistPresentHandler] } },
+  parameters: { msw: { handlers: [animeBackdropsHandler, watchlistPresentHandler] } },
 }
 
 export const NichtInWatchlist: Story = {
-  parameters: { msw: { handlers: [watchlistAbsentHandler] } },
+  parameters: { msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler] } },
 }
 
 export const WatchlistFehler: Story = {
-  parameters: { msw: { handlers: [watchlistErrorHandler] } },
+  parameters: { msw: { handlers: [animeBackdropsHandler, watchlistErrorHandler] } },
 }
 
 export const EpisodenFehler: Story = {
@@ -92,12 +95,40 @@ export const KeineEpisoden: Story = {
 export const VieleEpisoden: Story = {
   args: { groupedEpisodesResponse: manyGroupedEpisodesResponse, episodeCount: 48 },
   parameters: {
-    msw: { handlers: [groupedEpisodesLoadMoreHandler(moreGroupedEpisodesResponse)] },
+    msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler, groupedEpisodesLoadMoreHandler(moreGroupedEpisodesResponse)] },
     docs: {
       description: {
         story: 'Beim Erreichen des unteren Listenrands lädt der echte Episoden-Browser die zweite Cursor-Seite nach.',
       },
     },
+  },
+}
+
+export const MehrereFansubgruppen: Story = {
+  name: 'Mehrere Fansubgruppen',
+  args: {
+    anime: buildAnimeDetailFixture({ id: 13, slug: 'freezing', title: 'Freezing', max_episodes: 12 }),
+    breadcrumbItems: [{ label: 'Anime', href: '/anime' }, { label: 'Freezing' }],
+    animeFansubsResponse: freezingAnimeFansubsResponse,
+    groupedEpisodesResponse: freezingGroupedEpisodesResponse,
+    fansubStoryGroups: freezingFansubStoryGroups,
+    episodeCount: 1,
+  },
+  parameters: {
+    msw: { handlers: [animeBackdropsHandler, watchlistAbsentHandler, groupedEpisodesHandler(freezingGroupedEpisodesResponse)] },
+    docs: { description: { story: 'Die Umschalter zeigen Bloody-Shadow, LazySubs und MelonSubs. Ein Klick lädt die echte gruppengefilterte Episodenansicht über MSW; die Gruppenkarte wechselt mit.' } },
+  },
+}
+
+export const MitRandnavigation: Story = {
+  name: 'Mit Zurück und Weiter',
+  args: {
+    anime: buildAnimeDetailFixture({ id: 13, slug: 'freezing', title: 'Freezing' }),
+    breadcrumbItems: [{ label: 'Anime', href: '/anime' }, { label: 'Freezing' }],
+    gridQuery: 'page=1&per_page=24',
+  },
+  parameters: {
+    docs: { description: { story: 'Die beiden Randnavigationen nutzen die zentrale MSW-Liste. Mit Hover oder Fokus erscheinen die echten Vorschaukarten.' } },
   },
 }
 
