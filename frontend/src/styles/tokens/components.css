@@ -299,4 +299,16 @@
   --linkchip-scrim-text: rgba(255, 255, 255, 0.92);
   --linkchip-scrim-bg-hover: rgba(20, 18, 16, 0.78);
   --linkchip-scrim-border-hover: rgba(255, 255, 255, 0.3);
+
+  /* BannerSection -- unscharfer Bannerbild-Hintergrund + WCAG-AA-Scrim (261102-hlg). Blur-/
+     Helligkeits-/Sättigungs-/Skalierungs-Rezeptur 1:1 aus FansubHeroSections bereits bewährtem
+     .heroBackdropTuning übernommen (frontend/src/app/fansubs/[slug]/page.module.css), nicht aus
+     der bisherigen, schwächer kontrastierten .bannerImage-Fläche der Anime-Detailseite. */
+  --banner-height: 200px;
+  --banner-height-mobile: 100px;
+  --banner-backdrop-blur: 34px;
+  --banner-backdrop-brightness: 0.72;
+  --banner-backdrop-saturate: 1.25;
+  --banner-backdrop-scale: 1.15;
+  --banner-scrim-bg-strong: rgba(10, 8, 14, 0.88);
 }

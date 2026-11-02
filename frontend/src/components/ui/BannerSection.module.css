@@ -1,0 +1,45 @@
+.bannerSection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--banner-height);
+  overflow: clip;
+  z-index: 0;
+}
+
+.backdropWrapper {
+  position: absolute;
+  inset: 0;
+  filter:
+    blur(var(--banner-backdrop-blur))
+    brightness(var(--banner-backdrop-brightness))
+    saturate(var(--banner-backdrop-saturate));
+  transform: scale(var(--banner-backdrop-scale));
+}
+
+.backdropImage {
+  object-fit: cover;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-scrim-bg);
+  pointer-events: none;
+}
+
+.scrimStrong {
+  background: var(--banner-scrim-bg-strong);
+}
+
+.badge {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 767px) {
+  .bannerSection {
+    height: var(--banner-height-mobile);
+  }
+}
