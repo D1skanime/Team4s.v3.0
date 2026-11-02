@@ -22,6 +22,20 @@ const meta = {
   title: 'Im Einsatz/Öffentlich/Anime-Detail',
   component: AnimeDetailView,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Ebene 3 ("Im Einsatz", 261102-hlg Abnahme-Pflicht D-08): "Normal" ist Desktop/Mobil ' +
+          'geprüft über die Viewport-Werkzeugleiste (Storybook-Standard-Viewport ist mobil, ' +
+          '"Desktop 1440x900" über die Toolbar wählbar). Der global aktive Rollen-Umschalter ' +
+          '("team4sRole" in der Toolbar) demonstriert "Eingeloggt ansehen": `WatchlistAddButton` ' +
+          'zeigt je nach gewählter Rolle entweder "Anmeldung erforderlich" (anonym) oder den ' +
+          'echten Merklisten-Toggle (Mitglied/Fansub-Leitung/Plattform-Admin) -- keine eigene ' +
+          'zweite Story-Variante nötig, da der Umschalter global in `preview.tsx` wirkt.',
+      },
+    },
+  },
   args: {
     anime: buildAnimeDetailFixture(),
     breadcrumbItems: [{ label: 'Anime', href: '/anime' }, { label: buildAnimeDetailFixture().title }],

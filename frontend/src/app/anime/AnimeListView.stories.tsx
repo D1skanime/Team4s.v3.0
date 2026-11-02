@@ -18,6 +18,17 @@ const meta = {
   title: 'Im Einsatz/Öffentlich/Anime-Liste',
   component: AnimeListView,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Ebene 3 ("Im Einsatz", 261102-hlg Abnahme-Pflicht D-08): "Normal" ist Desktop/Mobil ' +
+          'geprüft über die Viewport-Werkzeugleiste (Storybook-Standard-Viewport ist mobil, ' +
+          '"Desktop 1440x900" über die Toolbar wählbar). Die Liste selbst zeigt kein rollenabhängiges ' +
+          'UI (der global aktive Rollen-Umschalter wirkt hier nicht sichtbar).',
+      },
+    },
+  },
 } satisfies Meta<typeof AnimeListView>
 
 export default meta
