@@ -154,7 +154,8 @@ export function AnimeDetailView({
               {anime.description ?? 'Keine Beschreibung vorhanden.'}
             </p>
 
-            {/* Tags (D-12-D-19): direkt unter der Beschreibung, Linie folgt erst mit dem Banner */}
+            {/* Tags direkt unter der Beschreibung -- die Trennlinie zum nächsten Block folgt erst
+                mit dem Banner, nicht schon hier, damit Tags optisch noch zur Beschreibung gehören */}
             {anime.tags && anime.tags.length > 0 && (
               <>
                 <div className={styles.tagsSection}>
