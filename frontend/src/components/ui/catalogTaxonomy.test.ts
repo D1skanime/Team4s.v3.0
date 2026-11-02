@@ -155,12 +155,10 @@ describe('Grundbausteine/* Katalogprüfung: keine stillschweigenden Grundbaustei
  * Taxonomie-Regel "Im Einsatz/*": „Im Einsatz = nur vollständige Seiten oder vollständige
  * Abläufe" -- keine isolierten Einzelbaustein-Demos mehr. Anders als die Grundbaustein-Prüfung
  * oben lässt sich "ist das eine vollständige Seite" nicht allein aus Importen ableiten --
- * deshalb arbeitet dieser Block mit einer explizit gepflegten Allowlist: JEDE "Im Einsatz/*"-
- * Story irgendwo im Repo MUSS hier mit Datei UND Titel eingetragen sein, sonst schlägt der Test
- * fehl. Das verhindert genau das Szenario, das diese Prüfung ersetzt (eine künftige, isolierte
- * Einzelbaustein-Story landet stillschweigend unter "Im Einsatz", ohne dass irgendein
- * automatisierter Check das bemerkt) -- eine neue Story in dieser Kategorie erzwingt eine
- * bewusste, im Diff sichtbare Änderung an genau dieser Liste.
+ * deshalb verlangt dieser Block eine überprüfbare strukturelle Eigenschaft: Jede Story dieser
+ * Kategorie liegt unter `src/app/` und gehört damit zu einer vollständigen App-Route oder einem
+ * dort verorteten Ablauf. Komponenten-Galerien unter `src/components/` gehören dagegen zu
+ * „Grundbausteine/*“ oder „Zusammengesetzte Bausteine/*“. Die Regel kennt keine Ausnahmeliste.
  */
 const SRC_DIR = path.resolve(process.cwd(), 'src')
 
@@ -181,35 +179,7 @@ function findStoryFilesRecursively(dir: string): string[] {
   return results
 }
 
-/**
- * Jeder Eintrag MUSS entweder (a) eine echte vollständige Seite/einen echten vollständigen
- * Ablauf zeigen (aktuell beide Pilot-Stories unter `app/anime/`, Server/Ansicht-Split-Muster
- * aus Quick-Task 261102-cb2) oder (b) als bewusst nicht in dieser Runde bereinigte, vorbestehende
- * Ausnahme mit Begründung gekennzeichnet sein -- KEIN neuer Eintrag darf kommentarlos ergänzt
- * werden.
- */
-const IM_EINSATZ_ALLOWLIST: Record<string, string> = {
-  // Vorbestehend, nicht Teil der Bereinigungsrunden, die diese Taxonomie-Regel eingeführt haben
-  // (261102-cb2 benannte nur die migrierten Einzel-Baustein-Showcases explizit) -- zeigen jeweils
-  // eine Galerie/Oberflächen-Zusammenstellung, keine einzelne vollständige Seite im Sinne dieser
-  // Regel. Bewusst als Kandidaten für einen künftigen Seiten-Durchgang stehen gelassen statt sie
-  // unbegründet hier "freizusprechen" oder ungefragt umzukategorisieren.
-  'components/showcases/AchievementBadgeShowcase.stories.tsx': 'Im Einsatz/Erfolgsbadge-Galerie',
-  'components/showcases/PublicFansubSurfacesShowcase.stories.tsx': 'Im Einsatz/Öffentliche Fansub-Oberflächen',
-  'components/showcases/PublicReleaseSurfacesShowcase.stories.tsx': 'Im Einsatz/Öffentliche Release-Oberflächen',
-  // AppShell ist der globale Seitenrahmen (Navigation + Slide-over-Drawer), der auf JEDER
-  // authentifizierten Seite rendert -- fachlich näher an einem vollständigen Ablauf als an
-  // einem isolierten Einzelbaustein, aber kein Server/Ansicht-Split-Pilot wie die beiden
-  // Anime-Stories unten. Vorbestehend, nicht in dieser Runde reklassifiziert.
-  'components/showcases/AppShellDrawerDemoSection.stories.tsx': 'Im Einsatz/AppShell mit Slide-over-Drawer',
-  // Echte vollständige Seiten (Server/Ansicht-Split-Pilot, Quick-Task 261102-cb2/261102-hlg):
-  // die Storybook-Komponente IST dieselbe Darstellungskomponente, die die echte Next.js-Route
-  // rendert (AnimeListContent/AnimeDetailContent reichen nur noch Daten als Props durch).
-  'app/anime/AnimeListView.stories.tsx': 'Im Einsatz/Öffentlich/Anime-Liste',
-  'app/anime/[id]/AnimeDetailView.stories.tsx': 'Im Einsatz/Öffentlich/Anime-Detail',
-}
-
-describe('Im Einsatz/* Katalogprüfung: nur allowlisted Stories, keine stillschweigend neuen Einzelbaustein-Demos', () => {
+describe('Im Einsatz/* Katalogprüfung: nur vollständige Seiten und Abläufe', () => {
   const allStoryFiles = findStoryFilesRecursively(SRC_DIR)
   const imEinsatzFiles = allStoryFiles.filter((absPath) => {
     const content = fs.readFileSync(absPath, 'utf8')
@@ -217,35 +187,15 @@ describe('Im Einsatz/* Katalogprüfung: nur allowlisted Stories, keine stillschw
     return title?.startsWith('Im Einsatz/')
   })
 
-  it('jede gefundene "Im Einsatz/*"-Story steht mit passendem Titel in der Allowlist', () => {
-    const unlisted = imEinsatzFiles
-      .map((absPath) => {
-        const relPath = path.relative(SRC_DIR, absPath).split(path.sep).join('/')
-        const title = extractTitle(fs.readFileSync(absPath, 'utf8'))
-        return { relPath, title }
-      })
-      .filter(({ relPath, title }) => IM_EINSATZ_ALLOWLIST[relPath] !== title)
+  it('jede Story liegt unter src/app statt bei einer isolierten Komponenten-Galerie', () => {
+    const nonRouteStories = imEinsatzFiles
+      .map((absPath) => path.relative(SRC_DIR, absPath).split(path.sep).join('/'))
+      .filter((relPath) => !relPath.startsWith('app/'))
 
     expect(
-      unlisted,
-      `Neue oder umbenannte "Im Einsatz/*"-Stories ohne Allowlist-Eintrag gefunden: ${JSON.stringify(unlisted)}. ` +
-        'Entweder gehört die Story in "Grundbausteine/*"/"Zusammengesetzte Bausteine/*" (zeigt nur einen ' +
-        'Baustein, keine vollständige Seite/keinen vollständigen Ablauf), oder sie ist bewusst eine neue ' +
-        'vollständige Seite/ein neuer vollständiger Ablauf und muss mit Begründung in IM_EINSATZ_ALLOWLIST ' +
-        '(catalogTaxonomy.test.ts) ergänzt werden.',
-    ).toEqual([])
-  })
-
-  it('jeder Allowlist-Eintrag verweist auf eine tatsächlich existierende Datei mit exakt diesem Titel', () => {
-    const stale = Object.entries(IM_EINSATZ_ALLOWLIST).filter(([relPath, expectedTitle]) => {
-      const absPath = path.join(SRC_DIR, relPath)
-      if (!fs.existsSync(absPath)) return true
-      return extractTitle(fs.readFileSync(absPath, 'utf8')) !== expectedTitle
-    })
-
-    expect(
-      stale,
-      `Allowlist-Einträge ohne passende Datei/Titel (gelöscht, verschoben oder umbenannt): ${JSON.stringify(stale)} -- IM_EINSATZ_ALLOWLIST nachführen.`,
+      nonRouteStories,
+      '"Im Einsatz/*" ist ausschließlich für vollständige Seiten und Abläufe unter src/app reserviert. ' +
+        'Komponenten-Galerien nach "Grundbausteine/*" oder "Zusammengesetzte Bausteine/*" verschieben.',
     ).toEqual([])
   })
 })

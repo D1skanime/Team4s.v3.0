@@ -162,8 +162,10 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   (`components/fansubs/`, siehe unten) — jede mit einem „Besteht aus"-Hinweis in
   ihrer Autodocs-Beschreibung, als echte Storybook-Dokumentationslinks über
   `storybookDocsLink()` aus `frontend/src/lib/storybookLinks.ts`, nicht als
-  reiner Text); `Im Einsatz/*` zeigt die migrierten domänenspezifischen
-  Kompositionen (7 Stories). Eine automatische Katalogprüfung
+  reiner Text); `Im Einsatz/*` zeigt ausschließlich vollständige Seiten und
+  Abläufe unter `src/app` (derzeit die beiden Anime-Pilotseiten). Komponenten-
+  Galerien gehören nach `Grundbausteine/*` oder `Zusammengesetzte Bausteine/*`.
+  Eine automatische Katalogprüfung
   (`catalogTaxonomy.test.ts`) schlägt fehl, wenn ein
   `Grundbausteine/*`-Primitiv stillschweigend eine andere, selbst katalogisierte
   Komponente importiert, statt entweder umsortiert zu werden oder in dessen

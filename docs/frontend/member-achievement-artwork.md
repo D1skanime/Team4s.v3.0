@@ -74,7 +74,7 @@ verfügbar, ohne in den aktiven Resolver zurückzukehren.
 
 ## Review im Browser
 
-Öffne die Storybook-Story „Im Einsatz/Erfolgsbadge-Galerie“ (`AchievementBadgeShowcase.stories.tsx`).
+Öffne die Storybook-Story „Zusammengesetzte Bausteine/Erfolgsbadge-Galerie“ (`AchievementBadgeShowcase.stories.tsx`).
 Storybook startet über `docker compose up -d team4sv30-storybook`, danach erreichbar unter
 `http://192.168.235.196:6006` bzw. über den SSH-Tunnel auf Port 6006 (die frühere `/dev/ui-system`-
 Route wurde vollständig durch Storybook abgelöst und existiert nicht mehr). Die Story verwendet
