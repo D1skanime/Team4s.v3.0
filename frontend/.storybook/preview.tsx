@@ -1,5 +1,10 @@
 import type { Preview } from '@storybook/nextjs'
 import { withThemeByClassName } from '@storybook/addon-themes'
+// `msw-storybook-addon` v3 nutzt für klassisches CSF 3.0 (Meta/StoryObj-Exporte, wie in diesem
+// Projekt) den `mswLoader`-Unterpfad statt eines Root-Imports -- der Root-Export `addonMsw()`
+// ist nur für die neue CSF-Next-Syntax (`definePreview`) gedacht, die dieses Projekt nicht nutzt
+// (siehe node_modules/msw-storybook-addon/README.md "CSF 3.0" vs. "CSF Next").
+import { mswLoader } from 'msw-storybook-addon/csf3'
 import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 
 // Dieselbe Design-Token-Quelle wie die eigentliche App — keine zweite,
@@ -7,6 +12,8 @@ import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 // Bühnenhintergrund-Klasse unten die App-Tokens nicht überschreibt.
 import './preview.css'
 import '../src/styles/globals.css'
+import { defaultHandlers } from './mocks/handlers'
+import { TEAM4S_ROLE_GLOBAL_TYPE, withRoleSimulation } from './mocks/roleSimulation'
 
 const TEAM4S_VIEWPORTS = {
   ...MINIMAL_VIEWPORTS,
@@ -32,10 +39,30 @@ const preview: Preview = {
     viewport: {
       options: TEAM4S_VIEWPORTS,
     },
+    // Aktiviert next/navigation-Mocking im App-Router-Modus (useRouter/usePathname/
+    // useSearchParams) -- global, da mehrere Pilot-Komponenten diese Hooks nutzen
+    // (AppShell.tsx, AppShellClientWrapper.tsx, AnimeEdgeNavigation.tsx). Ohne dies stürzt jede
+    // Story ab, die eine solche Komponente rendert (z. B. "AppShell mit Slide-over-Drawer").
+    nextjs: {
+      appDirectory: true,
+    },
+    // Default-MSW-Handler für alle Stories; einzelne Stories überschreiben sie bei Bedarf über
+    // ihr eigenes `parameters.msw.handlers` (z. B. Watchlist-Zustandsvarianten).
+    msw: {
+      handlers: defaultHandlers,
+    },
   },
   initialGlobals: {
     viewport: { value: 'mobile390' },
   },
+  globalTypes: {
+    team4sRole: TEAM4S_ROLE_GLOBAL_TYPE,
+  },
+  // `mswLoader()` startet beim ersten Aufruf automatisch den Service-Worker (Default-Setup der
+  // Addon-Version 3.0.3 ignoriert bereits bekanntes Storybook-/Asset-Rauschen und protokolliert
+  // nur eine Warnung statt eines Fehlers für sonstige ungemockte Requests -- kein eigener
+  // `onUnhandledRequest`-Setup nötig).
+  loaders: [mswLoader()],
   decorators: [
     // Team4s hat aktuell KEIN eigenes dunkles Produkt-Farbthema — dieser Decorator
     // schaltet ausschließlich den Storybook-Bühnenhintergrund zwischen hell und
@@ -49,6 +76,10 @@ const preview: Preview = {
       },
       defaultTheme: 'Hell',
     }),
+    // Muss NACH dem Theme-Decorator stehen (Reihenfolge laut CONTEXT.md) -- seedet vor jedem
+    // Render den echten Session-Store + die passende MSW-Profil-Fixture für die in der Toolbar
+    // gewählte Rolle (anonym/Mitglied/Fansub-Leitung/Plattform-Admin).
+    withRoleSimulation,
   ],
 }
 
