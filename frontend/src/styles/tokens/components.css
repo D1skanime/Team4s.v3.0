@@ -278,4 +278,25 @@
 
   /* Textarea */
   --textarea-min-height: 144px;
+
+  /* LinkChip -- zwei offizielle Erscheinungen desselben Chip-Grundbausteins (261102-hlg):
+     "glass" reproduziert den bisherigen, feature-lokalen .genreChip-Look (heller, durchscheinender
+     Chip auf der Poster-Glasfläche), "scrim" den bisherigen .tagChip-Look (dunkler, blickdichterer
+     Chip auf dem fast transparenten unteren Bereich der Info-Karte) -- Werte 1:1 aus
+     frontend/src/app/anime/[id]/page.module.css (vormals Zeilen 301-321/425-454) übernommen, nur
+     als globale Tokens geführt statt seiten-lokaler Literale. */
+  --linkchip-padding-y: 8px;
+  --linkchip-padding-x: 14px;
+  --linkchip-radius: 14px;
+  --linkchip-font-size: 13px;
+  --linkchip-glass-bg: rgba(255, 255, 255, 0.1);
+  --linkchip-glass-border: rgba(255, 255, 255, 0.15);
+  --linkchip-glass-text: rgba(255, 255, 255, 0.9);
+  --linkchip-glass-bg-hover: rgba(255, 255, 255, 0.15);
+  --linkchip-glass-border-hover: rgba(255, 255, 255, 0.25);
+  --linkchip-scrim-bg: rgba(20, 18, 16, 0.62);
+  --linkchip-scrim-border: rgba(255, 255, 255, 0.18);
+  --linkchip-scrim-text: rgba(255, 255, 255, 0.92);
+  --linkchip-scrim-bg-hover: rgba(20, 18, 16, 0.78);
+  --linkchip-scrim-border-hover: rgba(255, 255, 255, 0.3);
 }
