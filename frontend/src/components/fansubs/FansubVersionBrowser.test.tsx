@@ -135,12 +135,22 @@ describe('authoritative anime project navigation', () => {
     const browserCss = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubVersionBrowser.module.css'), 'utf8')
     expect(browserCss).not.toContain('.episodeCard')
     expect(browserCss).not.toContain('.episodeHeader')
+    // 261102-hlg Task 8: die vormals feature-lokalen --glass-*-Literale wanderten als globale
+    // Tokens nach styles/tokens/components.css (Card variant="glass" + Tönungs-Hook) --
+    // EpisodeGlassCard.module.css selbst enthält jetzt nur noch Layout-Regeln, keine Flächen-/
+    // Tönungs-Literale mehr.
     const cardCss = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.module.css'), 'utf8')
-    expect(cardCss).toContain('--glass-surface')
-    expect(cardCss).toContain('--glass-tint-canon')
-    expect(cardCss).toContain('--glass-tint-filler')
-    expect(cardCss).toContain('--glass-tint-mixed')
-    expect(cardCss).toContain('--glass-tint-recap')
+    expect(cardCss).not.toContain('--glass-surface')
+    expect(cardCss).not.toContain('--glass-tint-canon')
+    expect(cardCss).not.toMatch(/rgba\(|hsl\(/)
+    const tokensCss = readFileSync(join(process.cwd(), 'src/styles/tokens/components.css'), 'utf8')
+    expect(tokensCss).toContain('--card-glass-surface')
+    expect(tokensCss).toContain('--card-tint-saturation')
+    const cardTsx = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.tsx'), 'utf8')
+    expect(cardTsx).toMatch(/canon:\s*222/)
+    expect(cardTsx).toMatch(/filler:\s*2\b/)
+    expect(cardTsx).toMatch(/mixed:\s*272/)
+    expect(cardTsx).toMatch(/recap:\s*42/)
   })
 })
 
