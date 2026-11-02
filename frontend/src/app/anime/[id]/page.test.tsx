@@ -110,7 +110,15 @@ function textContent(node: ReactNode): string {
 }
 async function loadContent(id = '22') {
   const boundary = await AnimeDetailPage(paramsFor(id))
-  return boundary.props.children.type(boundary.props.children.props) as Promise<ReactNode>
+  const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
+    Record<string, unknown>
+  >
+  // `AnimeDetailContent` liefert seit dem Server/Ansicht-Split (261102-cb2) nur noch ein einzelnes
+  // <AnimeDetailView ... />-Element statt des vollen verschachtelten JSX-Baums direkt. `elements()`
+  // läuft nur über bereits materialisierte `.props.children`, nicht über Komponentenfunktionen --
+  // deshalb wird `AnimeDetailView` hier einmal synchron aufgerufen, um denselben verschachtelten
+  // Baum wie vor dem Split für die bestehenden Struktur-Assertions bereitzustellen.
+  return (contentElement.type as (props: Record<string, unknown>) => ReactNode)(contentElement.props) as ReactNode
 }
 
 describe('anime detail integration without invented data', () => {
@@ -170,7 +178,10 @@ describe('anime detail integration without invented data', () => {
     const boundary = await AnimeDetailPage({
       ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'bloody-shadow' }),
     })
-    const content = await (boundary.props.children.type(boundary.props.children.props) as Promise<ReactNode>)
+    const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
+      Record<string, unknown>
+    >
+    const content = (contentElement.type as (props: Record<string, unknown>) => ReactNode)(contentElement.props) as ReactNode
     const browser = elements(content).find((item) => item.type === FansubVersionBrowser)
     expect(browser?.props.initialActiveSlug).toBe('bloody-shadow')
   })

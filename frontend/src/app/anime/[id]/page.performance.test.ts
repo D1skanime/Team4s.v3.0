@@ -45,14 +45,18 @@ function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
 
 
 const detailPageSource = () => readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.tsx'), 'utf8')
+// Seit dem Server/Ansicht-Split (261102-cb2) leben AnimeMediaProvider/AnimeBackdropRotator im
+// JSX von AnimeDetailView.tsx, nicht mehr im JSX von page.tsx selbst -- page.tsx reicht nur noch
+// die geladenen Daten als Props durch.
+const detailViewSource = () => readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailView.tsx'), 'utf8')
 
 describe('Anime-Detailseite Performance-Grenze', () => {
   it('blockiert das Server-Rendering nicht mehr auf dem Backdrop-Manifest', () => {
     const source = detailPageSource()
 
     expect(source).not.toMatch(/\bgetAnimeBackdrops\b/)
-    expect(source).toMatch(/<AnimeMediaProvider\b/)
-    expect(source).toMatch(/<AnimeBackdropRotator\b/)
+    expect(detailViewSource()).toMatch(/<AnimeMediaProvider\b/)
+    expect(detailViewSource()).toMatch(/<AnimeBackdropRotator\b/)
   })
 
   it('keeps viewer auth and extra link-resolution fetches outside the public server page', () => {
@@ -76,7 +80,16 @@ describe('one bounded cover for every detail consumer', () => {
     const expected = media.resolveAnimeCoverURL(rawCover)
     const resolveCover = vi.spyOn(media, 'resolveAnimeCoverURL')
     const boundary = await AnimeDetailPage({ params: Promise.resolve({ id: '1' }) })
-    const content = await boundary.props.children.type(boundary.props.children.props) as ReactNode
+    const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
+      Record<string, unknown>
+    >
+    // `AnimeDetailContent` liefert seit dem Server/Ansicht-Split (261102-cb2) nur noch ein
+    // einzelnes <AnimeDetailView ... />-Element statt des vollen verschachtelten JSX-Baums direkt
+    // -- `AnimeDetailView` wird hier einmal synchron aufgerufen, um denselben verschachtelten
+    // Baum wie vor dem Split für die bestehenden Struktur-Assertions bereitzustellen.
+    const content = (contentElement.type as (props: Record<string, unknown>) => ReactNode)(
+      contentElement.props,
+    ) as ReactNode
     const all = elements(content)
     const poster = all.find((element) => element.type === Image && element.props.alt === 'Coverfixture')
     const hero = all.find((element) => (element.props.style as Record<string, string> | undefined)?.backgroundImage)

@@ -1,17 +1,6 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import Image from 'next/image'
-import { ExternalLink } from 'lucide-react'
 
-import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
-import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
-import { AnimeInfoBanner, AnimeMediaProvider, AnimeTitleLogo } from '@/components/anime/AnimeMediaProvider'
-import { AnimeRelations } from '@/components/anime/AnimeRelations'
-import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
-import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
-import { StatusBadge } from '@/components/anime/StatusBadge'
-import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
 import {
   getAnimeRelations,
   getAnimeFansubs,
@@ -24,14 +13,9 @@ import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 
 import type { AnimeDetail } from '@/types/anime'
 
+import { AnimeDetailView } from './AnimeDetailView'
 import AnimeDetailLoading from './AnimeDetailLoading'
 import { loadAnimeDetail } from './animeDetailData'
-import styles from './page.module.css'
-
-/** Baut den q-losen Such-Link fuer einen Tag-/Genre-Chip ueber den etablierten URLSearchParams-Mechanismus (D-09). */
-function buildFilterHref(kind: 'tag' | 'genre', name: string): string {
-  return `/suche?${new URLSearchParams({ type: 'anime', [kind]: name }).toString()}`
-}
 
 /** Props für die Anime-Detailseite mit URL-Parametern und optionalen Such-Parametern. */
 interface AnimeDetailPageProps {
@@ -109,181 +93,24 @@ async function AnimeDetailContent({ anime, searchParams }: {
   // anime.episodes.length -- als episodeCount-Prop an FansubVersionBrowser durchgereicht.
   const episodeCount = groupedEpisodesResponse?.data.episode_count ?? 0
 
-  // One already bounded source for the poster and every decorative cover consumer.
+  // Eine einzige, bereits aufgelöste Quelle für das Poster und jeden dekorativen
+  // Cover-Verbraucher (Backdrop-Fallback, Banner-Hintergrund, Poster-Bild) -- vermeidet
+  // abweichende Cover-URLs zwischen den mehreren Konsumenten in AnimeDetailView.
   const coverUrl = resolveAnimeCoverURL(anime.cover_image)
 
   return (
-    <AnimeMediaProvider key={anime.id} animeID={anime.id}>
-      <main className={styles.page}>
-      {/* Backdrop Rotator (Videos & Images from Jellyfin) */}
-      <AnimeBackdropRotator fallbackImageURL={coverUrl} />
-
-      {/* Banner with blurred background (fallback) */}
-      <div className={styles.heroBanner}>
-        <div
-          className={styles.bannerImage}
-          style={{ backgroundImage: `url("${coverUrl}")` }}
-        />
-        <div className={styles.bannerOverlay} />
-      </div>
-
-      {/* Breadcrumbs */}
-      <div className={styles.breadcrumbsWrapper}>
-        <Breadcrumbs items={breadcrumbItems} />
-      </div>
-
-      {/* Hero Container (Glassmorphism) - 2 Column Grid */}
-      <div className={styles.heroWrapper}>
-        <section className={styles.heroContainer}>
-          {/* Left: Poster Column */}
-          <div className={styles.posterColumn}>
-            <div
-              className={styles.posterWrapper}
-              style={{ '--poster-image': `url("${coverUrl}")` } as React.CSSProperties}
-            >
-              <Image
-                src={coverUrl}
-                alt={anime.title}
-                width={260}
-                height={390}
-                className={styles.poster}
-                priority
-                unoptimized
-              />
-              {/* Stats Overlay on Poster */}
-              <div className={styles.posterStats}>
-                <span className={styles.posterEpisodes}>{anime.max_episodes ?? 0} Episodes</span>
-              </div>
-            </div>
-
-            {/* Poster Meta (Watchlist + Genres) */}
-            <div className={styles.posterMeta}>
-              <WatchlistAddButton
-                animeID={anime.id}
-                className={styles.watchlistButton}
-                activeClassName={styles.watchlistButtonActive}
-              />
-              <hr className={styles.posterDivider} />
-              <div className={styles.genresSection}>
-                <span className={styles.genresLabel}>Genres</span>
-                <div className={styles.genres}>
-                  {anime.genres && anime.genres.length > 0 ? (
-                    anime.genres.map((genre) => (
-                      <Link key={genre} className={styles.genreChip} href={buildFilterHref('genre', genre)}>
-                        {genre}
-                      </Link>
-                    ))
-                  ) : (
-                    <span className={styles.genreChip}>Anime</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Info Card */}
-          <div className={styles.infoCard}>
-            {/* Title + Logo Row */}
-            <div className={styles.titleRow}>
-              <h1 className={styles.title}>{anime.title}</h1>
-              <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
-            </div>
-
-            {/* Badges */}
-            <div className={styles.badges}>
-              <StatusBadge status={anime.status} />
-              <span className={styles.badge}>{anime.type.toUpperCase()}</span>
-              <span className={styles.badge}>{anime.content_type}</span>
-              <span className={styles.badge}>{anime.year ?? 'n/a'}</span>
-            </div>
-
-            {/* Description */}
-            <p className={styles.description}>
-              {anime.description ?? 'Keine Beschreibung vorhanden.'}
-            </p>
-
-            {/* Tags (D-12-D-19): direkt unter der Beschreibung, Linie folgt erst mit dem Banner */}
-            {anime.tags && anime.tags.length > 0 && (
-              <>
-                <div className={styles.tagsSection}>
-                  <h2 id="tags-heading" className={styles.tagsLabel}>Tags</h2>
-                  <ul className={styles.tagsList} aria-labelledby="tags-heading">
-                    {anime.tags.map((tag) => (
-                      <li key={tag}>
-                        <Link className={styles.tagChip} href={buildFilterHref('tag', tag)}>
-                          {tag}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </>
-            )}
-
-            {embySeriesUrl && (
-              <div className={styles.statsRow}>
-                <a
-                  className={styles.embyLink}
-                  href={embySeriesUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink size={14} />
-                  Emby
-                </a>
-              </div>
-            )}
-
-            {/* Info Banner from Jellyfin */}
-            <AnimeInfoBanner className={styles.infoBanner} dividerClassName={styles.divider} />
-
-            {/* Related Animes Section - inside infoCard */}
-            {relationsResponse && relationsResponse.data.length > 0 && (
-              <div className={styles.relatedSection}>
-                <AnimeRelations relations={relationsResponse.data} />
-              </div>
-            )}
-          </div>
-
-          {/* Edge Navigation Overlay - positioned on heroContainer */}
-          {gridQuery && (
-            <div className={styles.edgeNavigationOverlay}>
-              <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} />
-            </div>
-          )}
-        </section>
-      </div>
-
-      {/* Content Area (Episodes) */}
-      <div className={styles.contentArea}>
-        <section className={styles.episodesSection}>
-          {groupedEpisodesResponse ? (
-            <FansubVersionBrowser
-              key={anime.id}
-              animeID={anime.id}
-              animeSlug={anime.slug}
-              fansubs={animeFansubsResponse?.data ?? []}
-              storyGroups={fansubStoryGroups}
-              episodes={groupedEpisodesResponse.data.episodes}
-              pagination={groupedEpisodesResponse.data.pagination}
-              episodeCount={episodeCount}
-              initialActiveSlug={rawFansubParam}
-            />
-          ) : (
-            // D-16: neutraler Fehlerhinweis statt der ungefilterten anime.episodes-Notfallliste.
-            // Literal-Text statt ErrorState-Primitive: dieser Server-Component-Ast wird von
-            // page.test.tsx nur ueber eine flache props.children-Baumwanderung geprueft, die
-            // NICHT durch fremde Komponenten hindurch rendert (ErrorStates title/description
-            // sind fuer diese Prüfung unsichtbare Props, keine JSX-Children). FansubVersionBrowser
-            // (Task 2) nutzt ErrorState/EmptyState regulaer, dort rendert echtes RTL react-dom.
-            <div className={styles.emptyEpisodes} role="alert">
-              <p>Episoden konnten nicht geladen werden.</p>
-              <p>Die Episodenliste ist derzeit nicht verfügbar. Bitte laden Sie die Seite neu.</p>
-            </div>
-          )}
-        </section>
-      </div>
-      </main>
-    </AnimeMediaProvider>
+    <AnimeDetailView
+      anime={anime}
+      breadcrumbItems={breadcrumbItems}
+      gridQuery={gridQuery}
+      embySeriesUrl={embySeriesUrl}
+      animeFansubsResponse={animeFansubsResponse}
+      groupedEpisodesResponse={groupedEpisodesResponse}
+      fansubStoryGroups={fansubStoryGroups}
+      relationsResponse={relationsResponse}
+      episodeCount={episodeCount}
+      coverUrl={coverUrl}
+      rawFansubParam={rawFansubParam}
+    />
   )
 }
