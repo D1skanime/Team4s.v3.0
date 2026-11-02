@@ -3,25 +3,6 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Taxonomie-Regel "Im Einsatz/*" (seit Quick-Task 261102-cb2, dokumentierender Kommentar --
- * dieser Test prüft laut Datei-Zweck ausschließlich "Grundbausteine/*", keine neue
- * automatisierte Prüfung für "Im Einsatz/*" nötig): „Im Einsatz = nur vollständige Seiten oder
- * vollständige Abläufe" -- keine isolierten Einzelbaustein-Demos mehr. Sechs zuvor hier
- * katalogisierte Einzel-Baustein-Showcases (Switch/UploadDropzone/Drawer/Accordion/Modal/
- * FormField) wurden deshalb in die jeweilige Grundbaustein-/Zusammengesetzte-Bausteine-Story
- * migriert, die vier-teilige CompositionShowcase-Familie (zeigte Admin-Layer-Fragmente ohne
- * vollständige Seite/Ablauf) wurde ersatzlos entfernt. Aktuelle Referenzliste der verbliebenen
- * "Im Einsatz/*"-Stories (nach Task 6 dieses Auftrags):
- * - `frontend/src/components/showcases/AchievementBadgeShowcase.stories.tsx`
- * - `frontend/src/components/showcases/PublicFansubSurfacesShowcase.stories.tsx`
- * - `frontend/src/components/showcases/PublicReleaseSurfacesShowcase.stories.tsx`
- * - `frontend/src/components/showcases/AppShellDrawerDemoSection.stories.tsx`
- * - `frontend/src/components/fansubs/FansubHeroSection.stories.tsx`
- * - `frontend/src/app/anime/AnimeListView.stories.tsx` ("Im Einsatz/Öffentlich/Anime-Liste",
- *   neuer Pilot für den Server/Ansicht-Split + Fixture-Props)
- * - `frontend/src/app/anime/[id]/AnimeDetailView.stories.tsx` ("Im Einsatz/Öffentlich/
- *   Anime-Detail", neuer Pilot, zusätzlich mit MSW-abgefangenem Watchlist-Client-Fetch)
- *
  * Automatische Qualitätssicherung gegen stillschweigende Grundbaustein-zu-Grundbaustein-
  * Verbünde: ein Primitiv unter der Storybook-Kategorie "Grundbausteine/*" verspricht per
  * Definition (siehe CLAUDE.md "Frontend-UI"), KEINE andere components/ui-Komponente intern zu
@@ -168,4 +149,103 @@ describe('Grundbausteine/* Katalogprüfung: keine stillschweigenden Grundbaustei
       expect(violations, `${storyFile} importiert ungeprüft: ${violations.join(', ')}`).toEqual([])
     })
   }
+})
+
+/**
+ * Taxonomie-Regel "Im Einsatz/*": „Im Einsatz = nur vollständige Seiten oder vollständige
+ * Abläufe" -- keine isolierten Einzelbaustein-Demos mehr. Anders als die Grundbaustein-Prüfung
+ * oben lässt sich "ist das eine vollständige Seite" nicht allein aus Importen ableiten --
+ * deshalb arbeitet dieser Block mit einer explizit gepflegten Allowlist: JEDE "Im Einsatz/*"-
+ * Story irgendwo im Repo MUSS hier mit Datei UND Titel eingetragen sein, sonst schlägt der Test
+ * fehl. Das verhindert genau das Szenario, das diese Prüfung ersetzt (eine künftige, isolierte
+ * Einzelbaustein-Story landet stillschweigend unter "Im Einsatz", ohne dass irgendein
+ * automatisierter Check das bemerkt) -- eine neue Story in dieser Kategorie erzwingt eine
+ * bewusste, im Diff sichtbare Änderung an genau dieser Liste.
+ */
+const SRC_DIR = path.resolve(process.cwd(), 'src')
+
+/** Rekursiver *.stories.tsx-Scan über den gesamten src-Baum (node_modules/.next o. ä. existieren
+ *  unter src/ ohnehin nicht) -- "Im Einsatz/*"-Stories liegen anders als Grundbausteine/
+ *  Zusammengesetzte Bausteine NICHT nur unter components/ui, sondern auch unter
+ *  components/showcases, components/fansubs und app/**. */
+function findStoryFilesRecursively(dir: string): string[] {
+  const results: string[] = []
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      results.push(...findStoryFilesRecursively(entryPath))
+    } else if (entry.isFile() && entry.name.endsWith('.stories.tsx')) {
+      results.push(entryPath)
+    }
+  }
+  return results
+}
+
+/**
+ * Jeder Eintrag MUSS entweder (a) eine echte vollständige Seite/einen echten vollständigen
+ * Ablauf zeigen (aktuell beide Pilot-Stories unter `app/anime/`, Server/Ansicht-Split-Muster
+ * aus Quick-Task 261102-cb2) oder (b) als bewusst nicht in dieser Runde bereinigte, vorbestehende
+ * Ausnahme mit Begründung gekennzeichnet sein -- KEIN neuer Eintrag darf kommentarlos ergänzt
+ * werden.
+ */
+const IM_EINSATZ_ALLOWLIST: Record<string, string> = {
+  // Vorbestehend, nicht Teil der Bereinigungsrunden, die diese Taxonomie-Regel eingeführt haben
+  // (261102-cb2 benannte nur die migrierten Einzel-Baustein-Showcases explizit) -- zeigen jeweils
+  // eine Galerie/Oberflächen-Zusammenstellung, keine einzelne vollständige Seite im Sinne dieser
+  // Regel. Bewusst als Kandidaten für einen künftigen Seiten-Durchgang stehen gelassen statt sie
+  // unbegründet hier "freizusprechen" oder ungefragt umzukategorisieren.
+  'components/showcases/AchievementBadgeShowcase.stories.tsx': 'Im Einsatz/Erfolgsbadge-Galerie',
+  'components/showcases/PublicFansubSurfacesShowcase.stories.tsx': 'Im Einsatz/Öffentliche Fansub-Oberflächen',
+  'components/showcases/PublicReleaseSurfacesShowcase.stories.tsx': 'Im Einsatz/Öffentliche Release-Oberflächen',
+  // AppShell ist der globale Seitenrahmen (Navigation + Slide-over-Drawer), der auf JEDER
+  // authentifizierten Seite rendert -- fachlich näher an einem vollständigen Ablauf als an
+  // einem isolierten Einzelbaustein, aber kein Server/Ansicht-Split-Pilot wie die beiden
+  // Anime-Stories unten. Vorbestehend, nicht in dieser Runde reklassifiziert.
+  'components/showcases/AppShellDrawerDemoSection.stories.tsx': 'Im Einsatz/AppShell mit Slide-over-Drawer',
+  // Echte vollständige Seiten (Server/Ansicht-Split-Pilot, Quick-Task 261102-cb2/261102-hlg):
+  // die Storybook-Komponente IST dieselbe Darstellungskomponente, die die echte Next.js-Route
+  // rendert (AnimeListContent/AnimeDetailContent reichen nur noch Daten als Props durch).
+  'app/anime/AnimeListView.stories.tsx': 'Im Einsatz/Öffentlich/Anime-Liste',
+  'app/anime/[id]/AnimeDetailView.stories.tsx': 'Im Einsatz/Öffentlich/Anime-Detail',
+}
+
+describe('Im Einsatz/* Katalogprüfung: nur allowlisted Stories, keine stillschweigend neuen Einzelbaustein-Demos', () => {
+  const allStoryFiles = findStoryFilesRecursively(SRC_DIR)
+  const imEinsatzFiles = allStoryFiles.filter((absPath) => {
+    const content = fs.readFileSync(absPath, 'utf8')
+    const title = extractTitle(content)
+    return title?.startsWith('Im Einsatz/')
+  })
+
+  it('jede gefundene "Im Einsatz/*"-Story steht mit passendem Titel in der Allowlist', () => {
+    const unlisted = imEinsatzFiles
+      .map((absPath) => {
+        const relPath = path.relative(SRC_DIR, absPath).split(path.sep).join('/')
+        const title = extractTitle(fs.readFileSync(absPath, 'utf8'))
+        return { relPath, title }
+      })
+      .filter(({ relPath, title }) => IM_EINSATZ_ALLOWLIST[relPath] !== title)
+
+    expect(
+      unlisted,
+      `Neue oder umbenannte "Im Einsatz/*"-Stories ohne Allowlist-Eintrag gefunden: ${JSON.stringify(unlisted)}. ` +
+        'Entweder gehört die Story in "Grundbausteine/*"/"Zusammengesetzte Bausteine/*" (zeigt nur einen ' +
+        'Baustein, keine vollständige Seite/keinen vollständigen Ablauf), oder sie ist bewusst eine neue ' +
+        'vollständige Seite/ein neuer vollständiger Ablauf und muss mit Begründung in IM_EINSATZ_ALLOWLIST ' +
+        '(catalogTaxonomy.test.ts) ergänzt werden.',
+    ).toEqual([])
+  })
+
+  it('jeder Allowlist-Eintrag verweist auf eine tatsächlich existierende Datei mit exakt diesem Titel', () => {
+    const stale = Object.entries(IM_EINSATZ_ALLOWLIST).filter(([relPath, expectedTitle]) => {
+      const absPath = path.join(SRC_DIR, relPath)
+      if (!fs.existsSync(absPath)) return true
+      return extractTitle(fs.readFileSync(absPath, 'utf8')) !== expectedTitle
+    })
+
+    expect(
+      stale,
+      `Allowlist-Einträge ohne passende Datei/Titel (gelöscht, verschoben oder umbenannt): ${JSON.stringify(stale)} -- IM_EINSATZ_ALLOWLIST nachführen.`,
+    ).toEqual([])
+  })
 })

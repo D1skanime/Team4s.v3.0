@@ -149,6 +149,21 @@ describe('FormField Autoverknüpfung', () => {
     expect(switchEl.getAttribute('aria-describedby')).toBeTruthy()
   })
 
+  it('verknüpft Switch per aria-labelledby mit dem sichtbaren FormField-Label (analog zu DatePicker/YearPicker)', () => {
+    render(
+      <FormField label="Benachrichtigungen">
+        <Switch checked={false} onCheckedChange={() => {}} />
+      </FormField>,
+    )
+
+    // Die zugängliche Bezeichnung kommt über aria-labelledby vom sichtbaren FormField-Label --
+    // Switch selbst bekommt hier keine eigene label-Prop, hätte also ohne diese Verknüpfung
+    // keinen für Screenreader vorgelesenen Namen außer "Schalter, aus".
+    const switchEl = screen.getByRole('switch', { name: 'Benachrichtigungen' }) as HTMLButtonElement
+    const visibleLabel = screen.getByText('Benachrichtigungen')
+    expect(switchEl.getAttribute('aria-labelledby')).toBe(visibleLabel.id)
+  })
+
   it('verknüpft DatePicker/YearPicker über ihren internen Trigger-Button mit aria-describedby (ohne aria-invalid -- die implizite button-Rolle unterstützt dieses Attribut laut ARIA-Spezifikation nicht, siehe FormField.tsx)', () => {
     render(
       <FormField label="Datum" error="Ungültiges Datum">

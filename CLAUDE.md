@@ -193,7 +193,7 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   durchscheinende/dunkle Flächen auf öffentlichen Seiten (z. B. `Card variant="glass"`,
   `LinkChip`, Ränder „auf dunkler Fläche") sind KEIN Fehler, der an die helle Admin-Optik
   angeglichen werden muss, sondern eine zweite, gleichberechtigte, tokenbasierte Erscheinung
-  derselben Bausteine (261102-hlg).
+  derselben Bausteine.
 - **Pflichtregel „Stories ziehen mit":** Ändert sich eine globale Primitive aus
   `@/components/ui` sichtbar (neue Variante, neuer Zustand, geändertes
   Props-Verhalten), wird im selben Auftrag die zugehörige `*.stories.tsx`-Datei

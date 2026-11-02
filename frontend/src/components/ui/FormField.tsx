@@ -109,6 +109,13 @@ export function FormField({
         ...(effectiveAriaInvalid ? { 'aria-invalid': true as const } : {}),
         ...(effectiveRequired ? { 'aria-required': true as const } : {}),
         'aria-describedby': mergedDescribedBy,
+        // Switch rendert wie DatePicker/YearPicker als <button> -- ohne eigene label-Prop hat er
+        // keinen Accessible Name aus eigenem Inhalt. aria-labelledby auf labelId bindet ihn an
+        // exakt den sichtbaren FormField-Labeltext, statt dass ein Screenreader nur "Schalter,
+        // aus" ohne Beschriftung ansagt. Wie bei DatePicker/YearPicker: labelId ist nur gesetzt,
+        // wenn FormField ein label hat -- ohne label KEIN 'aria-labelledby': undefined mitgeben,
+        // sonst überschreibt cloneElement ein vom Aufrufer selbst gesetztes aria-labelledby.
+        ...(labelId ? { 'aria-labelledby': labelId } : {}),
       })
     } else {
       const effectiveInvalid = Boolean(error) || Boolean(childProps.invalid)

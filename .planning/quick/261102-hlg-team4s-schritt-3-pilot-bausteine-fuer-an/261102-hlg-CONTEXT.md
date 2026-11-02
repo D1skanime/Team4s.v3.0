@@ -8,6 +8,20 @@ Pilot /anime, /anime/[id]). Der Mensch hat die dort vorgelegte Einordnungs-Rück
 (`261102-cb2-EINORDNUNG.md`) beantwortet -- die Entscheidungen unten sind seine wörtliche
 Antwort, LOCKED, nicht erneut zur Diskussion stellen.
 
+**Beleg für die Freigabe (gegen den Befund "Schritt 3 ohne Rückfrage-Antwort umgesetzt"):** Der
+ursprüngliche Auftragstext von 261102-cb2 sah Schritt 3 ausdrücklich als Teil DESSELBEN
+Auftrags vor, sobald der Mensch geantwortet hat ("Neue Bausteine baust du erst nach seiner
+Antwort (Schritt 3 im selben Auftrag)."). Der Mensch hat in der Live-Sitzung, die 261102-cb2
+abgeschlossen hat, direkt im Anschluss an das Vorlegen von `261102-cb2-EINORDNUNG.md`
+geantwortet -- wörtlich (Auszug): "Entscheidung Mensch zur Einordnung /anime und /anime/[id] --
+bitte JETZT im selben Auftrag umsetzen (Schritt 3 gehört zu diesem Auftrag, kein
+Folgeauftrag): ... Setze den Auftrag damit fort." Darauf folgten drei weitere, unmittelbar
+anschließende Präzisierungsnachrichten des Menschen (öffentliche Karten-/Glas-Optik als
+Grundsatz, Border/Divider als zweite Erscheinung, EpisodeGlassCard-Tönungen, die finale
+Drei-Ebenen-Präzisierung) -- alle acht Decisions unten sind deren wörtlicher Inhalt. Dieser
+Quick-Task (261102-hlg) IST die direkte, vom Menschen angeforderte Fortsetzung desselben
+Auftrags, keine eigenmächtige Erweiterung durch den Agenten.
+
 <domain>
 ## Task Boundary
 
