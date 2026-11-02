@@ -89,6 +89,54 @@ export const normalGroupedEpisodesResponse: PublicGroupedEpisodesResponse = {
   },
 }
 
+/** Erfolgreicher Leerzustand: Der Anime ist bekannt, besitzt aber noch keine öffentliche Version. */
+export const emptyGroupedEpisodesResponse: PublicGroupedEpisodesResponse = {
+  data: {
+    anime_id: 1,
+    episodes: [],
+    episode_count: 0,
+    pagination: { has_more: false, next_cursor: null, row_limit: 24 },
+  },
+}
+
+function buildEpisodePage(startEpisodeNumber: number): PublicGroupedEpisode[] {
+  return Array.from({ length: 24 }, (_value, index) => {
+    const episodeNumber = startEpisodeNumber + index
+    return buildGroupedEpisode({
+      episode_id: episodeNumber,
+      episode_number: episodeNumber,
+      episode_title: `Frühlingsblüten – Folge ${episodeNumber}`,
+      default_version_id: episodeNumber,
+      versions: [buildEpisodeVersion({
+        id: episodeNumber,
+        variant_id: episodeNumber,
+        release_version_id: episodeNumber,
+        episode_number: episodeNumber,
+      })],
+    })
+  })
+}
+
+/** Erste Cursor-Seite für die Detail-Story „Viele Episoden“; der Browser lädt danach weiter. */
+export const manyGroupedEpisodesResponse: PublicGroupedEpisodesResponse = {
+  data: {
+    anime_id: 1,
+    episodes: buildEpisodePage(1),
+    episode_count: 48,
+    pagination: { has_more: true, next_cursor: 'episode-page-2', row_limit: 24 },
+  },
+}
+
+/** Zweite Cursor-Seite für „Viele Episoden“, die den Nachlade-Ablauf abgeschlossen darstellt. */
+export const moreGroupedEpisodesResponse: PublicGroupedEpisodesResponse = {
+  data: {
+    anime_id: 1,
+    episodes: buildEpisodePage(25),
+    episode_count: 48,
+    pagination: { has_more: false, next_cursor: null, row_limit: 24 },
+  },
+}
+
 /** Fansub-Fixture passend zur Episoden-Fixture (Primärgruppe "Demo Fansub-Gruppe"). */
 export const normalAnimeFansubsResponse: AnimeFansubListResponse = {
   data: [

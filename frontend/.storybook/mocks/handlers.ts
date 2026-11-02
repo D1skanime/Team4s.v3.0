@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw'
 
 import type { MemberProfileData } from '@/types/profile'
 import type { WatchlistCreateResponse } from '@/types/watchlist'
+import type { PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 
 /**
  * Zentrale MSW-Handler für echte Client-seitige `fetch`-Aufrufe aus Storybook-Stories (nicht für
@@ -57,6 +58,16 @@ export const watchlistPresentHandler = http.get('*/api/v1/watchlist/:animeID', (
 export const watchlistErrorHandler = http.get('*/api/v1/watchlist/:animeID', () => {
   return HttpResponse.json({ error: 'interner Fehler' }, { status: 500 })
 })
+
+/** Liefert für eine Detailseiten-Story genau die nächste Cursor-Seite. Der Cursor ist Pflicht,
+ * damit die Story nur den echten Nachladepfad simuliert und keinen SSR-Prop-Datensatz ersetzt. */
+export function groupedEpisodesLoadMoreHandler(page: PublicGroupedEpisodesResponse) {
+  return http.get('*/api/v1/anime/:animeID/episodes', ({ request }) => {
+    const cursor = new URL(request.url).searchParams.get('cursor')
+    if (!cursor) return HttpResponse.json({ error: 'Cursor fehlt' }, { status: 400 })
+    return HttpResponse.json(page)
+  })
+}
 
 /** Default-Handler-Liste für `preview.tsx` -- einzelne Stories überschreiben sie bei Bedarf über
  *  `parameters.msw.handlers`. */

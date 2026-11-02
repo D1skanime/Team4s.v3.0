@@ -1,10 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
-import { watchlistAbsentHandler, watchlistErrorHandler, watchlistPresentHandler } from '../../../../.storybook/mocks/handlers'
+import {
+  groupedEpisodesLoadMoreHandler,
+  watchlistAbsentHandler,
+  watchlistErrorHandler,
+  watchlistPresentHandler,
+} from '../../../../.storybook/mocks/handlers'
 
 import { AnimeDetailView } from './AnimeDetailView'
 import {
   buildAnimeDetailFixture,
+  emptyGroupedEpisodesResponse,
+  manyGroupedEpisodesResponse,
+  moreGroupedEpisodesResponse,
   normalAnimeFansubsResponse,
   normalGroupedEpisodesResponse,
   normalRelationsResponse,
@@ -75,6 +83,22 @@ export const WatchlistFehler: Story = {
 
 export const EpisodenFehler: Story = {
   args: { groupedEpisodesResponse: null, episodeCount: 0 },
+}
+
+export const KeineEpisoden: Story = {
+  args: { groupedEpisodesResponse: emptyGroupedEpisodesResponse, episodeCount: 0 },
+}
+
+export const VieleEpisoden: Story = {
+  args: { groupedEpisodesResponse: manyGroupedEpisodesResponse, episodeCount: 48 },
+  parameters: {
+    msw: { handlers: [groupedEpisodesLoadMoreHandler(moreGroupedEpisodesResponse)] },
+    docs: {
+      description: {
+        story: 'Beim Erreichen des unteren Listenrands lädt der echte Episoden-Browser die zweite Cursor-Seite nach.',
+      },
+    },
+  },
 }
 
 export const LangerTitel: Story = {
