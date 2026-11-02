@@ -3,6 +3,25 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
+ * Taxonomie-Regel "Im Einsatz/*" (seit Quick-Task 261102-cb2, dokumentierender Kommentar --
+ * dieser Test prüft laut Datei-Zweck ausschließlich "Grundbausteine/*", keine neue
+ * automatisierte Prüfung für "Im Einsatz/*" nötig): „Im Einsatz = nur vollständige Seiten oder
+ * vollständige Abläufe" -- keine isolierten Einzelbaustein-Demos mehr. Sechs zuvor hier
+ * katalogisierte Einzel-Baustein-Showcases (Switch/UploadDropzone/Drawer/Accordion/Modal/
+ * FormField) wurden deshalb in die jeweilige Grundbaustein-/Zusammengesetzte-Bausteine-Story
+ * migriert, die vier-teilige CompositionShowcase-Familie (zeigte Admin-Layer-Fragmente ohne
+ * vollständige Seite/Ablauf) wurde ersatzlos entfernt. Aktuelle Referenzliste der verbliebenen
+ * "Im Einsatz/*"-Stories (nach Task 6 dieses Auftrags):
+ * - `frontend/src/components/showcases/AchievementBadgeShowcase.stories.tsx`
+ * - `frontend/src/components/showcases/PublicFansubSurfacesShowcase.stories.tsx`
+ * - `frontend/src/components/showcases/PublicReleaseSurfacesShowcase.stories.tsx`
+ * - `frontend/src/components/showcases/AppShellDrawerDemoSection.stories.tsx`
+ * - `frontend/src/components/fansubs/FansubHeroSection.stories.tsx`
+ * - `frontend/src/app/anime/AnimeListView.stories.tsx` ("Im Einsatz/Öffentlich/Anime-Liste",
+ *   neuer Pilot für den Server/Ansicht-Split + Fixture-Props)
+ * - `frontend/src/app/anime/[id]/AnimeDetailView.stories.tsx` ("Im Einsatz/Öffentlich/
+ *   Anime-Detail", neuer Pilot, zusätzlich mit MSW-abgefangenem Watchlist-Client-Fetch)
+ *
  * Automatische Qualitätssicherung gegen stillschweigende Grundbaustein-zu-Grundbaustein-
  * Verbünde: ein Primitiv unter der Storybook-Kategorie "Grundbausteine/*" verspricht per
  * Definition (siehe CLAUDE.md "Frontend-UI"), KEINE andere components/ui-Komponente intern zu
