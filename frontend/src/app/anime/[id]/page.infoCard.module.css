@@ -1,0 +1,295 @@
+/* ==========================================================================
+   AnimeDetail Page -- Info-Karte (rechts: Titel, Badges, Beschreibung, Tags, Emby, Related)
+   Teil des 450-Zeilen-Splits von page.module.css (261102-hlg, Task 5), zusammengeführt über
+   AnimeDetailView.styles.ts. Die vormaligen relatedRailWrapper-/relatedRailSection-Klassen wurden
+   beim Verschieben ersatzlos entfernt (totes CSS, 0 Treffer in AnimeDetailView.tsx -- AnimeRelations
+   rendert über `.relatedSection`, nicht über eine eigene Kartenfläche).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Info Card (Right) - White top, glass bottom
+   -------------------------------------------------------------------------- */
+.infoCard {
+  position: relative;
+  border-radius: 0 24px 24px 0;
+  padding: 28px;
+  color: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.95) 35%,
+    rgba(255, 255, 255, 0.6) 45%,
+    rgba(255, 255, 255, 0.15) 60%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Title + Logo Row */
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  flex: 1;
+}
+
+.titleLogo {
+  flex-shrink: 0;
+  max-height: 48px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Badges */
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #f0f0f0;
+  color: #444;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Description */
+.description {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #444;
+  margin: 0 0 20px;
+}
+
+/* --------------------------------------------------------------------------
+   Tags (content navigation, not a CTA badge - D-17)
+   -------------------------------------------------------------------------- */
+.tagsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 20px;
+}
+
+.tagsLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.tagsList {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+}
+
+/*
+ * Feature-lokale, selbsttragende dunkle Chip-Farben (GAP-10): die globalen Light-Card-Tokens
+ * (--surface-sunken/--text-primary) sind fuer eine opake helle Karte kalibriert und verlieren
+ * Kontrast im nahezu transparenten unteren Bereich von .infoCard's Gradient. Eigenstaendig
+ * ausreichend deckendes dunkles Chip statt Kontrastberechnung gegen den variablen Hintergrund.
+ */
+.tagChip {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: rgba(20, 18, 16, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  text-transform: none;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.tagChip:hover {
+  background: rgba(20, 18, 16, 0.78);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.tagChip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Stats Row */
+.statsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.embyLink {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.embyLink:hover {
+  color: #ff8a4c;
+}
+
+/* Info Banner */
+.infoBanner {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* --------------------------------------------------------------------------
+   Related Section (inside infoCard, horizontal scroll)
+   -------------------------------------------------------------------------- */
+.relatedSection {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Edge Navigation Overlay (positioned on heroContainer - buttons centered on edges)
+   -------------------------------------------------------------------------- */
+.edgeNavigationOverlay {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0;
+  pointer-events: none;
+}
+
+.edgeNavigationOverlay > * {
+  pointer-events: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Divider (inside infoCard - glass area)
+   -------------------------------------------------------------------------- */
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  margin: 20px 0;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Design
+   -------------------------------------------------------------------------- */
+@media (max-width: 1023px) {
+  .title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 767px) {
+  .infoCard {
+    padding: 20px;
+    text-align: center;
+    border-radius: 0 0 24px 24px;
+    background: rgba(30, 30, 35, 0.95);
+    color: #fff;
+  }
+
+  .titleRow {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: 20px;
+    color: #fff;
+  }
+
+  .badges {
+    justify-content: center;
+  }
+
+  .badge {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .description {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+  }
+
+  /* Mobil ist die Infokarte dunkel: Tags-Überschrift hell, Chips zentriert wie die Karte. */
+  .tagsLabel {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .tagsList {
+    justify-content: center;
+  }
+
+  .statsRow {
+    justify-content: center;
+    border-top-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .divider {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .relatedSection {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .edgeNavigationOverlay {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    margin-top: 16px;
+    padding: 0 20px 20px;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .edgeNavigation {
+    border-top-color: rgba(255, 255, 255, 0.15);
+  }
+}

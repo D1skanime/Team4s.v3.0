@@ -231,6 +231,24 @@ describe('anime detail integration without invented data', () => {
     const css = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
     expect(css).not.toMatch(/\.fansubRow|\.fansubChip/)
   })
+
+  // 261102-hlg Task 5: page.module.css wurde ueber das 450-Zeilen-Limit hinweg in vier
+  // Teil-Stylesheets aufgeteilt (Shell/Poster/InfoCard/Episoden) -- totes CSS (0 Treffer in
+  // AnimeDetailView.tsx) wurde beim Verschieben ersatzlos entfernt, nicht nur umgezogen. Dieser
+  // Test liest ALLE VIER Dateien, nicht nur die Shell, damit ein versehentliches Wiederaufleben
+  // in einer der neuen Teildateien ebenfalls auffaellt.
+  it('enthaelt in keinem der vier Teil-Stylesheets totes CSS (.relatedRailSection/.episodeList u. a.)', () => {
+    const cssFiles = [
+      'page.module.css',
+      'page.poster.module.css',
+      'page.infoCard.module.css',
+      'page.episodes.module.css',
+    ].map((file) => readFileSync(join(process.cwd(), 'src/app/anime/[id]', file), 'utf8'))
+    const combinedCss = cssFiles.join('\n')
+    expect(combinedCss).not.toMatch(
+      /\.relatedRailWrapper|\.relatedRailSection|\.episodeList|\.episodeItem|\.episodeNumber|\.episodeTitle|\.episodeMeta|\.episodeActions|\.actionButton/,
+    )
+  })
 })
 
 describe('bounded public SSR inventory', () => {

@@ -20,7 +20,7 @@ import type { AnimeDetail } from '@/types/anime'
 // `projection: 'public'`-Zweig. Deshalb wird der Typ hier explizit benannt statt erraten.
 import type { PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 
-import styles from './page.module.css'
+import styles from './AnimeDetailView.styles'
 
 /** Baut den Such-Link für einen Tag-/Genre-Chip -- ohne freien Suchtext (`q`), da der Chip gezielt
  *  nach genau diesem Tag oder Genre filtert, nicht nach einem Stichwort. */
