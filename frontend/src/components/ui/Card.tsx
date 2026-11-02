@@ -7,9 +7,9 @@ import styles from './Card.module.css'
 
 type CardVariant =
   | 'default' | 'elevated' | 'interactive' | 'compact' | 'section' | 'flat' | 'nested' | 'nestedFlat'
-  // Zweite offizielle Erscheinung derselben Kartenfläche (261102-hlg, Nachtrag D-05): öffentliche,
-  // durchscheinende Flächen auf Foto-/Bannerhintergrund statt der hellen Admin-Optik -- keine
-  // Ausnahme/Fehler, siehe CLAUDE.md "öffentliche Optik ist eine zweite offizielle Erscheinung".
+  // Zweite offizielle Erscheinung derselben Kartenfläche: öffentliche, durchscheinende Flächen
+  // auf Foto-/Bannerhintergrund statt der hellen Admin-Optik -- keine Ausnahme/Fehler, siehe
+  // CLAUDE.md "öffentliche Optik ist eine zweite offizielle Erscheinung".
   | 'glass' | 'glassStrong'
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {

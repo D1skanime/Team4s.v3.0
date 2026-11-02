@@ -26,7 +26,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Ebene 3 ("Im Einsatz", 261102-hlg Abnahme-Pflicht D-08): "Normal" ist Desktop/Mobil ' +
+          'Ebene "Im Einsatz": "Normal" ist Desktop/Mobil ' +
           'geprüft über die Viewport-Werkzeugleiste (Storybook-Standard-Viewport ist mobil, ' +
           '"Desktop 1440x900" über die Toolbar wählbar). Der global aktive Rollen-Umschalter ' +
           '("team4sRole" in der Toolbar) demonstriert "Eingeloggt ansehen": `WatchlistAddButton` ' +

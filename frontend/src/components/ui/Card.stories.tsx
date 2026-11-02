@@ -105,8 +105,8 @@ export const GlasAufHintergrund: Story = {
     docs: {
       description: {
         story:
-          'Abnahme-Pflicht D-07: alle vier Episoden-Tönungen des generischen tintHue-Hooks ' +
-          'nebeneinander -- Haupthandlung (222°), Filler (2°), Gemischt (272°), Rückblick (42°).',
+          'Alle vier Episoden-Tönungen des generischen tintHue-Hooks nebeneinander -- ' +
+          'Haupthandlung (222°), Filler (2°), Gemischt (272°), Rückblick (42°).',
       },
     },
   },

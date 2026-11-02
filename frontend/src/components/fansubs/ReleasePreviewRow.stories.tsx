@@ -44,7 +44,7 @@ const meta = {
           `Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')} (variant="glassStrong"), ` +
           `${storybookDocsLink('Grundbausteine/Avatar', 'Avatar')} (Logo + Kürzel-Fallback), ` +
           `${storybookDocsLink('Grundbausteine/Text', 'Text')} (Gruppenname/Release-/Technik-/Extras-/` +
-          `Datumszeile), ${storybookDocsLink('Zusammengesetzte Bausteine/Button', 'Button')} (Release-Link).`,
+          `Datumszeile), ${storybookDocsLink('Grundbausteine/Button', 'Button')} (Release-Link).`,
       },
     },
   },
