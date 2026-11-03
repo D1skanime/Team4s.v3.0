@@ -36,6 +36,7 @@
      Überlapp), Fokus-Outlines (FocalCarousel/UploadDropzone) und Akzentlinien (SectionHeader/
      AccentRule), bewusst EIN Token statt an jeder Stelle zufällig übereinstimmender 2px-Literale. */
   --border-width-thick: 2px;
+  --border-width-thin: 1px;
 
   --z-base: 1;
   --z-dropdown: 20;

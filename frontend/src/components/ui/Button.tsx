@@ -6,7 +6,7 @@ import { classNames } from './classNames'
 import styles from './Button.module.css'
 import { Spinner } from './Spinner'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'warning' | 'info' | 'text' | 'floating'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'warning' | 'info' | 'text' | 'floating' | 'watchlist' | 'watchlistActive'
 /** 'hero' (Größe/Gewicht wie Heading size="hero") und 'prose' (1rem, wie Text variant="body")
  *  ergänzen die Steuerelement-Größen sm/md/lg um zwei Textfluss-Größen -- für `variant="text"`,
  *  das Größe/Gewicht sonst vom umgebenden Kontext erbt. */
@@ -27,6 +27,7 @@ type CommonButtonProps = {
   tone?: ButtonTone
   loading?: boolean
   fullWidth?: boolean
+  responsiveFullWidth?: boolean
   leftIcon?: ReactNode
   rightIcon?: ReactNode
   className?: string
@@ -56,6 +57,7 @@ export function Button(props: ButtonProps) {
     tone = 'default',
     loading = false,
     fullWidth = false,
+    responsiveFullWidth = false,
     disabled = false,
     leftIcon,
     rightIcon,
@@ -76,6 +78,8 @@ export function Button(props: ButtonProps) {
     variant === 'info' && styles.buttonInfo,
     variant === 'text' && styles.buttonText,
     variant === 'floating' && styles.buttonFloating,
+    variant === 'watchlist' && styles.buttonWatchlist,
+    variant === 'watchlistActive' && styles.buttonWatchlistActive,
     size === 'sm' && styles.buttonSmall,
     size === 'lg' && styles.buttonLarge,
     size === 'hero' && styles.buttonHero,
@@ -85,6 +89,7 @@ export function Button(props: ButtonProps) {
     tone === 'primary' && styles.buttonTonePrimary,
     tone === 'line' && styles.buttonToneLine,
     fullWidth && styles.buttonBlock,
+    responsiveFullWidth && styles.buttonResponsiveBlock,
     disabled || loading ? styles.buttonDisabled : '',
     className,
   )

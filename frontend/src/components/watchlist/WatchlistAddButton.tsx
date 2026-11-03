@@ -5,7 +5,7 @@ import { Plus, Check } from 'lucide-react'
 
 import { addWatchlistEntry, ApiError, getWatchlistEntry, removeWatchlistEntry } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
-import { Button } from '@/components/ui/Button'
+import { Button, type ButtonVariant } from '@/components/ui/Button'
 
 import styles from './WatchlistAddButton.module.css'
 
@@ -13,10 +13,6 @@ interface WatchlistAddButtonProps {
   animeID: number
   /** Compatibility prop until the page stops supplying SSR viewer state. Client GET owns status. */
   initiallyInWatchlist?: boolean
-  /** Custom className for the button (overrides default styling) */
-  className?: string
-  /** Custom className when in watchlist */
-  activeClassName?: string
 }
 
 type WatchlistStatus = 'unknown' | 'loading' | 'present' | 'absent' | 'error'
@@ -31,8 +27,6 @@ export function WatchlistAddButton(props: WatchlistAddButtonProps) {
 
 function WatchlistAction({
   animeID,
-  className,
-  activeClassName,
   hasAuthSession,
   isCurrentSession,
 }: WatchlistAddButtonProps & { hasAuthSession: boolean; isCurrentSession: () => boolean }) {
@@ -96,10 +90,8 @@ function WatchlistAction({
   }
 
   const isAdded = status === 'present'
-  const buttonClasses = className
-    ? `${className}${isAdded && activeClassName ? ` ${activeClassName}` : ''}`
-    : styles.button
   const statusKnown = status === 'present' || status === 'absent'
+  const variant: ButtonVariant = isAdded ? 'watchlistActive' : 'watchlist'
   const buttonContent = !hasAuthSession ? (
     'Anmeldung erforderlich'
   ) : isSubmitting ? (
@@ -116,14 +108,14 @@ function WatchlistAction({
 
   return (
     <div className={styles.wrapper}>
-      <button
-        className={buttonClasses}
-        type="button"
+      <Button
+        variant={variant}
+        responsiveFullWidth
         onClick={handleToggle}
         disabled={isSubmitting || !hasAuthSession || !statusKnown}
       >
         {buttonContent}
-      </button>
+      </Button>
       {message ? <p className={styles.message} role={isError ? 'alert' : 'status'}>{message}</p> : null}
       {hasAuthSession && status === 'error' ? (
         <Button variant="secondary" size="sm" onClick={() => void checkStatus()}>

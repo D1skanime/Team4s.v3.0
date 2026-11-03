@@ -1,146 +1,68 @@
-/* ==========================================================================
-   AnimeDetail Page -- Poster-Spalte (Glas-Panel links: Poster, Watchlist, Genres)
-   Teil des 450-Zeilen-Splits von page.module.css, zusammengeführt über
-   AnimeDetailView.styles.ts.
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   Poster-Spalte (links)
-   -------------------------------------------------------------------------- */
 .posterColumn {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.12) 40%,
-    rgba(255, 255, 255, 0.08) 70%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 24px 0 0 24px;
-  overflow: hidden;
   position: relative;
 }
 
-/* Bereich unterhalb des Posters für Watchlist-Button und Genres */
 .posterMeta {
   position: relative;
-  z-index: 5;
-  padding: 16px;
+  z-index: var(--z-base);
+  padding: var(--space-4);
   display: flex;
-  flex-direction: column;
-  gap: 12px;
   flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .posterDivider {
-  height: 1px;
-  background: var(--border-on-media);
-  border: none;
-  margin: 4px 0;
+  height: var(--border-width-thin);
+  margin: var(--space-1) 0;
 }
 
-.genresSection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.posterWrapper {
-  position: relative;
-  width: 260px;
-  border-radius: 24px 0 0 0;
-  overflow: visible;
-}
-
-.poster {
-  border-radius: 24px 0 0 0;
-}
-
-/* Merklisten-Button */
-.watchlistButton {
-  width: 100%;
-  height: 46px;
-  border-radius: 24px;
-  background: linear-gradient(90deg, #ffb36b, #ff8a4c);
-  border: none;
-  color: #000;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.watchlistButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 138, 76, 0.4);
-}
-
-.watchlistButtonActive {
-  background: linear-gradient(90deg, #4ade80, #22c55e);
-}
-
-/* Genre-Liste */
+.genresSection,
 .genres {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-/* --------------------------------------------------------------------------
-   Responsives Verhalten
-   -------------------------------------------------------------------------- */
+.genresSection {
+  flex-direction: column;
+}
+
+.posterWrapper {
+  position: relative;
+  width: var(--media-frame-poster-width);
+  overflow: visible;
+}
+
 @media (max-width: 1023px) {
   .posterWrapper {
-    width: 220px;
+    width: var(--media-frame-poster-width-medium);
   }
 }
 
 @media (max-width: 767px) {
   .posterColumn {
     align-items: center;
-    background: transparent;
-    border-radius: 0;
-    padding: 20px 20px 0;
+    padding: var(--space-5) var(--space-5) 0;
   }
 
   .posterWrapper {
-    width: 160px;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
-  }
-
-  .poster {
-    border-radius: 12px;
+    width: var(--media-frame-poster-width-compact);
   }
 
   .posterMeta {
     align-items: center;
-    padding: 16px 0;
+    padding: var(--space-4) 0;
     flex: 0;
-  }
-
-  .watchlistButton {
-    width: auto;
-    padding: 0 24px;
   }
 
   .posterDivider {
     display: none;
   }
 
-  .genresSection { align-items: center; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .watchlistButton:hover {
-    transform: none;
+  .genresSection {
+    align-items: center;
   }
 }

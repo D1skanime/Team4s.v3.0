@@ -35,6 +35,14 @@ describe('Button', () => {
     expect(container.querySelector('button')?.className).toMatch(/buttonProse/)
     expect(container.querySelector('button')?.className).toMatch(/buttonToneStrong/)
   })
+
+  it('stellt die globalen Merkliste-Zustände ohne lokale Klassen bereit', () => {
+    const { container, rerender } = render(<Button variant="watchlist">Zur Merkliste</Button>)
+    expect(container.querySelector('button')?.className).toMatch(/buttonWatchlist/)
+
+    rerender(<Button variant="watchlistActive">In Merkliste</Button>)
+    expect(container.querySelector('button')?.className).toMatch(/buttonWatchlistActive/)
+  })
 })
 
 describe('Button.module.css', () => {

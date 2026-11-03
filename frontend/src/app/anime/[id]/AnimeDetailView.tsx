@@ -2,7 +2,7 @@ import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
 import { AnimeMediaProvider } from '@/components/anime/AnimeMediaProvider'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
-import { BannerSection } from '@/components/ui'
+import { BannerSection, Card } from '@/components/ui'
 import { getAnimeFansubs, getAnimeRelations } from '@/lib/api'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import type { AnimeDetail } from '@/types/anime'
@@ -74,7 +74,7 @@ export function AnimeDetailView({
 
       {/* Hero Container (Glassmorphism) - 2 Column Grid */}
       <div className={styles.heroWrapper}>
-        <section className={styles.heroContainer}>
+        <Card variant="publicHero" className={styles.heroContainer}>
           <AnimeDetailHero anime={anime} coverUrl={displayCoverUrl} embySeriesUrl={embySeriesUrl} relationsResponse={relationsResponse} />
 
           {/* Edge-Navigation-Overlay -- auf dem heroContainer positioniert */}
@@ -83,7 +83,7 @@ export function AnimeDetailView({
               <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} />
             </div>
           )}
-        </section>
+        </Card>
       </div>
 
       {/* Inhaltsbereich (Episoden) */}

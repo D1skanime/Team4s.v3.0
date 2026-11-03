@@ -149,6 +149,27 @@
   box-shadow: var(--button-shadow-info-hover);
 }
 
+.buttonWatchlist,
+.buttonWatchlistActive {
+  --button-text: var(--button-watchlist-text);
+  --button-border: transparent;
+  --button-shadow: none;
+  min-height: var(--control-height-md);
+  border-radius: var(--button-watchlist-radius);
+}
+
+.buttonWatchlist {
+  --button-bg: linear-gradient(90deg, var(--button-watchlist-start), var(--button-watchlist-end));
+}
+
+.buttonWatchlistActive {
+  --button-bg: linear-gradient(90deg, var(--button-watchlist-active-start), var(--button-watchlist-active-end));
+}
+
+.buttonWatchlist:hover {
+  box-shadow: var(--button-watchlist-shadow-hover);
+}
+
 /* Offizieller "aktuell/ausgewählt"-Zustand für Pagination, Filter-Knöpfe und Umschalter: reagiert
    auf die Standard-ARIA-Attribute aria-current/aria-pressed, keine eigene Prop nötig. Greift
    unabhängig von der gewählten variant, damit z. B. eine ausgewählte Seitenzahl innerhalb einer
@@ -270,6 +291,16 @@
 
 .buttonBlock {
   width: 100%;
+}
+
+.buttonResponsiveBlock {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .buttonResponsiveBlock {
+    width: auto;
+  }
 }
 
 .buttonDisabled,

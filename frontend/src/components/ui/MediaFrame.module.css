@@ -28,6 +28,7 @@
 .mediaFramePosterFade {
   overflow: visible;
   background: transparent;
+  border-radius: var(--media-frame-poster-radius);
   isolation: isolate;
   z-index: 0;
 }
@@ -54,6 +55,14 @@
   object-fit: cover;
   mask-image: var(--media-frame-poster-image-mask);
   -webkit-mask-image: var(--media-frame-poster-image-mask);
+}
+
+@media (max-width: 767px) {
+  .mediaFramePosterFade {
+    border-radius: var(--media-frame-poster-radius-compact);
+    box-shadow: var(--media-frame-poster-shadow-compact);
+    overflow: hidden;
+  }
 }
 
 .mediaFramePosterFade .mediaFrameCorner,

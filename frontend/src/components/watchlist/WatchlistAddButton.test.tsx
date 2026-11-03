@@ -74,7 +74,7 @@ describe('watchlist client status ownership', () => {
   it.each([new ApiError(401, 'Nicht angemeldet'), new ApiError(500, 'Serverfehler'), new TypeError('Netzwerkfehler')])(
     'keeps unknown status fail-closed after %s and supports retry', async (error) => {
       vi.mocked(getWatchlistEntry).mockRejectedValueOnce(error)
-      render(<WatchlistAddButton animeID={1} className="custom" />)
+      render(<WatchlistAddButton animeID={1} />)
       await screen.findByRole('alert')
       disabled(/Watchliststatus unbekannt/)
       fireEvent.click(screen.getByRole('button', { name: /Watchliststatus unbekannt/ }))
@@ -86,16 +86,15 @@ describe('watchlist client status ownership', () => {
     },
   )
 
-  it.each(['add', 'delete'])('shows %s failures with custom styling and retains known status', async (action) => {
+  it.each(['add', 'delete'])('shows %s failures with the global watchlist state and retains known status', async (action) => {
     if (action === 'delete') vi.mocked(getWatchlistEntry).mockResolvedValue(entry)
     const mutate = action === 'delete' ? removeWatchlistEntry : addWatchlistEntry
     vi.mocked(mutate).mockRejectedValue(new ApiError(500, 'Änderung fehlgeschlagen.'))
-    render(<WatchlistAddButton animeID={1} className="custom" activeClassName="active" />)
+    render(<WatchlistAddButton animeID={1} />)
     const name = action === 'delete' ? /In Watchlist/ : /Zur Watchlist/
     fireEvent.click(await known(name))
     expect((await screen.findByRole('alert')).textContent).toContain('Änderung fehlgeschlagen.')
-    expect((await known(name)).className).toContain('custom')
-    if (action === 'delete') expect((await known(name)).className).toContain('active')
+    expect((await known(name)).className).toContain(action === 'delete' ? 'buttonWatchlistActive' : 'buttonWatchlist')
   })
 
   it('reacts to login/logout after mount and skips reads without either token', async () => {

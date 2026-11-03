@@ -33,7 +33,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
 
   return (
     <>
-      <div className={styles.posterColumn}>
+      <Card variant="publicPoster" className={styles.posterColumn}>
         <div className={styles.posterWrapper} style={{ '--poster-image': `url("${coverUrl}")` } as CSSProperties}>
           <MediaFrame variant="posterFade" backdropImage={coverUrl} aspectRatio={2 / 3} bottomBadge={posterEpisodeBadge} className={styles.poster}>
             <ResponsiveImage
@@ -48,7 +48,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
         </div>
 
         <div className={styles.posterMeta}>
-          <WatchlistAddButton animeID={anime.id} className={styles.watchlistButton} activeClassName={styles.watchlistButtonActive} />
+          <WatchlistAddButton animeID={anime.id} />
           <hr className={styles.posterDivider} />
           <div className={styles.genresSection}>
             <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
@@ -59,9 +59,9 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <Card variant="glass" className={styles.infoCard}>
+      <Card variant="publicHeroInfo" className={styles.infoCard}>
         <div className={styles.infoCardBody}>
           <div className={styles.titleRow}>
             <Heading level={1} tone="onScrim" className={styles.title}>{anime.title}</Heading>

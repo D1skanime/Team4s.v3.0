@@ -205,8 +205,9 @@ describe('anime detail integration without invented data', () => {
   it('clips only the decorative banner backdrop, leaving the hero controls outside its clipping boundary', () => {
     const bannerCss = readFileSync(join(process.cwd(), 'src/components/ui/BannerSection.module.css'), 'utf8')
     const pageCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
+    const cardCss = readFileSync(join(process.cwd(), 'src/components/ui/Card.module.css'), 'utf8')
     expect(bannerCss.match(/\.bannerSection\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*(hidden|clip)/)
-    expect(pageCss.match(/\.heroContainer\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*visible/)
+    expect(cardCss.match(/\.cardPublicHero\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*visible/)
     expect(pageCss.match(/\.page\s*\{([^}]+)\}/)?.[1]).not.toMatch(/overflow/)
   })
 
@@ -286,12 +287,10 @@ describe('anime detail integration without invented data', () => {
     )
   })
 
-  // 261102-hlg Task 7: die Info-Karte ist keine seiteneigene Glas-Fläche mehr, sondern nutzt die
-  // offizielle Card-Variante -- Datei:Zeile-Beleg für 261102-cb2-EINORDNUNG.md (Task 15).
-  it('die Info-Karte nutzt Card variant="glass" statt seiteneigenem CSS (261102-hlg D-05)', async () => {
+  it('die Info-Karte nutzt die globale öffentliche Hero-Kartenvariante statt seiteneigenem CSS', async () => {
     const content = await loadContent()
     const infoCard = elements(content).find((item) => item.type === Card && String(item.props.className ?? '').includes('infoCard'))
-    expect(infoCard?.props.variant).toBe('glass')
+    expect(infoCard?.props.variant).toBe('publicHeroInfo')
   })
 })
 

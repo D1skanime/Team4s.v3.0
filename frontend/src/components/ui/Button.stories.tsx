@@ -49,6 +49,16 @@ export const Erfolg: Story = {
   args: { variant: 'success', children: 'Speichern' },
 }
 
+export const Merkliste: Story = {
+  name: 'Merkliste',
+  args: { variant: 'watchlist', children: 'Zur Merkliste' },
+}
+
+export const InMerkliste: Story = {
+  name: 'In Merkliste',
+  args: { variant: 'watchlistActive', children: 'In Merkliste' },
+}
+
 export const Warnung: Story = {
   name: 'Warnung',
   args: { variant: 'warning', children: 'Warnung' },
@@ -180,7 +190,7 @@ export const AktuellAusgewaehlt: Story = {
   },
 }
 
-const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'warning', 'info', 'text', 'floating'] as const
+const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'warning', 'info', 'text', 'floating', 'watchlist', 'watchlistActive'] as const
 const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   primary: 'Primär',
   secondary: 'Sekundär',
@@ -192,6 +202,8 @@ const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   info: 'Hinweis',
   text: 'Text',
   floating: 'Schwebend',
+  watchlist: 'Merkliste',
+  watchlistActive: 'In Merkliste',
 }
 const SIZES = ['sm', 'md', 'lg'] as const
 

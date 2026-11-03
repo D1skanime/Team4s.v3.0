@@ -117,6 +117,42 @@
   box-shadow: none;
 }
 
+.cardPublicHero {
+  gap: 0;
+  padding: 0;
+  overflow: visible;
+  border-color: var(--card-public-hero-border);
+  border-radius: var(--card-public-hero-radius);
+  background: var(--card-public-hero-bg);
+  box-shadow: var(--card-public-hero-shadow);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .cardPublicHero {
+    background: var(--card-public-hero-bg-supported);
+    backdrop-filter: blur(var(--card-public-hero-blur));
+    -webkit-backdrop-filter: blur(var(--card-public-hero-blur));
+  }
+}
+
+.cardPublicPoster {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-color: transparent;
+  border-radius: var(--card-public-poster-radius);
+  background: var(--card-public-poster-bg);
+  box-shadow: none;
+  backdrop-filter: blur(var(--card-public-hero-blur));
+  -webkit-backdrop-filter: blur(var(--card-public-hero-blur));
+}
+
+.cardPublicHeroInfo {
+  border-radius: var(--card-public-hero-info-radius);
+}
+
 /* Generischer Tönungs-Hook: Card setzt per `tintHue`-Prop nur den Farbton (--card-tint-hue); die
    Sättigung/Helligkeit/Deckkraft-Formel nutzt standardmäßig dieselben --card-tint-*-Tokens für
    jede Tönung, kann aber vom Aufrufer über die optionalen *-override-Variablen (gesetzt via
@@ -158,5 +194,14 @@
   .cardFooter {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .cardPublicPoster {
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .cardPublicHeroInfo {
+    border-radius: var(--card-public-hero-info-radius-mobile);
   }
 }

@@ -109,6 +109,26 @@ export const RuhigeOeffentlicheFlaeche: Story = {
   ),
 }
 
+export const OeffentlicherHeroRahmen: Story = {
+  name: 'Öffentlicher Hero-Rahmen',
+  args: { variant: 'publicHero' },
+  render: (args) => (
+    <div style={{ padding: 20, background: 'var(--surface-stage)' }}>
+      <Card {...args}><Text tone="onScrim">Rahmen für öffentliche Kopfbereiche mit schwebenden Steuerelementen.</Text></Card>
+    </div>
+  ),
+}
+
+export const OeffentlichePosterFlaeche: Story = {
+  name: 'Öffentliche Poster-Fläche',
+  args: { variant: 'publicPoster' },
+  render: (args) => (
+    <div style={{ padding: 20, background: 'var(--surface-stage)' }}>
+      <Card {...args}><Text tone="onScrim">Durchscheinende Fläche für Poster und ergänzende Aktionen.</Text></Card>
+    </div>
+  ),
+}
+
 export const GlasAufHintergrund: Story = {
   name: 'Glas auf Hintergrund (alle Tönungen)',
   parameters: {

@@ -1,134 +1,88 @@
-/* ==========================================================================
-   AnimeDetail Page -- Info-Karte (rechts: Titel, Badges, Beschreibung, Tags, Emby, Related)
-   Teil des 450-Zeilen-Splits von page.module.css, zusammengeführt über
-   AnimeDetailView.styles.ts. Die vormaligen relatedRailWrapper-/relatedRailSection-Klassen wurden
-   beim Verschieben ersatzlos entfernt (totes CSS, 0 Treffer in AnimeDetailView.tsx -- AnimeRelations
-   rendert über `.relatedSection`, nicht über eine eigene Kartenfläche).
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   Info-Karte (rechts) -- Fläche kommt jetzt komplett von Card variant="glass"; .infoCard
-   liefert nur noch den Eckenrundungs-Override für die Einbettung neben der bereits
-   eigenständig gerundeten Poster-Spalte, das Innenlayout liegt in .infoCardBody.
-   -------------------------------------------------------------------------- */
-.infoCard {
-  /* Override-Hook aus Card.module.css (--card-radius-override): die Info-Karte sitzt rechts
-     neben der Poster-Spalte innerhalb EINES gemeinsam gerundeten heroContainer-Rahmens, braucht
-     deshalb eine abweichende, asymmetrische Eckenrundung statt Cards generischem 12px-Radius.
-     NUR diese eine CSS-Variable wird hier gesetzt -- Layout-Eigenschaften (padding/display) auf
-     demselben Element wie Cards eigene .cardGlass-Klasse würden einen Cross-Modul-
-     Spezifitätsgleichstand erzeugen (Gewinner abhängig von der nicht garantierten Bündel-
-     Ladereihenfolge), deshalb liegt das Innenlayout in .infoCardBody (eigenes, verschachteltes
-     Element, analog zu ReleasePreviewRows .row-Wrapper). */
-  --card-radius-override: 0 24px 24px 0;
-}
-
 .infoCardBody {
-  padding: 28px;
   display: flex;
   flex-direction: column;
+  padding: var(--space-6);
 }
 
-/* Titel- und Logo-Zeile */
 .titleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0;
   flex: 1;
 }
 
 .titleLogo {
   flex-shrink: 0;
-  max-height: 48px;
   width: auto;
+  max-height: var(--media-logo-max-height);
   object-fit: contain;
 }
 
-/* Badges */
-.badges {
+.badges,
+.tagsList,
+.statsRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
 }
 
-/* Beschreibung */
-.description {
-  font-size: 15px;
-  line-height: 1.7;
-  margin: 0 0 20px;
+.badges {
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
 }
 
-/* --------------------------------------------------------------------------
-   Tags -- Inhalts-Navigation zu verwandten Suchtreffern, keine Handlungsaufforderung
-   -------------------------------------------------------------------------- */
+.description,
+.tagsSection {
+  margin: 0 0 var(--space-5);
+}
+
 .tagsSection {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin: 0 0 20px;
 }
 
 .tagsList {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
   gap: var(--space-2);
   padding: 0;
   margin: 0;
+  list-style: none;
 }
 
-/* Statistik-Zeile */
 .statsRow {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-on-media);
+  gap: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: var(--border-width-thin) solid var(--border-on-media);
 }
 
-/* Info-Banner */
 .infoBanner {
   width: 100%;
   height: auto;
-  border-radius: 12px;
   object-fit: cover;
 }
 
-/* --------------------------------------------------------------------------
-   Verwandte-Anime-Bereich (innerhalb der Info-Karte, horizontales Scrollen)
-   -------------------------------------------------------------------------- */
 .relatedSection {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-on-media);
   min-width: 0;
   overflow: hidden;
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: var(--border-width-thin) solid var(--border-on-media);
 }
 
-/* --------------------------------------------------------------------------
-   Edge-Navigation-Overlay (auf dem heroContainer positioniert -- Buttons mittig an den Rändern)
-   -------------------------------------------------------------------------- */
 .edgeNavigationOverlay {
   position: absolute;
-  top: 12px;
-  left: 0;
+  z-index: var(--z-dropdown);
+  top: var(--space-3);
   right: 0;
-  z-index: 20;
+  left: 0;
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  padding: 0;
+  justify-content: space-between;
   pointer-events: none;
 }
 
@@ -136,80 +90,41 @@
   pointer-events: auto;
 }
 
-/* --------------------------------------------------------------------------
-   Trennlinie (innerhalb der Info-Karte -- Glasfläche)
-   -------------------------------------------------------------------------- */
 .divider {
-  height: 1px;
-  background: var(--border-on-media-strong);
-  border: none;
-  margin: 20px 0;
-}
-
-/* --------------------------------------------------------------------------
-   Responsives Verhalten
-   -------------------------------------------------------------------------- */
-@media (max-width: 1023px) {
-  .title {
-    font-size: 24px;
-  }
+  height: var(--border-width-thin);
+  margin: var(--space-5) 0;
 }
 
 @media (max-width: 767px) {
-  /* Hintergrund/Rand/Radius/Text-Farbe kommen jetzt einheitlich von Card variant="glass" --
-     Mobil und Desktop zeigen dieselbe Glas-Fläche, kein eigener Farb-Umschlag mehr nötig (löst
-     die bisherige CSS-Variablen-Override-Lösung für den mobilen Badge-Kontrast ab, siehe
-     CONTEXT.md). Nur noch Layout-Feinschliff (Innenabstand, Ausrichtung, asymmetrische
-     Eckenrundung für die mobile Stapelung unter der Poster-Spalte). Innenabstand/Textausrichtung
-     liegen bewusst auf .infoCardBody, nicht auf .infoCard selbst -- derselbe
-     Cross-Modul-Spezifitätsgrund wie beim Desktop-Radius-Override oben. */
-  .infoCard {
-    --card-radius-override: 0 0 24px 24px;
-  }
-
   .infoCardBody {
-    padding: 20px;
+    padding: var(--space-5);
     text-align: center;
   }
 
   .titleRow {
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
   }
 
-  .title {
-    font-size: 20px;
-  }
-
-  .badges {
-    justify-content: center;
-  }
-
-  .description {
-    font-size: 14px;
-  }
-
-  .tagsList {
-    justify-content: center;
-  }
-
+  .badges,
+  .tagsList,
   .statsRow {
     justify-content: center;
   }
 
   .relatedSection {
-    margin-top: 16px;
-    padding-top: 16px;
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
   }
 
   .edgeNavigationOverlay {
     position: relative;
     top: auto;
-    left: auto;
     right: auto;
-    margin-top: 16px;
-    padding: 0 20px 20px;
+    left: auto;
     justify-content: center;
-    gap: 16px;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+    padding: 0 var(--space-5) var(--space-5);
   }
 }
