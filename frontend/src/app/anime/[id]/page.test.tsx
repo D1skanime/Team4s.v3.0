@@ -246,6 +246,19 @@ describe('anime detail integration without invented data', () => {
     expect(mobileBlock.match(/\.divider\s*\{([^}]+)\}/)?.[1]).toMatch(/background:\s*var\(--border-on-media\);/)
   })
 
+  it('spannt den Randnavigations-Overlay-Container über die volle Hero-Höhe auf (inset:0), damit AdjacentNavigations eigene 50%-Zentrierung an der Hero-Karte statt an einem höhenlosen Container greift', () => {
+    const infoCardCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.infoCard.module.css'), 'utf8')
+
+    const desktopRule = infoCardCss.slice(0, infoCardCss.indexOf('@media')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
+    expect(desktopRule, '.edgeNavigationOverlay must exist').toBeTruthy()
+    expect(desktopRule).toMatch(/inset:\s*0;/)
+    // top/right/left allein ohne bottom ergaebe wieder einen hoehenlosen Container (Regressionsfund).
+    expect(desktopRule).not.toMatch(/\btop:\s*var\(--space-3\);/)
+
+    const mobileRule = infoCardCss.slice(infoCardCss.indexOf('@media (max-width: 767px)')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
+    expect(mobileRule).toMatch(/inset:\s*auto;/)
+  })
+
   it('reicht searchParams.fansub unveraendert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
     const boundary = await AnimeDetailPage({
       ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'bloody-shadow' }),

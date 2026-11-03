@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import fs from 'node:fs'
+import path from 'node:path'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -69,5 +71,18 @@ describe('AnimeEdgeNavigation', () => {
     unmount()
     expect(signal?.aborted).toBe(true)
     await act(async () => pending.resolve(response(2)))
+  })
+})
+
+describe('AnimeEdgeNavigation.module.css', () => {
+  it('positioniert die Vorschaukarte relativ zur Button-Mitte (50% + halbe Button-Höhe + Abstand), nicht relativ zu top:100% des Overlays', () => {
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/anime/AnimeEdgeNavigation.module.css'), 'utf8')
+    // top:100% ginge faelschlich davon aus, dass der positionierte Vorfahre (.edgeNavigationOverlay)
+    // nur so hoch wie der Button selbst ist -- seit dessen inset:0-Korrektur (Regressionsfund) spannt
+    // er die volle Hero-Hoehe auf, die Vorschaukarte muss deshalb ab der Button-MITTE rechnen.
+    const previewCardRule = css.match(/\.previewCard\s*\{([^}]+)\}/)?.[1]
+    expect(previewCardRule, '.previewCard must exist').toBeTruthy()
+    expect(previewCardRule).toMatch(/top:\s*calc\(50% \+ \(var\(--control-height-md\) \/ 2\) \+ var\(--space-2\)\);/)
+    expect(previewCardRule).not.toMatch(/top:\s*calc\(100%/)
   })
 })
