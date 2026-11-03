@@ -1,14 +1,10 @@
-/* Positioniert sich relativ zur selben Hero-Höhe wie AdjacentNavigation variant="floating"
-   (deren einziger Positionierungskontext ist der gemeinsame .edgeNavigationOverlay-Container,
-   siehe page.infoCard.module.css) -- top:100% ginge davon aus, dass dieser Container nur so hoch
-   wie der Button selbst ist, was seit dessen inset:0-Korrektur nicht mehr stimmt. Stattdessen
-   explizit ab der Button-Mitte (50%, dieselbe Formel wie AdjacentNavigations eigene
-   Zentrierung) plus halbe Button-Höhe (--control-height-md, derselbe Token wie
-   AdjacentNavigation.module.css .adjacentNavItem) plus Abstand. */
+/* Positioniert sich relativ zum gemeinsamen .edgeNavigationOverlay-Container (page.infoCard.
+   module.css), der bewusst auf Button-Höhe begrenzt ist (--control-height-md) -- top:100% landet
+   dadurch exakt am unteren Rand des Buttons, nicht am unteren Rand der ganzen Hero-Karte. */
 .previewCard {
   pointer-events: none;
   position: absolute;
-  top: calc(50% + (var(--control-height-md) / 2) + var(--space-2));
+  top: calc(100% + var(--space-2));
   z-index: 1;
   display: flex;
   width: min(260px, 90vw);

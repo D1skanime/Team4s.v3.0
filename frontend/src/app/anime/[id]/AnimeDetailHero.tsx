@@ -83,7 +83,12 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
           <Text className={styles.description}>{anime.description ?? 'Keine Beschreibung vorhanden.'}</Text>
           {anime.tags && anime.tags.length > 0 ? (
             <div className={styles.tagsSection}>
-              <Heading level={2} size={4} tone="onScrim" id="tags-heading">Tags</Heading>
+              {/* Gleiches Eyebrow-Label-Muster wie "Genres" in der Poster-Spalte (Text statt
+                  Heading): main hält diese Beschriftung bewusst in der hellen onScrim-Tonalität
+                  mit Großschreibung/Buchstabenabstand, nicht in der dunklen Standard-Textfarbe
+                  der Karte -- Heading tone="onScrim" (voll deckendes Weiß, keine Großschreibung)
+                  war dafür zu kontrastarm/inkonsistent. */}
+              <Text as="span" variant="eyebrow" tone="onScrim" id="tags-heading">Tags</Text>
               <ul className={styles.tagsList} aria-labelledby="tags-heading">
                 {anime.tags.map((tag) => <li key={tag}><LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>{tag}</LinkChip></li>)}
               </ul>

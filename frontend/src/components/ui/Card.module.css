@@ -123,6 +123,15 @@
      diese Karte, das sich sonst am nächsten positionierten Vorfahren außerhalb der Karte
      ausrichten würde (z. B. einem Wrapper mit eigenem Innenabstand) statt am Kartenrand selbst. */
   position: relative;
+  /* --card-public-hero-columns ist ein bewusster Override-Hook (wie --card-radius-override):
+     ein Aufrufer mit mehrspaltigem Hero-Inhalt (z. B. Poster- + Info-Spalte der Anime-
+     Detailseite) setzt NUR diese eine CSS-Variable über seine eigene className, statt
+     grid-template-columns selbst zu deklarieren. Eine zweite Datei, die dieselbe Eigenschaft
+     direkt setzt, würde mit .cards Basisregel um Deklarationsreihenfolge/Bundle-Ordnung
+     konkurrieren (nicht deterministisch, siehe UAT-Regressionsfund: gewann zuverlässig .cards
+     einspaltige Basisregel statt der Seiten-Vorgabe) -- der Hook macht diesen Wettlauf
+     unmöglich, da grid-template-columns für diese Variante NUR hier gesetzt wird. */
+  grid-template-columns: var(--card-public-hero-columns, minmax(0, 1fr));
   gap: 0;
   padding: 0;
   overflow: visible;

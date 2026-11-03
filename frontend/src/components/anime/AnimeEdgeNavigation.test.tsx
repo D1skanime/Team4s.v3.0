@@ -75,14 +75,13 @@ describe('AnimeEdgeNavigation', () => {
 })
 
 describe('AnimeEdgeNavigation.module.css', () => {
-  it('positioniert die Vorschaukarte relativ zur Button-Mitte (50% + halbe Button-Höhe + Abstand), nicht relativ zu top:100% des Overlays', () => {
+  it('positioniert die Vorschaukarte direkt unterhalb des Buttons (top:100% des button-hohen Overlays), nicht vertikal zur ganzen Hero-Karte', () => {
     const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/anime/AnimeEdgeNavigation.module.css'), 'utf8')
-    // top:100% ginge faelschlich davon aus, dass der positionierte Vorfahre (.edgeNavigationOverlay)
-    // nur so hoch wie der Button selbst ist -- seit dessen inset:0-Korrektur (Regressionsfund) spannt
-    // er die volle Hero-Hoehe auf, die Vorschaukarte muss deshalb ab der Button-MITTE rechnen.
+    // .edgeNavigationOverlay (page.infoCard.module.css) ist bewusst auf Button-Höhe begrenzt
+    // (--control-height-md), nicht auf die volle (ggf. sehr hohe) Hero-Karte -- top:100% landet
+    // dadurch exakt am unteren Rand des Buttons.
     const previewCardRule = css.match(/\.previewCard\s*\{([^}]+)\}/)?.[1]
     expect(previewCardRule, '.previewCard must exist').toBeTruthy()
-    expect(previewCardRule).toMatch(/top:\s*calc\(50% \+ \(var\(--control-height-md\) \/ 2\) \+ var\(--space-2\)\);/)
-    expect(previewCardRule).not.toMatch(/top:\s*calc\(100%/)
+    expect(previewCardRule).toMatch(/top:\s*calc\(100% \+ var\(--space-2\)\);/)
   })
 })

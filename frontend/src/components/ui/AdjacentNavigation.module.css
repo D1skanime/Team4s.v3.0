@@ -9,12 +9,16 @@
   justify-content: space-between;
 }
 
+/* Füllt die volle Höhe ihres positionierten Vorfahren (top:0 .. bottom:0) -- dieser Vorfahre ist
+   bewusst auf Button-Höhe begrenzt (siehe Aufrufer, z. B. .edgeNavigationOverlay in
+   page.infoCard.module.css), NICHT auf die volle Höhe eines ggf. viel größeren Elements wie einer
+   Hero-Karte: eine 50%-Zentrierung über eine unbegrenzte Höhe würde den Button irgendwo in der
+   Mitte des Inhalts statt am Kartenrand platzieren. */
 .adjacentNavFloating {
   position: absolute;
-  inset: 50% var(--adjacent-nav-floating-inset-x) auto;
+  inset: 0 var(--adjacent-nav-floating-inset-x) auto;
   justify-content: space-between;
   pointer-events: none;
-  transform: translateY(-50%);
 }
 
 .adjacentNavItem {

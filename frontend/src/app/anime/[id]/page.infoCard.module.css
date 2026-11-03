@@ -74,18 +74,20 @@
   border-top: var(--border-width-thin) solid var(--border-on-media);
 }
 
-/* inset:0 statt nur top/right/left: AdjacentNavigation variant="floating" positioniert sich
-   selbst per inset:50% + translateY(-50%) relativ zu IHREM nächsten positionierten Vorfahren --
-   das ist dieser Container. Ohne eigene Höhe (nur top/right/left gesetzt, beide Kinder selbst
-   absolut positioniert und tragen daher nichts zur Flow-Höhe bei) wäre diese Höhe 0, wodurch die
-   50%-Zentrierung effektiv bei top:0 läge statt vertikal zur Hero-Karte -- display:flex/
-   align-items/justify-content sind seit der Umstellung auf die absolut positionierte
-   floating-Variante wirkungslos (keines ihrer Kinder nimmt mehr am Flex-Fluss teil) und entfallen
-   deshalb. */
+/* Sitzt nahe am OBEREN Rand der Hero-Karte (wie main, top: --space-3), NICHT vertikal zur ganzen
+   Karte zentriert: die Info-Spalte kann je nach Beschreibungslänge deutlich höher als die
+   Poster-Spalte werden, eine Zentrierung über die volle Kartenhöhe würde die Buttons dann mitten
+   in den Beschreibungstext legen (UAT-Regressionsfund). Die explizite Höhe (--control-height-md,
+   derselbe Token wie AdjacentNavigations eigener Button) gibt AdjacentNavigation variant="floating"
+   einen auf Button-Höhe begrenzten Positionierungskontext -- ihr top:0 landet dadurch exakt auf
+   Button-Höhe, nicht am Kartenrand. */
 .edgeNavigationOverlay {
   position: absolute;
   z-index: var(--z-dropdown);
-  inset: 0;
+  top: var(--space-3);
+  right: 0;
+  left: 0;
+  height: var(--control-height-md);
   pointer-events: none;
 }
 
@@ -135,6 +137,7 @@
   .edgeNavigationOverlay {
     position: relative;
     inset: auto;
+    height: auto;
     display: flex;
     justify-content: center;
     gap: var(--space-4);

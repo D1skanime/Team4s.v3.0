@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 import { AnimeInfoBanner } from '@/components/anime/AnimeMediaProvider'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
-import { Button, Card, ErrorState, Heading, LinkChip, MediaFrame, Text } from '@/components/ui'
+import { Button, Card, ErrorState, LinkChip, MediaFrame, Text } from '@/components/ui'
 import AnimeListPage from '../page'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -246,17 +246,21 @@ describe('anime detail integration without invented data', () => {
     expect(mobileBlock.match(/\.divider\s*\{([^}]+)\}/)?.[1]).toMatch(/background:\s*var\(--border-on-media\);/)
   })
 
-  it('spannt den Randnavigations-Overlay-Container über die volle Hero-Höhe auf (inset:0), damit AdjacentNavigations eigene 50%-Zentrierung an der Hero-Karte statt an einem höhenlosen Container greift', () => {
+  it('hält den Randnavigations-Overlay-Container nahe am oberen Hero-Rand statt vertikal über die ganze (ggf. sehr hohe) Hero-Karte zu zentrieren', () => {
     const infoCardCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.infoCard.module.css'), 'utf8')
 
     const desktopRule = infoCardCss.slice(0, infoCardCss.indexOf('@media')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
     expect(desktopRule, '.edgeNavigationOverlay must exist').toBeTruthy()
-    expect(desktopRule).toMatch(/inset:\s*0;/)
-    // top/right/left allein ohne bottom ergaebe wieder einen hoehenlosen Container (Regressionsfund).
-    expect(desktopRule).not.toMatch(/\btop:\s*var\(--space-3\);/)
+    expect(desktopRule).toMatch(/top:\s*var\(--space-3\);/)
+    // Eine explizite Button-Höhe statt unbegrenzter Höhe verhindert, dass AdjacentNavigations
+    // eigenes top:0 (bzw. eine künftige 50%-Formel) irgendwo mitten im Beschreibungstext landet,
+    // sobald die Info-Spalte durch lange Beschreibungen deutlich höher als die Poster-Spalte wird
+    // (UAT-Regressionsfund: Buttons lagen über dem Fließtext).
+    expect(desktopRule).toMatch(/height:\s*var\(--control-height-md\);/)
 
     const mobileRule = infoCardCss.slice(infoCardCss.indexOf('@media (max-width: 767px)')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
     expect(mobileRule).toMatch(/inset:\s*auto;/)
+    expect(mobileRule).toMatch(/height:\s*auto;/)
   })
 
   it('reicht searchParams.fansub unveraendert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
@@ -370,7 +374,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Real Robot', 'Amnesia', 'Zeitreise'] } })
     const content = await loadContent()
     const all = elements(content)
-    expect(all.some((item) => item.type === Heading && textContent(item.props.children as ReactNode) === 'Tags')).toBe(true)
+    expect(all.some((item) => item.type === Text && textContent(item.props.children as ReactNode) === 'Tags')).toBe(true)
     const tagLinks = all.filter((item) => item.type === LinkChip && String((item.props.href as string)).includes('tag='))
     expect(tagLinks).toHaveLength(3)
     expect(tagLinks.map((item) => textContent(item.props.children as ReactNode))).toEqual(['Real Robot', 'Amnesia', 'Zeitreise'])

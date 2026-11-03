@@ -344,3 +344,18 @@
   transform: none;
   box-shadow: none;
 }
+
+/* Merkliste-Varianten bleiben bewusst bei voller Deckkraft, auch wenn der Button gerade
+   funktional deaktiviert ist (z. B. "Anmeldung erforderlich" für anonyme Besucher, oder während
+   ein Vorgang läuft) -- der auffällige Verlauf soll weiterhin zur Anmeldung/Aktion einladen,
+   statt wie ein ausgegrautes Formularfeld zu wirken. Die Beschriftung selbst macht den
+   Nicht-interaktiv-Zustand bereits eindeutig. Nach der generischen Regel oben deklariert, damit
+   sie deren opacity zuverlässig gegen die gleiche Spezifität überschreibt. */
+.buttonWatchlist.buttonDisabled,
+.buttonWatchlist:disabled,
+.buttonWatchlist[aria-disabled="true"],
+.buttonWatchlistActive.buttonDisabled,
+.buttonWatchlistActive:disabled,
+.buttonWatchlistActive[aria-disabled="true"] {
+  opacity: 1;
+}
