@@ -12,7 +12,7 @@
     "typecheck:e2e": "tsc -p tsconfig.e2e.json",
     "storybook": "storybook dev -p 6006 -h 0.0.0.0",
     "build-storybook": "storybook build",
-    "test-storybook": "test-storybook --testTimeout 30000"
+    "test-storybook": "test-storybook --testTimeout 30000 --failOnConsole"
   },
   "dependencies": {
     "@tiptap/extension-character-count": "^3.23.1",

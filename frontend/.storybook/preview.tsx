@@ -14,6 +14,7 @@ import './preview.css'
 import '../src/styles/globals.css'
 import { installAuthCookieSandbox } from './mocks/cookieSandbox'
 import { defaultHandlers } from './mocks/handlers'
+import { setupMswWithUnhandledRequestError } from './mocks/mswUnhandledRequestSetup'
 import { TEAM4S_ROLE_GLOBAL_TYPE, withRoleSimulation } from './mocks/roleSimulation'
 
 // Muss vor dem ersten Story-Render installiert sein: isoliert die drei Auth-Cookies, die
@@ -66,11 +67,13 @@ const preview: Preview = {
   globalTypes: {
     team4sRole: TEAM4S_ROLE_GLOBAL_TYPE,
   },
-  // `mswLoader()` startet beim ersten Aufruf automatisch den Service-Worker (Default-Setup der
-  // Addon-Version 3.0.3 ignoriert bereits bekanntes Storybook-/Asset-Rauschen und protokolliert
-  // nur eine Warnung statt eines Fehlers für sonstige ungemockte Requests -- kein eigener
-  // `onUnhandledRequest`-Setup nötig).
-  loaders: [mswLoader()],
+  // `mswLoader()` startet beim ersten Aufruf automatisch den Service-Worker. Eigener Setup
+  // (`setupMswWithUnhandledRequestError`, mocks/mswUnhandledRequestSetup.ts) statt des
+  // Default-Setups der Addon-Version 3.0.3: dieses protokolliert nicht gemockte Requests nur als
+  // Warnung statt die Render-Prüfung (test-storybook) fehlschlagen zu lassen -- eine Seite könnte
+  // dadurch unbemerkt wieder von einem erreichbaren Backend abhängen. Storybook-/Asset-Rauschen
+  // bleibt weiterhin ausgenommen, nur echte ungemockte Client-Aufrufe werfen jetzt einen Fehler.
+  loaders: [mswLoader(setupMswWithUnhandledRequestError)],
   decorators: [
     // Team4s hat aktuell KEIN eigenes dunkles Produkt-Farbthema — dieser Decorator
     // schaltet ausschließlich den Storybook-Bühnenhintergrund zwischen hell und

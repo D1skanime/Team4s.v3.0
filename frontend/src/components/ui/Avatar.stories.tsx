@@ -26,7 +26,11 @@ export const Initialen: Story = {
 export const MitBild: Story = {
   name: 'Mit Bild',
   args: {
-    src: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop',
+    // Lokale Datei statt einer echten externen Unsplash-URL: Letztere lief als nicht gemockter
+    // Live-Request unbemerkt am MSW-Netzwerk-Mocking vorbei (Regressionsfund, siehe preview.tsx
+    // onUnhandledRequest: 'error') -- Storybook-Stories dürfen nicht von einem erreichbaren
+    // externen Dienst abhängen.
+    src: '/covers/placeholder.png',
     label: 'Mira Sato',
   },
 }

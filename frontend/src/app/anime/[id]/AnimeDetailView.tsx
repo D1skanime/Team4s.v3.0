@@ -69,7 +69,7 @@ export function AnimeDetailView({
 
       {/* Breadcrumbs */}
       <div className={styles.breadcrumbsWrapper}>
-        <Breadcrumbs items={breadcrumbItems} textHalo />
+        <Breadcrumbs items={breadcrumbItems} textHalo variant="scrim" />
       </div>
 
       {/* Hero Container (Glassmorphism) - 2 Column Grid */}

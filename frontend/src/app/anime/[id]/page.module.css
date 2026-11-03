@@ -43,18 +43,10 @@
   color: var(--public-page-error-text);
 }
 
-/* Breadcrumbs eigene Override-Hooks (--breadcrumb-*, siehe Breadcrumbs.module.css) auf die helle
-   Scrim-Tonalität umgelegt: deren Standardfarben (--color-text-primary/-secondary) sind für
-   opake, helle Admin-Flächen kalibriert und wären auf dem fotografischen Bannerhintergrund dieser
-   Seite praktisch unlesbar -- selbst mit dem bereits aktiven textHalo-Leuchtsaum (Breadcrumbs
-   textHalo-Prop, UAT-Regressionsfund). */
 .breadcrumbsWrapper {
   position: relative;
   z-index: var(--z-base);
   padding-top: var(--space-4);
-  --breadcrumb-link-color: var(--scrim-icon);
-  --breadcrumb-current-color: var(--scrim-text);
-  --breadcrumb-separator-color: var(--scrim-icon);
 }
 
 .heroWrapper,
