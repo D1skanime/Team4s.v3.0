@@ -106,6 +106,20 @@
     gap: var(--space-3);
   }
 
+  /* Die Karte kippt unterhalb 767px auf eine einheitlich dunkle Fläche (siehe
+     Card.module.css .cardPublicHeroInfo) -- Titel/Beschreibung müssen deshalb hier (und nur
+     hier) wieder auf die helle Scrim-Textfarbe kippen. Zwei Klassen (.infoCardBody .title/
+     .description) heben die Spezifität bewusst über die einfache Tonalitäts-Klasse von
+     Heading/Text, damit die Regel unabhängig von deren Deklarationsreihenfolge im gebündelten
+     Stylesheet zuverlässig gewinnt. */
+  .infoCardBody .title {
+    color: var(--scrim-text);
+  }
+
+  .infoCardBody .description {
+    color: var(--scrim-icon);
+  }
+
   .badges,
   .tagsList,
   .statsRow {

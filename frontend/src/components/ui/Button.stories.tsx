@@ -59,6 +59,23 @@ export const InMerkliste: Story = {
   args: { variant: 'watchlistActive', children: 'In Merkliste' },
 }
 
+export const GlasChip: Story = {
+  name: 'Glas-Umschalt-Chip',
+  render: () => (
+    <div style={{ display: 'flex', gap: 12, padding: 20, background: 'var(--surface-stage)' }}>
+      <Button variant="chipGlass" size="sm">Alle</Button>
+      <Button variant="chipGlass" size="sm" aria-pressed="true">LazySubs</Button>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Durchscheinender Umschalt-Chip für dunkle Glasflächen (z. B. ein Fansub-Gruppen-Filter über der Episodenliste) -- reagiert wie jeder Button auf aria-pressed, hier mit einer eigenen, hellen Formel statt der Standard-Aktiv-Farbe.',
+      },
+    },
+  },
+}
+
 export const Warnung: Story = {
   name: 'Warnung',
   args: { variant: 'warning', children: 'Warnung' },
@@ -190,7 +207,7 @@ export const AktuellAusgewaehlt: Story = {
   },
 }
 
-const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'warning', 'info', 'text', 'floating', 'watchlist', 'watchlistActive'] as const
+const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'warning', 'info', 'text', 'floating', 'watchlist', 'watchlistActive', 'chipGlass'] as const
 const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   primary: 'Primär',
   secondary: 'Sekundär',
@@ -204,6 +221,7 @@ const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   floating: 'Schwebend',
   watchlist: 'Merkliste',
   watchlistActive: 'In Merkliste',
+  chipGlass: 'Glas-Chip',
 }
 const SIZES = ['sm', 'md', 'lg'] as const
 

@@ -61,10 +61,15 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
         </div>
       </Card>
 
+      {/* publicHeroInfo ist oben nahezu opak HELL (siehe Card.module.css), anders als die
+          übrigen dunklen Glasflächen dieser Seite -- Titel/Beschreibung bleiben deshalb bei der
+          dunklen Standard-Textfarbe (kein tone="onScrim"). Unterhalb 767px kippt die Karte auf
+          eine einheitlich dunkle Fläche; .title/.description kippen dort über eine eigene
+          Media-Query in page.infoCard.module.css mit, auf hell. */}
       <Card variant="publicHeroInfo" className={styles.infoCard}>
         <div className={styles.infoCardBody}>
           <div className={styles.titleRow}>
-            <Heading level={1} tone="onScrim" className={styles.title}>{anime.title}</Heading>
+            <Heading level={1} className={styles.title}>{anime.title}</Heading>
             <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
           </div>
           <div className={styles.badges}>
@@ -73,7 +78,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
             <Badge variant="neutral">{anime.content_type}</Badge>
             <Badge variant="neutral">{anime.year ?? 'n/a'}</Badge>
           </div>
-          <Text tone="onScrim" className={styles.description}>{anime.description ?? 'Keine Beschreibung vorhanden.'}</Text>
+          <Text className={styles.description}>{anime.description ?? 'Keine Beschreibung vorhanden.'}</Text>
           {anime.tags && anime.tags.length > 0 ? (
             <div className={styles.tagsSection}>
               <Heading level={2} size={4} tone="onScrim" id="tags-heading">Tags</Heading>

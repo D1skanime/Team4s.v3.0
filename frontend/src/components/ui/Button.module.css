@@ -245,6 +245,39 @@
   font-size: var(--button-font-size-lg);
 }
 
+/* Durchscheinender Umschalt-Chip auf dunklem Glasgrund (z. B. Fansub-Gruppen-Filter in der
+   dunklen Episodenliste) -- globale Form der bisher feature-lokalen --glass-*-Variablen aus
+   FansubGroupPicker.module.css. Nutzt wie jeder Button aria-pressed für den "ausgewählt"-Zustand,
+   aber mit einer eigenen, helleren Formel statt der generischen .button[aria-pressed="true"]-
+   Regel oben, die für Flächen auf WEISSEM Grund kalibriert ist und auf dunklem Glas unsichtbar
+   bliebe. Nach .buttonSmall/.buttonLarge deklariert, damit die eigene Radius-/Schriftgröße-Formel
+   zuverlässig gegen deren jeweilige Größenwerte gewinnt (gleiche Spezifität bei
+   variant="chipGlass" size="sm", Deklarationsreihenfolge entscheidet). */
+.buttonChipGlass {
+  --button-bg: var(--button-chip-glass-bg);
+  --button-border: var(--button-chip-glass-border);
+  --button-text: var(--card-glass-text);
+  --button-shadow: none;
+  border-radius: var(--radius-md);
+  font-size: var(--button-font-size);
+  font-weight: 400;
+  backdrop-filter: blur(var(--button-chip-glass-blur)) saturate(var(--button-chip-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--button-chip-glass-blur)) saturate(var(--button-chip-glass-saturate));
+}
+
+.buttonChipGlass:hover:not([aria-pressed="true"]) {
+  --button-bg: var(--button-chip-glass-bg-hover);
+  transform: none;
+  box-shadow: none;
+}
+
+.buttonChipGlass[aria-pressed="true"] {
+  background: var(--accent-dark);
+  border: var(--button-chip-glass-active-border-width) solid var(--accent-dark);
+  color: var(--button-chip-glass-active-text);
+  font-weight: 600;
+}
+
 /* Nach .buttonText deklariert, damit Größe/Gewicht zuverlässig gegen dessen eigenes
    font-size/font-weight: inherit gewinnen (identisches Muster wie .buttonSmall/.buttonLarge
    oben, die aus demselben Grund nach .buttonText stehen). */

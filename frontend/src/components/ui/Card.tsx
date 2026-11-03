@@ -89,7 +89,6 @@ export function Card({
         variant === 'publicSection' && styles.cardPublicSection,
         variant === 'publicHero' && styles.cardPublicHero,
         variant === 'publicPoster' && styles.cardPublicPoster,
-        variant === 'publicHeroInfo' && styles.cardGlass,
         variant === 'publicHeroInfo' && styles.cardPublicHeroInfo,
         hasTint && styles.cardTinted,
         className,

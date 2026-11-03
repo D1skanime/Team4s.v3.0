@@ -81,6 +81,17 @@ describe('FansubGroupPicker', () => {
     expect(onSelect).toHaveBeenLastCalledWith(1)
   })
 
+  it('nutzt die globale Glas-Chip-Variante statt lokaler Farb-/Rahmen-Klassen', () => {
+    const options: FansubGroupPickerOption[] = [
+      { id: 1, slug: 'new-subs', name: 'New-Subs', logo_url: null },
+    ]
+    render(
+      <FansubGroupPicker options={options} activeGroupId={1} showAllChip={false} onSelect={() => {}} />,
+    )
+    const chip = screen.getByText('New-Subs').closest('button')
+    expect(chip?.className).toMatch(/buttonChipGlass/)
+  })
+
   it('rendert ausschliesslich das Button-Primitive, kein natives button-Element direkt', () => {
     const options: FansubGroupPickerOption[] = [
       { id: 1, slug: 'new-subs', name: 'New-Subs', logo_url: null },

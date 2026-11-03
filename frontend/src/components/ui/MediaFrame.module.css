@@ -63,6 +63,21 @@
     box-shadow: var(--media-frame-poster-shadow-compact);
     overflow: hidden;
   }
+
+  /* Auf der schmalen Mobilbreite hat die farbige Verlängerung (::before, bleedet seitlich über
+     den Rahmen hinaus) keinen Platz, sich sichtbar zu entfalten -- bislang blieb sie durch
+     overflow:hidden oben nur UNSICHTBAR, während die Bild-Maske darunter weiterhin zum
+     transparenten Rand hin ausblendete. Ohne die Verlängerung dahinter zeigte das dann die
+     dunkle Seitenfläche durch den transparenten Bildrand. Beide Effekte werden hier deshalb
+     explizit abgeschaltet, das Poster bleibt auf Mobilgeräten vollständig sichtbar/opak. */
+  .mediaFramePosterFade::before {
+    display: none;
+  }
+
+  .mediaFramePosterFade :global(img) {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
 }
 
 .mediaFramePosterFade .mediaFrameCorner,

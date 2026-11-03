@@ -2,8 +2,7 @@
 
 import Image from 'next/image'
 
-import { Button } from '@/components/ui'
-import { classNames } from '@/components/ui/classNames'
+import { Button, Text } from '@/components/ui'
 
 import styles from './FansubGroupPicker.module.css'
 
@@ -35,15 +34,15 @@ export function FansubGroupPicker({ options, activeGroupId, showAllChip, onSelec
 
   return (
     <div className={styles.wrapper}>
-      <span className={styles.eyebrowLabel}>Fansub-Gruppe</span>
+      <Text as="span" variant="eyebrow" tone="onScrim">Fansub-Gruppe</Text>
       <div role="group" aria-label="Fansub-Gruppe" className={styles.chipRow}>
         {showAllChip ? (
           <Button
-            variant="ghost"
+            variant="chipGlass"
             size="sm"
             aria-pressed={activeGroupId === null}
             onClick={() => onSelect(null)}
-            className={classNames(styles.chip, activeGroupId === null && styles.chipActive)}
+            className={styles.chip}
           >
             Alle
           </Button>
@@ -54,11 +53,11 @@ export function FansubGroupPicker({ options, activeGroupId, showAllChip, onSelec
           return (
             <Button
               key={option.id}
-              variant="ghost"
+              variant="chipGlass"
               size="sm"
               aria-pressed={isActive}
               onClick={() => onSelect(option.id)}
-              className={classNames(styles.chip, isActive && styles.chipActive)}
+              className={styles.chip}
             >
               {logoURL ? (
                 <Image src={logoURL} alt="" width={20} height={20} unoptimized className={styles.logo} />

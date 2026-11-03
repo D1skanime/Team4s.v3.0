@@ -122,6 +122,13 @@
   --button-watchlist-text: #000;
   --button-watchlist-shadow-hover: 0 6px 20px rgba(255, 138, 76, 0.4);
   --button-watchlist-radius: 24px;
+  --button-chip-glass-bg: rgba(255, 255, 255, 0.16);
+  --button-chip-glass-bg-hover: rgba(255, 255, 255, 0.2);
+  --button-chip-glass-border: rgba(255, 255, 255, 0.28);
+  --button-chip-glass-blur: 8px;
+  --button-chip-glass-saturate: 1.1;
+  --button-chip-glass-active-text: #ffffff;
+  --button-chip-glass-active-border-width: 2px;
 
   /* Tabs */
   --tabs-gap: 12px;
@@ -350,6 +357,12 @@
   --card-public-poster-radius: 24px 0 0 24px;
   --card-public-hero-info-radius: 0 24px 24px 0;
   --card-public-hero-info-radius-mobile: 0 0 24px 24px;
+  /* Zweite Zone der Hero-Karte (siehe .cardPublicHeroInfo): oben nahezu opak hell, nach unten
+     durchscheinend werdend -- bewusst eigene, helle Tonalität statt der gleichmäßig dunklen
+     --card-glass-*-Tokens, damit Titel/Beschreibung in der Standard-Textfarbe (--text-strong)
+     lesbar bleiben. Reuse von --text-strong statt eines eigenen dunklen Farbliterals. */
+  --card-public-hero-info-bg: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.95) 35%, rgba(255, 255, 255, 0.6) 45%, rgba(255, 255, 255, 0.15) 60%, rgba(255, 255, 255, 0.08) 100%);
+  --card-public-hero-info-text: var(--text-strong);
   --public-page-bg: #0f0f12;
   --public-page-text: #fff;
   --public-page-text-muted: rgba(255, 255, 255, 0.7);

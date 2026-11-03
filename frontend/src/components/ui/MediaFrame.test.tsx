@@ -34,4 +34,17 @@ describe('MediaFrame', () => {
     expect(css).toMatch(/\.mediaFramePosterFade::before\s*\{[^}]*z-index:\s*0;/s)
     expect(css).toMatch(/\.mediaFramePosterFade :global\(img\)\s*\{[^}]*z-index:\s*1;/s)
   })
+
+  it('schaltet Farbverlängerung und Bild-Maske unterhalb 767px vollständig ab, statt sie nur zu clippen', () => {
+    const css = readFileSync('src/components/ui/MediaFrame.module.css', 'utf8')
+    const mobileBlockStart = css.indexOf('@media (max-width: 767px)')
+    expect(mobileBlockStart).toBeGreaterThan(-1)
+    const mobileBlock = css.slice(mobileBlockStart)
+
+    // Ohne die Verlängerung dahinter würde der zum Rand transparente Bildausschnitt die dunkle
+    // Seitenfläche durchscheinen lassen (Regressions-Fund) -- beide Effekte müssen deshalb
+    // explizit deaktiviert sein, nicht nur vom äußeren overflow:hidden geclippt werden.
+    expect(mobileBlock).toMatch(/\.mediaFramePosterFade::before\s*\{[^}]*display:\s*none;/s)
+    expect(mobileBlock).toMatch(/\.mediaFramePosterFade :global\(img\)\s*\{[^}]*mask-image:\s*none;[^}]*-webkit-mask-image:\s*none;/s)
+  })
 })

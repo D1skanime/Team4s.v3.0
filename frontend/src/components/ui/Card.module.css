@@ -79,9 +79,9 @@
   border-top-color: var(--card-glass-border);
   /* --card-radius-override ist ein bewusster, generischer Override-Hook (wie --card-tint-hue):
      ein Aufrufer, dessen Glas-Fläche in ein größeres, bereits eigenständig gerundetes Layout
-     eingebettet ist (z. B. die Info-Karte neben der Poster-Spalte der Anime-Detailseite), darf
-     NUR diese eine CSS-Variable setzen (eigene Datei, eigene Klasse) statt Cards private
-     Radius-Tokens zu überschreiben. */
+     eingebettet ist, darf NUR diese eine CSS-Variable setzen (eigene Datei, eigene Klasse) statt
+     Cards private Radius-Tokens zu überschreiben. (Die öffentliche Anime-Info-Karte nutzt seit
+     ihrer eigenen Verlaufs-Variante .cardPublicHeroInfo unten keine .cardGlass-Komposition mehr.) */
   border-radius: var(--card-radius-override, var(--card-glass-radius));
   background-color: var(--card-glass-surface);
   background-image: none;
@@ -154,8 +154,23 @@
   -webkit-backdrop-filter: blur(var(--card-public-hero-blur));
 }
 
+/* Zweite Zone der Hero-Karte: anders als .cardGlass (gleichmäßig dunkle Glasfläche) bildet diese
+   Variante den bisherigen "oben hell, unten durchscheinend"-Verlauf der öffentlichen
+   Anime-Info-Karte nach -- oben nahezu opak hell mit dunkler Standard-Textfarbe, nach unten zur
+   dahinterliegenden Bannerfläche hin transparent werdend. Wird in Card.tsx bewusst NICHT mit
+   .cardGlass kombiniert (eigene, gegensätzliche Tonalität). Unterhalb 767px kippt die Karte auf
+   dieselbe gleichmäßig dunkle Fläche wie .cardPublicHero (eigener Breakpoint unten): der schmale
+   Verlauf hätte auf der schmalen Mobilbreite keinen Platz, sich sichtbar zu entfalten. */
 .cardPublicHeroInfo {
+  padding: 0;
+  overflow: hidden;
+  border-color: transparent;
+  border-top-color: transparent;
   border-radius: var(--card-public-hero-info-radius);
+  color: var(--card-public-hero-info-text);
+  background: var(--card-public-hero-info-bg);
+  backdrop-filter: blur(var(--card-public-hero-blur));
+  -webkit-backdrop-filter: blur(var(--card-public-hero-blur));
 }
 
 /* Generischer Tönungs-Hook: Card setzt per `tintHue`-Prop nur den Farbton (--card-tint-hue); die
@@ -208,5 +223,6 @@
 
   .cardPublicHeroInfo {
     border-radius: var(--card-public-hero-info-radius-mobile);
+    background: var(--card-public-hero-bg);
   }
 }

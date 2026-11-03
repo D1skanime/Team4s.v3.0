@@ -1,27 +1,14 @@
 /*
- * Feature-lokale Glass-Tokens (UI-SPEC "Eigenstaendig getroffene Design-Entscheidungen" 1/2):
- * dieser Picker rendert innerhalb der dunklen .episodesSection (siehe FansubVersionBrowser),
- * darum dieselben Werte wie EpisodeGlassCard.module.css statt der globalen Light-Card-Tokens.
- * Neben Text-Tokens sind jetzt auch Surface-/Border-Glass-Tokens lokal definiert (GAP-13).
+ * Reine Layout-Komposition: alle visuellen Zustände (Glasfläche, Hover, ausgewählt) kommen seit
+ * der globalen Button-Variante variant="chipGlass" (siehe Button.module.css) aus deren Tokens --
+ * dieser Picker legt hier nur noch an, WIE Logo/Beschriftung innerhalb eines Chips Platz finden
+ * und wie die Chips in einer Reihe umbrechen.
  */
 .wrapper {
-  --glass-text: rgba(255, 255, 255, 0.92);
-  --glass-text-muted: rgba(255, 255, 255, 0.60);
-  --glass-surface: rgba(255, 255, 255, 0.16);
-  --glass-surface-hover: rgba(255, 255, 255, 0.20);
-  --glass-border: rgba(255, 255, 255, 0.28);
-
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   margin-bottom: var(--space-5);
-}
-
-.eyebrowLabel {
-  display: block;
-  margin-bottom: var(--space-2);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--glass-text);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .chipRow {
@@ -32,33 +19,11 @@
 }
 
 .chip {
-  border-radius: var(--radius-md);
-  min-height: var(--control-height-sm);
-  background: var(--glass-surface);
-  border: 1px solid var(--glass-border);
-  color: var(--glass-text);
-  font-size: 14px;
-  font-weight: 400;
   max-width: min(100%, 260px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
   gap: var(--space-1);
-  backdrop-filter: blur(8px) saturate(1.1);
-  -webkit-backdrop-filter: blur(8px) saturate(1.1);
-}
-
-.chip:hover:not([aria-pressed='true']) {
-  background: var(--glass-surface-hover);
-}
-
-.chip[aria-pressed='true'] {
-  background: var(--accent-dark);
-  border: 2px solid var(--accent-dark);
-  color: #ffffff;
-  font-weight: 600;
 }
 
 .logo {

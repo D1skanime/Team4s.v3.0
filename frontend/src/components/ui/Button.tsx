@@ -6,7 +6,11 @@ import { classNames } from './classNames'
 import styles from './Button.module.css'
 import { Spinner } from './Spinner'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'warning' | 'info' | 'text' | 'floating' | 'watchlist' | 'watchlistActive'
+/** 'chipGlass' ist ein durchscheinender Umschalt-Chip für dunkle Glasflächen (z. B. ein
+ *  Fansub-Gruppen-Filter über der Episodenliste) -- reagiert wie jeder Button auf aria-pressed,
+ *  aber mit einer eigenen, hellen Formel statt der Standard-Aktiv-Farbe, die für Flächen auf
+ *  WEISSEM Grund kalibriert ist und auf dunklem Glas unsichtbar bliebe. */
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'warning' | 'info' | 'text' | 'floating' | 'watchlist' | 'watchlistActive' | 'chipGlass'
 /** 'hero' (Größe/Gewicht wie Heading size="hero") und 'prose' (1rem, wie Text variant="body")
  *  ergänzen die Steuerelement-Größen sm/md/lg um zwei Textfluss-Größen -- für `variant="text"`,
  *  das Größe/Gewicht sonst vom umgebenden Kontext erbt. */
@@ -80,6 +84,7 @@ export function Button(props: ButtonProps) {
     variant === 'floating' && styles.buttonFloating,
     variant === 'watchlist' && styles.buttonWatchlist,
     variant === 'watchlistActive' && styles.buttonWatchlistActive,
+    variant === 'chipGlass' && styles.buttonChipGlass,
     size === 'sm' && styles.buttonSmall,
     size === 'lg' && styles.buttonLarge,
     size === 'hero' && styles.buttonHero,
