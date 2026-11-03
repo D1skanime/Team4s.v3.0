@@ -62,7 +62,11 @@ const meta = {
     fansubStoryGroups: [],
     relationsResponse: normalRelationsResponse,
     episodeCount: 3,
-    coverUrl: '/covers/placeholder.jpg',
+    // .png statt .jpg: derselbe bereits geprüft dekodierbare Platzhalter wie
+    // animeBackdropManifestFixture (siehe .storybook/mocks/animeFixtures.ts) -- .jpg ist nicht
+    // dekodierbar (Commit 159-05), Backdrop-Rotator-Fallback und Poster würden sonst weiterhin
+    // als kaputtes Bild rendern.
+    coverUrl: '/covers/placeholder.png',
   },
 } satisfies Meta<typeof AnimeDetailView>
 

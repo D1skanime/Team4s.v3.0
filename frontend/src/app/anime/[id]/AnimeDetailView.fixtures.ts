@@ -4,7 +4,9 @@ import type { AnimeDetail, AnimeRelationsResponse } from '@/types/anime'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 
 /** Realistische deutsche `AnimeDetail`-Demo-Fixture für Storybook (keine Lorem-ipsum-Platzhalter,
- *  Felder exakt aus `@/types/anime.ts`). */
+ *  Felder exakt aus `@/types/anime.ts`). Alle Bildpfade in dieser Datei nutzen bewusst
+ *  /covers/placeholder.png statt .jpg: Letzteres ist nicht dekodierbar (siehe Commit 159-05,
+ *  animeBackdrops.ts), .png ist derselbe bereits geprüft dekodierbare Platzhalter. */
 export function buildAnimeDetailFixture(overrides: Partial<AnimeDetail> = {}): AnimeDetail {
   return {
     id: 1,
@@ -20,7 +22,7 @@ export function buildAnimeDetailFixture(overrides: Partial<AnimeDetail> = {}): A
     description:
       'Nach dem Umzug in eine neue Stadt findet die schüchterne Hana unerwartete Freundschaften unter den '
       + 'Kirschblüten ihrer neuen Schule -- und ein Geheimnis, das die ganze Nachbarschaft verändert.',
-    cover_image: '/covers/placeholder.jpg',
+    cover_image: '/covers/placeholder.png',
     view_count: 0,
     episodes: [],
     ...overrides,
@@ -156,7 +158,7 @@ export const freezingAnimeFansubsResponse: AnimeFansubListResponse = {
   data: [
     {
       anime_id: 13, fansub_group_id: 101, is_primary: true, created_at: '2011-01-08T00:00:00.000Z',
-      fansub_group: { id: 101, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: '/covers/placeholder.jpg', story_preview: 'Veröffentlicht die Folgen von Freezing als gemeinsames Projekt.' },
+      fansub_group: { id: 101, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: '/covers/placeholder.png', story_preview: 'Veröffentlicht die Folgen von Freezing als gemeinsames Projekt.' },
     },
     {
       anime_id: 13, fansub_group_id: 102, is_primary: false, created_at: '2011-01-08T00:00:00.000Z',
@@ -164,7 +166,7 @@ export const freezingAnimeFansubsResponse: AnimeFansubListResponse = {
     },
     {
       anime_id: 13, fansub_group_id: 103, is_primary: false, created_at: '2011-01-08T00:00:00.000Z',
-      fansub_group: { id: 103, slug: 'melon-subs', name: 'MelonSubs', logo_url: '/covers/placeholder.jpg', story_preview: 'Bearbeitet gemeinsam mit anderen Gruppen die Veröffentlichung.' },
+      fansub_group: { id: 103, slug: 'melon-subs', name: 'MelonSubs', logo_url: '/covers/placeholder.png', story_preview: 'Bearbeitet gemeinsam mit anderen Gruppen die Veröffentlichung.' },
     },
   ],
 }
@@ -187,9 +189,9 @@ export const freezingGroupedEpisodesResponse: PublicGroupedEpisodesResponse = {
         anime_id: 13,
         episode_number: index + 1,
         fansub_groups: [
-          { id: 101, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: '/covers/placeholder.jpg' },
+          { id: 101, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: '/covers/placeholder.png' },
           { id: 102, slug: 'lazy-subs', name: 'LazySubs' },
-          { id: 103, slug: 'melon-subs', name: 'MelonSubs', logo_url: '/covers/placeholder.jpg' },
+          { id: 103, slug: 'melon-subs', name: 'MelonSubs', logo_url: '/covers/placeholder.png' },
         ],
         release_name: 'Freezing – Gemeinschaftsrelease',
       })],
@@ -202,6 +204,6 @@ export const freezingGroupedEpisodesResponse: PublicGroupedEpisodesResponse = {
 /** Verwandte Anime (Prequel/Sequel) für die "Verwandte Anime"-Sektion. */
 export const normalRelationsResponse: AnimeRelationsResponse = {
   data: [
-    { anime_id: 2, title: 'Frühlingsblüten über Tokio: Sommerspecial', relation_type: 'sequel', cover_image: '/covers/placeholder.jpg', year: 2024, type: 'ova' },
+    { anime_id: 2, title: 'Frühlingsblüten über Tokio: Sommerspecial', relation_type: 'sequel', cover_image: '/covers/placeholder.png', year: 2024, type: 'ova' },
   ],
 }

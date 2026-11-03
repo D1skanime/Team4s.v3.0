@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -8,6 +10,13 @@ import {
 } from './AnimeDetailView.fixtures'
 
 describe('AnimeDetailView Storybook-Fixtures', () => {
+  it('verweist nicht mehr auf den nicht dekodierbaren /covers/placeholder.jpg (Commit 159-05)', () => {
+    for (const file of ['AnimeDetailView.fixtures.ts', 'AnimeDetailView.stories.tsx', 'AnimeDetailHero.stories.tsx']) {
+      const source = fs.readFileSync(path.resolve(process.cwd(), 'src/app/anime/[id]', file), 'utf8')
+      expect(source, `${file} darf /covers/placeholder.jpg nicht mehr referenzieren`).not.toMatch(/placeholder\.jpg/)
+    }
+  })
+
   it('bildet einen erfolgreichen Leerzustand ohne Episoden ab', () => {
     expect(emptyGroupedEpisodesResponse.data.episodes).toEqual([])
     expect(emptyGroupedEpisodesResponse.data.episode_count).toBe(0)

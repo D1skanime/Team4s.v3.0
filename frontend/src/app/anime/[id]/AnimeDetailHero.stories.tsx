@@ -23,7 +23,10 @@ const meta = {
   },
   args: {
     anime: buildAnimeDetailFixture(),
-    coverUrl: '/covers/placeholder.jpg',
+    // .png statt .jpg: derselbe bereits geprüft dekodierbare Platzhalter wie
+    // animeBackdropManifestFixture (siehe .storybook/mocks/animeFixtures.ts) -- .jpg ist nicht
+    // dekodierbar (Commit 159-05).
+    coverUrl: '/covers/placeholder.png',
     embySeriesUrl: null,
     relationsResponse: normalRelationsResponse,
   },
