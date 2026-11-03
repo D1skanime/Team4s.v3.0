@@ -1,6 +1,11 @@
 .heading {
   margin: 0;
-  color: var(--text-strong);
+  /* --heading-color ist ein bewusster Override-Hook (wie Texts --text-body-color/-soft-color/
+     etc.): ein Aufrufer, dessen Hintergrund sich kontextabhängig ändert (z. B. eine Karte, die
+     unterhalb eines Breakpoints auf eine dunkle Fläche kippt), darf diese EINE CSS-Variable auf
+     einem Vorfahren setzen, statt tone="..." fest zu verdrahten oder eine eigene Farbklasse von
+     außen zu erzwingen. Ohne Setzen bleibt die Standardfarbe --text-strong unverändert. */
+  color: var(--heading-color, var(--text-strong));
   font-weight: var(--font-weight-heading);
 }
 

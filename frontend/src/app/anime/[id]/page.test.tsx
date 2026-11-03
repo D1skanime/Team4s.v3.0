@@ -226,6 +226,26 @@ describe('anime detail integration without invented data', () => {
     expect(tokensCss).toMatch(/--public-page-detail-hero-offset-top:\s*120px;/)
   })
 
+  it('gibt den Trennlinien (<hr>) eine vollständige tokenbasierte Optik statt des UA-Standardrahmens', () => {
+    const posterCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.poster.module.css'), 'utf8')
+    const infoCardCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.infoCard.module.css'), 'utf8')
+
+    const posterDividerRule = posterCss.match(/\.posterDivider\s*\{([^}]+)\}/)?.[1]
+    expect(posterDividerRule, '.posterDivider must exist').toBeTruthy()
+    expect(posterDividerRule).toMatch(/border:\s*none;/)
+    expect(posterDividerRule).toMatch(/background:\s*var\(--border-on-media\);/)
+
+    const dividerRule = infoCardCss.match(/\.divider\s*\{([^}]+)\}/)?.[1]
+    expect(dividerRule, '.divider must exist').toBeTruthy()
+    expect(dividerRule).toMatch(/border:\s*none;/)
+    expect(dividerRule).toMatch(/background:\s*var\(--border-on-media-strong\);/)
+
+    // Unterhalb 767px wird .divider (nicht .posterDivider, der dort komplett ausgeblendet
+    // bleibt) auf dieselbe schwächere Linienfarbe wie main zurückgenommen.
+    const mobileBlock = infoCardCss.slice(infoCardCss.indexOf('@media (max-width: 767px)'))
+    expect(mobileBlock.match(/\.divider\s*\{([^}]+)\}/)?.[1]).toMatch(/background:\s*var\(--border-on-media\);/)
+  })
+
   it('reicht searchParams.fansub unveraendert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
     const boundary = await AnimeDetailPage({
       ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'bloody-shadow' }),

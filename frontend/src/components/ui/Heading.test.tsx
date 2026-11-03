@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { render } from '@testing-library/react'
 
@@ -60,5 +62,12 @@ describe('Heading', () => {
 
     const element = container.firstElementChild as HTMLElement
     expect(element.id).toBe('dialog-title')
+  })
+})
+
+describe('Heading.module.css', () => {
+  it('liest die Standardfarbe über den Override-Hook --heading-color (Fallback --text-strong), damit ein Vorfahre sie kontextabhängig umdefinieren kann', () => {
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/ui/Heading.module.css'), 'utf8')
+    expect(css).toMatch(/\.heading\s*\{[^}]*color:\s*var\(--heading-color,\s*var\(--text-strong\)\);/s)
   })
 })

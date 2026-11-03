@@ -72,11 +72,20 @@ const KNOWN_OVERRIDE_HOOK_OWNERS: Record<string, string> = {
   '--text-small-color': 'Text.module.css',
   '--text-eyebrow-size': 'Text.module.css',
   '--text-eyebrow-color': 'Text.module.css',
+  '--heading-color': 'Heading.module.css',
 }
 
 /** Bereits bestehende, bewusst zugelassene Fälle, jeweils mit fachlicher Begründung. Jeder NEUE
  *  Fall (nicht hier eingetragen) lässt den Test fehlschlagen, statt stillschweigend durchzugehen. */
-const FOREIGN_VARIABLE_EXCEPTIONS: Record<string, string[]> = {}
+const FOREIGN_VARIABLE_EXCEPTIONS: Record<string, string[]> = {
+  // Card variant="publicHeroInfo" kippt unterhalb 767px auf eine einheitlich dunkle Fläche und
+  // setzt Headings/Texts eigene Override-Hooks --heading-color/--text-body-color, damit
+  // Titel/Beschreibung automatisch mit auf die helle Scrim-Tonalität kippen -- keine Seite trifft
+  // diese Farbentscheidung selbst (Runde-2-UAT-Vorgabe: Detailseiten komponieren nur Layout,
+  // Farben leben in globalen UI-Varianten/Tokens).
+  '--heading-color': ['Card.module.css'],
+  '--text-body-color': ['Card.module.css'],
+}
 
 describe('Keine fremden privaten Baustein-Variablen in components/ui-CSS-Modulen', () => {
   const files = listCssFiles()

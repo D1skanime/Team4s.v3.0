@@ -64,8 +64,10 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
       {/* publicHeroInfo ist oben nahezu opak HELL (siehe Card.module.css), anders als die
           übrigen dunklen Glasflächen dieser Seite -- Titel/Beschreibung bleiben deshalb bei der
           dunklen Standard-Textfarbe (kein tone="onScrim"). Unterhalb 767px kippt die Karte auf
-          eine einheitlich dunkle Fläche; .title/.description kippen dort über eine eigene
-          Media-Query in page.infoCard.module.css mit, auf hell. */}
+          eine einheitlich dunkle Fläche; Card.module.css setzt dort Heading/Texts eigene
+          Override-Hooks (--heading-color/--text-body-color) innerhalb von .cardPublicHeroInfo,
+          wodurch Titel/Beschreibung automatisch mit auf Hell kippen -- keine eigene Farbregel in
+          dieser Seite nötig. */}
       <Card variant="publicHeroInfo" className={styles.infoCard}>
         <div className={styles.infoCardBody}>
           <div className={styles.titleRow}>

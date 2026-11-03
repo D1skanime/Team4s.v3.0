@@ -44,9 +44,9 @@ describe('Typografie-Pixel-Regression nach Heading/Text-Umstellung', () => {
     expect(globalsCss).toMatch(/--font-size-h3:\s*1rem;/)
   })
 
-  it('Heading liefert standardmaessig die Farbe ueber --text-strong -- Konsumenten brauchen dafuer keine eigene color-Deklaration mehr', () => {
+  it('Heading liefert standardmaessig die Farbe ueber --text-strong (hinter dem --heading-color-Override-Hook) -- Konsumenten brauchen dafuer keine eigene color-Deklaration mehr', () => {
     const headingRule = mergedBlocks(readUiFile('Heading.module.css'), '.heading')
-    expect(headingRule).toMatch(/color:\s*var\(--text-strong\);/)
+    expect(headingRule).toMatch(/color:\s*var\(--heading-color,\s*var\(--text-strong\)\);/)
   })
 
   describe('PageHeader', () => {

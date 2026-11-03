@@ -17,6 +17,11 @@
 .posterDivider {
   height: var(--border-width-thin);
   margin: var(--space-1) 0;
+  /* <hr> ohne diese beiden Zeilen rendert mit dem UA-Standardrahmen statt der dezenten
+     Medienlinie -- border:none nimmt den Standardrahmen weg, background trägt die eigentliche
+     Linienfarbe (dieselbe Token-Formel wie statsRow/relatedSection in page.infoCard.module.css). */
+  border: none;
+  background: var(--border-on-media);
 }
 
 .genresSection,
