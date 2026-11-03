@@ -63,7 +63,7 @@ export function AnimeDetailView({
       <main className={styles.page}>
       {/* Banner-Hintergrund: BannerSection übernimmt die bisherige .heroBanner-Positionierung,
           AnimeBackdropRotator (eigenständiger Fachbaustein, position:fixed) wird darin komponiert. */}
-      <BannerSection imageUrl={displayCoverUrl} imageAlt={`${anime.title} Hintergrundbild`}>
+      <BannerSection variant="anime" imageUrl={displayCoverUrl} imageAlt={`${anime.title} Hintergrundbild`}>
         <AnimeBackdropRotator fallbackImageURL={displayCoverUrl} />
       </BannerSection>
 

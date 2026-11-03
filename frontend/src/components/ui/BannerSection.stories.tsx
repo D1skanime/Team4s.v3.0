@@ -53,3 +53,19 @@ export const MitStarkemScrimUndBadge: Story = {
     badge: <Badge variant="onMedia">Ongoing</Badge>,
   },
 }
+
+export const AnimeOptik: Story = {
+  name: 'Anime-Optik',
+  args: { variant: 'anime' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'variant="anime" reproduziert die bisherige, schwächer kontrastierte Backdrop-Rezeptur der ' +
+          'Anime-Detailseite (blur(20px), scale(1.1), ohne brightness/saturate-Abweichung) inklusive ' +
+          'vertikaler Ausblendmaske zum Seitenhintergrund -- sichtbar schwächer unscharf/abgedunkelt als die ' +
+          'Standardvariante oben, die restliche Standardvariante (andere Aufrufer) bleibt davon unberührt.',
+      },
+    },
+  },
+}

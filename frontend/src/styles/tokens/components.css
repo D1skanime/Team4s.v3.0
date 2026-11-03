@@ -327,6 +327,14 @@
   --banner-backdrop-saturate: 1.25;
   --banner-backdrop-scale: 1.15;
   --banner-scrim-bg-strong: rgba(10, 8, 14, 0.88);
+  /* Variante "anime" (BannerSection variant="anime"): reproduziert die bisherige, schwächer
+     kontrastierte .bannerImage-Rezeptur der Anime-Detailseite 1:1 -- schwächere Unschärfe, keine
+     brightness/saturate-Abweichung vom Originalbild, dafür eine vertikale Ausblendmaske zum
+     Seitenhintergrund (die Standardvariante oben hat keine Maske). Eigene Tokens statt die
+     Standard-Rezeptur zu überschreiben, damit andere BannerSection-Aufrufer unverändert bleiben. */
+  --banner-anime-blur: 20px;
+  --banner-anime-scale: 1.1;
+  --banner-anime-mask: linear-gradient(to bottom, black 0%, black 40%, transparent 100%);
 
   /* Card -- öffentliche Glas-Varianten. Globale Form der bisher feature-lokalen
      --glass-*-Variablen aus EpisodeGlassCard.module.css/ReleasePreviewRow.module.css -- zwei

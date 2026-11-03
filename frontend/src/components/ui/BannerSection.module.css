@@ -18,6 +18,18 @@
   transform: scale(var(--banner-backdrop-scale));
 }
 
+/* Variante "anime" (siehe BannerSection.tsx): eigene, schwächere Unschärfe/Skalierung ohne
+   brightness/saturate-Abweichung plus vertikale Ausblendmaske zum Seitenhintergrund -- ersetzt
+   komplett (nicht ergänzt) den Standard-filter/transform von .backdropWrapper oben, nach
+   .backdropWrapper deklariert, damit die eigene Formel zuverlässig gewinnt (gleiche Spezifität,
+   Deklarationsreihenfolge entscheidet). */
+.backdropWrapperAnime {
+  filter: blur(var(--banner-anime-blur));
+  transform: scale(var(--banner-anime-scale));
+  mask-image: var(--banner-anime-mask);
+  -webkit-mask-image: var(--banner-anime-mask);
+}
+
 .backdropImage {
   object-fit: cover;
 }

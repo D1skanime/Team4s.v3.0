@@ -56,6 +56,22 @@
   --public-page-max-width: 1360px;
   --public-page-gutter: 48px;
 
+  /* Eigenständiger, schmälerer Breitenvertrag für öffentliche Detailseiten mit zweispaltigem
+     Poster-/Info-Hero (z. B. Anime-Detail) -- bewusst GETRENNT vom allgemeinen
+     --public-page-max-width-Breitenvertrag oben: eine künftige Anpassung dieses allgemeinen
+     Fansub-Breitenvertrags darf diese Detailseiten nicht mitverschieben, und umgekehrt soll eine
+     Korrektur hier nicht die anderen öffentlichen Flächen (Mitglieder, Fansub-Gruppen, Suche)
+     verschieben. Bewusst OHNE dessen >=1600px-Eskalation -- der zweispaltige Hero braucht auf
+     sehr breiten Bildschirmen keine zusätzliche Breite. */
+  --public-page-detail-max-width: 1200px;
+  --public-page-detail-gutter: 48px;
+  /* Oberer Abstand des Desktop-Hero-Bereichs auf solchen Detailseiten -- eigenständig von
+     --space-9, damit eine künftige Änderung des allgemeinen Abstands-Rasters diesen
+     seitenspezifischen Wert nicht mitverschiebt. Unterhalb 767px bleibt --space-9 (80px)
+     gültig, dort ist der zweispaltige Hero bereits auf eine Spalte umgebrochen und braucht
+     keinen eigenen, größeren Abstand. */
+  --public-page-detail-hero-offset-top: 120px;
+
   /* Seitenverhältnis des Profil-Banners (5:1 == 1920x384), gemeinsam für alle
      Anzeige-Container (profileHeaderCard, heroPanel) -- muss mit PROFILE_BANNER_ASPECT_RATIO
      in frontend/src/lib/profileBanner.ts übereinstimmen (Live-UAT-Fix 2026-10-12: eine fest

@@ -7,6 +7,12 @@ import styles from './BannerSection.module.css'
 export interface BannerSectionProps {
   imageUrl: string | null | undefined
   imageAlt: string
+  /** 'anime' reproduziert die bisherige, schwächer kontrastierte Backdrop-Rezeptur der
+   *  Anime-Detailseite (schwächere Unschärfe/Skalierung, keine brightness/saturate-Abweichung
+   *  vom Originalbild) inklusive einer vertikalen Ausblendmaske zum Seitenhintergrund -- für
+   *  Aufrufer, die exakt diese frühere Optik brauchen. Ohne Angabe bleibt die stärker
+   *  abgedunkelte/entsättigte Standardvariante (FansubHeroSection-Rezeptur) aktiv. */
+  variant?: 'default' | 'anime'
   /** Deutlich dunklerer, flächiger Scrim (~88% Deckkraft, FansubHeroSection-Rezeptur) für
    *  Textblöcke, die direkt auf dem Banner sitzen und WCAG-AA-Kontrast brauchen. Ohne Angabe
    *  bleibt der moderate Standard-Scrim aktiv (nur Verdunklung des Hintergrundbilds selbst). */
@@ -31,6 +37,7 @@ export interface BannerSectionProps {
 export function BannerSection({
   imageUrl,
   imageAlt,
+  variant = 'default',
   withTextScrim = false,
   badge,
   children,
@@ -39,7 +46,7 @@ export function BannerSection({
   return (
     <div className={classNames(styles.bannerSection, className)}>
       {imageUrl ? (
-        <div className={styles.backdropWrapper} aria-hidden="true">
+        <div className={classNames(styles.backdropWrapper, variant === 'anime' && styles.backdropWrapperAnime)} aria-hidden="true">
           <ResponsiveImage
             src={imageUrl}
             alt={imageAlt}

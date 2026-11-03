@@ -211,6 +211,21 @@ describe('anime detail integration without invented data', () => {
     expect(pageCss.match(/\.page\s*\{([^}]+)\}/)?.[1]).not.toMatch(/overflow/)
   })
 
+  it('nutzt den eigenständigen Detail-Breitenvertrag (1200px/120px), nicht den allgemeinen --public-page-max-width der übrigen öffentlichen Flächen', () => {
+    const pageCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
+    const wrapperRule = pageCss.match(/\.errorPage,\s*\n\.breadcrumbsWrapper,\s*\n\.heroWrapper,\s*\n\.contentArea\s*\{([^}]+)\}/)?.[1]
+    expect(wrapperRule).toMatch(/--public-page-detail-max-width/)
+    expect(wrapperRule).toMatch(/--public-page-detail-gutter/)
+    expect(wrapperRule).not.toMatch(/--public-page-max-width\b/)
+
+    const desktopHeroRule = pageCss.slice(0, pageCss.indexOf('@media')).match(/\.heroWrapper\s*\{([^}]+)\}/)?.[1]
+    expect(desktopHeroRule).toMatch(/--public-page-detail-hero-offset-top/)
+
+    const tokensCss = readFileSync(join(process.cwd(), 'src/styles/tokens/layout.css'), 'utf8')
+    expect(tokensCss).toMatch(/--public-page-detail-max-width:\s*1200px;/)
+    expect(tokensCss).toMatch(/--public-page-detail-hero-offset-top:\s*120px;/)
+  })
+
   it('reicht searchParams.fansub unveraendert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
     const boundary = await AnimeDetailPage({
       ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'bloody-shadow' }),

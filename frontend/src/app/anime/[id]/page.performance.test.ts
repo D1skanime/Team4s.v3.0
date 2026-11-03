@@ -108,6 +108,7 @@ describe('one bounded cover for every detail consumer', () => {
     expect(poster?.props.src).toBe(expected)
     expect(poster?.props.unoptimized).toBe(true)
     expect(hero?.props.imageUrl).toBe(expected)
+    expect(hero?.props.variant).toBe('anime')
     expect((reflection?.props.style as Record<string, string>)['--poster-image']).toBe('url("' + expected + '")')
     expect(rotator?.props.fallbackImageURL).toBe(expected)
     expect(rotator?.props).not.toHaveProperty('coverImage')

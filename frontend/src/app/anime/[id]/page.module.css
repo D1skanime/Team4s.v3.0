@@ -6,11 +6,14 @@
   color: var(--public-page-text);
 }
 
+/* Nutzt den eigenständigen --public-page-detail-*-Breitenvertrag (styles/tokens/layout.css),
+   NICHT den allgemeinen --public-page-max-width der übrigen öffentlichen Fansub-Flächen -- der
+   zweispaltige Poster-/Info-Hero dieser Seite braucht die schmälere, bisherige Breite. */
 .errorPage,
 .breadcrumbsWrapper,
 .heroWrapper,
 .contentArea {
-  width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));
+  width: min(var(--public-page-detail-max-width), calc(100% - var(--public-page-detail-gutter)));
   margin: 0 auto;
 }
 
@@ -53,7 +56,7 @@
 }
 
 .heroWrapper {
-  padding-top: var(--space-9);
+  padding-top: var(--public-page-detail-hero-offset-top);
 }
 
 .heroContainer {
