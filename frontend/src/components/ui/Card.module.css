@@ -118,6 +118,11 @@
 }
 
 .cardPublicHero {
+  /* position:relative etabliert ABSICHTLICH einen eigenen Positionierungskontext: Aufrufer wie
+     die Anime-Detailseite legen ein absolut positioniertes Overlay (Randnavigation) direkt in
+     diese Karte, das sich sonst am nächsten positionierten Vorfahren außerhalb der Karte
+     ausrichten würde (z. B. einem Wrapper mit eigenem Innenabstand) statt am Kartenrand selbst. */
+  position: relative;
   gap: 0;
   padding: 0;
   overflow: visible;
