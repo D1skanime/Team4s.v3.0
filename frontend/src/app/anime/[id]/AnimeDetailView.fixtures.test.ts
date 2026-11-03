@@ -11,7 +11,10 @@ import {
 
 describe('AnimeDetailView Storybook-Fixtures', () => {
   it('verweist nicht mehr auf den nicht dekodierbaren /covers/placeholder.jpg (Commit 159-05)', () => {
-    for (const file of ['AnimeDetailView.fixtures.ts', 'AnimeDetailView.stories.tsx', 'AnimeDetailHero.stories.tsx']) {
+    // AnimeDetailView.tsx selbst gehört seit dem Regressionsfund (der Komponenten-Fallback
+    // referenzierte das Literal weiterhin, geprüft wurden bislang nur Story-/Fixture-Dateien)
+    // zwingend mit in diese Liste.
+    for (const file of ['AnimeDetailView.tsx', 'AnimeDetailView.fixtures.ts', 'AnimeDetailView.stories.tsx', 'AnimeDetailHero.stories.tsx']) {
       const source = fs.readFileSync(path.resolve(process.cwd(), 'src/app/anime/[id]', file), 'utf8')
       expect(source, `${file} darf /covers/placeholder.jpg nicht mehr referenzieren`).not.toMatch(/placeholder\.jpg/)
     }

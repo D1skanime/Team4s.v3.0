@@ -4,6 +4,7 @@ import { AnimeMediaProvider } from '@/components/anime/AnimeMediaProvider'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { BannerSection, Card } from '@/components/ui'
 import { getAnimeFansubs, getAnimeRelations } from '@/lib/api'
+import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import type { AnimeDetail } from '@/types/anime'
 // `getGroupedEpisodes` ist überladen (ein Signatur-Zweig mit `projection: 'public'` liefert
@@ -55,8 +56,15 @@ export function AnimeDetailView({
   rawFansubParam,
 }: AnimeDetailViewProps) {
   // Ein fehlendes Cover bleibt ein regulärer Darstellungsfall: dieselbe öffentliche
-  // Platzhalterdatei versorgt Banner, Rotator und Poster statt ein leeres Image-Attribut zu senden.
-  const displayCoverUrl = coverUrl || '/covers/placeholder.jpg'
+  // Platzhalterdatei versorgt Banner, Rotator und Poster statt ein leeres Image-Attribut zu
+  // senden. `page.tsx` liefert `coverUrl` bereits über resolveAnimeCoverURL(anime.cover_image)
+  // vor (dort nie leer, dessen eigener Fallback greift schon serverseitig) -- dieser Zweig
+  // greift deshalb nur, wenn ein Aufrufer (z. B. eine Storybook-Story wie "Fehlendes Cover")
+  // bewusst einen leeren String übergibt. Derselbe kanonische Resolver statt eines rohen
+  // Literal-Pfads: liefert dieselbe begrenzte, dekodierbare Auslieferungs-Route wie ein echtes
+  // Cover, statt eines inzwischen verworfenen, nicht dekodierbaren JPG-Platzhalter-Literals
+  // (159-05, siehe animeBackdrops.ts resolveAnimeCoverURL).
+  const displayCoverUrl = coverUrl || resolveAnimeCoverURL('')
 
   return (
     <AnimeMediaProvider key={anime.id} animeID={anime.id}>
