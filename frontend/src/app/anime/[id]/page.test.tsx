@@ -374,7 +374,13 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Real Robot', 'Amnesia', 'Zeitreise'] } })
     const content = await loadContent()
     const all = elements(content)
-    expect(all.some((item) => item.type === Text && textContent(item.props.children as ReactNode) === 'Tags')).toBe(true)
+    const tagsLabel = all.find((item) => item.type === Text && textContent(item.props.children as ReactNode) === 'Tags')
+    expect(tagsLabel).toBeTruthy()
+    // UAT-Entscheidung: "Tags" sitzt auf der hellen Info-Karten-Fläche (Desktop) und muss deshalb
+    // bei der dunklen Standardtonalität bleiben (kein tone="onScrim") -- helle Schrift war dort
+    // praktisch unsichtbar. Card.module.css kippt den zugrundeliegenden --text-eyebrow-color-Hook
+    // unterhalb 767px auf die helle Tonalität um (siehe Card.test.tsx), nicht diese Seite.
+    expect(tagsLabel?.props.tone).toBeUndefined()
     const tagLinks = all.filter((item) => item.type === LinkChip && String((item.props.href as string)).includes('tag='))
     expect(tagLinks).toHaveLength(3)
     expect(tagLinks.map((item) => textContent(item.props.children as ReactNode))).toEqual(['Real Robot', 'Amnesia', 'Zeitreise'])

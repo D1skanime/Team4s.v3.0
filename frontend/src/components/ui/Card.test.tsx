@@ -22,11 +22,13 @@ describe('Card.module.css', () => {
     expect(mobileBlockStart).toBeGreaterThan(-1)
     const mobileRule = css.slice(mobileBlockStart).match(/\.cardPublicHeroInfo\s*\{([^}]+)\}/)?.[1]
     expect(mobileRule, '.cardPublicHeroInfo must have a mobile override').toBeTruthy()
-    // Heading (tone="default") und Text (variant="body") lesen ihre Standardfarbe über genau
-    // diese beiden offiziellen Override-Hooks -- das Setzen hier lässt Titel/Beschreibung der
-    // Anime-Info-Karte automatisch mit der Karte auf die helle Scrim-Tonalität kippen, ohne dass
-    // irgendeine Seite selbst eine Farbentscheidung trifft.
+    // Heading (tone="default"), Text (variant="body") und die "Tags"-Beschriftung (Text,
+    // variant="eyebrow") lesen ihre Standardfarbe über genau diese drei offiziellen
+    // Override-Hooks -- das Setzen hier lässt Titel/Beschreibung/"Tags" der Anime-Info-Karte
+    // automatisch mit der Karte auf die helle Scrim-Tonalität kippen, ohne dass irgendeine Seite
+    // selbst eine Farbentscheidung trifft.
     expect(mobileRule).toMatch(/--heading-color:\s*var\(--scrim-text\);/)
     expect(mobileRule).toMatch(/--text-body-color:\s*var\(--scrim-icon\);/)
+    expect(mobileRule).toMatch(/--text-eyebrow-color:\s*var\(--scrim-icon\);/)
   })
 })

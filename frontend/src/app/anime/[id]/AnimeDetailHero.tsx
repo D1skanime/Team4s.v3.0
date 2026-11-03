@@ -84,11 +84,15 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
           {anime.tags && anime.tags.length > 0 ? (
             <div className={styles.tagsSection}>
               {/* Gleiches Eyebrow-Label-Muster wie "Genres" in der Poster-Spalte (Text statt
-                  Heading): main hält diese Beschriftung bewusst in der hellen onScrim-Tonalität
-                  mit Großschreibung/Buchstabenabstand, nicht in der dunklen Standard-Textfarbe
-                  der Karte -- Heading tone="onScrim" (voll deckendes Weiß, keine Großschreibung)
-                  war dafür zu kontrastarm/inkonsistent. */}
-              <Text as="span" variant="eyebrow" tone="onScrim" id="tags-heading">Tags</Text>
+                  Heading), aber mit dem zum jeweiligen Kartengrund passenden Ton statt eines
+                  gemeinsamen fest verdrahteten Tons: die Info-Karte ist oben hell (siehe
+                  Card.module.css .cardPublicHeroInfo), "Tags" bleibt deshalb bei der dunklen
+                  Standard-Tonalität (kein tone="onScrim", UAT-Entscheidung -- helle Schrift war
+                  auf der hellen Fläche praktisch unsichtbar). Unterhalb 767px kippt die Karte auf
+                  eine einheitlich dunkle Fläche; Card.module.css definiert dort zusätzlich zu
+                  --heading-color/--text-body-color auch Texts eigenen --text-eyebrow-color-Hook
+                  um, wodurch "Tags" automatisch mit auf Hell kippt. */}
+              <Text as="span" variant="eyebrow" id="tags-heading">Tags</Text>
               <ul className={styles.tagsList} aria-labelledby="tags-heading">
                 {anime.tags.map((tag) => <li key={tag}><LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>{tag}</LinkChip></li>)}
               </ul>

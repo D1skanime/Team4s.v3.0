@@ -230,17 +230,18 @@
     border-radius: 0;
   }
 
-  /* Die Karte kippt hier auf eine einheitlich dunkle Fläche -- Titel (Heading, tone="default")
-     und Beschreibung (Text, variant="body") innerhalb lesen ihre Standardfarbe über die
-     offiziellen Override-Hooks --heading-color/--text-body-color (siehe Heading.module.css/
-     Text.module.css), NICHT über eine lokale tone-Prop. Das Setzen dieser beiden Hooks HIER
-     (scoped auf Nachfahren von .cardPublicHeroInfo, wirkt nirgends sonst im Rest der App) lässt
-     sie automatisch mit auf die helle Scrim-Tonalität kippen, ohne dass die Seite selbst eine
-     Farbentscheidung treffen muss. */
+  /* Die Karte kippt hier auf eine einheitlich dunkle Fläche -- Titel (Heading, tone="default"),
+     Beschreibung (Text, variant="body") und die "Tags"-Beschriftung (Text, variant="eyebrow")
+     innerhalb lesen ihre Standardfarbe über die offiziellen Override-Hooks --heading-color/
+     --text-body-color/--text-eyebrow-color (siehe Heading.module.css/Text.module.css), NICHT
+     über eine lokale tone-Prop. Das Setzen dieser drei Hooks HIER (scoped auf Nachfahren von
+     .cardPublicHeroInfo, wirkt nirgends sonst im Rest der App) lässt sie automatisch mit auf die
+     helle Scrim-Tonalität kippen, ohne dass die Seite selbst eine Farbentscheidung treffen muss. */
   .cardPublicHeroInfo {
     border-radius: var(--card-public-hero-info-radius-mobile);
     background: var(--card-public-hero-bg);
     --heading-color: var(--scrim-text);
     --text-body-color: var(--scrim-icon);
+    --text-eyebrow-color: var(--scrim-icon);
   }
 }
