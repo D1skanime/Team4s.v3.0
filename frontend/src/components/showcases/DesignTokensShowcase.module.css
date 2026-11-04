@@ -1,15 +1,28 @@
-.stack {
+/**
+ * Layout der dreistufig gegliederten Design-Tokens-Seite (Befund 28, Runde 3): Grundskala
+ * (Tier 1, mit echter Werte-Vorschau je Token), Zweck-Werte (Tier 2, Fließliste mit
+ * Rückverweis auf die jeweilige Grundstufe) und Bausteinwerte (Tier 3, nach Baustein gruppiert
+ * und eingeklappt). Reiner Layout-Code -- die Token-Werte selbst kommen unverändert aus
+ * `frontend/src/lib/designTokens.ts`s automatischem Scan.
+ */
+.page {
+  display: grid;
+  gap: var(--space-7);
+}
+
+.tier {
   display: grid;
   gap: var(--space-5);
 }
 
-.groupGrid {
+/* Tier 1 -- Grundskala */
+.foundationGroupGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--space-3);
 }
 
-.tokenRow {
+.foundationRow {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
@@ -19,19 +32,132 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.tokenRowDetails {
+.foundationRowDetails {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
 
-.tokenRowDetails code {
+.foundationRowDetails code {
   font-family: var(--font-mono);
   font-size: 0.8rem;
   overflow-wrap: anywhere;
 }
 
-.tokenSwatch {
+.colorSwatch {
+  flex: 0 0 auto;
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.spaceBarTrack {
+  display: inline-flex;
+  align-items: center;
+  width: 84px;
+  height: 28px;
+}
+
+.spaceBar {
+  display: inline-block;
+  height: var(--space-3);
+  max-width: 84px;
+  background: var(--accent-primary);
+  border-radius: var(--radius-sm);
+}
+
+.radiusBox {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  background: var(--accent-primary);
+}
+
+.shadowBoxTrack {
+  display: inline-flex;
+  align-items: center;
+  width: 44px;
+  height: 36px;
+}
+
+.shadowBox {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  background: var(--surface-card);
+  border-radius: var(--radius-sm);
+}
+
+.fontSample {
+  display: inline-block;
+  width: 28px;
+  text-align: center;
+  color: var(--text-strong);
+}
+
+.effectsReferenceCard a {
+  color: var(--accent-primary);
+  font-weight: var(--font-weight-label);
+}
+
+/* Tier 2 -- Zweck-Werte */
+.purposeList {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.purposeItem {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-surface);
+  background: var(--surface-card-muted);
+}
+
+.purposeItem code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.purposeBackRef {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+/* Tier 3 -- Bausteinwerte */
+.componentGroupGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.componentRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.componentRowDetails {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.componentRowDetails code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.componentSwatch {
   flex: 0 0 auto;
   width: 28px;
   height: 28px;
@@ -39,7 +165,11 @@
   border: 1px solid var(--border-subtle);
 }
 
-.tokenSwatchPlaceholder {
+.componentSwatchPlaceholder {
   width: 28px;
   height: 28px;
+}
+
+.literalMarkerRow {
+  grid-column: 1 / -1;
 }
