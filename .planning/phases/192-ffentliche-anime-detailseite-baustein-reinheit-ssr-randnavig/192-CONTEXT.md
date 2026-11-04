@@ -265,3 +265,246 @@ Nachtrag erweitert also, welche Pläne vor der Abschluss-Verifikation abgeschlos
   beschränkt und nicht repo-weit scheitert.
 
 </addendum_2026-11-04b>
+
+<addendum_2026-11-04c>
+## Nachtrag 04.11.2026, Runde 3 (Mensch, nach Sichtung der roten Review-Befunde + eigener
+Storybook-Sichtung) — Befunde A–D, 27, 28 plus bestätigte Sichtfunde
+
+Der automatisierte Review (3 offene [high]-Befunde) wurde vom Menschen geprüft: alle drei treffen
+zu. Zusätzlich hat der Mensch selbst Storybook gesichtet und 2 weitere Befunde (27, 28) sowie eine
+echte visuelle Regression im Anime-Kopf gefunden. Alle Punkte unten sind bindend, keine weiteren
+Rückfragen nötig. Bisherige Pläne 192-01 bis 192-10 bleiben als Grundlage bestehen; das hier ist
+eine weitere Gap-Closure-Runde derselben Phase.
+
+### Befund A — SplitLayout: gap nimmt noch rohe Stufen statt Zweck-Varianten
+
+**Bestätigt:** `frontend/src/components/ui/SplitLayout.tsx` typisiert `gap` weiterhin als
+`SpaceToken ('1'..'9')` und mappt in `mergedStyle` direkt auf `var(--space-${gap})`
+(`SplitLayout.test.tsx` nutzt dies sogar mit `gap="2"`). Plan 192-08 hatte dies bewusst
+ausgeklammert ("UNCHANGED by this plan -- not named in Befund 24's scope") — diese Ausklammerung
+gilt jetzt nicht mehr.
+
+**Entscheidung:**
+- `SplitLayout.gap` wird wie `Stack`/`Cluster`s `gap` auf eine benannte Zweck-Enum umgestellt
+  (eigene Werte, nicht zwingend identisch mit Stack/Clusters Enum — nur die tatsächlich an
+  SplitLayout-Aufrufstellen benötigten Zwecke, aktuell im Wesentlichen "kein Abstand zwischen den
+  Spalten" für den Anime-Kopf-Fall).
+- Der `--split-gap`-Private-Variablen-Override in `AnimeDetailHero.module.css` (`.heroSplit {
+  --split-gap: 0; }`) entfällt dabei vollständig (siehe Befund B — dieselbe Baustelle, Reihenfolge
+  unten).
+- `breakpoint: 'md' | 'lg'` wird NUR dann nach Zweck umbenannt, wenn sich ein klarer, nicht
+  erratener Zweck ergibt (Beispiel-Vorschlag des Menschen: „Poster neben Inhalt ab Tablet" für den
+  heutigen `'md'`-Fall). Prüfen, ob `'lg'` aktuell überhaupt noch an einer echten Aufrufstelle
+  verwendet wird — wenn nicht, auf den tatsächlich benötigten Zweck reduzieren statt zwei Werte zu
+  erzwingen.
+
+### Befund B — Pilot-Kompositbausteine enthalten weiterhin eigenes Layout-CSS
+
+**Bestätigt (Review + eigene Prüfung):** `AnimeDetailHero.module.css` enthält weiterhin
+`display:flex`/`flex-direction`/`padding`/`gap`/`margin`-Regeln (`.posterColumn`, `.posterMeta`,
+`.infoCardBody`, `.titleRow`, `.tagsSection`, u. a.) sowie zwei `<hr>`-Trennlinien mit eigenem
+`background`/`height`/`margin` (`.posterDivider`, `.divider`) und den bereits unter Befund A
+genannten `--split-gap`-Override. Ebenso betroffen: `ReleasePreviewRow.module.css` (`.row`:
+flex/gap/padding), `EpisodeGlassCard.module.css` (`.headerTitleRow`: flex/gap;
+`.versionList`: grid/gap/padding), `AnimeEdgeNavigation.module.css` (`.previewCard`:
+flex/gap/padding). Der bestehende `detailStyleSystem.guard.test.ts` prüft ausschließlich
+`page.module.css`/`page.episodes.module.css` (Seiten-Ebene), nicht diese Baustein-Dateien — die
+Lücke, durch die diese Verstöße unentdeckt blieben.
+
+**Entscheidung:**
+- Jede der 4 genannten Baustein-Dateien verliert ihr eigenes Layout-CSS (Flex-Richtung, `gap`,
+  `padding`, `margin`) zugunsten der bestehenden Grundbausteine (`Stack`/`Cluster` für
+  Anordnung+Abstand). Wo ein Grundbaustein einen benötigten Zweck NICHT abbilden kann (wörtliches
+  Beispiel des Menschen: ein Kommentar in `AnimeDetailHero.module.css` begründet die lokale
+  Nachbildung ausdrücklich damit, der Grundbaustein könne es "nicht abbilden") — gilt das NICHT
+  als Rechtfertigung für lokales CSS, sondern als Auftrag, den Grundbaustein um genau diese fehlende
+  Zweck-Variante zu erweitern:
+  - Trennlinien (`.posterDivider`, `.divider`): als eigener Grundbaustein (z. B. `Divider`) oder
+    als Teil von `Card`/`Stack`-Zusammensetzung abbilden, nicht als lokales `<hr>` mit eigenem
+    `background`/`margin` in der Baustein-CSS.
+  - Innenabstand der Info-Karte (`.infoCardBody`s `padding: var(--space-6)`,
+    `.posterMeta`s `padding: var(--space-4)`): als `Card`-Variante/-Prop abbilden (Card kennt
+    bereits Innenabstand als Teil ihrer eigenen Varianten-Logik), nicht als Baustein-eigenes CSS.
+  - Uneinheitliche vertikale Abstände im Info-Card-Body (Kommentar begründet dies bisher mit
+    "Zero-Pixel-Diff-Vorgabe dieser Phase"): entweder eine neue, passend benannte
+    `Stack`-Zweck-Variante dafür schaffen (wenn der Abstandsrhythmus wiederverwendbar/benennbar
+    ist), oder — falls tatsächlich jede einzelne Lücke einen eigenen, nicht generalisierbaren Wert
+    braucht — technisch als Einzelfall-Ausnahme im neuen Guard dokumentieren (siehe unten), nicht
+    stillschweigend lokales CSS behalten.
+  - `--split-gap`-Override (Befund A) entfällt durch SplitLayouts neue Zweck-Variante.
+- **Guard-Erweiterung (bindend):** Ein neuer oder erweiterter Guard-Test prüft ab sofort auch die
+  zusammengesetzten Baustein-Dateien der Pilot-Seite (`AnimeDetailHero.module.css`,
+  `ReleasePreviewRow.module.css`, `EpisodeGlassCard.module.css`, `AnimeEdgeNavigation.module.css`)
+  auf eigenes Layout-CSS (`display:\s*flex`, `flex-direction`, `grid-template`, `gap:` als direkte
+  Deklaration außerhalb eines `var(--split-gap...)`-Lesezugriffs, `padding:`, `margin`) UND
+  verbietet zusätzlich das Setzen (nicht Lesen) jeder privaten, nicht als öffentlicher Hook
+  dokumentierten Baustein-Variable von außen (z. B. `--split-gap`, `--stack-gap`, `--cluster-gap`)
+  — genau das "Fremd-Override"-Muster, das Befund B explizit verbietet. Bleibt wie die bisherigen
+  Guards auf die Dateien dieser Phase beschränkt (kein repo-weiter Sweep).
+- Visueller Nachweis Pflicht: nach der Umstellung erneut Story-vs.-Live-Bildpaare für den
+  Anime-Kopf (Desktop 1440 + Mobil 390) erzeugen und im Bericht beilegen (siehe auch die
+  bestätigte visuelle Regression unten — beide Nachweise können zusammen erbracht werden).
+
+### Befund C — Verbotene Interaktionssimulationen bleiben im Branch
+
+**Bestätigt:**
+- `AnimeEdgeNavigation.test.tsx:78,81` nutzt weiterhin `fireEvent.mouseEnter`/`mouseLeave` für die
+  Hover-Vorschaukarten-Logik (`AnimeEdgeNavigation.tsx`s `setHoverDirection`-State in
+  `onMouseEnter`/`onMouseLeave`/`onFocus`/`onBlur`/`onTouchStart`).
+- `FansubVersionBrowser.test.tsx:85` (`'verlinkt Zur-Fansub-Gruppe und Zum-Projekt...'`) nutzt
+  weiterhin `fireEvent.click` auf Gruppen-Umschalt-Buttons.
+- `WatchlistAddButton.test.tsx:60` (`'blocks both actions until status resolves...'`) nutzt
+  weiterhin `fireEvent.click`.
+- `AnimeDetailView.stories.tsx:165-170`s `play`-Funktion der Story "Merkliste umschalten" nutzt
+  `userEvent.click` für einen echten Klickablauf.
+
+**Entscheidung:**
+- `AnimeEdgeNavigation`s Hover-Vorschau-Zustandslogik (welche Richtung aktuell gehovert/fokussiert
+  ist, welches Vorschaubild daraus folgt) wird in eine eigenständige, direkt testbare
+  Funktion/Hook ausgelagert (analog zu `useFansubGroupSwitch`/`useWatchlistAction` aus Plan
+  192-09) und im Test direkt aufgerufen statt über `fireEvent.mouseEnter`/`mouseLeave`.
+- `FansubVersionBrowser.test.tsx:85` und `WatchlistAddButton.test.tsx:60` werden auf dieselbe in
+  Plan 192-09 etablierte Technik umgestellt (Logik-Hook direkt aufrufen bzw.
+  `Component(props)`+Prop-Aufruf für reine Weiterleitungen) — auch wenn diese konkreten Tests
+  selbst nicht in 192-09s ursprünglicher Dateiliste standen, gehören sie zu Dateien, die dieser
+  Branch bereits verändert hat.
+- `AnimeDetailView.stories.tsx`s "Merkliste umschalten"-Story verliert ihre `play`-Funktion
+  (echten Klickablauf) — die Merklisten-Logik wird bereits durch `useWatchlistAction`s direkten
+  Logik-Test abgedeckt (Plan 192-09); die Story selbst bleibt als reiner Anzeige-Fall bestehen
+  (ggf. umbenannt, falls der Name sonst in die Irre führt). Echte Klickabläufe werden laut
+  Grundregel live abgenommen, nicht durch Storybook-`play`-Funktionen simuliert.
+- Branch-weite Grundregel bestätigt und verschärft: keine NEUEN oder ERWEITERTEN Tests mit
+  `fireEvent`/`userEvent` in dieser und jeder folgenden Runde dieses Auftrags — betrifft sowohl
+  Vitest-Unit-Tests als auch Storybook-`play`-Funktionen.
+
+### Befund D — Stack-Variante 'tight' ist ein Größenname; --space-section vs. --space-action-row unstimmig
+
+**Bestätigt:** `Stack.tsx`s `StackGapPurpose = 'section' | 'tight'` — `'tight'` beschreibt eine
+Größe ("eng"), keinen Einsatzzweck, im Widerspruch zur eigenen Namensregel. Zusätzlich:
+`--space-section: var(--space-3)` (12px) ist kleiner als `--space-action-row: var(--space-5)`
+(24px) — unplausibel, wenn „section" im Sinne von „Abstand zwischen Seitenabschnitten" verstanden
+würde (dann müsste er eher der größte, nicht ein kleinerer Wert sein als eine reine
+Aktions-Button-Reihe). Tatsächlich wird `'section'` laut `Stack.tsx`s eigenem Kommentar aber für
+feingranulare Innenabstände EINES Bausteins verwendet (Merklisten-Knopf/Trennlinie/
+Genre-Abschnitt im Anime-Kopf, einzelne Episodenzeilen) — der Name suggeriert fälschlich etwas
+Größeres.
+
+**Entscheidung:**
+- `'tight'` wird durch einen echten Zweck-Namen ersetzt, der beschreibt, WOFÜR er steht (z. B. der
+  Abstand zwischen einem Eyebrow-Label und seiner Chip-Reihe) — exakte Bezeichnung an den
+  tatsächlichen Verwendungsstellen ausrichten, nicht raten.
+- `'section'` wird so umbenannt, dass der Name nicht mit "Abstand zwischen Seitenabschnitten"
+  verwechselt werden kann (dieser Begriff ist page-Ebene, nicht Baustein-intern) — z. B. ein Name,
+  der die tatsächliche Verwendung (interne Gliederung innerhalb EINES Bausteins) ausdrückt.
+- Die zugrunde liegenden Token-WERTE (`--space-3`=12px für den bisherigen 'section'-Zweck,
+  `--space-5`=24px für `--space-action-row`) bleiben unverändert, SOLANGE ein Soll/Ist-Vergleich
+  gegen main (echter Pixel-Abstand zwischen denselben Elementen auf main vs. Branch) zeigt, dass
+  der jeweils verwendete Wert korrekt ist. Falls der Vergleich eine tatsächliche Abweichung zu
+  main aufdeckt, wird der zugrunde liegende `--space-N`-Wert korrigiert (Zero-Pixel-Diff bleibt
+  das übergeordnete Ziel dieser Phase) — die Umbenennung selbst ändert an sich keine Werte.
+- Guard/Test für Befund 24 (bereits vorhanden aus Plan 192-08) wird um die neuen Namen ergänzt.
+
+### Befund 27 — Storybook „Grundlagen/Effekte": Vorschauen ohne erkennbaren Effekt
+
+**Bestätigt (Sichtung):** Alle 5 Effekt-Vorschauen liegen auf derselben grauen Fläche, der Effekt
+selbst (Unschärfe/Glas/Abdunklung) ist auf einer flachen grauen Fläche kaum sichtbar.
+
+**Entscheidung:**
+- Jede der 5 Effekt-Vorschauen bekommt ein echtes, farbiges, detailreiches Anime-Bild als
+  Hintergrund (dasselbe bereits im Projekt vorhandene Fixture-Bild, das auch andere
+  Storybook-Vorschauen nutzen — kein neues Asset erfinden, bestehendes wiederverwenden).
+- Direkt daneben (Vorher/Nachher-Paar) dasselbe Bild OHNE den Effekt, zum direkten Vergleich.
+- Beschreibungstexte werden auf klares, jargonfreies Deutsch umgeschrieben — insbesondere die
+  Wörter „Rezepturen" und „domänenfreie CSS-Nachbildung" (oder sinngleiche Fachbegriffe) werden
+  durch allgemein verständliche Formulierungen ersetzt (z. B. „Wirkung", „Darstellung" statt
+  „Rezeptur"; „Beispiel ohne Fachbezug" statt „domänenfreie CSS-Nachbildung").
+
+### Befund 28 — Storybook „Grundlagen/Design-Tokens": neu gliedern
+
+**Bestätigt (Sichtung):** Heute 548 automatisch nach Namen sortierte Werte (~23.000 px Seitenlänge
+laut Mensch), ohne Information über den Einsatzzweck.
+
+**Entscheidung — dreistufige Gliederung:**
+1. **Grundskala oben, mit sichtbarer Vorschau:** Farbfelder (Farbe), Abstands-Balken (Space),
+   Rundungs-Ecken (Radius), Schatten-Muster (Shadow), Schrift-Beispiele (Typography),
+   Effekt-Vorschauen (Verweis auf/Wiederverwendung von „Grundlagen/Effekte").
+2. **Zweck-Werte darunter:** jeder Zweck-Token (z. B. `--space-section`, `--radius-surface`,
+   die neuen Befund-24/26-Namen) mit einem kurzen deutschen Zweck-Satz UND einem Verweis auf
+   seinen zugrunde liegenden Grundwert (z. B. „Abstand innerhalb des Anime-Kopfs (→ 12px,
+   Grundstufe 3)").
+3. **Bausteinwerte darunter, nach Baustein gruppiert und eingeklappt (Accordion/Disclosure):**
+   jede Gruppe benennt den jeweiligen Grundbaustein (z. B. `Card`, `Button`, `AdjacentNavigation`,
+   `DatePicker`, `MetricList`/`Empty`-State, `FocalCarousel`, `SplitLayout`, `DisclosureTrigger`
+   — Gruppennamen durchgängig DEUTSCH, z. B. „Nebeneinander" statt „Adjacent", „Datum" statt
+   „Date", „Leer-Zustand" statt „Empty", „Fokus-Karussell" statt „Focal", „Zwei-Spalten-Raster"
+   statt „Split", „Aufklapp-Kopfzeile" statt „Disclosure"). Jede Gruppe markiert sichtbar, welche
+   ihrer Werte noch feste Zahlen/Farben statt Zweck-Token nutzen (reine Kennzeichnung/Markierung
+   als Hinweis — das Aufräumen dieser markierten Werte ist AUSDRÜCKLICH NICHT Teil dieser Phase,
+   sondern ein eigener künftiger Auftrag).
+- Beschreibungstexte durchgängig jargonfrei (keine Begriffe wie „CSS-Custom-Properties",
+  „domänenspezifische Komposition" o. ä. in der für Menschen sichtbaren Storybook-Beschreibung —
+  technische Begriffe dürfen in Code-Kommentaren bleiben, nicht in der Autodocs-Oberfläche).
+- Automatischer Scan aller CSS-Custom-Properties (`frontend/src/lib/designTokens.ts`) bleibt die
+  Datenquelle — die Neugliederung ändert die Darstellung/Gruppierung, nicht den Scan-Mechanismus
+  selbst.
+
+### Bestätigte visuelle Regression: Anime-Kopf Desktop zeigt schwarzen Block + unsichtbare Überschrift
+
+**Bestätigt durch eigene Playwright-Sichtprüfung dieser Runde** (Story
+„Zusammengesetzte Bausteine/Anime-Kopf" → „Standard", 1440×900, Screenshot angefertigt und
+inspiziert): Poster-Spalte zeigt keinen erkennbaren Poster-Ausschnitt (nur ein diffuser
+Verlauf), obwohl alle `<img>`-Elemente laut `naturalWidth`/`complete` fehlerfrei laden (keine
+kaputten Bilder, keine Konsolenfehler). Darunter, im Info-Karten-Bereich unterhalb von
+Titel/Badges/Beschreibung/Tags, erscheint ein großer (~900px hoher, über die volle Breite
+reichender), vollständig schwarzer Block ohne erkennbaren Bildinhalt — vermutlich
+`AnimeInfoBanner` (`AnimeMediaProvider.tsx`, rendert ein `<Image>` mit `width={600} height={180}`
+auf das Portrait-Platzhalterbild `/covers/display/placeholder.png`, Seitenverhältnis-Fehlpassung
+zum erwarteten Landscape-Banner) ODER die umgebende `Card variant="publicHeroInfo"`-Fläche
+(`--card-public-hero-info-bg`) — Ursache in dieser Runde nicht abschließend verifiziert, siehe
+unten. Die Überschrift „Verwandte Anime" (`AnimeRelations`, unterhalb des schwarzen Blocks) ist
+auf dem hellen Kartenhintergrund nahezu unsichtbar (sehr geringer Kontrast, hellgrau auf weiß).
+
+**Entscheidung:**
+- Root-Cause-Analyse UND Fix sind Teil dieser Gap-Closure-Runde (nicht aufschieben) — vermutete
+  Ansatzpunkte für die Untersuchung: (a) `AnimeInfoBanner`s `width={600} height={180}` erwartet ein
+  Landscape-Seitenverhältnis, die Storybook-MSW-Fixture (`animeBackdropManifestFixture` in
+  `.storybook/mocks/animeFixtures.ts`) liefert aber denselben Portrait-Platzhalter wie das Poster
+  — eventuell braucht die Fixture ein eigenes, tatsächlich landscape-förmiges Platzhalterbild für
+  den Banner-Anwendungsfall; (b) `Card variant="publicHeroInfo"`s Hintergrund-Token
+  (`--card-public-hero-info-bg`, siehe `components.css`) auf korrekte Auflösung prüfen,
+  insbesondere im Zusammenspiel mit `SplitLayout align="stretch"` (könnte die Karte unbegrenzt in
+  die Höhe strecken, wenn ein Geschwister-Element unerwartet hoch wird); (c) Zusammenhang mit der
+  in Plan 192-07 bereits gefundenen und behobenen SplitLayout-Container-Query-Eigenbezugs-Problematik
+  prüfen — evtl. ein verwandter, noch nicht vollständig behobener Nachbareffekt. Die exakte Ursache
+  bei Ausführung dieses Gap-Plans ermitteln, nicht raten.
+- „Verwandte Anime"-Überschrift bekommt ausreichenden Kontrast gegen den (hellen)
+  Info-Karten-Hintergrund — über die bestehende Text-/Heading-Tonalität des Bausteins lösen (siehe
+  bereits etabliertes Muster für "Tags" weiter oben in derselben Karte, kein neues Farbliteral).
+- Pflicht-Nachweis: Story-vs.-Live-Bildpaar Anime-Kopf (Desktop 1440 + Mobil 390) OHNE schwarzen
+  Block und mit lesbarer „Verwandte Anime"-Überschrift, im Bericht beigelegt.
+
+### Reihenfolge Runde 3
+
+Zuerst **B** (Baustein-CSS-Reinheit inkl. Guard-Erweiterung) — danach lässt sich **A** (SplitLayout
+gap) und die **visuelle Regression** im selben Aufwasch korrigieren, da B ohnehin den
+`--split-gap`-Override entfernt und die betroffenen Dateien erneut anfasst. Dann **D**
+(Zweck-Namen-Korrektur `'tight'`/`'section'`) — baut auf den in B/A bereits aufgeräumten
+Aufrufstellen auf. Dann **C** (Test-Umbau), unabhängig, kann parallel zu D laufen. Dann **27** und
+**28** (Storybook-Dokumentationsseiten), unabhängig von A/B/C/D, können parallel zueinander und zu
+C laufen. Zuletzt eine aktualisierte Abschluss-Verifikation (Playwright-Bildpaare main vs. Branch
+UND Story vs. Live je Pilot-Baustein, vollständiger Regressionslauf) — nach ALLEN Plänen dieser
+Runde.
+
+### Claude's Discretion (Runde 3)
+
+- Exakter Zweck-Name für `SplitLayout.breakpoint` (Befund A) oder Beibehaltung ohne Umbenennung,
+  falls sich kein eindeutiger, nicht geratener Zweck ergibt.
+- Technische Form des neuen Trennlinien-/Innenabstand-Grundbausteins bzw. der erweiterten
+  Card-Variante (Befund B) — Hauptsache: kein eigenes `<hr>`+`background`/`margin`/`padding` mehr
+  in einer Pilot-Baustein-`.module.css`.
+- Exakte neue Zweck-Namen für `'tight'`/`'section'` (Befund D).
+- Ob die Root-Cause der visuellen Regression tatsächlich bei (a), (b), (c) oder einer anderen,
+  bei der Untersuchung gefundenen Ursache liegt — Entscheidung nach tatsächlichem Befund, nicht
+  vorab festgelegt.
+
+</addendum_2026-11-04c>
