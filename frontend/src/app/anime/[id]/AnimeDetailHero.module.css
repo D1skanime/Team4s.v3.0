@@ -18,8 +18,21 @@
 .posterMeta {
   position: relative;
   z-index: var(--z-base);
-  padding: var(--space-4);
   flex: 1;
+}
+
+/* Divider (@/components/ui) deckt seit Befund B (192-13) Farbe UND Abstand der Trennlinie
+   vollständig selbst ab -- hier bleibt nur noch die responsive Sichtbarkeits-Entscheidung
+   lokal, die Divider.tsx's eigene Doku für eine von außen übergebene className ausdrücklich
+   erlaubt (NIE margin/background). */
+.posterMetaCard {
+  /* border-width:0 statt der von .cardNested geerbten (wenn auch unsichtbar transparenten)
+     1px-Standardrahmenbreite -- diese nimmt sonst trotz Farbe:transparent weiterhin 1px
+     Layoutfläche je Seite ein (border ist keine der von Befund B verbotenen Layout-
+     Eigenschaften, nur ein Größenkorrektur-Fix, siehe 192-13-SUMMARY.md). Ohne diese Korrektur
+     würde die Karte 2px schmaler/höher gerendert als vor der Umstellung (per Playwright-Messung
+     bestätigt). */
+  border-width: 0;
 }
 
 .posterWrapper {
@@ -34,13 +47,21 @@
   }
 }
 
-/* Nicht-einheitliche Abstände (space-4/space-5-Mischung zwischen Titelzeile/Badges/Beschreibung/
-   Tags) -- bewusst KEIN Stack hier, ein einzelner gap-Token würde die bisherigen, unterschiedlichen
-   vertikalen Abstände verändern (Zero-Pixel-Diff-Vorgabe dieser Phase, siehe 192-RESEARCH.md). */
+/* GUARD-AUSNAHME (192-15, siehe 192-13-SUMMARY.md "Guard exception for 192-15"): display:flex;
+   flex-direction:column bleibt lokal -- dieser Wrapper ordnet Titelzeile/Badges/Beschreibung/
+   Tags/Statistik/Banner/Verwandte-Anime vertikal an, mit einer bewusst NICHT-einheitlichen
+   Abstandsfolge (space-4/space-5-Mischung bei .titleRow/.badges/.description/.tagsSection/
+   .statsRow/.relatedSection weiter unten). Stack kann das nicht ausdrücken, ohne den
+   tatsächlichen Pixel-Rhythmus zu verändern (Zero-Pixel-Diff-Vorgabe dieser Phase, siehe
+   192-RESEARCH.md) -- jede einzelne Lücke bräuchte einen eigenen, nicht generalisierbaren
+   gap-Wert statt eines einzigen wiederverwendbaren Zwecks. Der eigene Innenabstand (vormals hier
+   als lokale Space-6-Polsterung deklariert) lebt seit Befund B (192-13) stattdessen als
+   responsiver Standardwert direkt in Card.module.css's .cardPublicHeroInfo-Variante (Card-
+   padding-Prop kann nur einen einzigen, nicht responsiven Wert tragen -- diese Variante trägt
+   deshalb ihren vollen, pro Haltepunkt unterschiedlichen Standardwert selbst). */
 .infoCardBody {
   display: flex;
   flex-direction: column;
-  padding: var(--space-6);
 }
 
 .titleRow {
@@ -149,8 +170,24 @@
 
   .posterMeta {
     align-items: center;
-    padding: var(--space-4) 0;
     flex: 0;
+  }
+
+  /* Hebt exakt die horizontalen --space-4 auf, die Cards padding-Prop (siehe JSX, variant="nested"
+     padding="4") unterhalb 767px unverändert mitbringt -- Card kennt nur einen einzigen, nicht
+     responsiven Skalenwert und kann die hier benötigte "nur oben/unten"-Mobil-Polsterung (0
+     links/rechts, Inhalt bleibt über .posterMeta/.genresSection zentriert) nicht selbst
+     ausdrücken. Oben/unten bleibt dabei unverändert bei --space-4. justify-items:center ersetzt
+     explizit Cards eigenen Grid-Standardwert ("stretch") für die direkten Kinder (Merklisten-
+     Knopf/Divider/Genres-Stack) -- ohne das würde der schmale "Zur Watchlist"-Knopf (width:auto
+     unterhalb 767px, siehe Button.module.css .buttonResponsiveBlock) hier plötzlich auf volle
+     Breite gestreckt statt wie zuvor an seiner eigenen Inhaltsbreite zentriert zu bleiben (per
+     Playwright-Messung bestätigt). Dokumentierte, genuinely-nicht-generalisierbare Ausnahme
+     (siehe 192-13-SUMMARY.md "Guard exception for 192-15"). */
+  .posterMetaCard {
+    margin-left: calc(-1 * var(--space-4));
+    margin-right: calc(-1 * var(--space-4));
+    justify-items: center;
   }
 
   .posterDivider {
@@ -162,7 +199,6 @@
   }
 
   .infoCardBody {
-    padding: var(--space-5);
     text-align: center;
   }
 

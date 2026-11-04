@@ -71,16 +71,25 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
             </div>
 
             <Stack gap="section" className={styles.posterMeta}>
-              <WatchlistAddButton animeID={anime.id} />
-              <Divider tone="onMedia" spacing="withinMetaBlock" className={styles.posterDivider} />
-              <Stack gap="tight" className={styles.genresSection}>
-                <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
-                <Cluster gap="badgeRow" className={styles.genres}>
-                  {anime.genres && anime.genres.length > 0 ? anime.genres.map((genre) => (
-                    <LinkChip key={genre} tone="scrim" href={buildFilterHref('genre', genre)}>{genre}</LinkChip>
-                  )) : <Text as="span" tone="onScrim">Anime</Text>}
-                </Cluster>
-              </Stack>
+              {/* variant="nested" ist die einzige bestehende, nachweislich transparente
+                  Card-Variante (siehe Card.module.css .cardNested) -- trägt hier NUR den
+                  Innenabstand (Card-padding-Prop), ohne eine zweite sichtbare Fläche über der
+                  Poster-Karte einzuführen. Das horizontale Mobil-Aufheben in
+                  .posterMetaCard (unten) ist die einzige Stelle, an der dieser Innenabstand
+                  responsiv von der Vorgabe abweicht -- Cards padding-Prop kennt nur einen
+                  einzigen, nicht responsiven Skalenwert. */}
+              <Card variant="nested" padding="4" className={styles.posterMetaCard}>
+                <WatchlistAddButton animeID={anime.id} />
+                <Divider tone="onMedia" spacing="withinMetaBlock" className={styles.posterDivider} />
+                <Stack gap="tight" className={styles.genresSection}>
+                  <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
+                  <Cluster gap="badgeRow" className={styles.genres}>
+                    {anime.genres && anime.genres.length > 0 ? anime.genres.map((genre) => (
+                      <LinkChip key={genre} tone="scrim" href={buildFilterHref('genre', genre)}>{genre}</LinkChip>
+                    )) : <Text as="span" tone="onScrim">Anime</Text>}
+                  </Cluster>
+                </Stack>
+              </Card>
             </Stack>
           </Card>
         }
