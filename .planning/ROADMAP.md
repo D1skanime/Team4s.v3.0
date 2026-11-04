@@ -3039,12 +3039,22 @@ Plans:
 - [x] 191-36-PLAN.md — Frontend: D-34 Release-Anzeige in allen drei Hinweis-Listen + schemafreie Episodenanzeige beim Eigengruppen-Pfad
 - [x] 191-37-PLAN.md — Phasenabschluss fuenfte Nachbesserung: D-36-Vorabpruefung (echter API-Check + D-35-Loeschung), DECISIONS.md, Regressionsgate, Live-UAT — **Checkpoint vom Nutzer am 2026-10-26 freigegeben, Phase 191 abgeschlossen**
 
-### Phase 192: Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (ki-run 261102-226d, Live-UAT-Befunde 19-22 vom 2026-11-04)
+### Phase 192: Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (ki-run 261102-226d, Live-UAT-Befunde 19-23 vom 2026-11-04)
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Die öffentliche Anime-Detailseite (`/anime/[id]`) besteht in allen fünf Pilot-Bausteinen
+(Anime-Kopf, Episoden-Bereich, Fansubgruppen-Auswahl, Release-Zeile, Randnavigation) ausschließlich
+aus Grundbausteinen (neue `Stack`/`Cluster`/`SplitLayout`-Layout-Primitives statt seiteneigenem
+Hand-Layout), die Randnavigation ist bereits im Server-HTML sichtbar statt erst nach Hydration, und
+die Release-Zeile richtet ihre Datenzeile korrekt an Titel/Gruppenname aus.
+**Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23
 **Depends on:** Phase 191
-**Plans:** 0 plans
+**Plans:** 7 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 192 to break down)
+- [ ] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
+- [ ] 192-02-PLAN.md — AnimeDetailHero besitzt Card+SplitLayout+Randnavigations-Slot vollständig (Befund 21)
+- [ ] 192-03-PLAN.md — FansubGroupPicker + FansubVersionBrowser-Episodenliste auf Stack/Cluster (Befund 23)
+- [ ] 192-04-PLAN.md — AnimeDetailView-Vereinfachung, page.module.css-Reinheit, Architektur-Doku (Befund 22)
+- [ ] 192-05-PLAN.md — SSR-Randnavigation: resolveAnimeNeighbors serverseitig (Befund 19)
+- [ ] 192-06-PLAN.md — Release-Zeilen-Einrückung über Cluster+Stack (Befund 20)
+- [ ] 192-07-PLAN.md — Vollständiger Regressionslauf + Playwright-Bildpaar-Nachweis (main vs. Branch, Storybook vs. Live-Seite)

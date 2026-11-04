@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: planned
-stopped_at: Phase 191 complete — Live-Checkpoint vom Nutzer freigegeben (2026-10-26)
-last_updated: "2026-10-26T00:00:00.000Z"
-last_activity: 2026-10-26
+status: "191-35 abgeschlossen (D-30: echter Projekttitel statt Episode-Titel + Release-"
+stopped_at: Phase 192 UI-SPEC approved
+last_updated: "2026-11-04T09:37:30.809Z"
+last_activity: "2026-11-02 - Completed quick task 261102-hlg: Schritt 3 (LinkChip/BannerSection/Card-Glas-Varianten + Design-System-Pflichtnutzung fuer /anime, /anime/[id], EpisodeGlassCard/ReleasePreviewRow-Migration) -- beantwortet die Rueckfrage aus 261102-cb2; sieben Code-Review-Befunde remediiert"
 progress:
-  total_phases: 56
+  total_phases: 57
   completed_phases: 50
   total_plans: 530
   completed_plans: 523
-  percent: 89
+  percent: 88
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -2334,8 +2334,8 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-10-24T12:40:00.000Z
-Stopped at: Completed 191-35-PLAN.md
+Last session: 2026-11-04T09:37:30.767Z
+Stopped at: Phase 192 UI-SPEC approved
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
-None
+.planning/phases/192-ffentliche-anime-detailseite-baustein-reinheit-ssr-randnavig/192-UI-SPEC.md
