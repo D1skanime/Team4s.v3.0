@@ -15,18 +15,18 @@
   width: 100%;
 }
 
-.headerTitleRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  width: 100%;
-}
+/* .headerTitleRow entfaellt: die Kopfzeilen-Anordnung (Titel-Block links, Versionszaehler
+   rechtsbuendig) kommt jetzt vollstaendig ueber Cluster gap="labelWithTrailingMeta" (siehe
+   EpisodeGlassCard.tsx) -- Cluster uebernimmt display:flex/gap/justify selbst, DisclosureTrigger
+   gibt ihm bereits ueber .disclosureTriggerTitle { flex:1 } die volle Breite vor. */
 
+/* headerText traegt bewusst KEIN eigenes display:flex/flex-direction mehr: die drei Kind-Spans
+   (Episodennummer/Titel/Klassifikation) sind bereits display:block und stapeln sich dadurch mit
+   0px Standardabstand vertikal -- genau das bisherige Ergebnis des wirkungslosen
+   flex-direction:column ohne eigenes gap. */
 .headerText {
+  display: block;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
 }
 
 .episodeNumber {
@@ -48,9 +48,18 @@
   white-space: nowrap;
 }
 
+/*
+ * Guard-Ausnahme (Befund B, Runde 3, dokumentiert fuer den kommenden Baustein-Reinheits-Guard aus
+ * Plan 192-15): .versionList behaelt ihr eigenes `padding:` als dokumentierte Einzelfall-
+ * Ausnahme -- der Innenabstand ist ASYMMETRISCH (oben/seitlich/unten drei verschiedene Werte),
+ * Cards generischer `padding`-Override-Hook (Plan 192-11) kennt dagegen nur EINEN einzigen,
+ * gleichmaessigen Wert fuer alle vier Seiten. .versionList ist zudem kein eigenes Card-Element,
+ * sondern ein reiner Trennabschnitt INNERHALB der umschliessenden Card -- Cards Hook greift hier
+ * ohnehin nicht. `border-top` ist Teil derselben, eng begruendeten Ausnahme (visuelle Trennlinie
+ * zum Kopfzeilenbereich). Das fruehere `display:grid;gap:` ist dagegen ECHTE Layout-CSS und
+ * wurde durch Stack gap="section" ersetzt (siehe EpisodeGlassCard.tsx).
+ */
 .versionList {
   border-top: 1px solid var(--border-on-media);
   padding: var(--space-3) var(--space-4) var(--space-4);
-  display: grid;
-  gap: var(--space-3);
 }

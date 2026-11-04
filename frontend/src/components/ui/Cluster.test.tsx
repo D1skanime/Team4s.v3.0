@@ -26,6 +26,12 @@ describe('Cluster', () => {
 
     const { container: interactiveChipRow } = render(<Cluster gap="interactiveChipRow">Inhalt</Cluster>)
     expect((interactiveChipRow.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe('var(--space-interactive-chip-row)')
+
+    const { container: labelWithTrailingMeta } = render(<Cluster gap="labelWithTrailingMeta">Inhalt</Cluster>)
+    expect((labelWithTrailingMeta.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe('var(--space-label-with-trailing-meta)')
+
+    const { container: mediaCaption } = render(<Cluster gap="mediaCaption">Inhalt</Cluster>)
+    expect((mediaCaption.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe('var(--space-media-caption)')
   })
 
   it('übersetzt justify in das reale CSS-Schlüsselwort', () => {

@@ -115,6 +115,50 @@ export const Aktionsreihe: Story = {
   },
 }
 
+export const BeschriftungMitZusatzinfo: Story = {
+  name: 'Beschriftung + Zusatzinfo (gap "labelWithTrailingMeta")',
+  args: {
+    gap: 'labelWithTrailingMeta',
+    justify: 'between',
+    wrap: false,
+    children: (
+      <>
+        <Chip label="Episodentitel" />
+        <Chip label="3 Versionen" />
+      </>
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Eine Hauptbeschriftung links und eine an das Zeilenende gedrückte, untergeordnete Zusatzinfo rechts (z. B. die Episodenkarten-Kopfzeile aus `EpisodeGlassCard`: Titel-Block + Versionszähler-Badge). Enger als "contentPair", weil die zweite Spalte hier keine gleichrangige Inhaltsspalte ist, sondern nur eine kurze Zusatzinfo.',
+      },
+    },
+  },
+}
+
+export const BildMitBildunterschrift: Story = {
+  name: 'Bild + Bildunterschrift (gap "mediaCaption")',
+  args: {
+    gap: 'mediaCaption',
+    align: 'start',
+    wrap: false,
+    children: (
+      <>
+        <span style={{ width: 48, height: 68, background: '#555', borderRadius: 4, flexShrink: 0 }} />
+        <Chip label="Titel und Typ des Vorschaubilds" />
+      </>
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Ein Vorschaubild neben seiner Bildunterschrift (z. B. die Randnavigations-Vorschaukarte aus `AnimeEdgeNavigation`: Cover-Thumbnail + Titel/Typ-Textblock).',
+      },
+    },
+  },
+}
+
 export const OhneUmbruch: Story = {
   name: 'Ohne Umbruch (wrap=false)',
   args: {

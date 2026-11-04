@@ -92,6 +92,8 @@
   --space-interactive-chip-row: var(--space-3); /* Cluster: Reihe klickbarer Filter-/Auswahl-Chips (z. B. Fansub-Gruppen-Umschalter). */
   --space-content-pair: var(--space-4); /* Cluster: zwei unterschiedliche, gleichrangige Inhaltsbloecke nebeneinander (z. B. Avatar-Gruppe neben Textspalte). */
   --space-action-row: var(--space-5); /* Cluster: Aktionslink-Reihe, meist durch eine Trennlinie vom Inhalt oben abgesetzt. */
+  --space-label-with-trailing-meta: var(--space-3); /* Cluster: Hauptbeschriftung + an das Zeilenende gedrueckte Zusatzinfo (z. B. Episodenkarten-Kopfzeile: Titel-Block + Versionszaehler-Badge). */
+  --space-media-caption: var(--space-3); /* Cluster: Vorschaubild neben seiner Bildunterschrift (z. B. Randnavigations-Vorschaukarte: Cover-Thumbnail + Titel/Typ-Textblock). */
   --split-layout-column-poster: var(--media-frame-poster-width); /* SplitLayout: Posterspalte des Anime-Kopfs (Standardbreite, >=1024px). */
   --split-layout-column-poster-medium: var(--media-frame-poster-width-medium); /* SplitLayout: Posterspalte des Anime-Kopfs unterhalb 1024px -- spiegelt die bestehende Postergroessen-Stufe aus components.css. */
   --split-layout-gap-none: 0; /* SplitLayout: kein Abstand zwischen den beiden Spalten -- der Anime-Kopf setzt Poster- und Info-Karte direkt aneinander, der Zwischenraum zwischen den Spalten entsteht bereits ueber das Card-eigene Rahmen-/Schattenbild. */

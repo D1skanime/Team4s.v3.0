@@ -3,7 +3,9 @@
 import type { ReactNode } from 'react'
 
 import { Card } from '@/components/ui/Card'
+import { Cluster } from '@/components/ui/Cluster'
 import { DisclosureTrigger } from '@/components/ui/DisclosureTrigger'
+import { Stack } from '@/components/ui/Stack'
 import { Text } from '@/components/ui/Text'
 import type { PublicGroupedEpisode } from '@/types/episodeVersion'
 
@@ -63,7 +65,7 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
           aria-controls={panelId}
           open={expanded}
           title={
-            <span className={styles.headerTitleRow}>
+            <Cluster as="span" gap="labelWithTrailingMeta" justify="between" align="center" wrap={false}>
               <span className={styles.headerText}>
                 <Text as="span" variant="meta" style={mutedOnGlassTextStyle} className={styles.episodeNumber}>
                   Folge {episode.episode_number}
@@ -78,13 +80,17 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
               <Text as="span" variant="meta" style={mutedOnGlassTextStyle} className={styles.versionCounter}>
                 {formatVersionCountLabel(episode.version_count)}
               </Text>
-            </span>
+            </Cluster>
           }
         />
 
         {expanded ? (
           <div id={panelId} className={styles.versionList}>
-            {children}
+            {/* D-20-Folgefall: die einzelnen ReleasePreviewRow-Instanzen bekommen ihren
+                Zwischenabstand ueber Stacks "section"-Zweck (trennt voneinander unabhaengige
+                Episodenzeilen) statt eines lokalen CSS-Grids -- exakt derselbe Zweck, den
+                Stack.tsx fuer "einzelne Episodenzeilen in der Episodenliste" bereits dokumentiert. */}
+            <Stack gap="section">{children}</Stack>
           </div>
         ) : null}
       </Card>

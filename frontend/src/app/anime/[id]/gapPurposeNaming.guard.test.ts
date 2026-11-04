@@ -15,6 +15,8 @@ const guardedCallSiteFiles = [
   join(process.cwd(), 'src/components/fansubs/FansubGroupPicker.tsx'),
   join(process.cwd(), 'src/components/fansubs/FansubVersionBrowser.tsx'),
   join(process.cwd(), 'src/components/fansubs/ReleasePreviewRow.tsx'),
+  join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.tsx'),
+  join(process.cwd(), 'src/components/anime/AnimeEdgeNavigation.tsx'),
 ]
 
 const forbiddenRawValuePatterns = [

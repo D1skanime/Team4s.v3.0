@@ -11,12 +11,25 @@ import styles from './Cluster.module.css'
  *  - `'contentPair'`: zwei unterschiedliche, gleichrangige Inhaltsblöcke nebeneinander (z. B.
  *    Avatar-Gruppe neben Textspalte).
  *  - `'actionRow'`: Aktionslink-Reihe, meist durch eine Trennlinie vom Inhalt oben abgesetzt.
+ *  - `'labelWithTrailingMeta'`: eine Hauptbeschriftung links, eine an das Zeilenende gedrückte
+ *    Zusatzinfo rechts (z. B. die Episodenkarten-Kopfzeile: Titel-Block + Versionszähler-Badge).
+ *    Bewusst NICHT `'contentPair'` wiederverwendet, obwohl beide zwei Bloecke nebeneinander
+ *    setzen: `'contentPair'` beschreibt zwei GLEICHRANGIGE Bloecke (var(--space-4)), hier ist der
+ *    zweite Block eine untergeordnete Zusatzinfo bei engerem Soll-Abstand (var(--space-3)).
+ *  - `'mediaCaption'`: ein Vorschaubild neben seiner Bildunterschrift (z. B. die
+ *    Randnavigations-Vorschaukarte: Cover-Thumbnail + Titel/Typ-Textblock).
  *  Cluster deklariert diese Enum bewusst eigenständig statt sie aus './Stack' zu importieren --
  *  Cluster ist ein eigenständiger Grundbaustein und darf laut Katalog-Taxonomie
  *  (catalogTaxonomy.test.ts) keinen anderen, selbst katalogisierten Grundbaustein importieren,
  *  auch keinen reinen Typ-Import (die Prüfung durchsucht ausschließlich den Quelltext nach
  *  `from './X'`). */
-export type ClusterGapPurpose = 'badgeRow' | 'interactiveChipRow' | 'contentPair' | 'actionRow'
+export type ClusterGapPurpose =
+  | 'badgeRow'
+  | 'interactiveChipRow'
+  | 'contentPair'
+  | 'actionRow'
+  | 'labelWithTrailingMeta'
+  | 'mediaCaption'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
  *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `ClusterGapPurpose`-Dokumentation oben). */
@@ -25,6 +38,8 @@ const GAP_PURPOSE_TOKENS: Record<ClusterGapPurpose, string> = {
   interactiveChipRow: 'var(--space-interactive-chip-row)',
   contentPair: 'var(--space-content-pair)',
   actionRow: 'var(--space-action-row)',
+  labelWithTrailingMeta: 'var(--space-label-with-trailing-meta)',
+  mediaCaption: 'var(--space-media-caption)',
 }
 
 type ClusterJustify = 'start' | 'center' | 'end' | 'between'
