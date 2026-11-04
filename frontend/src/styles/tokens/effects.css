@@ -1,0 +1,62 @@
+/**
+ * Zweck-benannte Blur-/backdrop-filter-/color-mix-/Scrim-Transparenz-Rezepturen -- dieselbe
+ * Token-Disziplin, die Abstand (layout.css), Radius (layout.css) und Haltepunkte (layout.css)
+ * bereits haben, jetzt auch für visuelle Effekte. Jede Rezeptur wird AUSSCHLIESSLICH innerhalb
+ * genau EINER Datei unter components/ui/*.module.css eingesetzt (siehe Kommentar je Gruppe) --
+ * zusammengesetzte Bausteine und Seiten schreiben niemals ein rohes filter:/backdrop-filter:/
+ * color-mix(/rgba(/hsla( selbst, sondern komponieren den fertigen Grundbaustein in der dafür
+ * vorgesehenen Variante. Die fünf Rezepturen unten sind reine Verschiebungen aus components.css
+ * (Befund 26, Live-UAT-Nachtrag 2026-11-04b) -- keine Wertänderung, keine Verhaltensänderung,
+ * nur ein eigenes, zum jeweiligen Einsatzzweck beschriftetes Zuhause statt verstreuter Literale
+ * zwischen components.css/colors.css/palette.css. Storybook "Grundlagen/Effekte"
+ * (EffectsShowcase) zeigt jede Rezeptur live über einem echten Bild; effectTokenPurity.guard.test.ts
+ * hält die bereits in dieser Phase angefassten zusammengesetzten Baustein-Dateien frei von rohen
+ * Effekt-Literalen (phasen-begrenzt, kein repo-weiter Abgleich).
+ */
+:root {
+  /* BannerSection -- unscharfer Bannerbild-Hintergrund. Blur-/Helligkeits-/Sättigungs-/
+     Skalierungs-Rezeptur für das großflächige, leicht abgedunkelte Hintergrundbild hinter dem
+     eigentlichen Seiteninhalt (z. B. Anime-Kopf-Banner). Einziger Konsument:
+     BannerSection.module.css. */
+  --banner-backdrop-blur: 34px;
+  --banner-backdrop-brightness: 0.72;
+  --banner-backdrop-saturate: 1.25;
+  --banner-backdrop-scale: 1.15;
+
+  /* LinkChip tone="glass" -- Glas-Fläche auf hellem Bildhintergrund. Heller, durchscheinender
+     Chip für Verlinkungen auf einer ohnehin schon hellen Bild-/Glasfläche (z. B. Poster-Glasfläche
+     des Anime-Kopf-Bausteins). Einziger Konsument: LinkChip.module.css. */
+  --linkchip-glass-bg: rgba(255, 255, 255, 0.1);
+  --linkchip-glass-border: var(--border-on-media);
+  --linkchip-glass-text: rgba(255, 255, 255, 0.9);
+  --linkchip-glass-bg-hover: rgba(255, 255, 255, 0.15);
+  --linkchip-glass-border-hover: var(--border-on-media-strong);
+
+  /* LinkChip tone="scrim" -- Abdunklung unter Chip-Text auf Bild. Dunkler, blickdichterer Chip
+     für Verlinkungen auf einem fast transparenten, potenziell hellen Bildbereich, bei dem der
+     Chip selbst für Lesbarkeit sorgen muss statt sich auf eine bereits abgedunkelte Fläche zu
+     verlassen. Einziger Konsument: LinkChip.module.css. */
+  --linkchip-scrim-bg: rgba(20, 18, 16, 0.62);
+  --linkchip-scrim-border: rgba(255, 255, 255, 0.18);
+  --linkchip-scrim-text: rgba(255, 255, 255, 0.92);
+  --linkchip-scrim-bg-hover: rgba(20, 18, 16, 0.78);
+  --linkchip-scrim-border-hover: rgba(255, 255, 255, 0.3);
+
+  /* Button variant="chipGlass" -- Glas-Knopf auf Bildfläche. Durchscheinender Knopf für
+     Aktionen direkt auf einem Bildhintergrund (z. B. Randnavigations-Vorschaukarte), mit
+     eigener Unschärfe/Sättigung statt einer deckenden Standard-Knopffläche. Einziger Konsument:
+     Button.module.css. */
+  --button-chip-glass-bg: rgba(255, 255, 255, 0.16);
+  --button-chip-glass-bg-hover: rgba(255, 255, 255, 0.2);
+  --button-chip-glass-border: rgba(255, 255, 255, 0.28);
+  --button-chip-glass-blur: 8px;
+  --button-chip-glass-saturate: 1.1;
+
+  /* Badge variant="onMedia" -- Abzeichen auf Bildfläche. Dunkel abgesetzter, halbtransparenter
+     Hintergrund für ein Status-Abzeichen, das direkt auf einem Bild liegt (statt auf der
+     üblichen hellen Kartenfläche) und dort trotzdem lesbar bleiben muss. Einziger Konsument:
+     Badge.module.css. */
+  --badge-onmedia-bg: rgba(16, 16, 20, 0.72);
+  --badge-onmedia-text: #ffffff;
+  --badge-onmedia-border: rgba(255, 255, 255, 0.48);
+}

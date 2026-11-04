@@ -122,11 +122,6 @@
   --button-watchlist-text: #000;
   --button-watchlist-shadow-hover: 0 6px 20px rgba(255, 138, 76, 0.4);
   --button-watchlist-radius: 24px;
-  --button-chip-glass-bg: rgba(255, 255, 255, 0.16);
-  --button-chip-glass-bg-hover: rgba(255, 255, 255, 0.2);
-  --button-chip-glass-border: rgba(255, 255, 255, 0.28);
-  --button-chip-glass-blur: 8px;
-  --button-chip-glass-saturate: 1.1;
   --button-chip-glass-active-text: #ffffff;
   --button-chip-glass-active-border-width: 2px;
 
@@ -180,9 +175,6 @@
   --badge-muted-bg-default: rgba(255, 255, 255, 0.38);
   --badge-muted-fg-default: #66758d;
   --badge-muted-border: rgba(92, 105, 131, 0.1);
-  --badge-onmedia-bg: rgba(16, 16, 20, 0.72);
-  --badge-onmedia-text: #ffffff;
-  --badge-onmedia-border: rgba(255, 255, 255, 0.48);
 
   /* AdjacentNavigation */
   --adjacent-nav-gap: 12px;
@@ -298,34 +290,21 @@
      Poster-Glasfläche), "scrim" den bisherigen .tagChip-Look (dunkler, blickdichterer Chip auf
      dem fast transparenten unteren Bereich der Info-Karte) -- Werte 1:1 aus
      frontend/src/app/anime/[id]/page.module.css (vormals Zeilen 301-321/425-454) übernommen, nur
-     als globale Tokens geführt statt seiten-lokaler Literale. Der Rand von "glass" referenziert
-     --border-on-media (unten) statt eines eigenen Literals, da beide dieselbe "Rand auf dunkler
-     Fläche"-Entscheidung tragen und sonst stillschweigend auseinanderlaufen könnten. */
+     als globale Tokens geführt statt seiten-lokaler Literale. Die eigentlichen Glas-/Scrim-
+     Transparenz-Rezepturen (--linkchip-glass-*/--linkchip-scrim-*) sind seit Befund 26 nach
+     styles/tokens/effects.css ausgelagert -- hier bleiben nur die reinen Größen-Tokens (Padding/
+     Radius/Schriftgröße), die zu keiner Effekt-Rezeptur gehören. */
   --linkchip-padding-y: 8px;
   --linkchip-padding-x: 14px;
   --linkchip-radius: 14px;
   --linkchip-font-size: 13px;
-  --linkchip-glass-bg: rgba(255, 255, 255, 0.1);
-  --linkchip-glass-border: var(--border-on-media);
-  --linkchip-glass-text: rgba(255, 255, 255, 0.9);
-  --linkchip-glass-bg-hover: rgba(255, 255, 255, 0.15);
-  --linkchip-glass-border-hover: var(--border-on-media-strong);
-  --linkchip-scrim-bg: rgba(20, 18, 16, 0.62);
-  --linkchip-scrim-border: rgba(255, 255, 255, 0.18);
-  --linkchip-scrim-text: rgba(255, 255, 255, 0.92);
-  --linkchip-scrim-bg-hover: rgba(20, 18, 16, 0.78);
-  --linkchip-scrim-border-hover: rgba(255, 255, 255, 0.3);
 
-  /* BannerSection -- unscharfer Bannerbild-Hintergrund + WCAG-AA-Scrim. Blur-/Helligkeits-/
-     Sättigungs-/Skalierungs-Rezeptur 1:1 aus FansubHeroSections bereits bewährtem
-     .heroBackdropTuning übernommen (frontend/src/app/fansubs/[slug]/page.module.css), nicht aus
-     der bisherigen, schwächer kontrastierten .bannerImage-Fläche der Anime-Detailseite. */
+  /* BannerSection -- Größen-Tokens der Bannerfläche selbst. Die unscharfe Bannerbild-Hintergrund-
+     Rezeptur (--banner-backdrop-*) ist seit Befund 26 nach styles/tokens/effects.css ausgelagert;
+     --banner-scrim-bg-strong bleibt hier, da es ein eigenständiger, nicht im Befund-26-Umfang
+     benannter Token ist. */
   --banner-height: 200px;
   --banner-height-mobile: 100px;
-  --banner-backdrop-blur: 34px;
-  --banner-backdrop-brightness: 0.72;
-  --banner-backdrop-saturate: 1.25;
-  --banner-backdrop-scale: 1.15;
   --banner-scrim-bg-strong: rgba(10, 8, 14, 0.88);
   /* Variante "anime" (BannerSection variant="anime"): reproduziert die bisherige, schwächer
      kontrastierte .bannerImage-Rezeptur der Anime-Detailseite 1:1 -- schwächere Unschärfe, keine

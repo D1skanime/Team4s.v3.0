@@ -46,8 +46,10 @@ const badgeCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/components/ui/Badge.module.css'),
   'utf8',
 )
-const componentsTokensCss = fs.readFileSync(
-  path.resolve(process.cwd(), 'src/styles/tokens/components.css'),
+// Die --badge-onmedia-*-Rezeptur wanderte mit Befund 26 von components.css nach effects.css
+// (eigenes Zuhause für Blur-/Glas-/Scrim-Zweck-Tokens) -- dieselben Werte, andere Quelldatei.
+const effectsTokensCss = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/styles/tokens/effects.css'),
   'utf8',
 )
 const globalsCss = readGlobalsCssResolved()
@@ -214,11 +216,11 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
     // Hintergrund (Chip ist selbst teiltransparent), danach der Badge-Text über diesem bereits
     // gemischten Chip-Hintergrund -- nicht nur direkt gegen den Scrim, da der Text optisch auf
     // der Chip-Fläche liegt, nicht auf dem rohen Scrim. Die Werte kommen seit der onMedia-
-    // Migration aus den festen --badge-onmedia-bg/-text-Tokens in components.css (identisch zu
-    // den vormals von page.module.css injizierten --badge-muted-bg/-fg-Overrides), nicht mehr
-    // aus einer von außen gesetzten CSS-Variable.
-    const bgToken = extractVarValue(componentsTokensCss, ':root', 'badge-onmedia-bg')
-    const fgToken = extractVarValue(componentsTokensCss, ':root', 'badge-onmedia-text')
+    // Migration aus den festen --badge-onmedia-bg/-text-Tokens, seit Befund 26 in effects.css
+    // geführt (identisch zu den vormals von page.module.css injizierten --badge-muted-bg/-fg-
+    // Overrides), nicht mehr aus einer von außen gesetzten CSS-Variable.
+    const bgToken = extractVarValue(effectsTokensCss, ':root', 'badge-onmedia-bg')
+    const fgToken = extractVarValue(effectsTokensCss, ':root', 'badge-onmedia-text')
     const chipBackground =
       bgToken.alpha < 1 ? mix(bgToken.rgb, worstCaseBackground, bgToken.alpha) : bgToken.rgb
     const renderedText =
