@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-02-PLAN.md
-last_updated: "2026-11-04T10:45:02.622Z"
+stopped_at: Completed 192-03-PLAN.md
+last_updated: "2026-11-04T10:49:30.539Z"
 last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 537
-  completed_plans: 525
+  completed_plans: 526
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1567,6 +1567,7 @@ Last activity: 2026-11-04
 - [Phase 191-35]: Dadurch aufgedeckter Bug in useProposalFormReleaseSelection behoben -- der Reset-Effekt lief bisher auch beim allerersten Mount und haette eine per initialReleaseVersionId vorausgewaehlte Release-ID sofort wieder verworfen; ein previousAnimeIdRef unterscheidet jetzt "erster Lauf" von "echte Aenderung"
 - [Phase 192]: SpaceToken-Literal-Typ in Cluster/SplitLayout lokal wiederholt statt aus Stack importiert — catalogTaxonomy.test.ts wertet jeden textuellen from './Stack'-Import als Grundbaustein-Verbund, auch bei reinem Typ-Import -- Import haette die Guard-Datei unveraendert nicht gruen gehalten
 - [Phase 192]: AnimeDetailView.tsx/page.module.css ergänzend geändert (entgegen PLAN.md files_modified) — sonst doppelt verschachtelte Hero-Karte + leerlaufender edgeNavigationOverlay-Hook (192-02)
+- [Phase 192]: FansubGroupPicker: leerer .chipRow-CSS-Selektor nach Stack/Cluster-Migration vollständig entfernt (samt className-Prop), statt als leere Hülle zu verbleiben — Cluster übernimmt die gesamte visuelle Verantwortung der Chip-Reihe; eine leere CSS-Regel wäre toter Code
 
 ### Pending Todos
 
@@ -2335,11 +2336,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P35 | ~90min | 2 tasks | 9 files |
 | Phase 192 P01 | ~20min | 2 tasks | 13 files |
 | Phase 192 P02 | ~20min | 2 tasks | 10 files |
+| Phase 192 P03 | ~5min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T10:45:02.595Z
-Stopped at: Completed 192-02-PLAN.md
+Last session: 2026-11-04T10:49:19.981Z
+Stopped at: Completed 192-03-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
