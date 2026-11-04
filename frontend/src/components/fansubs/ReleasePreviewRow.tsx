@@ -75,12 +75,12 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
   )
 
   return (
-    // Card bringt eigene display:grid-/Padding-Regeln für ALLE Varianten mit (70+
-    // Verwendungsstellen) -- das Flex-Row-Layout + Innenabstand dieser Zeile lebt deshalb in
-    // einem eigenen inneren Wrapper (.row) statt auf Cards Wurzelelement selbst, sonst würden
-    // beide Dateien um dieselbe display-/padding-Eigenschaft konkurrieren (Cross-Modul-
-    // Spezifitätsgleichstand, nicht zuverlässig über die Bündel-Ladereihenfolge entscheidbar).
-    <Card variant="glassStrong">
+    // Innenabstand kommt jetzt ausschliesslich über Cards generischen padding-Override-Hook
+    // (Befund B, Runde 3) -- der zuvor hier dokumentierte Zustaendigkeits-Konflikt zwischen
+    // Cards eigenen Varianten-Regeln und einem lokalen `padding:` auf .row entfaellt dadurch, da
+    // .row selbst kein `padding:` mehr deklariert. Das responsive Flex-Row-Layout von .row bleibt
+    // eine eng dokumentierte Einzelfall-Ausnahme (siehe ReleasePreviewRow.module.css).
+    <Card variant="glassStrong" padding="3">
       <div className={styles.row}>
         {groups.length > 0 ? (
           // Avatar(e) + Text-Stack nebeneinander, NIE übereinander (wrap={false}) -- die

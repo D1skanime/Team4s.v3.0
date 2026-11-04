@@ -3,11 +3,24 @@
  * (variant="glassStrong") und den globalen Card-Glas-Tokens in
  * styles/tokens/components.css, nicht mehr aus feature-lokalen Glas-Literalen.
  */
+
+/*
+ * Guard-Ausnahme (Befund B, Runde 3, dokumentiert fuer den kommenden Baustein-Reinheits-Guard
+ * aus Plan 192-15): .row behaelt als EINZIGE Ausnahme dieser Datei ein eigenes
+ * `display:flex`/`flex-direction`/`gap`, weil keiner der bestehenden Layout-Grundbausteine die
+ * hier benoetigte Haltepunkt-Umkehr abbilden kann -- unterhalb 768px muss die Zeile UNTEREINANDER
+ * stehen, ab 768px NEBENEINANDER mit `justify-content: space-between`. `SplitLayout` scheidet aus:
+ * seine erste Spalte ist immer die feste/schmale und die zweite immer die flexible -- hier ist es
+ * genau umgekehrt (der Text-/Avatar-Block `.body` muss wachsen, die Aktionsspalte `.action` fest
+ * bleiben). `Cluster` scheidet aus: er kennt keine Haltepunkt-abhaengige Stapel-vs-Reihen-Umkehr,
+ * nur eine feste Ausrichtung. Der `gap`-Wert ist Teil derselben Ausnahme, kein separater Verstoss.
+ * Das Innenabstand (`padding:`) liegt NICHT mehr hier, sondern kommt ueber Cards eigenen
+ * `padding="3"`-Override-Hook (siehe ReleasePreviewRow.tsx).
+ */
 .row {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-3);
 }
 
 /* Trägt die Flex-Wachstumsregel gegenüber `.action` (siehe Breakpoint unten) -- ersetzt das
@@ -52,17 +65,21 @@
   display: block;
 }
 
-.extrasLine {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-}
+/*
+ * Rule-1-Fund (Befund B, Runde 3): `display:flex;flex-wrap:wrap;gap:var(--space-4);` war hier
+ * wirkungslose Alt-CSS -- `extras.join('   ')` liefert bereits EINEN zusammengefuegten Textknoten
+ * statt mehrerer Kind-Elemente, ein Flex-Container ohne mehrere Kinder hat nichts zum Umbrechen.
+ * .extrasLine faellt dadurch auf dieselbe `display:block`-Regel wie .techLine/.dateLine oben
+ * zurueck -- keine sichtbare Aenderung, nur toter Code entfernt.
+ */
 
-.action {
-  display: flex;
-  justify-content: flex-end;
-}
-
+/*
+ * .action traegt selbst KEIN eigenes Layout-CSS mehr -- `display:flex;justify-content:flex-end`
+ * war hier wirkungslos: .action enthaelt immer nur EIN Kind (den Button), dessen eigene
+ * `width`-Regel unten die Positionierung bereits vollstaendig bestimmt, unabhaengig vom
+ * `display`-Wert des Elternelements. Die tatsaechliche Endausrichtung kommt stattdessen aus
+ * .row's eigenem `justify-content: space-between` (Desktop) bzw. aus `width: 100%` (Mobil).
+ */
 .action > a,
 .action > button {
   width: 100%;
@@ -82,9 +99,10 @@
     min-width: 0;
   }
 
+  /* flex-shrink ist eine Flex-ITEM-Eigenschaft (wirkt auf .action als Kind von .row, nicht als
+     eigener Container) -- Teil der .row-Ausnahme oben, kein eigenstaendiges Layout-CSS. */
   .action {
     flex-shrink: 0;
-    justify-content: flex-end;
   }
 
   .action > a,
