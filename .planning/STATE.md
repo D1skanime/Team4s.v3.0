@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: "191-35 abgeschlossen (D-30: echter Projekttitel statt Episode-Titel + Release-"
-stopped_at: Phase 192 UI-SPEC approved
-last_updated: "2026-11-04T09:37:30.809Z"
-last_activity: "2026-11-02 - Completed quick task 261102-hlg: Schritt 3 (LinkChip/BannerSection/Card-Glas-Varianten + Design-System-Pflichtnutzung fuer /anime, /anime/[id], EpisodeGlassCard/ReleasePreviewRow-Migration) -- beantwortet die Rueckfrage aus 261102-cb2; sieben Code-Review-Befunde remediiert"
+status: executing
+stopped_at: Completed 192-01-PLAN.md
+last_updated: "2026-11-04T10:27:48.155Z"
+last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
-  total_plans: 530
-  completed_plans: 523
+  total_plans: 537
+  completed_plans: 524
   percent: 88
 ---
 
@@ -452,15 +452,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 191 — hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen
+**Current focus:** Phase 192 — Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 191 (hinweis-senden-auch-an-andere-fansub-gruppen-mitglieder-koen) — EXECUTING
-Plan: 35 (fünfte Gap-Closure-Runde, 37 Pläne total laut ROADMAP.md, 33 SUMMARYs)
-Status: 191-35 abgeschlossen (D-30: echter Projekttitel statt Episode-Titel + Release-
+Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung) — EXECUTING
+Plan: 2 of 7
+Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -601,7 +601,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-11-02 - Completed quick task 261102-hlg: Schritt 3 (LinkChip/BannerSection/Card-Glas-Varianten + Design-System-Pflichtnutzung fuer /anime, /anime/[id], EpisodeGlassCard/ReleasePreviewRow-Migration) -- beantwortet die Rueckfrage aus 261102-cb2; sieben Code-Review-Befunde remediiert
+Last activity: 2026-11-04
 
 ## Accumulated Context
 
@@ -1565,6 +1565,7 @@ Last activity: 2026-11-02 - Completed quick task 261102-hlg: Schritt 3 (LinkChip
 - [Phase 191-36]: D-34s Eigengruppen-Teilfrage wurde umgesetzt statt offen dokumentiert -- MeAnimeContribution.episode_number existierte bereits (fruehere Phase), renderProposalCard zeigte es bisher nur nie an
 - [Phase 191-35]: Abweichung von Plan 191-34s eigener Next-Phase-Notiz (zweite Hook-Instanz fuer den Kontext-Einstieg) -- stattdessen wird die EINE bestehende releaseSelection-Instanz in ProposalForm.tsx im prefill-Pfad jetzt mit echten prefill.animeId/-fansubGroupId statt bewusst null aufgerufen, wie vom PLAN.md dieses Plans explizit verlangt
 - [Phase 191-35]: Dadurch aufgedeckter Bug in useProposalFormReleaseSelection behoben -- der Reset-Effekt lief bisher auch beim allerersten Mount und haette eine per initialReleaseVersionId vorausgewaehlte Release-ID sofort wieder verworfen; ein previousAnimeIdRef unterscheidet jetzt "erster Lauf" von "echte Aenderung"
+- [Phase 192]: SpaceToken-Literal-Typ in Cluster/SplitLayout lokal wiederholt statt aus Stack importiert — catalogTaxonomy.test.ts wertet jeden textuellen from './Stack'-Import als Grundbaustein-Verbund, auch bei reinem Typ-Import -- Import haette die Guard-Datei unveraendert nicht gruen gehalten
 
 ### Pending Todos
 
@@ -2331,11 +2332,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 191 P34 | 70min | 2 tasks | 11 files |
 | Phase 191 P36 | ~35min | 2 tasks | 8 files |
 | Phase 191 P35 | ~90min | 2 tasks | 9 files |
+| Phase 192 P01 | ~20min | 2 tasks | 13 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T09:37:30.767Z
-Stopped at: Phase 192 UI-SPEC approved
+Last session: 2026-11-04T10:27:48.115Z
+Stopped at: Completed 192-01-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
-.planning/phases/192-ffentliche-anime-detailseite-baustein-reinheit-ssr-randnavig/192-UI-SPEC.md
+None
