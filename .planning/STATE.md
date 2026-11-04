@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-08-PLAN.md
-last_updated: "2026-11-04T12:37:45.431Z"
+stopped_at: Completed 192-09-PLAN.md
+last_updated: "2026-11-04T13:13:25.706Z"
 last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 540
-  completed_plans: 530
+  completed_plans: 531
   percent: 88
 ---
 
@@ -459,8 +459,8 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung) — EXECUTING
-Plan: 8 of 10
-Status: Executing — Plan 192-08 (Befund 24, Zweck-Namen statt Groessen-/Nummernnamen fuer Grundbausteine) abgeschlossen. Nachtrag vom 2026-11-04 (addendum_2026-11-04b) erweiterte die Phase um drei weitere Plaene (08/09/10) ueber die urspruengliche 7-Plan-Zaehlung hinaus -- Plaene 192-09 (Befund 25) und 192-10 (Befund 26) stehen noch aus, danach folgt der Phasenabschluss (ehem. Plan 192-07).
+Plan: 9 of 10
+Status: Executing — Plan 192-09 (Befund 25, keine Klick-Simulationstests mehr) abgeschlossen: useFansubGroupSwitch/useWatchlistAction-Hooks extrahiert, sechs betroffene Testdateien auf direkte Hook-/Component(props)-Aufrufe statt fireEvent/userEvent umgestellt. Nur Plan 192-10 (Befund 26) steht noch aus, danach folgt der Phasenabschluss (ehem. Plan 192-07).
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1573,6 +1573,9 @@ Last activity: 2026-11-04
 - [Phase 192]: resolveAnimeNeighbors() ist die einzige geteilte Implementierung der Index-/Seitenrand-Nachbarn-Logik -- Server (page.tsx) und Client (AnimeEdgeNavigation-Vorschau) rufen sie beide auf statt sie zu duplizieren
 - [Phase 192]: ReleasePreviewRow nutzt Cluster(wrap=false)+Stack statt SplitLayout fuer die Avatar+Text-Spaltenausrichtung — SplitLayouts Container-Query-Haltepunkt (768px/1024px) wuerde den Avatar bei 390px Mobil-Breite ueber den Text stapeln -- eine echte visuelle Regression; Cluster(wrap=false) hat keinen Stapel-Haltepunkt
 - [Phase 192]: Stack-Zweck-Enum hat genau zwei Mitglieder (section/tight), weil die bestehenden Stack-Storys bereits beide heutigen gap-Werte abdeckten. — Kein kuenstlich getrennter dritter Zweck -- ReleasePreviewRows gap=2-Stelle teilt sich den Zweck 'tight' mit den Label+Chip-Stellen, weil beide 'eng zusammengehoerig' sind.
+- [Phase 192-09]: Windowing-hook seed value (initial activeFansubSlug) computed inline before either hook call, since useWindowedEpisodePages needs it before useFansubGroupSwitch can supply its live, resetForFilter-dependent state -- resolveActiveFansubGroupID shared between the seed computation and the hook's own live derivation
+- [Phase 192-09]: Pagination's internal non-exported PagesPagination delegate uses useMemo -- direct Component(props) calls for it run inside renderHook instead of a bare function call, which would throw Invalid hook call
+- [Phase 192-09]: WatchlistAddButton test 'ignoring the old SSR hint' intentionally kept as render()+fireEvent.click -- useWatchlistAction does not accept initiallyInWatchlist, so there is no isolated-hook equivalent for that specific coverage
 
 ### Pending Todos
 
@@ -2346,11 +2349,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P05 | ~20min | 2 tasks | 10 files |
 | Phase 192 P06 | ~15min | 2 tasks | 3 files |
 | Phase 192 P08 | ~45min | 3 tasks | 17 files |
+| Phase 192 P09 | 32min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T12:37:45.399Z
-Stopped at: Completed 192-08-PLAN.md
+Last session: 2026-11-04T13:13:25.623Z
+Stopped at: Completed 192-09-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
-192-09-PLAN.md
+None
