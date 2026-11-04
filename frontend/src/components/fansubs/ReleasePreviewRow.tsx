@@ -49,7 +49,7 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
   // Höhe der Avatar-Spalte zu beginnen. Einmal gebaut, unten in beiden Zweigen (mit/ohne Avatare)
   // wiederverwendet, damit die fünf Textzeilen nur einmal geschrieben stehen.
   const textLines = (
-    <Stack gap="tight">
+    <Stack gap="relatedContent">
       <Text tone="onScrim" className={styles.groupName}>
         {groupNameLine}
         {/* Reiner Text, kein Chip/Badge/Rahmen -- bleibt deshalb bewusst Text statt

@@ -44,7 +44,7 @@ describe('Anime-Detail/Fansub-Bausteine: Zweck-Namen statt Groessen-/Nummernname
     expect(forbiddenRawValuePatterns.some((pattern) => pattern.test(rawFirstColumnWidthSample))).toBe(true)
 
     // Positiv-Gegenprobe: die erlaubten Zweck-Werte duerfen NICHT als Verstoss erkannt werden.
-    const allowedSample = '<Stack gap="section"><SplitLayout firstColumnWidth="poster"><SplitLayout firstColumnWidth="auto"><SplitLayout gap="none">'
+    const allowedSample = '<Stack gap="independentBlocks"><SplitLayout firstColumnWidth="poster"><SplitLayout firstColumnWidth="auto"><SplitLayout gap="none">'
     expect(forbiddenRawValuePatterns.some((pattern) => pattern.test(allowedSample))).toBe(false)
   })
 })

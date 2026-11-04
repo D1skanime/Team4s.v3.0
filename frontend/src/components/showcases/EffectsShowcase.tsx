@@ -196,11 +196,11 @@ export function EffectsShowcase() {
       {EFFECT_ENTRIES.map((entry) => (
         <Card key={entry.name} variant="section" title={entry.name}>
           <Cluster gap="contentPair" align="stretch" className={styles.compare}>
-            <Stack gap="tight" className={styles.comparePane}>
+            <Stack gap="relatedContent" className={styles.comparePane}>
               {entry.before}
               <Text variant="meta">Ohne Effekt</Text>
             </Stack>
-            <Stack gap="tight" className={styles.comparePane}>
+            <Stack gap="relatedContent" className={styles.comparePane}>
               {entry.after}
               <Text variant="meta">Mit Effekt</Text>
             </Stack>

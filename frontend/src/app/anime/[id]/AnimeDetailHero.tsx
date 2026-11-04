@@ -70,7 +70,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
               </MediaFrame>
             </div>
 
-            <Stack gap="section" className={styles.posterMeta}>
+            <Stack gap="independentBlocks" className={styles.posterMeta}>
               {/* variant="nested" ist die einzige bestehende, nachweislich transparente
                   Card-Variante (siehe Card.module.css .cardNested) -- trägt hier NUR den
                   Innenabstand (Card-padding-Prop), ohne eine zweite sichtbare Fläche über der
@@ -81,7 +81,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
               <Card variant="nested" padding="4" className={styles.posterMetaCard}>
                 <WatchlistAddButton animeID={anime.id} />
                 <Divider tone="onMedia" spacing="withinMetaBlock" className={styles.posterDivider} />
-                <Stack gap="tight" className={styles.genresSection}>
+                <Stack gap="relatedContent" className={styles.genresSection}>
                   <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
                   <Cluster gap="badgeRow" className={styles.genres}>
                     {anime.genres && anime.genres.length > 0 ? anime.genres.map((genre) => (
@@ -117,11 +117,12 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
               {anime.tags && anime.tags.length > 0 ? (
                 // Stack statt eines eigenen display:flex;flex-direction:column;gap: (Befund B,
                 // Runde 3, 192-15) -- exakt dasselbe Eyebrow-Label+Chip-Reihe-Muster wie
-                // .genresSection in der Poster-Spalte (ebenfalls Stack gap="tight"), nur hier
-                // bislang lokal nachgebaut statt denselben bereits etablierten Grundbaustein zu
-                // nutzen. gap="tight" loest auf var(--space-tight)=var(--space-2) auf, exakt der
-                // zuvor hier lokal deklarierte Pixelwert -- Zero-Pixel-Diff.
-                <Stack gap="tight" className={styles.tagsSection}>
+                // .genresSection in der Poster-Spalte (ebenfalls Stack gap="relatedContent"), nur
+                // hier bislang lokal nachgebaut statt denselben bereits etablierten Grundbaustein
+                // zu nutzen. gap="relatedContent" loest auf var(--space-related-content)=
+                // var(--space-2) auf, exakt der zuvor hier lokal deklarierte Pixelwert --
+                // Zero-Pixel-Diff.
+                <Stack gap="relatedContent" className={styles.tagsSection}>
                   {/* Gleiches Eyebrow-Label-Muster wie "Genres" in der Poster-Spalte (Text statt
                       Heading), aber mit dem zum jeweiligen Kartengrund passenden Ton statt eines
                       gemeinsamen fest verdrahteten Tons: die Info-Karte ist oben hell (siehe

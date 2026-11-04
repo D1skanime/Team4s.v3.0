@@ -87,10 +87,11 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
         {expanded ? (
           <div id={panelId} className={styles.versionList}>
             {/* D-20-Folgefall: die einzelnen ReleasePreviewRow-Instanzen bekommen ihren
-                Zwischenabstand ueber Stacks "section"-Zweck (trennt voneinander unabhaengige
-                Episodenzeilen) statt eines lokalen CSS-Grids -- exakt derselbe Zweck, den
-                Stack.tsx fuer "einzelne Episodenzeilen in der Episodenliste" bereits dokumentiert. */}
-            <Stack gap="section">{children}</Stack>
+                Zwischenabstand ueber Stacks "independentBlocks"-Zweck (trennt voneinander
+                unabhaengige Episodenzeilen) statt eines lokalen CSS-Grids -- exakt derselbe
+                Zweck, den Stack.tsx fuer "einzelne Episodenzeilen in der Episodenliste" bereits
+                dokumentiert. */}
+            <Stack gap="independentBlocks">{children}</Stack>
           </div>
         ) : null}
       </Card>

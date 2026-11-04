@@ -93,7 +93,7 @@
 }
 
 /* .tagsSection traegt seit 192-15 kein eigenes display:flex/flex-direction/gap mehr -- die
-   Anordnung von Eyebrow-Label und Chip-Liste kommt jetzt ueber Stack gap="tight" (siehe
+   Anordnung von Eyebrow-Label und Chip-Liste kommt jetzt ueber Stack gap="relatedContent" (siehe
    AnimeDetailHero.tsx), exakt dasselbe bereits etablierte Muster wie .genresSection in der
    Poster-Spalte. Der verbleibende Außenabstand (margin) in der Regel oben bleibt unveraendert. */
 

@@ -105,7 +105,7 @@ const DOCUMENTED_LAYOUT_EXCEPTIONS: LayoutException[] = [
     reason:
       '192-13 (dieselbe per-child-Rhythmus-Begründung): nur der verbleibende Außenabstand ' +
       '(margin, geteilte Regel mit .description) -- die frühere eigene display:flex/flex-direction/' +
-      'gap-Deklaration dieses Selektors wurde in 192-15 bereits auf Stack gap="tight" umgestellt ' +
+      'gap-Deklaration dieses Selektors wurde in 192-15 bereits auf Stack gap="relatedContent" umgestellt ' +
       '(siehe AnimeDetailHero.tsx) und ist daher kein Fund mehr, nicht Teil dieser Ausnahme.',
   },
   {

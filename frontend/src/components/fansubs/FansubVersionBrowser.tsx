@@ -312,7 +312,7 @@ function FansubVersionBrowserContent({
       ) : (
         <Stack
           as="ul"
-          gap="section"
+          gap="independentBlocks"
           aria-busy={switchState.loading}
           className={classNames(styles.episodeList, switchState.loading && styles.episodeListDimmed)}
         >

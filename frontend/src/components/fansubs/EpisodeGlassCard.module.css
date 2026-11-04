@@ -57,7 +57,7 @@
  * sondern ein reiner Trennabschnitt INNERHALB der umschliessenden Card -- Cards Hook greift hier
  * ohnehin nicht. `border-top` ist Teil derselben, eng begruendeten Ausnahme (visuelle Trennlinie
  * zum Kopfzeilenbereich). Das fruehere `display:grid;gap:` ist dagegen ECHTE Layout-CSS und
- * wurde durch Stack gap="section" ersetzt (siehe EpisodeGlassCard.tsx).
+ * wurde durch Stack gap="independentBlocks" ersetzt (siehe EpisodeGlassCard.tsx).
  */
 .versionList {
   border-top: 1px solid var(--border-on-media);
