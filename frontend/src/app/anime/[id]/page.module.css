@@ -59,34 +59,12 @@
   padding-top: var(--public-page-detail-hero-offset-top);
 }
 
-/* Setzt NUR Cards eigenen Override-Hook --card-public-hero-columns (siehe .cardPublicHero in
-   Card.module.css), nicht display/grid-template-columns direkt: beide Eigenschaften werden
-   bereits von Cards Basisregel .card gesetzt (display:grid, grid-template-columns:
-   minmax(0,1fr)) -- eine zweite, hier direkt deklarierte Eigenschaft würde mit dieser
-   Basisregel um die Bundle-/Deklarationsreihenfolge über Dateigrenzen hinweg konkurrieren,
-   nicht deterministisch (UAT-Regressionsfund: Card gewann, Hero kollabierte auf eine Spalte).
-   Der Hook macht diesen Wettlauf unmöglich, da grid-template-columns für diese Variante
-   ausschließlich in Card.module.css selbst gesetzt wird. */
-.heroContainer {
-  --card-public-hero-columns: var(--media-frame-poster-width) minmax(0, 1fr);
-}
-
 .contentArea {
   padding: var(--space-8) 0;
-}
-
-@media (max-width: 1023px) {
-  .heroContainer {
-    --card-public-hero-columns: var(--media-frame-poster-width-medium) minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 767px) {
   .heroWrapper {
     padding-top: var(--space-9);
-  }
-
-  .heroContainer {
-    --card-public-hero-columns: minmax(0, 1fr);
   }
 }

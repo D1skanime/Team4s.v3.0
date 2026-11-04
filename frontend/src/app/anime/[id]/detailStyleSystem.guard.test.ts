@@ -5,8 +5,6 @@ import { describe, expect, it } from 'vitest'
 
 const detailStyleFiles = [
   'page.module.css',
-  'page.poster.module.css',
-  'page.infoCard.module.css',
   'page.episodes.module.css',
 ]
 
