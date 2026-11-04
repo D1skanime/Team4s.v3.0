@@ -38,7 +38,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
    *  Werts, nur die Skalenstufe. Erlaubt einem zusammengesetzten Baustein (z. B. einer
    *  Info-Karte mit uneinheitlichem Innenabstand), die Card-eigene Polsterung einer einzelnen
    *  Instanz anzufordern, OHNE selbst eine `padding:`-CSS-Regel zu deklarieren. `'none'` setzt
-   *  Padding auf `0`, jeder andere Wert mappt auf die gleichnamige `var(--space-N)`-Stufe. Ohne
+   *  Padding auf `0`, jeder andere Wert mappt auf die gleichnamige Space-Skalenstufe. Ohne
    *  Angabe bleibt die bisherige, variantenspezifische Standard-Polsterung jeder Card-Variante
    *  unverändert (Zero-Pixel-Diff für alle bestehenden Aufrufer). */
   padding?: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'none'
