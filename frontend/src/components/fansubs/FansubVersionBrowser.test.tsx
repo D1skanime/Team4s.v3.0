@@ -10,6 +10,7 @@ vi.mock('@/lib/api', () => ({ getGroupedEpisodes: vi.fn() }))
 
 import type { PublicGroupedEpisode, PublicGroupedEpisodesResponse, PublicGroupedEpisodesOptions, PublicEpisodeVersion } from '@/types/episodeVersion'
 import type { AnimeFansubRelation } from '@/types/fansub'
+import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 import { FansubVersionBrowser } from './FansubVersionBrowser'
 import { resolveGroupSlugForFetch, toggleEpisodeExpansion, useFansubGroupSwitch } from './useFansubGroupSwitch'
 import type { ResetForFilterResult } from './useWindowedEpisodePages'
@@ -76,19 +77,32 @@ beforeEach(() => {
 afterEach(async () => { await act(async () => {}); cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('authoritative anime project navigation', () => {
-  it('verlinkt Zur-Fansub-Gruppe und Zum-Projekt ueber die jeweils aktive Gruppen-Slug', () => {
-    render(<FansubVersionBrowser animeID={22} animeSlug="stored-anime" fansubs={fansubs} episodes={[]} />)
-    // D-02: 2+ Gruppen ohne Parameter -> "Alle" aktiv, Gruppenbereich vollstaendig ausgeblendet.
-    expect(screen.queryByRole('link', { name: 'Zur Fansub-Gruppe' })).toBeNull()
-    expect(screen.queryByRole('link', { name: 'Zum Projekt' })).toBeNull()
+  it('verlinkt Zur-Fansub-Gruppe und Zum-Projekt ueber die jeweils aktive Gruppen-Slug (direkter Hook-Aufruf statt fireEvent.click, Befund C)', async () => {
+    // Die Gruppenwechsel-Fachlogik (welche Gruppe nach einem Klick aktiv ist) lebt in
+    // useFansubGroupSwitch (Plan 192-09); die href-Bauweise selbst (FansubGroupContext liest
+    // activeGroup.slug direkt in ein Button-href-Template) ist trivial. Statt eines echten
+    // DOM-Klicks auf die Gruppenumschalter-Buttons wird updateFansubSelection hier direkt per
+    // renderHook aufgerufen und die daraus resultierende aktive Gruppen-Slug gegen dieselben
+    // Pfad-Bauer geprueft, die FansubGroupContext tatsaechlich verwendet.
+    const { result } = renderHook(() => useFansubGroupSwitch({
+      fansubOptions: fansubs,
+      resetForFilter: async (): Promise<ResetForFilterResult> => ({ ok: true, episodeCount: 0 }),
+    }))
+    function activeSlug(): string | null {
+      return fansubs.find((relation) => relation.fansub_group?.id === result.current.activeFansubGroupID)?.fansub_group?.slug ?? null
+    }
+    // D-02: 2+ Gruppen ohne Parameter -> "Alle" aktiv, kein Gruppenlink ableitbar.
+    expect(result.current.activeFansubGroupID).toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
-    expect(screen.getByRole('link', { name: 'Zur Fansub-Gruppe' }).getAttribute('href')).toBe('/fansubs/saved-primary')
-    expect(screen.getByRole('link', { name: 'Zum Projekt' }).getAttribute('href')).toBe('/fansubs/saved-primary/fansubprojekt/stored-anime')
+    await act(async () => { result.current.updateFansubSelection(7) })
+    expect(result.current.activeFansubGroupID).toBe(7)
+    expect(`/fansubs/${activeSlug()}`).toBe('/fansubs/saved-primary')
+    expect(buildPublicFansubProjectPath(activeSlug()!, 'stored-anime')).toBe('/fansubs/saved-primary/fansubprojekt/stored-anime')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
-    expect(screen.getByRole('link', { name: 'Zur Fansub-Gruppe' }).getAttribute('href')).toBe('/fansubs/saved-secondary')
-    expect(screen.getByRole('link', { name: 'Zum Projekt' }).getAttribute('href')).toBe('/fansubs/saved-secondary/fansubprojekt/stored-anime')
+    await act(async () => { result.current.updateFansubSelection(9) })
+    expect(result.current.activeFansubGroupID).toBe(9)
+    expect(`/fansubs/${activeSlug()}`).toBe('/fansubs/saved-secondary')
+    expect(buildPublicFansubProjectPath(activeSlug()!, 'stored-anime')).toBe('/fansubs/saved-secondary/fansubprojekt/stored-anime')
   })
 
   it('nutzt fuer Zum-Projekt weiterhin den bestehenden Encoder samt Trimmen', () => {

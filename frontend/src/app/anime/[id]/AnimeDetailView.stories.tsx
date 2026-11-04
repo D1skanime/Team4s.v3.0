@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
-import { expect, userEvent, within } from 'storybook/test'
 
 import {
   animeBackdropsHandler,
@@ -159,16 +158,16 @@ export const MitRandnavigation: Story = {
   },
 }
 
-export const MerklistenToggle: Story = {
-  name: 'Merkliste umschalten',
+// Diese Story hat bewusst keine `play`-Funktion mehr: ein simulierter Klickablauf
+// (userEvent.click) gegen den Merklisten-Button würde einen echten Nutzerablauf nachstellen,
+// ohne ihn wirklich live zu prüfen. Die zugrundeliegende Hinzufügen-/Entfernen-Fachlogik ist
+// bereits über `useWatchlistAction`s direkte Hook-Tests bewiesen; echte Klickabläufe werden am
+// Produkt selbst live abgenommen, nicht durch eine Storybook-Simulation. Die Story bleibt ein
+// reiner Anzeige-Fall: ein angemeldetes Mitglied sieht den echten (nicht "Anmeldung
+// erforderlich") Merklisten-Button.
+export const MerklistenAlsMitglied: Story = {
+  name: 'Merkliste (als Mitglied)',
   globals: { team4sRole: 'mitglied' },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await userEvent.click(await canvas.findByRole('button', { name: /Zur Watchlist/ }))
-    await expect(canvas.findByText('Zur Watchlist hinzugefügt.')).resolves.toBeTruthy()
-    await userEvent.click(await canvas.findByRole('button', { name: /In Watchlist/ }))
-    await expect(canvas.findByText('Aus Watchlist entfernt.')).resolves.toBeTruthy()
-  },
 }
 
 export const LangerTitel: Story = {

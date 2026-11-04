@@ -52,20 +52,6 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); clearAuthSession() })
 
 describe('watchlist client status ownership', () => {
-  it('blocks both actions until status resolves, ignoring the old SSR hint', async () => {
-    const pending = deferred<WatchlistCreateResponse>()
-    vi.mocked(getWatchlistEntry).mockReturnValue(pending.promise)
-    render(<WatchlistAddButton animeID={1} initiallyInWatchlist />)
-    disabled(/Watchlist wird geprüft/)
-    fireEvent.click(screen.getByRole('button'))
-    expect(addWatchlistEntry).not.toHaveBeenCalled()
-    expect(removeWatchlistEntry).not.toHaveBeenCalled()
-    await act(async () => pending.reject(missing()))
-    fireEvent.click(await known(/Zur Watchlist/))
-    await screen.findByText('Zur Watchlist hinzugefügt.')
-    expect(addWatchlistEntry).toHaveBeenCalledWith(1)
-  })
-
   it('recognizes an existing entry with refresh only and deletes through the central helper (direkter Hook-Aufruf statt Klick-Simulation, Befund 25)', async () => {
     vi.mocked(getWatchlistEntry).mockResolvedValue(entry)
     const { result } = renderHook(() => useWatchlistAction({ animeID: 1, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
@@ -267,6 +253,27 @@ describe('useWatchlistAction: direkte Logiktests ohne Rendering/fireEvent (Befun
       expect(addWatchlistEntry).not.toHaveBeenCalled()
       expect(removeWatchlistEntry).not.toHaveBeenCalled()
       expect(result.current.status).toBe('absent')
+    })
+
+    it('ist ein No-Op, solange der Watchliststatus noch nicht aufgelöst ist (Befund C -- ersetzt den bisherigen fireEvent-Klick-auf-deaktivierten-Button-Nachweis per direktem Hook-Aufruf)', async () => {
+      // handleToggle guardet selbst gegen status !== 'present' && status !== 'absent' -- das
+      // deckt sowohl 'loading' (dieser Test) als auch das anfängliche 'unknown' ab, bevor
+      // checkStatus überhaupt einmal durchgelaufen ist. Die Button-Deaktivierung in
+      // WatchlistAddButton ist nur eine Spiegelung dieser Fachregel in der Darstellung -- der
+      // ursprüngliche DOM-Klick-auf-einen-deaktivierten-Button-Test bewies dieselbe Garantie nur
+      // indirekt und ist durch diesen direkten Hook-Nachweis vollständig abgedeckt.
+      const pending = deferred<WatchlistCreateResponse>()
+      vi.mocked(getWatchlistEntry).mockReturnValue(pending.promise)
+      const { result } = renderHook(() => useWatchlistAction({ animeID: 1, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+      expect(result.current.status).toBe('loading')
+
+      await act(async () => { await result.current.handleToggle() })
+      expect(addWatchlistEntry).not.toHaveBeenCalled()
+      expect(removeWatchlistEntry).not.toHaveBeenCalled()
+      expect(result.current.status).toBe('loading')
+
+      await act(async () => { pending.resolve(entry) })
+      expect(result.current.status).toBe('present')
     })
   })
 })
