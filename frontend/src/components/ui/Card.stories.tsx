@@ -149,7 +149,7 @@ export const PaddingUeberschreibung: Story = {
             <Text tone="onScrim">Standard (padding:0, Aufrufer polstert selbst)</Text>
           </Card>
           <Card variant="glassStrong" padding="6">
-            <Text tone="onScrim">padding="6" (Card polstert selbst, Space-Stufe 6)</Text>
+            <Text tone="onScrim">padding=&quot;6&quot; (Card polstert selbst, Space-Stufe 6)</Text>
           </Card>
         </div>
       </BannerSection>
