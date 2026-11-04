@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { AdjacentNavigation, Card, ResponsiveImage, Text, type AdjacentNavigationItem } from '@/components/ui'
+import { AdjacentNavigation, Card, Cluster, ResponsiveImage, Text, type AdjacentNavigationItem } from '@/components/ui'
 import { parseAnimeListParamsFromGridQuery, resolveAnimeNeighbors, type AnimeNeighbors } from '@/lib/animeGridContext'
 import { getCoverUrl } from '@/lib/utils'
 
@@ -105,12 +105,21 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery, previous, next 
     <>
       <AdjacentNavigation previous={previousItem} next={nextItem} variant="floating" ariaLabel="Anime-Navigation" />
       {previewAnime ? (
-        <Card variant="glassStrong" className={`${styles.previewCard} ${hoverDirection === 'prev' ? styles.previewLeft : styles.previewRight}`}>
-          <ResponsiveImage src={previewCoverUrl} alt={previewAnime.title} width={66} height={92} className={styles.previewCover} unoptimized />
-          <div className={styles.previewMeta}>
-            <Text tone="onScrim" className={styles.previewTitle}>{previewAnime.title}</Text>
-            <Text variant="small" tone="onScrim" className={styles.previewType}>{getTypeLabel(previewAnime.type)}</Text>
-          </div>
+        <Card
+          variant="glassStrong"
+          padding="3"
+          className={`${styles.previewCard} ${hoverDirection === 'prev' ? styles.previewLeft : styles.previewRight}`}
+        >
+          {/* Cluster statt eines eigenen display:flex -- align="stretch" reproduziert die
+              bisherige, implizite Standard-Querachsen-Ausrichtung (Flex ohne align-items setzt
+              den Browser-Standard "stretch", Clusters eigener Standard waere dagegen "center"). */}
+          <Cluster gap="mediaCaption" align="stretch" wrap={false}>
+            <ResponsiveImage src={previewCoverUrl} alt={previewAnime.title} width={66} height={92} className={styles.previewCover} unoptimized />
+            <div className={styles.previewMeta}>
+              <Text tone="onScrim" className={styles.previewTitle}>{previewAnime.title}</Text>
+              <Text variant="small" tone="onScrim" className={styles.previewType}>{getTypeLabel(previewAnime.type)}</Text>
+            </div>
+          </Cluster>
         </Card>
       ) : null}
     </>

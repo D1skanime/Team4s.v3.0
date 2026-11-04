@@ -1,15 +1,15 @@
 /* Positioniert sich relativ zum gemeinsamen .edgeNavigationOverlay-Container (page.infoCard.
    module.css), der bewusst auf Button-Höhe begrenzt ist (--control-height-md) -- top:100% landet
    dadurch exakt am unteren Rand des Buttons, nicht am unteren Rand der ganzen Hero-Karte. */
+/* Nur noch Positionierung/Groesse/Sichtbarkeit -- das Bild+Text-Layout kommt ueber Cluster
+   gap="mediaCaption", der Innenabstand ueber Cards eigenen padding="3"-Override-Hook (siehe
+   AnimeEdgeNavigation.tsx). */
 .previewCard {
   pointer-events: none;
   position: absolute;
   top: calc(100% + var(--space-2));
   z-index: 1;
-  display: flex;
   width: min(260px, 90vw);
-  gap: var(--space-3);
-  padding: var(--space-3);
 }
 
 .previewLeft { left: var(--adjacent-nav-floating-inset-x); }
