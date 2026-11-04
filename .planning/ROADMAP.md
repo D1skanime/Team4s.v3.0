@@ -3038,3 +3038,13 @@ Plans:
 - [x] 191-35-PLAN.md — Frontend: D-30 Bugfix (echter Projekttitel + Release-Vorauswahl auf der Release-Seite, ProposalFormPrefill-Erweiterung)
 - [x] 191-36-PLAN.md — Frontend: D-34 Release-Anzeige in allen drei Hinweis-Listen + schemafreie Episodenanzeige beim Eigengruppen-Pfad
 - [x] 191-37-PLAN.md — Phasenabschluss fuenfte Nachbesserung: D-36-Vorabpruefung (echter API-Check + D-35-Loeschung), DECISIONS.md, Regressionsgate, Live-UAT — **Checkpoint vom Nutzer am 2026-10-26 freigegeben, Phase 191 abgeschlossen**
+
+### Phase 192: Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (ki-run 261102-226d, Live-UAT-Befunde 19-22 vom 2026-11-04)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 191
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 192 to break down)
