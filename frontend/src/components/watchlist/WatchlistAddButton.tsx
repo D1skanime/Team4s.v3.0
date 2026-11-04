@@ -1,11 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { Plus, Check } from 'lucide-react'
 
-import { addWatchlistEntry, ApiError, getWatchlistEntry, removeWatchlistEntry } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { Button, type ButtonVariant } from '@/components/ui/Button'
+import { useWatchlistAction } from './useWatchlistAction'
 
 import styles from './WatchlistAddButton.module.css'
 
@@ -14,8 +13,6 @@ interface WatchlistAddButtonProps {
   /** Compatibility prop until the page stops supplying SSR viewer state. Client GET owns status. */
   initiallyInWatchlist?: boolean
 }
-
-type WatchlistStatus = 'unknown' | 'loading' | 'present' | 'absent' | 'error'
 
 export function WatchlistAddButton(props: WatchlistAddButtonProps) {
   const { hasAccessToken, hasRefreshToken, accountIdentity, accountGeneration, isCurrentSession } = useAuthSession()
@@ -30,64 +27,9 @@ function WatchlistAction({
   hasAuthSession,
   isCurrentSession,
 }: WatchlistAddButtonProps & { hasAuthSession: boolean; isCurrentSession: () => boolean }) {
-  const [status, setStatus] = useState<WatchlistStatus>('unknown')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
-  const [isError, setIsError] = useState(false)
-  const requestGeneration = useRef(0)
-
-  const checkStatus = useCallback(async () => {
-    const generation = ++requestGeneration.current
-    setStatus('loading')
-    setMessage(null)
-    setIsError(false)
-    try {
-      await getWatchlistEntry(animeID)
-      if (generation === requestGeneration.current && isCurrentSession()) setStatus('present')
-    } catch (error) {
-      if (generation !== requestGeneration.current || !isCurrentSession()) return
-      if (error instanceof ApiError && error.status === 404) {
-        setStatus('absent')
-      } else {
-        setStatus('error')
-        setIsError(true)
-        setMessage('Watchliststatus konnte nicht geladen werden. Bitte erneut prüfen.')
-      }
-    }
-  }, [animeID, isCurrentSession])
-
-  useEffect(() => {
-    if (hasAuthSession) void checkStatus()
-    return () => { requestGeneration.current += 1 }
-  }, [hasAuthSession, checkStatus])
-
-  async function handleToggle() {
-    if (!hasAuthSession || !isCurrentSession() || isSubmitting || (status !== 'present' && status !== 'absent')) return
-
-    const generation = ++requestGeneration.current
-    try {
-      setIsSubmitting(true)
-      setMessage(null)
-      setIsError(false)
-      if (status === 'present') {
-        await removeWatchlistEntry(animeID)
-        if (generation !== requestGeneration.current || !isCurrentSession()) return
-        setStatus('absent')
-        setMessage('Aus Watchlist entfernt.')
-      } else {
-        await addWatchlistEntry(animeID)
-        if (generation !== requestGeneration.current || !isCurrentSession()) return
-        setStatus('present')
-        setMessage('Zur Watchlist hinzugefügt.')
-      }
-    } catch (error) {
-      if (generation !== requestGeneration.current || !isCurrentSession()) return
-      setIsError(true)
-      setMessage(error instanceof ApiError ? error.message : 'Watchlist-Aktion fehlgeschlagen.')
-    } finally {
-      if (generation === requestGeneration.current && isCurrentSession()) setIsSubmitting(false)
-    }
-  }
+  const { status, isSubmitting, message, isError, checkStatus, handleToggle } = useWatchlistAction({
+    animeID, hasAuthSession, isCurrentSession,
+  })
 
   const isAdded = status === 'present'
   const statusKnown = status === 'present' || status === 'absent'

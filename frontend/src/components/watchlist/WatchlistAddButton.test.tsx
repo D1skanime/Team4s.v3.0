@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/api', async (importOriginal) => ({
@@ -12,6 +12,7 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 import { AUTH_SESSION_CHANGED_EVENT, ApiError, addWatchlistEntry, clearAuthSession, getWatchlistEntry, persistAuthSession, removeWatchlistEntry } from '@/lib/api'
 import type { WatchlistCreateResponse } from '@/types/watchlist'
 import { WatchlistAddButton } from './WatchlistAddButton'
+import { useWatchlistAction } from './useWatchlistAction'
 
 const entry: WatchlistCreateResponse = { data: { anime_id: 1, title: 'Anime', type: 'tv', status: 'ongoing', added_at: '2026-09-13' } }
 const missing = () => new ApiError(404, 'watchlist-eintrag nicht gefunden')
@@ -28,6 +29,10 @@ function deferred<T>() {
   const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no })
   return { promise, resolve, reject }
 }
+// Referenzstabil (kein Inline-Literal pro Render) -- useWatchlistAction haengt checkStatus ueber
+// useCallback an isCurrentSession, eine bei jedem Render neu erzeugte Funktion wuerde den
+// Mount-Effekt in eine Render-Schleife treiben.
+const alwaysCurrentSession = () => true
 function disabled(name: RegExp) {
   expect(screen.getByRole('button', { name }).hasAttribute('disabled')).toBe(true)
 }
@@ -61,14 +66,16 @@ describe('watchlist client status ownership', () => {
     expect(addWatchlistEntry).toHaveBeenCalledWith(1)
   })
 
-  it('recognizes an existing entry with refresh only and deletes through the central helper', async () => {
-    seed(11, '', 'refresh')
+  it('recognizes an existing entry with refresh only and deletes through the central helper (direkter Hook-Aufruf statt Klick-Simulation, Befund 25)', async () => {
     vi.mocked(getWatchlistEntry).mockResolvedValue(entry)
-    render(<WatchlistAddButton animeID={1} />)
-    fireEvent.click(await known(/In Watchlist/))
-    await screen.findByText('Aus Watchlist entfernt.')
-    expect(removeWatchlistEntry).toHaveBeenCalledWith(1)
+    const { result } = renderHook(() => useWatchlistAction({ animeID: 1, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+    await act(async () => { await result.current.checkStatus() })
+    expect(result.current.status).toBe('present')
+    await act(async () => { await result.current.handleToggle() })
+    expect(removeWatchlistEntry).toHaveBeenCalledExactlyOnceWith(1)
     expect(addWatchlistEntry).not.toHaveBeenCalled()
+    expect(result.current.status).toBe('absent')
+    expect(result.current.message).toBe('Aus Watchlist entfernt.')
   })
 
   it.each([new ApiError(401, 'Nicht angemeldet'), new ApiError(500, 'Serverfehler'), new TypeError('Netzwerkfehler')])(
@@ -86,15 +93,19 @@ describe('watchlist client status ownership', () => {
     },
   )
 
-  it.each(['add', 'delete'])('shows %s failures with the global watchlist state and retains known status', async (action) => {
+  it.each(['add', 'delete'])('shows %s failures with the global watchlist state and retains known status (direkter Hook-Aufruf statt Klick-Simulation, Befund 25)', async (action) => {
     if (action === 'delete') vi.mocked(getWatchlistEntry).mockResolvedValue(entry)
     const mutate = action === 'delete' ? removeWatchlistEntry : addWatchlistEntry
     vi.mocked(mutate).mockRejectedValue(new ApiError(500, 'Änderung fehlgeschlagen.'))
-    render(<WatchlistAddButton animeID={1} />)
-    const name = action === 'delete' ? /In Watchlist/ : /Zur Watchlist/
-    fireEvent.click(await known(name))
-    expect((await screen.findByRole('alert')).textContent).toContain('Änderung fehlgeschlagen.')
-    expect((await known(name)).className).toContain(action === 'delete' ? 'buttonWatchlistActive' : 'buttonWatchlist')
+    const { result } = renderHook(() => useWatchlistAction({ animeID: 1, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+    await act(async () => { await result.current.checkStatus() })
+    expect(result.current.status).toBe(action === 'delete' ? 'present' : 'absent')
+    await act(async () => { await result.current.handleToggle() })
+    expect(result.current.isError).toBe(true)
+    expect(result.current.message).toBe('Änderung fehlgeschlagen.')
+    // Ein fehlgeschlagener Aufruf aendert den zuletzt bekannten Status NICHT (D-xx: der Nutzer
+    // bleibt auf dem vorherigen, bekannten Zustand stehen, statt in ein unbekanntes Limbo zu fallen).
+    expect(result.current.status).toBe(action === 'delete' ? 'present' : 'absent')
   })
 
   it('reacts to login/logout after mount and skips reads without either token', async () => {
@@ -162,5 +173,100 @@ describe('watchlist client status ownership', () => {
     disabled(/Speichern/)
     await act(async () => next.resolve(entry))
     await known(/In Watchlist/)
+  })
+})
+
+// Befund 25: handleToggle/checkStatus enthalten die eigentliche Fachlogik des Watchlist-
+// Hinzufuegen/Entfernen-Ablaufs -- diese Tests rufen sie DIREKT per `renderHook`/`act` auf,
+// statt einen Klick zu simulieren und auf ein Re-Render zu warten. Der echte DOM-Klick-zu-
+// Rerender-Ablauf bleibt Live-UAT-Sache (siehe `192-CONTEXT.md`s Befund-25-Entscheidung).
+describe('useWatchlistAction: direkte Logiktests ohne Rendering/fireEvent (Befund 25)', () => {
+  describe('checkStatus', () => {
+    it('setzt status=present bei einem vorhandenen Eintrag', async () => {
+      vi.mocked(getWatchlistEntry).mockResolvedValue(entry)
+      const { result } = renderHook(() => useWatchlistAction({ animeID: 1, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+      await act(async () => { await result.current.checkStatus() })
+      expect(result.current.status).toBe('present')
+    })
+
+    it('setzt status=absent bei einem 404 (kein Eintrag vorhanden)', async () => {
+      vi.mocked(getWatchlistEntry).mockRejectedValue(missing())
+      const { result } = renderHook(() => useWatchlistAction({ animeID: 1, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+      await act(async () => { await result.current.checkStatus() })
+      expect(result.current.status).toBe('absent')
+    })
+
+    it('setzt status=error mit fester Meldung und isError=true bei jedem anderen Fehler', async () => {
+      vi.mocked(getWatchlistEntry).mockRejectedValue(new ApiError(500, 'Serverfehler'))
+      const { result } = renderHook(() => useWatchlistAction({ animeID: 1, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+      await act(async () => { await result.current.checkStatus() })
+      expect(result.current.status).toBe('error')
+      expect(result.current.isError).toBe(true)
+      expect(result.current.message).toBe('Watchliststatus konnte nicht geladen werden. Bitte erneut prüfen.')
+    })
+  })
+
+  describe('handleToggle', () => {
+    it('ruft bei status=absent addWatchlistEntry auf und setzt status=present mit fester Meldung', async () => {
+      vi.mocked(getWatchlistEntry).mockRejectedValue(missing())
+      const { result } = renderHook(() => useWatchlistAction({ animeID: 7, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+      await act(async () => { await result.current.checkStatus() })
+      expect(result.current.status).toBe('absent')
+      await act(async () => { await result.current.handleToggle() })
+      expect(addWatchlistEntry).toHaveBeenCalledExactlyOnceWith(7)
+      expect(result.current.status).toBe('present')
+      expect(result.current.message).toBe('Zur Watchlist hinzugefügt.')
+    })
+
+    it('ruft bei status=present removeWatchlistEntry auf und setzt status=absent mit fester Meldung', async () => {
+      vi.mocked(getWatchlistEntry).mockResolvedValue(entry)
+      const { result } = renderHook(() => useWatchlistAction({ animeID: 7, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+      await act(async () => { await result.current.checkStatus() })
+      expect(result.current.status).toBe('present')
+      await act(async () => { await result.current.handleToggle() })
+      expect(removeWatchlistEntry).toHaveBeenCalledExactlyOnceWith(7)
+      expect(result.current.status).toBe('absent')
+      expect(result.current.message).toBe('Aus Watchlist entfernt.')
+    })
+
+    it('setzt isError und eine Meldung bei einem fehlgeschlagenen Aufruf, ohne den zuletzt bekannten Status zu aendern', async () => {
+      vi.mocked(getWatchlistEntry).mockRejectedValue(missing())
+      vi.mocked(addWatchlistEntry).mockRejectedValue(new ApiError(500, 'Änderung fehlgeschlagen.'))
+      const { result } = renderHook(() => useWatchlistAction({ animeID: 7, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+      await act(async () => { await result.current.checkStatus() })
+      await act(async () => { await result.current.handleToggle() })
+      expect(result.current.isError).toBe(true)
+      expect(result.current.message).toBe('Änderung fehlgeschlagen.')
+      expect(result.current.status).toBe('absent')
+    })
+
+    it('ist ein No-Op, solange bereits eine Anfrage laeuft (isSubmitting)', async () => {
+      vi.mocked(getWatchlistEntry).mockRejectedValue(missing())
+      const pending = deferred<WatchlistCreateResponse>()
+      vi.mocked(addWatchlistEntry).mockReturnValue(pending.promise)
+      const { result } = renderHook(() => useWatchlistAction({ animeID: 7, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
+      await act(async () => { await result.current.checkStatus() })
+      act(() => { void result.current.handleToggle() }) // erste Anfrage startet, isSubmitting wird synchron true
+      expect(result.current.isSubmitting).toBe(true)
+      act(() => { void result.current.handleToggle() }) // zweiter Aufruf, waehrend die erste noch pendent ist
+      expect(addWatchlistEntry).toHaveBeenCalledTimes(1)
+      await act(async () => { pending.resolve(entry) })
+    })
+
+    it('ist ein No-Op, wenn isCurrentSession() false liefert (veraltete-Besitzer-Schutz)', async () => {
+      vi.mocked(getWatchlistEntry).mockRejectedValue(missing())
+      let isCurrent = true
+      // Referenzstabil (wie alwaysCurrentSession oben) -- liest den aeusseren mutierbaren
+      // isCurrent-Wert bei jedem Aufruf neu, ohne dass sich die Funktionsreferenz selbst aendert.
+      const isCurrentSession = () => isCurrent
+      const { result } = renderHook(() => useWatchlistAction({ animeID: 7, hasAuthSession: true, isCurrentSession }))
+      await act(async () => { await result.current.checkStatus() })
+      expect(result.current.status).toBe('absent')
+      isCurrent = false
+      await act(async () => { await result.current.handleToggle() })
+      expect(addWatchlistEntry).not.toHaveBeenCalled()
+      expect(removeWatchlistEntry).not.toHaveBeenCalled()
+      expect(result.current.status).toBe('absent')
+    })
   })
 })
