@@ -3051,7 +3051,7 @@ Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte 
 Abstand/Rundung.
 **Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26, Befund-A, Befund-B, Befund-C, Befund-D, Befund-27, Befund-28
 **Depends on:** Phase 191
-**Plans:** 11/20 plans executed
+**Plans:** 12/20 plans executed
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
@@ -3065,7 +3065,7 @@ Plans:
 - [x] 192-10-PLAN.md — Effekte (Blur/Glas/Scrim) als Zweck-Tokens in effects.css (Befund 26)
 - [x] 192-07-PLAN.md — Vollständiger Regressionslauf + Playwright-Bildpaar-Nachweis (main vs. Branch, Storybook vs. Live-Seite), läuft nach 08/09/10
 - [x] 192-11-PLAN.md — Card-Padding-Override + neuer Divider-Grundbaustein (Befund B, Vorbereitung)
-- [ ] 192-12-PLAN.md — SplitLayout-gap Zweck-Umstellung + Root-Cause/Fix der bestätigten Anime-Kopf-Sichtregression (Befund A + Sichtregression)
+- [x] 192-12-PLAN.md — SplitLayout-gap Zweck-Umstellung + Root-Cause/Fix der bestätigten Anime-Kopf-Sichtregression (Befund A + Sichtregression)
 - [ ] 192-13-PLAN.md — AnimeDetailHero.module.css: eigenes Layout-CSS entfernt (Befund B)
 - [ ] 192-14-PLAN.md — ReleasePreviewRow/EpisodeGlassCard/AnimeEdgeNavigation: eigenes Layout-CSS entfernt (Befund B)
 - [ ] 192-15-PLAN.md — Composite-Layout-Reinheits-Guard + Doku + Befund-B-Bildnachweis (Befund B)

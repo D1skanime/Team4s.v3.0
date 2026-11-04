@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-11-PLAN.md (Card-Padding-Variante + Divider-Grundbaustein)
-last_updated: "2026-11-04T16:33:27.128Z"
+stopped_at: Completed 192-12-PLAN.md (SplitLayout-Zweck-Umstellung Befund A + Root-Cause-Fix Anime-Kopf-Sichtregression)
+last_updated: "2026-11-04T16:47:57.124Z"
 last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 550
-  completed_plans: 534
+  completed_plans: 535
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 3 Gap-Closure)) — EXECUTING
-Plan: 2 of 20
+Plan: 3 of 20
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1580,6 +1580,9 @@ Last activity: 2026-11-04
 - [Phase 192]: SplitLayout self-referencing container-query bug (undocumented CSS spec limitation: an element cannot style itself based on its own container query) left AnimeDetailHero collapsed to one column in every real browser since Plan 192-01, undetected by jsdom-based tests — Fixed via an inner .grid descendant element in Plan 192-07's verification pass; this is why a real Playwright browser Nachweis (not just unit tests) is mandatory before a phase is considered complete
 - [Phase 192]: Card.padding bleibt ein rohes SpaceToken-Literal ('1'-'9'|'none') statt einer Zweck-Enum — Cards Padding ist ein einzelner domänenfreier Skalar ohne Geschwister-Beziehung, anders als Stack/Cluster/SplitLayouts gap (Befund 24/D)
 - [Phase 192]: Neuer Divider-Grundbaustein statt vierter AccentRule-Variante — Unterschiedliche Token-/Zweck-Familie: AccentRule bleibt die feste Marken-Akzentlinie (--ui-line), Divider liest die neutrale border-on-media(-strong)-Familie
+- [Phase 192]: SplitLayout.breakpoint-Prop komplett entfernt (nicht umbenannt): 'lg' hatte zur Ausfuehrungszeit erneut keine echte Aufrufstelle
+- [Phase 192]: Anime-Kopf-Sichtregression: Root-Cause per Live-Playwright-DOM-Vermessung bestaetigt (nicht geraten) -- Portrait/Landscape-Seitenverhaeltnis-Mismatch zwischen Banner-Attributen (600x180) und wiederverwendetem Portrait-Platzhalter (64x96); CSS 'aspect-ratio: auto <ratio>' tritt gegenueber einem tatsaechlich vorhandenen Bitmap-Seitenverhaeltnis zurueck
+- [Phase 192]: AnimeRelations' 'Verwandte Anime'-Ueberschrift rendert jetzt ueber den Heading-Grundbaustein statt eines rohen h2 mit hartcodiertem #fff -- Farbe kommt ausschliesslich ueber Headings --heading-color-Hook, den Card.module.css bereits pro Breakpoint korrekt setzt
 
 ### Pending Todos
 
@@ -2357,10 +2360,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P10 | 20min | 2 tasks | 10 files |
 | Phase 192 P07 | ~80min | 2 tasks | 5 files |
 | Phase 192 P11 | 20min | 2 tasks | 10 files |
+| Phase 192 P12 | ~12min | 3 tasks | 15 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T16:33:27.102Z
-Stopped at: Completed 192-11-PLAN.md (Card-Padding-Variante + Divider-Grundbaustein)
+Last session: 2026-11-04T16:47:57.096Z
+Stopped at: Completed 192-12-PLAN.md (SplitLayout-Zweck-Umstellung Befund A + Root-Cause-Fix Anime-Kopf-Sichtregression)
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
+None
