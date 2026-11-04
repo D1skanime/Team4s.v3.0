@@ -1,0 +1,12 @@
+/* Reiner vertikaler Fluss -- keine Fläche/Farbe/Rundung (siehe Stack.tsx). Abstand/Ausrichtung
+   kommen ausschließlich über die privaten Override-Hooks --stack-gap/--stack-align, die Stack.tsx
+   inline setzt; eine zweite Datei, die dieselben Variablen setzt, würde mit dieser Basisregel um
+   Deklarationsreihenfolge konkurrieren (siehe Cards --card-public-hero-columns-Kommentar für die
+   dokumentierte Historie dieses Musters). */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap, var(--space-3));
+  align-items: var(--stack-align, stretch);
+  min-width: 0;
+}
