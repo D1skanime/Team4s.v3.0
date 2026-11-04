@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-12-PLAN.md (SplitLayout-Zweck-Umstellung Befund A + Root-Cause-Fix Anime-Kopf-Sichtregression)
-last_updated: "2026-11-04T16:47:57.124Z"
+stopped_at: "Completed 192-18-PLAN.md (Grundlagen/Effekte: echtes Anime-Cover + Vorher/Nachher-Paare, jargonfreie Beschreibung -- Befund 27)"
+last_updated: "2026-11-04T16:57:53.068Z"
 last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 550
-  completed_plans: 535
+  completed_plans: 536
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 3 Gap-Closure)) — EXECUTING
-Plan: 3 of 20
+Plan: 4 of 20
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1583,6 +1583,7 @@ Last activity: 2026-11-04
 - [Phase 192]: SplitLayout.breakpoint-Prop komplett entfernt (nicht umbenannt): 'lg' hatte zur Ausfuehrungszeit erneut keine echte Aufrufstelle
 - [Phase 192]: Anime-Kopf-Sichtregression: Root-Cause per Live-Playwright-DOM-Vermessung bestaetigt (nicht geraten) -- Portrait/Landscape-Seitenverhaeltnis-Mismatch zwischen Banner-Attributen (600x180) und wiederverwendetem Portrait-Platzhalter (64x96); CSS 'aspect-ratio: auto <ratio>' tritt gegenueber einem tatsaechlich vorhandenen Bitmap-Seitenverhaeltnis zurueck
 - [Phase 192]: AnimeRelations' 'Verwandte Anime'-Ueberschrift rendert jetzt ueber den Heading-Grundbaustein statt eines rohen h2 mit hartcodiertem #fff -- Farbe kommt ausschliesslich ueber Headings --heading-color-Hook, den Card.module.css bereits pro Breakpoint korrekt setzt
+- [Phase 192]: Plan 192-18 (Befund 27): Row 1 (BannerSection) before/after contrasts plain image vs blurred backdrop; rows 2-5 keep the same BannerSection backdrop in both panels and only swap the overlay (plain Text(tone=onScrim) vs real LinkChip/Button/Badge), isolating the chip/button/badge glass/scrim treatment from BannerSection's own always-present blur
 
 ### Pending Todos
 
@@ -2361,11 +2362,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P07 | ~80min | 2 tasks | 5 files |
 | Phase 192 P11 | 20min | 2 tasks | 10 files |
 | Phase 192 P12 | ~12min | 3 tasks | 15 files |
+| Phase 192 P18 | ~15min | 1 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T16:47:57.096Z
-Stopped at: Completed 192-12-PLAN.md (SplitLayout-Zweck-Umstellung Befund A + Root-Cause-Fix Anime-Kopf-Sichtregression)
+Last session: 2026-11-04T16:57:53.040Z
+Stopped at: Completed 192-18-PLAN.md (Grundlagen/Effekte: echtes Anime-Cover + Vorher/Nachher-Paare, jargonfreie Beschreibung -- Befund 27)
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
