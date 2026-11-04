@@ -10,13 +10,16 @@
   border-radius: var(--radius-surface);
   background-color: var(--card-bg);
   background-image: var(--card-bg-gradient);
-  padding: var(--card-padding);
+  /* --card-padding-override ist derselbe generische Override-Hook wie --card-radius-override
+     weiter unten -- ein Aufrufer, der über Cards padding-Prop eine abweichende Polsterung
+     anfordert, bekommt sie HIER ohne dass diese Variante ihren eigenen Standardwert verliert. */
+  padding: var(--card-padding-override, var(--card-padding));
   box-shadow: var(--card-shadow);
 }
 
 .cardCompact {
   gap: var(--space-3);
-  padding: var(--space-4);
+  padding: var(--card-padding-override, var(--space-4));
   border-radius: var(--radius-surface);
 }
 
@@ -50,7 +53,7 @@
 
 .cardNested {
   gap: var(--space-3);
-  padding: var(--space-1) 0 0;
+  padding: var(--card-padding-override, var(--space-1) 0 0);
   border-color: transparent;
   background: transparent;
   box-shadow: none;
@@ -58,7 +61,7 @@
 
 .cardNestedFlat {
   gap: var(--space-3);
-  padding: var(--card-nested-flat-padding);
+  padding: var(--card-padding-override, var(--card-nested-flat-padding));
   /* Teilt denselben Radius-Token wie Modal/Drawer (var(--radius-surface)) statt eines zufällig
      identischen Pixelwerts -- so bleibt die Eckenrundung repo-weit an EINER Stelle pflegbar. */
   border-radius: var(--radius-surface);
@@ -73,7 +76,7 @@
    Abstands-/Flex-Struktur mit (Kopfzeile + aufklappbare Liste), eine zusätzliche Card-Polsterung
    würde das bestehende Layout doppelt polstern. */
 .cardGlass {
-  padding: 0;
+  padding: var(--card-padding-override, 0);
   overflow: hidden;
   border-color: var(--card-glass-border);
   border-top-color: var(--card-glass-border);
@@ -96,7 +99,7 @@
    ReleasePreviewRow haben einen fokussierbaren Button nahe am Kartenrand, dessen Fokusring sonst
    am Kartenrand abgeschnitten würde (im Bestand ebenfalls nicht geclippt). */
 .cardGlassStrong {
-  padding: 0;
+  padding: var(--card-padding-override, 0);
   border-color: var(--card-glass-border-strong);
   border-top-color: var(--card-glass-border-strong);
   border-radius: var(--card-radius-override, var(--card-glass-radius-strong));
@@ -109,7 +112,7 @@
 }
 
 .cardPublicSection {
-  padding: 0;
+  padding: var(--card-padding-override, 0);
   border-color: transparent;
   border-radius: var(--card-public-section-radius);
   background: var(--card-public-section-surface);
@@ -133,7 +136,7 @@
      unmöglich, da grid-template-columns für diese Variante NUR hier gesetzt wird. */
   grid-template-columns: var(--card-public-hero-columns, minmax(0, 1fr));
   gap: 0;
-  padding: 0;
+  padding: var(--card-padding-override, 0);
   overflow: visible;
   border-color: var(--card-public-hero-border);
   border-radius: var(--card-public-hero-radius);
@@ -153,7 +156,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 0;
+  padding: var(--card-padding-override, 0);
   overflow: hidden;
   border-color: transparent;
   border-radius: var(--card-public-poster-radius);
@@ -171,7 +174,7 @@
    dieselbe gleichmäßig dunkle Fläche wie .cardPublicHero (eigener Breakpoint unten): der schmale
    Verlauf hätte auf der schmalen Mobilbreite keinen Platz, sich sichtbar zu entfalten. */
 .cardPublicHeroInfo {
-  padding: 0;
+  padding: var(--card-padding-override, 0);
   overflow: hidden;
   border-color: transparent;
   border-top-color: transparent;

@@ -33,6 +33,15 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   tintLightness?: number
   tintSurfaceAlpha?: number
   tintBorderAlpha?: number
+  /** Generischer Override-Hook für den Innenabstand EINER Card-Instanz, nach demselben Muster
+   *  wie `tintHue`/`--card-radius-override` -- Card kennt dabei weiterhin keinen Fachzweck des
+   *  Werts, nur die Skalenstufe. Erlaubt einem zusammengesetzten Baustein (z. B. einer
+   *  Info-Karte mit uneinheitlichem Innenabstand), die Card-eigene Polsterung einer einzelnen
+   *  Instanz anzufordern, OHNE selbst eine `padding:`-CSS-Regel zu deklarieren. `'none'` setzt
+   *  Padding auf `0`, jeder andere Wert mappt auf die gleichnamige `var(--space-N)`-Stufe. Ohne
+   *  Angabe bleibt die bisherige, variantenspezifische Standard-Polsterung jeder Card-Variante
+   *  unverändert (Zero-Pixel-Diff für alle bestehenden Aufrufer). */
+  padding?: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'none'
 }
 
 export function Card({
@@ -46,6 +55,7 @@ export function Card({
   tintLightness,
   tintSurfaceAlpha,
   tintBorderAlpha,
+  padding,
   className,
   children,
   style,
@@ -60,14 +70,21 @@ export function Card({
 
   const isGlassVariant = variant === 'glass' || variant === 'glassStrong'
   const hasTint = isGlassVariant && tintHue !== undefined
-  const mergedStyle: CSSProperties | undefined = hasTint
+  const hasPaddingOverride = padding !== undefined
+  const paddingOverrideValue = padding === 'none' ? '0' : `var(--space-${padding})`
+  const mergedStyle: CSSProperties | undefined = hasTint || hasPaddingOverride
     ? {
         ...style,
-        '--card-tint-hue': tintHue,
-        ...(tintSaturation !== undefined ? { '--card-tint-saturation-override': `${tintSaturation}%` } : {}),
-        ...(tintLightness !== undefined ? { '--card-tint-lightness-override': `${tintLightness}%` } : {}),
-        ...(tintSurfaceAlpha !== undefined ? { '--card-tint-surface-alpha-override': `${tintSurfaceAlpha}%` } : {}),
-        ...(tintBorderAlpha !== undefined ? { '--card-tint-border-alpha-override': `${tintBorderAlpha}%` } : {}),
+        ...(hasTint
+          ? {
+              '--card-tint-hue': tintHue,
+              ...(tintSaturation !== undefined ? { '--card-tint-saturation-override': `${tintSaturation}%` } : {}),
+              ...(tintLightness !== undefined ? { '--card-tint-lightness-override': `${tintLightness}%` } : {}),
+              ...(tintSurfaceAlpha !== undefined ? { '--card-tint-surface-alpha-override': `${tintSurfaceAlpha}%` } : {}),
+              ...(tintBorderAlpha !== undefined ? { '--card-tint-border-alpha-override': `${tintBorderAlpha}%` } : {}),
+            }
+          : {}),
+        ...(hasPaddingOverride ? { '--card-padding-override': paddingOverrideValue } : {}),
       } as CSSProperties
     : style
 

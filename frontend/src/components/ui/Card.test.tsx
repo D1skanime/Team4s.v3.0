@@ -12,6 +12,22 @@ describe('Card', () => {
     const { container } = render(<Card variant="publicHeroInfo">Inhalt</Card>)
     expect(container.querySelector('section')?.className).toMatch(/cardPublicHeroInfo/)
   })
+
+  it('setzt --card-padding-override nur, wenn die padding-Prop tatsächlich übergeben wird', () => {
+    const { container: withoutPadding } = render(<Card variant="glassStrong">Inhalt</Card>)
+    const sectionWithoutPadding = withoutPadding.querySelector('section') as HTMLElement
+    expect(sectionWithoutPadding.style.getPropertyValue('--card-padding-override')).toBe('')
+
+    const { container: withPadding } = render(<Card variant="glassStrong" padding="3">Inhalt</Card>)
+    const sectionWithPadding = withPadding.querySelector('section') as HTMLElement
+    expect(sectionWithPadding.style.getPropertyValue('--card-padding-override')).toBe('var(--space-3)')
+  })
+
+  it('mappt padding="none" auf den Literalwert 0 statt auf eine Space-Stufe', () => {
+    const { container } = render(<Card variant="glass" padding="none">Inhalt</Card>)
+    const section = container.querySelector('section') as HTMLElement
+    expect(section.style.getPropertyValue('--card-padding-override')).toBe('0')
+  })
 })
 
 describe('Card.module.css', () => {

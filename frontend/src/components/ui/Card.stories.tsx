@@ -129,6 +129,34 @@ export const OeffentlichePosterFlaeche: Story = {
   ),
 }
 
+export const PaddingUeberschreibung: Story = {
+  name: 'Innenabstand überschreiben (padding-Prop)',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Die glassStrong-Variante hat standardmäßig padding:0 (Aufrufer bringt eigene Struktur ' +
+          'mit) -- die padding-Prop fordert pro Instanz eine andere Card-eigene Polsterung an, ' +
+          'ohne dass der Aufrufer selbst eine padding-CSS-Regel schreiben müsste.',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ position: 'relative', height: 200 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 12, padding: 20 }}>
+          <Card variant="glassStrong">
+            <Text tone="onScrim">Standard (padding:0, Aufrufer polstert selbst)</Text>
+          </Card>
+          <Card variant="glassStrong" padding="6">
+            <Text tone="onScrim">padding="6" (Card polstert selbst, Space-Stufe 6)</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
+}
+
 export const GlasAufHintergrund: Story = {
   name: 'Glas auf Hintergrund (alle Tönungen)',
   parameters: {
