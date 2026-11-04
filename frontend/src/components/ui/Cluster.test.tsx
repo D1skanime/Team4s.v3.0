@@ -11,18 +11,21 @@ describe('Cluster', () => {
     const node = container.firstElementChild as HTMLElement
     expect(node.tagName).toBe('DIV')
     expect(node.className).toMatch(/cluster/)
-    expect(node.style.getPropertyValue('--cluster-gap')).toBe('var(--space-2)')
+    expect(node.style.getPropertyValue('--cluster-gap')).toBe('var(--space-badge-row)')
     expect(node.style.getPropertyValue('--cluster-align')).toBe('center')
     expect(node.style.getPropertyValue('--cluster-justify')).toBe('flex-start')
     expect(node.style.getPropertyValue('--cluster-wrap')).toBe('wrap')
   })
 
-  it('setzt jeden dokumentierten gap-Wert als eigene CSS-Variable', () => {
-    const { container: gap4 } = render(<Cluster gap="4">Inhalt</Cluster>)
-    expect((gap4.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe('var(--space-4)')
+  it('setzt jeden dokumentierten gap-Zweck als eigene CSS-Variable', () => {
+    const { container: contentPair } = render(<Cluster gap="contentPair">Inhalt</Cluster>)
+    expect((contentPair.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe('var(--space-content-pair)')
 
-    const { container: gap5 } = render(<Cluster gap="5">Inhalt</Cluster>)
-    expect((gap5.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe('var(--space-5)')
+    const { container: actionRow } = render(<Cluster gap="actionRow">Inhalt</Cluster>)
+    expect((actionRow.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe('var(--space-action-row)')
+
+    const { container: interactiveChipRow } = render(<Cluster gap="interactiveChipRow">Inhalt</Cluster>)
+    expect((interactiveChipRow.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe('var(--space-interactive-chip-row)')
   })
 
   it('übersetzt justify in das reale CSS-Schlüsselwort', () => {

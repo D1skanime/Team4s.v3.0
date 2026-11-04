@@ -3,12 +3,29 @@ import type { CSSProperties, ElementType, HTMLAttributes, ReactNode } from 'reac
 import { classNames } from './classNames'
 import styles from './Cluster.module.css'
 
-/* Space-Token-Werte identisch zu Stacks SpaceToken -- bewusst als eigener, inline wiederholter
-   Literal-Typ statt eines Imports aus './Stack': Cluster ist ein eigenständiger Grundbaustein und
-   darf laut Katalog-Taxonomie (catalogTaxonomy.test.ts) keinen anderen, selbst katalogisierten
-   Grundbaustein importieren -- auch kein reiner Typ-Import würde das unterscheiden, da die
-   Prüfung ausschließlich den Quelltext nach `from './X'` durchsucht. */
-type SpaceToken = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+/** Zweck-Benennung von Clusters Abstandsmaß (Befund 24) -- KEINE rohe Space-Skalenstufe mehr,
+ *  sondern ein benannter Einsatzzweck pro tatsächlicher Aufrufstellen-Rolle:
+ *  - `'badgeRow'`: dichte, rein lesbare Abzeichen-/Chip-/Tag-/Logo-Reihe ohne Interaktion.
+ *  - `'interactiveChipRow'`: Reihe klickbarer Filter-/Auswahl-Chips (z. B. Fansub-Gruppen-
+ *    Umschalter).
+ *  - `'contentPair'`: zwei unterschiedliche, gleichrangige Inhaltsblöcke nebeneinander (z. B.
+ *    Avatar-Gruppe neben Textspalte).
+ *  - `'actionRow'`: Aktionslink-Reihe, meist durch eine Trennlinie vom Inhalt oben abgesetzt.
+ *  Cluster deklariert diese Enum bewusst eigenständig statt sie aus './Stack' zu importieren --
+ *  Cluster ist ein eigenständiger Grundbaustein und darf laut Katalog-Taxonomie
+ *  (catalogTaxonomy.test.ts) keinen anderen, selbst katalogisierten Grundbaustein importieren,
+ *  auch keinen reinen Typ-Import (die Prüfung durchsucht ausschließlich den Quelltext nach
+ *  `from './X'`). */
+export type ClusterGapPurpose = 'badgeRow' | 'interactiveChipRow' | 'contentPair' | 'actionRow'
+
+/** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
+ *  niemals direkt auf `var(--space-N)` (siehe `ClusterGapPurpose`-Dokumentation oben). */
+const GAP_PURPOSE_TOKENS: Record<ClusterGapPurpose, string> = {
+  badgeRow: 'var(--space-badge-row)',
+  interactiveChipRow: 'var(--space-interactive-chip-row)',
+  contentPair: 'var(--space-content-pair)',
+  actionRow: 'var(--space-action-row)',
+}
 
 type ClusterJustify = 'start' | 'center' | 'end' | 'between'
 
@@ -20,8 +37,8 @@ const JUSTIFY_KEYWORDS: Record<ClusterJustify, string> = {
 }
 
 export interface ClusterProps extends HTMLAttributes<HTMLElement> {
-  /** Abstand zwischen den Kindern, als Space-Token (Standard '2' = var(--space-2)). */
-  gap?: SpaceToken
+  /** Abstand zwischen den Kindern, als benannter Zweck (Standard 'badgeRow' = var(--space-badge-row)). */
+  gap?: ClusterGapPurpose
   /** Querachsen-Ausrichtung der Kinder (Standard 'center'). */
   align?: 'start' | 'center' | 'end' | 'baseline' | 'stretch'
   /** Hauptachsen-Verteilung der Kinder (Standard 'start'). */
@@ -40,7 +57,7 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
  * Farbe/Rundung selbst (siehe Stack.tsx für dieselbe Begründung).
  */
 export function Cluster({
-  gap = '2',
+  gap = 'badgeRow',
   align = 'center',
   justify = 'start',
   wrap = true,
@@ -55,7 +72,7 @@ export function Cluster({
       {...props}
       style={{
         ...style,
-        '--cluster-gap': `var(--space-${gap})`,
+        '--cluster-gap': GAP_PURPOSE_TOKENS[gap],
         '--cluster-align': align,
         '--cluster-justify': JUSTIFY_KEYWORDS[justify],
         '--cluster-wrap': wrap ? 'wrap' : 'nowrap',

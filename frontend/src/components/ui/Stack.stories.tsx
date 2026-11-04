@@ -19,10 +19,10 @@ function Box({ label }: { label: string }) {
   )
 }
 
-export const Standard: Story = {
-  name: 'Standard (gap 3)',
+export const Abschnittstrennung: Story = {
+  name: 'Abschnittstrennung (gap "section")',
   args: {
-    gap: '3',
+    gap: 'section',
     children: (
       <>
         <Box label="Erste Zeile" />
@@ -31,12 +31,19 @@ export const Standard: Story = {
       </>
     ),
   },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Für voneinander unabhängige Inhaltsblöcke (z. B. Merklisten-Knopf, Trennlinie und Genre-Abschnitt im Anime-Kopf, oder einzelne Episodenzeilen in einer Liste).',
+      },
+    },
+  },
 }
 
-export const GapEng: Story = {
-  name: 'Enger Abstand (gap 2)',
+export const EngZusammengehoerig: Story = {
+  name: 'Eng zusammengehörig (gap "tight")',
   args: {
-    gap: '2',
+    gap: 'tight',
     children: (
       <>
         <Box label="Erste Zeile" />
@@ -44,12 +51,19 @@ export const GapEng: Story = {
       </>
     ),
   },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Für dicht zusammengehörige Inhalte (z. B. ein Eyebrow-Label mit seiner Chip-Reihe, oder die Metadatenzeilen EINER Release-Zeile).',
+      },
+    },
+  },
 }
 
 export const AusrichtungStart: Story = {
   name: 'Ausrichtung start',
   args: {
-    gap: '3',
+    gap: 'section',
     align: 'start',
     children: (
       <>
@@ -63,7 +77,7 @@ export const AusrichtungStart: Story = {
 export const AusrichtungEnd: Story = {
   name: 'Ausrichtung end',
   args: {
-    gap: '3',
+    gap: 'section',
     align: 'end',
     children: (
       <>

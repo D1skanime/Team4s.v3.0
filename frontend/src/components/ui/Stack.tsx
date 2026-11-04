@@ -3,15 +3,25 @@ import type { CSSProperties, ElementType, HTMLAttributes, ReactNode } from 'reac
 import { classNames } from './classNames'
 import styles from './Stack.module.css'
 
-/** Space-Token-Werte ('1'..'9'), die 1:1 auf die globalen `--space-N`-Tokens
- *  (`src/styles/tokens/layout.css`) abbilden. Alle Layout-Grundbausteine (Stack/Cluster/
- *  SplitLayout) akzeptieren ausschließlich diese Token-Werte als Abstandsmaß -- niemals einen
- *  rohen Pixelwert. */
-export type SpaceToken = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+/** Zweck-Benennung von Stacks Abstandsmaß (Befund 24) -- KEINE rohe Space-Skalenstufe mehr,
+ *  sondern ein benannter Einsatzzweck, der intern über ein eigenes Zweck-Token in
+ *  `src/styles/tokens/layout.css` auf die unveränderte `--space-N`-Grundskala verweist:
+ *  - `'section'`: trennt voneinander unabhängige Inhaltsblöcke (z. B. Merklisten-Knopf,
+ *    Trennlinie und Genre-Abschnitt im Anime-Kopf; einzelne Episodenzeilen in der Episodenliste).
+ *  - `'tight'`: fasst eng zusammengehörige Inhalte dicht zusammen (ein Eyebrow-Label mit seiner
+ *    Chip-Reihe, oder die Metadatenzeilen EINER Release-Zeile). */
+export type StackGapPurpose = 'section' | 'tight'
+
+/** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
+ *  niemals direkt auf `var(--space-N)` (siehe `StackGapPurpose`-Dokumentation oben). */
+const GAP_PURPOSE_TOKENS: Record<StackGapPurpose, string> = {
+  section: 'var(--space-section)',
+  tight: 'var(--space-tight)',
+}
 
 export interface StackProps extends HTMLAttributes<HTMLElement> {
-  /** Abstand zwischen den Kindern, als Space-Token (Standard '3' = var(--space-3)). */
-  gap?: SpaceToken
+  /** Abstand zwischen den Kindern, als benannter Zweck (Standard 'section' = var(--space-section)). */
+  gap?: StackGapPurpose
   /** Querachsen-Ausrichtung der Kinder (Standard 'stretch'). */
   align?: 'start' | 'center' | 'end' | 'stretch'
   /** Zu rendernde Element-Art (Standard 'div'). */
@@ -28,7 +38,7 @@ export interface StackProps extends HTMLAttributes<HTMLElement> {
  * "Frontend-UI": Rundungen/Flächen bleiben bei den dafür vorgesehenen Bausteinen).
  */
 export function Stack({
-  gap = '3',
+  gap = 'section',
   align = 'stretch',
   as: Component = 'div',
   className,
@@ -39,7 +49,7 @@ export function Stack({
   return (
     <Component
       {...props}
-      style={{ ...style, '--stack-gap': `var(--space-${gap})`, '--stack-align': align } as CSSProperties}
+      style={{ ...style, '--stack-gap': GAP_PURPOSE_TOKENS[gap], '--stack-align': align } as CSSProperties}
       className={classNames(styles.stack, className)}
     >
       {children}

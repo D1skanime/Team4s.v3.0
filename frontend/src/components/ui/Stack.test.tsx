@@ -11,13 +11,13 @@ describe('Stack', () => {
     const node = container.firstElementChild as HTMLElement
     expect(node.tagName).toBe('DIV')
     expect(node.className).toMatch(/stack/)
-    expect(node.style.getPropertyValue('--stack-gap')).toBe('var(--space-3)')
+    expect(node.style.getPropertyValue('--stack-gap')).toBe('var(--space-section)')
     expect(node.style.getPropertyValue('--stack-align')).toBe('stretch')
   })
 
-  it('setzt jeden dokumentierten gap-Wert als eigene CSS-Variable', () => {
-    const { container: container2 } = render(<Stack gap="2">Inhalt</Stack>)
-    expect((container2.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('var(--space-2)')
+  it('setzt jeden dokumentierten gap-Zweck als eigene CSS-Variable', () => {
+    const { container: container2 } = render(<Stack gap="tight">Inhalt</Stack>)
+    expect((container2.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('var(--space-tight)')
   })
 
   it('unterstützt die beiden align-Extreme', () => {

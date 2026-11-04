@@ -78,6 +78,22 @@
      min-height ohne aspect-ratio schnitt bei breiten Viewports oben/unten vom gespeicherten
      Zuschnitt ab). */
   --profile-banner-aspect-ratio: 1920 / 384;
+
+  /* Zweck-Token fuer die Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 24): deren
+     gap-/firstColumnWidth-Props nehmen ausschliesslich benannte Zweck-Werte entgegen, nie eine
+     rohe Space-Skalenstufe ("gap=2") oder einen freien CSS-Laengen-String ("firstColumnWidth=
+     '200px'") -- konsistent mit jedem anderen Design-Token dieses Projekts. Jedes Zweck-Token
+     verweist unveraendert per var() auf die bestehende --space-N-/--media-frame-poster-width*-
+     Grundskala; nur der benannte Zugriffspfad ist neu, der zugrunde liegende Zahlenwert bleibt
+     identisch (Zero-Pixel-Diff). */
+  --space-section: var(--space-3); /* Stack: trennt voneinander unabhaengige Inhaltsbloecke (z. B. Merklisten-Knopf/Trennlinie/Genre-Abschnitt im Anime-Kopf, einzelne Episodenzeilen). */
+  --space-tight: var(--space-2); /* Stack: fasst eng zusammengehoerige Inhalte dicht zusammen (ein Eyebrow-Label mit seiner Chip-Reihe, oder die Metadatenzeilen EINER Release-Zeile). */
+  --space-badge-row: var(--space-2); /* Cluster: dichte, rein lesbare Abzeichen-/Chip-/Tag-/Logo-Reihe ohne Interaktion. */
+  --space-interactive-chip-row: var(--space-3); /* Cluster: Reihe klickbarer Filter-/Auswahl-Chips (z. B. Fansub-Gruppen-Umschalter). */
+  --space-content-pair: var(--space-4); /* Cluster: zwei unterschiedliche, gleichrangige Inhaltsbloecke nebeneinander (z. B. Avatar-Gruppe neben Textspalte). */
+  --space-action-row: var(--space-5); /* Cluster: Aktionslink-Reihe, meist durch eine Trennlinie vom Inhalt oben abgesetzt. */
+  --split-layout-column-poster: var(--media-frame-poster-width); /* SplitLayout: Posterspalte des Anime-Kopfs (Standardbreite, >=1024px). */
+  --split-layout-column-poster-medium: var(--media-frame-poster-width-medium); /* SplitLayout: Posterspalte des Anime-Kopfs unterhalb 1024px -- spiegelt die bestehende Postergroessen-Stufe aus components.css. */
 }
 
 @media (min-width: 1600px) {
