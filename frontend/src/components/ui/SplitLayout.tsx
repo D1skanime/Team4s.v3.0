@@ -84,8 +84,14 @@ export function SplitLayout({
         className,
       )}
     >
-      <div className={styles.firstColumn}>{firstColumn}</div>
-      <div className={styles.secondColumn}>{secondColumn}</div>
+      {/* Eigenes Grid-Kind-Element: ein Container darf laut CSS-Spezifikation nicht gleichzeitig
+       *  anhand der eigenen @container-Abfrage sein eigenes Layout aendern (siehe Kommentar in
+       *  SplitLayout.module.css) -- das `Component`-Element oben bildet nur den benannten
+       *  Container, das eigentliche zweispaltige Grid lebt hier als Nachfahre. */}
+      <div className={styles.grid}>
+        <div className={styles.firstColumn}>{firstColumn}</div>
+        <div className={styles.secondColumn}>{secondColumn}</div>
+      </div>
     </Component>
   )
 }

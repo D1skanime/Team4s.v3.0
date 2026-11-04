@@ -1,8 +1,17 @@
 /* Eigenstaendig benannter Container (nicht "artwork-hero" wiederverwendet) -- mehrere
    SplitLayout-Instanzen koennen ineinander verschachtelt sein, jede braucht ihren eigenen
-   Container-Namensraum (siehe ArtworkHero.module.css fuer dasselbe Grundmuster). */
+   Container-Namensraum (siehe ArtworkHero.module.css fuer dasselbe Grundmuster).
+   WICHTIG: der Container darf laut CSS-Spezifikation nicht gleichzeitig das Element sein, dessen
+   eigenes Layout von der @container-Abfrage dieses Containers geaendert wird (ein Element kann
+   nicht anhand der eigenen Groesse sich selbst neu anordnen) -- deshalb traegt DIESES Element nur
+   `container`/`min-width`, waehrend das tatsaechliche CSS-Grid (`.grid` unten) als eigenes
+   Kind-Element lebt, das als Nachfahre des Containers ueber @container abgefragt werden darf. */
 .splitLayout {
   container: split-layout / inline-size;
+  min-width: 0;
+}
+
+.grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--split-gap, var(--space-4));
@@ -29,16 +38,19 @@
   }
 }
 
-/* breakpoint="md" (Standard) -- Schwelle 48rem/768px, identisch zu ArtworkHeros Haltepunkt. */
+/* breakpoint="md" (Standard) -- Schwelle 48rem/768px, identisch zu ArtworkHeros Haltepunkt.
+   Die Modifikatorklassen (.breakpointLg/.columnPoster) bleiben auf dem AEUSSEREN Container-Element
+   (siehe SplitLayout.tsx) -- die Bedingung wird deshalb ueber den Vorfahren-Kombinator auf das
+   innere `.grid`-Element angewendet, nicht auf das Element, das den Container selbst bildet. */
 @container split-layout (min-width: 48rem) {
-  .splitLayout:not(.breakpointLg) {
+  .splitLayout:not(.breakpointLg) .grid {
     grid-template-columns: var(--split-first-col, auto) minmax(0, 1fr);
   }
 }
 
 /* breakpoint="lg" -- Schwelle 64rem/1024px (entspricht der bisherigen 1023px-Postergroessen-Stufe). */
 @container split-layout (min-width: 64rem) {
-  .splitLayout.breakpointLg {
+  .splitLayout.breakpointLg .grid {
     grid-template-columns: var(--split-first-col, auto) minmax(0, 1fr);
   }
 }
