@@ -1,4 +1,17 @@
-import { AnimeListParams, AnimeStatus, ContentType } from '@/types/anime'
+import { getAnimeList } from '@/lib/api'
+import { AnimeListItem, AnimeListParams, AnimeStatus, ContentType } from '@/types/anime'
+
+/** Ein aufgelöster Nachbar in der Grid-Reihenfolge, zusammen mit der Seite, auf der er liegt. */
+export interface AnimeNeighborTarget {
+  anime: AnimeListItem
+  page: number
+}
+
+/** Ergebnis der Nachbarn-Ermittlung: Vorheriger/nächster Anime in der aktuellen Grid-Sortierung. */
+export interface AnimeNeighbors {
+  prev: AnimeNeighborTarget | null
+  next: AnimeNeighborTarget | null
+}
 
 /** Menge der erlaubten Content-Typen für die Grid-Filterung. */
 const allowedContentTypes = new Set<ContentType>(['anime', 'hentai'])
@@ -195,4 +208,49 @@ export function buildAnimeListHrefFromGridQuery(gridQuery: string): string {
 export function getGridScrollStorageKey(gridQuery: string): string {
   const normalized = normalizeGridQuery(gridQuery)
   return `anime-grid-scroll:${normalized || 'default'}`
+}
+
+/**
+ * Ermittelt den vorherigen/nächsten Anime in derselben Grid-Sortierung wie die Anime-Übersicht.
+ * Lädt zunächst die aktuelle Seite und sucht `currentAnimeID` darin; liegt der Treffer am Rand
+ * dieser Seite, wird zusätzlich die vorherige/nächste Seite geladen, um deren letztes/erstes
+ * Element als Nachbar zu übernehmen (Seitenwechsel-Fall). Diese Funktion ist die EINZIGE Quelle
+ * dieser Logik -- sowohl die serverseitige Randnavigations-Auflösung (`page.tsx`) als auch die
+ * weiterhin client-seitige Hover-Vorschaukarte (`AnimeEdgeNavigation.tsx`) rufen sie auf, statt
+ * den Index-/Seitenrand-Algorithmus ein zweites Mal zu implementieren.
+ *
+ * @param gridParams - Aktuelle Grid-Filterparameter (Seite, Suche, Status, ...)
+ * @param currentAnimeID - ID des Anime, dessen Nachbarn ermittelt werden sollen
+ * @param options - Optionales AbortSignal, um einen laufenden Client-Fetch abzubrechen
+ * @returns Vorherigen/nächsten Anime samt Seite, oder `null` je Richtung, wenn keiner existiert
+ */
+export async function resolveAnimeNeighbors(
+  gridParams: AnimeListParams,
+  currentAnimeID: number,
+  options: { signal?: AbortSignal } = {},
+): Promise<AnimeNeighbors> {
+  const currentPage = gridParams.page ?? 1
+  const current = await getAnimeList(gridParams, options)
+  const index = current.data.findIndex((anime) => anime.id === currentAnimeID)
+  const result: AnimeNeighbors = { prev: null, next: null }
+  if (index < 0) {
+    return result
+  }
+
+  if (index > 0) {
+    result.prev = { anime: current.data[index - 1], page: currentPage }
+  } else if (currentPage > 1) {
+    const previous = await getAnimeList({ ...gridParams, page: currentPage - 1 }, options)
+    const anime = previous.data[previous.data.length - 1]
+    if (anime) result.prev = { anime, page: currentPage - 1 }
+  }
+
+  if (index < current.data.length - 1) {
+    result.next = { anime: current.data[index + 1], page: currentPage }
+  } else if (currentPage < current.meta.total_pages) {
+    const next = await getAnimeList({ ...gridParams, page: currentPage + 1 }, options)
+    if (next.data[0]) result.next = { anime: next.data[0], page: currentPage + 1 }
+  }
+
+  return result
 }
