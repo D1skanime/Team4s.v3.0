@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { Button } from './Button'
 import { Cluster } from './Cluster'
 
 /** Horizontale Anordnung mit Umbruch und token-basiertem Abstand -- der generische Grundbaustein
@@ -44,20 +45,9 @@ export const AbzeichenReihe: Story = {
 
 function InteractiveChip({ label, pressed }: { label: string; pressed: boolean }) {
   return (
-    <button
-      type="button"
-      aria-pressed={pressed}
-      style={{
-        padding: '4px 12px',
-        borderRadius: 999,
-        border: pressed ? '1px solid #357' : '1px solid #ccc',
-        background: pressed ? '#357' : '#eee',
-        color: pressed ? '#fff' : '#222',
-        cursor: 'pointer',
-      }}
-    >
+    <Button type="button" variant="secondary" size="sm" aria-pressed={pressed}>
       {label}
-    </button>
+    </Button>
   )
 }
 
@@ -79,7 +69,7 @@ export const InteraktiveChipReihe: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Reihe klickbarer Filter-/Auswahl-Chips (z. B. der Fansub-Gruppen-Umschalter in `FansubGroupPicker`) -- echte `<button>`-Elemente statt der rein lesbaren `Chip`-Spanne oben, weil der visuelle Unterschied zwischen anklickbaren Chips und statischen Abzeichen genau der Zweck dieser Variante ist.',
+        story: 'Reihe klickbarer Filter-/Auswahl-Chips (z. B. der Fansub-Gruppen-Umschalter in `FansubGroupPicker`) -- echte `Button`-Grundbausteine (mit `aria-pressed`) statt der rein lesbaren `Chip`-Spanne oben, weil der visuelle Unterschied zwischen anklickbaren Chips und statischen Abzeichen genau der Zweck dieser Variante ist.',
       },
     },
   },
