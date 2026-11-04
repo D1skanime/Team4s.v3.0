@@ -139,7 +139,7 @@ export function isColorLikeValue(value: string): boolean {
 /** Die drei Gliederungs-Stufen der Design-Tokens-Seite (Befund 28, Runde 3): "foundation" =
  *  rohe Grundskala mit sichtbarer Vorschau (z. B. --space-3, --radius-sm), "purpose" = benannter
  *  Verwendungszweck INNERHALB einer Grundskala, der per `var()` auf einen Grundwert verweist
- *  (z. B. --space-section -> var(--space-3)), "component" = jeder Token, der zu keiner Grundskala
+ *  (z. B. --space-independent-blocks -> var(--space-3)), "component" = jeder Token, der zu keiner Grundskala
  *  gehört, sondern zu einem einzelnen Grundbaustein (Card/Button/Avatar/...). */
 export type TokenTier = 'foundation' | 'purpose' | 'component'
 
@@ -149,7 +149,7 @@ export type TokenTier = 'foundation' | 'purpose' | 'component'
  *  die Regel anhand der Namens-SEGMENTE NACH dem Familien-Präfix, ob ein konkretes Token noch
  *  ein roher Skalenwert ("foundation") oder schon ein benannter Verwendungszweck ("purpose") ist:
  *  - space: eine reine Zahl (--space-3) ist die Skala selbst, jeder benannte Rest
- *    (--space-section) ein Zweck.
+ *    (--space-independent-blocks) ein Zweck.
  *  - radius/shadow: ein kleines, festes Stufen-Vokabular (sm/md/lg/pill bzw. xs/sm/md/lg) ist die
  *    Skala selbst, jeder andere Rest (--radius-surface, --shadow-inset-highlight) ein Zweck.
  *  - font: die rohen Schriftfamilien (--font-sans/-mono) sowie die Größen-Skala

@@ -112,7 +112,7 @@ describe('isColorLikeValue', () => {
 describe('classifyToken', () => {
   it('ordnet die vom Menschen genannten Eichpunkte in Befund 28 jeweils der richtigen Stufe zu', () => {
     expect(classifyToken({ name: '--space-3', value: '12px' }, 'space')).toBe('foundation')
-    expect(classifyToken({ name: '--space-section', value: 'var(--space-3)' }, 'space')).toBe('purpose')
+    expect(classifyToken({ name: '--space-independent-blocks', value: 'var(--space-3)' }, 'space')).toBe('purpose')
     expect(classifyToken({ name: '--radius-sm', value: '6px' }, 'radius')).toBe('foundation')
     expect(classifyToken({ name: '--radius-surface', value: '4px' }, 'radius')).toBe('purpose')
   })

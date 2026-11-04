@@ -78,11 +78,11 @@ describe('DesignTokensShowcase', () => {
     }
   })
 
-  it('zeigt Zweck-Werte mit einem Rückverweis auf ihren Grundwert (z. B. --space-section -> --space-3)', () => {
+  it('zeigt Zweck-Werte mit einem Rückverweis auf ihren Grundwert (z. B. --space-independent-blocks -> --space-3)', () => {
     const cleanup = loadGlobalsCssIntoDocument()
     try {
       render(<DesignTokensShowcase />)
-      expect(screen.getByText('--space-section')).not.toBeNull()
+      expect(screen.getByText('--space-independent-blocks')).not.toBeNull()
       expect(screen.getByText('--radius-surface')).not.toBeNull()
       expect(screen.getAllByText(/--space-3/).length).toBeGreaterThan(0)
       expect(screen.getAllByText('-> 12px (--space-3)').length).toBeGreaterThan(0)

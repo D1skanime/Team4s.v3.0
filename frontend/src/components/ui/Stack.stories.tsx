@@ -19,10 +19,10 @@ function Box({ label }: { label: string }) {
   )
 }
 
-export const Abschnittstrennung: Story = {
-  name: 'Abschnittstrennung',
+export const UnabhaengigeBloecke: Story = {
+  name: 'Unabhängige Blöcke',
   args: {
-    gap: 'section',
+    gap: 'independentBlocks',
     children: (
       <>
         <Box label="Erste Zeile" />
@@ -34,16 +34,16 @@ export const Abschnittstrennung: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Für voneinander unabhängige Inhaltsblöcke (z. B. Merklisten-Knopf, Trennlinie und Genre-Abschnitt im Anime-Kopf, oder einzelne Episodenzeilen in einer Liste).',
+        story: 'Für voneinander unabhängige Inhaltsblöcke INNERHALB eines Bausteins (z. B. Merklisten-Knopf, Trennlinie und Genre-Abschnitt im Anime-Kopf, oder einzelne Episodenzeilen in einer Liste) -- nicht zu verwechseln mit Abstand zwischen Seitenabschnitten.',
       },
     },
   },
 }
 
-export const EngZusammengehoerig: Story = {
-  name: 'Eng zusammengehörig',
+export const ZusammengehoerigerInhalt: Story = {
+  name: 'Zusammengehöriger Inhalt',
   args: {
-    gap: 'tight',
+    gap: 'relatedContent',
     children: (
       <>
         <Box label="Erste Zeile" />
@@ -54,7 +54,7 @@ export const EngZusammengehoerig: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Für dicht zusammengehörige Inhalte (z. B. ein Eyebrow-Label mit seiner Chip-Reihe, oder die Metadatenzeilen EINER Release-Zeile).',
+        story: 'Für dicht zusammengehörige Inhalte, die gemeinsam EINE Einheit beschreiben (z. B. ein Eyebrow-Label mit seiner Chip-Reihe, oder die Metadatenzeilen EINER Release-Zeile).',
       },
     },
   },
@@ -63,7 +63,7 @@ export const EngZusammengehoerig: Story = {
 export const AusrichtungStart: Story = {
   name: 'Ausrichtung start',
   args: {
-    gap: 'section',
+    gap: 'independentBlocks',
     align: 'start',
     children: (
       <>
@@ -77,7 +77,7 @@ export const AusrichtungStart: Story = {
 export const AusrichtungEnd: Story = {
   name: 'Ausrichtung end',
   args: {
-    gap: 'section',
+    gap: 'independentBlocks',
     align: 'end',
     children: (
       <>
