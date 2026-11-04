@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 192-19-PLAN.md (Grundlagen/Design-Tokens dreistufig gegliedert -- Befund 28)
-last_updated: "2026-11-04T17:17:23.239Z"
+last_updated: "2026-11-04T17:52:04.839Z"
 last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 550
-  completed_plans: 537
+  completed_plans: 538
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 3 Gap-Closure)) — EXECUTING
-Plan: 5 of 20
+Plan: 6 of 20
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1585,6 +1585,9 @@ Last activity: 2026-11-04
 - [Phase 192]: AnimeRelations' 'Verwandte Anime'-Ueberschrift rendert jetzt ueber den Heading-Grundbaustein statt eines rohen h2 mit hartcodiertem #fff -- Farbe kommt ausschliesslich ueber Headings --heading-color-Hook, den Card.module.css bereits pro Breakpoint korrekt setzt
 - [Phase 192]: Plan 192-18 (Befund 27): Row 1 (BannerSection) before/after contrasts plain image vs blurred backdrop; rows 2-5 keep the same BannerSection backdrop in both panels and only swap the overlay (plain Text(tone=onScrim) vs real LinkChip/Button/Badge), isolating the chip/button/badge glass/scrim treatment from BannerSection's own always-present blur
 - [Phase 192]: Grundlagen/Design-Tokens dreistufig gegliedert (Befund 28): Grundskala/Zweck-Werte/Bausteinwerte-Klassifizierer ist rein namensbasiert (kleine Grundskala-Familien-Liste), ohne Token-fuer-Token-Liste — Haelt den automatischen Scan-Mechanismus bei -- keine von Hand gepflegte Liste, konsistent mit dem bestehenden System
+- [Phase 192]: Plan 192-13 (Befund B, AnimeDetailHero.module.css): .infoCardBody's zwei-Haltepunkt-Innenabstand (--space-6/--space-5) wandert als eigener responsiver Standardwert in Card.module.css's .cardPublicHeroInfo-Variante selbst, statt dass Card's einzelner, nicht-responsiver padding-Prop das ausdrueckt oder der Composite-Baustein lokales CSS behaelt — Card.module.css war nicht im Plan-files_modified, aber per 192-CONTEXT.md-Mandat ("Grundbaustein erweitern statt lokales CSS behalten") die korrekte Lösung
+- [Phase 192]: Plan 192-13: AnimeMediaProvider.tsx's AnimeInfoBanner nimmt jetzt einen divider-ReactNode-Slot statt einer dividerClassName-ClassName entgegen — der zweite <hr> lag entgegen der Plan-Annahme nicht in AnimeDetailHero.tsx selbst, sondern in dieser fremden Komponente
+- [Phase 192]: Plan 192-13: neue, verschachtelte Card variant="nested" padding="4" um Merklisten-Knopf/Divider/Genres-Block mit drei empirisch (Playwright Vorher/Nachher-Byte-Diff) bestaetigten lokalen Restkorrekturen (border-width:0, Mobil-Margin-Ausgleich, Mobil-justify-items:center) statt einer zweiten Card-Variantenerweiterung — .cardNested ist generisch/mehrfach genutzt, eine Haltepunkt-Sonderregel dort waere Domaenenwissen-Leck
 
 ### Pending Todos
 
@@ -2365,11 +2368,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P12 | ~12min | 3 tasks | 15 files |
 | Phase 192 P18 | ~15min | 1 tasks | 4 files |
 | Phase 192 P19 | ~55min | 2 tasks | 6 files |
+| Phase 192 P13 | ~45min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T17:17:23.181Z
-Stopped at: Completed 192-19-PLAN.md (Grundlagen/Design-Tokens dreistufig gegliedert -- Befund 28)
+Last session: 2026-11-04T17:52:04.806Z
+Stopped at: Completed 192-13-PLAN.md (AnimeDetailHero.module.css Layout-CSS-Bereinigung -- Befund B)
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
