@@ -4,11 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { AdjacentNavigation, Card, Cluster, ResponsiveImage, Text, type AdjacentNavigationItem } from '@/components/ui'
 import { parseAnimeListParamsFromGridQuery, resolveAnimeNeighbors, type AnimeNeighbors } from '@/lib/animeGridContext'
-import { getCoverUrl } from '@/lib/utils'
 
+import { useAnimeEdgeNavigationHover, type EdgeNavigationDirection } from './useAnimeEdgeNavigationHover'
 import styles from './AnimeEdgeNavigation.module.css'
-
-type Direction = 'prev' | 'next'
 
 interface AnimeEdgeNavigationProps {
   currentAnimeID: number
@@ -43,13 +41,11 @@ export function AnimeEdgeNavigation(props: AnimeEdgeNavigationProps) {
  */
 function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery, previous, next }: AnimeEdgeNavigationProps) {
   const [neighbors, setNeighbors] = useState<AnimeNeighbors | null>(null)
-  const [hoverDirection, setHoverDirection] = useState<Direction | null>(null)
   const requestRef = useRef<{ controller: AbortController; promise: Promise<AnimeNeighbors | null> } | null>(null)
   const gridParams = useMemo(() => parseAnimeListParamsFromGridQuery(gridQuery), [gridQuery])
-  const previousAnime = neighbors?.prev?.anime ?? null
-  const nextAnime = neighbors?.next?.anime ?? null
-  const previewAnime = hoverDirection === 'prev' ? previousAnime : hoverDirection === 'next' ? nextAnime : null
-  const previewCoverUrl = previewAnime ? getCoverUrl(previewAnime.cover_image) : ''
+  // Hover-/Fokus-Vorschauzustand lebt in einem eigenen, direkt testbaren Hook (Befund C) --
+  // diese Komponente bleibt ein reiner Konsument der daraus abgeleiteten Vorschau-Werte.
+  const { hoverDirection, previewAnime, previewCoverUrl, handlersFor } = useAnimeEdgeNavigationHover(neighbors)
 
   useEffect(() => () => { requestRef.current?.controller.abort() }, [])
 
@@ -86,16 +82,9 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery, previous, next 
   /** Ergänzt ein serverseitig bereits vollständiges Navigations-Item nur um die fünf
    *  Hover-/Fokus-Handler, die die client-seitige Vorschaukarte steuern -- href/label/ariaLabel
    *  selbst kommen unverändert vom Server, damit sie synchron im ersten Render stehen. */
-  function withPreviewHandlers(item: AdjacentNavigationItem | null, direction: Direction): AdjacentNavigationItem | null {
+  function withPreviewHandlers(item: AdjacentNavigationItem | null, direction: EdgeNavigationDirection): AdjacentNavigationItem | null {
     if (!item) return null
-    return {
-      ...item,
-      onMouseEnter: () => setHoverDirection(direction),
-      onMouseLeave: () => setHoverDirection((current) => (current === direction ? null : current)),
-      onFocus: () => setHoverDirection(direction),
-      onBlur: () => setHoverDirection((current) => (current === direction ? null : current)),
-      onTouchStart: () => setHoverDirection(direction),
-    }
+    return { ...item, ...handlersFor(direction) }
   }
 
   const previousItem = withPreviewHandlers(previous, 'prev')

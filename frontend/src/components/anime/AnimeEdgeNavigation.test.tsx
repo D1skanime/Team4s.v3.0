@@ -1,15 +1,17 @@
 // @vitest-environment jsdom
 import fs from 'node:fs'
 import path from 'node:path'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getAnimeList } from '@/lib/api'
 import { buildAnimeDetailHref, buildAnimeGridQuery } from '@/lib/animeGridContext'
+import type { AnimeNeighbors } from '@/lib/animeGridContext'
 import type { AdjacentNavigationItem } from '@/components/ui'
 import type { AnimeListItem, PaginatedAnimeResponse } from '@/types/anime'
 
 import { AnimeEdgeNavigation } from './AnimeEdgeNavigation'
+import { useAnimeEdgeNavigationHover } from './useAnimeEdgeNavigationHover'
 
 vi.mock('@/lib/api', () => ({ getAnimeList: vi.fn() }))
 
@@ -63,23 +65,27 @@ describe('AnimeEdgeNavigation', () => {
     await waitFor(() => expect(getAnimeList).toHaveBeenCalled())
   })
 
-  it('zeigt die Vorschaukarte erst bei Hover oder Fokus des vorab geladenen Links', async () => {
-    render(
-      <AnimeEdgeNavigation
-        currentAnimeID={3}
-        gridQuery={query(2)}
-        previous={navItem(2, 1, 'prev')}
-        next={navItem(4, 2, 'next')}
-      />,
-    )
-    const next = await screen.findByRole('link', { name: 'Nächster Anime: Anime 4' })
+  it('wechselt die Vorschau abhängig von der gehoverten/fokussierten Richtung (direkter Hook-Aufruf statt fireEvent.mouseEnter/mouseLeave, Befund C)', () => {
+    // Die Hover-/Fokus-Vorschauzustandslogik lebt seit Befund C in useAnimeEdgeNavigationHover
+    // (ausgelagert aus AnimeEdgeNavigationContext) -- derselbe Zustandsautomat, den die echte
+    // Vorschaukarte im Browser treibt, wird hier direkt per renderHook aufgerufen, ohne
+    // DOM-Rendering oder simulierte Maus-/Fokus-Ereignisse.
+    const neighbors: AnimeNeighbors = {
+      prev: { anime: item(2), page: 1 },
+      next: { anime: item(4), page: 2 },
+    }
+    const { result } = renderHook(() => useAnimeEdgeNavigationHover(neighbors))
 
-    expect(screen.queryByText('TV')).toBeNull()
-    fireEvent.mouseEnter(next)
-    expect(screen.getByText('Anime 4')).toBeTruthy()
-    expect(screen.getByText('TV')).toBeTruthy()
-    fireEvent.mouseLeave(next)
-    expect(screen.queryByText('TV')).toBeNull()
+    expect(result.current.hoverDirection).toBeNull()
+    expect(result.current.previewAnime).toBeNull()
+
+    act(() => result.current.handlersFor('next').onMouseEnter())
+    expect(result.current.hoverDirection).toBe('next')
+    expect(result.current.previewAnime?.title).toBe('Anime 4')
+
+    act(() => result.current.handlersFor('next').onMouseLeave())
+    expect(result.current.hoverDirection).toBeNull()
+    expect(result.current.previewAnime).toBeNull()
   })
 
   it('rendert am äußeren Rand keinen erfundenen Link, wenn der Server bereits null liefert', async () => {
