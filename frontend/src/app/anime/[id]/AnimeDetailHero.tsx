@@ -55,6 +55,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
         className={styles.heroSplit}
         breakpoint="md"
         align="stretch"
+        firstColumnWidth="poster"
         firstColumn={
           <Card variant="publicPoster" className={styles.posterColumn}>
             <div className={styles.posterWrapper} style={{ '--poster-image': `url("${coverUrl}")` } as CSSProperties}>

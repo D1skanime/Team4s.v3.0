@@ -12,16 +12,29 @@ describe('SplitLayout', () => {
     expect(screen.getByText('B')).not.toBeNull()
   })
 
-  it('setzt --split-first-col nur, wenn firstColumnWidth tatsaechlich uebergeben wird', () => {
-    const { container: withWidth } = render(
-      <SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} firstColumnWidth="200px" />,
+  it('setzt --split-first-col inline nur fuer firstColumnWidth="auto"', () => {
+    const { container: withAuto } = render(
+      <SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} firstColumnWidth="auto" />,
     )
-    expect((withWidth.firstChild as HTMLElement).style.getPropertyValue('--split-first-col')).toBe('200px')
+    expect((withAuto.firstChild as HTMLElement).style.getPropertyValue('--split-first-col')).toBe('auto')
+  })
 
+  it('setzt firstColumnWidth="poster" als Modifikatorklasse statt als Inline-Stil', () => {
+    const { container: withPoster } = render(
+      <SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} firstColumnWidth="poster" />,
+    )
+    const node = withPoster.firstChild as HTMLElement
+    expect(node.className).toMatch(/columnPoster/)
+    expect(node.style.getPropertyValue('--split-first-col')).toBe('')
+  })
+
+  it('setzt weder Klasse noch Inline-Stil, wenn firstColumnWidth gar nicht uebergeben wird', () => {
     const { container: withoutWidth } = render(
       <SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} />,
     )
-    expect((withoutWidth.firstChild as HTMLElement).style.getPropertyValue('--split-first-col')).toBe('')
+    const node = withoutWidth.firstChild as HTMLElement
+    expect(node.className).not.toMatch(/columnPoster/)
+    expect(node.style.getPropertyValue('--split-first-col')).toBe('')
   })
 
   it('setzt --split-gap nur, wenn gap tatsaechlich uebergeben wird', () => {

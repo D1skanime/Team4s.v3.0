@@ -15,6 +15,20 @@
   min-width: 0;
 }
 
+/* firstColumnWidth="poster" (Befund 24): SplitLayout kennt die Posterspalten-Breite des
+   Anime-Kopfs jetzt selbst ueber ein eigenes Zweck-Token -- der Aufrufer liefert nur noch den
+   Zweck-Namen, keinen Pixelwert mehr (ersetzt den vormals seitenspezifischen
+   --split-first-col-Override-Hook in AnimeDetailHero.module.css). */
+.columnPoster {
+  --split-first-col: var(--split-layout-column-poster);
+}
+
+@media (max-width: 1023px) {
+  .columnPoster {
+    --split-first-col: var(--split-layout-column-poster-medium);
+  }
+}
+
 /* breakpoint="md" (Standard) -- Schwelle 48rem/768px, identisch zu ArtworkHeros Haltepunkt. */
 @container split-layout (min-width: 48rem) {
   .splitLayout:not(.breakpointLg) {

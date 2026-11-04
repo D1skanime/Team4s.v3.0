@@ -34,7 +34,7 @@ export const Standard: Story = {
   args: {
     firstColumn: <ColumnA />,
     secondColumn: <ColumnB />,
-    firstColumnWidth: '200px',
+    firstColumnWidth: 'poster',
   },
 }
 
@@ -44,7 +44,7 @@ export const Schmal: Story = {
   args: {
     firstColumn: <ColumnA />,
     secondColumn: <ColumnB />,
-    firstColumnWidth: '200px',
+    firstColumnWidth: 'poster',
   },
 }
 
