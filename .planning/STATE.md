@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-09-PLAN.md
-last_updated: "2026-11-04T13:13:25.706Z"
+stopped_at: Completed 192-10-PLAN.md
+last_updated: "2026-11-04T13:26:30.980Z"
 last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 540
-  completed_plans: 531
+  completed_plans: 532
   percent: 88
 ---
 
@@ -459,8 +459,8 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung) — EXECUTING
-Plan: 9 of 10
-Status: Executing — Plan 192-09 (Befund 25, keine Klick-Simulationstests mehr) abgeschlossen: useFansubGroupSwitch/useWatchlistAction-Hooks extrahiert, sechs betroffene Testdateien auf direkte Hook-/Component(props)-Aufrufe statt fireEvent/userEvent umgestellt. Nur Plan 192-10 (Befund 26) steht noch aus, danach folgt der Phasenabschluss (ehem. Plan 192-07).
+Plan: 10 of 10
+Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
 die vollstaendige Klassifikationstabelle (120 tote / 166 lebende Klassen) und das
@@ -1576,6 +1576,7 @@ Last activity: 2026-11-04
 - [Phase 192-09]: Windowing-hook seed value (initial activeFansubSlug) computed inline before either hook call, since useWindowedEpisodePages needs it before useFansubGroupSwitch can supply its live, resetForFilter-dependent state -- resolveActiveFansubGroupID shared between the seed computation and the hook's own live derivation
 - [Phase 192-09]: Pagination's internal non-exported PagesPagination delegate uses useMemo -- direct Component(props) calls for it run inside renderHook instead of a bare function call, which would throw Invalid hook call
 - [Phase 192-09]: WatchlistAddButton test 'ignoring the old SSR hint' intentionally kept as render()+fireEvent.click -- useWatchlistAction does not accept initiallyInWatchlist, so there is no isolated-hook equivalent for that specific coverage
+- [Phase 192]: Plan 192-10 (Befund 26): moved 5 effect token groups into new effects.css verbatim (no renaming, already purpose-named), repointed FansubHeroSection.accessibility.test.ts's badge-onmedia read from components.css to effects.css
 
 ### Pending Todos
 
@@ -2350,11 +2351,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P06 | ~15min | 2 tasks | 3 files |
 | Phase 192 P08 | ~45min | 3 tasks | 17 files |
 | Phase 192 P09 | 32min | 3 tasks | 9 files |
+| Phase 192 P10 | 20min | 2 tasks | 10 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T13:13:25.623Z
-Stopped at: Completed 192-09-PLAN.md
+Last session: 2026-11-04T13:26:30.953Z
+Stopped at: Completed 192-10-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
