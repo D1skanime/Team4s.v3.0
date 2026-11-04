@@ -92,11 +92,10 @@
   margin: 0 0 var(--space-5);
 }
 
-.tagsSection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
+/* .tagsSection traegt seit 192-15 kein eigenes display:flex/flex-direction/gap mehr -- die
+   Anordnung von Eyebrow-Label und Chip-Liste kommt jetzt ueber Stack gap="tight" (siehe
+   AnimeDetailHero.tsx), exakt dasselbe bereits etablierte Muster wie .genresSection in der
+   Poster-Spalte. Der verbleibende Außenabstand (margin) in der Regel oben bleibt unveraendert. */
 
 .tagsList {
   padding: 0;
@@ -159,9 +158,15 @@
    zwei getrennter (wie zuvor in den zwei Quelldateien page.poster.module.css/
    page.infoCard.module.css, jetzt in einer Datei vereinigt). */
 @media (max-width: 767px) {
+  /* Der bisherige lokale `padding:`-Wert hier (Befund B, Runde 3, 192-15) zog in Card.module.css's
+     .cardPublicPoster-Variante um (als deren eigener Mobil-Standardwert, analog zu
+     .cardPublicHeroInfos bereits etabliertem responsiven Standardwert aus 192-13) -- .posterColumn
+     IST diese Card-Variante (siehe AnimeDetailHero.tsx `Card variant="publicPoster"
+     className={styles.posterColumn}`), ein zweiter lokaler padding:-Wert hier haette Card's
+     eigenen Override-Hook ignoriert. align-items bleibt lokal (keine der von Befund B verbotenen
+     Layout-Eigenschaften). */
   .posterColumn {
     align-items: center;
-    padding: var(--space-5) var(--space-5) 0;
   }
 
   .posterWrapper {

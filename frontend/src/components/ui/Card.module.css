@@ -236,6 +236,15 @@
   }
 
   .cardPublicPoster {
+    /* Eigener, responsiver Standardwert (statt des festen 0 oben) -- derselbe Mechanismus wie
+       .cardPublicHeroInfos responsiver Standardwert (Befund B, 192-13): die einzige Aufrufstelle
+       (AnimeDetailHero.tsx, .posterColumn) brauchte diese Mobil-Polsterung bislang als lokales
+       CSS im Composite-Baustein, obwohl sie exakt zu dieser Variante gehoert (Poster-Spalte UND
+       Info-Karte teilen sich den Innenabstand zur Kartenkante, oben/seitlich bei fehlender
+       Bild-Randverlaengerung, siehe MediaFrame-Abschaltung unterhalb 767px). Cards generischer
+       padding-Override-Hook bleibt unveraendert ein einziger, nicht responsiver Wert fuer BEIDE
+       Stufen gleichzeitig. */
+    padding: var(--card-padding-override, var(--space-5) var(--space-5) 0);
     background: transparent;
     border-radius: 0;
   }

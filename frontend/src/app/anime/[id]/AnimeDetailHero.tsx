@@ -115,7 +115,13 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
               </Cluster>
               <Text className={styles.description}>{anime.description ?? 'Keine Beschreibung vorhanden.'}</Text>
               {anime.tags && anime.tags.length > 0 ? (
-                <div className={styles.tagsSection}>
+                // Stack statt eines eigenen display:flex;flex-direction:column;gap: (Befund B,
+                // Runde 3, 192-15) -- exakt dasselbe Eyebrow-Label+Chip-Reihe-Muster wie
+                // .genresSection in der Poster-Spalte (ebenfalls Stack gap="tight"), nur hier
+                // bislang lokal nachgebaut statt denselben bereits etablierten Grundbaustein zu
+                // nutzen. gap="tight" loest auf var(--space-tight)=var(--space-2) auf, exakt der
+                // zuvor hier lokal deklarierte Pixelwert -- Zero-Pixel-Diff.
+                <Stack gap="tight" className={styles.tagsSection}>
                   {/* Gleiches Eyebrow-Label-Muster wie "Genres" in der Poster-Spalte (Text statt
                       Heading), aber mit dem zum jeweiligen Kartengrund passenden Ton statt eines
                       gemeinsamen fest verdrahteten Tons: die Info-Karte ist oben hell (siehe
@@ -129,7 +135,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
                   <Cluster as="ul" gap="badgeRow" className={styles.tagsList} aria-labelledby="tags-heading">
                     {anime.tags.map((tag) => <li key={tag}><LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>{tag}</LinkChip></li>)}
                   </Cluster>
-                </div>
+                </Stack>
               ) : null}
               {embySeriesUrl ? (
                 <Cluster gap="actionRow" className={styles.statsRow}>
