@@ -3051,7 +3051,7 @@ Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte 
 Abstand/Rundung.
 **Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26, Befund-A, Befund-B, Befund-C, Befund-D, Befund-27, Befund-28
 **Depends on:** Phase 191
-**Plans:** 13/20 plans executed
+**Plans:** 14/20 plans executed
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
@@ -3072,5 +3072,5 @@ Plans:
 - [ ] 192-16-PLAN.md — Stack-Zweck-Namen 'tight'/'section' korrigiert (Befund D)
 - [ ] 192-17-PLAN.md — Letzte fireEvent/userEvent-Vorkommen entfernt (Befund C)
 - [x] 192-18-PLAN.md — Storybook „Grundlagen/Effekte": echtes Bildpaar statt grauer Fläche (Befund 27)
-- [ ] 192-19-PLAN.md — Storybook „Grundlagen/Design-Tokens": dreistufige Neugliederung (Befund 28)
+- [x] 192-19-PLAN.md — Storybook „Grundlagen/Design-Tokens": dreistufige Neugliederung (Befund 28)
 - [ ] 192-20-PLAN.md — Runde-3-Abschluss-Nachweis (voller Regressionslauf + Playwright-Bildpaare, löst 192-VERIFICATION.md ab), läuft nach 11-19

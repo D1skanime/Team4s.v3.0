@@ -9,6 +9,19 @@
   `files_modified`/`<files>` for 192-02 overlaps `ResponsiveImage`/`next.config.mjs`). Not fixed
   per the scope-boundary rule — logged here instead of re-running builds to chase it.
 
+## 192-11
+
+- `src/lib/cssCustomProperties.guard.test.ts` ("finds zero fallback-free dead custom-property
+  references on the real, fixed tree") fails reproducibly (confirmed in isolation, not a
+  concurrency flake) because its textual scanner flags `var(--space-N)` inside a doc comment at
+  `frontend/src/components/ui/Card.tsx:41` (the `padding` prop's JSDoc, describing the generic
+  `'1'..'9'` -> `var(--space-N)` mapping pattern, `N` is prose not a real CSS custom property).
+  Confirmed pre-existing and out of this plan's scope: `Card.tsx` was last touched by Plan 192-11
+  (`git log`), not by 192-19 (no diff between 192-19's commits and this file). Likely needs the
+  comment reworded or the file added to the scanner's documented "known-non-CSS-textual-mentions"
+  allow-list in a future pass that touches `Card.tsx` or the guard test itself -- not fixed here
+  per the scope-boundary rule.
+
 ## 192-07
 
 - `npx eslint .` reports 4 pre-existing errors, none in files touched by this phase (verified via
