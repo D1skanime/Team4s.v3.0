@@ -291,7 +291,7 @@
      dem fast transparenten unteren Bereich der Info-Karte) -- Werte 1:1 aus
      frontend/src/app/anime/[id]/page.module.css (vormals Zeilen 301-321/425-454) übernommen, nur
      als globale Tokens geführt statt seiten-lokaler Literale. Die eigentlichen Glas-/Scrim-
-     Transparenz-Rezepturen (--linkchip-glass-*/--linkchip-scrim-*) sind seit Befund 26 nach
+     Transparenz-Rezepturen (--linkchip-glass-* und --linkchip-scrim-*) sind seit Befund 26 nach
      styles/tokens/effects.css ausgelagert -- hier bleiben nur die reinen Größen-Tokens (Padding/
      Radius/Schriftgröße), die zu keiner Effekt-Rezeptur gehören. */
   --linkchip-padding-y: 8px;
