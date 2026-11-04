@@ -1,0 +1,30 @@
+/* Eigenstaendig benannter Container (nicht "artwork-hero" wiederverwendet) -- mehrere
+   SplitLayout-Instanzen koennen ineinander verschachtelt sein, jede braucht ihren eigenen
+   Container-Namensraum (siehe ArtworkHero.module.css fuer dasselbe Grundmuster). */
+.splitLayout {
+  container: split-layout / inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--split-gap, var(--space-4));
+  align-items: var(--split-align, start);
+  min-width: 0;
+}
+
+.firstColumn,
+.secondColumn {
+  min-width: 0;
+}
+
+/* breakpoint="md" (Standard) -- Schwelle 48rem/768px, identisch zu ArtworkHeros Haltepunkt. */
+@container split-layout (min-width: 48rem) {
+  .splitLayout:not(.breakpointLg) {
+    grid-template-columns: var(--split-first-col, auto) minmax(0, 1fr);
+  }
+}
+
+/* breakpoint="lg" -- Schwelle 64rem/1024px (entspricht der bisherigen 1023px-Postergroessen-Stufe). */
+@container split-layout (min-width: 64rem) {
+  .splitLayout.breakpointLg {
+    grid-template-columns: var(--split-first-col, auto) minmax(0, 1fr);
+  }
+}
