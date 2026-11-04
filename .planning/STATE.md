@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-19-PLAN.md (Grundlagen/Design-Tokens dreistufig gegliedert -- Befund 28)
-last_updated: "2026-11-04T17:52:04.839Z"
+stopped_at: Completed 192-14-PLAN.md (ReleasePreviewRow/EpisodeGlassCard/AnimeEdgeNavigation Layout-CSS-Bereinigung -- Befund B)
+last_updated: "2026-11-04T21:47:50.019Z"
 last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 550
-  completed_plans: 538
+  completed_plans: 539
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 3 Gap-Closure)) — EXECUTING
-Plan: 6 of 20
+Plan: 15 of 20
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -2369,11 +2369,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P18 | ~15min | 1 tasks | 4 files |
 | Phase 192 P19 | ~55min | 2 tasks | 6 files |
 | Phase 192 P13 | ~45min | 2 tasks | 5 files |
+| Phase 192 P14 | 22min | 3 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T17:52:04.806Z
-Stopped at: Completed 192-13-PLAN.md (AnimeDetailHero.module.css Layout-CSS-Bereinigung -- Befund B)
+Last session: 2026-11-04T21:47:49.990Z
+Stopped at: Completed 192-14-PLAN.md (ReleasePreviewRow/EpisodeGlassCard/AnimeEdgeNavigation Layout-CSS-Bereinigung -- Befund B)
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
-None
+.planning/phases/192-ffentliche-anime-detailseite-baustein-reinheit-ssr-randnavig/192-15-PLAN.md
