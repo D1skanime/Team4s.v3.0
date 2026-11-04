@@ -115,20 +115,20 @@ describe('authoritative anime project navigation', () => {
     expect(screen.queryByRole('link', { name: 'Zum Projekt' })).toBeNull()
   })
 
-  it('behaelt echte Episodentitel; das Ausklapp-Verhalten selbst wird direkt ueber toggleEpisodeExpansion bewiesen (Befund 25 -- kein Klick-Simulations-zu-Rerender-Nachweis mehr, das bleibt Live-UAT)', async () => {
+  it('behält echte Episodentitel; das Ausklapp-Verhalten selbst wird direkt über toggleEpisodeExpansion bewiesen (Befund 25 -- kein Klick-Simulations-zu-Rerender-Nachweis mehr, das bleibt Live-UAT)', async () => {
     render(<FansubVersionBrowser animeID={22} animeSlug="stored-anime" fansubs={fansubs} episodes={[{
       ...DEFAULT_CLASSIFICATION,
       episode_id: 50, episode_number: 1, episode_title: 'Gespeicherter Episodentitel', version_count: 0, versions: [],
     }]} />)
     await act(async () => {})
-    // Der Episodentitel steht im Accessible Name des Ausklapp-Buttons unabhaengig vom
-    // Ausklapp-Zustand -- kein Klick noetig, um den echten (nicht erfundenen) Titel zu belegen.
+    // Der Episodentitel steht im Accessible Name des Ausklapp-Buttons unabhängig vom
+    // Ausklapp-Zustand -- kein Klick nötig, um den echten (nicht erfundenen) Titel zu belegen.
     const toggle = screen.getByRole('button', { name: /Gespeicherter Episodentitel/ })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
     // D-15: der Hinweisblock "Keine Version dieser Gruppe verfuegbar." entfaellt ersatzlos --
     // der Server liefert nie mehr eine Episode ohne mindestens eine passende Version.
     expect(screen.queryByText('Keine Version dieser Gruppe verfügbar.')).toBeNull()
-    // Die Ausklapp-UEBERGANGSLOGIK selbst ist eine reine Funktion (toggleEpisodeExpansion) --
+    // Die Ausklapp-ÜBERGANGSLOGIK selbst ist eine reine Funktion (toggleEpisodeExpansion) --
     // derselbe Aufruf, den `onToggle` im echten Code treibt, direkt mit dieser Episoden-ID belegt.
     expect(toggleEpisodeExpansion({}, 50)).toEqual({ 50: true })
   })
@@ -375,7 +375,7 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     assertAllSelected()
   })
 
-  it('D-07: ein Chip-Wechsel loest einen Refetch mit dem Ziel-Slug aus (direkter Aufruf statt Klick-Simulation, Befund 25)', async () => {
+  it('D-07: ein Chip-Wechsel löst einen Refetch mit dem Ziel-Slug aus (direkter Aufruf statt Klick-Simulation, Befund 25)', async () => {
     const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
     const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
     await act(async () => { result.current.updateFansubSelection(7) })
@@ -446,17 +446,17 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
 // Live-UAT-Sache (siehe `192-CONTEXT.md`s Befund-25-Entscheidung).
 describe('useFansubGroupSwitch/toggleEpisodeExpansion: direkte Logiktests ohne Rendering/fireEvent (Befund 25)', () => {
   describe('resolveGroupSlugForFetch', () => {
-    it('liefert bei weniger als 2 Optionen immer null, auch bei einem an sich gueltigen Slug', () => {
+    it('liefert bei weniger als 2 Optionen immer null, auch bei einem an sich gültigen Slug', () => {
       expect(resolveGroupSlugForFetch([], 'saved-primary')).toBeNull()
       expect(resolveGroupSlugForFetch(singleFansub, 'saved-primary')).toBeNull()
     })
 
-    it('liefert bei 2+ Optionen den unveraenderten Slug bei einem Treffer', () => {
+    it('liefert bei 2+ Optionen den unveränderten Slug bei einem Treffer', () => {
       expect(resolveGroupSlugForFetch(fansubs, 'saved-primary')).toBe('saved-primary')
       expect(resolveGroupSlugForFetch(fansubs, 'saved-secondary')).toBe('saved-secondary')
     })
 
-    it('liefert null bei einem Slug, der zu keiner verknuepften Gruppe passt', () => {
+    it('liefert null bei einem Slug, der zu keiner verknüpften Gruppe passt', () => {
       expect(resolveGroupSlugForFetch(fansubs, 'does-not-exist')).toBeNull()
       expect(resolveGroupSlugForFetch(fansubs, null)).toBeNull()
     })
@@ -472,7 +472,7 @@ describe('useFansubGroupSwitch/toggleEpisodeExpansion: direkte Logiktests ohne R
       expect(resetForFilter).not.toHaveBeenCalled()
     })
 
-    it('schreibt bei einer gueltigen groupID den passenden Slug in die URL und ruft resetForFilter mit demselben Slug auf', async () => {
+    it('schreibt bei einer gültigen groupID den passenden Slug in die URL und ruft resetForFilter mit demselben Slug auf', async () => {
       window.history.pushState(null, '', '/anime/22')
       const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
       const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
@@ -490,7 +490,7 @@ describe('useFansubGroupSwitch/toggleEpisodeExpansion: direkte Logiktests ohne R
       expect(resetForFilter).toHaveBeenCalledExactlyOnceWith(null)
     })
 
-    it('behaelt bereits vorhandene, fremde Query-Parameter beim Gruppenwechsel unveraendert', async () => {
+    it('behält bereits vorhandene, fremde Query-Parameter beim Gruppenwechsel unverändert', async () => {
       window.history.pushState(null, '', '/anime/22?from=search')
       const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
       const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
@@ -512,33 +512,33 @@ describe('useFansubGroupSwitch/toggleEpisodeExpansion: direkte Logiktests ohne R
       expect(result.current.switchState).toEqual({ loading: false, error: null })
     })
 
-    it('settelt bei einem nicht abgebrochenen Fehlschlag auf eine feste Fehlermeldung', async () => {
+    it('landet bei einem nicht abgebrochenen Fehlschlag bei einer festen Fehlermeldung', async () => {
       const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: false, aborted: false })
       const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
       await act(async () => { await result.current.switchTo('saved-primary') })
       expect(result.current.switchState).toEqual({ loading: false, error: 'Episoden konnten nicht geladen werden.' })
     })
 
-    it('laesst switchState bei outcome.aborted=true unangetastet (eine neuere Anfrage haelt die Verantwortung)', async () => {
+    it('lässt switchState bei outcome.aborted=true unangetastet (eine neuere Anfrage hält die Verantwortung)', async () => {
       const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: false, aborted: true })
       const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
       await act(async () => { await result.current.switchTo('saved-primary') })
-      // loading wurde synchron auf true gesetzt und bleibt bei aborted=true unveraendert stehen --
-      // kein Rueckfall auf {loading:false,...}, da die veraltete Antwort switchState nicht mehr anfassen darf.
+      // loading wurde synchron auf true gesetzt und bleibt bei aborted=true unverändert stehen --
+      // kein Rückfall auf {loading:false,...}, da die veraltete Antwort switchState nicht mehr anfassen darf.
       expect(result.current.switchState).toEqual({ loading: true, error: null })
     })
   })
 
   describe('toggleEpisodeExpansion', () => {
-    it('fuegt den Episodenschluessel hinzu, wenn er fehlt', () => {
+    it('fügt den Episodenschlüssel hinzu, wenn er fehlt', () => {
       expect(toggleEpisodeExpansion({}, 5)).toEqual({ 5: true })
     })
 
-    it('entfernt den Episodenschluessel, wenn er bereits vorhanden ist', () => {
+    it('entfernt den Episodenschlüssel, wenn er bereits vorhanden ist', () => {
       expect(toggleEpisodeExpansion({ 5: true }, 5)).toEqual({})
     })
 
-    it('mutiert das uebergebene Eingabeobjekt nicht', () => {
+    it('mutiert das übergebene Eingabeobjekt nicht', () => {
       const input: Record<number, true> = { 5: true }
       const output = toggleEpisodeExpansion(input, 5)
       expect(input).toEqual({ 5: true })

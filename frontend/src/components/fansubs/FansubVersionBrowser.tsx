@@ -143,7 +143,7 @@ function FansubVersionBrowserContent({
   // D-02: bei genau einer Gruppe wird der URL-Parameter ignoriert -- die Gruppe ist immer aktiv.
   // Dieser Seed-Wert speist NUR den initialen Fetch-Filter von useWindowedEpisodePages (deren
   // interner Ref nur beim allerersten Mount gelesen wird) -- der laufend aktuelle
-  // Gruppenzustand lebt danach ausschliesslich in useFansubGroupSwitch weiter unten.
+  // Gruppenzustand lebt danach ausschließlich in useFansubGroupSwitch weiter unten.
   const initialSelectedSlug = fansubOptions.length === 1 ? null : (initialActiveSlug ?? null)
   const initialActiveFansubGroupID = resolveActiveFansubGroupID(fansubOptions, initialSelectedSlug)
   const initialActiveSlugForWindowing = initialActiveFansubGroupID !== null

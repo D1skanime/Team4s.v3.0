@@ -10,19 +10,19 @@ export interface UseWatchlistActionParams {
   animeID: number
   /** True sobald mindestens ein Auth-Token vorliegt -- ohne Session wird nie gelesen/geschrieben. */
   hasAuthSession: boolean
-  /** Erkennt eine inzwischen veraltete Komponenteninstanz (Konto-/Token-Wechsel waehrend eine
-   * Anfrage noch laeuft) -- eine veraltete Antwort darf den Zustand nicht mehr anfassen. */
+  /** Erkennt eine inzwischen veraltete Komponenteninstanz (Konto-/Token-Wechsel während eine
+   * Anfrage noch läuft) -- eine veraltete Antwort darf den Zustand nicht mehr anfassen. */
   isCurrentSession: () => boolean
 }
 
 /**
- * Eigenstaendiger Watchlist-Hinzufuegen/Entfernen-Zustandsautomat (vormals Teil von
- * WatchlistAction's Komponenten-Closure): haelt den Watchlist-Status, den Sende-/Fehlerzustand
+ * Eigenständiger Watchlist-Hinzufügen/Entfernen-Zustandsautomat (vormals Teil von
+ * WatchlistAction's Komponenten-Closure): hält den Watchlist-Status, den Sende-/Fehlerzustand
  * und eine generationsbasierte Race-Sperre, und macht checkStatus/handleToggle direkt -- ohne
  * Rendering oder DOM-Klick-Simulation -- testbar. Jede Anfrage trägt eine fortlaufende
  * Generation; eine Antwort, die nicht mehr zur aktuellen Generation oder zur aktuellen Session
- * gehoert, darf keinen Zustand mehr setzen (verhindert veraltete Antworten nach Konto-/
- * Anime-Wechsel waehrend einer laufenden Anfrage).
+ * gehört, darf keinen Zustand mehr setzen (verhindert veraltete Antworten nach Konto-/
+ * Anime-Wechsel während einer laufenden Anfrage).
  */
 export function useWatchlistAction({ animeID, hasAuthSession, isCurrentSession }: UseWatchlistActionParams) {
   const [status, setStatus] = useState<WatchlistStatus>('unknown')

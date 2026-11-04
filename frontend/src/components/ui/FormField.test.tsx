@@ -261,9 +261,9 @@ describe('FormField Autoverknüpfung', () => {
     // Passthrough-Garantie selbst ist hier bereits am Props-Stand des geklonten Elements belegt.
     expect(switchElement!.props.disabled).toBe(true)
 
-    // Switch ist vollstaendig kontrolliert (kein eigener Zustand, keine Hooks) -- sein <button>
+    // Switch ist vollständig kontrolliert (kein eigener Zustand, keine Hooks) -- sein <button>
     // kann deshalb gefahrlos direkt materialisiert werden, um den echten internen Klick-Handler
-    // (handleClick, der bei disabled=true fruehzeitig zurueckkehrt) direkt aufzurufen statt einen
+    // (handleClick, der bei disabled=true frühzeitig zurückkehrt) direkt aufzurufen statt einen
     // DOM-Klick zu simulieren.
     const materializedButton = (Switch as unknown as (props: Record<string, unknown>) => ReactElement<Record<string, unknown>>)(switchElement!.props)
     expect(materializedButton.props['aria-checked']).toBe(false)

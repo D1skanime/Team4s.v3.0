@@ -13,7 +13,7 @@ import { Pagination } from './Pagination'
 // direkt invoziert (etabliertes Muster aus `page.test.tsx`/`AnimeDetailView.test.tsx`, hier als
 // eigene, dateilokale Kopie). Pagination delegiert intern an eine nicht exportierte
 // Varianten-Komponente (`PagesPagination`/`LoadMorePagination`), die `useMemo` nutzt -- deshalb
-// laeuft der gesamte direkte Aufruf innerhalb von `renderHook`, damit React-Hooks einen echten
+// läuft der gesamte direkte Aufruf innerhalb von `renderHook`, damit React-Hooks einen echten
 // Render-Kontext vorfinden, statt ihn (wie ein roher Funktionsaufruf) mit "Invalid hook call"
 // abzulehnen. Button selbst wird bewusst NICHT weiter aufgerufen (kein Hook-Bedarf, Button-
 // Elemente sind das gesuchte Blatt dieser Baumwanderung).

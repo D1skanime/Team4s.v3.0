@@ -6,9 +6,9 @@ import type { AnimeFansubRelation } from '@/types/fansub'
 import type { ResetForFilterResult } from './useWindowedEpisodePages'
 
 /**
- * Ermittelt die fachlich aktive Fansub-Gruppen-ID zu einem gewuenschten Slug (D-02). Bei genau
- * einer verknuepften Gruppe ist diese immer aktiv -- es gibt keinen "Alle"-Chip und keinen
- * Klickpfad, ueber den eine andere Gruppe gewaehlt werden koennte. Bei 0 Gruppen oder einem
+ * Ermittelt die fachlich aktive Fansub-Gruppen-ID zu einem gewünschten Slug (D-02). Bei genau
+ * einer verknüpften Gruppe ist diese immer aktiv -- es gibt keinen "Alle"-Chip und keinen
+ * Klickpfad, über den eine andere Gruppe gewählt werden könnte. Bei 0 Gruppen oder einem
  * Slug, der zu keiner Gruppe passt, gilt "Alle" (null), nie ein erfundener Treffer.
  */
 export function resolveActiveFansubGroupID(
@@ -21,10 +21,10 @@ export function resolveActiveFansubGroupID(
 }
 
 /**
- * Validiert einen aus der Browser-URL gelesenen Rohwert gegen die tatsaechlich verknuepften
- * Fansub-Gruppen (genutzt bei Browser Zurueck/Vor, D-01/D-09). Unter 2 Gruppen gibt es keinen
- * Gruppenwechsel-Zustand, und ein unbekannter Slug darf nie zu einem erfundenen Treffer fuehren
- * -- beides faellt bewusst auf "Alle" (null) zurueck.
+ * Validiert einen aus der Browser-URL gelesenen Rohwert gegen die tatsächlich verknüpften
+ * Fansub-Gruppen (genutzt bei Browser Zurück/Vor, D-01/D-09). Unter 2 Gruppen gibt es keinen
+ * Gruppenwechsel-Zustand, und ein unbekannter Slug darf nie zu einem erfundenen Treffer führen
+ * -- beides fällt bewusst auf "Alle" (null) zurück.
  */
 export function resolveGroupSlugForFetch(
   fansubOptions: AnimeFansubRelation[],
@@ -36,9 +36,9 @@ export function resolveGroupSlugForFetch(
 }
 
 /**
- * Reine Ausklapp-Umschaltung fuer eine Episodenkarte: ein Set-artiger Record wird um den
- * Episodenschluessel ergaenzt oder davon befreit, ohne das uebergebene Objekt zu mutieren --
- * damit bleibt der React-Zustandsvergleich (Referenzgleichheit) bei unveraenderten Episoden
+ * Reine Ausklapp-Umschaltung für eine Episodenkarte: ein Set-artiger Record wird um den
+ * Episodenschlüssel ergänzt oder davon befreit, ohne das übergebene Objekt zu mutieren --
+ * damit bleibt der React-Zustandsvergleich (Referenzgleichheit) bei unveränderten Episoden
  * stabil.
  */
 export function toggleEpisodeExpansion(
@@ -61,12 +61,12 @@ export interface UseFansubGroupSwitchParams {
 }
 
 /**
- * Eigenstaendiger Gruppenwechsel-Zustandsautomat fuer die Fansub-Gruppenauswahl auf der
- * Anime-Detailseite (D-01 bis D-10): haelt die ausgewaehlte Gruppen-Slug URL-rueckgekoppelt und
+ * Eigenständiger Gruppenwechsel-Zustandsautomat für die Fansub-Gruppenauswahl auf der
+ * Anime-Detailseite (D-01 bis D-10): hält die ausgewählte Gruppen-Slug URL-rückgekoppelt und
  * den Lade-/Fehlerzustand EINES Wechsels getrennt vom Infinite-Scroll-Zustand, und macht
  * switchTo/updateFansubSelection direkt -- ohne Rendering oder DOM-Klick-Simulation -- testbar.
- * `resetForFilter` bleibt bewusst von aussen injiziert (aus `useWindowedEpisodePages`), damit
- * dieser Hook keine eigene Kopie der Fetch-/Abbruchlogik fuehrt.
+ * `resetForFilter` bleibt bewusst von außen injiziert (aus `useWindowedEpisodePages`), damit
+ * dieser Hook keine eigene Kopie der Fetch-/Abbruchlogik führt.
  */
 export function useFansubGroupSwitch({ fansubOptions, initialActiveSlug, resetForFilter }: UseFansubGroupSwitchParams) {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(
@@ -75,13 +75,13 @@ export function useFansubGroupSwitch({ fansubOptions, initialActiveSlug, resetFo
   const activeFansubGroupID = resolveActiveFansubGroupID(fansubOptions, selectedSlug)
 
   // D-08/D-10: ein Gruppenwechsel hat einen eigenen Lade-/Fehlerzustand (volle Listendimmung),
-  // getrennt vom kompakten vorwaerts/rueckwaerts-Ladezustand des Infinite Scroll.
+  // getrennt vom kompakten vorwärts/rückwärts-Ladezustand des Infinite Scroll.
   const [switchState, setSwitchState] = useState<{ loading: boolean; error: string | null }>({
     loading: false, error: null,
   })
 
   async function switchTo(targetSlug: string | null) {
-    // D-09: der Wechsel bricht IMMER eine laufende Anfrage ab (vorwaerts, rueckwaerts oder ein
+    // D-09: der Wechsel bricht IMMER eine laufende Anfrage ab (vorwärts, rückwärts oder ein
     // vorheriger Wechsel) -- resetForFilter teilt sich den einzigen requestRef der
     // windowing-Hook-Instanz, nur die letzte Auswahl darf Daten setzen.
     setSwitchState({ loading: true, error: null })
@@ -91,7 +91,7 @@ export function useFansubGroupSwitch({ fansubOptions, initialActiveSlug, resetFo
     } else if (!outcome.aborted) {
       setSwitchState({ loading: false, error: 'Episoden konnten nicht geladen werden.' })
     }
-    // outcome.aborted: eine neuere switchTo-Anfrage laeuft bereits oder hat bereits committet --
+    // outcome.aborted: eine neuere switchTo-Anfrage läuft bereits oder hat bereits committet --
     // diese veraltete Antwort darf switchState nicht mehr anfassen.
   }
 
@@ -106,8 +106,8 @@ export function useFansubGroupSwitch({ fansubOptions, initialActiveSlug, resetFo
     else params.delete('fansub')
     const query = params.toString()
     // D-03: window.history.pushState statt der next/navigation-Router-Helfer -- diese Route
-    // ist bereits dynamisch (liest searchParams.grid_query/from) und wuerde damit einen
-    // RSC-Refetch der Seite ausloesen.
+    // ist bereits dynamisch (liest searchParams.grid_query/from) und würde damit einen
+    // RSC-Refetch der Seite auslösen.
     window.history.pushState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`)
     setSelectedSlug(slug)
     void switchTo(slug)
