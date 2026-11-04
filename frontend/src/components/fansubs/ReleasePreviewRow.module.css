@@ -10,24 +10,18 @@
   padding: var(--space-3);
 }
 
-.content {
-  min-width: 0;
-  display: grid;
-  gap: var(--space-2);
-}
-
-.identity {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-4);
+/* Trägt die Flex-Wachstumsregel gegenüber `.action` (siehe Breakpoint unten) -- ersetzt das
+   frühere `.content`-Grid, da Avatar(e)+Textzeilen jetzt über Cluster/Stack (Grundbausteine)
+   komponiert werden statt über ein eigenes Raster. */
+.body {
   min-width: 0;
 }
 
+/* Avatar liefert Fläche/Größe bereits selbst -- hier bleibt nur die Garantie, dass die
+   Avatar-Spalte beim Schrumpfen der Zeile nicht komprimiert wird (Cluster selbst setzt kein
+   `flex-shrink`). */
 .logos {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 /* Avatar liefert Fläche/Initialen-Fallback bereits selbst -- nur der dezente Rand "auf dunkler
@@ -35,10 +29,6 @@
    ergänzt. */
 .logo {
   border: 1px solid var(--border-on-media);
-}
-
-.identityText {
-  min-width: 0;
 }
 
 .groupName {
@@ -87,7 +77,7 @@
     gap: var(--space-4);
   }
 
-  .content {
+  .body {
     flex: 1;
     min-width: 0;
   }

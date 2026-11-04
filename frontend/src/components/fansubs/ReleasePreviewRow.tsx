@@ -3,6 +3,8 @@
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Cluster } from '@/components/ui/Cluster'
+import { Stack } from '@/components/ui/Stack'
 import { Text } from '@/components/ui/Text'
 import type { PublicEpisodeVersion } from '@/types/episodeVersion'
 
@@ -41,6 +43,37 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
   const dateLine = formatReleaseDateLine(version.release_date)
   const linkGroupID = resolveCoopLinkGroupId(groups)
 
+  // D-20: Gruppenname/Release-Name und die drei Datenzeilen (Technik/Extras/Datum) leben in
+  // EINEM vertikalen Stack, damit die Datenzeilen zwangsläufig dieselbe Spalte wie der
+  // Gruppenname belegen -- statt (wie vor dem Fix) als Geschwister eines einspaltigen Grids auf
+  // Höhe der Avatar-Spalte zu beginnen. Einmal gebaut, unten in beiden Zweigen (mit/ohne Avatare)
+  // wiederverwendet, damit die fünf Textzeilen nur einmal geschrieben stehen.
+  const textLines = (
+    <Stack gap="2">
+      <Text tone="onScrim" className={styles.groupName}>
+        {groupNameLine}
+        {/* Reiner Text, kein Chip/Badge/Rahmen -- bleibt deshalb bewusst Text statt
+            Badge. */}
+        {isCoop ? <Text as="span" style={mutedOnGlassTextStyle} className={styles.coopLabel}> COOP</Text> : null}
+      </Text>
+      <Text style={mutedOnGlassTextStyle} className={styles.releaseName}>
+        {resolveReleaseName(version)}
+      </Text>
+
+      {techLine ? (
+        <Text style={mutedOnGlassTextStyle} className={styles.techLine}>{techLine}</Text>
+      ) : null}
+
+      {extras.length > 0 ? (
+        <Text style={mutedOnGlassTextStyle} className={styles.extrasLine}>{extras.join('   ')}</Text>
+      ) : null}
+
+      {dateLine ? (
+        <Text style={mutedOnGlassTextStyle} className={styles.dateLine}>{dateLine}</Text>
+      ) : null}
+    </Stack>
+  )
+
   return (
     // Card bringt eigene display:grid-/Padding-Regeln für ALLE Varianten mit (70+
     // Verwendungsstellen) -- das Flex-Row-Layout + Innenabstand dieser Zeile lebt deshalb in
@@ -49,13 +82,17 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
     // Spezifitätsgleichstand, nicht zuverlässig über die Bündel-Ladereihenfolge entscheidbar).
     <Card variant="glassStrong">
       <div className={styles.row}>
-        <div className={styles.content}>
-          <div className={styles.identity}>
+        {groups.length > 0 ? (
+          // Avatar(e) + Text-Stack nebeneinander, NIE übereinander (wrap={false}) -- die
+          // Spaltenbreite der Avatar-Gruppe passt sich dadurch von selbst der tatsächlichen
+          // Breite an (ein Avatar im Normalfall, zwei beim Koop-Fall), ohne ein festes Maß
+          // vorzuschreiben.
+          <Cluster gap="4" align="start" wrap={false} className={styles.body}>
             {/* Avatar löst Bild+Fallback in einem Baustein: fehlt ein Gruppenlogo, zeigt Avatar
                 automatisch ein Initialen-Kürzel statt -- wie bisher -- gar nichts zu rendern. Das
                 ist eine ausdrücklich gewollte Verhaltenserweiterung, kein reiner
                 Baustein-Tausch. */}
-            <div className={styles.logos}>
+            <Cluster gap="2" className={styles.logos}>
               {groups.map((group) => (
                 <Avatar
                   key={group.id}
@@ -65,32 +102,15 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
                   className={styles.logo}
                 />
               ))}
-            </div>
-            <div className={styles.identityText}>
-              <Text tone="onScrim" className={styles.groupName}>
-                {groupNameLine}
-                {/* Reiner Text, kein Chip/Badge/Rahmen -- bleibt deshalb bewusst Text statt
-                    Badge. */}
-                {isCoop ? <Text as="span" style={mutedOnGlassTextStyle} className={styles.coopLabel}> COOP</Text> : null}
-              </Text>
-              <Text style={mutedOnGlassTextStyle} className={styles.releaseName}>
-                {resolveReleaseName(version)}
-              </Text>
-            </div>
-          </div>
-
-          {techLine ? (
-            <Text style={mutedOnGlassTextStyle} className={styles.techLine}>{techLine}</Text>
-          ) : null}
-
-          {extras.length > 0 ? (
-            <Text style={mutedOnGlassTextStyle} className={styles.extrasLine}>{extras.join('   ')}</Text>
-          ) : null}
-
-          {dateLine ? (
-            <Text style={mutedOnGlassTextStyle} className={styles.dateLine}>{dateLine}</Text>
-          ) : null}
-        </div>
+            </Cluster>
+            {textLines}
+          </Cluster>
+        ) : (
+          // D-20/Pitfall 1: bei null Gruppen wird GAR KEIN umschließender Cluster gerendert --
+          // sonst würde dessen `gap` weiterhin reserviert und genau die "Lücke ohne Avatar"-
+          // Regression aus Befund 20 nachbilden, obwohl die erste Spalte leer ist.
+          <div className={styles.body}>{textLines}</div>
+        )}
 
         <div className={styles.action}>
           <Button
