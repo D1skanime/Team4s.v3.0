@@ -13,8 +13,6 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 12px;
   /* D-34 Verteidigungslinie: native Browser-Scroll-Anchoring als Ergaenzung zur manuellen
      scrollAnchorAdjustmentPx-Korrektur, kein Ersatz dafuer (siehe FansubVersionBrowser.tsx). */
   overflow-anchor: auto;

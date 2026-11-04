@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { Heading } from '@/components/ui/Heading'
 import { LoadingState } from '@/components/ui/LoadingState'
+import { Stack } from '@/components/ui/Stack'
 import { classNames } from '@/components/ui/classNames'
 
 import { PublicGroupedEpisode, PublicEpisodeVersion, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
@@ -352,7 +353,9 @@ function FansubVersionBrowserContent({
           <EmptyState variant="compact" title="Keine Episoden-Versionen vorhanden" />
         )
       ) : (
-        <ul
+        <Stack
+          as="ul"
+          gap="3"
           aria-busy={switchState.loading}
           className={classNames(styles.episodeList, switchState.loading && styles.episodeListDimmed)}
         >
@@ -377,7 +380,7 @@ function FansubVersionBrowserContent({
               return <div key={pageId} aria-hidden="true" style={{ height: heightPx }} />
             })
           })()}
-        </ul>
+        </Stack>
       )}
 
       <div ref={windowing.bottomSentinelRef} aria-hidden="true" data-testid="bottom-sentinel" className={styles.sentinel} />
