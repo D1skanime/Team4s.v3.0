@@ -71,12 +71,12 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
               </MediaFrame>
             </div>
 
-            <Stack gap="3" className={styles.posterMeta}>
+            <Stack gap="section" className={styles.posterMeta}>
               <WatchlistAddButton animeID={anime.id} />
               <hr className={styles.posterDivider} />
-              <Stack gap="2" className={styles.genresSection}>
+              <Stack gap="tight" className={styles.genresSection}>
                 <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
-                <Cluster gap="2" className={styles.genres}>
+                <Cluster gap="badgeRow" className={styles.genres}>
                   {anime.genres && anime.genres.length > 0 ? anime.genres.map((genre) => (
                     <LinkChip key={genre} tone="scrim" href={buildFilterHref('genre', genre)}>{genre}</LinkChip>
                   )) : <Text as="span" tone="onScrim">Anime</Text>}
@@ -99,7 +99,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
                 <Heading level={1} className={styles.title}>{anime.title}</Heading>
                 <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
               </div>
-              <Cluster gap="2" className={styles.badges}>
+              <Cluster gap="badgeRow" className={styles.badges}>
                 <StatusBadge status={anime.status} />
                 <Badge variant="neutral">{anime.type.toUpperCase()}</Badge>
                 <Badge variant="neutral">{anime.content_type}</Badge>
@@ -118,13 +118,13 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
                       --heading-color/--text-body-color auch Texts eigenen --text-eyebrow-color-Hook
                       um, wodurch "Tags" automatisch mit auf Hell kippt. */}
                   <Text as="span" variant="eyebrow" id="tags-heading">Tags</Text>
-                  <Cluster as="ul" gap="2" className={styles.tagsList} aria-labelledby="tags-heading">
+                  <Cluster as="ul" gap="badgeRow" className={styles.tagsList} aria-labelledby="tags-heading">
                     {anime.tags.map((tag) => <li key={tag}><LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>{tag}</LinkChip></li>)}
                   </Cluster>
                 </div>
               ) : null}
               {embySeriesUrl ? (
-                <Cluster gap="5" className={styles.statsRow}>
+                <Cluster gap="actionRow" className={styles.statsRow}>
                   <Button href={embySeriesUrl} target="_blank" rel="noopener noreferrer" variant="text" size="sm" leftIcon={<ExternalLink size={14} aria-hidden="true" />}>Emby</Button>
                 </Cluster>
               ) : null}

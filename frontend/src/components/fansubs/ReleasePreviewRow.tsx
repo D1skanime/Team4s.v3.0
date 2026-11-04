@@ -49,7 +49,7 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
   // Höhe der Avatar-Spalte zu beginnen. Einmal gebaut, unten in beiden Zweigen (mit/ohne Avatare)
   // wiederverwendet, damit die fünf Textzeilen nur einmal geschrieben stehen.
   const textLines = (
-    <Stack gap="2">
+    <Stack gap="tight">
       <Text tone="onScrim" className={styles.groupName}>
         {groupNameLine}
         {/* Reiner Text, kein Chip/Badge/Rahmen -- bleibt deshalb bewusst Text statt
@@ -87,12 +87,12 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
           // Spaltenbreite der Avatar-Gruppe passt sich dadurch von selbst der tatsächlichen
           // Breite an (ein Avatar im Normalfall, zwei beim Koop-Fall), ohne ein festes Maß
           // vorzuschreiben.
-          <Cluster gap="4" align="start" wrap={false} className={styles.body}>
+          <Cluster gap="contentPair" align="start" wrap={false} className={styles.body}>
             {/* Avatar löst Bild+Fallback in einem Baustein: fehlt ein Gruppenlogo, zeigt Avatar
                 automatisch ein Initialen-Kürzel statt -- wie bisher -- gar nichts zu rendern. Das
                 ist eine ausdrücklich gewollte Verhaltenserweiterung, kein reiner
                 Baustein-Tausch. */}
-            <Cluster gap="2" className={styles.logos}>
+            <Cluster gap="badgeRow" className={styles.logos}>
               {groups.map((group) => (
                 <Avatar
                   key={group.id}
