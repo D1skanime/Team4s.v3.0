@@ -2,7 +2,7 @@ import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
 import { AnimeMediaProvider } from '@/components/anime/AnimeMediaProvider'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
-import { BannerSection } from '@/components/ui'
+import { BannerSection, type AdjacentNavigationItem } from '@/components/ui'
 import { getAnimeFansubs, getAnimeRelations } from '@/lib/api'
 import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
@@ -30,6 +30,10 @@ export interface AnimeDetailViewProps {
   episodeCount: number
   coverUrl: string
   rawFansubParam?: string
+  /** Serverseitig aufgelöste Randnavigations-Ziele (Befund 19) -- bereits vollständig berechnete
+   *  href/label/ariaLabel-Tripel, die noch vor jeder Client-Hydration im HTML stehen müssen. */
+  previous: AdjacentNavigationItem | null
+  next: AdjacentNavigationItem | null
 }
 
 /**
@@ -54,6 +58,8 @@ export function AnimeDetailView({
   episodeCount,
   coverUrl,
   rawFansubParam,
+  previous,
+  next,
 }: AnimeDetailViewProps) {
   // Ein fehlendes Cover bleibt ein regulärer Darstellungsfall: dieselbe öffentliche
   // Platzhalterdatei versorgt Banner, Rotator und Poster statt ein leeres Image-Attribut zu
@@ -89,7 +95,7 @@ export function AnimeDetailView({
           coverUrl={displayCoverUrl}
           embySeriesUrl={embySeriesUrl}
           relationsResponse={relationsResponse}
-          edgeNavigation={gridQuery ? <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} /> : null}
+          edgeNavigation={gridQuery ? <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} previous={previous} next={next} /> : null}
         />
       </div>
 

@@ -11,6 +11,8 @@ import {
   watchlistPresentHandler,
 } from '../../../../.storybook/mocks/handlers'
 
+import { buildAnimeDetailHref } from '@/lib/animeGridContext'
+
 import { AnimeDetailView } from './AnimeDetailView'
 import {
   buildAnimeDetailFixture,
@@ -67,6 +69,11 @@ const meta = {
     // dekodierbar (Commit 159-05), Backdrop-Rotator-Fallback und Poster würden sonst weiterhin
     // als kaputtes Bild rendern.
     coverUrl: '/covers/placeholder.png',
+    // previous/next sind Pflicht-Props von AnimeDetailView (serverseitig aufgelöste
+    // Randnavigations-Ziele) -- ohne Grid-Kontext (gridQuery: '') liefert page.tsx stets null
+    // für beide Richtungen.
+    previous: null,
+    next: null,
   },
 } satisfies Meta<typeof AnimeDetailView>
 
@@ -141,6 +148,11 @@ export const MitRandnavigation: Story = {
     anime: buildAnimeDetailFixture({ id: 13, slug: 'freezing', title: 'Freezing' }),
     breadcrumbItems: [{ label: 'Anime', href: '/anime' }, { label: 'Freezing' }],
     gridQuery: 'page=1&per_page=24',
+    // Dieselben Nachbarn, die der zentrale MSW-Listenhandler (animeNavigationFixture) für die
+    // Vorschaukarte beantwortet -- previous/next selbst kommen serverseitig vorberechnet an,
+    // nicht aus dem Browser-Fetch dieser Story.
+    previous: { href: buildAnimeDetailHref(12, 'page=1&per_page=24'), label: 'Zurück', ariaLabel: 'Vorheriger Anime: Freezing: Erstes Kapitel' },
+    next: { href: buildAnimeDetailHref(14, 'page=1&per_page=24'), label: 'Weiter', ariaLabel: 'Nächster Anime: Freezing: Vibration' },
   },
   parameters: {
     docs: { description: { story: 'Die beiden Randnavigationen nutzen die zentrale MSW-Liste. Mit Hover oder Fokus erscheinen die echten Vorschaukarten.' } },

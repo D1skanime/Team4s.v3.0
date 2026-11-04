@@ -42,6 +42,8 @@ describe('AnimeDetailView', () => {
       relationsResponse: normalRelationsResponse,
       episodeCount: 0,
       coverUrl: '',
+      previous: null,
+      next: null,
     })
 
     const all = elements(content)

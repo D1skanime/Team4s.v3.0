@@ -6,11 +6,19 @@ import {
   getAnimeFansubs,
   getGroupedEpisodes,
 } from '@/lib/api'
-import { normalizeGridQuery } from '@/lib/animeGridContext'
+import {
+  buildAnimeDetailHref,
+  buildAnimeGridQuery,
+  normalizeGridQuery,
+  parseAnimeListParamsFromGridQuery,
+  resolveAnimeNeighbors,
+  type AnimeNeighbors,
+} from '@/lib/animeGridContext'
 import { buildFansubStoryGroups, resolveActiveFansubSlug } from '@/lib/fansub-summary'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
 import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 
+import type { AdjacentNavigationItem } from '@/components/ui'
 import type { AnimeDetail } from '@/types/anime'
 
 import { AnimeDetailView } from './AnimeDetailView'
@@ -101,6 +109,21 @@ async function AnimeDetailContent({ anime, searchParams }: {
   // abweichende Cover-URLs zwischen den mehreren Konsumenten in AnimeDetailView.
   const coverUrl = resolveAnimeCoverURL(anime.cover_image)
 
+  // Befund 19: die Randnavigations-HREFs müssen bereits im Server-HTML stehen, nicht erst nach
+  // der Client-Hydration. gridParams ist nur vorhanden, wenn die Seite über einen Grid-Kontext
+  // (von-der-Übersicht-Link) aufgerufen wurde -- ohne Grid-Kontext gibt es keine wohldefinierte
+  // Nachbarschaftsreihenfolge, die Randnavigation entfällt dann vollständig (unverändertes
+  // Verhalten). Bei einem Fehlschlag des zusätzlichen getAnimeList-Aufrufs (Promise.allSettled,
+  // gleiches Fail-open-Muster wie bei den übrigen SSR-Datenabrufen dieser Seite) wird der
+  // jeweilige Button einfach weggelassen statt einen kaputten Link zu zeigen.
+  const gridParams = parseAnimeListParamsFromGridQuery(gridQuery)
+  const [neighborsResult] = gridParams
+    ? await Promise.allSettled([resolveAnimeNeighbors(gridParams, anime.id)])
+    : [{ status: 'fulfilled' as const, value: { prev: null, next: null } as AnimeNeighbors }]
+  const neighbors = neighborsResult.status === 'fulfilled' ? neighborsResult.value : { prev: null, next: null }
+  const previous = gridParams ? buildAdjacentNavItem(neighbors.prev, gridParams, 'prev') : null
+  const next = gridParams ? buildAdjacentNavItem(neighbors.next, gridParams, 'next') : null
+
   return (
     <AnimeDetailView
       anime={anime}
@@ -114,6 +137,33 @@ async function AnimeDetailContent({ anime, searchParams }: {
       episodeCount={episodeCount}
       coverUrl={coverUrl}
       rawFansubParam={rawFansubParam}
+      previous={previous}
+      next={next}
     />
   )
+}
+
+/**
+ * Baut aus einem serverseitig aufgelösten Nachbarn das `href`/`label`/`ariaLabel`-Tripel für
+ * `AdjacentNavigation`. Die fünf Hover-/Fokus-Handler bleiben bewusst unbesetzt -- sie gehören
+ * zur client-seitigen Vorschaukarte und werden erst von `AnimeEdgeNavigation` selbst ergänzt,
+ * nachdem die Hydration abgeschlossen ist.
+ *
+ * @param target - Aufgelöster Nachbar samt Zielseite, oder null, wenn keiner existiert
+ * @param gridParams - Aktuelle Grid-Filterparameter (für den Ziel-Query mit angepasster Seite)
+ * @param direction - 'prev' oder 'next', bestimmt Beschriftung/ARIA-Text
+ * @returns Fertiges Navigations-Item oder null, wenn kein Nachbar existiert
+ */
+function buildAdjacentNavItem(
+  target: AnimeNeighbors['prev'],
+  gridParams: ReturnType<typeof parseAnimeListParamsFromGridQuery>,
+  direction: 'prev' | 'next',
+): AdjacentNavigationItem | null {
+  if (!target || !gridParams) return null
+  const isPrevious = direction === 'prev'
+  return {
+    href: buildAnimeDetailHref(target.anime.id, buildAnimeGridQuery({ ...gridParams, page: target.page })),
+    label: isPrevious ? 'Zurück' : 'Weiter',
+    ariaLabel: `${isPrevious ? 'Vorheriger' : 'Nächster'} Anime: ${target.anime.title}`,
+  }
 }

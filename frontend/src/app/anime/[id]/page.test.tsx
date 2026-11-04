@@ -20,11 +20,13 @@ vi.mock('@/lib/api', async (importOriginal) => ({
   getAnimeRelations: vi.fn(), getWatchlistEntry: vi.fn(),
 }))
 
-import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeRelations, getWatchlistEntry } from '@/lib/api'
+import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeList, getAnimeRelations, getWatchlistEntry } from '@/lib/api'
+import { buildAnimeDetailHref, buildAnimeGridQuery } from '@/lib/animeGridContext'
 import type { PublicGroupedEpisodesOptions, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
-import type { AnimeDetail } from '@/types/anime'
+import type { AnimeDetail, AnimeListItem } from '@/types/anime'
 import AnimeDetailPage, { generateMetadata } from './page'
 import { AnimeDetailHero } from './AnimeDetailHero'
+import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
 import { AnimeEpisodesSection } from './AnimeEpisodesSection'
 
 const groupedMock = vi.mocked(getGroupedEpisodes as (animeID: number, options: PublicGroupedEpisodesOptions) => Promise<PublicGroupedEpisodesResponse>)
@@ -351,6 +353,61 @@ describe('anime detail integration without invented data', () => {
     const content = await loadContent()
     const infoCard = elements(content).find((item) => item.type === Card && String(item.props.className ?? '').includes('infoCard'))
     expect(infoCard?.props.variant).toBe('publicHeroInfo')
+  })
+})
+
+describe('Randnavigation serverseitig aufgelöst (Befund 19)', () => {
+  const neighborItem = (id: number): AnimeListItem => ({ id, title: `Nachbar ${id}`, type: 'tv', status: 'done' })
+
+  it('stellt die Randnavigations-HREFs bereits im Server-Baum bereit, ohne AnimeEdgeNavigation selbst aufzurufen oder auf eine Client-Hydration zu warten', async () => {
+    vi.mocked(getAnimeList).mockResolvedValue({
+      data: [neighborItem(21), { id: 22, title: anime.title, type: 'tv', status: 'done' }, neighborItem(23)],
+      meta: { page: 1, per_page: 3, total: 3, total_pages: 1 },
+    })
+
+    const boundary = await AnimeDetailPage({
+      ...paramsFor('22'), searchParams: Promise.resolve({ grid_query: 'per_page=3' }),
+    })
+    const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
+      Record<string, unknown>
+    >
+    // Kein waitFor()/act(), kein jsdom-Render -- AnimeDetailView wird hier nur EINMAL synchron
+    // aufgerufen (dieselbe Technik wie loadContent()), die hrefs stehen bereits auf den Props des
+    // noch nicht materialisierten AnimeEdgeNavigation-Elements, bevor dessen Funktion je läuft.
+    const content = (contentElement.type as (props: Record<string, unknown>) => ReactNode)(contentElement.props) as ReactNode
+
+    const nav = elements(content).find((item) => item.type === AnimeEdgeNavigation)
+    expect(nav?.props.previous).toEqual({
+      href: buildAnimeDetailHref(21, buildAnimeGridQuery({ per_page: 3, page: 1 })),
+      label: 'Zurück',
+      ariaLabel: 'Vorheriger Anime: Nachbar 21',
+    })
+    expect(nav?.props.next).toEqual({
+      href: buildAnimeDetailHref(23, buildAnimeGridQuery({ per_page: 3, page: 1 })),
+      label: 'Weiter',
+      ariaLabel: 'Nächster Anime: Nachbar 23',
+    })
+  })
+
+  it('lässt die Randnavigations-Props auf null stehen, wenn kein Grid-Kontext vorhanden ist (kein kaputter Link)', async () => {
+    const content = await loadContent()
+    const nav = elements(content).find((item) => item.type === AnimeEdgeNavigation)
+    expect(nav).toBeUndefined()
+    expect(getAnimeList).not.toHaveBeenCalled()
+  })
+
+  it('blendet bei fehlgeschlagenem getAnimeList genau den betroffenen Button aus, statt einen kaputten Link zu zeigen (Fail-open)', async () => {
+    vi.mocked(getAnimeList).mockRejectedValue(new ApiError(500, 'Liste nicht verfügbar'))
+    const boundary = await AnimeDetailPage({
+      ...paramsFor('22'), searchParams: Promise.resolve({ grid_query: 'per_page=3' }),
+    })
+    const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
+      Record<string, unknown>
+    >
+    const content = (contentElement.type as (props: Record<string, unknown>) => ReactNode)(contentElement.props) as ReactNode
+    const nav = elements(content).find((item) => item.type === AnimeEdgeNavigation)
+    expect(nav?.props.previous).toBeNull()
+    expect(nav?.props.next).toBeNull()
   })
 })
 

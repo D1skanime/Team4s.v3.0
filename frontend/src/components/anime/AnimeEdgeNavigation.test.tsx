@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getAnimeList } from '@/lib/api'
 import { buildAnimeDetailHref, buildAnimeGridQuery } from '@/lib/animeGridContext'
+import type { AdjacentNavigationItem } from '@/components/ui'
 import type { AnimeListItem, PaginatedAnimeResponse } from '@/types/anime'
 
 import { AnimeEdgeNavigation } from './AnimeEdgeNavigation'
@@ -23,6 +24,16 @@ function deferred<T>() {
   const promise = new Promise<T>((yes) => { resolve = yes })
   return { promise, resolve }
 }
+/** Baut das serverseitig aufgelöste Navigations-Item (Befund 19), wie es `page.tsx` liefert --
+ *  die Tests übergeben es direkt als Prop, statt es aus einem gemockten Fetch zu erwarten. */
+function navItem(targetID: number, page: number, direction: 'prev' | 'next'): AdjacentNavigationItem {
+  const isPrevious = direction === 'prev'
+  return {
+    href: buildAnimeDetailHref(targetID, query(page)),
+    label: isPrevious ? 'Zurück' : 'Weiter',
+    ariaLabel: `${isPrevious ? 'Vorheriger' : 'Nächster'} Anime: Anime ${targetID}`,
+  }
+}
 
 beforeEach(() => {
   vi.mocked(getAnimeList).mockReset().mockImplementation(async (params) => response(params.page ?? 1))
@@ -30,21 +41,37 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 describe('AnimeEdgeNavigation', () => {
-  it('lädt Nachbarn vorab und rendert die neutrale AdjacentNavigation mit den Grid-Ziel-URLs', async () => {
-    render(<AnimeEdgeNavigation currentAnimeID={3} gridQuery={query(2)} />)
+  it('rendert die vom Server übergebenen Grid-Ziel-URLs synchron, ohne auf den Vorschau-Fetch zu warten', async () => {
+    render(
+      <AnimeEdgeNavigation
+        currentAnimeID={3}
+        gridQuery={query(2)}
+        previous={navItem(2, 1, 'prev')}
+        next={navItem(4, 2, 'next')}
+      />,
+    )
 
-    await waitFor(() => {
-      expect(screen.getByRole('link', { name: 'Vorheriger Anime: Anime 2' }).getAttribute('href'))
-        .toBe(buildAnimeDetailHref(2, query(1)))
-      expect(screen.getByRole('link', { name: 'Nächster Anime: Anime 4' }).getAttribute('href'))
-        .toBe(buildAnimeDetailHref(4, query(2)))
-    })
-    expect(getAnimeList).toHaveBeenCalledTimes(2)
-    for (const [params] of vi.mocked(getAnimeList).mock.calls) expect(params).toMatchObject(filters)
+    // Die hrefs stehen bereits VOR dem ersten Flush der Vorschau-Fetch-Promise bereit -- kein
+    // waitFor()/act() nötig, um sie zu lesen (Befund 19s Kernnachweis).
+    expect(screen.getByRole('link', { name: 'Vorheriger Anime: Anime 2' }).getAttribute('href'))
+      .toBe(buildAnimeDetailHref(2, query(1)))
+    expect(screen.getByRole('link', { name: 'Nächster Anime: Anime 4' }).getAttribute('href'))
+      .toBe(buildAnimeDetailHref(4, query(2)))
+
+    // Den noch laufenden, hier nicht relevanten Vorschau-Fetch sauber abschließen lassen, damit
+    // sein State-Update nicht erst beim nächsten Test als act()-Warnung auftaucht.
+    await waitFor(() => expect(getAnimeList).toHaveBeenCalled())
   })
 
   it('zeigt die Vorschaukarte erst bei Hover oder Fokus des vorab geladenen Links', async () => {
-    render(<AnimeEdgeNavigation currentAnimeID={3} gridQuery={query(2)} />)
+    render(
+      <AnimeEdgeNavigation
+        currentAnimeID={3}
+        gridQuery={query(2)}
+        previous={navItem(2, 1, 'prev')}
+        next={navItem(4, 2, 'next')}
+      />,
+    )
     const next = await screen.findByRole('link', { name: 'Nächster Anime: Anime 4' })
 
     expect(screen.queryByText('TV')).toBeNull()
@@ -55,16 +82,24 @@ describe('AnimeEdgeNavigation', () => {
     expect(screen.queryByText('TV')).toBeNull()
   })
 
-  it.each([[1, 1, 'Vorheriger Anime'], [6, 3, 'Nächster Anime']] as const)('rendert am äußeren Rand keinen erfundenen %s-Link', async (id, page, direction) => {
-    render(<AnimeEdgeNavigation currentAnimeID={id} gridQuery={query(page)} />)
+  it('rendert am äußeren Rand keinen erfundenen Link, wenn der Server bereits null liefert', async () => {
+    render(<AnimeEdgeNavigation currentAnimeID={1} gridQuery={query(1)} previous={null} next={navItem(2, 1, 'next')} />)
+    expect(screen.queryByRole('link', { name: /Vorheriger Anime/ })).toBeNull()
+    expect(screen.getByRole('link', { name: /Nächster Anime/ })).toBeTruthy()
     await waitFor(() => expect(getAnimeList).toHaveBeenCalled())
-    expect(screen.queryByRole('link', { name: new RegExp(direction) })).toBeNull()
   })
 
-  it('bricht einen noch laufenden Vorabladevorgang beim Entfernen ab', async () => {
+  it('bricht einen noch laufenden Vorschau-Vorabladevorgang beim Entfernen ab', async () => {
     const pending = deferred<PaginatedAnimeResponse>()
     vi.mocked(getAnimeList).mockReturnValueOnce(pending.promise)
-    const { unmount } = render(<AnimeEdgeNavigation currentAnimeID={3} gridQuery={query(2)} />)
+    const { unmount } = render(
+      <AnimeEdgeNavigation
+        currentAnimeID={3}
+        gridQuery={query(2)}
+        previous={navItem(2, 1, 'prev')}
+        next={navItem(4, 2, 'next')}
+      />,
+    )
     await waitFor(() => expect(getAnimeList).toHaveBeenCalledOnce())
     const signal = vi.mocked(getAnimeList).mock.calls[0][1]?.signal
 
