@@ -3049,9 +3049,9 @@ im Server-HTML sichtbar statt erst nach Hydration, die Release-Zeile richtet ihr
 an Titel/Gruppenname aus, die auf diesem Branch neu entstandenen Klick-Interaktionstests rufen echte
 Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte sind Zweck-Tokens wie
 Abstand/Rundung.
-**Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26
+**Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26, Befund-A, Befund-B, Befund-C, Befund-D, Befund-27, Befund-28
 **Depends on:** Phase 191
-**Plans:** 10/10 plans complete
+**Plans:** 10/20 plans complete (Runde 3 Gap-Closure: 192-11 bis 192-20, siehe `<addendum_2026-11-04c>`)
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
@@ -3064,3 +3064,13 @@ Plans:
 - [x] 192-09-PLAN.md — Direkte Logik-Tests statt Klick-Simulation für switchTo/toggleEpisode/WatchlistAction & Co. (Befund 25)
 - [x] 192-10-PLAN.md — Effekte (Blur/Glas/Scrim) als Zweck-Tokens in effects.css (Befund 26)
 - [x] 192-07-PLAN.md — Vollständiger Regressionslauf + Playwright-Bildpaar-Nachweis (main vs. Branch, Storybook vs. Live-Seite), läuft nach 08/09/10
+- [ ] 192-11-PLAN.md — Card-Padding-Override + neuer Divider-Grundbaustein (Befund B, Vorbereitung)
+- [ ] 192-12-PLAN.md — SplitLayout-gap Zweck-Umstellung + Root-Cause/Fix der bestätigten Anime-Kopf-Sichtregression (Befund A + Sichtregression)
+- [ ] 192-13-PLAN.md — AnimeDetailHero.module.css: eigenes Layout-CSS entfernt (Befund B)
+- [ ] 192-14-PLAN.md — ReleasePreviewRow/EpisodeGlassCard/AnimeEdgeNavigation: eigenes Layout-CSS entfernt (Befund B)
+- [ ] 192-15-PLAN.md — Composite-Layout-Reinheits-Guard + Doku + Befund-B-Bildnachweis (Befund B)
+- [ ] 192-16-PLAN.md — Stack-Zweck-Namen 'tight'/'section' korrigiert (Befund D)
+- [ ] 192-17-PLAN.md — Letzte fireEvent/userEvent-Vorkommen entfernt (Befund C)
+- [ ] 192-18-PLAN.md — Storybook „Grundlagen/Effekte": echtes Bildpaar statt grauer Fläche (Befund 27)
+- [ ] 192-19-PLAN.md — Storybook „Grundlagen/Design-Tokens": dreistufige Neugliederung (Befund 28)
+- [ ] 192-20-PLAN.md — Runde-3-Abschluss-Nachweis (voller Regressionslauf + Playwright-Bildpaare, löst 192-VERIFICATION.md ab), läuft nach 11-19
