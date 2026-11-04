@@ -3051,7 +3051,7 @@ Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte 
 Abstand/Rundung.
 **Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26
 **Depends on:** Phase 191
-**Plans:** 6/10 plans executed
+**Plans:** 7/10 plans executed
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
@@ -3060,7 +3060,7 @@ Plans:
 - [x] 192-04-PLAN.md — AnimeDetailView-Vereinfachung, page.module.css-Reinheit, Architektur-Doku (Befund 22)
 - [x] 192-05-PLAN.md — SSR-Randnavigation: resolveAnimeNeighbors serverseitig (Befund 19)
 - [x] 192-06-PLAN.md — Release-Zeilen-Einrückung über Cluster+Stack (Befund 20)
-- [ ] 192-08-PLAN.md — Zweck-Namen statt Größen-/Nummernnamen für Stack/Cluster/SplitLayout-Props (Befund 24)
+- [x] 192-08-PLAN.md — Zweck-Namen statt Größen-/Nummernnamen für Stack/Cluster/SplitLayout-Props (Befund 24)
 - [ ] 192-09-PLAN.md — Direkte Logik-Tests statt Klick-Simulation für switchTo/toggleEpisode/WatchlistAction & Co. (Befund 25)
 - [ ] 192-10-PLAN.md — Effekte (Blur/Glas/Scrim) als Zweck-Tokens in effects.css (Befund 26)
 - [ ] 192-07-PLAN.md — Vollständiger Regressionslauf + Playwright-Bildpaar-Nachweis (main vs. Branch, Storybook vs. Live-Seite), läuft nach 08/09/10
