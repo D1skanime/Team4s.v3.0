@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { EffectsShowcase } from './EffectsShowcase'
 
 /**
- * Visuelle Referenz der fünf Effekt-Rezepturen aus `styles/tokens/effects.css` (Befund 26) --
+ * Visuelle Referenz der fünf Effekt-Rezepturen aus `styles/tokens/effects.css` --
  * unter "Grundlagen" statt "Im Einsatz" einsortiert, analog zu "Grundlagen/Design-Tokens": zeigt
  * die Rohdaten des Effekt-Systems, keine domänenspezifische Seite. Anders als die
  * Design-Tokens-Seite ist dies KEIN automatischer Scan aller CSS-Custom-Properties, sondern ein
