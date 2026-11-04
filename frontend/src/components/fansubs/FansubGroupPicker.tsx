@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 
-import { Button, Text } from '@/components/ui'
+import { Button, Cluster, Stack, Text } from '@/components/ui'
 
 import styles from './FansubGroupPicker.module.css'
 
@@ -33,9 +33,9 @@ export function FansubGroupPicker({ options, activeGroupId, showAllChip, onSelec
   if (options.length === 0) return null
 
   return (
-    <div className={styles.wrapper}>
+    <Stack gap="2" className={styles.wrapper}>
       <Text as="span" variant="eyebrow" tone="onScrim">Fansub-Gruppe</Text>
-      <div role="group" aria-label="Fansub-Gruppe" className={styles.chipRow}>
+      <Cluster gap="3" as="div" role="group" aria-label="Fansub-Gruppe">
         {showAllChip ? (
           <Button
             variant="chipGlass"
@@ -66,7 +66,7 @@ export function FansubGroupPicker({ options, activeGroupId, showAllChip, onSelec
             </Button>
           )
         })}
-      </div>
-    </div>
+      </Cluster>
+    </Stack>
   )
 }
