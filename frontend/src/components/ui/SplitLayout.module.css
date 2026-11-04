@@ -15,7 +15,7 @@
   min-width: 0;
 }
 
-/* firstColumnWidth="poster" (Befund 24): SplitLayout kennt die Posterspalten-Breite des
+/* firstColumnWidth="poster": SplitLayout kennt die Posterspalten-Breite des
    Anime-Kopfs jetzt selbst ueber ein eigenes Zweck-Token -- der Aufrufer liefert nur noch den
    Zweck-Namen, keinen Pixelwert mehr (ersetzt den vormals seitenspezifischen
    --split-first-col-Override-Hook in AnimeDetailHero.module.css). */

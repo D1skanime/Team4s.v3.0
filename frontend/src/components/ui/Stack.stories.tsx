@@ -20,7 +20,7 @@ function Box({ label }: { label: string }) {
 }
 
 export const Abschnittstrennung: Story = {
-  name: 'Abschnittstrennung (gap "section")',
+  name: 'Abschnittstrennung',
   args: {
     gap: 'section',
     children: (
@@ -41,7 +41,7 @@ export const Abschnittstrennung: Story = {
 }
 
 export const EngZusammengehoerig: Story = {
-  name: 'Eng zusammengehörig (gap "tight")',
+  name: 'Eng zusammengehörig',
   args: {
     gap: 'tight',
     children: (

@@ -14,7 +14,7 @@ export interface SplitLayoutProps extends Omit<HTMLAttributes<HTMLElement>, 'chi
   firstColumn: ReactNode
   /** Inhalt der zweiten, flexiblen Restspalte (minmax(0,1fr)). */
   secondColumn: ReactNode
-  /** Breite der ersten Spalte als benannter Zweck (Befund 24) -- 'poster' ist die feste
+  /** Breite der ersten Spalte als benannter Zweck -- 'poster' ist die feste
    *  Posterspalten-Breite des Anime-Kopfs, SplitLayout kennt deren Pixelwert selbst ueber ein
    *  eigenes Zweck-Token in `layout.css` (inkl. Breakpoint-Variante unterhalb 1024px); der
    *  Aufrufer muss die zugrunde liegende Breite nicht mehr kennen. 'auto' bleibt ein echtes,

@@ -3,7 +3,7 @@ import type { CSSProperties, ElementType, HTMLAttributes, ReactNode } from 'reac
 import { classNames } from './classNames'
 import styles from './Cluster.module.css'
 
-/** Zweck-Benennung von Clusters Abstandsmaß (Befund 24) -- KEINE rohe Space-Skalenstufe mehr,
+/** Zweck-Benennung von Clusters Abstandsmaß -- KEINE rohe Space-Skalenstufe mehr,
  *  sondern ein benannter Einsatzzweck pro tatsächlicher Aufrufstellen-Rolle:
  *  - `'badgeRow'`: dichte, rein lesbare Abzeichen-/Chip-/Tag-/Logo-Reihe ohne Interaktion.
  *  - `'interactiveChipRow'`: Reihe klickbarer Filter-/Auswahl-Chips (z. B. Fansub-Gruppen-
@@ -19,7 +19,7 @@ import styles from './Cluster.module.css'
 export type ClusterGapPurpose = 'badgeRow' | 'interactiveChipRow' | 'contentPair' | 'actionRow'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
- *  niemals direkt auf `var(--space-N)` (siehe `ClusterGapPurpose`-Dokumentation oben). */
+ *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `ClusterGapPurpose`-Dokumentation oben). */
 const GAP_PURPOSE_TOKENS: Record<ClusterGapPurpose, string> = {
   badgeRow: 'var(--space-badge-row)',
   interactiveChipRow: 'var(--space-interactive-chip-row)',

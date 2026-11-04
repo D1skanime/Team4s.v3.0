@@ -79,7 +79,7 @@
      Zuschnitt ab). */
   --profile-banner-aspect-ratio: 1920 / 384;
 
-  /* Zweck-Token fuer die Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 24): deren
+  /* Zweck-Token fuer die Layout-Grundbausteine Stack/Cluster/SplitLayout: deren
      gap-/firstColumnWidth-Props nehmen ausschliesslich benannte Zweck-Werte entgegen, nie eine
      rohe Space-Skalenstufe ("gap=2") oder einen freien CSS-Laengen-String ("firstColumnWidth=
      '200px'") -- konsistent mit jedem anderen Design-Token dieses Projekts. Jedes Zweck-Token

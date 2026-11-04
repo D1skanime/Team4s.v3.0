@@ -3,7 +3,7 @@ import type { CSSProperties, ElementType, HTMLAttributes, ReactNode } from 'reac
 import { classNames } from './classNames'
 import styles from './Stack.module.css'
 
-/** Zweck-Benennung von Stacks Abstandsmaß (Befund 24) -- KEINE rohe Space-Skalenstufe mehr,
+/** Zweck-Benennung von Stacks Abstandsmaß -- KEINE rohe Space-Skalenstufe mehr,
  *  sondern ein benannter Einsatzzweck, der intern über ein eigenes Zweck-Token in
  *  `src/styles/tokens/layout.css` auf die unveränderte `--space-N`-Grundskala verweist:
  *  - `'section'`: trennt voneinander unabhängige Inhaltsblöcke (z. B. Merklisten-Knopf,
@@ -13,7 +13,7 @@ import styles from './Stack.module.css'
 export type StackGapPurpose = 'section' | 'tight'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
- *  niemals direkt auf `var(--space-N)` (siehe `StackGapPurpose`-Dokumentation oben). */
+ *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `StackGapPurpose`-Dokumentation oben). */
 const GAP_PURPOSE_TOKENS: Record<StackGapPurpose, string> = {
   section: 'var(--space-section)',
   tight: 'var(--space-tight)',
