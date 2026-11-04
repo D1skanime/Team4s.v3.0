@@ -40,16 +40,6 @@
   }
 }
 
-/* Ersetzt den frueheren seiteneigenen --card-public-hero-columns-Hook (siehe Card.module.css
-   .cardPublicHero) -- SplitLayout ist jetzt das einzige Grid-Kind der aeusseren Card. Die
-   Posterspaltenbreite (inkl. Breakpoint-Variante unterhalb 1024px) liefert jetzt
-   SplitLayouts eigene firstColumnWidth="poster"-Modifikatorklasse (siehe SplitLayout.module.css
-   .columnPoster) -- dieser Block setzt deshalb nur noch den spaltenunabhaengigen Abstand von 0,
-   den SplitLayouts gap-Prop (nur Space-Skalenstufen) nicht abbilden kann. */
-.heroSplit {
-  --split-gap: 0;
-}
-
 /* Nicht-einheitliche Abstände (space-4/space-5-Mischung zwischen Titelzeile/Badges/Beschreibung/
    Tags) -- bewusst KEIN Stack hier, ein einzelner gap-Token würde die bisherigen, unterschiedlichen
    vertikalen Abstände verändern (Zero-Pixel-Diff-Vorgabe dieser Phase, siehe 192-RESEARCH.md). */

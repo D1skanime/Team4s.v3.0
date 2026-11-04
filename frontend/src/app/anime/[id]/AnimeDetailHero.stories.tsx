@@ -51,8 +51,8 @@ export const Desktop1440: Story = {
   parameters: { viewport: { defaultViewport: 'desktop1440' } },
 }
 
-// Gegenstück zu Desktop1440: unterhalb von SplitLayouts Container-Haltepunkt (breakpoint="md",
-// 768px) muss dieselbe Story auf eine einzelne, gestapelte Spalte kollabieren.
+// Gegenstück zu Desktop1440: unterhalb von SplitLayouts festem Container-Haltepunkt (768px) muss
+// dieselbe Story auf eine einzelne, gestapelte Spalte kollabieren.
 export const Mobile390: Story = {
   name: 'Mobil 390px',
   parameters: { viewport: { defaultViewport: 'mobile390' } },

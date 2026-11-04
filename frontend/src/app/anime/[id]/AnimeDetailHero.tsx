@@ -52,8 +52,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
           optisch auf die Höhe der höheren gestreckt wurde. SplitLayouts eigener Standard ("start")
           würde diese Streckung verlieren und ein Zero-Pixel-Diff-Regressionsfund wäre die Folge. */}
       <SplitLayout
-        className={styles.heroSplit}
-        breakpoint="md"
+        gap="none"
         align="stretch"
         firstColumnWidth="poster"
         firstColumn={

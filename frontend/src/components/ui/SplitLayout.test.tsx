@@ -37,11 +37,11 @@ describe('SplitLayout', () => {
     expect(node.style.getPropertyValue('--split-first-col')).toBe('')
   })
 
-  it('setzt --split-gap nur, wenn gap tatsaechlich uebergeben wird', () => {
+  it('loest gap="none" auf das Zweck-Token --split-layout-gap-none auf, nur wenn gap tatsaechlich uebergeben wird', () => {
     const { container: withGap } = render(
-      <SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} gap="2" />,
+      <SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} gap="none" />,
     )
-    expect((withGap.firstChild as HTMLElement).style.getPropertyValue('--split-gap')).toBe('var(--space-2)')
+    expect((withGap.firstChild as HTMLElement).style.getPropertyValue('--split-gap')).toBe('var(--split-layout-gap-none)')
 
     const { container: withoutGap } = render(
       <SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} />,
@@ -52,15 +52,5 @@ describe('SplitLayout', () => {
   it('setzt --split-align immer, mit dem dokumentierten Standardwert "start"', () => {
     const { container } = render(<SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} />)
     expect((container.firstChild as HTMLElement).style.getPropertyValue('--split-align')).toBe('start')
-  })
-
-  it('setzt die breakpointLg-Klasse nur bei breakpoint="lg"', () => {
-    const { container: md } = render(<SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} />)
-    expect((md.firstChild as HTMLElement).className).not.toMatch(/breakpointLg/)
-
-    const { container: lg } = render(
-      <SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} breakpoint="lg" />,
-    )
-    expect((lg.firstChild as HTMLElement).className).toMatch(/breakpointLg/)
   })
 })

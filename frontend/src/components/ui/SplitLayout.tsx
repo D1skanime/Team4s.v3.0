@@ -3,11 +3,21 @@ import type { CSSProperties, ElementType, HTMLAttributes, ReactNode } from 'reac
 import { classNames } from './classNames'
 import styles from './SplitLayout.module.css'
 
-/* Space-Token-Werte identisch zu Stacks SpaceToken -- bewusst als eigener, inline wiederholter
-   Literal-Typ statt eines Imports aus './Stack' (siehe Cluster.tsx fuer dieselbe Begruendung:
-   catalogTaxonomy.test.ts verbietet jeden Import eines anderen, selbst katalogisierten
-   Grundbausteins, unabhaengig davon, ob es sich nur um einen Typ-Import handelt). */
-type SpaceToken = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+/** Zweck-Benennung von SplitLayouts Spaltenabstand -- KEINE rohe Space-Skalenstufe mehr, sondern
+ *  ein benannter Einsatzzweck, der intern ueber ein eigenes Zweck-Token in
+ *  `src/styles/tokens/layout.css` aufgeloest wird (gleiches Muster wie Stacks
+ *  `StackGapPurpose`/`GAP_PURPOSE_TOKENS`). Aktuell nur EIN Mitglied, weil es aktuell nur eine
+ *  einzige echte Aufrufstelle mit einem tatsaechlichen Abstandsbedarf gibt (der Anime-Kopf, der
+ *  Poster- und Info-Karte direkt aneinandersetzt): `'none'` entspricht dem bisherigen,
+ *  seitenspezifischen `--split-gap: 0`-Fremd-Override in `AnimeDetailHero.module.css`, das dieser
+ *  Prop jetzt ersetzt. */
+export type SplitLayoutGapPurpose = 'none'
+
+/** Loest jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf -- niemals
+ *  direkt auf die rohe `--space-N`-Grundskala (siehe `SplitLayoutGapPurpose`-Dokumentation oben). */
+const GAP_PURPOSE_TOKENS: Record<SplitLayoutGapPurpose, string> = {
+  none: 'var(--split-layout-gap-none)',
+}
 
 export interface SplitLayoutProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
   /** Inhalt der ersten (schmalen/festen) Spalte. */
@@ -22,18 +32,10 @@ export interface SplitLayoutProps extends Omit<HTMLAttributes<HTMLElement>, 'chi
    *  Inline-Stil gesetzt. Wird NUR gesetzt, wenn der Aufrufer sie tatsaechlich uebergibt (siehe
    *  Verhaltenskommentar unten). */
   firstColumnWidth?: 'poster' | 'auto'
-  /** Spaltenabstand als Space-Token. Wird NUR gesetzt, wenn der Aufrufer ihn tatsaechlich
-   *  uebergibt -- ohne Angabe gilt der CSS-Fallback var(--space-4). Diese bewusste Abweichung
-   *  vom Stack/Cluster-Muster (dort IMMER mit JS-Default inline gesetzt) erlaubt einem
-   *  Aufrufer mit mehrstufigem/responsivem Abstandsbedarf (z. B. gap: 0 auf einer Seite mit
-   *  eigenem 2-stufigem Breakpoint), stattdessen dieselbe private Variable --split-gap ueber die
-   *  eigene className per Medienabfrage zu setzen, statt von einem festen JS-Wert ueberschrieben
-   *  zu werden. */
-  gap?: SpaceToken
-  /** Container-Query-Haltepunkt, ab dem die zweite Spalte neben (statt unter) der ersten
-   *  erscheint. 'md' = 48rem/768px (Standard, entspricht ArtworkHeros bestehendem Haltepunkt),
-   *  'lg' = 64rem/1024px. */
-  breakpoint?: 'md' | 'lg'
+  /** Spaltenabstand als benannter Zweck (siehe `SplitLayoutGapPurpose`). Wird NUR gesetzt, wenn
+   *  der Aufrufer ihn tatsaechlich uebergibt -- ohne Angabe gilt der CSS-Fallback
+   *  var(--space-4). */
+  gap?: SplitLayoutGapPurpose
   /** Querachsen-Ausrichtung der beiden Spalten (Standard 'start'). */
   align?: 'start' | 'center' | 'stretch'
   /** Zu rendernde Element-Art (Standard 'div'). */
@@ -42,20 +44,23 @@ export interface SplitLayoutProps extends Omit<HTMLAttributes<HTMLElement>, 'chi
 }
 
 /**
- * Feste/automatische erste Spalte + flexible Restspalte, die unterhalb eines konfigurierbaren
- * Container-Query-Haltepunkts zu einer einzigen gestapelten Spalte zusammenfaellt -- der
- * generische Zwei-Spalten-Grundbaustein dieser Codebasis (z. B. Poster-/Info-Spalte eines Hero-
- * Bausteins, Avatar-/Textspalte einer Release-Zeile). Nutzt bewusst eine Container- statt einer
- * Viewport-Medienabfrage, da Instanzen in Karten unterschiedlicher verfuegbarer Breite
- * verschachtelt werden (siehe ArtworkHero.module.css fuer dasselbe etablierte Muster). Setzt
- * selbst keine Flaeche/Farbe/Rundung (siehe Stack.tsx fuer dieselbe Begruendung).
+ * Feste/automatische erste Spalte + flexible Restspalte, die unterhalb eines festen
+ * Container-Query-Haltepunkts (48rem/768px, siehe SplitLayout.module.css) zu einer einzigen
+ * gestapelten Spalte zusammenfaellt -- der generische Zwei-Spalten-Grundbaustein dieser Codebasis
+ * (z. B. Poster-/Info-Spalte eines Hero-Bausteins, Avatar-/Textspalte einer Release-Zeile). Nutzt
+ * bewusst eine Container- statt einer Viewport-Medienabfrage, da Instanzen in Karten
+ * unterschiedlicher verfuegbarer Breite verschachtelt werden (siehe ArtworkHero.module.css fuer
+ * dasselbe etablierte Muster). Setzt selbst keine Flaeche/Farbe/Rundung (siehe Stack.tsx fuer
+ * dieselbe Begruendung). Der Haltepunkt war vormals ueber eine `breakpoint`-Prop ('md'|'lg')
+ * waehlbar -- 'lg' hatte zu keinem Zeitpunkt eine echte Aufrufstelle (grep-bestaetigt bei
+ * Entfernung), die Prop ist deshalb komplett entfallen statt als Einzelwert-Literal-Typ erhalten
+ * zu bleiben.
  */
 export function SplitLayout({
   firstColumn,
   secondColumn,
   firstColumnWidth,
   gap,
-  breakpoint = 'md',
   align = 'start',
   as: Component = 'div',
   className,
@@ -65,7 +70,7 @@ export function SplitLayout({
   const mergedStyle = {
     ...style,
     '--split-align': align,
-    ...(gap !== undefined ? { '--split-gap': `var(--space-${gap})` } : {}),
+    ...(gap !== undefined ? { '--split-gap': GAP_PURPOSE_TOKENS[gap] } : {}),
     // 'poster' setzt bewusst KEINEN Inline-Stil -- die Breite (inkl. Breakpoint-Variante
     // unterhalb 1024px) kommt stattdessen aus der .columnPoster-Modifikatorklasse weiter unten
     // (siehe SplitLayout.module.css). 'auto' ist ein einzelner, breakpoint-unabhaengiger Wert und
@@ -79,7 +84,6 @@ export function SplitLayout({
       style={mergedStyle}
       className={classNames(
         styles.splitLayout,
-        breakpoint === 'lg' && styles.breakpointLg,
         firstColumnWidth === 'poster' && styles.columnPoster,
         className,
       )}

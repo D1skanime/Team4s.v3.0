@@ -38,19 +38,14 @@
   }
 }
 
-/* breakpoint="md" (Standard) -- Schwelle 48rem/768px, identisch zu ArtworkHeros Haltepunkt.
-   Die Modifikatorklassen (.breakpointLg/.columnPoster) bleiben auf dem AEUSSEREN Container-Element
-   (siehe SplitLayout.tsx) -- die Bedingung wird deshalb ueber den Vorfahren-Kombinator auf das
-   innere `.grid`-Element angewendet, nicht auf das Element, das den Container selbst bildet. */
+/* Einziger Haltepunkt -- Schwelle 48rem/768px, identisch zu ArtworkHeros Haltepunkt (vormals ueber
+   eine `breakpoint="md"|"lg"`-Prop waehlbar; "lg" (64rem/1024px) hatte keine echte Aufrufstelle
+   mehr und ist komplett entfernt, siehe SplitLayout.tsx). Die Modifikatorklasse `.columnPoster`
+   bleibt auf dem AEUSSEREN Container-Element (siehe SplitLayout.tsx) -- die Bedingung wird deshalb
+   ueber den Vorfahren-Kombinator auf das innere `.grid`-Element angewendet, nicht auf das Element,
+   das den Container selbst bildet. */
 @container split-layout (min-width: 48rem) {
-  .splitLayout:not(.breakpointLg) .grid {
-    grid-template-columns: var(--split-first-col, auto) minmax(0, 1fr);
-  }
-}
-
-/* breakpoint="lg" -- Schwelle 64rem/1024px (entspricht der bisherigen 1023px-Postergroessen-Stufe). */
-@container split-layout (min-width: 64rem) {
-  .splitLayout.breakpointLg .grid {
+  .splitLayout .grid {
     grid-template-columns: var(--split-first-col, auto) minmax(0, 1fr);
   }
 }

@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { SplitLayout } from './SplitLayout'
 
-/** Feste/automatische erste Spalte + flexible Restspalte, die unterhalb eines konfigurierbaren
- *  Container-Query-Haltepunkts stapelt. Setzt selbst keine Flaeche/Farbe/Rundung. Die
+/** Feste/automatische erste Spalte + flexible Restspalte, die unterhalb eines festen
+ *  Container-Query-Haltepunkts (768px) stapelt. Setzt selbst keine Flaeche/Farbe/Rundung. Die
  *  Haltepunkt-Schwelle reagiert auf die verfuegbare Breite des umschliessenden Elements
  *  (Container-Query), nicht auf die Browser-Fensterbreite -- die Demo-Storys stellen das ueber
  *  eine Wrapper-Breite dar statt ueber den Storybook-Viewport-Umschalter. */
@@ -29,7 +29,7 @@ function ColumnB() {
 }
 
 export const Standard: Story = {
-  name: 'Breiter Container (nebeneinander, breakpoint="md", ab 768px)',
+  name: 'Breiter Container (nebeneinander, ab 768px)',
   decorators: [(Story) => <div style={{ width: 900 }}><Story /></div>],
   args: {
     firstColumn: <ColumnA />,
@@ -45,34 +45,5 @@ export const Schmal: Story = {
     firstColumn: <ColumnA />,
     secondColumn: <ColumnB />,
     firstColumnWidth: 'poster',
-  },
-}
-
-export const BreakpointLgGestapelt: Story = {
-  name: 'Haltepunkt lg -- noch gestapelt bei 900px (unterhalb 1024px)',
-  decorators: [(Story) => <div style={{ width: 900 }}><Story /></div>],
-  args: {
-    firstColumn: <ColumnA />,
-    secondColumn: <ColumnB />,
-    firstColumnWidth: 'auto',
-    breakpoint: 'lg',
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Bei 900px Containerbreite noch gestapelt (unterhalb der 1024px-lg-Schwelle) -- im Unterschied zur Standard-Story bei derselben Breitenklasse mit breakpoint="md" (dort bereits nebeneinander).',
-      },
-    },
-  },
-}
-
-export const BreakpointLgNebeneinander: Story = {
-  name: 'Haltepunkt lg -- nebeneinander ab 1024px',
-  decorators: [(Story) => <div style={{ width: 1100 }}><Story /></div>],
-  args: {
-    firstColumn: <ColumnA />,
-    secondColumn: <ColumnB />,
-    firstColumnWidth: 'auto',
-    breakpoint: 'lg',
   },
 }
