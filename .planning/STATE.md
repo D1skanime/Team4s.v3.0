@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-16-PLAN.md
-last_updated: "2026-11-04T22:50:20.570Z"
+stopped_at: Completed 192-17-PLAN.md
+last_updated: "2026-11-04T23:09:31.334Z"
 last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 550
-  completed_plans: 541
+  completed_plans: 542
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 3 Gap-Closure)) — EXECUTING
-Plan: 17 of 20
+Plan: 18 of 20
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1591,6 +1591,8 @@ Last activity: 2026-11-04
 - [Phase 192]: 192-15: Guard gegruendet auf tatsaechlicher Dateilage statt 192-13/14-Zusammenfassungen — Zwei echte, bislang unentdeckte Befund-B-Luecken (.tagsSection, .posterColumn-Mobil-Padding) gefunden und auf bereits etablierte Grundbaustein-Muster migriert; fuenf weitere als praezise, einzeln begruendete Guard-Ausnahmen dokumentiert statt dateiweiter Lockerung
 - [Phase 192]: 192-15: Visuelle Nachweis-Baseline auf unmittelbaren Vor-192-13-Commit korrigiert — Der urspruenglich im Plan genannte 'pre-192-11'-Commit (069f96360) enthielt noch den von Plan 192-12 bereits behobenen Banner-Platzhalter-Fehler -- dessen Differenz waere faelschlich als Regression erschienen. Baseline auf d1125b317 (unmittelbar vor 192-13) korrigiert, danach 0 Pixel Abweichung bestaetigt
 - [Phase 192]: Stack-Zweck-Namen 'tight'/'section' auf 'relatedContent'/'independentBlocks' umbenannt (Befund D) -- Pixelwerte per disposable git worktree gegen main verifiziert, keine Abweichung gefunden
+- [Phase 192]: Befund C: WatchlistAddButtons SSR-Hint-fireEvent-Test entfernt statt konvertiert -- initiallyInWatchlist ist toter Code, Garantie bereits ueber neuen direkten useWatchlistAction-No-Op-Test abgedeckt
+- [Phase 192]: Befund C: AnimeEdgeNavigations Hover-/Fokus-Vorschauzustand in useAnimeEdgeNavigationHover ausgelagert, direkt per renderHook testbar statt fireEvent.mouseEnter/mouseLeave
 
 ### Pending Todos
 
@@ -2375,11 +2377,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P14 | 22min | 3 tasks | 11 files |
 | Phase 192 P15 | ~70min | 2 tasks | 5 files |
 | Phase 192 P16 | 40min | 2 tasks | 18 files |
+| Phase 192 P17 | 16min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T22:50:20.536Z
-Stopped at: Completed 192-16-PLAN.md
+Last session: 2026-11-04T23:09:31.303Z
+Stopped at: Completed 192-17-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
