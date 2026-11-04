@@ -3039,16 +3039,19 @@ Plans:
 - [x] 191-36-PLAN.md — Frontend: D-34 Release-Anzeige in allen drei Hinweis-Listen + schemafreie Episodenanzeige beim Eigengruppen-Pfad
 - [x] 191-37-PLAN.md — Phasenabschluss fuenfte Nachbesserung: D-36-Vorabpruefung (echter API-Check + D-35-Loeschung), DECISIONS.md, Regressionsgate, Live-UAT — **Checkpoint vom Nutzer am 2026-10-26 freigegeben, Phase 191 abgeschlossen**
 
-### Phase 192: Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (ki-run 261102-226d, Live-UAT-Befunde 19-23 vom 2026-11-04)
+### Phase 192: Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (ki-run 261102-226d, Live-UAT-Befunde 19-26 vom 2026-11-04)
 
 **Goal:** Die öffentliche Anime-Detailseite (`/anime/[id]`) besteht in allen fünf Pilot-Bausteinen
 (Anime-Kopf, Episoden-Bereich, Fansubgruppen-Auswahl, Release-Zeile, Randnavigation) ausschließlich
 aus Grundbausteinen (neue `Stack`/`Cluster`/`SplitLayout`-Layout-Primitives statt seiteneigenem
-Hand-Layout), die Randnavigation ist bereits im Server-HTML sichtbar statt erst nach Hydration, und
-die Release-Zeile richtet ihre Datenzeile korrekt an Titel/Gruppenname aus.
-**Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23
+Hand-Layout, mit Zweck- statt Größen-/Nummernnamen für deren Props), die Randnavigation ist bereits
+im Server-HTML sichtbar statt erst nach Hydration, die Release-Zeile richtet ihre Datenzeile korrekt
+an Titel/Gruppenname aus, die auf diesem Branch neu entstandenen Klick-Interaktionstests rufen echte
+Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte sind Zweck-Tokens wie
+Abstand/Rundung.
+**Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26
 **Depends on:** Phase 191
-**Plans:** 6/7 plans executed
+**Plans:** 6/10 plans executed
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
@@ -3057,4 +3060,7 @@ Plans:
 - [x] 192-04-PLAN.md — AnimeDetailView-Vereinfachung, page.module.css-Reinheit, Architektur-Doku (Befund 22)
 - [x] 192-05-PLAN.md — SSR-Randnavigation: resolveAnimeNeighbors serverseitig (Befund 19)
 - [x] 192-06-PLAN.md — Release-Zeilen-Einrückung über Cluster+Stack (Befund 20)
-- [ ] 192-07-PLAN.md — Vollständiger Regressionslauf + Playwright-Bildpaar-Nachweis (main vs. Branch, Storybook vs. Live-Seite)
+- [ ] 192-08-PLAN.md — Zweck-Namen statt Größen-/Nummernnamen für Stack/Cluster/SplitLayout-Props (Befund 24)
+- [ ] 192-09-PLAN.md — Direkte Logik-Tests statt Klick-Simulation für switchTo/toggleEpisode/WatchlistAction & Co. (Befund 25)
+- [ ] 192-10-PLAN.md — Effekte (Blur/Glas/Scrim) als Zweck-Tokens in effects.css (Befund 26)
+- [ ] 192-07-PLAN.md — Vollständiger Regressionslauf + Playwright-Bildpaar-Nachweis (main vs. Branch, Storybook vs. Live-Seite), läuft nach 08/09/10
