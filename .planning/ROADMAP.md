@@ -3048,13 +3048,13 @@ Hand-Layout), die Randnavigation ist bereits im Server-HTML sichtbar statt erst 
 die Release-Zeile richtet ihre Datenzeile korrekt an Titel/Gruppenname aus.
 **Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23
 **Depends on:** Phase 191
-**Plans:** 3/7 plans executed
+**Plans:** 4/7 plans executed
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
 - [x] 192-02-PLAN.md — AnimeDetailHero besitzt Card+SplitLayout+Randnavigations-Slot vollständig (Befund 21)
 - [x] 192-03-PLAN.md — FansubGroupPicker + FansubVersionBrowser-Episodenliste auf Stack/Cluster (Befund 23)
-- [ ] 192-04-PLAN.md — AnimeDetailView-Vereinfachung, page.module.css-Reinheit, Architektur-Doku (Befund 22)
+- [x] 192-04-PLAN.md — AnimeDetailView-Vereinfachung, page.module.css-Reinheit, Architektur-Doku (Befund 22)
 - [ ] 192-05-PLAN.md — SSR-Randnavigation: resolveAnimeNeighbors serverseitig (Befund 19)
 - [ ] 192-06-PLAN.md — Release-Zeilen-Einrückung über Cluster+Stack (Befund 20)
 - [ ] 192-07-PLAN.md — Vollständiger Regressionslauf + Playwright-Bildpaar-Nachweis (main vs. Branch, Storybook vs. Live-Seite)
