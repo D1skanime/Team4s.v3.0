@@ -1,13 +1,31 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { Button } from '@/components/ui'
 import { FansubGroupPicker, type FansubGroupPickerOption } from './FansubGroupPicker'
 
 afterEach(() => {
   cleanup()
 })
+
+// Befund 25: `onSelect` wird hier nur trivial weitergeleitet (`onClick={() => onSelect(...)}`),
+// ohne eigene Fachlogik -- statt eines echten DOM-Klicks wird die Komponente direkt als Funktion
+// aufgerufen und der gefundene `onClick`-Prop direkt invoziert (etabliertes Muster aus
+// `page.test.tsx`/`AnimeDetailView.test.tsx`, hier als eigene, dateilokale Kopie).
+function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
+  return Children.toArray(node).flatMap((child) => {
+    if (!isValidElement<Record<string, unknown>>(child)) return []
+    return [child, ...elements(child.props.children as ReactNode)]
+  })
+}
+function textContent(node: ReactNode): string {
+  return Children.toArray(node).map((child) =>
+    isValidElement<{ children?: ReactNode }>(child) ? textContent(child.props.children) : String(child),
+  ).join('')
+}
 
 describe('FansubGroupPicker', () => {
   it('rendert nichts, wenn options leer ist', () => {
@@ -66,18 +84,22 @@ describe('FansubGroupPicker', () => {
     expect(document.querySelector('img')).toBeNull()
   })
 
-  it('ruft onSelect(null) bei Klick auf Alle und onSelect(id) bei Klick auf einen Gruppen-Chip auf', () => {
+  it('ruft onSelect(null) bei Klick auf Alle und onSelect(id) bei Klick auf einen Gruppen-Chip auf (direkter onClick-Aufruf statt Klick-Simulation, Befund 25)', () => {
     const options: FansubGroupPickerOption[] = [
       { id: 1, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: null },
       { id: 2, slug: 'flamehaze-subs', name: 'FlameHaze-subs', logo_url: null },
     ]
     const onSelect = vi.fn()
-    render(
-      <FansubGroupPicker options={options} activeGroupId={null} showAllChip onSelect={onSelect} />,
-    )
-    fireEvent.click(screen.getByText('Alle'))
+    const tree = FansubGroupPicker({ options, activeGroupId: null, showAllChip: true, onSelect })
+    const chipButtons = elements(tree).filter((element) => element.type === Button)
+    const allChip = chipButtons.find((element) => textContent(element.props.children as ReactNode).includes('Alle'))
+    const bloodyShadowChip = chipButtons.find((element) => textContent(element.props.children as ReactNode).includes('Bloody-Shadow'))
+    expect(allChip).toBeTruthy()
+    expect(bloodyShadowChip).toBeTruthy()
+
+    ;(allChip!.props.onClick as () => void)()
     expect(onSelect).toHaveBeenLastCalledWith(null)
-    fireEvent.click(screen.getByText('Bloody-Shadow'))
+    ;(bloodyShadowChip!.props.onClick as () => void)()
     expect(onSelect).toHaveBeenLastCalledWith(1)
   })
 

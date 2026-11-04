@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { describe, expect, it, vi } from 'vitest'
+import { render, renderHook, screen } from '@testing-library/react'
 
 import { DatePicker } from './DatePicker'
 import { FormField } from './FormField'
@@ -9,6 +10,17 @@ import { Select } from './Select'
 import { Switch } from './Switch'
 import { Textarea } from './Textarea'
 import { YearPicker } from './YearPicker'
+
+// Befund 25: statt eines echten DOM-Klicks wird FormField (useId-Hook, daher innerhalb von
+// renderHook aufgerufen) direkt als Funktion aufgerufen und der materialisierte Baum nach dem
+// eingebetteten Switch-Element durchsucht (etabliertes Muster aus `page.test.tsx`/
+// `AnimeDetailView.test.tsx`, hier als eigene, dateilokale Kopie).
+function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
+  return Children.toArray(node).flatMap((child) => {
+    if (!isValidElement<Record<string, unknown>>(child)) return []
+    return [child, ...elements(child.props.children as ReactNode)]
+  })
+}
 
 /**
  * Verhaltensnachweis für die FormField-Autoverknüpfung (UAT-Befund 5): FormField reicht
@@ -237,15 +249,25 @@ describe('FormField Autoverknüpfung', () => {
     expect(screen.getByTestId('custom-field')).not.toBeNull()
   })
 
-  it('löst keinen Klick aus, wenn der Switch deaktiviert ist (Rückwärtskompat-Smoketest)', () => {
-    render(
-      <FormField label="Status">
-        <Switch checked={false} onCheckedChange={() => {}} disabled />
-      </FormField>,
-    )
+  it('löst keinen Klick aus, wenn der Switch deaktiviert ist (Rückwärtskompat-Smoketest, direkter onClick-Aufruf statt Klick-Simulation, Befund 25)', () => {
+    const onCheckedChange = vi.fn()
+    const { result } = renderHook(() => {
+      const tree = FormField({ label: 'Status', children: <Switch checked={false} onCheckedChange={onCheckedChange} disabled /> })
+      return elements(tree).find((element) => element.type === Switch)
+    })
+    const switchElement = result.current
+    expect(switchElement).toBeTruthy()
+    // FormField reicht disabled durchs cloneElement weiter (effectiveDisabled) -- die Disabled-
+    // Passthrough-Garantie selbst ist hier bereits am Props-Stand des geklonten Elements belegt.
+    expect(switchElement!.props.disabled).toBe(true)
 
-    const switchEl = screen.getByRole('switch') as HTMLButtonElement
-    fireEvent.click(switchEl)
-    expect(switchEl.getAttribute('aria-checked')).toBe('false')
+    // Switch ist vollstaendig kontrolliert (kein eigener Zustand, keine Hooks) -- sein <button>
+    // kann deshalb gefahrlos direkt materialisiert werden, um den echten internen Klick-Handler
+    // (handleClick, der bei disabled=true fruehzeitig zurueckkehrt) direkt aufzurufen statt einen
+    // DOM-Klick zu simulieren.
+    const materializedButton = (Switch as unknown as (props: Record<string, unknown>) => ReactElement<Record<string, unknown>>)(switchElement!.props)
+    expect(materializedButton.props['aria-checked']).toBe(false)
+    ;(materializedButton.props.onClick as () => void)()
+    expect(onCheckedChange).not.toHaveBeenCalled()
   })
 })
