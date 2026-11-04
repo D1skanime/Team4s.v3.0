@@ -1,0 +1,31 @@
+/**
+ * Reine Layout-Styles der Effekte-Showcase-Seite selbst (Anordnung der 5 Rezeptur-Kacheln) --
+ * kein neuer Design-Token-Inhalt. Jede Rezeptur liegt in effects.css, die Vorschau rendert den
+ * tatsächlichen Grundbaustein (BannerSection/LinkChip/Button/Badge), nicht eine eigene
+ * CSS-Nachbildung.
+ */
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.previewFrame {
+  position: relative;
+  height: 160px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.previewSlot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meta {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
