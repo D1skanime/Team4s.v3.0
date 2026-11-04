@@ -161,10 +161,15 @@ export function AnimeTitleLogo({ title, className }: { title: string; className?
 
 export function AnimeInfoBanner({
   className,
-  dividerClassName,
+  divider,
 }: {
   className?: string
-  dividerClassName?: string
+  /** Trennlinie VOR dem Banner-Bild, als fertiges Element statt nur einer ClassName --
+   *  AnimeInfoBanner kennt seit Befund B (192-13) keine eigene `<hr>`-Trennlinie mehr, sondern
+   *  platziert nur noch das vom Aufrufer übergebene Element (üblicherweise der `Divider`-
+   *  Grundbaustein) an der richtigen Stelle. So bleibt Farbe/Abstand der Linie vollständig Sache
+   *  des Grundbausteins, dieser Baustein kennt dafür kein eigenes CSS mehr. */
+  divider?: ReactNode
 }) {
   const manifest = useAnimeMediaManifest()
   const bannerURL = useMemo(() => resolveInfoBannerURL(manifest), [manifest])
@@ -173,7 +178,7 @@ export function AnimeInfoBanner({
 
   return (
     <>
-      <hr className={dividerClassName} />
+      {divider}
       <Image src={bannerURL} alt="" className={className} width={600} height={180} unoptimized />
     </>
   )

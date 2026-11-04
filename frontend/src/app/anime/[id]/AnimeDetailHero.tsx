@@ -5,7 +5,7 @@ import { AnimeRelations } from '@/components/anime/AnimeRelations'
 import { AnimeInfoBanner, AnimeTitleLogo } from '@/components/anime/AnimeMediaProvider'
 import { StatusBadge } from '@/components/anime/StatusBadge'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
-import { Badge, Button, Card, Cluster, Heading, LinkChip, MediaFrame, ResponsiveImage, SplitLayout, Stack, Text } from '@/components/ui'
+import { Badge, Button, Card, Cluster, Divider, Heading, LinkChip, MediaFrame, ResponsiveImage, SplitLayout, Stack, Text } from '@/components/ui'
 import type { AnimeDetail, AnimeRelationsResponse } from '@/types/anime'
 
 import styles from './AnimeDetailHero.module.css'
@@ -72,7 +72,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
 
             <Stack gap="section" className={styles.posterMeta}>
               <WatchlistAddButton animeID={anime.id} />
-              <hr className={styles.posterDivider} />
+              <Divider tone="onMedia" spacing="withinMetaBlock" className={styles.posterDivider} />
               <Stack gap="tight" className={styles.genresSection}>
                 <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
                 <Cluster gap="badgeRow" className={styles.genres}>
@@ -127,7 +127,21 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
                   <Button href={embySeriesUrl} target="_blank" rel="noopener noreferrer" variant="text" size="sm" leftIcon={<ExternalLink size={14} aria-hidden="true" />}>Emby</Button>
                 </Cluster>
               ) : null}
-              <AnimeInfoBanner className={styles.infoBanner} dividerClassName={styles.divider} />
+              <AnimeInfoBanner
+                className={styles.infoBanner}
+                divider={
+                  <>
+                    {/* Kräftigere Desktop-Stufe (tone="onMediaStrong") vs. dezentere Mobil-Stufe
+                        (tone="onMedia", dieselbe Linienfarbe wie statsRow/relatedSection) --
+                        Divider setzt seine Farbe/Abstand selbst und erlaubt keinen Fremd-
+                        Override von außen, deshalb zwei Instanzen statt einer einzigen mit
+                        überschriebener Farbe. Die className hier steuert ausschließlich die
+                        Sichtbarkeit je Haltepunkt (siehe Divider.tsx's eigene Doku). */}
+                    <Divider tone="onMediaStrong" className={styles.dividerDesktop} />
+                    <Divider tone="onMedia" className={styles.dividerMobile} />
+                  </>
+                }
+              />
               {relationsResponse && relationsResponse.data.length > 0 ? <div className={styles.relatedSection}><AnimeRelations relations={relationsResponse.data} variant="compact" /></div> : null}
             </div>
           </Card>

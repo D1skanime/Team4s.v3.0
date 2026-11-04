@@ -234,24 +234,23 @@ describe('anime detail integration without invented data', () => {
   })
 
   it('gibt den Trennlinien (<hr>) eine vollständige tokenbasierte Optik statt des UA-Standardrahmens', () => {
-    // Beide Dividers leben seit Befund 21/22 im alleinigen CSS-Modul des Anime-Kopf-Bausteins
-    // (AnimeDetailHero.module.css), nicht mehr in zwei getrennten Seiten-CSS-Dateien.
+    // Beide Trennlinien rendern seit Befund B (192-13) über den Divider-Grundbaustein
+    // (@/components/ui/Divider) statt eines eigenen <hr> mit lokalem background/margin --
+    // AnimeDetailHero.tsx/.module.css deklarieren dafür selbst kein border:none/background mehr
+    // (Divider trägt seine komplette Optik selbst, siehe Divider.module.css/Divider.test.tsx).
+    const heroTsx = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.tsx'), 'utf8')
+    expect(heroTsx, 'AnimeDetailHero.tsx darf kein eigenes <hr> mehr rendern').not.toMatch(/<hr\b/)
+    expect(heroTsx).toMatch(/<Divider tone="onMedia" spacing="withinMetaBlock"/)
+    expect(heroTsx).toMatch(/<Divider tone="onMediaStrong"/)
+    expect(heroTsx).toMatch(/<Divider tone="onMedia" className=\{styles\.dividerMobile\}/)
+
     const heroCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.module.css'), 'utf8')
+    expect(heroCss, 'AnimeDetailHero.module.css darf keine eigene Trennlinien-Farbe/Rahmen mehr setzen').not.toMatch(/background:\s*var\(--border-on-media/)
 
-    const posterDividerRule = heroCss.match(/\.posterDivider\s*\{([^}]+)\}/)?.[1]
-    expect(posterDividerRule, '.posterDivider must exist').toBeTruthy()
-    expect(posterDividerRule).toMatch(/border:\s*none;/)
-    expect(posterDividerRule).toMatch(/background:\s*var\(--border-on-media\);/)
-
-    const dividerRule = heroCss.match(/\.divider\s*\{([^}]+)\}/)?.[1]
-    expect(dividerRule, '.divider must exist').toBeTruthy()
-    expect(dividerRule).toMatch(/border:\s*none;/)
-    expect(dividerRule).toMatch(/background:\s*var\(--border-on-media-strong\);/)
-
-    // Unterhalb 767px wird .divider (nicht .posterDivider, der dort komplett ausgeblendet
-    // bleibt) auf dieselbe schwächere Linienfarbe wie main zurückgenommen.
-    const mobileBlock = heroCss.slice(heroCss.indexOf('@media (max-width: 767px)'))
-    expect(mobileBlock.match(/\.divider\s*\{([^}]+)\}/)?.[1]).toMatch(/background:\s*var\(--border-on-media\);/)
+    const dividerCss = readFileSync(join(process.cwd(), 'src/components/ui/Divider.module.css'), 'utf8')
+    expect(dividerCss).toMatch(/border:\s*none;/)
+    expect(dividerCss).toMatch(/background:\s*var\(--border-on-media\);/)
+    expect(dividerCss).toMatch(/background:\s*var\(--border-on-media-strong\);/)
   })
 
   it('hält den Randnavigations-Overlay-Container nahe am oberen Hero-Rand statt vertikal über die ganze (ggf. sehr hohe) Hero-Karte zu zentrieren', () => {

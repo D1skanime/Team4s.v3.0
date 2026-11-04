@@ -5,9 +5,13 @@
    Stack-/Cluster-Grundbausteine übernehmen (Flex-Richtung, gap, flex-wrap), wurden hier entfernt;
    Fläche/Rundung/Farbe bleiben unverändert bei den Card-Varianten. */
 
+/* display:flex/flex-direction entfernt (Befund B, 192-13): redundant mit Card
+   variant="publicPoster"s eigener .cardPublicPoster-Regel (bereits display:flex;
+   flex-direction:column;gap:0;padding:0) -- diese Card-Variante IST der Flex-Container, eine
+   zweite, identische Deklaration hier tat nichts außer sie zu duplizieren. position:relative
+   bleibt: etabliert den Positionierungskontext, den Nachfahren wie .posterMeta (eigenes
+   z-index) voraussetzen. */
 .posterColumn {
-  display: flex;
-  flex-direction: column;
   position: relative;
 }
 
@@ -16,16 +20,6 @@
   z-index: var(--z-base);
   padding: var(--space-4);
   flex: 1;
-}
-
-.posterDivider {
-  height: var(--border-width-thin);
-  margin: var(--space-1) 0;
-  /* <hr> ohne diese beiden Zeilen rendert mit dem UA-Standardrahmen statt der dezenten
-     Medienlinie -- border:none nimmt den Standardrahmen weg, background trägt die eigentliche
-     Linienfarbe (dieselbe Token-Formel wie statsRow/relatedSection weiter unten). */
-  border: none;
-  background: var(--border-on-media);
 }
 
 .posterWrapper {
@@ -109,14 +103,13 @@
   border-top: var(--border-width-thin) solid var(--border-on-media);
 }
 
-.divider {
-  height: var(--border-width-thin);
-  margin: var(--space-5) 0;
-  /* <hr> ohne diese beiden Zeilen rendert mit dem UA-Standardrahmen statt der dezenten
-     Medienlinie -- border:none nimmt den Standardrahmen weg, background trägt die eigentliche
-     Linienfarbe. Kräftigere Stufe als .posterDivider (eigene Zone, siehe main-Vorlage). */
-  border: none;
-  background: var(--border-on-media-strong);
+/* Divider (@/components/ui) deckt Farbe UND Abstand der Trennlinie vor dem Info-Banner
+   vollständig selbst ab -- zwei Instanzen (Desktop kräftiger tone="onMediaStrong", Mobil
+   dezenter tone="onMedia") statt einer einzigen mit einem von außen überschriebenen Ton, weil
+   Divider keinen Fremd-Override seiner privaten Farbvariable erlaubt (siehe Divider.tsx).
+   Beide Klassen hier steuern ausschließlich, WELCHE der beiden je Haltepunkt sichtbar ist. */
+.dividerMobile {
+  display: none;
 }
 
 /* Sitzt nahe am OBEREN Rand der Hero-Karte (wie main, top: --space-3), NICHT vertikal zur ganzen
@@ -189,11 +182,16 @@
     padding-top: var(--space-4);
   }
 
-  /* Dieselbe schwächere Linienfarbe wie statsRow/relatedSection (beide bereits
-     --border-on-media) -- die Karte ist hier bereits einheitlich dunkel, die kräftigere
-     Desktop-Stufe (--border-on-media-strong) wäre zu kontrastreich. */
-  .divider {
-    background: var(--border-on-media);
+  /* Umschalten auf die dezentere Divider-Instanz (siehe JSX): die Karte ist hier bereits
+     einheitlich dunkel, die kräftigere Desktop-Stufe (tone="onMediaStrong") wäre zu
+     kontrastreich -- dieselbe schwächere Linienfarbe wie statsRow/relatedSection
+     (beide bereits --border-on-media). */
+  .dividerDesktop {
+    display: none;
+  }
+
+  .dividerMobile {
+    display: block;
   }
 
   .edgeNavigationOverlay {
