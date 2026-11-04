@@ -6,7 +6,7 @@ import { Children, createElement, isValidElement, type ReactElement, type ReactN
 import { cleanup, render } from '@testing-library/react'
 import { imageConfigDefault } from 'next/dist/shared/lib/image-config'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { BannerSection, ResponsiveImage } from '@/components/ui'
+import { BannerSection, ResponsiveImage, SplitLayout } from '@/components/ui'
 import nextConfig from '../../../../next.config.mjs'
 
 vi.mock('react', async (importOriginal) => ({
@@ -15,7 +15,11 @@ vi.mock('react', async (importOriginal) => ({
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/api')>(),
   getAnimeByID: vi.fn(), getAnimeFansubs: vi.fn(), getGroupedEpisodes: vi.fn(),
-  getAnimeRelations: vi.fn(), getAnimeBackdrops: vi.fn(),
+  // getAnimeList ist defensiv mitgemockt (192-RESEARCH.md Pitfall 2): keine der bestehenden
+  // Testfaelle dieser Datei setzt bislang einen grid_query-Suchparameter, ein kuenftiger Testfall
+  // wuerde ohne diesen Eintrag sonst unbemerkt durch importOriginal auf einen echten fetch()
+  // gegen das konfigurierte Backend durchfallen.
+  getAnimeRelations: vi.fn(), getAnimeBackdrops: vi.fn(), getAnimeList: vi.fn(),
 }))
 
 import { getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeRelations, getAnimeBackdrops } from '@/lib/api'
@@ -45,8 +49,15 @@ function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
     // Der Kopf ist seit der Storybook-Komposition eine eigene reine Darstellungskomponente.
     // Für die unveränderte Cover-Invariante wird er hier wie die Seitenansicht materialisiert,
     // damit Poster, Reflexion und die an den Rotator gereichte Quelle weiterhin geprüft werden.
+    // SplitLayout reicht Poster-/Info-Spalte seit Befund 21 als firstColumn/secondColumn-PROPS
+    // durch, nicht als `children` -- ohne diesen Zweig faende der Standard-Zweig nichts
+    // innerhalb eines noch nicht materialisierten SplitLayout-Elements.
     if (child.type === AnimeDetailHero) {
       return [child, ...elements(AnimeDetailHero(child.props as unknown as Parameters<typeof AnimeDetailHero>[0]))]
+    }
+    if (child.type === SplitLayout) {
+      const component = child.type as (props: Record<string, unknown>) => ReactNode
+      return [child, ...elements(component(child.props))]
     }
     return [child, ...elements(child.props.children as ReactNode)]
   })

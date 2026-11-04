@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 import { AnimeInfoBanner } from '@/components/anime/AnimeMediaProvider'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
-import { Button, Card, ErrorState, LinkChip, MediaFrame, Text } from '@/components/ui'
+import { Button, Card, ErrorState, LinkChip, MediaFrame, SplitLayout, Text } from '@/components/ui'
 import AnimeListPage from '../page'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -102,7 +102,12 @@ describe('loading boundaries follow resource validation', () => {
 function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
   return Children.toArray(node).flatMap((child) => {
     if (!isValidElement<Record<string, unknown>>(child)) return []
-    if (child.type === AnimeDetailHero || child.type === AnimeEpisodesSection) {
+    // SplitLayout reicht firstColumn/secondColumn als benannte PROPS durch, nicht als
+    // `children` -- ohne diesen Zweig würde der Standard-Zweig (`child.props.children`) nichts
+    // innerhalb eines noch nicht materialisierten SplitLayout-Elements finden (Befund 21: der
+    // Anime-Kopf nistet Poster-/Info-Karte seit diesem Baustein-Umbau in SplitLayout statt
+    // direkt im Hero-Grid).
+    if (child.type === AnimeDetailHero || child.type === AnimeEpisodesSection || child.type === SplitLayout) {
       const component = child.type as (props: Record<string, unknown>) => ReactNode
       return [child, ...elements(component(child.props))]
     }
@@ -227,29 +232,32 @@ describe('anime detail integration without invented data', () => {
   })
 
   it('gibt den Trennlinien (<hr>) eine vollständige tokenbasierte Optik statt des UA-Standardrahmens', () => {
-    const posterCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.poster.module.css'), 'utf8')
-    const infoCardCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.infoCard.module.css'), 'utf8')
+    // Beide Dividers leben seit Befund 21/22 im alleinigen CSS-Modul des Anime-Kopf-Bausteins
+    // (AnimeDetailHero.module.css), nicht mehr in zwei getrennten Seiten-CSS-Dateien.
+    const heroCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.module.css'), 'utf8')
 
-    const posterDividerRule = posterCss.match(/\.posterDivider\s*\{([^}]+)\}/)?.[1]
+    const posterDividerRule = heroCss.match(/\.posterDivider\s*\{([^}]+)\}/)?.[1]
     expect(posterDividerRule, '.posterDivider must exist').toBeTruthy()
     expect(posterDividerRule).toMatch(/border:\s*none;/)
     expect(posterDividerRule).toMatch(/background:\s*var\(--border-on-media\);/)
 
-    const dividerRule = infoCardCss.match(/\.divider\s*\{([^}]+)\}/)?.[1]
+    const dividerRule = heroCss.match(/\.divider\s*\{([^}]+)\}/)?.[1]
     expect(dividerRule, '.divider must exist').toBeTruthy()
     expect(dividerRule).toMatch(/border:\s*none;/)
     expect(dividerRule).toMatch(/background:\s*var\(--border-on-media-strong\);/)
 
     // Unterhalb 767px wird .divider (nicht .posterDivider, der dort komplett ausgeblendet
     // bleibt) auf dieselbe schwächere Linienfarbe wie main zurückgenommen.
-    const mobileBlock = infoCardCss.slice(infoCardCss.indexOf('@media (max-width: 767px)'))
+    const mobileBlock = heroCss.slice(heroCss.indexOf('@media (max-width: 767px)'))
     expect(mobileBlock.match(/\.divider\s*\{([^}]+)\}/)?.[1]).toMatch(/background:\s*var\(--border-on-media\);/)
   })
 
   it('hält den Randnavigations-Overlay-Container nahe am oberen Hero-Rand statt vertikal über die ganze (ggf. sehr hohe) Hero-Karte zu zentrieren', () => {
-    const infoCardCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.infoCard.module.css'), 'utf8')
+    // .edgeNavigationOverlay lebt seit Befund 21/22 ebenfalls im alleinigen CSS-Modul des
+    // Anime-Kopf-Bausteins, nicht mehr in der Seiten-eigenen page.infoCard.module.css.
+    const heroCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.module.css'), 'utf8')
 
-    const desktopRule = infoCardCss.slice(0, infoCardCss.indexOf('@media')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
+    const desktopRule = heroCss.slice(0, heroCss.indexOf('@media (max-width: 767px)')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
     expect(desktopRule, '.edgeNavigationOverlay must exist').toBeTruthy()
     expect(desktopRule).toMatch(/top:\s*var\(--space-3\);/)
     // Eine explizite Button-Höhe statt unbegrenzter Höhe verhindert, dass AdjacentNavigations
@@ -258,7 +266,7 @@ describe('anime detail integration without invented data', () => {
     // (UAT-Regressionsfund: Buttons lagen über dem Fließtext).
     expect(desktopRule).toMatch(/height:\s*var\(--control-height-md\);/)
 
-    const mobileRule = infoCardCss.slice(infoCardCss.indexOf('@media (max-width: 767px)')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
+    const mobileRule = heroCss.slice(heroCss.indexOf('@media (max-width: 767px)')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
     expect(mobileRule).toMatch(/inset:\s*auto;/)
     expect(mobileRule).toMatch(/height:\s*auto;/)
   })
@@ -321,16 +329,16 @@ describe('anime detail integration without invented data', () => {
     expect(css).not.toMatch(/\.fansubRow|\.fansubChip/)
   })
 
-  // 261102-hlg Task 5: page.module.css wurde ueber das 450-Zeilen-Limit hinweg in vier
-  // Teil-Stylesheets aufgeteilt (Shell/Poster/InfoCard/Episoden) -- totes CSS (0 Treffer in
-  // AnimeDetailView.tsx) wurde beim Verschieben ersatzlos entfernt, nicht nur umgezogen. Dieser
-  // Test liest ALLE VIER Dateien, nicht nur die Shell, damit ein versehentliches Wiederaufleben
-  // in einer der neuen Teildateien ebenfalls auffaellt.
-  it('enthaelt in keinem der vier Teil-Stylesheets totes CSS (.relatedRailSection/.episodeList u. a.)', () => {
+  // 261102-hlg Task 5: page.module.css wurde ueber das 450-Zeilen-Limit hinweg aufgeteilt --
+  // totes CSS (0 Treffer in AnimeDetailView.tsx) wurde beim Verschieben ersatzlos entfernt, nicht
+  // nur umgezogen. Seit Befund 21/22 (192-02) gehoeren Poster-/Info-Karten-CSS zum alleinigen
+  // Stylesheet des Anime-Kopf-Bausteins (AnimeDetailHero.module.css) statt zu zwei Seiten-eigenen
+  // Teildateien -- dieser Test liest weiterhin ALLE an dieser Seite beteiligten Stylesheets,
+  // damit ein versehentliches Wiederaufleben in irgendeiner davon auffaellt.
+  it('enthaelt in keinem der beteiligten Stylesheets totes CSS (.relatedRailSection/.episodeList u. a.)', () => {
     const cssFiles = [
       'page.module.css',
-      'page.poster.module.css',
-      'page.infoCard.module.css',
+      'AnimeDetailHero.module.css',
       'page.episodes.module.css',
     ].map((file) => readFileSync(join(process.cwd(), 'src/app/anime/[id]', file), 'utf8'))
     const combinedCss = cssFiles.join('\n')

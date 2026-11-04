@@ -2,7 +2,7 @@ import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
 import { AnimeMediaProvider } from '@/components/anime/AnimeMediaProvider'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
-import { BannerSection, Card } from '@/components/ui'
+import { BannerSection } from '@/components/ui'
 import { getAnimeFansubs, getAnimeRelations } from '@/lib/api'
 import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
@@ -80,18 +80,17 @@ export function AnimeDetailView({
         <Breadcrumbs items={breadcrumbItems} textHalo variant="scrim" />
       </div>
 
-      {/* Hero Container (Glassmorphism) - 2 Column Grid */}
+      {/* Anime-Kopf: Card(publicHero)+SplitLayout+Randnavigations-Slot liegen seit Befund 21/22
+          vollständig in AnimeDetailHero selbst -- diese Seite ordnet nur noch den Baustein an
+          (Breitenvertrag über .heroWrapper), ohne dessen inneres Raster/Optik zu kennen. */}
       <div className={styles.heroWrapper}>
-        <Card variant="publicHero" className={styles.heroContainer}>
-          <AnimeDetailHero anime={anime} coverUrl={displayCoverUrl} embySeriesUrl={embySeriesUrl} relationsResponse={relationsResponse} />
-
-          {/* Edge-Navigation-Overlay -- auf dem heroContainer positioniert */}
-          {gridQuery && (
-            <div className={styles.edgeNavigationOverlay}>
-              <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} />
-            </div>
-          )}
-        </Card>
+        <AnimeDetailHero
+          anime={anime}
+          coverUrl={displayCoverUrl}
+          embySeriesUrl={embySeriesUrl}
+          relationsResponse={relationsResponse}
+          edgeNavigation={gridQuery ? <AnimeEdgeNavigation currentAnimeID={anime.id} gridQuery={gridQuery} /> : null}
+        />
       </div>
 
       {/* Inhaltsbereich (Episoden) */}

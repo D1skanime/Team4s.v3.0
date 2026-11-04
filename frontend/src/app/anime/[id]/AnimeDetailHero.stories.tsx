@@ -41,3 +41,19 @@ export const LangerTitel: Story = {
   name: 'Langer Titel',
   args: { anime: buildAnimeDetailFixture({ title: 'Die unglaublich lange Geschichte von den sieben vergessenen Königreichen und ihrem ewigen Winterkrieg' }) },
 }
+
+// Dieselben Standard-Args, nur der Viewport unterscheidet sich -- Nachweis, dass diese Story
+// exakt dasselbe Zwei-Spalten-Raster (Poster links, Info rechts) wie die Live-Seite rendert, da
+// AnimeDetailHero die äußere Card+SplitLayout vollständig selbst besitzt statt nur eines
+// unvollständigen Fragments, das die Seite erst zur Karte zusammensetzen müsste.
+export const Desktop1440: Story = {
+  name: 'Desktop 1440px',
+  parameters: { viewport: { defaultViewport: 'desktop1440' } },
+}
+
+// Gegenstück zu Desktop1440: unterhalb von SplitLayouts Container-Haltepunkt (breakpoint="md",
+// 768px) muss dieselbe Story auf eine einzelne, gestapelte Spalte kollabieren.
+export const Mobile390: Story = {
+  name: 'Mobil 390px',
+  parameters: { viewport: { defaultViewport: 'mobile390' } },
+}
