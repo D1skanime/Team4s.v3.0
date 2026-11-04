@@ -16,6 +16,9 @@ import { resolveEpisodeTitle } from './episodePreviewFormat'
 import { FansubGroupContext } from './FansubGroupContext'
 import { FansubGroupPicker } from './FansubGroupPicker'
 import { ReleasePreviewRow } from './ReleasePreviewRow'
+import {
+  resolveActiveFansubGroupID, resolveGroupSlugForFetch, toggleEpisodeExpansion, useFansubGroupSwitch,
+} from './useFansubGroupSwitch'
 import { useWindowedEpisodePages, type WindowedPage } from './useWindowedEpisodePages'
 import { AnimeFansubRelation, FansubGroupSummary } from '@/types/fansub'
 
@@ -135,33 +138,33 @@ function FansubVersionBrowserContent({
 }: FansubVersionBrowserProps) {
   const fansubOptions = useMemo(() => collectFansubOptions(fansubs), [fansubs])
   const showAllChip = fansubOptions.length >= 2
-  // D-02: bei genau einer Gruppe wird der URL-Parameter ignoriert -- die Gruppe ist immer aktiv.
-  const [selectedSlug, setSelectedSlug] = useState<string | null>(
-    fansubOptions.length === 1 ? null : (initialActiveSlug ?? null),
-  )
-  const activeFansubGroupID = fansubOptions.length === 0
-    ? null
-    : fansubOptions.length === 1
-      ? fansubOptions[0].fansub_group!.id
-      : fansubOptions.find((relation) => relation.fansub_group?.slug === selectedSlug)?.fansub_group?.id ?? null
   const [expandedEpisodes, setExpandedEpisodes] = useState<Record<number, true>>({})
-  const activeGroup = activeFansubGroupID !== null
-    ? fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group ?? null
-    : null
 
-  // D-08/D-10: ein Gruppenwechsel hat einen eigenen Lade-/Fehlerzustand (volle Listendimmung),
-  // getrennt vom kompakten vorwaerts/rueckwaerts-Ladezustand des Infinite Scroll.
-  const [switchState, setSwitchState] = useState<{ loading: boolean; error: string | null }>({
-    loading: false, error: null,
-  })
+  // D-02: bei genau einer Gruppe wird der URL-Parameter ignoriert -- die Gruppe ist immer aktiv.
+  // Dieser Seed-Wert speist NUR den initialen Fetch-Filter von useWindowedEpisodePages (deren
+  // interner Ref nur beim allerersten Mount gelesen wird) -- der laufend aktuelle
+  // Gruppenzustand lebt danach ausschliesslich in useFansubGroupSwitch weiter unten.
+  const initialSelectedSlug = fansubOptions.length === 1 ? null : (initialActiveSlug ?? null)
+  const initialActiveFansubGroupID = resolveActiveFansubGroupID(fansubOptions, initialSelectedSlug)
+  const initialActiveSlugForWindowing = initialActiveFansubGroupID !== null
+    ? fansubOptions.find((relation) => relation.fansub_group?.id === initialActiveFansubGroupID)?.fansub_group?.slug ?? null
+    : null
 
   const windowing = useWindowedEpisodePages({
     animeID,
     initialEpisodes: episodes,
     initialPagination: pagination,
-    activeFansubSlug: activeGroup?.slug ?? null,
+    activeFansubSlug: initialActiveSlugForWindowing,
     initialEpisodeCount: episodeCount,
   })
+
+  const {
+    selectedSlug, setSelectedSlug, switchState, activeFansubGroupID, updateFansubSelection, switchTo,
+  } = useFansubGroupSwitch({ fansubOptions, initialActiveSlug, resetForFilter: windowing.resetForFilter })
+
+  const activeGroup = activeFansubGroupID !== null
+    ? fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group ?? null
+    : null
 
   // D-34: eine Rueckwaerts-Wiederherstellung liefert ein Delta -- vor dem naechsten Paint per
   // scrollBy ausgleichen, damit der sichtbare Inhalt nicht sichtbar springt.
@@ -209,61 +212,15 @@ function FansubVersionBrowserContent({
       const params = new URLSearchParams(window.location.search)
       const rawSlug = params.get('fansub')
       setSelectedSlug(rawSlug)
-      void switchTo(resolveGroupSlugForFetch(rawSlug))
+      void switchTo(resolveGroupSlugForFetch(fansubOptions, rawSlug))
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function resolveGroupSlugForFetch(rawSlug: string | null): string | null {
-    if (fansubOptions.length < 2 || !rawSlug) return null
-    const match = fansubOptions.find((relation) => relation.fansub_group?.slug === rawSlug)
-    return match ? rawSlug : null
-  }
-
-  async function switchTo(targetSlug: string | null) {
-    // D-09: der Wechsel bricht IMMER eine laufende Anfrage ab (vorwaerts, rueckwaerts oder ein
-    // vorheriger Wechsel) -- windowing.resetForFilter teilt sich den einzigen requestRef der
-    // Hook-Instanz, nur die letzte Auswahl darf Daten setzen.
-    setSwitchState({ loading: true, error: null })
-    const outcome = await windowing.resetForFilter(targetSlug)
-    if (outcome.ok) {
-      setSwitchState({ loading: false, error: null })
-    } else if (!outcome.aborted) {
-      setSwitchState({ loading: false, error: 'Episoden konnten nicht geladen werden.' })
-    }
-    // outcome.aborted: eine neuere switchTo-Anfrage laeuft bereits oder hat bereits committet --
-    // diese veraltete Antwort darf switchState nicht mehr anfassen.
-  }
-
-  function updateFansubSelection(groupID: number | null) {
-    // Bei genau einer Gruppe gibt es keinen Klickpfad (kein "Alle"-Chip, kein Wechsel-Chip).
-    if (fansubOptions.length < 2) return
-    const slug = groupID === null
-      ? null
-      : fansubOptions.find((relation) => relation.fansub_group?.id === groupID)?.fansub_group?.slug ?? null
-    const params = new URLSearchParams(window.location.search)
-    if (slug) params.set('fansub', slug)
-    else params.delete('fansub')
-    const query = params.toString()
-    // D-03: window.history.pushState statt der next/navigation-Router-Helfer -- diese Route
-    // ist bereits dynamisch (liest searchParams.grid_query/from) und wuerde damit einen
-    // RSC-Refetch der Seite ausloesen.
-    window.history.pushState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`)
-    setSelectedSlug(slug)
-    void switchTo(slug)
-  }
-
   function toggleEpisode(episodeNumber: number) {
-    setExpandedEpisodes((current) => {
-      if (current[episodeNumber]) {
-        const next = { ...current }
-        delete next[episodeNumber]
-        return next
-      }
-      return { ...current, [episodeNumber]: true }
-    })
+    setExpandedEpisodes((current) => toggleEpisodeExpansion(current, episodeNumber))
   }
 
   function renderEpisode(episode: PublicGroupedEpisode) {
@@ -322,7 +279,7 @@ function FansubVersionBrowserContent({
           title="Episoden konnten nicht geladen werden."
           description={switchState.error}
           action={
-            <Button variant="secondary" onClick={() => void switchTo(resolveGroupSlugForFetch(selectedSlug))}>
+            <Button variant="secondary" onClick={() => void switchTo(resolveGroupSlugForFetch(fansubOptions, selectedSlug))}>
               Erneut versuchen
             </Button>
           }

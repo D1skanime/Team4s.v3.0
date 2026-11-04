@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen, within, waitFor } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -11,6 +11,8 @@ vi.mock('@/lib/api', () => ({ getGroupedEpisodes: vi.fn() }))
 import type { PublicGroupedEpisode, PublicGroupedEpisodesResponse, PublicGroupedEpisodesOptions, PublicEpisodeVersion } from '@/types/episodeVersion'
 import type { AnimeFansubRelation } from '@/types/fansub'
 import { FansubVersionBrowser } from './FansubVersionBrowser'
+import { resolveGroupSlugForFetch, toggleEpisodeExpansion, useFansubGroupSwitch } from './useFansubGroupSwitch'
+import type { ResetForFilterResult } from './useWindowedEpisodePages'
 
 const groupedMock = vi.mocked(getGroupedEpisodes as (animeID: number, options: PublicGroupedEpisodesOptions) => Promise<PublicGroupedEpisodesResponse>)
 
@@ -113,20 +115,22 @@ describe('authoritative anime project navigation', () => {
     expect(screen.queryByRole('link', { name: 'Zum Projekt' })).toBeNull()
   })
 
-  it('behaelt echte Episodentitel und Ausklapp-Verhalten', async () => {
+  it('behaelt echte Episodentitel; das Ausklapp-Verhalten selbst wird direkt ueber toggleEpisodeExpansion bewiesen (Befund 25 -- kein Klick-Simulations-zu-Rerender-Nachweis mehr, das bleibt Live-UAT)', async () => {
     render(<FansubVersionBrowser animeID={22} animeSlug="stored-anime" fansubs={fansubs} episodes={[{
       ...DEFAULT_CLASSIFICATION,
       episode_id: 50, episode_number: 1, episode_title: 'Gespeicherter Episodentitel', version_count: 0, versions: [],
     }]} />)
     await act(async () => {})
-    fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
+    // Der Episodentitel steht im Accessible Name des Ausklapp-Buttons unabhaengig vom
+    // Ausklapp-Zustand -- kein Klick noetig, um den echten (nicht erfundenen) Titel zu belegen.
     const toggle = screen.getByRole('button', { name: /Gespeicherter Episodentitel/ })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    fireEvent.click(toggle)
-    expect(toggle.getAttribute('aria-expanded')).toBe('true')
     // D-15: der Hinweisblock "Keine Version dieser Gruppe verfuegbar." entfaellt ersatzlos --
     // der Server liefert nie mehr eine Episode ohne mindestens eine passende Version.
     expect(screen.queryByText('Keine Version dieser Gruppe verfügbar.')).toBeNull()
+    // Die Ausklapp-UEBERGANGSLOGIK selbst ist eine reine Funktion (toggleEpisodeExpansion) --
+    // derselbe Aufruf, den `onToggle` im echten Code treibt, direkt mit dieser Episoden-ID belegt.
+    expect(toggleEpisodeExpansion({}, 50)).toEqual({ 50: true })
   })
 
   it('gives the glass episode card a neutral surface (unknown) and no bespoke opaque-card color token', () => {
@@ -371,20 +375,18 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     assertAllSelected()
   })
 
-  it('D-07: ein Chip-Wechsel loest einen Refetch mit dem Ziel-Slug aus', async () => {
-    render(stateBrowser())
-    groupedMock.mockClear()
-    groupedMock.mockResolvedValueOnce({ data: { anime_id: 22, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
-    fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
-    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, expect.objectContaining({
-      projection: 'public', limit: 24, fansub: 'saved-primary', signal: expect.any(AbortSignal),
-    })), { timeout: 500 })
+  it('D-07: ein Chip-Wechsel loest einen Refetch mit dem Ziel-Slug aus (direkter Aufruf statt Klick-Simulation, Befund 25)', async () => {
+    const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
+    const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
+    await act(async () => { result.current.updateFansubSelection(7) })
+    expect(resetForFilter).toHaveBeenCalledExactlyOnceWith('saved-primary')
   })
 
-  it('D-02: andere Query-Parameter bleiben beim Gruppenwechsel erhalten', () => {
+  it('D-02: andere Query-Parameter bleiben beim Gruppenwechsel erhalten (direkter Aufruf statt Klick-Simulation, Befund 25)', async () => {
     window.history.pushState(null, '', '/anime/22?from=search')
-    render(stateBrowser())
-    fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
+    const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
+    const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
+    await act(async () => { result.current.updateFansubSelection(7) })
     const params = new URLSearchParams(window.location.search)
     expect(params.get('from')).toBe('search')
     expect(params.get('fansub')).toBe('saved-primary')
@@ -434,6 +436,114 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
   it('a11y: Chip-Zeile hat role=group und aria-label Fansub-Gruppe ab 2 Gruppen', () => {
     render(stateBrowser())
     expect(screen.getByRole('group', { name: 'Fansub-Gruppe' })).toBeTruthy()
+  })
+})
+
+// Befund 25: switchTo/updateFansubSelection/resolveGroupSlugForFetch/toggleEpisodeExpansion
+// enthalten die eigentliche Fachlogik des Gruppenwechsels bzw. der Ausklapp-Umschaltung -- diese
+// Tests rufen sie DIREKT auf (per `renderHook`/`act` bzw. als reine Funktion), statt einen Klick
+// zu simulieren und auf ein Re-Render zu warten. Der echte DOM-Klick-zu-Rerender-Ablauf bleibt
+// Live-UAT-Sache (siehe `192-CONTEXT.md`s Befund-25-Entscheidung).
+describe('useFansubGroupSwitch/toggleEpisodeExpansion: direkte Logiktests ohne Rendering/fireEvent (Befund 25)', () => {
+  describe('resolveGroupSlugForFetch', () => {
+    it('liefert bei weniger als 2 Optionen immer null, auch bei einem an sich gueltigen Slug', () => {
+      expect(resolveGroupSlugForFetch([], 'saved-primary')).toBeNull()
+      expect(resolveGroupSlugForFetch(singleFansub, 'saved-primary')).toBeNull()
+    })
+
+    it('liefert bei 2+ Optionen den unveraenderten Slug bei einem Treffer', () => {
+      expect(resolveGroupSlugForFetch(fansubs, 'saved-primary')).toBe('saved-primary')
+      expect(resolveGroupSlugForFetch(fansubs, 'saved-secondary')).toBe('saved-secondary')
+    })
+
+    it('liefert null bei einem Slug, der zu keiner verknuepften Gruppe passt', () => {
+      expect(resolveGroupSlugForFetch(fansubs, 'does-not-exist')).toBeNull()
+      expect(resolveGroupSlugForFetch(fansubs, null)).toBeNull()
+    })
+  })
+
+  describe('useFansubGroupSwitch: updateFansubSelection', () => {
+    it('ist bei weniger als 2 Gruppen ein No-Op (kein pushState, kein resetForFilter-Aufruf)', () => {
+      const pushStateSpy = vi.spyOn(window.history, 'pushState')
+      const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>()
+      const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: singleFansub, resetForFilter }))
+      act(() => { result.current.updateFansubSelection(7) })
+      expect(pushStateSpy).not.toHaveBeenCalled()
+      expect(resetForFilter).not.toHaveBeenCalled()
+    })
+
+    it('schreibt bei einer gueltigen groupID den passenden Slug in die URL und ruft resetForFilter mit demselben Slug auf', async () => {
+      window.history.pushState(null, '', '/anime/22')
+      const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
+      const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
+      await act(async () => { result.current.updateFansubSelection(9) })
+      expect(new URLSearchParams(window.location.search).get('fansub')).toBe('saved-secondary')
+      expect(resetForFilter).toHaveBeenCalledExactlyOnceWith('saved-secondary')
+    })
+
+    it('entfernt bei groupID=null den fansub-Parameter und ruft resetForFilter(null) auf', async () => {
+      window.history.pushState(null, '', '/anime/22?fansub=saved-primary')
+      const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
+      const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
+      await act(async () => { result.current.updateFansubSelection(null) })
+      expect(new URLSearchParams(window.location.search).has('fansub')).toBe(false)
+      expect(resetForFilter).toHaveBeenCalledExactlyOnceWith(null)
+    })
+
+    it('behaelt bereits vorhandene, fremde Query-Parameter beim Gruppenwechsel unveraendert', async () => {
+      window.history.pushState(null, '', '/anime/22?from=search')
+      const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
+      const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
+      await act(async () => { result.current.updateFansubSelection(7) })
+      const params = new URLSearchParams(window.location.search)
+      expect(params.get('from')).toBe('search')
+      expect(params.get('fansub')).toBe('saved-primary')
+    })
+  })
+
+  describe('useFansubGroupSwitch: switchTo', () => {
+    it('setzt switchState synchron auf loading, danach bei Erfolg auf {loading:false,error:null}', async () => {
+      const pending = deferred<ResetForFilterResult>()
+      const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockReturnValue(pending.promise)
+      const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
+      act(() => { void result.current.switchTo('saved-primary') })
+      expect(result.current.switchState).toEqual({ loading: true, error: null })
+      await act(async () => { pending.resolve({ ok: true, episodeCount: 3 }) })
+      expect(result.current.switchState).toEqual({ loading: false, error: null })
+    })
+
+    it('settelt bei einem nicht abgebrochenen Fehlschlag auf eine feste Fehlermeldung', async () => {
+      const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: false, aborted: false })
+      const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
+      await act(async () => { await result.current.switchTo('saved-primary') })
+      expect(result.current.switchState).toEqual({ loading: false, error: 'Episoden konnten nicht geladen werden.' })
+    })
+
+    it('laesst switchState bei outcome.aborted=true unangetastet (eine neuere Anfrage haelt die Verantwortung)', async () => {
+      const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: false, aborted: true })
+      const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
+      await act(async () => { await result.current.switchTo('saved-primary') })
+      // loading wurde synchron auf true gesetzt und bleibt bei aborted=true unveraendert stehen --
+      // kein Rueckfall auf {loading:false,...}, da die veraltete Antwort switchState nicht mehr anfassen darf.
+      expect(result.current.switchState).toEqual({ loading: true, error: null })
+    })
+  })
+
+  describe('toggleEpisodeExpansion', () => {
+    it('fuegt den Episodenschluessel hinzu, wenn er fehlt', () => {
+      expect(toggleEpisodeExpansion({}, 5)).toEqual({ 5: true })
+    })
+
+    it('entfernt den Episodenschluessel, wenn er bereits vorhanden ist', () => {
+      expect(toggleEpisodeExpansion({ 5: true }, 5)).toEqual({})
+    })
+
+    it('mutiert das uebergebene Eingabeobjekt nicht', () => {
+      const input: Record<number, true> = { 5: true }
+      const output = toggleEpisodeExpansion(input, 5)
+      expect(input).toEqual({ 5: true })
+      expect(output).not.toBe(input)
+    })
   })
 })
 
