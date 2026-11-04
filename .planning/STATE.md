@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-14-PLAN.md (ReleasePreviewRow/EpisodeGlassCard/AnimeEdgeNavigation Layout-CSS-Bereinigung -- Befund B)
-last_updated: "2026-11-04T21:47:50.019Z"
+stopped_at: Completed 192-15-PLAN.md
+last_updated: "2026-11-04T22:36:14.545Z"
 last_activity: 2026-11-04
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 550
-  completed_plans: 539
+  completed_plans: 540
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 3 Gap-Closure)) — EXECUTING
-Plan: 15 of 20
+Plan: 16 of 20
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1588,6 +1588,8 @@ Last activity: 2026-11-04
 - [Phase 192]: Plan 192-13 (Befund B, AnimeDetailHero.module.css): .infoCardBody's zwei-Haltepunkt-Innenabstand (--space-6/--space-5) wandert als eigener responsiver Standardwert in Card.module.css's .cardPublicHeroInfo-Variante selbst, statt dass Card's einzelner, nicht-responsiver padding-Prop das ausdrueckt oder der Composite-Baustein lokales CSS behaelt — Card.module.css war nicht im Plan-files_modified, aber per 192-CONTEXT.md-Mandat ("Grundbaustein erweitern statt lokales CSS behalten") die korrekte Lösung
 - [Phase 192]: Plan 192-13: AnimeMediaProvider.tsx's AnimeInfoBanner nimmt jetzt einen divider-ReactNode-Slot statt einer dividerClassName-ClassName entgegen — der zweite <hr> lag entgegen der Plan-Annahme nicht in AnimeDetailHero.tsx selbst, sondern in dieser fremden Komponente
 - [Phase 192]: Plan 192-13: neue, verschachtelte Card variant="nested" padding="4" um Merklisten-Knopf/Divider/Genres-Block mit drei empirisch (Playwright Vorher/Nachher-Byte-Diff) bestaetigten lokalen Restkorrekturen (border-width:0, Mobil-Margin-Ausgleich, Mobil-justify-items:center) statt einer zweiten Card-Variantenerweiterung — .cardNested ist generisch/mehrfach genutzt, eine Haltepunkt-Sonderregel dort waere Domaenenwissen-Leck
+- [Phase 192]: 192-15: Guard gegruendet auf tatsaechlicher Dateilage statt 192-13/14-Zusammenfassungen — Zwei echte, bislang unentdeckte Befund-B-Luecken (.tagsSection, .posterColumn-Mobil-Padding) gefunden und auf bereits etablierte Grundbaustein-Muster migriert; fuenf weitere als praezise, einzeln begruendete Guard-Ausnahmen dokumentiert statt dateiweiter Lockerung
+- [Phase 192]: 192-15: Visuelle Nachweis-Baseline auf unmittelbaren Vor-192-13-Commit korrigiert — Der urspruenglich im Plan genannte 'pre-192-11'-Commit (069f96360) enthielt noch den von Plan 192-12 bereits behobenen Banner-Platzhalter-Fehler -- dessen Differenz waere faelschlich als Regression erschienen. Baseline auf d1125b317 (unmittelbar vor 192-13) korrigiert, danach 0 Pixel Abweichung bestaetigt
 
 ### Pending Todos
 
@@ -2370,11 +2372,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P19 | ~55min | 2 tasks | 6 files |
 | Phase 192 P13 | ~45min | 2 tasks | 5 files |
 | Phase 192 P14 | 22min | 3 tasks | 11 files |
+| Phase 192 P15 | ~70min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T21:47:49.990Z
-Stopped at: Completed 192-14-PLAN.md (ReleasePreviewRow/EpisodeGlassCard/AnimeEdgeNavigation Layout-CSS-Bereinigung -- Befund B)
+Last session: 2026-11-04T22:36:14.512Z
+Stopped at: Completed 192-15-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
-.planning/phases/192-ffentliche-anime-detailseite-baustein-reinheit-ssr-randnavig/192-15-PLAN.md
+None
