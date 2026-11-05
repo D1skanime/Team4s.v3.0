@@ -30,7 +30,8 @@ function buildVersion(overrides: Partial<PublicEpisodeVersion> = {}): PublicEpis
 }
 
 /** Release-/Versionszeile für den öffentlichen Fansub-Browser -- besteht aus Card (Glas-Fläche,
- *  variant="glassStrong"), Avatar (Gruppenlogo mit Initialen-Kürzel-Fallback), Text (Gruppenname/
+ *  variant="glassStrong"), Cluster (Haltepunkt-Umkehr der Gesamtzeile sowie Avatar-Gruppe/Text-
+ *  Spalte nebeneinander), Avatar (Gruppenlogo mit Initialen-Kürzel-Fallback), Text (Gruppenname/
  *  Release-/Technik-/Extras-/Datumszeile) sowie dem bereits globalen Button für den "Zum
  *  Release"-Link. */
 const meta = {
@@ -42,6 +43,8 @@ const meta = {
       description: {
         component:
           `Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')} (variant="glassStrong"), ` +
+          `${storybookDocsLink('Grundbausteine/Cluster', 'Cluster')} (collapseBelow="md" für die Zeile-` +
+          `zu-Spalte-Haltepunkt-Umkehr, zusätzlich Avatar-Gruppe neben Textspalte), ` +
           `${storybookDocsLink('Grundbausteine/Avatar', 'Avatar')} (Logo + Kürzel-Fallback), ` +
           `${storybookDocsLink('Grundbausteine/Text', 'Text')} (Gruppenname/Release-/Technik-/Extras-/` +
           `Datumszeile), ${storybookDocsLink('Grundbausteine/Button', 'Button')} (Release-Link).`,

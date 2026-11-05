@@ -54,8 +54,10 @@ function EpisodeGlassCardDemo({
 }
 
 /** Episodenkarte für den öffentlichen Fansub-/Release-Browser -- besteht aus Card (Glas-Fläche +
- *  Tönungs-Hook), DisclosureTrigger (auf-/zuklappbare Kopfzeile) und Text (Episodennummer/-titel/
- *  Klassifikation/Versionszähler). Rendert immer auf Bannerhintergrund (konsistent mit Ebene 1). */
+ *  Tönungs-Hook, zusätzlich verschachtelt für die aufgeklappte Versionsliste), DisclosureTrigger
+ *  (auf-/zuklappbare Kopfzeile), Divider (Trennlinie vor der Versionsliste) und Text
+ *  (Episodennummer/-titel/Klassifikation/Versionszähler). Rendert immer auf Bannerhintergrund
+ *  (konsistent mit Ebene 1). */
 const meta = {
   title: 'Zusammengesetzte Bausteine/EpisodenKarte',
   component: EpisodeGlassCardDemo,
@@ -65,8 +67,10 @@ const meta = {
       description: {
         component:
           `Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')} (variant="glass" + ` +
-          `Tönungs-Hook), ${storybookDocsLink('Grundbausteine/DisclosureTrigger', 'DisclosureTrigger')} ` +
-          `(Kopfzeile), ${storybookDocsLink('Grundbausteine/Text', 'Text')} (Episodennummer/-titel/` +
+          `Tönungs-Hook für die Karte selbst, variant="flat" padding="dividedSection" für die ` +
+          `aufgeklappte Versionsliste), ${storybookDocsLink('Grundbausteine/DisclosureTrigger', 'DisclosureTrigger')} ` +
+          `(Kopfzeile), ${storybookDocsLink('Grundbausteine/Divider', 'Divider')} (Trennlinie vor der ` +
+          `Versionsliste), ${storybookDocsLink('Grundbausteine/Text', 'Text')} (Episodennummer/-titel/` +
           'Klassifikation/Versionszähler). Die Episodentyp→Farbton-Zuordnung (canon/filler/mixed/recap) ' +
           'ist Domänenwissen dieser Komponente, nicht von Card.',
       },
