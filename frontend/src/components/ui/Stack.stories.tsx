@@ -135,6 +135,27 @@ export const AnimeKopfRhythmus: Story = {
   },
 }
 
+export const InhaltZuSchwebenderSteuerelementReihe: Story = {
+  name: 'Inhalt zu schwebender Steuerelement-Reihe (gap "contentToControlBand")',
+  args: {
+    gap: 'contentToControlBand',
+    children: (
+      <>
+        <Box label="Hero-Hauptinhalt (Poster + Info-Karte)" />
+        <Box label="Randnavigation (Cluster float=&quot;controlBand&quot;)" />
+      </>
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Abstand zwischen einem Haupt-Inhaltsblock und einer direkt darunter gerenderten, schwebenden Steuerelement-Reihe (z. B. die Randnavigation unterhalb des Zwei-Spalten-Rasters im Anime-Kopf). Wirkt NUR sichtbar, solange die Steuerelement-Reihe unterhalb ihres eigenen Haltepunkts normal im Textfluss liegt -- oberhalb davon nimmt `Cluster float="controlBand"` sein eigenes Wurzelelement komplett aus dem Textfluss, wodurch es an diesem Stack-Abstand gar nicht mehr teilnimmt (kein doppelter/falscher Abstand).',
+      },
+    },
+  },
+}
+
 export const RhythmusModus: Story = {
   name: 'Rhythmus-Modus (Array)',
   args: {

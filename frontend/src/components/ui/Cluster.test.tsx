@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import fs from 'node:fs'
+import path from 'node:path'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -149,6 +151,62 @@ describe('Cluster', () => {
       const inner = outer.firstElementChild as HTMLElement
       expect(inner.className).toMatch(/collapsibleMd/)
       expect(inner.className).toMatch(/floatControlBand/)
+    })
+
+    it('setzt die Schwebe-Positionierungs-Modifikatorklasse auf dem AEUSSEREN Wurzelelement, nicht nur dem inneren Flex-Kind (sonst bliebe das Wurzelelement bei einem umgebenden Flex-/Grid-"gap" ein teilnehmendes, 0px hohes Element)', () => {
+      const { container } = render(
+        <Cluster float="controlBand" gap="contentPair" justify="center">
+          Inhalt
+        </Cluster>,
+      )
+
+      const outer = container.firstElementChild as HTMLElement
+      expect(outer.className).toMatch(/floatControlBandRoot/)
+    })
+
+    it('setzt die Schwebe-Positionierungs-Modifikatorklasse NICHT auf dem Wurzelelement, wenn float nicht gesetzt ist (auch nicht bei gesetztem collapseBelow)', () => {
+      const { container } = render(
+        <Cluster collapseBelow="md" gap="contentPair">
+          Inhalt
+        </Cluster>,
+      )
+      const outer = container.firstElementChild as HTMLElement
+      expect(outer.className).not.toMatch(/floatControlBandRoot/)
+    })
+  })
+
+  describe('Cluster.module.css (float="controlBand" Positionierungs-Architektur)', () => {
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/ui/Cluster.module.css'), 'utf8')
+
+    it('setzt position:absolute/z-index/pointer-events auf .floatControlBandRoot ueber eine normale @media-Abfrage, NICHT ueber @container (ein Container darf laut Spezifikation nie das eigene Wurzelelement selbst umordnen)', () => {
+      const mediaBlockStart = css.indexOf('@media (min-width: 768px)')
+      expect(mediaBlockStart).toBeGreaterThan(-1)
+      const rule = css.slice(mediaBlockStart).match(/\.floatControlBandRoot\s*\{([^}]+)\}/)?.[1]
+      expect(rule, '.floatControlBandRoot must exist inside the @media (min-width: 768px) block').toBeTruthy()
+      expect(rule).toMatch(/position:\s*absolute;/)
+      expect(rule).toMatch(/z-index:\s*var\(--z-dropdown\);/)
+      expect(rule).toMatch(/pointer-events:\s*none;/)
+      // Keine echte @container-Regel (nicht nur eine Kommentarerwaehnung des Worts) darf
+      // .floatControlBandRoot selbst umordnen -- Kommentare werden vor der Prüfung entfernt,
+      // damit Fließtext ueber "@container" (wie in Cluster.tsx's eigener float-Doku) nicht
+      // fälschlich als Verstoß zählt.
+      const cssWithoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(cssWithoutComments).not.toMatch(/@container\s+cluster[^{]*\{[^}]*\.floatControlBandRoot/)
+    })
+
+    it('reicht pointer-events:auto an das direkte Kind von .floatControlBandRoot weiter', () => {
+      const mediaBlockStart = css.indexOf('@media (min-width: 768px)')
+      const rule = css.slice(mediaBlockStart).match(/\.floatControlBandRoot\s*>\s*\*\s*\{([^}]+)\}/)?.[1]
+      expect(rule, '.floatControlBandRoot > * must exist').toBeTruthy()
+      expect(rule).toMatch(/pointer-events:\s*auto;/)
+    })
+
+    it('setzt den seitlichen/unteren Mobil-Innenabstand auf .floatControlBand (dem inneren Flex-Element) innerhalb @media (max-width: 767px)', () => {
+      const mobileBlockStart = css.indexOf('@media (max-width: 767px)')
+      expect(mobileBlockStart).toBeGreaterThan(-1)
+      const rule = css.slice(mobileBlockStart).match(/\.floatControlBand\s*\{([^}]+)\}/)?.[1]
+      expect(rule, '.floatControlBand must have a mobile padding override').toBeTruthy()
+      expect(rule).toMatch(/padding:\s*var\(--overlay-padding-control-band-mobile\);/)
     })
   })
 })

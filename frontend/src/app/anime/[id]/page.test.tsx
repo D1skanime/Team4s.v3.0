@@ -253,23 +253,27 @@ describe('anime detail integration without invented data', () => {
     expect(dividerCss).toMatch(/background:\s*var\(--border-on-media-strong\);/)
   })
 
-  it('hält den Randnavigations-Overlay-Container nahe am oberen Hero-Rand statt vertikal über die ganze (ggf. sehr hohe) Hero-Karte zu zentrieren', () => {
-    // .edgeNavigationOverlay lebt seit Befund 21/22 ebenfalls im alleinigen CSS-Modul des
-    // Anime-Kopf-Bausteins, nicht mehr in der Seiten-eigenen page.infoCard.module.css.
-    const heroCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.module.css'), 'utf8')
+  it('hält die Randnavigations-Reihe nahe am oberen Hero-Rand statt vertikal über die ganze (ggf. sehr hohe) Hero-Karte zu zentrieren', () => {
+    // Seit Plan 192-25 lebt diese Positionierung nicht mehr als lokales CSS im Anime-Kopf-
+    // Baustein (.edgeNavigationOverlay entfaellt ersatzlos), sondern vollstaendig in Cluster
+    // float="controlBand" (Grundbaustein, siehe Cluster.module.css) -- AnimeDetailHero.tsx
+    // rendert die Randnavigation nur noch darueber.
+    const heroTsx = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.tsx'), 'utf8')
+    expect(heroTsx, 'AnimeDetailHero.tsx darf kein eigenes edgeNavigationOverlay-<div> mehr rendern').not.toMatch(/styles\.edgeNavigationOverlay/)
+    expect(heroTsx).toMatch(/<Cluster float="controlBand" justify="center" gap="contentPair">/)
 
-    const desktopRule = heroCss.slice(0, heroCss.indexOf('@media (max-width: 767px)')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
-    expect(desktopRule, '.edgeNavigationOverlay must exist').toBeTruthy()
-    expect(desktopRule).toMatch(/top:\s*var\(--space-3\);/)
+    const heroCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.module.css'), 'utf8')
+    expect(heroCss, 'AnimeDetailHero.module.css darf kein eigenes .edgeNavigationOverlay-CSS mehr enthalten').not.toMatch(/\.edgeNavigationOverlay/)
+
+    const clusterCss = readFileSync(join(process.cwd(), 'src/components/ui/Cluster.module.css'), 'utf8')
+    const desktopRule = clusterCss.match(/@media \(min-width: 768px\)[\s\S]*?\.floatControlBandRoot\s*\{([^}]+)\}/)?.[1]
+    expect(desktopRule, '.floatControlBandRoot must exist').toBeTruthy()
+    expect(desktopRule).toMatch(/top:\s*var\(--overlay-offset-control-band\);/)
     // Eine explizite Button-Höhe statt unbegrenzter Höhe verhindert, dass AdjacentNavigations
     // eigenes top:0 (bzw. eine künftige 50%-Formel) irgendwo mitten im Beschreibungstext landet,
     // sobald die Info-Spalte durch lange Beschreibungen deutlich höher als die Poster-Spalte wird
     // (UAT-Regressionsfund: Buttons lagen über dem Fließtext).
-    expect(desktopRule).toMatch(/height:\s*var\(--control-height-md\);/)
-
-    const mobileRule = heroCss.slice(heroCss.indexOf('@media (max-width: 767px)')).match(/\.edgeNavigationOverlay\s*\{([^}]+)\}/)?.[1]
-    expect(mobileRule).toMatch(/inset:\s*auto;/)
-    expect(mobileRule).toMatch(/height:\s*auto;/)
+    expect(desktopRule).toMatch(/height:\s*var\(--overlay-height-control-band\);/)
   })
 
   it('reicht searchParams.fansub unveraendert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {

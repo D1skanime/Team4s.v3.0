@@ -148,68 +148,84 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
 
   return (
     <Card variant="publicHero">
-      {/* align="stretch" reproduziert exakt das bisherige Verhalten: beide Spalten waren vorher
-          direkte Kinder EINES CSS-Grids (Standard-align-items:stretch), wodurch die kürzere Karte
-          optisch auf die Höhe der höheren gestreckt wurde. SplitLayouts eigener Standard ("start")
-          würde diese Streckung verlieren und ein Zero-Pixel-Diff-Regressionsfund wäre die Folge. */}
-      <SplitLayout
-        gap="none"
-        align="stretch"
-        firstColumnWidth="poster"
-        firstColumn={
-          <Card variant="publicPoster" className={styles.posterColumn}>
-            <div className={styles.posterWrapper} style={{ '--poster-image': `url("${coverUrl}")` } as CSSProperties}>
-              <MediaFrame variant="posterFade" backdropImage={coverUrl} aspectRatio={2 / 3} bottomBadge={posterEpisodeBadge} className={styles.poster}>
-                <ResponsiveImage
-                  src={coverUrl}
-                  alt={anime.title}
-                  fill
-                  sizes="(max-width: 767px) 160px, (max-width: 1023px) 220px, 260px"
-                  priority
-                  unoptimized
-                />
-              </MediaFrame>
-            </div>
+      {/* Stack statt zweier direkter Grid-Kinder von Card: der Vorlauf-Abstand zwischen dem
+          Zwei-Spalten-Hauptinhalt und der darunterliegenden Randnavigation ist NUR unterhalb von
+          deren eigenem Haltepunkt (768px) sichtbar (Stack-Zweck "contentToControlBand", 16px) --
+          oberhalb davon nimmt Cluster float="controlBand" sein eigenes Wurzelelement komplett aus
+          dem Textfluss (position:absolute), wodurch es an diesem Stack-Abstand gar nicht erst
+          teilnimmt (siehe Cluster.tsx's float-Doku für die Begründung, warum genau das
+          Wurzelelement selbst dafür zustaendig sein muss, nicht nur ein inneres Flex-Kind). */}
+      <Stack gap="contentToControlBand">
+        {/* align="stretch" reproduziert exakt das bisherige Verhalten: beide Spalten waren vorher
+            direkte Kinder EINES CSS-Grids (Standard-align-items:stretch), wodurch die kürzere Karte
+            optisch auf die Höhe der höheren gestreckt wurde. SplitLayouts eigener Standard ("start")
+            würde diese Streckung verlieren und ein Zero-Pixel-Diff-Regressionsfund wäre die Folge. */}
+        <SplitLayout
+          gap="none"
+          align="stretch"
+          firstColumnWidth="poster"
+          firstColumn={
+            <Card variant="publicPoster" className={styles.posterColumn}>
+              <div className={styles.posterWrapper} style={{ '--poster-image': `url("${coverUrl}")` } as CSSProperties}>
+                <MediaFrame variant="posterFade" backdropImage={coverUrl} aspectRatio={2 / 3} bottomBadge={posterEpisodeBadge} className={styles.poster}>
+                  <ResponsiveImage
+                    src={coverUrl}
+                    alt={anime.title}
+                    fill
+                    sizes="(max-width: 767px) 160px, (max-width: 1023px) 220px, 260px"
+                    priority
+                    unoptimized
+                  />
+                </MediaFrame>
+              </div>
 
-            <Stack gap="independentBlocks" className={styles.posterMeta}>
-              {/* variant="nested" ist die einzige bestehende, nachweislich transparente
-                  Card-Variante (siehe Card.module.css .cardNested) -- trägt hier NUR den
-                  Innenabstand (Card-padding-Prop), ohne eine zweite sichtbare Fläche über der
-                  Poster-Karte einzuführen. Das horizontale Mobil-Aufheben in
-                  .posterMetaCard (unten) ist die einzige Stelle, an der dieser Innenabstand
-                  responsiv von der Vorgabe abweicht -- Cards padding-Prop kennt nur einen
-                  einzigen, nicht responsiven Skalenwert. */}
-              <Card variant="nested" padding="nestedBlock" className={styles.posterMetaCard}>
-                <WatchlistAddButton animeID={anime.id} />
-                <Divider tone="onMedia" spacing="withinMetaBlock" className={styles.posterDivider} />
-                <Stack gap="relatedContent" className={styles.genresSection}>
-                  <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
-                  <Cluster gap="badgeRow" className={styles.genres}>
-                    {anime.genres && anime.genres.length > 0 ? anime.genres.map((genre) => (
-                      <LinkChip key={genre} tone="scrim" href={buildFilterHref('genre', genre)}>{genre}</LinkChip>
-                    )) : <Text as="span" tone="onScrim">Anime</Text>}
-                  </Cluster>
-                </Stack>
-              </Card>
-            </Stack>
-          </Card>
-        }
-        secondColumn={
-          /* publicHeroInfo ist oben nahezu opak HELL (siehe Card.module.css), anders als die
-             übrigen dunklen Glasflächen dieser Seite -- Titel/Beschreibung bleiben deshalb bei der
-             dunklen Standard-Textfarbe (kein tone="onScrim"). Unterhalb 767px kippt die Karte auf
-             eine einheitlich dunkle Fläche; Card.module.css setzt dort Heading/Texts eigene
-             Override-Hooks (--heading-color/--text-body-color) innerhalb von .cardPublicHeroInfo,
-             wodurch Titel/Beschreibung automatisch mit auf Hell kippen -- keine eigene Farbregel in
-             dieser Seite nötig. */
-          <Card variant="publicHeroInfo" className={styles.infoCard}>
-            <Stack gap={infoCardGap} className={styles.infoCardBody}>
-              {infoCardChildren}
-            </Stack>
-          </Card>
-        }
-      />
-      {edgeNavigation ? <div className={styles.edgeNavigationOverlay}>{edgeNavigation}</div> : null}
+              <Stack gap="independentBlocks" className={styles.posterMeta}>
+                {/* variant="nested" ist die einzige bestehende, nachweislich transparente
+                    Card-Variante (siehe Card.module.css .cardNested) -- trägt hier NUR den
+                    Innenabstand (Card-padding-Prop), ohne eine zweite sichtbare Fläche über der
+                    Poster-Karte einzuführen. bleedBelowMd ersetzt die vormalige lokale
+                    margin-left/-right/justify-items-Mobil-Korrektur von .posterMetaCard
+                    vollständig (Card kollabiert ihre eigene horizontale Polsterung unterhalb
+                    767px selbst auf 0 und zentriert ihre Grid-Kinder). */}
+                <Card variant="nested" padding="nestedBlock" bleedBelowMd className={styles.posterMetaCard}>
+                  <WatchlistAddButton animeID={anime.id} />
+                  <Divider tone="onMedia" spacing="withinMetaBlock" className={styles.posterDivider} />
+                  <Stack gap="relatedContent" className={styles.genresSection}>
+                    <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
+                    <Cluster gap="badgeRow" className={styles.genres}>
+                      {anime.genres && anime.genres.length > 0 ? anime.genres.map((genre) => (
+                        <LinkChip key={genre} tone="scrim" href={buildFilterHref('genre', genre)}>{genre}</LinkChip>
+                      )) : <Text as="span" tone="onScrim">Anime</Text>}
+                    </Cluster>
+                  </Stack>
+                </Card>
+              </Stack>
+            </Card>
+          }
+          secondColumn={
+            /* publicHeroInfo ist oben nahezu opak HELL (siehe Card.module.css), anders als die
+               übrigen dunklen Glasflächen dieser Seite -- Titel/Beschreibung bleiben deshalb bei der
+               dunklen Standard-Textfarbe (kein tone="onScrim"). Unterhalb 767px kippt die Karte auf
+               eine einheitlich dunkle Fläche; Card.module.css setzt dort Heading/Texts eigene
+               Override-Hooks (--heading-color/--text-body-color) innerhalb von .cardPublicHeroInfo,
+               wodurch Titel/Beschreibung automatisch mit auf Hell kippen -- keine eigene Farbregel in
+               dieser Seite nötig. */
+            <Card variant="publicHeroInfo" className={styles.infoCard}>
+              <Stack gap={infoCardGap} className={styles.infoCardBody}>
+                {infoCardChildren}
+              </Stack>
+            </Card>
+          }
+        />
+        {edgeNavigation ? (
+          // Cluster statt des vormaligen lokalen .edgeNavigationOverlay-<div> -- float="controlBand"
+          // übernimmt sowohl das schwebende Band oberhalb 768px als auch die zentrierte, im
+          // Textfluss liegende Zeile darunter vollständig selbst (siehe Cluster.tsx).
+          <Cluster float="controlBand" justify="center" gap="contentPair">
+            {edgeNavigation}
+          </Cluster>
+        ) : null}
+      </Stack>
     </Card>
   )
 }

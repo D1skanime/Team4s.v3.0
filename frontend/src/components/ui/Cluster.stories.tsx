@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
+import type { ReactNode } from 'react'
 
 import { Button } from './Button'
 import { Cluster } from './Cluster'
@@ -220,32 +221,58 @@ export const HaltepunktUmkehr: Story = {
   },
 }
 
-export const SchwebeOverlayModus: Story = {
-  name: 'Schwebe-Overlay-Modus (float="controlBand")',
-  args: {
-    float: 'controlBand',
-    gap: 'contentPair',
-    justify: 'between',
-    children: (
-      <>
-        <Chip label="← Vorheriger" />
-        <Chip label="Nächster →" />
-      </>
-    ),
-  },
-  decorators: [
-    (Story) => (
-      <div style={{ position: 'relative', resize: 'horizontal', overflow: 'auto', border: '1px dashed #999', padding: '48px 8px 8px', width: '100%', maxWidth: 900, minHeight: 80, background: '#2228' }}>
-        <Story />
-      </div>
-    ),
-  ],
+/* Gemeinsamer Rahmen-Baustein fuer beide Haltepunkt-Varianten unten: das schwebende Band
+   positioniert sich relativ zu seinem positionierten Vorfahren, dieser Rahmen stellt genau das
+   bereit. Als JSX-Komponente statt eines generisch typisierten Dekorators, da Storybooks
+   DecoratorFunction-Typ keinen eigenstaendigen Funktionswert ausserhalb eines Dekorator-Arrays
+   erlaubt. */
+function FloatDemoFrame({ children }: { children: ReactNode }) {
+  return (
+    <div style={{ position: 'relative', border: '1px dashed #999', padding: '48px 8px 8px', width: '100%', maxWidth: 900, minHeight: 80, background: '#2228' }}>
+      {children}
+    </div>
+  )
+}
+
+const schwebeOverlayArgs = {
+  float: 'controlBand' as const,
+  gap: 'contentPair' as const,
+  justify: 'between' as const,
+  children: (
+    <>
+      <Chip label="← Vorheriger" />
+      <Chip label="Nächster →" />
+    </>
+  ),
+}
+
+const schwebeOverlayDescription =
+  'Eine Steuerelement-Reihe, die oberhalb von 768px präzise als schwebendes Band auf dem oberen Rand ihres ' +
+  'positionierten Vorfahren sitzt (z. B. die Randnavigations-Pfeile über einem Anime-Kopf), unterhalb davon eine ' +
+  'normale, zentrierte Zeile im Textfluss. Die Umschaltung reagiert bewusst auf die tatsächliche Viewport-Breite ' +
+  '(Storybooks Viewport-Werkzeug oben), NICHT auf die Breite eines umgebenden Containers -- anders als bei ' +
+  '"Haltepunkt-Umkehr" oben kann das schwebende Band nicht per Container-Abfrage funktionieren, weil eine ' +
+  'Container-Abfrage laut Spezifikation nie das eigene Container-Wurzelelement selbst umordnen darf, dieses ' +
+  'Wurzelelement hier aber genau dasjenige ist, das verschwinden/erscheinen muss. Der Container selbst blockiert ' +
+  'keine Klicks auf darunterliegenden Inhalt (`pointer-events:none`), nur die beiden Chips selbst bleiben ' +
+  'anklickbar (`pointer-events:auto`).'
+
+export const SchwebeOverlayModusDesktop: Story = {
+  name: 'Schwebe-Overlay-Modus Desktop (float="controlBand")',
+  args: schwebeOverlayArgs,
+  decorators: [(Story) => <FloatDemoFrame><Story /></FloatDemoFrame>],
   parameters: {
-    docs: {
-      description: {
-        story:
-          'Eine Steuerelement-Reihe, die oberhalb von 48rem/768px präzise als schwebendes Band auf dem oberen Rand ihres positionierten Vorfahren sitzt (z. B. die Randnavigations-Pfeile über einem Anime-Kopf) -- ziehen Sie den gestrichelten Rahmen enger, um den Wechsel in eine normale, zentrierte Zeile im Textfluss unterhalb der Schwelle zu sehen. Der Container selbst blockiert keine Klicks auf darunterliegenden Inhalt (`pointer-events:none`), nur die beiden Chips selbst bleiben anklickbar (`pointer-events:auto`).',
-      },
-    },
+    viewport: { value: 'desktop1440' },
+    docs: { description: { story: schwebeOverlayDescription } },
+  },
+}
+
+export const SchwebeOverlayModusMobil: Story = {
+  name: 'Schwebe-Overlay-Modus Mobil (float="controlBand")',
+  args: schwebeOverlayArgs,
+  decorators: [(Story) => <FloatDemoFrame><Story /></FloatDemoFrame>],
+  parameters: {
+    viewport: { value: 'mobile390' },
+    docs: { description: { story: schwebeOverlayDescription } },
   },
 }

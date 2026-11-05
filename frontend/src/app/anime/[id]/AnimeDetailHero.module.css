@@ -1,9 +1,10 @@
-/* Alleinige Stil-Quelle des Anime-Kopf-Bausteins (Poster-Spalte + Info-Karte + Randnavigations-
-   Overlay). Vor Befund 21/22 lag dieses CSS geteilt in page.poster.module.css/
-   page.infoCard.module.css -- der Baustein besaß kein eigenes Stylesheet und übernahm fremdes,
-   seiteneigenes CSS über AnimeDetailView.styles.ts. Abstände/Umbruch, die jetzt die generischen
-   Stack-/Cluster-Grundbausteine übernehmen (Flex-Richtung, gap, flex-wrap), wurden hier entfernt;
-   Fläche/Rundung/Farbe bleiben unverändert bei den Card-Varianten. */
+/* Alleinige Stil-Quelle des Anime-Kopf-Bausteins (Poster-Spalte + Info-Karte). Vor Befund 21/22
+   lag dieses CSS geteilt in page.poster.module.css/page.infoCard.module.css -- der Baustein
+   besaß kein eigenes Stylesheet und übernahm fremdes, seiteneigenes CSS über
+   AnimeDetailView.styles.ts. Abstände/Umbruch/Positionierung, die jetzt die generischen
+   Stack-/Cluster-Grundbausteine übernehmen (Flex-Richtung, gap, flex-wrap, das schwebende
+   Randnavigations-Band), wurden hier vollständig entfernt; Fläche/Rundung/Farbe bleiben
+   unverändert bei den Card-Varianten. */
 
 /* display:flex/flex-direction entfernt (Befund B, 192-13): redundant mit Card
    variant="publicPoster"s eigener .cardPublicPoster-Regel (bereits display:flex;
@@ -104,27 +105,6 @@
   display: none;
 }
 
-/* Sitzt nahe am OBEREN Rand der Hero-Karte (wie main, top: --space-3), NICHT vertikal zur ganzen
-   Karte zentriert: die Info-Spalte kann je nach Beschreibungslänge deutlich höher als die
-   Poster-Spalte werden, eine Zentrierung über die volle Kartenhöhe würde die Buttons dann mitten
-   in den Beschreibungstext legen (UAT-Regressionsfund). Die explizite Höhe (--control-height-md,
-   derselbe Token wie AdjacentNavigations eigener Button) gibt AdjacentNavigation variant="floating"
-   einen auf Button-Höhe begrenzten Positionierungskontext -- ihr top:0 landet dadurch exakt auf
-   Button-Höhe, nicht am Kartenrand. */
-.edgeNavigationOverlay {
-  position: absolute;
-  z-index: var(--z-dropdown);
-  top: var(--space-3);
-  right: 0;
-  left: 0;
-  height: var(--control-height-md);
-  pointer-events: none;
-}
-
-.edgeNavigationOverlay > * {
-  pointer-events: auto;
-}
-
 /* Ein einziger gemeinsamer 767px-Haltepunkt fuer Poster-Spalte UND Info-Karte -- beide Zonen
    kippen an derselben Schwelle auf die gestapelte Mobil-Darstellung, deshalb ein Block statt
    zwei getrennter (wie zuvor in den zwei Quelldateien page.poster.module.css/
@@ -148,23 +128,6 @@
   .posterMeta {
     align-items: center;
     flex: 0;
-  }
-
-  /* Hebt exakt die horizontalen --space-4 auf, die Cards padding-Prop (siehe JSX, variant="nested"
-     padding="4") unterhalb 767px unverändert mitbringt -- Card kennt nur einen einzigen, nicht
-     responsiven Skalenwert und kann die hier benötigte "nur oben/unten"-Mobil-Polsterung (0
-     links/rechts, Inhalt bleibt über .posterMeta/.genresSection zentriert) nicht selbst
-     ausdrücken. Oben/unten bleibt dabei unverändert bei --space-4. justify-items:center ersetzt
-     explizit Cards eigenen Grid-Standardwert ("stretch") für die direkten Kinder (Merklisten-
-     Knopf/Divider/Genres-Stack) -- ohne das würde der schmale "Zur Watchlist"-Knopf (width:auto
-     unterhalb 767px, siehe Button.module.css .buttonResponsiveBlock) hier plötzlich auf volle
-     Breite gestreckt statt wie zuvor an seiner eigenen Inhaltsbreite zentriert zu bleiben (per
-     Playwright-Messung bestätigt). Dokumentierte, genuinely-nicht-generalisierbare Ausnahme
-     (siehe 192-13-SUMMARY.md "Guard exception for 192-15"). */
-  .posterMetaCard {
-    margin-left: calc(-1 * var(--space-4));
-    margin-right: calc(-1 * var(--space-4));
-    justify-items: center;
   }
 
   .posterDivider {
@@ -195,16 +158,5 @@
 
   .dividerMobile {
     display: block;
-  }
-
-  .edgeNavigationOverlay {
-    position: relative;
-    inset: auto;
-    height: auto;
-    display: flex;
-    justify-content: center;
-    gap: var(--space-4);
-    margin-top: var(--space-4);
-    padding: 0 var(--space-5) var(--space-5);
   }
 }

@@ -34,16 +34,24 @@
   }
 }
 
-/* float="controlBand" (Schwebe-Overlay-Modus): oberhalb 48rem/768px ein präzise auf dem
-   Rand seines positionierten Vorfahren schwebendes Band -- `pointer-events:none` auf dem
-   Cluster-Wurzelelement selbst, `pointer-events:auto` auf jedem direkten Kind (sonst würde das
-   schwebende Band jeden Klick auf darunterliegenden Inhalt blockieren, obwohl es selbst meist nur
-   schmale interaktive Kinder enthält, die ihre eigene Position selbst bestimmen). Unterhalb 48rem
-   bleibt `.cluster`s normales, im Textfluss liegendes Zeilenverhalten (mit dem unveränderten
-   gap/justify/align des Aufrufers) unverändert aktiv -- kein eigener Mobil-Zweig nötig. */
-@container cluster (min-width: 48rem) {
-  .floatControlBand {
+/* float="controlBand" (Schwebe-Overlay-Modus), Positionierungs-Teil: oberhalb 768px wird das
+   AEUSSERE Cluster-Wurzelelement (.clusterQueryContainer, siehe Cluster.tsx) selbst zu einem
+   präzise auf dem Rand seines positionierten Vorfahren schwebenden Band -- `pointer-events:none`
+   auf dem Wurzelelement selbst, `pointer-events:auto` auf dessen einzigem direkten Kind (dem
+   inneren `.cluster`-Flex-Element, von dort per CSS-Vererbung an jeden tatsächlichen
+   Inhalts-Nachfahren weitergereicht), sonst würde das schwebende Band jeden Klick auf
+   darunterliegenden Inhalt blockieren, obwohl es selbst meist nur schmale interaktive Kinder
+   enthält, die ihre eigene Position selbst bestimmen. Bewusst eine normale `@media`- statt einer
+   `@container`-Abfrage: eine Container-Abfrage darf laut Spezifikation nie das eigene
+   Container-Wurzelelement selbst umordnen, nur dessen Nachfahren (siehe Cluster.tsx's `float`-Doku
+   für die ausfuehrliche Begruendung, warum NUR das Wurzelelement selbst -- nicht nur sein inneres
+   Flex-Kind -- vollstaendig aus einem umgebenden Flex-/Grid-`gap` herausfallen kann). z-index wie
+   die bisherige lokale --edgeNavigationOverlay-Regel: haelt das Band ueber regulaer gestapeltem
+   Seiteninhalt (z. B. .posterMeta), nicht nur ueber dem direkt darunterliegenden Rasterinhalt. */
+@media (min-width: 768px) {
+  .floatControlBandRoot {
     position: absolute;
+    z-index: var(--z-dropdown);
     top: var(--overlay-offset-control-band);
     right: 0;
     left: 0;
@@ -51,7 +59,18 @@
     pointer-events: none;
   }
 
-  .floatControlBand > * {
+  .floatControlBandRoot > * {
     pointer-events: auto;
+  }
+}
+
+/* float="controlBand", Mobil-Teil: unterhalb 768px liegt die Steuerelement-Reihe normal im
+   Textfluss (kein eigenes Wurzel-`position:absolute` mehr, siehe oben) -- der seitliche/untere
+   Rand zur Kartenkante lebt hier auf dem INNEREN Flex-Element (dessen Vorlauf-Abstand zum
+   darueberliegenden Inhalt kommt stattdessen aus einem umgebenden Stack-Abstand, siehe
+   AnimeDetailHero.tsx). Oberhalb 768px bleibt die Reihe bewusst randlos (left:0/right:0 oben). */
+@media (max-width: 767px) {
+  .floatControlBand {
+    padding: var(--overlay-padding-control-band-mobile);
   }
 }

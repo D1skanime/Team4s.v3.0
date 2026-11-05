@@ -38,6 +38,12 @@ import styles from './Stack.module.css'
  *    komplette Vorlauf kommt bereits über einen eigenen Lücken-Eintrag) und dem direkt folgenden
  *    Inhalt (z. B. Statistik-Zeile/"Verwandte Anime"-Abschnitt im Anime-Kopf, deren vormalige
  *    Rahmenlinie durch ein eigenständiges `Divider`-Element ersetzt wurde).
+ *  - `'contentToControlBand'`: Abstand zwischen einem Haupt-Inhaltsblock und einer direkt
+ *    darunter gerenderten, schwebenden Steuerelement-Reihe (`Cluster float="controlBand"`, z. B.
+ *    die Randnavigation unterhalb des Zwei-Spalten-Rasters im Anime-Kopf) -- wirkt nur sichtbar,
+ *    solange die Steuerelement-Reihe unterhalb ihres eigenen Haltepunkts normal im Textfluss
+ *    liegt; oberhalb davon ist sie aus dem Textfluss genommen und nimmt an diesem Abstand gar
+ *    nicht teil (kein doppelter/falscher Abstand oberhalb des Haltepunkts).
  *  - `'none'`: kein zusätzlicher Eigen-Abstand -- für den Fall, dass das nachfolgende Kind seinen
  *    Abstand zum vorherigen bereits vollständig selbst mitbringt (z. B. ein Kind, dessen erstes
  *    eigenes Element eine Trennlinien-Komponente mit eigenem Außenabstand ist). */
@@ -49,6 +55,7 @@ export type StackGapPurpose =
   | 'primaryContentBlocks'
   | 'dividedSectionLeadIn'
   | 'dividerToContent'
+  | 'contentToControlBand'
   | 'none'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
@@ -63,6 +70,7 @@ const GAP_PURPOSE_TOKENS: Record<Exclude<StackGapPurpose, 'none'>, string> = {
   primaryContentBlocks: 'var(--space-primary-content-blocks)',
   dividedSectionLeadIn: 'var(--space-divided-section-lead-in)',
   dividerToContent: 'var(--space-divider-to-content)',
+  contentToControlBand: 'var(--space-content-to-control-band)',
 }
 
 /** Löst einen einzelnen Zweck-Wert auf seinen CSS-Wert auf -- `'none'` ergibt den Literalwert

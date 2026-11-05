@@ -77,14 +77,26 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
    *  derselbe Zweck wie `gap` (CSS-Fallback, kein zweiter Pflichtwert). Wirkt nur, wenn
    *  `collapseBelow` tatsächlich gesetzt ist. */
   gapCollapsed?: ClusterGapPurpose
-  /** Schwebe-Overlay-Modus: oberhalb von 48rem wird Cluster zu
+  /** Schwebe-Overlay-Modus: oberhalb von 768px wird das ÄUSSERE Cluster-Wurzelelement selbst zu
    *  einem `position:absolute`-Band, das präzise auf dem Rand seines positionierten Vorfahren
    *  sitzt (z. B. die Randnavigations-Steuerelemente über einem Anime-Kopf) -- `pointer-events:none`
-   *  auf dem Cluster-Wurzelelement selbst, `pointer-events:auto` auf jedem direkten Kind, damit das
-   *  schwebende Band nur seine eigenen, meist schmalen interaktiven Kinder anklickbar macht und
-   *  darunterliegenden Inhalt nicht blockiert. Unterhalb von 48rem eine normale, im Textfluss
-   *  liegende Cluster-Zeile mit dem unveränderten `gap`/`justify`/`align`-Verhalten des Aufrufers.
-   *  Aktuell nur `'controlBand'`, da bislang nur ein einziger Anwendungsfall existiert. */
+   *  auf dem Wurzelelement selbst, `pointer-events:auto` auf dessen direktem Kind (und damit, per
+   *  CSS-Vererbung, auf jedem tatsächlichen Inhalts-Nachfahren), damit das schwebende Band nur
+   *  seine eigenen, meist schmalen interaktiven Kinder anklickbar macht und darunterliegenden
+   *  Inhalt nicht blockiert. WICHTIG: die Positionierung wird bewusst über eine normale
+   *  `@media`-Abfrage (Viewport-Breite) statt einer `@container`-Abfrage ausgelöst -- eine
+   *  Container-Abfrage darf laut Spezifikation nie das eigene Container-Wurzelelement selbst
+   *  umordnen (siehe Komponentendoku unten), ein `position:absolute` NUR auf dem inneren,
+   *  nachfahren-gebundenen Flex-Element würde das äußere Wurzelelement selbst aber als normales,
+   *  nur eben 0px hohes Element im Textfluss zurücklassen -- in einem umgebenden Flex-/Grid-
+   *  Kontext mit eigenem `gap` (z. B. ein `Stack`, der diesen Cluster neben weiterem Inhalt rendert)
+   *  würde dieser 0px-hohe, aber weiterhin TEILNEHMENDE Platzhalter trotzdem einen vollen `gap`-
+   *  Abstand erzeugen (CSS-Gap wirkt unabhängig von der tatsächlichen Höhe eines teilnehmenden
+   *  Elements). Erst wenn das WURZELELEMENT selbst `position:absolute` trägt, nimmt es am Flex-/
+   *  Grid-Layout des Elternelements überhaupt nicht mehr teil (Spezifikation: absolut positionierte
+   *  Kinder sind keine Flex-/Grid-Items). Unterhalb von 768px eine normale, im Textfluss liegende
+   *  Cluster-Zeile mit dem unveränderten `gap`/`justify`/`align`-Verhalten des Aufrufers. Aktuell
+   *  nur `'controlBand'`, da bislang nur ein einziger Anwendungsfall existiert. */
   float?: 'controlBand'
   /** Zu rendernde Element-Art (Standard 'div'). */
   as?: ElementType
@@ -138,12 +150,24 @@ export function Cluster({
   }
 
   return (
-    <Component {...props} style={mergedStyle} className={classNames(styles.clusterQueryContainer, className)}>
-      {/* Eigenes Flex-/Positionierungs-Kind-Element: das `Component`-Element oben bildet nur den
-       *  benannten Container, das eigentliche Verhalten lebt hier als Nachfahre (siehe
-       *  Komponentendoku oben bzw. SplitLayout.tsx für dasselbe Grundmuster). Liest die
-       *  `--cluster-*`-Variablen per CSS-Vererbung vom äußeren Element, trägt selbst keinen
-       *  Inline-Stil. */}
+    <Component
+      {...props}
+      style={mergedStyle}
+      className={classNames(
+        styles.clusterQueryContainer,
+        // `float`s eigentliche Schwebe-Positionierung (position:absolute/pointer-events:none)
+        // sitzt bewusst HIER, auf dem äußeren Wurzelelement, nicht auf dem inneren Flex-Kind
+        // unten -- siehe die ausführliche Begründung in der `float`-Prop-Doku oben (nur das
+        // Wurzelelement selbst kann ein umgebendes Flex-/Grid-`gap` vollständig umgehen).
+        float === 'controlBand' && styles.floatControlBandRoot,
+        className,
+      )}
+    >
+      {/* Eigenes Flex-Kind-Element: das `Component`-Element oben bildet nur den benannten
+       *  Container (plus, bei `float`, dessen eigene Schwebe-Positionierung), das eigentliche
+       *  Zeilen-Verhalten lebt hier als Nachfahre (siehe Komponentendoku oben bzw.
+       *  SplitLayout.tsx für dasselbe Container-Grundmuster). Liest die `--cluster-*`-Variablen
+       *  per CSS-Vererbung vom äußeren Element, trägt selbst keinen Inline-Stil. */}
       <div
         className={classNames(
           styles.cluster,
