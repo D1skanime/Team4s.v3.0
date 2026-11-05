@@ -1,13 +1,13 @@
 ---
 phase: 192-ffentliche-anime-detailseite-baustein-reinheit-ssr-randnavig
-verified: 2026-11-05T03:30:00Z
+verified: 2026-11-05T06:40:00Z
 status: passed
-score: 20/20 must-haves verified (8 Runde-2-Befunde 19-26 + 6 Runde-3-Befunde A-D/27/28 + 6 Runde-4-Erweiterungen A-D/Guard-Verschaerfung/Review-Befund-2)
+score: 22/22 must-haves verified (8 Runde-2-Befunde 19-26 + 6 Runde-3-Befunde A-D/27/28 + 6 Runde-4-Erweiterungen A-D/Guard-Verschaerfung/Review-Befund-2 + 2 Runde-5-Truths Befund-Review2-R2)
 overrides_applied: 0
-supersedes: "192-VERIFICATION.md (2026-11-04T23:51:00Z, Runde 3, 14/14) -- diese Fassung deckt zusaetzlich Runde 4 (Plaene 192-21..192-27, die beiden blockierenden [high]-Befunde eines unabhaengigen Reviews: compositeLayoutPurity-Ausnahmeliste + Card-padding rohe Stufen) ab, die nach der Runde-3-Verifikation gefunden wurden"
+supersedes: "192-VERIFICATION.md (2026-11-05T03:30:00Z, Runde 4, 20/20) -- diese Fassung deckt zusaetzlich Runde 5 (Plaene 192-28..192-35, der eine blockierende [high]-Befund eines zweiten unabhaengigen Reviews, Runde 2 von 2: compositeLayoutPurity.guard.test.ts deckte weder genug Dateien [4 statt 9 real existierender Komposit-Dateien] noch genug Eigenschaften [display:grid, border, border-radius, background, box-shadow, feste width/height fehlten] ab) ab, die nach der Runde-4-Verifikation gefunden wurden"
 ---
 
-# Phase 192: Öffentliche Anime-Detailseite — Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung Verification Report (Runde 4, final)
+# Phase 192: Öffentliche Anime-Detailseite — Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung Verification Report (Runde 5, final)
 
 **Phase Goal:** Die öffentliche Anime-Detailseite (`/anime/[id]`) besteht in allen fünf Pilot-Bausteinen
 (Anime-Kopf, Episoden-Bereich, Fansubgruppen-Auswahl, Release-Zeile, Randnavigation) ausschließlich
@@ -21,15 +21,18 @@ Die vier Pilot-Komposit-CSS-Dateien enthalten seit Runde 4 KEIN eigenes Layout-C
 nicht als dokumentierte Einzelfall-Ausnahme: `compositeLayoutPurity.guard.test.ts` ist seit Runde 4
 ein permanenter, AUSNAHMELOSER Wächter -- die vormalige `DOCUMENTED_LAYOUT_EXCEPTIONS`-Liste ist
 ersatzlos entfernt, jede der vier Pilot-Komposit-Dateien besteht nachweislich zu 100% aus
-Grundbaustein-Komposition.
+Grundbaustein-Komposition. Seit Runde 5 bewacht derselbe Wächter alle NEUN real existierenden
+Komposit-Dateien der fünf Pilot-Bausteine (zuvor vier) gegen 11 verbotene Deklarationskategorien
+(zuvor 7: zusätzlich `display:grid`, `border`, `border-radius`, `background`, `box-shadow`, feste
+`width`/`height`) -- empirisch bestätigt mit einer leeren Verstoßliste über alle neun Dateien.
 
 **Verified:** 2026-11-05
 **Status:** passed
-**Re-verification:** Yes -- dies ersetzt die Runde-3-Fassung vom 2026-11-04T23:51:00Z (status:
-passed, 14/14), die vor den in `192-CONTEXT.md`s `<addendum_2026-11-05a>` dokumentierten
-Runde-4-Funden (unabhängiger Review, 2 blockierende [high]-Befunde: die Ausnahmeliste im
-Composite-Layout-Guard widersprach der ursprünglichen Befund-22/23-Vorgabe, und `Card.padding` nahm
-weiterhin rohe Größenstufen statt Zweck-Namen) entstand und diese daher nicht abdeckte.
+**Re-verification:** Yes -- dies ersetzt die Runde-4-Fassung vom 2026-11-05T03:30:00Z (status:
+passed, 20/20), die vor dem in `192-CONTEXT.md`s `<addendum_2026-11-05b>` dokumentierten
+Runde-5-Fund (zweiter unabhängiger Review, Runde 2 von 2, 1 blockierender [high]-Befund: der
+Composite-Layout-Guard deckte weder genug Dateien noch genug Eigenschaften ab) entstand und diesen
+daher nicht abdeckte.
 
 ## Goal Achievement
 
@@ -140,49 +143,114 @@ Zusätzlich: die bestätigte visuelle Regression (nicht an eine einzelne Befund-
 Runde-3-Nachtrags) wurde von Plan 192-12 behoben und von Plan 192-20 mit frischer Messung
 gegengeprüft (Truth #7).
 
+### Runde 5 (unabhängiger Review, Runde 2 von 2, Befund-Review2-R2)
+
+Nach der Runde-4-Verifikation meldete ein zweiter, unabhängiger, nur-lesender Review einen
+blockierenden `[high]`-Befund: `compositeLayoutPurity.guard.test.ts` deckte trotz der in Runde 4
+hergestellten Ausnahmelosigkeit weder genug Dateien (nur die ursprünglichen vier Pilot-Dateien,
+nicht alle neun real im Render-Baum von `/anime/[id]` existierenden Komposit-Dateien der fünf
+Pilot-Bausteine) noch genug Eigenschaften ab (`display:grid`, `border`, `border-radius`,
+`background`, `box-shadow` sowie feste `width`/`height` fehlten komplett; sogar in den bereits
+bewachten vier Dateien blieben dadurch reale Verstöße wie `ReleasePreviewRow.module.css`s
+`.logo`-Rand oder `AnimeEdgeNavigation.module.css`s `.previewCover`-`border-radius` unentdeckt).
+Der Befund wurde durch acht Pläne (192-28 bis 192-35) behoben: vier Pläne (192-28/29/30) bereiteten
+real wiederverwendbare Grundbaustein-Erweiterungen vor (`Card`-Zweckstufen `section`/`contextCard`
+sowie `widthPurpose`/`seamless`, `Avatar` `size="xs"`/`bordered`, `Button chipGlass`-Abstands-Fix,
+`ResponsiveImage roundedThumbnail`, zwei neue `Stack`/`Cluster`-Zweck-Token), drei Pläne
+(192-31/32/33) verdrahteten diese Erweiterungen an allen fünf real betroffenen Komposit-Dateien
+(inklusive eines vom Plan-Checker explizit angeforderten architektonischen Funds in Plan 192-33:
+der Card-Rand-zu-Überschrift-Abstand in `FansubVersionBrowser` ist kein Geschwister-Abstand und
+gehört in eine neue, bewusst asymmetrische `--card-padding-section`-Stufe statt in eine
+Stack-Lücke), ein Plan (192-34) erweiterte den Guard selbst auf 9 Dateien/11 Kategorien und
+bestätigte empirisch eine leere Verstoßliste ohne jede Produktionscode-Änderung, und dieser
+Abschluss-Plan (192-35) erbrachte den finalen Regressions- und Visual-Proof-Nachweis.
+
+| # | Truth | Status | Evidence |
+|---|-------|--------|----------|
+| 1 | `compositeLayoutPurity.guard.test.ts` bewacht alle 9 real existierenden Komposit-Dateien der fünf Pilot-Bausteine (zuvor 4) gegen 11 verbotene Deklarationskategorien (zuvor 7) -- leere Verstoßliste, kein Produktionscode geändert | ✓ VERIFIED | `GUARDED_COMPOSITE_FILES` (Datei gelesen, Task 1 dieses Plans) listet alle 9 Dateien (`AnimeDetailHero`, `ReleasePreviewRow`, `EpisodeGlassCard`, `AnimeEdgeNavigation`, `FansubVersionBrowser`, `FansubGroupContext`, `FansubGroupPicker`, `PageEpisodes`, `WatchlistAddButton`). `npx vitest run "src/app/anime/[id]/compositeLayoutPurity.guard.test.ts"` → 7/7 grün (erneut ausgeführt in diesem Plan). `StatusBadge`/`AnimeRelations`/`AnimeBackdropRotator.module.css` bewusst NICHT hinzugefügt, mit im Modulkommentar dokumentierter Begründung (Fremdverwendung außerhalb der fünf Pilot-Bausteine bzw. kein Teil eines Pilot-Komposits). Pläne 192-28 bis 192-34, siehe deren SUMMARY.md für alle Commit-Hashes. |
+| 2 | Vollständiger Regressionslauf grün, Playwright-Bildpaar-Nachweis ohne neue undeklarierte Abweichung, Docker/Worktree sauber | ✓ VERIFIED (dieser Plan) | `npx vitest run` 470/474 Testdateien grün (dieselben 3 bereits dokumentierten pre-existing/environment-bedingten Ausnahmen: `ResponsiveImage.config.test.ts`, `badgeArtwork.test.ts`, `RoleCapabilityDetail.membershipBaselineDrift.test.ts`); `tsc --noEmit` 0 Fehler; `eslint .` nur die 4 bereits dokumentierten pre-existing Fehler (`capture-responsive.cjs` ×2, `useReleaseVersionMedia.ts`, `ReleasesFilterBar.tsx`); `build-storybook` grün; `test-storybook` 72/72 Suiten/379/379 Tests grün. Playwright-Nachweis: disponibler `team4sv30-frontend`-Neubau (reflektiert alle Pläne 192-28..192-35), main-vs-Branch (3 Animes × 2 Haltepunkte, strukturell identisch -- Unterschiede nur aus 96+ phasenunabhängigen main-Commits), Pre-Runde-5-Baseline (Commit `08d92ce4c`, Ende Plan 192-27) vs. Branch (strukturell identisch für den gemeinsam sichtbaren Seitenbereich, verbleibende Höhen-Differenz durch nichtdeterministisches Episoden-Windowing, nicht durch diese Runde verursacht), sowie Storybook-vs.-Live-Seite für alle fünf Pilot-Komposit-Blöcke (Anime-Kopf, Episoden-Bereich inkl. Fansubgruppen-Auswahl/-Kontext, Release-Versionszeile, Randnavigation) -- insbesondere die vom Plan als Risiko benannte FansubGroupPicker/FansubGroupContext/FansubVersionBrowser-Episoden-Bereich-Überschriften-Einrückung (Live-Anime `Freezing`, Card-Rand→Überschrift→Gruppen-Chips→Episodenliste) strukturell identisch zwischen main-Baseline und Branch bestätigt. Alle disponiblen Container/Images/Worktrees/Skripte/Screenshots restlos entfernt (`docker ps -a`/`docker images`/`git worktree list`/`git status --short` final sauber; vier benannte, nicht an einen Container gebundene Docker-Volumes `t4s-snapshot-*-node-modules`/`-next` blieben stehen, weil der projektweite ki-guard-Hook Volume-Entfernung explizit dem Auftrags-Cleanup vorbehält, nicht einzelnen Plan-Agenten -- siehe Deviations in `192-35-SUMMARY.md`). |
+
+**Score Runde 5:** 2/2 zusätzliche Truths verifiziert (22/22 kumulativ mit Runde 2+3+4).
+
+### Methodik-Hinweis (Runde 5): main-Baseline vs. Pre-Runde-5-Baseline
+
+Wie in Runde 4 etabliert, isoliert ein Pre-Runde-Baseline-Vergleich (hier: Commit `08d92ce4c`,
+unmittelbar vor Plan 192-28, dem ersten Plan dieser Runde) exakt, was NUR diese Runde verändert
+hat, während der `main`-Vergleich (weiterhin `907fa79f1`, seit Runde 4 unverändert, 96+ Commits
+hinter dem Branch) die gesamte, über alle fünf Gap-Closure-Runden dieser Phase akkumulierte
+Restrukturierung von `AnimeDetailHero` zeigt (z. B. unterschiedliche Position der Genre-Chips im
+Poster-Meta-Bereich, geänderte i18n-Großschreibung wie "1 Folge" vs. "1 Episodes") -- beides
+erwartete, nicht an diese Runde gebundene Unterschiede, keine Regressionen. Beide disponiblen
+Snapshot-Container liefen im dev-mode (`npm run dev -- --webpack`, Bind-Mount statt Produktions-
+Image, da das Produktions-Dockerfile für einen reinen `main`-Snapshot eine fehlende
+`next.config.mjs`-Laufzeitabhängigkeit aufdeckte -- siehe Deviations in `192-35-SUMMARY.md`) auf
+demselben Docker-Netzwerk wie der laufende Backend-Container. Cover-Bilder luden in beiden
+disponiblen Snapshot-Containern nicht (identisches, bereits in Runde 3/4 dokumentiertes Artefakt
+der Wegwerf-Infrastruktur), die laufende Branch-Instanz zeigt reale Jellyfin-Cover korrekt.
+
 ### Anti-Patterns Found
 
 Keine blockierenden, in keiner Runde. Runde 3 fand einen ESLint-Fehler (`react/no-unescaped-entities`
 in `Card.stories.tsx`, aus Plan 192-11), sofort behoben (Commit `25b58074b`). Runde 4 fand einen
 echten Laufzeitfehler in zwei Storybook-Stories (`Stack.stories.tsx`s Array-Modus-Demonstrationen
 übergaben ihre Kinder als Fragment statt als Array, siehe Runde-4-Tabelle oben), sofort behoben
-(Commit `83165c6e4`) -- Produktionscode war in beiden Fällen nicht betroffen. Kein offener Befund.
+(Commit `83165c6e4`) -- Produktionscode war in beiden Fällen nicht betroffen. Runde 5 fand zwei echte,
+aber bereits VOR Plan 192-35 während der eigenen Ausführung dieser Runde gefundene und behobene
+Regressionen (nicht Teil der ursprünglichen Review-Befunde, aber in derselben Runde entstanden):
+Plan 192-28s `Card.stories.tsx`-Story-Namen verletzten `storyDisplayNames.german.test.ts` (Commit
+`df5531eda`), und Plan 192-34s Guard-Selbsttest nutzte einen Platzhalter-Variablennamen, den
+`cssCustomProperties.guard.test.ts` fälschlich als tote Referenz meldete (Commit `5e784ff51`) --
+beide in Plan 192-35s eigenem vollem Regressionslauf erneut als weiterhin behoben bestätigt. Kein
+offener Befund.
 
 ### Human Verification Required
 
-None at the code level. Alle Runde-2/3/4-Befunde sind durch statische Code-Inspektion, automatisierte
-Testausführung, Guard-Tests (inkl. des seit Runde 4 ausnahmelosen `compositeLayoutPurity`-Guards samt
-Regressions-Canary-Beleg), einen deterministischen Storybook-Bildvergleich mit harten DOM-Rect-/
-Farbmessungen sowie disponible Vorher/Nachher-Playwright-Vergleiche belegt. Die abschließende
-Live-Browser-Freigabe (Produktionsdaten, echte Jellyfin-Cover, echte Backdrop-Rotation) erfolgt gemäß
-der Projektkonvention für `ki-run`-Aufträge am Ende des gesamten Auftrags durch den Menschen
-(`ki-run uat`), nicht als Teil dieser Code-Verifikation.
+None at the code level. Alle Runde-2/3/4/5-Befunde sind durch statische Code-Inspektion,
+automatisierte Testausführung, Guard-Tests (inkl. des seit Runde 5 auf 9 Dateien/11 Kategorien
+erweiterten, weiterhin ausnahmelosen `compositeLayoutPurity`-Guards), einen deterministischen
+Storybook-Bildvergleich mit harten DOM-Rect-/Farbmessungen sowie disponible Vorher/Nachher-
+Playwright-Vergleiche belegt. Die abschließende Live-Browser-Freigabe (Produktionsdaten, echte
+Jellyfin-Cover, echte Backdrop-Rotation) erfolgt gemäß der Projektkonvention für `ki-run`-Aufträge
+am Ende des gesamten Auftrags durch den Menschen (`ki-run uat`), nicht als Teil dieser
+Code-Verifikation.
 
 ### Git/Docker/Worktree Cleanliness
 
-- `git status --short` — clean (final nach Plan 192-27 erneut geprüft).
+- `git status --short` — clean (final nach Plan 192-27 erneut geprüft, erneut sauber bestätigt am
+  Ende von Plan 192-35).
 - `git worktree list` — nur der Haupt-Checkout (`/home/d1sk/team4s`), keine verbliebenen
   disponiblen Snapshot-Worktrees (Runde-4-Worktrees unter `/tmp/t4s-snapshots/*` via
-  `git worktree remove --force` entfernt).
-- `docker ps -a` / `docker images` — keine `192-20`/`192-27`/`snapshot`-benannten disponiblen
-  Container/Images mehr; alle regulären Projekt-/Dev-Stack-Container unverändert laufend
-  (`team4sv30-frontend` für diese Verifikation neu gebaut, um alle Runde-4-Pläne zu reflektieren).
+  `git worktree remove --force` entfernt; Runde-5-Worktrees ebenso entfernt).
+- `docker ps -a` / `docker images` — keine `192-20`/`192-27`/`192-35`/`snapshot`-benannten
+  disponiblen Container/Images mehr; alle regulären Projekt-/Dev-Stack-Container unverändert
+  laufend (`team4sv30-frontend` für Plan 192-35 erneut neu gebaut, um alle Pläne 192-28..192-35 zu
+  reflektieren). Vier benannte, containerlose Docker-Volumes (`t4s-snapshot-main-192-35-node-modules`/
+  `-next`, `t4s-snapshot-preround5-192-35-node-modules`/`-next`) blieben nach Plan 192-35 bewusst
+  stehen -- der projektweite ki-guard-Hook verweigert Volume-Entfernung einzelnen Plan-Agenten
+  ("Volumes entfernt nur das Auftrags-Cleanup") und reserviert sie für die Job-Ebene; alle vier sind
+  unreferenziert und harmlos (keine laufenden Container, kein Repository-Inhalt).
 - Keine verwaisten `python3 -m http.server`-Prozesse oder temporären Skripte/Screenshots unter
-  `frontend/`/`/tmp` (gezielt per `ps aux`/`find` geprüft).
+  `frontend/`/`/tmp` (gezielt per `ps aux`/`find` geprüft, auch nach Plan 192-35).
 
 ## Gaps Summary
 
-None. Alle 6 Runde-3-Befunde (A-D, 27, 28) sowie alle 6 Runde-4-Erweiterungen/-Befunde (A-D,
-Guard-Verschärfung, Review-Befund 2) sind gegen den tatsächlichen Code-/Build-/Testzustand
-verifiziert, nicht nur gegen SUMMARY.md-Behauptungen: der Composite-Layout-Guard wurde in Plan
-192-15 gegen die tatsächliche Dateilage gegründet (fand dabei 2 zusätzliche, vorher unentdeckte
-Lücken) und in Plan 192-27 um die Ausnahmeliste selbst erleichtert, mit einem checkbaren
-grep-Beleg UND einem Regressions-Canary-Beleg (nicht nur einer Behauptung); der volle
-Regressionslauf in Plan 192-20 fand einen zusätzlichen echten Lint-Fehler, der in Plan 192-27 fand
-einen echten Storybook-Laufzeitfehler; die Sichtregression wurde mit expliziten Vorher/Nachher-
-Zahlenwerten belegt.
+None. Alle 6 Runde-3-Befunde (A-D, 27, 28), alle 6 Runde-4-Erweiterungen/-Befunde (A-D,
+Guard-Verschärfung, Review-Befund 2) sowie der eine Runde-5-Befund (Befund-Review2-R2,
+Datei-/Eigenschaftsabdeckung des Composite-Layout-Guards) sind gegen den tatsächlichen
+Code-/Build-/Testzustand verifiziert, nicht nur gegen SUMMARY.md-Behauptungen: der Composite-
+Layout-Guard wurde in Plan 192-15 gegen die tatsächliche Dateilage gegründet (fand dabei 2
+zusätzliche, vorher unentdeckte Lücken), in Plan 192-27 um die Ausnahmeliste selbst erleichtert
+(checkbarer grep-Beleg + Regressions-Canary-Beleg) und in Plan 192-34 auf 9 Dateien/11 Kategorien
+erweitert (empirisch leere Verstoßliste, kein Produktionscode geändert); der volle Regressionslauf
+in Plan 192-20 fand einen zusätzlichen echten Lint-Fehler, der in Plan 192-27 fand einen echten
+Storybook-Laufzeitfehler, und Runde 5 fand zwei weitere echte, aber bereits während ihrer eigenen
+Ausführung behobene Regressionen (Story-Namenskonvention, Guard-Selbsttest-Platzhalter); die
+Sichtregression wurde mit expliziten Vorher/Nachher-Zahlenwerten belegt, und Runde 5s
+FansubGroupPicker/FansubGroupContext/FansubVersionBrowser-Episoden-Bereich-Überschriften-
+Einrückung wurde per Playwright-Messung (49px Card-Rand→Überschrift, über alle drei Pflicht-
+Zustände) sowie per main-Baseline-Strukturvergleich in diesem Plan gegengeprüft.
 
 ---
 
 *Verified: 2026-11-05*
-*Verifier: Claude (Executor, Plan 192-27 -- Runde-4-Abschluss-Nachweis)*
+*Verifier: Claude (Executor, Plan 192-35 -- Runde-5-Abschluss-Nachweis)*
