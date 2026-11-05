@@ -114,4 +114,41 @@ describe('Cluster', () => {
       expect(outer.style.getPropertyValue('--cluster-gap-collapsed')).toBe('')
     })
   })
+
+  describe('float (Schwebe-Overlay-Modus, Review-Befund 1 Erweiterung C)', () => {
+    it('rendert den zweistufigen Container-Query-Wrapper mit der Schwebe-Modifikatorklasse, wenn float gesetzt ist', () => {
+      const { container } = render(
+        <Cluster float="controlBand" gap="contentPair" justify="center">
+          Inhalt
+        </Cluster>,
+      )
+
+      const outer = container.firstElementChild as HTMLElement
+      expect(outer.className).toMatch(/clusterQueryContainer/)
+
+      const inner = outer.firstElementChild as HTMLElement
+      expect(inner.className).toMatch(/cluster/)
+      expect(inner.className).toMatch(/floatControlBand/)
+      expect(inner.textContent).toBe('Inhalt')
+    })
+
+    it('bleibt ohne float eine normale Cluster-Zeile ohne die Schwebe-Modifikatorklasse', () => {
+      const { container } = render(<Cluster gap="contentPair">Inhalt</Cluster>)
+      const node = container.firstElementChild as HTMLElement
+      expect(node.className).not.toMatch(/floatControlBand/)
+      expect(node.className).not.toMatch(/clusterQueryContainer/)
+    })
+
+    it('collapseBelow und float koennen unabhaengig voneinander gesetzt sein (beide loesen denselben Wrapper aus)', () => {
+      const { container } = render(
+        <Cluster collapseBelow="md" float="controlBand">
+          Inhalt
+        </Cluster>,
+      )
+      const outer = container.firstElementChild as HTMLElement
+      const inner = outer.firstElementChild as HTMLElement
+      expect(inner.className).toMatch(/collapsibleMd/)
+      expect(inner.className).toMatch(/floatControlBand/)
+    })
+  })
 })
