@@ -3051,7 +3051,7 @@ Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte 
 Abstand/Rundung.
 **Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26, Befund-A, Befund-B, Befund-C, Befund-D, Befund-27, Befund-28, Befund-Review1, Befund-Review2, Befund-Review2-R2
 **Depends on:** Phase 191
-**Plans:** 33/35 plans executed
+**Plans:** 34/35 plans executed
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
@@ -3087,5 +3087,5 @@ Plans:
 - [x] 192-31-PLAN.md — page.episodes.module.css/AnimeEpisodesSection: Card-Zweck-Padding 'section' + Seiten-Abstand (Befund-Review2-R2)
 - [x] 192-32-PLAN.md — ReleasePreviewRow/AnimeEdgeNavigation/EpisodeGlassCard/WatchlistAddButton: Grundbaustein-Faehigkeiten anwenden (Befund-Review2-R2)
 - [x] 192-33-PLAN.md — FansubVersionBrowser/FansubGroupContext/FansubGroupPicker: Stack-Umhuellung + Grundbaustein-Faehigkeiten (Befund-Review2-R2)
-- [ ] 192-34-PLAN.md — Guard-Erweiterung: 9 Dateien + 11 Eigenschafts-Kategorien, ausnahmelos (Befund-Review2-R2)
+- [x] 192-34-PLAN.md — Guard-Erweiterung: 9 Dateien + 11 Eigenschafts-Kategorien, ausnahmelos (Befund-Review2-R2)
 - [ ] 192-35-PLAN.md — Runde-5-Abschluss-Nachweis (voller Regressionslauf + Playwright-Bildpaare, loest 192-VERIFICATION.md ab)
