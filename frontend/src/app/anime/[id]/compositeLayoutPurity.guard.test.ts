@@ -58,54 +58,16 @@ interface LayoutException {
  *  dateiweit auf -- jede gilt ausschließlich für ihren eigenen, hier benannten Selektor. */
 const DOCUMENTED_LAYOUT_EXCEPTIONS: LayoutException[] = [
   // --- AnimeDetailHero.module.css ---------------------------------------------------------
-  {
-    file: 'AnimeDetailHero',
-    selector: /\.infoCardBody\b/,
-    reason:
-      '192-13: bespoke, nicht-einheitlicher vertikaler Abstands-Rhythmus der Info-Karten-Kinder ' +
-      '(.titleRow/.badges/.description/.tagsSection/.statsRow/.relatedSection) -- Stack kann das ' +
-      'nicht ausdrücken, ohne den tatsächlichen Pixel-Rhythmus zu verändern (Zero-Pixel-Diff-Vorgabe).',
-  },
-  {
-    file: 'AnimeDetailHero',
-    selector: /\.posterMetaCard\b/,
-    reason:
-      '192-13: Mobil-Korrekturen (margin-left/-right heben Cards unconditional 16px-Seitenpolsterung ' +
-      'auf; justify-items:center reproduziert den vorherigen, zufälligen Deklarations-Reihenfolge-' +
-      'Sieg von align-items:center gegen Stacks eigenen stretch-Standard) -- empirisch per Playwright ' +
-      'gegen die Vor-Umstellungs-Fassung bestätigt, nicht theoretisch angenommen.',
-  },
-  {
-    file: 'AnimeDetailHero',
-    selector: /\.badges\b/,
-    reason:
-      '192-13 (per-child-Rhythmus-Begründung von .infoCardBody, hier einzeln auf den jeweiligen ' +
-      'Kind-Selektor angewandt): margin-bottom ist Teil der bewusst nicht-einheitlichen vertikalen ' +
-      'Abstandsfolge, die Stack ohne Pixel-Änderung nicht abbilden kann.',
-  },
-  {
-    file: 'AnimeDetailHero',
-    selector: /\.statsRow\b/,
-    reason: '192-13 (dieselbe per-child-Rhythmus-Begründung): padding-top statt eines Stack-gap.',
-  },
-  {
-    file: 'AnimeDetailHero',
-    selector: /\.relatedSection\b/,
-    reason:
-      '192-13 (dieselbe per-child-Rhythmus-Begründung): margin-top/padding-top (Desktop und Mobil-' +
-      'Override) statt eines Stack-gap.',
-  },
-  {
-    file: 'AnimeDetailHero',
-    selector: /\.edgeNavigationOverlay\b/,
-    reason:
-      '192-15 (neu entdeckt, nicht in Befund Bs ursprünglicher Selektor-Liste benannt): unterhalb ' +
-      '767px wechselt dieser Wrapper von einem reinen Positionierungs-Overlay (absolute, kein Flex) ' +
-      'zu einer normalen, im Textfluss zentrierten Zeile (Navigations-Pfeile + Vorschaukarte) -- ' +
-      'weder Stack noch Cluster können bedingt ZWISCHEN "kein Flex" und "Flex" je Haltepunkt ' +
-      'umschalten (beide sind immer Flex-Container), nur die Ausrichtung INNERHALB eines immer-' +
-      'aktiven Flex-Containers variieren.',
-  },
+  // Alle sechs vormaligen Ausnahme-Einträge dieser Datei (.infoCardBody/.posterMetaCard/.badges/
+  // .statsRow/.relatedSection/.edgeNavigationOverlay) entfallen seit den Plänen 192-24/192-25:
+  // .infoCardBody/.badges/.statsRow/.relatedSection deklarieren seit 192-24s Stack-Rhythmus-Array-
+  // Umbau nur noch nicht-verbotene Restdeklarationen (text-align/justify-content/align-items,
+  // keine davon in FORBIDDEN_PATTERNS); .posterMetaCard ist seit 192-25s Card bleedBelowMd-Umbau
+  // auf eine reine border-width:0-Größenkorrektur reduziert (ebenfalls nicht verboten);
+  // .edgeNavigationOverlay kommt seit 192-25s Cluster float="controlBand"-Umbau im Stylesheet gar
+  // nicht mehr vor. Damit hat diese Datei seit 192-25 ZERO verbleibende Ausnahmen (siehe
+  // 192-CONTEXT.md addendum_2026-11-05a, "Guard-Verschärfung": Hauptprüfung muss mit LEERER
+  // Verstoßliste grün sein).
 
   // --- ReleasePreviewRow.module.css --------------------------------------------------------
   // .row (vormals 192-14): entfällt seit Plan 192-26 -- die haltepunktabhängige Zeile-zu-Spalte-
