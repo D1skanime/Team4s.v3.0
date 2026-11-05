@@ -3049,9 +3049,9 @@ im Server-HTML sichtbar statt erst nach Hydration, die Release-Zeile richtet ihr
 an Titel/Gruppenname aus, die auf diesem Branch neu entstandenen Klick-Interaktionstests rufen echte
 Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte sind Zweck-Tokens wie
 Abstand/Rundung.
-**Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26, Befund-A, Befund-B, Befund-C, Befund-D, Befund-27, Befund-28, Befund-Review1, Befund-Review2
+**Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26, Befund-A, Befund-B, Befund-C, Befund-D, Befund-27, Befund-28, Befund-Review1, Befund-Review2, Befund-Review2-R2
 **Depends on:** Phase 191
-**Plans:** 27/27 plans complete
+**Plans:** 27/35 plans complete
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
@@ -3081,3 +3081,11 @@ Plans:
 - [x] 192-25-PLAN.md — AnimeDetailHero Teil 2: Randnav-Schwebe-Overlay (C) + posterMetaCard Rand-bis-Rand (D)
 - [x] 192-26-PLAN.md — ReleasePreviewRow + EpisodeGlassCard + AnimeEdgeNavigation: Erweiterungen B/D/A anwenden
 - [x] 192-27-PLAN.md — Guard-Verschärfung (Ausnahmeliste entfernt) + Abschluss-Verifikation Runde 4 + 192-VERIFICATION.md-Aktualisierung
+- [ ] 192-28-PLAN.md — Card: Zweck-Padding-Stufen 'section'/Kontext-Karte + Kompakt-Vorschau-Breite + EpisodeGlassCard-Rundungsloesung (Befund-Review2-R2)
+- [ ] 192-29-PLAN.md — Avatar 'xs'+bordered, Button chipGlass-Abstand, ResponsiveImage-Rundung (Befund-Review2-R2)
+- [ ] 192-30-PLAN.md — Neue Stack-/Cluster-Zweck-Token fuer FansubVersionBrowser-Geschwisterrhythmus + navRow (Befund-Review2-R2)
+- [ ] 192-31-PLAN.md — page.episodes.module.css/AnimeEpisodesSection: Card-Zweck-Padding 'section' + Seiten-Abstand (Befund-Review2-R2)
+- [ ] 192-32-PLAN.md — ReleasePreviewRow/AnimeEdgeNavigation/EpisodeGlassCard/WatchlistAddButton: Grundbaustein-Faehigkeiten anwenden (Befund-Review2-R2)
+- [ ] 192-33-PLAN.md — FansubVersionBrowser/FansubGroupContext/FansubGroupPicker: Stack-Umhuellung + Grundbaustein-Faehigkeiten (Befund-Review2-R2)
+- [ ] 192-34-PLAN.md — Guard-Erweiterung: 9 Dateien + 11 Eigenschafts-Kategorien, ausnahmelos (Befund-Review2-R2)
+- [ ] 192-35-PLAN.md — Runde-5-Abschluss-Nachweis (voller Regressionslauf + Playwright-Bildpaare, loest 192-VERIFICATION.md ab)
