@@ -44,6 +44,13 @@ import styles from './Stack.module.css'
  *    solange die Steuerelement-Reihe unterhalb ihres eigenen Haltepunkts normal im Textfluss
  *    liegt; oberhalb davon ist sie aus dem Textfluss genommen und nimmt an diesem Abstand gar
  *    nicht teil (kein doppelter/falscher Abstand oberhalb des Haltepunkts).
+ *  - `'supportingBlockToContent'`: Abstand zwischen den eigenen, unterstützenden Blöcken eines
+ *    Bausteins (z. B. Gruppen-Auswahl und Gruppen-Kontext in `FansubVersionBrowser`, beide optional
+ *    gar nicht gerendert) und dem danach folgenden Hauptinhalt (z. B. der Episodenliste) --
+ *    eigenständig von `'headingToBadges'` (fest an eine vorausgehende Überschrift gebunden) und
+ *    `'dividerToContent'` (fest an eine vorausgehende Trennlinie gebunden), da hier weder eine
+ *    Überschrift noch eine Trennlinie vorausgeht, sondern ein eigenständiger, optional ganz
+ *    entfallender Vorab-Block.
  *  - `'none'`: kein zusätzlicher Eigen-Abstand -- für den Fall, dass das nachfolgende Kind seinen
  *    Abstand zum vorherigen bereits vollständig selbst mitbringt (z. B. ein Kind, dessen erstes
  *    eigenes Element eine Trennlinien-Komponente mit eigenem Außenabstand ist). */
@@ -56,6 +63,7 @@ export type StackGapPurpose =
   | 'dividedSectionLeadIn'
   | 'dividerToContent'
   | 'contentToControlBand'
+  | 'supportingBlockToContent'
   | 'none'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
@@ -71,6 +79,7 @@ const GAP_PURPOSE_TOKENS: Record<Exclude<StackGapPurpose, 'none'>, string> = {
   dividedSectionLeadIn: 'var(--space-divided-section-lead-in)',
   dividerToContent: 'var(--space-divider-to-content)',
   contentToControlBand: 'var(--space-content-to-control-band)',
+  supportingBlockToContent: 'var(--space-supporting-block-to-content)',
 }
 
 /** Löst einen einzelnen Zweck-Wert auf seinen CSS-Wert auf -- `'none'` ergibt den Literalwert

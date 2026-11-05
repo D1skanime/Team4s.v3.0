@@ -158,6 +158,27 @@ export const InhaltZuSchwebenderSteuerelementReihe: Story = {
   },
 }
 
+export const UnterstuetzendeBloeckeZuHauptinhalt: Story = {
+  name: 'Unterstützende Blöcke zu Hauptinhalt (gap "supportingBlockToContent")',
+  args: {
+    gap: 'supportingBlockToContent',
+    children: (
+      <>
+        <Box label="Eigene unterstützende Blöcke (z. B. Gruppen-Auswahl, Gruppen-Kontext)" />
+        <Box label="Folgender Hauptinhalt (z. B. Episodenliste)" />
+      </>
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Abstand zwischen den eigenen, unterstützenden Blöcken eines Bausteins (z. B. Gruppen-Auswahl und Gruppen-Kontext in `FansubVersionBrowser`, beide optional gar nicht gerendert) und dem danach folgenden Hauptinhalt (z. B. der Episodenliste) -- eigenständig von "headingToBadges" (an eine Überschrift gebunden) und "dividerToContent" (an eine Trennlinie gebunden), obwohl alle drei denselben 16px-Wert tragen.',
+      },
+    },
+  },
+}
+
 export const RhythmusModus: Story = {
   name: 'Rhythmus-Modus (Array)',
   args: {
