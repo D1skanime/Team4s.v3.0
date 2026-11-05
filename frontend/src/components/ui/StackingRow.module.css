@@ -1,6 +1,15 @@
-/* Äußerer Container: reiner @container-Namensgeber, trägt keine eigene Layout-Eigenschaft
-   (identisches Zweistufen-Muster wie Cluster.module.css/SplitLayout.module.css). */
+/* Äußerer Container: reiner @container-Namensgeber (identisches Zweistufen-Muster wie
+   Cluster.module.css/SplitLayout.module.css). `display: block` ist hier -- anders als bei
+   Cluster/SplitLayout, die diese Klasse nur mit `as="div"` verwenden -- zwingend nötig: laut
+   CSS-Spezifikation hat `container-type` (hier über das `container`-Kurzschreibweise-Attribut
+   gesetzt) KEINE Wirkung auf einem Element mit berechnetem `display: inline` -- genau das wäre
+   der Fall, wenn dieser Baustein per `as="span"` innerhalb eines bereits bestehenden
+   Inline-Elements eingesetzt wird (z. B. `DisclosureTrigger`s Titel-Slot), dessen eigenes Kind
+   NICHT automatisch zu einem Flex-/Grid-Element "blockifiziert" wird. Ohne dieses `display:
+   block` würde die `@container`-Abfrage unten dauerhaft nie zutreffen, der Baustein bliebe
+   immer im gestapelten Zustand -- unabhängig vom tatsächlich verfügbaren Platz. */
 .stackingRowQueryContainer {
+  display: block;
   container: stacking-row / inline-size;
   min-width: 0;
 }
