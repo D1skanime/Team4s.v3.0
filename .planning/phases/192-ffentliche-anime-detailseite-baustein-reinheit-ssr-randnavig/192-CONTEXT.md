@@ -684,3 +684,168 @@ Live-Seite je Pilot-Baustein, Zero-Pixel-Diff-Bestätigung) läuft zuletzt.
   Playwright-geprüft bestätigt wird.
 
 </addendum_2026-11-05a>
+
+<addendum_2026-11-05b>
+## Nachtrag 05.11.2026 — Unabhängiger Review (codex), Runde 2 von 2, 1 blockierender [high]-Befund
+
+**Bestätigt durch vollständige Nachprüfung des Render-Baums von `/anime/[id]`** (nicht nur die 3
+vom Review namentlich genannten Dateien, sondern jede `.module.css`-Datei jeder tatsächlich auf
+dieser Seite gerenderten Komponente). Bisherige Pläne 192-01 bis 192-27 bleiben bestehen; dies ist
+eine fünfte Gap-Closure-Runde.
+
+### Bestätigter Befund: Guard deckt weder genug Dateien noch genug Eigenschaften ab
+
+**Dateiabdeckung:** `compositeLayoutPurity.guard.test.ts` prüft nur 4 Dateien. Reale, lebende
+Verstöße existieren zusätzlich in:
+- `frontend/src/components/fansubs/FansubVersionBrowser.module.css` (`.section { margin-top: 16px }`
+  — sogar ein ROHER Pixelwert, kein Token) — Episoden-Bereich.
+- `frontend/src/components/fansubs/FansubGroupContext.module.css` (`.card` padding/margin-bottom,
+  `.name`/`.storyPreview` margins, `.navRow` display:flex/gap/margin-top) — Gruppenkarte/-auswahl.
+- `frontend/src/components/fansubs/FansubGroupPicker.module.css` (`.wrapper` margin-bottom, `.chip`
+  gap, `.logo` width/height/border-radius) — Gruppenkarte/-auswahl.
+- `frontend/src/app/anime/[id]/page.episodes.module.css` (`.episodesSection` padding/margin-bottom)
+  — dies ist trotz des Namens `page.episodes.module.css` tatsächlich die alleinige Stil-Quelle des
+  Episoden-Bereich-Komposits (`AnimeEpisodesSection.tsx`s `<Card className={styles.episodesSection}>`-
+  Wrapper), nicht Seiten-Anordnung mehrerer Bereiche — bislang von KEINEM der beiden Guards (weder
+  `detailStyleSystem` noch `compositeLayoutPurity`) auf padding/margin geprüft.
+- `frontend/src/components/watchlist/WatchlistAddButton.module.css` (`.wrapper { display:grid;
+  gap:0.45rem }` — ein roher rem-Wert, kein Token) — wird AUSSCHLIESSLICH von
+  `AnimeDetailHero.tsx` gerendert (geprüft: einziger Verwender im gesamten Code), gehört damit
+  faktisch zum Anime-Kopf-Komposit, obwohl die Datei architektonisch unter `components/watchlist/`
+  liegt.
+
+**Eigenschaftsabdeckung:** Der Guard prüft aktuell nur `display:flex` (NICHT `display:grid`),
+`flex-direction`, `grid-template`, `gap`, `padding`, `margin` und private Grundbaustein-Variablen.
+Dadurch unentdeckt bleiben echte Verstöße SOGAR in den bereits 4 bewachten Dateien:
+- `ReleasePreviewRow.module.css:.logo { border: 1px solid var(--border-on-media); }` — eine echte
+  `border`-Deklaration.
+- `AnimeEdgeNavigation.module.css:.previewCover { border-radius: var(--radius-sm); ... }` und
+  `.previewCard { ...width: min(260px, 90vw); }` — `border-radius` und eine sichtbare
+  Fixbreiten-Deklaration.
+- `WatchlistAddButton.module.css:.wrapper { display: grid; ... }` — `display:grid` wird von keinem
+  vorhandenen Muster erfasst.
+
+### Explizit NICHT in dieser Runde (nachweislich begründet, kein Ignorieren)
+
+Der Review nennt zusätzlich sinngemäß „die weiteren Komposit-CSS-Dateien" pauschal. Eine
+vollständige Nachprüfung des gesamten Render-Baums ergab zwei weitere Dateien mit ähnlichen
+Mustern, die hier bewusst NICHT migriert werden, mit konkretem Beleg:
+- `frontend/src/components/anime/StatusBadge.module.css` — `StatusBadge` wird NICHT nur im
+  Anime-Kopf verwendet, sondern zusätzlich in `src/app/me/profile/components/ClaimStatusCard.tsx`,
+  `src/app/admin/anime/components/EpisodeManager/EpisodeRow.tsx`,
+  `src/app/admin/fansubs/FansubListRows.tsx`, `src/app/admin/fansubs/create/page.tsx`,
+  `src/app/admin/fansubs/[id]/edit/FansubEditHeaderCard.tsx`,
+  `src/components/contributions/MyProposalsSection.tsx`, `src/components/watchlist/WatchlistList.tsx`,
+  `src/components/anime/AnimeCard.tsx` (8 weitere Verwender, geprüft per `grep`) — eine Migration
+  würde über die fünf Pilot-Komposite dieser Phase hinaus Admin-/Profil-/andere-Seiten-Code anfassen,
+  was die seit Befund 23 geltende Grenze „Andere Seiten NICHT in diesem Auftrag umbauen" verletzt.
+- `frontend/src/components/anime/AnimeRelations.module.css` — `AnimeRelations` wird zusätzlich in
+  `src/app/admin/anime/components/AnimeEditPage/AnimeRelationsSection.tsx` verwendet (Admin-Bereich,
+  geprüft per `grep`) — dieselbe Begründung.
+- `frontend/src/components/anime/AnimeBackdropRotator.module.css` — ist kein Teil eines der fünf
+  benannten Pilot-Komposite (rendert den Banner-Hintergrund, nicht Anime-Kopf/Episoden-Bereich/
+  Gruppenkarte/Release-Zeile/Randnavigation), bleibt deshalb unverändert.
+
+Diese drei Dateien bleiben unverändert UND ihre `.module.css`-Dateien werden NICHT zum erweiterten
+Guard hinzugefügt (ein Guard-Eintrag ohne Migration wäre nur eine neue Ausnahme in anderer Form).
+
+### Entscheidung — konkrete Umsetzung
+
+**Guard-Erweiterung (Eigenschaften, gilt für ALLE bewachten Dateien gemeinsam):**
+- `display:\s*flex` → wird zu `display:\s*(?:flex|grid)` (erfasst jetzt beide).
+- NEU: `border(?:-top|-right|-bottom|-left)?\s*:` (außer `none`/`0`/transparent-Rücksetzer, analog
+  zum bestehenden `isAllZeroDeclaration`-Muster für padding/margin).
+- NEU: `border-radius\s*:` (JEDE Deklaration, auch mit `var()`-Wert — die Rundungs-Entscheidung
+  selbst gehört in den Grundbaustein, nicht nur der Rohwert).
+- NEU: `background(?:-color|-image)?\s*:` (außer `transparent`/`none`/`inherit`).
+- NEU: `box-shadow\s*:` (außer `none`).
+- NEU: `\bwidth\s*:` / `\bheight\s*:`, wenn der Wert NICHT `100%`, `auto`, `0`, `min-content`,
+  `max-content` oder ein reiner `var()`-Verweis auf ein bereits existierendes Grundbaustein-Token
+  ist (feste Pixel-/rem-/em-Literale sind der eigentliche Verstoß).
+
+**Dateiabdeckung (neu zum Guard hinzugefügte Dateien):**
+`FansubVersionBrowser.module.css`, `FansubGroupContext.module.css`, `FansubGroupPicker.module.css`,
+`page.episodes.module.css`, `WatchlistAddButton.module.css` — zusätzlich zu den bestehenden 4.
+
+**Konkrete Migrationen:**
+
+1. **`page.episodes.module.css` `.episodesSection`:** `padding: var(--space-6)` (32px) wird zu
+   einer neuen `Card`-Zweck-Stufe `'section'` (32px, „volle Innenabstand-Polsterung eines
+   eigenständigen Seitenabschnitts, z. B. der Episoden-Bereich-Rahmen" — unterscheidet sich von
+   `'nestedBlock'` [16px, Innenabstand EINES verschachtelten Blocks] durch den größeren Wert für
+   einen vollständigen, eigenständigen Bereich). `margin-bottom: var(--space-8)` ist dagegen
+   tatsächlich „Abstand zwischen Seitenabschnitten" (Anime-Kopf zu Episoden-Bereich) — das bleibt
+   laut Befund 22 ausdrücklich Aufgabe der SEITE, nicht des Bausteins. Diese eine Zeile wandert
+   deshalb NICHT in einen Grundbaustein, sondern nach `AnimeDetailView.tsx`/`page.module.css` (dort
+   bereits der richtige, erlaubte Ort für Bereichsabstände).
+
+2. **`FansubVersionBrowser.module.css` `.section`/`.emptyBox`:** `margin-top: 16px` (roh, kein
+   Token!) wird durch Umhüllen der tatsächlichen Geschwister-Elemente in `FansubVersionBrowser.tsx`
+   mit einem `<Stack gap="...">` ersetzt (Zweck-Wert gegen die aktuell lebende CSS nachmessen, 16px
+   entspricht keinem bestehenden Stack-Zweck exakt — neuen anlegen, nicht `--space-content-pair`
+   von Cluster zweckentfremden, gleiche Disziplin wie in Runde 4). `.emptyBox` ist bestätigt TOTES
+   CSS (keine Verwendung in `FansubVersionBrowser.tsx`, per `grep` geprüft) — ersatzlos löschen,
+   nicht migrieren.
+
+3. **`FansubGroupContext.module.css`:** `.card`s `padding: var(--space-5)` (24px) wird eine weitere
+   neue `Card`-Zweck-Stufe (24px, Name an tatsächlichem Zweck ausrichten, z. B. „Innenabstand einer
+   eigenständigen Kontext-/Hinweiskarte"). `.card`s `margin-bottom`, `.wrapper`s `margin-bottom`
+   (`FansubGroupPicker`) sowie `.section`s `margin-top` (`FansubVersionBrowser`, siehe oben) sind
+   alle derselbe Fall: Abstand zwischen Geschwistern INNERHALB von `FansubVersionBrowser`s eigener
+   Komposition (Gruppen-Auswahl, Gruppen-Kontext, Episodenliste) — werden GEMEINSAM durch EINEN
+   `<Stack gap="...">`-Wrapper in `FansubVersionBrowser.tsx` ersetzt, der diese drei Abschnitte
+   zusammenhält, statt durch drei verstreute lokale `margin`-Werte in drei verschiedenen Dateien.
+   `.name`/`.storyPreview`-Margins innerhalb der Karte: Stack-Rhythmus-Array (Mechanismus aus
+   192-21, bereits etabliert) für Heading/Text/Button-Kinder. `.navRow`: `Cluster` mit passendem
+   Zweck (`justify="end"`, Gap-Wert gegen die lebende CSS nachmessen — 8px passt zu keinem
+   bestehenden Cluster-Zweck exakt außer eventuell einer Neuanlage, `'actionRow'` [24px] passt
+   NICHT).
+
+4. **`FansubGroupPicker.module.css`:** `.chip`s `gap: var(--space-1)` entfällt ERSATZLOS, sobald das
+   Logo-Bild über `Button`s bereits vorhandene `leftIcon`-Prop statt als manuelles Kind-Element
+   übergeben wird (`Button` hat bereits eine eigene `--button-gap`-Eigenschaft für genau diesen
+   Fall — Icon/Label-Abstand ist bereits gelöst, keine neue Grundbaustein-Fähigkeit nötig, nur
+   korrekte Verwendung der bestehenden). Gegen die aktuell lebende CSS prüfen, ob `--button-gap`
+   exakt `var(--space-1)` entspricht (Zero-Pixel-Diff) — falls nicht, liegt die Abweichung an der
+   `chipGlass`-Variante selbst und muss dort (nicht hier) korrigiert werden. `.logo`s
+   `width:20px;height:20px;border-radius:50%;object-fit:cover`: die Kreisform/Zuschnitt-Entscheidung
+   gehört in einen Grundbaustein (vorhandener `Avatar`-Grundbaustein kennt bereits `size="sm"`=32px,
+   aber keine 20px-Stufe) — exakte technische Lösung (neue Avatar-Größenstufe vs. anderer
+   Mechanismus) als Claude's Discretion, Hauptsache: kein rohes `border-radius`/feste
+   `width`/`height` mehr lokal in `FansubGroupPicker.module.css`.
+
+5. **`WatchlistAddButton.module.css`:** `.wrapper { display:grid; gap:0.45rem }` (roh, kein Token!)
+   wird zu `<Stack gap="...">` (0.45rem=7,2px liegt am nächsten an `--space-2`=8px — gegen main
+   nachmessen, nicht per Annahme übernehmen, da der Rohwert nie exakt auf der Grundskala lag).
+   `.message`s `margin:0` ist ein legitimer Rücksetzer (bleibt oder wandert ersatzlos, falls das
+   Element ohnehin auf `Text` umgestellt wird — Claude's Discretion).
+
+6. **Bereits bewachte Dateien, neu gefundene Verstöße durch die erweiterte Eigenschaftsliste:**
+   `ReleasePreviewRow.module.css`s `.logo`-Rand gehört in `Avatar` (siehe oben, selbe Lösung wie
+   `FansubGroupPicker`s Logo, nach Möglichkeit DERSELBE Mechanismus für beide, da beide
+   „rundes/eingerahmtes kleines Gruppen-/Identitätsbild" sind). `AnimeEdgeNavigation.module.css`s
+   `.previewCover`-Rundung gehört in `MediaFrame` (dort bereits für andere Bildrahmen etabliert)
+   oder `ResponsiveImage` selbst; `.previewCard`s `width: min(260px, 90vw)` ist eine sichtbare
+   Karten-Breite und gehört als Zweck-Variante zu `Card` (z. B. eine „kompakte Vorschaukarte"-Breite)
+   statt eines lokalen Literalwerts.
+
+### Reihenfolge
+
+Grundbaustein-Erweiterungen zuerst (Card-Zweck-Stufen `'section'`/neue 24px-Stufe, Avatar-20px-Stufe
+oder Äquivalent, ggf. neue Stack-/Cluster-Zweck-Token nach Messung), DANN die Anwendung auf die 5
+neu hinzugefügten Dateien (inkl. `FansubVersionBrowser.tsx`s Stack-Umhüllung seiner drei
+Geschwister-Abschnitte) UND die Korrektur der 3 neu gefundenen Verstöße in den bereits bewachten
+Dateien, DANN die Guard-Erweiterung (Eigenschaften UND Dateiliste) selbst, DANN Abschluss-Nachweis
+(voller Regressionslauf + Playwright-Bildpaare main vs. Branch + Story vs. Live-Seite je betroffenem
+Baustein, Zero-Pixel-Diff-Bestätigung).
+
+### Claude's Discretion
+
+- Exakte neue Zweck-Namen/-Werte für die beiden neuen `Card`-Padding-Stufen (32px, 24px), die neuen
+  `Stack`/`Cluster`-Zweck-Token (gegen die lebende CSS nachgemessen, nicht geraten).
+- Technische Lösung für die 20px-Kreis-Logos (`FansubGroupPicker`, ggf. gemeinsam mit
+  `ReleasePreviewRow`s Avatar-Rand) und die `AnimeEdgeNavigation`-Vorschaukarten-Rundung/-Breite.
+- Ob `WatchlistAddButton`s `.message`-Absatz zusätzlich auf `Text` umgestellt wird oder nur sein
+  `display:grid`-Wrapper migriert wird.
+
+</addendum_2026-11-05b>
