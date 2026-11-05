@@ -64,7 +64,14 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
           aria-controls={panelId}
           open={expanded}
           title={
-            <Cluster as="span" gap="labelWithTrailingMeta" justify="between" align="center" wrap={false}>
+            <Cluster
+              as="span"
+              gap="labelWithTrailingMeta"
+              justify="between"
+              align="center"
+              growFirstChild
+              wrap={false}
+            >
               <span className={styles.headerText}>
                 <Text as="span" variant="meta" style={mutedOnGlassTextStyle} className={styles.episodeNumber}>
                   Folge {episode.episode_number}

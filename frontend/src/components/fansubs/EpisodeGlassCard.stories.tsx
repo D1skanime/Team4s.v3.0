@@ -71,7 +71,9 @@ const meta = {
           `aufgeklappte Versionsliste), ${storybookDocsLink('Grundbausteine/DisclosureTrigger', 'DisclosureTrigger')} ` +
           `(Kopfzeile), ${storybookDocsLink('Grundbausteine/Divider', 'Divider')} (Trennlinie vor der ` +
           `Versionsliste), ${storybookDocsLink('Grundbausteine/Text', 'Text')} (Episodennummer/-titel/` +
-          'Klassifikation/Versionszähler). Die Episodentyp→Farbton-Zuordnung (canon/filler/mixed/recap) ' +
+          `Klassifikation/Versionszähler) und ${storybookDocsLink('Grundbausteine/Cluster', 'Cluster')} ` +
+          '(responsive Kopfzeile: `growFirstChild` lässt Titel und Klassifikation neben dem festen ' +
+          'Versionszähler im verbleibenden Platz umbrechen). Die Episodentyp→Farbton-Zuordnung (canon/filler/mixed/recap) ' +
           'ist Domänenwissen dieser Komponente, nicht von Card.',
       },
     },
@@ -165,6 +167,14 @@ export const MehrereVersionen: Story = {
 
 export const LangerTitel: Story = {
   name: 'Langer Titel',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Responsiver Kopfzeilenfall: Der lange Titel und die Klassifikation nutzen über `Cluster.growFirstChild` den verbleibenden Platz; der Versionszähler bleibt vollständig sichtbar.',
+      },
+    },
+  },
   args: {
     episode: buildEpisode({ version_count: 2 }),
     episodeTitle:
