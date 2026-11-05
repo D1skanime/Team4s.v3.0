@@ -161,39 +161,41 @@ export const PaddingUeberschreibung: Story = {
 }
 
 export const AbschnittsPolsterung: Story = {
-  name: 'Innenabstand eines eigenstaendigen Seitenabschnitts (padding="section")',
+  name: 'Innenabstand eines eigenständigen Seitenabschnitts',
   parameters: {
     docs: {
       description: {
         story:
-          'padding="section" (32px) ist fuer eine Card gedacht, die selbst EIN GANZER, ' +
-          'eigenstaendiger Seitenabschnitt ist (z. B. der Episoden-Bereich-Rahmen) -- ' +
-          'groesszuegiger als "nestedBlock" (16px, ein Block INNERHALB einer aeusseren Karte).',
+          'Die padding-Prop auf den Zweck-Wert "section" gesetzt ist für eine Card gedacht, die ' +
+          'selbst EIN GANZER, eigenständiger Seitenabschnitt ist (z. B. der Episoden-Bereich-' +
+          'Rahmen) -- großzügiger als der Zweck-Wert für einen Block INNERHALB einer äußeren ' +
+          'Karte (16px).',
       },
     },
   },
   render: () => (
     <Card variant="section" padding="section">
-      <Text>Volle 32px-Polsterung eines eigenstaendigen Bereichs, z. B. eines Episoden-Rahmens.</Text>
+      <Text>Volle 32px-Polsterung eines eigenständigen Bereichs, z. B. eines Episoden-Rahmens.</Text>
     </Card>
   ),
 }
 
 export const KontextkartenPolsterung: Story = {
-  name: 'Innenabstand einer eigenstaendigen Kontext-/Hinweiskarte (padding="contextCard")',
+  name: 'Innenabstand einer eigenständigen Kontext-/Hinweiskarte',
   parameters: {
     docs: {
       description: {
         story:
-          'padding="contextCard" (24px) ist fuer eine eigenstaendige Kontext-/Hinweiskarte ' +
-          'gedacht (z. B. eine Fansub-Gruppenkontext-Karte) -- kleiner als "section" (32px), da ' +
-          'die Karte selbst kein ganzer Seitenabschnitt ist.',
+          'Die padding-Prop auf den Zweck-Wert "contextCard" gesetzt (24px) ist für eine ' +
+          'eigenständige Kontext-/Hinweiskarte gedacht (z. B. eine Fansub-Gruppenkontext-Karte) -- ' +
+          'kleiner als die Seitenabschnitts-Stufe (32px), da die Karte selbst kein ganzer ' +
+          'Seitenabschnitt ist.',
       },
     },
   },
   render: () => (
     <Card variant="nested" padding="contextCard">
-      <Text>24px-Polsterung einer eigenstaendigen Kontext-/Hinweiskarte.</Text>
+      <Text>24px-Polsterung einer eigenständigen Kontext-/Hinweiskarte.</Text>
     </Card>
   ),
 }
