@@ -14,6 +14,11 @@
      weiter unten -- ein Aufrufer, der über Cards padding-Prop eine abweichende Polsterung
      anfordert, bekommt sie HIER ohne dass diese Variante ihren eigenen Standardwert verliert. */
   padding: var(--card-padding-override, var(--card-padding));
+  /* --card-width-override ist derselbe generische Override-Hook-Mechanismus wie
+     --card-padding-override -- ohne Angabe (widthPurpose-Prop, Card.tsx) bleibt der Standardwert
+     `auto` erhalten, identisch zum bisherigen, impliziten Block-Standardverhalten ohne jede
+     eigene width-Deklaration (Zero-Pixel-Diff für jeden bestehenden Aufrufer). */
+  width: var(--card-width-override, auto);
   box-shadow: var(--card-shadow);
 }
 
@@ -68,6 +73,21 @@
   border: 1px solid var(--card-nested-flat-border-color);
   background: var(--card-nested-flat-bg);
   box-shadow: none;
+}
+
+/* Randloser Modus (seamless-Prop, Card.tsx): zeroed Rahmenbreite, Eckenrundung UND Hintergrund
+   JEDER Variante, auf der diese Klasse zusätzlich landet -- für eine Card-Instanz, die
+   flächenlos/bündig INNERHALB einer bereits eigenständig gerahmten äußeren Fläche sitzen soll
+   (z. B. eine verschachtelte Versionsliste innerhalb einer glasigen Episodenkarte, die sonst über
+   .cardFlats eigenen 1px-Rahmen samt Eckenrundung und heller Admin-Verlaufsfläche sichtbare
+   Mehr-Fläche gegenüber der umschließenden Karte hinzufügen würde). Deklariert bewusst NACH
+   .cardFlat/.cardNested/.cardNestedFlat (gleiche Selektor-Spezifität, Deklarationsreihenfolge
+   entscheidet den Gewinner), damit diese Klasse deren Rahmen-/Hintergrund-Werte zuverlässig
+   überschreibt, unabhängig davon, welche Variante die Karte sonst trägt. */
+.cardSeamless {
+  border-width: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 /* Öffentliche Glas-Fläche (zweite offizielle Erscheinung, keine Admin-Karte, siehe Card.tsx) --

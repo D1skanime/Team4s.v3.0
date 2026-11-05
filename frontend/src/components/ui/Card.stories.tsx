@@ -198,6 +198,54 @@ export const KontextkartenPolsterung: Story = {
   ),
 }
 
+export const KompakteVorschaukarte: Story = {
+  name: 'Höchstbreite begrenzte Vorschaukarte (widthPurpose="compactPreview")',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'widthPurpose="compactPreview" begrenzt Card auf min(260px, 90vw) -- für eine schmale, ' +
+          'schwebende Vorschaukarte (z. B. eine Vorher/Nachher-Randnavigations-Vorschau), die auf ' +
+          'sehr schmalen Bildschirmen nie breiter als 90% der Viewport-Breite werden darf.',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ position: 'relative', height: 120 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, padding: 20 }}>
+          <Card variant="glassStrong" padding="content" widthPurpose="compactPreview">
+            <Text tone="onScrim">Nie breiter als 260px (bzw. 90vw auf sehr schmalen Bildschirmen).</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
+}
+
+export const RandloseVerschachtelteKarte: Story = {
+  name: 'Randlose verschachtelte Karte (seamless)',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'seamless zeroed Rahmenbreite, Eckenrundung und Hintergrund der gewählten Variante -- ' +
+          'für eine Card-Instanz, die flächenlos/bündig INNERHALB einer bereits eigenständig ' +
+          'gerahmten äußeren Fläche sitzen soll (z. B. eine verschachtelte Versionsliste innerhalb ' +
+          'einer glasigen Episodenkarte, ohne die helle Admin-Fläche der "flat"-Variante sichtbar ' +
+          'hinzuzufügen).',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ padding: 20, background: '#1c1c1e' }}>
+      <Card variant="flat" padding="dividedSection" seamless>
+        <Text>Randlos, ohne eigene Eckenrundung/Hintergrund -- erbt die Fläche des äußeren Kontexts.</Text>
+      </Card>
+    </div>
+  ),
+}
+
 export const RandBisRandUnterhalb767px: Story = {
   name: 'Rand-bis-Rand unterhalb 767px (bleedBelowMd)',
   parameters: {

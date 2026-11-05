@@ -47,6 +47,19 @@ const PADDING_PURPOSE_TOKENS: Record<Exclude<CardPaddingPurpose, 'none'>, string
   contextCard: 'var(--card-padding-context-card)',
 }
 
+/** Zweck-Benennung von Cards Breiten-Override, nach demselben Muster wie `CardPaddingPurpose` --
+ *  benennt den wiederverwendbaren FUNKTIONALEN Einsatzzweck einer festen Höchstbreite, nie die
+ *  konkrete Aufrufstelle:
+ *  - `'compactPreview'`: schmale, auf eine Höchstbreite begrenzte Vorschaukarte (z. B. eine
+ *    schwebende Vorher/Nachher-Randnavigations-Vorschau). */
+export type CardWidthPurpose = 'compactPreview'
+
+/** Löst jeden Breiten-Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
+ *  niemals auf ein lokales CSS-Breiten-Literal in der Aufrufstelle (siehe `CardWidthPurpose`). */
+const WIDTH_PURPOSE_TOKENS: Record<CardWidthPurpose, string> = {
+  compactPreview: 'var(--card-width-compact-preview)',
+}
+
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant
   title?: string
@@ -85,6 +98,21 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
    *  ihrem bisherigen, nicht-responsiven Polsterungs-/Ausrichtungsverhalten unverändert
    *  (Zero-Pixel-Diff für alle bestehenden Aufrufer). */
   bleedBelowMd?: boolean
+  /** Generischer Breiten-Override-Hook EINER Card-Instanz, nach demselben Muster wie `padding`
+   *  (siehe `CardWidthPurpose`) -- setzt `--card-width-override`, gelesen von Cards Basisregel
+   *  über `var(--card-width-override, auto)`. Ohne Angabe bleibt jede Variante bei ihrer
+   *  bisherigen, nicht gesetzten Breite (block-typisches `auto`) unverändert (Zero-Pixel-Diff für
+   *  alle bestehenden Aufrufer). */
+  widthPurpose?: CardWidthPurpose
+  /** Randloser Modus für eine Card-Instanz, die flächenlos/bündig INNERHALB einer bereits
+   *  eigenständig gerahmten äußeren Fläche sitzen soll (z. B. eine verschachtelte Versionsliste
+   *  innerhalb einer glasigen Episodenkarte) -- zeroed Rahmenbreite, Eckenrundung UND Hintergrund
+   *  der gewählten Variante über eine Modifikatorklasse (dieselbe Technik wie `bleedBelowMd`: eine
+   *  reine CSS-Custom-Property kann eine SELEKTOR-Deklaration wie `border-radius`/`border-width`
+   *  nicht bedingt AN- oder ABSCHALTEN, nur einen bereits gesetzten Wert ERSETZEN). Ohne Angabe
+   *  bleibt jede Variante bei ihrem bisherigen Rahmen/ihrer bisherigen Eckenrundung unverändert
+   *  (Zero-Pixel-Diff für alle bestehenden Aufrufer). */
+  seamless?: boolean
 }
 
 export function Card({
@@ -100,6 +128,8 @@ export function Card({
   tintBorderAlpha,
   padding,
   bleedBelowMd,
+  widthPurpose,
+  seamless,
   className,
   children,
   style,
@@ -116,7 +146,8 @@ export function Card({
   const hasTint = isGlassVariant && tintHue !== undefined
   const hasPaddingOverride = padding !== undefined
   const paddingOverrideValue = padding !== undefined && padding !== 'none' ? PADDING_PURPOSE_TOKENS[padding] : '0'
-  const mergedStyle: CSSProperties | undefined = hasTint || hasPaddingOverride
+  const hasWidthOverride = widthPurpose !== undefined
+  const mergedStyle: CSSProperties | undefined = hasTint || hasPaddingOverride || hasWidthOverride
     ? {
         ...style,
         ...(hasTint
@@ -129,6 +160,7 @@ export function Card({
             }
           : {}),
         ...(hasPaddingOverride ? { '--card-padding-override': paddingOverrideValue } : {}),
+        ...(hasWidthOverride ? { '--card-width-override': WIDTH_PURPOSE_TOKENS[widthPurpose] } : {}),
       } as CSSProperties
     : style
 
@@ -153,6 +185,7 @@ export function Card({
         variant === 'publicHeroInfo' && styles.cardPublicHeroInfo,
         hasTint && styles.cardTinted,
         bleedBelowMd && styles.cardBleedBelowMd,
+        seamless && styles.cardSeamless,
         className,
       )}
     >
