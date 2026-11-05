@@ -95,6 +95,13 @@ describe('Stack', () => {
     expect((container.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('var(--space-content-to-control-band)')
   })
 
+  it('unterstützt "supportingBlockToContent" für den Abstand zwischen eigenen unterstützenden Blöcken und dem folgenden Hauptinhalt (FansubVersionBrowser, fünfte Gap-Closure-Runde)', () => {
+    const { container } = render(<Stack gap="supportingBlockToContent">Inhalt</Stack>)
+    expect((container.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe(
+      'var(--space-supporting-block-to-content)',
+    )
+  })
+
   it('löst den Zweck "none" auf den Literalwert 0 auf (kein eigenes Zweck-Token) -- sowohl im Einzelwert- als auch im Rhythmus-Array-Modus', () => {
     const { container: single } = render(<Stack gap="none">Inhalt</Stack>)
     expect((single.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('0')
