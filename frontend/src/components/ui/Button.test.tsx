@@ -86,4 +86,12 @@ describe('Button.module.css', () => {
     expect(buttonChipGlassIndex, '.buttonChipGlass must be declared after .buttonSmall').toBeGreaterThan(buttonSmallIndex)
     expect(buttonChipGlassIndex, '.buttonChipGlass must be declared after .buttonLarge').toBeGreaterThan(buttonLargeIndex)
   })
+
+  it('setzt für .buttonChipGlass einen eigenen --button-gap (4px statt der 10px-Standardlücke) für ein kleines Inline-Logo neben kurzer Chip-Beschriftung', () => {
+    const chipGlassStart = css.indexOf('.buttonChipGlass {')
+    expect(chipGlassStart, '.buttonChipGlass must exist in the stylesheet').toBeGreaterThan(-1)
+    const chipGlassEnd = css.indexOf('}', chipGlassStart)
+    const chipGlassBlock = css.slice(chipGlassStart, chipGlassEnd)
+    expect(chipGlassBlock).toMatch(/--button-gap:\s*var\(--space-1\);/)
+  })
 })

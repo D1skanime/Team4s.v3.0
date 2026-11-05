@@ -199,3 +199,38 @@ it.each([
     expect(nextImageRenderMock.mock.calls.at(-1)?.[0]?.unoptimized).toBe(false)
   },
 )
+
+// Rundes/beschnittenes Vorschau-Miniaturbild (z. B. die Randnavigations-Vorschaukarte) als
+// wiederverwendbare, opt-in Grundbaustein-Faehigkeit statt eines lokalen border-radius in jeder
+// Aufrufstelle.
+it('fügt mit roundedThumbnail die Rundungs-Klasse an, ohne ein bestehendes className zu ersetzen', async () => {
+  const { ResponsiveImage } = await vi.importActual<typeof import('./ResponsiveImage')>(
+    './ResponsiveImage',
+  )
+  render(
+    <ResponsiveImage
+      src="/covers/placeholder.jpg"
+      alt="Vorschau"
+      width={66}
+      height={92}
+      roundedThumbnail
+      className="previewCover"
+    />,
+  )
+
+  const image = screen.getByRole('img', { name: 'Vorschau' })
+  expect(image.className).toContain('roundedThumbnail')
+  expect(image.className).toContain('previewCover')
+})
+
+it('bleibt ohne roundedThumbnail Zero-Pixel-Diff: className unverändert, keine Rundungs-Klasse', async () => {
+  const { ResponsiveImage } = await vi.importActual<typeof import('./ResponsiveImage')>(
+    './ResponsiveImage',
+  )
+  render(
+    <ResponsiveImage src="/covers/placeholder.jpg" alt="Vorschau" width={66} height={92} className="previewCover" />,
+  )
+
+  const image = screen.getByRole('img', { name: 'Vorschau' })
+  expect(image.className).toBe('previewCover')
+})
