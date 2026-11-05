@@ -410,4 +410,25 @@ describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren ke
     const { violations: violatingViolations } = scanContent(violatingSample, 'SelfTest')
     expect(violatingViolations.some((v) => v.category === 'width-height')).toBe(true)
   })
+
+  // RED (Befund-Review2-R2, Task 2): GUARDED_COMPOSITE_FILES listet aktuell nur die ursprünglichen
+  // vier Pilot-Dateien -- dieser Testfall muss fehlschlagen, bis die fünf neu identifizierten
+  // Komposit-Dateien (FansubVersionBrowser/FansubGroupContext/FansubGroupPicker/page.episodes/
+  // WatchlistAddButton) ergänzt sind (Dateiabdeckung, Addendum 2026-11-05b).
+  it('bewacht alle neun real existierenden Komposit-Dateien der fünf Pilot-Bausteine, nicht nur die ursprünglichen vier', () => {
+    const guardedKeys = new Set(GUARDED_COMPOSITE_FILES.map((f) => f.key))
+    expect(guardedKeys).toEqual(
+      new Set([
+        'AnimeDetailHero',
+        'ReleasePreviewRow',
+        'EpisodeGlassCard',
+        'AnimeEdgeNavigation',
+        'FansubVersionBrowser',
+        'FansubGroupContext',
+        'FansubGroupPicker',
+        'PageEpisodes',
+        'WatchlistAddButton',
+      ]),
+    )
+  })
 })
