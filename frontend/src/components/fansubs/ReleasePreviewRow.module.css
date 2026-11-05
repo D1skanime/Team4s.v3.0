@@ -31,12 +31,9 @@
   flex-shrink: 0;
 }
 
-/* Avatar liefert Fläche/Initialen-Fallback bereits selbst -- nur der dezente Rand "auf dunkler
-   Fläche" (zweite offizielle Rand-Erscheinung neben dem weinroten Admin-Rand) wird hier
-   ergänzt. */
-.logo {
-  border: 1px solid var(--border-on-media);
-}
+/* .logo entfaellt ersatzlos: der dezente Rand "auf dunkler Flaeche" kommt jetzt aus Avatars
+   eigenem bordered-Prop (Plan 192-29/192-32) statt einer lokalen border-Deklaration -- Avatar
+   liefert Flaeche/Initialen-Fallback/Rand jetzt vollstaendig selbst. */
 
 .groupName {
   font-weight: 600;

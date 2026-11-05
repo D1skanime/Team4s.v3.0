@@ -45,7 +45,8 @@ const meta = {
           `Besteht aus: ${storybookDocsLink('Grundbausteine/Card', 'Card')} (variant="glassStrong"), ` +
           `${storybookDocsLink('Grundbausteine/Cluster', 'Cluster')} (collapseBelow="md" für die Zeile-` +
           `zu-Spalte-Haltepunkt-Umkehr, zusätzlich Avatar-Gruppe neben Textspalte), ` +
-          `${storybookDocsLink('Grundbausteine/Avatar', 'Avatar')} (Logo + Kürzel-Fallback), ` +
+          `${storybookDocsLink('Grundbausteine/Avatar', 'Avatar')} (Logo + Kürzel-Fallback, ` +
+          `bordered für den Rand "auf dunkler Fläche"), ` +
           `${storybookDocsLink('Grundbausteine/Text', 'Text')} (Gruppenname/Release-/Technik-/Extras-/` +
           `Datumszeile), ${storybookDocsLink('Grundbausteine/Button', 'Button')} (Release-Link).`,
       },

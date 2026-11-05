@@ -97,13 +97,14 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery, previous, next 
         <Card
           variant="glassStrong"
           padding="content"
+          widthPurpose="compactPreview"
           className={`${styles.previewCard} ${hoverDirection === 'prev' ? styles.previewLeft : styles.previewRight}`}
         >
           {/* Cluster statt eines eigenen display:flex -- align="stretch" reproduziert die
               bisherige, implizite Standard-Querachsen-Ausrichtung (Flex ohne align-items setzt
               den Browser-Standard "stretch", Clusters eigener Standard waere dagegen "center"). */}
           <Cluster gap="mediaCaption" align="stretch" wrap={false}>
-            <ResponsiveImage src={previewCoverUrl} alt={previewAnime.title} width={66} height={92} className={styles.previewCover} unoptimized />
+            <ResponsiveImage src={previewCoverUrl} alt={previewAnime.title} width={66} height={92} className={styles.previewCover} roundedThumbnail unoptimized />
             {/* Der enge Zeilenabstand zwischen Titel und Typ (EINE zweizeilige Bildunterschrift)
                 kommt jetzt aus Stacks "captionLines"-Zweck statt eines lokalen margin-top auf
                 .previewType. */}

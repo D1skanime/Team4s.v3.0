@@ -107,7 +107,7 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
                   src={resolveLogoUrl(group.logo_url)}
                   label={group.name}
                   size="sm"
-                  className={styles.logo}
+                  bordered
                 />
               ))}
             </Cluster>

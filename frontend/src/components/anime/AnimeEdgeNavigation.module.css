@@ -1,24 +1,24 @@
 /* Positioniert sich relativ zum gemeinsamen .edgeNavigationOverlay-Container (page.infoCard.
    module.css), der bewusst auf Button-Höhe begrenzt ist (--control-height-md) -- top:100% landet
    dadurch exakt am unteren Rand des Buttons, nicht am unteren Rand der ganzen Hero-Karte. */
-/* Nur noch Positionierung/Groesse/Sichtbarkeit -- das Bild+Text-Layout kommt ueber Cluster
-   gap="mediaCaption", der Innenabstand ueber Cards eigenen padding="3"-Override-Hook (siehe
-   AnimeEdgeNavigation.tsx). */
+/* Nur noch Positionierung/Sichtbarkeit -- das Bild+Text-Layout kommt ueber Cluster
+   gap="mediaCaption", der Innenabstand ueber Cards eigenen padding-Override-Hook und die
+   Hoechstbreite ueber Cards widthPurpose="compactPreview" (siehe AnimeEdgeNavigation.tsx). */
 .previewCard {
   pointer-events: none;
   position: absolute;
   top: calc(100% + var(--space-2));
   z-index: 1;
-  width: min(260px, 90vw);
 }
 
 .previewLeft { left: var(--adjacent-nav-floating-inset-x); }
 .previewRight { right: var(--adjacent-nav-floating-inset-x); }
 
+/* Rundung/Bildzuschnitt kommen jetzt aus ResponsiveImages roundedThumbnail-Prop -- hier bleibt
+   nur die Garantie, dass das Vorschaubild beim Schrumpfen des Clusters nicht komprimiert wird
+   (Cluster selbst setzt kein flex-shrink). */
 .previewCover {
   flex: 0 0 auto;
-  border-radius: var(--radius-sm);
-  object-fit: cover;
 }
 
 .previewMeta { min-width: 0; }
