@@ -24,7 +24,7 @@ export function FansubGroupContext({ activeGroup, animeSlug }: FansubGroupContex
   const canLinkToProject = Boolean(animeSlug?.trim() && activeGroup.slug?.trim())
 
   return (
-    <Card variant="glass" padding="contextCard" className={styles.card} data-testid="fansub-group-context">
+    <Card variant="glass" padding="contextCard" data-testid="fansub-group-context">
       {/* Name/Vorschautext/Mehr-Link/Aktionsreihe sind eng zusammengehoerige Inhalte EINER
           Kontextkarte -- Stacks "relatedContent"-Zweck (8px) deckt den gesamten Rhythmus ab,
           unabhaengig davon, ob der Vorschautext-Zweig (0 oder 2 Kinder) gerendert wird. */}

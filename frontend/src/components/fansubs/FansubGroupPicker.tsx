@@ -31,7 +31,7 @@ export function FansubGroupPicker({ options, activeGroupId, showAllChip, onSelec
   if (options.length === 0) return null
 
   return (
-    <Stack gap="relatedContent" className={styles.wrapper}>
+    <Stack gap="relatedContent">
       <Text as="span" variant="eyebrow" tone="onScrim">Fansub-Gruppe</Text>
       <Cluster gap="interactiveChipRow" as="div" role="group" aria-label="Fansub-Gruppe">
         {showAllChip ? (

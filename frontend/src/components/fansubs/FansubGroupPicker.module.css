@@ -2,12 +2,11 @@
  * Reine Layout-Komposition: alle visuellen Zustände (Glasfläche, Hover, ausgewählt) kommen seit
  * der globalen Button-Variante variant="chipGlass" (siehe Button.module.css) aus deren Tokens --
  * dieser Picker legt hier nur noch an, WIE Logo/Beschriftung innerhalb eines Chips Platz finden
- * und wie die Chips in einer Reihe umbrechen.
+ * und wie die Chips in einer Reihe umbrechen. Der vormalige Abstand zum jeweils folgenden
+ * Geschwister-Block (Gruppen-Kontext-Karte oder Episoden-Inhalt, `.wrapper`s margin-bottom) kommt
+ * jetzt aus dem gemeinsamen Rhythmus-Stack in FansubVersionBrowser.tsx (Runde 5,
+ * Befund-Review2-R2) statt aus einer lokalen Deklaration hier.
  */
-.wrapper {
-  margin-bottom: var(--space-5);
-}
-
 .chip {
   max-width: min(100%, 260px);
   overflow: hidden;
