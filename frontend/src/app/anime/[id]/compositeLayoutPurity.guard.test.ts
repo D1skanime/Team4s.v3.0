@@ -241,4 +241,41 @@ describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren ke
     const { violations } = scanContent(sample, 'SelfTest')
     expect(violations.some((v) => v.category === 'gap')).toBe(false)
   })
+
+  // RED (Befund-Review2-R2, Task 1): die folgenden Kategorien existieren im aktuellen
+  // FORBIDDEN_PATTERNS-Stand noch NICHT -- dieser Testfall muss fehlschlagen, bis display:grid/
+  // border/border-radius/background/box-shadow/feste width/height als eigene Kategorien ergänzt
+  // sind (Eigenschaftsabdeckung, Addendum 2026-11-05b).
+  it('erfasst die erweiterten Eigenschafts-Kategorien aus Befund-Review2-R2 (display:grid, border, border-radius, background, box-shadow, width/height)', () => {
+    const sample = [
+      '.grid {',
+      '  display: grid;',
+      '}',
+      '.border {',
+      '  border: 1px solid var(--border-on-media);',
+      '}',
+      '.radius {',
+      '  border-radius: 0;',
+      '}',
+      '.bg {',
+      '  background: var(--some-color);',
+      '}',
+      '.shadow {',
+      '  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);',
+      '}',
+      '.fixed {',
+      '  width: 260px;',
+      '}',
+    ].join('\n')
+
+    const { violations } = scanContent(sample, 'SelfTest')
+    const categories = new Set(violations.map((v) => v.category))
+
+    expect(categories).toContain('display')
+    expect(categories).toContain('border')
+    expect(categories).toContain('border-radius')
+    expect(categories).toContain('background')
+    expect(categories).toContain('box-shadow')
+    expect(categories).toContain('width-height')
+  })
 })
