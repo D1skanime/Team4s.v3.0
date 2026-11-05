@@ -1,17 +1,28 @@
 // @vitest-environment jsdom
 import fs from 'node:fs'
 import path from 'node:path'
-import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { act, cleanup, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getAnimeList } from '@/lib/api'
 import { buildAnimeDetailHref, buildAnimeGridQuery } from '@/lib/animeGridContext'
 import type { AnimeNeighbors } from '@/lib/animeGridContext'
-import type { AdjacentNavigationItem } from '@/components/ui'
+import { Card, ResponsiveImage, type AdjacentNavigationItem } from '@/components/ui'
 import type { AnimeListItem, PaginatedAnimeResponse } from '@/types/anime'
 
-import { AnimeEdgeNavigation } from './AnimeEdgeNavigation'
+import { AnimeEdgeNavigation, AnimeEdgeNavigationPreviewCard } from './AnimeEdgeNavigation'
 import { useAnimeEdgeNavigationHover } from './useAnimeEdgeNavigationHover'
+
+/** Materialisiert den von `AnimeEdgeNavigationPreviewCard` zurückgegebenen Element-Baum ohne
+ *  DOM-Render (dieselbe Technik wie `AnimeDetailView.test.tsx`) -- die Komponente ist hookfrei,
+ *  ein direkter Funktionsaufruf reicht deshalb aus, um ihre Grundbaustein-Props nachzuweisen. */
+function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
+  return Children.toArray(node).flatMap((child) => {
+    if (!isValidElement<Record<string, unknown>>(child)) return []
+    return [child, ...elements(child.props.children as ReactNode)]
+  })
+}
 
 vi.mock('@/lib/api', () => ({ getAnimeList: vi.fn() }))
 
@@ -26,7 +37,7 @@ function deferred<T>() {
   const promise = new Promise<T>((yes) => { resolve = yes })
   return { promise, resolve }
 }
-/** Baut das serverseitig aufgelöste Navigations-Item (Befund 19), wie es `page.tsx` liefert --
+/** Baut das serverseitig aufgelöste Navigations-Item, wie es `page.tsx` liefert --
  *  die Tests übergeben es direkt als Prop, statt es aus einem gemockten Fetch zu erwarten. */
 function navItem(targetID: number, page: number, direction: 'prev' | 'next'): AdjacentNavigationItem {
   const isPrevious = direction === 'prev'
@@ -54,7 +65,7 @@ describe('AnimeEdgeNavigation', () => {
     )
 
     // Die hrefs stehen bereits VOR dem ersten Flush der Vorschau-Fetch-Promise bereit -- kein
-    // waitFor()/act() nötig, um sie zu lesen (Befund 19s Kernnachweis).
+    // waitFor()/act() nötig, um sie zu lesen.
     expect(screen.getByRole('link', { name: 'Vorheriger Anime: Anime 2' }).getAttribute('href'))
       .toBe(buildAnimeDetailHref(2, query(1)))
     expect(screen.getByRole('link', { name: 'Nächster Anime: Anime 4' }).getAttribute('href'))
@@ -65,8 +76,8 @@ describe('AnimeEdgeNavigation', () => {
     await waitFor(() => expect(getAnimeList).toHaveBeenCalled())
   })
 
-  it('wechselt die Vorschau abhängig von der gehoverten/fokussierten Richtung (direkter Hook-Aufruf statt fireEvent.mouseEnter/mouseLeave, Befund C)', () => {
-    // Die Hover-/Fokus-Vorschauzustandslogik lebt seit Befund C in useAnimeEdgeNavigationHover
+  it('wechselt die Vorschau abhängig von der gehoverten/fokussierten Richtung (direkter Hook-Aufruf statt fireEvent.mouseEnter/mouseLeave)', () => {
+    // Die Hover-/Fokus-Vorschauzustandslogik lebt in useAnimeEdgeNavigationHover
     // (ausgelagert aus AnimeEdgeNavigationContext) -- derselbe Zustandsautomat, den die echte
     // Vorschaukarte im Browser treibt, wird hier direkt per renderHook aufgerufen, ohne
     // DOM-Rendering oder simulierte Maus-/Fokus-Ereignisse.
@@ -127,9 +138,9 @@ describe('AnimeEdgeNavigation.module.css', () => {
   })
 
   /*
-   * Runde 5, Befund-Review2-R2 (192-32): .previewCovers Rundung kommt jetzt aus
-   * ResponsiveImages roundedThumbnail-Prop, .previewCards Hoechstbreite aus Cards
-   * widthPurpose="compactPreview" -- beide Werte duerfen hier nicht mehr lokal stehen.
+   * .previewCovers Rundung kommt aus ResponsiveImages roundedThumbnail-Prop, .previewCards
+   * Hoechstbreite aus Cards widthPurpose="compactPreview" -- beide Werte duerfen hier nicht
+   * mehr lokal stehen, sonst laufen sie der Grundbaustein-Faehigkeit zuwider.
    */
   it('.previewCover deklariert keine eigene border-radius mehr, .previewCard keine eigene width mehr', () => {
     const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/anime/AnimeEdgeNavigation.module.css'), 'utf8')
@@ -144,27 +155,20 @@ describe('AnimeEdgeNavigation.module.css', () => {
   })
 })
 
-describe('AnimeEdgeNavigation -- Runde 5: Vorschaubild-Rundung/Kartenbreite ueber Grundbaustein-Faehigkeiten', () => {
-  it('wendet beim Hover auf das naechste Element ResponsiveImages roundedThumbnail-Klasse und Cards compactPreview-Breiten-Override an', async () => {
-    render(
-      <AnimeEdgeNavigation
-        currentAnimeID={3}
-        gridQuery={query(2)}
-        previous={navItem(2, 1, 'prev')}
-        next={navItem(4, 2, 'next')}
-      />,
-    )
+describe('AnimeEdgeNavigationPreviewCard', () => {
+  it('trägt ResponsiveImages roundedThumbnail-Klasse und Cards compactPreview-Breiten-Zweck (direkter Funktionsaufruf statt fireEvent.mouseEnter)', () => {
+    const tree = AnimeEdgeNavigationPreviewCard({
+      title: 'Anime 4',
+      type: 'tv',
+      coverUrl: '/covers/anime-4.jpg',
+      direction: 'next',
+    })
+    const all = elements(tree)
 
-    const nextLink = screen.getByRole('link', { name: 'Nächster Anime: Anime 4' })
-    await act(async () => { fireEvent.mouseEnter(nextLink) })
+    const image = all.find((el) => el.type === ResponsiveImage)
+    expect(image?.props.roundedThumbnail).toBe(true)
 
-    const previewImage = await screen.findByRole('img', { name: 'Anime 4' })
-    expect(previewImage.className).toMatch(/roundedThumbnail/)
-
-    // Card setzt die kompakte Vorschaubreite als Inline-Style-Override statt einer eigenen
-    // lokalen CSS-`width`-Deklaration (siehe Card.tsx's widthPurpose-Mechanismus).
-    const previewCardSection = previewImage.closest('section')
-    expect(previewCardSection).not.toBeNull()
-    expect(previewCardSection?.getAttribute('style')).toMatch(/--card-width-override/)
+    const card = all.find((el) => el.type === Card)
+    expect(card?.props.widthPurpose).toBe('compactPreview')
   })
 })

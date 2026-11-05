@@ -24,7 +24,7 @@ export interface EdgeNavigationHoverHandlers {
  * Teil von `AnimeEdgeNavigationContext`s Komponenten-Closure -- jetzt ein eigener Hook, der
  * `handlersFor(direction)`/`hoverDirection`/`previewAnime`/`previewCoverUrl` direkt -- ohne
  * Rendering oder DOM-Event-Simulation -- testbar macht (gleiche Auslagerungstechnik wie
- * `useFansubGroupSwitch`/`useWatchlistAction`, Plan 192-09).
+ * `useFansubGroupSwitch`/`useWatchlistAction`).
  */
 export function useAnimeEdgeNavigationHover(neighbors: AnimeNeighbors | null) {
   const [hoverDirection, setHoverDirection] = useState<EdgeNavigationDirection | null>(null)
