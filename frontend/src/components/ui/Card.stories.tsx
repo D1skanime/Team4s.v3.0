@@ -136,7 +136,7 @@ export const PaddingUeberschreibung: Story = {
       description: {
         story:
           'Die glassStrong-Variante hat standardmäßig padding:0 (Aufrufer bringt eigene Struktur ' +
-          'mit) -- die padding-Prop fordert pro Instanz eine andere Card-eigene Polsterung an, ' +
+          'mit) -- die padding-Prop fordert pro Instanz eine der benannten Zweck-Polsterungen an, ' +
           'ohne dass der Aufrufer selbst eine padding-CSS-Regel schreiben müsste.',
       },
     },
@@ -148,8 +148,11 @@ export const PaddingUeberschreibung: Story = {
           <Card variant="glassStrong">
             <Text tone="onScrim">Standard (padding:0, Aufrufer polstert selbst)</Text>
           </Card>
-          <Card variant="glassStrong" padding="6">
-            <Text tone="onScrim">padding=&quot;6&quot; (Card polstert selbst, Space-Stufe 6)</Text>
+          <Card variant="glassStrong" padding="content">
+            <Text tone="onScrim">padding=&quot;content&quot; (volle Innenabstand-Polsterung, z. B. Vorschaukarte der Randnavigation)</Text>
+          </Card>
+          <Card variant="glassStrong" padding="nestedBlock">
+            <Text tone="onScrim">padding=&quot;nestedBlock&quot; (Innenabstand eines verschachtelten Inhaltsblocks)</Text>
           </Card>
         </div>
       </BannerSection>

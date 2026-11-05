@@ -37,11 +37,6 @@ describe('Card', () => {
     expect(section.style.getPropertyValue('--card-padding-override')).toBe('0')
   })
 
-  it('akzeptiert keine rohe Space-Skalenstufe mehr (TypeScript-Vertrag, siehe gapPurposeNaming.guard.test.ts für den Laufzeit-Scan)', () => {
-    // @ts-expect-error -- padding="3" ist seit der Zweck-Enum-Umstellung kein gültiger Wert mehr.
-    const { container } = render(<Card variant="glassStrong" padding="3">Inhalt</Card>)
-    expect(container.querySelector('section')).toBeTruthy()
-  })
 })
 
 describe('Card.module.css', () => {

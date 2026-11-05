@@ -80,7 +80,7 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
     // Cards eigenen Varianten-Regeln und einem lokalen `padding:` auf .row entfaellt dadurch, da
     // .row selbst kein `padding:` mehr deklariert. Das responsive Flex-Row-Layout von .row bleibt
     // eine eng dokumentierte Einzelfall-Ausnahme (siehe ReleasePreviewRow.module.css).
-    <Card variant="glassStrong" padding="3">
+    <Card variant="glassStrong" padding="content">
       <div className={styles.row}>
         {groups.length > 0 ? (
           // Avatar(e) + Text-Stack nebeneinander, NIE übereinander (wrap={false}) -- die

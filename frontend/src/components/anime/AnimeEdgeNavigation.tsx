@@ -96,7 +96,7 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery, previous, next 
       {previewAnime ? (
         <Card
           variant="glassStrong"
-          padding="3"
+          padding="content"
           className={`${styles.previewCard} ${hoverDirection === 'prev' ? styles.previewLeft : styles.previewRight}`}
         >
           {/* Cluster statt eines eigenen display:flex -- align="stretch" reproduziert die

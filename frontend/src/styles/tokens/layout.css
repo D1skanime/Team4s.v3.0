@@ -100,6 +100,9 @@
   --split-layout-gap-none: 0; /* SplitLayout: kein Abstand zwischen den beiden Spalten -- der Anime-Kopf setzt Poster- und Info-Karte direkt aneinander, der Zwischenraum zwischen den Spalten entsteht bereits ueber das Card-eigene Rahmen-/Schattenbild. */
   --overlay-offset-control-band: var(--space-3); /* Cluster float="controlBand": oberer Versatz des schwebenden Steuerelement-Bandes zum Rand seines positionierten Vorfahren (z. B. die Randnavigation über dem Anime-Kopf) -- unverändert derselbe Wert wie die bisherige lokale --edgeNavigationOverlay-Regel. */
   --overlay-height-control-band: var(--control-height-md); /* Cluster float="controlBand": Höhe des schwebenden Steuerelement-Bandes -- begrenzt den Positionierungskontext der darin liegenden Buttons auf Button-Höhe statt auf die ggf. viel größere Kartenhöhe. */
+  --card-padding-content: var(--space-3); /* Card: volle Innenabstand-Polsterung für eine Card-Instanz, deren Variante selbst kaum/kein Padding mitbringt (z. B. die glassStrong-Vorschaukarte der Randnavigation, die glassStrong-Zeilen-Karte der Release-Vorschauzeile). */
+  --card-padding-nested-block: var(--space-4); /* Card: Innenabstand eines verschachtelten Inhaltsblocks innerhalb einer äußeren Karte (z. B. die Poster-Metadaten-Karte im Anime-Kopf). */
+  --card-padding-divided-section: var(--space-3) var(--space-4) var(--space-4); /* Card: asymmetrisches Rezept (oben/seitlich/unten) für einen verschachtelten Inhaltsblock, der durch eine Trennlinie statt durch einen Rahmen vom darüberliegenden Bereich abgesetzt ist (z. B. die Versionsliste einer Episodenkarte). */
 }
 
 @media (min-width: 1600px) {

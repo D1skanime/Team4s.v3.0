@@ -12,6 +12,29 @@ type CardVariant =
   // CLAUDE.md "öffentliche Optik ist eine zweite offizielle Erscheinung".
   | 'glass' | 'glassStrong' | 'publicSection' | 'publicHero' | 'publicPoster' | 'publicHeroInfo'
 
+/** Zweck-Benennung von Cards Innenabstands-Override, nach demselben Muster wie Stacks/Clusters
+ *  `GAP_PURPOSE_TOKENS` -- Card kennt dabei KEINE rohe Space-Skalenstufe mehr, sondern einen
+ *  benannten Einsatzzweck, der intern über ein eigenes Zweck-Token in
+ *  `src/styles/tokens/layout.css` auf die unveränderte `--space-N`-Grundskala verweist:
+ *  - `'content'`: volle Innenabstand-Polsterung für eine Card-Instanz, deren Variante selbst
+ *    kaum/kein Padding mitbringt (z. B. die glassStrong-Vorschaukarte der Randnavigation).
+ *  - `'nestedBlock'`: Innenabstand eines verschachtelten Inhaltsblocks innerhalb einer äußeren
+ *    Karte (z. B. die Poster-Metadaten-Karte im Anime-Kopf).
+ *  - `'dividedSection'`: asymmetrisches Rezept (oben/seitlich/unten) für einen verschachtelten
+ *    Inhaltsblock, der durch eine Trennlinie statt durch einen Rahmen vom darüberliegenden
+ *    Bereich abgesetzt ist.
+ *  - `'none'`: setzt Padding auf den Literalwert `0`. */
+export type CardPaddingPurpose = 'content' | 'nestedBlock' | 'dividedSection' | 'none'
+
+/** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
+ *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `CardPaddingPurpose`-Dokumentation
+ *  oben). `'none'` wird separat als Literal `'0'` behandelt, nicht über diese Tabelle. */
+const PADDING_PURPOSE_TOKENS: Record<Exclude<CardPaddingPurpose, 'none'>, string> = {
+  content: 'var(--card-padding-content)',
+  nestedBlock: 'var(--card-padding-nested-block)',
+  dividedSection: 'var(--card-padding-divided-section)',
+}
+
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant
   title?: string
@@ -34,14 +57,14 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   tintSurfaceAlpha?: number
   tintBorderAlpha?: number
   /** Generischer Override-Hook für den Innenabstand EINER Card-Instanz, nach demselben Muster
-   *  wie `tintHue`/`--card-radius-override` -- Card kennt dabei weiterhin keinen Fachzweck des
-   *  Werts, nur die Skalenstufe. Erlaubt einem zusammengesetzten Baustein (z. B. einer
-   *  Info-Karte mit uneinheitlichem Innenabstand), die Card-eigene Polsterung einer einzelnen
-   *  Instanz anzufordern, OHNE selbst eine `padding:`-CSS-Regel zu deklarieren. `'none'` setzt
-   *  Padding auf `0`, jeder andere Wert mappt auf die gleichnamige Space-Skalenstufe. Ohne
-   *  Angabe bleibt die bisherige, variantenspezifische Standard-Polsterung jeder Card-Variante
-   *  unverändert (Zero-Pixel-Diff für alle bestehenden Aufrufer). */
-  padding?: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'none'
+   *  wie `tintHue`/`--card-radius-override` -- Card kennt dabei einen benannten Einsatzzweck
+   *  (siehe `CardPaddingPurpose`), nie eine rohe Space-Skalenstufe. Erlaubt einem
+   *  zusammengesetzten Baustein (z. B. einer Info-Karte mit uneinheitlichem Innenabstand), die
+   *  Card-eigene Polsterung einer einzelnen Instanz anzufordern, OHNE selbst eine
+   *  `padding:`-CSS-Regel zu deklarieren. Ohne Angabe bleibt die bisherige, variantenspezifische
+   *  Standard-Polsterung jeder Card-Variante unverändert (Zero-Pixel-Diff für alle bestehenden
+   *  Aufrufer). */
+  padding?: CardPaddingPurpose
 }
 
 export function Card({
@@ -71,7 +94,7 @@ export function Card({
   const isGlassVariant = variant === 'glass' || variant === 'glassStrong'
   const hasTint = isGlassVariant && tintHue !== undefined
   const hasPaddingOverride = padding !== undefined
-  const paddingOverrideValue = padding === 'none' ? '0' : `var(--space-${padding})`
+  const paddingOverrideValue = padding !== undefined && padding !== 'none' ? PADDING_PURPOSE_TOKENS[padding] : '0'
   const mergedStyle: CSSProperties | undefined = hasTint || hasPaddingOverride
     ? {
         ...style,

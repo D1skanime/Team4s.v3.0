@@ -78,7 +78,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
                   .posterMetaCard (unten) ist die einzige Stelle, an der dieser Innenabstand
                   responsiv von der Vorgabe abweicht -- Cards padding-Prop kennt nur einen
                   einzigen, nicht responsiven Skalenwert. */}
-              <Card variant="nested" padding="4" className={styles.posterMetaCard}>
+              <Card variant="nested" padding="nestedBlock" className={styles.posterMetaCard}>
                 <WatchlistAddButton animeID={anime.id} />
                 <Divider tone="onMedia" spacing="withinMetaBlock" className={styles.posterDivider} />
                 <Stack gap="relatedContent" className={styles.genresSection}>
