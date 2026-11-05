@@ -58,4 +58,60 @@ describe('Cluster', () => {
     expect(node.getAttribute('role')).toBe('group')
     expect(node.getAttribute('aria-label')).toBe('Fansub-Gruppe')
   })
+
+  it('setzt den neuen Zweck "independentBlocks" (geteilt mit Stack) als eigene CSS-Variable', () => {
+    const { container } = render(<Cluster gap="independentBlocks">Inhalt</Cluster>)
+    expect((container.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe(
+      'var(--space-independent-blocks)',
+    )
+  })
+
+  it('bleibt ohne collapseBelow/float ein einzelnes, unveraendertes Element (Zero-Pixel-Diff fuer jeden bestehenden Aufrufer)', () => {
+    const { container } = render(<Cluster>Inhalt</Cluster>)
+    const node = container.firstElementChild as HTMLElement
+    expect(node.className).toMatch(/cluster/)
+    expect(node.className).not.toMatch(/clusterQueryContainer/)
+    expect(node.firstElementChild).toBeNull()
+    expect(node.textContent).toBe('Inhalt')
+  })
+
+  describe('collapseBelow/gapCollapsed (Haltepunkt-Umkehr, Review-Befund 1 Erweiterung B)', () => {
+    it('rendert einen zweistufigen Container-Query-Wrapper, wenn collapseBelow gesetzt ist', () => {
+      const { container } = render(
+        <Cluster collapseBelow="md" gap="contentPair" gapCollapsed="independentBlocks">
+          Inhalt
+        </Cluster>,
+      )
+
+      const outer = container.firstElementChild as HTMLElement
+      expect(outer.className).toMatch(/clusterQueryContainer/)
+
+      const inner = outer.firstElementChild as HTMLElement
+      expect(inner.className).toMatch(/cluster/)
+      expect(inner.textContent).toBe('Inhalt')
+    })
+
+    it('loest gapCollapsed auf ein eigenes, von gap verschiedenes Zweck-Token auf', () => {
+      const { container } = render(
+        <Cluster collapseBelow="md" gap="contentPair" gapCollapsed="independentBlocks">
+          Inhalt
+        </Cluster>,
+      )
+
+      const outer = container.firstElementChild as HTMLElement
+      expect(outer.style.getPropertyValue('--cluster-gap')).toBe('var(--space-content-pair)')
+      expect(outer.style.getPropertyValue('--cluster-gap-collapsed')).toBe('var(--space-independent-blocks)')
+    })
+
+    it('setzt --cluster-gap-collapsed NICHT, wenn gapCollapsed nicht uebergeben wird (CSS-Fallback auf gap greift)', () => {
+      const { container } = render(
+        <Cluster collapseBelow="md" gap="contentPair">
+          Inhalt
+        </Cluster>,
+      )
+
+      const outer = container.firstElementChild as HTMLElement
+      expect(outer.style.getPropertyValue('--cluster-gap-collapsed')).toBe('')
+    })
+  })
 })
