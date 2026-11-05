@@ -37,6 +37,14 @@ describe('Card', () => {
     expect(section.style.getPropertyValue('--card-padding-override')).toBe('0')
   })
 
+  it('loest die neuen Zweck-Werte "section" (32px) und "contextCard" (24px) auf ihre eigenen, von jedem bisherigen Zweck verschiedenen Token auf', () => {
+    const { container: section } = render(<Card variant="section" padding="section">Inhalt</Card>)
+    expect((section.querySelector('section') as HTMLElement).style.getPropertyValue('--card-padding-override')).toBe('var(--card-padding-section)')
+
+    const { container: contextCard } = render(<Card variant="glass" padding="contextCard">Inhalt</Card>)
+    expect((contextCard.querySelector('section') as HTMLElement).style.getPropertyValue('--card-padding-override')).toBe('var(--card-padding-context-card)')
+  })
+
   it('bleedBelowMd ist ohne Angabe byte-identisch zum bisherigen Render (keine neue Klasse/kein neuer Inline-Stil)', () => {
     const { container } = render(<Card variant="nested">Inhalt</Card>)
     const section = container.querySelector('section') as HTMLElement
