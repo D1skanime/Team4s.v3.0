@@ -56,11 +56,15 @@
  */
 
 /*
- * .action traegt seit dem Wechsel auf Buttons fullWidthBelowMd-Prop nur noch die Flex-ITEM-
- * Eigenschaft `flex-shrink:0` im Zeilen-Zustand (ab 768px) -- verhindert, dass die Aktionsspalte
- * neben der breiteren Textspalte komprimiert wird. Die eigentliche Breitenentscheidung liegt
- * vollstaendig in Buttons eigener fullWidthBelowMd-Prop (gestapelt: volle Breite) bzw. dessen
- * natuerlicher Inhaltsbreite (Zeilen-Zustand), nicht mehr in dieser Komposit-Datei.
+ * .action traegt seit dem Wechsel auf Buttons fullWidthBelowMd-Prop nur noch zwei Flex-ITEM-
+ * Eigenschaften im Zeilen-Zustand (ab 768px): `flex-shrink:0` verhindert, dass die Aktionsspalte
+ * neben der breiteren Textspalte komprimiert wird; `align-self:center` haelt den Button auf
+ * seiner eigenen, von Buttons min-height bestimmten Standardhoehe (das aeussere Clusters
+ * align="stretch" wuerde ihn sonst auf die volle, durch die mehrzeilige Textspalte vorgegebene
+ * Zeilenhoehe strecken, da align auf BEIDEN Achsen wirkt -- gestapelt auf die Breite, in der
+ * Zeile auf die Hoehe). Die eigentliche Breitenentscheidung liegt vollstaendig in Buttons eigener
+ * fullWidthBelowMd-Prop (gestapelt: volle Breite) bzw. dessen natuerlicher Inhaltsbreite
+ * (Zeilen-Zustand), nicht mehr in dieser Komposit-Datei.
  */
 @media (min-width: 768px) {
   .body {
@@ -70,5 +74,6 @@
 
   .action {
     flex-shrink: 0;
+    align-self: center;
   }
 }
