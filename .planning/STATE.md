@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-23-PLAN.md (Card-padding Zweck-Enum + 'dividedSection' + Rand-bis-Rand-Modus)
-last_updated: "2026-11-05T01:15:48.273Z"
+stopped_at: Completed 192-24-PLAN.md
+last_updated: "2026-11-05T01:50:34.281Z"
 last_activity: 2026-11-05
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 557
-  completed_plans: 546
+  completed_plans: 547
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 4 -- codex Review)) — EXECUTING
-Plan: 4 of 27
+Plan: 5 of 27
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1598,6 +1598,8 @@ Last activity: 2026-11-05
 - [Phase 192]: Clusters collapseBelow/gapCollapsed und float teilen sich denselben Zwei-Ebenen-Container-Query-Wrapper und Container-Namen ('cluster') statt zweier getrennter Mechanismen -- beide Props sind unabhaengig voneinander kombinierbar
 - [Phase 192]: Neuer Cluster-Zweck 'independentBlocks' verweist auf dasselbe --space-independent-blocks-Token wie Stack statt ein zweites, wertgleiches Token anzulegen
 - [Phase 192]: bleedBelowMd als Modifikatorklasse statt reinem CSS-Variablen-Hook umgesetzt — Eine reine CSS-Custom-Property kann eine Selektor-Aktivierung nicht bedingen, nur einen Wert liefern; die Klasse folgt derselben, bereits durch Cluster collapseBelow/float etablierten Technik und liegt innerhalb des dokumentierten Claude's-Discretion-Spielraums der Plan-Spezifikation
+- [Phase 192]: 192-24: Divider um spacing="none" erweitert (Rule 2) — statsRow/relatedSection ersetzen border-top durch echte Divider-Elemente, deren Vorlauf/Nachlauf vollstaendig aus dem Stack-Rhythmus-Array kommt -- Dividers bisherige symmetrische Mindestabstaende haetten den vermessenen Rhythmus sonst um deren Betrag verschoben
+- [Phase 192]: 192-24: .infoBanner erhaelt display:block (Rule 1) — Stacks Rhythmus-Array wrappt AnimeInfoBanner in ein nicht-Flex-Element, wodurch der browseruebliche Baseline-Leerraum unterhalb des inline <img> sichtbar wurde (7px); per Playwright-Byte-Diff gefunden und behoben
 
 ### Pending Todos
 
@@ -2387,11 +2389,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P21 | 4min | 2 tasks | 5 files |
 | Phase 192 P22 | 9min | 2 tasks | 6 files |
 | Phase 192 P23 | 9min | 2 tasks | 10 files |
+| Phase 192 P24 | 31min | 2 tasks | 13 files |
 
 ## Session Continuity
 
-Last session: 2026-11-05T01:15:33.743Z
-Stopped at: Completed 192-23-PLAN.md (Card-padding Zweck-Enum + 'dividedSection' + Rand-bis-Rand-Modus)
+Last session: 2026-11-05T01:50:34.247Z
+Stopped at: Completed 192-24-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
