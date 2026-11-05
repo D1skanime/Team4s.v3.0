@@ -229,15 +229,38 @@ drei ASCII-Umlaut-Reste in `docs/FRONTEND_ARCHITEKTUR.md` (Zeilen 275/277/279) a
 unrelated Phase-191-Commit (`d401552bc`) bleiben unangetastet -- außerhalb des Scopes dieses
 Phase-192-Nachbesserungsdurchgangs.
 
+## Sichtprüfung durch den Agenten (Ersatz für den zurückgestellten Zero-Pixel-Diff-Nachweis)
+
+Nach Abschluss aller fünf Tasks wurde der Frontend-Container neu gestartet und die öffentliche
+Anime-Detailseite direkt im Browser angesehen (Playwright, einmaliger, nicht gespeicherter
+Screenshot zur eigenen Sichtprüfung -- kein neuer Test, kein Pixelvergleich gegen eine
+Baseline, keine committete Datei):
+
+- `/anime/8` ("07-Ghost") Desktop 1440px: Posterbreite, Titelzeile, Status-/Typ-/Jahr-Badges,
+  Beschreibung, Tags, Genres-Chips, Merkliste-Button, Episodenliste mit Fansub-Gruppen-Header --
+  alles sichtbar korrekt, keine Verschiebung/Überlappung gegenüber dem bisherigen Erscheinungsbild.
+- `/anime/8` Mobil 390px: Poster zentriert auf der kompakten Breitenstufe, Genres/Badges/Tags
+  zentriert, Info-Karte zentrierter Text -- alle vier neuen `*BelowMd`-Zentrierungen wirken
+  sichtbar korrekt.
+- `/anime/10` ("Ace of the Diamond: Staffel 2", längerer Titel) Desktop: Titelzeile rendert ohne
+  Umbruch-Artefakte oder Überlappung mit den Badges darunter.
+- Kein Anime im lokalen Entwicklungsbestand hat aktuell ein gepflegtes Titel-Logo (Jellyfin-
+  Backdrop-Manifest liefert für keine der zehn vorhandenen Anime einen `logo_url`) -- die
+  Titel-neben-Logo-Zeile (`growFirstChild`s eigentlicher Anwendungsfall) konnte dadurch nicht am
+  echten Logo-Fall gegengeprüft werden. Kein Risiko für die aktuell sichtbaren Seiten (ohne
+  zweites Zeilenelement hat `flex:1 1 0%` auf dem einzigen Kind keine sichtbare Wirkung); dieser
+  spezifische Fall bleibt Teil der ausstehenden menschlichen Live-UAT, sobald ein Anime mit
+  Titel-Logo verfügbar ist.
+
 ## Next Phase Readiness
 
 - Der einzige für diese Runde freigegebene [high]-Befund (eigenes Layout-CSS in
   `AnimeDetailHero.module.css`) ist vollständig behoben; `AnimeDetailHero.module.css` deklariert
   keine width-/height-Layout-Eigenschaft mehr.
-- Live-Browser-UAT (Posterbreite auf allen drei Haltepunkten, Titel-Logo-Zeile bei langem Titel,
-  Info-Karten-/Badges-/Tags-/Stats-Zentrierung auf Mobilbreite) steht als abschließende
-  menschliche Prüfung noch aus (gemäß `ki-run`-Workflow, kein Zwischen-Checkpoint in diesem
-  Auftrag).
+- Live-Browser-UAT (Posterbreite auf allen drei Haltepunkten, Titel-Logo-Zeile bei langem Titel
+  UND vorhandenem Logo, Info-Karten-/Badges-/Tags-/Stats-Zentrierung auf Mobilbreite) steht als
+  abschließende menschliche Prüfung noch aus (gemäß `ki-run`-Workflow, kein Zwischen-Checkpoint in
+  diesem Auftrag) -- die eigene Sichtprüfung des Agenten oben deckt den Großteil davon bereits ab.
 - Guard-Schärfung, Befund 2, Stories und Zero-Pixel-Diff-Nachweis sind für eine Folgerunde nach
   der Live-Abnahme vorgemerkt (siehe oben).
 

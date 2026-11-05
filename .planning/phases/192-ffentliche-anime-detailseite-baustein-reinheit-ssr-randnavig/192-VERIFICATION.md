@@ -267,6 +267,27 @@ vorgemerkt) -- siehe
 Diese Phasen-Verifikation bleibt für den Stand vor diesem Nachtrag gültig; der aktuelle Stand dieser
 Phase umfasst zusätzlich die in der Quick-Aufgabe dokumentierten Änderungen.
 
+## Nachtrag: Quick-Aufgabe 261105-qr1 (unabhängiger Review, Runde 1 von 1)
+
+Ein weiterer unabhängiger Review meldete einen [high]-Befund gegen `AnimeDetailHero.module.css`
+zurück (eigenes Layout-CSS: Posterbreite, Titel-Logo-Zeile, responsive Ausrichtung/Zentrierung).
+Behoben unter `.planning/quick/261105-qr1-phase192-review4-fixes/` durch fünf benannte
+Grundbaustein-Fähigkeiten (`MediaFrame.widthPurpose="posterHero"`, vervollständigte
+`Card.module.css`-Varianten, `Stack.alignBelowMd`, `Cluster.justifyBelowMd`/`growFirstChild`,
+ein eigenes Stylesheet für `AnimeTitleLogo`) -- siehe
+[261105-qr1-SUMMARY.md](../../quick/261105-qr1-phase192-review4-fixes/261105-qr1-SUMMARY.md).
+
+**Bindende Scope-Einschränkung dieser Runde (vor der Live-Abnahme):** ausschließlich Produktcode
+und Dokumentation, keine neuen Tests/Guard-Änderungen/Storybook-Stories/Playwright-Zero-Pixel-Diff.
+Ein zweiter Befund desselben Reviews (`fireEvent` in `FansubVersionBrowser.test.tsx`/
+`WatchlistAddButton.test.tsx`) ist dadurch bewusst vollständig zurückgestellt, ebenso die
+Guard-Schärfung (`compositeLayoutPurity.guard.test.ts`s `var(...)`-Ausnahme) und die
+Storybook-Story-Ergänzung für die vier neuen Fähigkeiten -- alle für eine Folgerunde NACH der
+Live-Abnahme vorgemerkt, siehe die "Bekannte, bewusst zurückgestellte Punkte" in
+261105-qr1-SUMMARY.md. Nachweis vor der Abnahme: `npx tsc --noEmit` grün plus Sichtprüfung der
+öffentlichen Anime-Detailseite im Browser durch den Agenten selbst (Desktop + Mobil, siehe
+SUMMARY).
+
 ---
 
 *Verified: 2026-11-05*
