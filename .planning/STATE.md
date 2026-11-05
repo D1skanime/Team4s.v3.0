@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-25-PLAN.md
-last_updated: "2026-11-05T03:05:12.477Z"
+stopped_at: Completed 192-27-PLAN.md
+last_updated: "2026-11-05T03:34:44.035Z"
 last_activity: 2026-11-05
 progress:
   total_phases: 57
-  completed_phases: 50
+  completed_phases: 51
   total_plans: 557
-  completed_plans: 549
-  percent: 88
+  completed_plans: 550
+  percent: 89
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 4 -- codex Review)) — EXECUTING
-Plan: 7 of 27
+Plan: 8 of 27
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1603,6 +1603,8 @@ Last activity: 2026-11-05
 - [Phase 192]: 192-26: EpisodeGlassCard-Divider und versionList-Card teilen sich einen Stack gap=none-Wrapper statt zwei Geschwister-Kinder der aeusseren display:grid-Karte zu sein -- verhindert einen zweiten --card-gap-Abstand (per Playwright als 26px zusaetzliche Kartenhoehe gefunden).
 - [Phase 192]: 192-26: ReleasePreviewRow.body/.action bekommen eine width:100%-Korrektur fuer den gestapelten Mobil-Zustand, da Clusters align-Prop (Standard center) in beiden Haltepunkt-Zustaenden gleich gilt, die Original-CSS aber nur im Desktop-Zustand explizites align-items:center hatte.
 - [Phase 192]: Plan 192-25: Cluster float="controlBand" braucht fuer korrekte Flex-/Grid-Ausschliessung die Positionierung auf dem AEUSSEREN Wurzelelement (@media statt @container) statt nur dem inneren Flex-Kind. — Eine @container-Abfrage darf laut Spezifikation nie das eigene Container-Wurzelelement selbst umordnen; ein nur innen position:absolute gesetztes Element bleibt ein 0px hoher, aber weiterhin flex-/grid-layout-teilnehmender Wrapper, der in einem umgebenden Stack-gap-Kontext trotzdem sichtbaren Abstand erzeugt hatte (erste echte Verdrahtung von float deckte diesen seit 192-22 unbemerkten Fehler auf).
+- [Phase 192]: compositeLayoutPurity.guard.test.ts: leere Ausnahmeliste war strukturell immer noch ein Mechanismus -- DOCUMENTED_LAYOUT_EXCEPTIONS/LayoutException/isAllowed und der Existenz-Selbsttest vollstaendig entfernt (nicht nur geleert), checkbar per grep -c == 0 plus Regressions-Canary-Beleg gegen alle 4 Pilot-Dateien
+- [Phase 192]: Pre-Runde-4-Baseline-Vergleich nutzt den Commit unmittelbar vor Plan 192-21 (9d6bdce73), nicht einen Commit vor der gesamten Phase -- isoliert exakt, was diese Runde veraendert hat
 
 ### Pending Todos
 
@@ -2395,11 +2397,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P24 | 31min | 2 tasks | 13 files |
 | Phase 192 P26 | 23min | 3 tasks | 10 files |
 | Phase 192 P25 | 80min | 2 tasks | 14 files |
+| Phase 192 P27 | 27min | 3 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-11-05T03:05:12.449Z
-Stopped at: Completed 192-25-PLAN.md
+Last session: 2026-11-05T03:34:44.003Z
+Stopped at: Completed 192-27-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
