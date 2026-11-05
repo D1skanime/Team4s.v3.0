@@ -4,16 +4,17 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Permanenter, ausnahmeloser Rückfall-Wächter für die vier zusammengesetzten Pilot-Bausteine der
- * öffentlichen Anime-Detailseite: keiner von ihnen darf eigenes `display:flex`/`display:grid`/
- * `grid-template`/`gap:`/`padding:`/`margin`/`border`/`border-radius`/`background`/`box-shadow`/
- * eine feste `width`/`height` deklarieren oder eine private Grundbaustein-Variable fremd setzen --
- * genau dafür existieren die generischen Grundbausteine `Stack`/`Cluster`/`Card`s `padding`-Prop.
- * `detailStyleSystem.guard.test.ts` prüft ausschließlich die Seiten-CSS (`page.module.css`/
- * `page.episodes.module.css`), nie diese Baustein-Dateien selbst -- dieser Wächter schließt genau
- * diese Lücke, nur für die vier hier gelisteten Dateien (kein repo-weiter Sweep; die
- * Datei-Erweiterung auf alle neun real existierenden Komposit-Dateien der fünf Pilot-Bausteine
- * folgt im nächsten Schritt dieser Phase, Befund-Review2-R2).
+ * Permanenter, ausnahmeloser Rückfall-Wächter für die neun zusammengesetzten Komposit-Dateien der
+ * fünf Pilot-Bausteine der öffentlichen Anime-Detailseite (Anime-Kopf, Episoden-Bereich,
+ * Gruppenkarte/-auswahl, Release-Zeile, Randnavigation): keiner von ihnen darf eigenes
+ * `display:flex`/`display:grid`/`grid-template`/`gap:`/`padding:`/`margin`/`border`/
+ * `border-radius`/`background`/`box-shadow`/eine feste `width`/`height` deklarieren oder eine
+ * private Grundbaustein-Variable fremd setzen -- genau dafür existieren die generischen
+ * Grundbausteine `Stack`/`Cluster`/`Card`s `padding`-/`seamless`-Prop/`Avatar`s `bordered`-Prop/
+ * `ResponsiveImage`s `roundedThumbnail`-Prop. `detailStyleSystem.guard.test.ts` prüft
+ * ausschließlich die Seiten-CSS (`page.module.css`/`page.episodes.module.css`s Seiten-Anordnung),
+ * nie diese Baustein-Dateien selbst -- dieser Wächter schließt genau diese Lücke, nur für die
+ * neun hier gelisteten Dateien (kein repo-weiter Sweep).
  *
  * Diese Prüfung kannte in früheren Phasen-Runden eine selektor-genaue Ausnahmeliste für Fälle, die
  * ein Grundbaustein angeblich nicht abbilden konnte. Ein unabhängiger Review stellte fest, dass
@@ -23,13 +24,21 @@ import { describe, expect, it } from 'vitest'
  * Polsterungs-Rezepte). Die Ausnahmeliste selbst ist damit ersatzlos entfallen: ein Treffer eines
  * verbotenen Musters ist IMMER ein Verstoß, ohne jede Rückfallmöglichkeit auf eine dokumentierte
  * Einzelfall-Duldung. Ein zweiter unabhängiger Review (Runde 2) stellte zusätzlich fest, dass der
- * Wächter bislang zu wenige Eigenschaften prüfte (Rand/Rundung/Fläche/Schatten/feste Größe fehlten
- * komplett, `display:grid` wurde von der ursprünglichen `display:flex`-Prüfung nicht erfasst) --
- * dieser Stand ist das Ergebnis der daraufhin durchgeführten Eigenschafts-Erweiterung.
+ * Wächter weder genug Dateien (nur vier statt aller neun real existierenden Komposit-Dateien der
+ * fünf Pilot-Bausteine) noch genug Eigenschaften (Rand/Rundung/Fläche/Schatten/feste Größe fehlten
+ * komplett, `display:grid` wurde von der ursprünglichen `display:flex`-Prüfung nicht erfasst)
+ * abdeckte -- diese Datei ist das Ergebnis der daraufhin durchgeführten Erweiterung auf beiden
+ * Achsen (Befund-Review2-R2).
  *
  * WICHTIG: `Stack.module.css`/`Cluster.module.css`/`SplitLayout.module.css`/`Divider.module.css`
  * werden hier bewusst NICHT geprüft -- das SIND die Grundbausteine, ihr eigenes Layout-CSS ist
- * genau ihr Daseinszweck, kein Verstoß.
+ * genau ihr Daseinszweck, kein Verstoß. Ebenfalls bewusst NICHT geprüft (und NICHT hinzugefügt):
+ * `StatusBadge.module.css`/`AnimeRelations.module.css` (werden zusätzlich außerhalb der fünf
+ * Pilot-Bausteine im Admin-/Profil-Bereich verwendet, eine Migration würde die seit Befund 23
+ * geltende Grenze "andere Seiten nicht in diesem Auftrag umbauen" verletzen) sowie
+ * `AnimeBackdropRotator.module.css` (rendert den Banner-Hintergrund, ist kein Teil eines der fünf
+ * benannten Pilot-Komposite) -- siehe `192-CONTEXT.md`s Addendum 2026-11-05b für die vollständige
+ * Begründung je Datei.
  *
  * Erkennung erfolgt zeilenweise über einen einfachen Selektor-Stack (keine vollständige
  * CSS-Parser-Abhängigkeit): jede Zeile, die eine Selektor-/@media-Kopfzeile öffnet (endet auf
@@ -50,8 +59,15 @@ const GUARDED_COMPOSITE_FILES: GuardedFile[] = [
   { key: 'ReleasePreviewRow', path: join(process.cwd(), 'src/components/fansubs/ReleasePreviewRow.module.css') },
   { key: 'EpisodeGlassCard', path: join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.module.css') },
   { key: 'AnimeEdgeNavigation', path: join(process.cwd(), 'src/components/anime/AnimeEdgeNavigation.module.css') },
+  { key: 'FansubVersionBrowser', path: join(process.cwd(), 'src/components/fansubs/FansubVersionBrowser.module.css') },
+  { key: 'FansubGroupContext', path: join(process.cwd(), 'src/components/fansubs/FansubGroupContext.module.css') },
+  { key: 'FansubGroupPicker', path: join(process.cwd(), 'src/components/fansubs/FansubGroupPicker.module.css') },
+  { key: 'PageEpisodes', path: join(process.cwd(), 'src/app/anime/[id]/page.episodes.module.css') },
+  { key: 'WatchlistAddButton', path: join(process.cwd(), 'src/components/watchlist/WatchlistAddButton.module.css') },
   // Deliberately NOT Stack/Cluster/SplitLayout/Divider.module.css -- those ARE the
-  // Grundbausteine and are allowed to declare their own layout CSS.
+  // Grundbausteine and are allowed to declare their own layout CSS. Deliberately NOT
+  // StatusBadge/AnimeRelations/AnimeBackdropRotator.module.css -- siehe Modulkommentar oben
+  // (Fremdverwendung außerhalb der fünf Pilot-Bausteine bzw. kein Teil eines Pilot-Komposits).
 ]
 
 /** Entfernt /* ... *‍/-Blockkommentare, ersetzt dabei jedes Zeichen außer Zeilenumbrüchen durch
