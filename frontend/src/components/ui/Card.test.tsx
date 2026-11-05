@@ -18,15 +18,29 @@ describe('Card', () => {
     const sectionWithoutPadding = withoutPadding.querySelector('section') as HTMLElement
     expect(sectionWithoutPadding.style.getPropertyValue('--card-padding-override')).toBe('')
 
-    const { container: withPadding } = render(<Card variant="glassStrong" padding="3">Inhalt</Card>)
+    const { container: withPadding } = render(<Card variant="glassStrong" padding="content">Inhalt</Card>)
     const sectionWithPadding = withPadding.querySelector('section') as HTMLElement
-    expect(sectionWithPadding.style.getPropertyValue('--card-padding-override')).toBe('var(--space-3)')
+    expect(sectionWithPadding.style.getPropertyValue('--card-padding-override')).toBe('var(--card-padding-content)')
+  })
+
+  it('löst jeden benannten Zweck auf sein eigenes Token auf, niemals auf eine rohe Space-Stufe', () => {
+    const { container: nestedBlock } = render(<Card variant="nested" padding="nestedBlock">Inhalt</Card>)
+    expect((nestedBlock.querySelector('section') as HTMLElement).style.getPropertyValue('--card-padding-override')).toBe('var(--card-padding-nested-block)')
+
+    const { container: dividedSection } = render(<Card variant="flat" padding="dividedSection">Inhalt</Card>)
+    expect((dividedSection.querySelector('section') as HTMLElement).style.getPropertyValue('--card-padding-override')).toBe('var(--card-padding-divided-section)')
   })
 
   it('mappt padding="none" auf den Literalwert 0 statt auf eine Space-Stufe', () => {
     const { container } = render(<Card variant="glass" padding="none">Inhalt</Card>)
     const section = container.querySelector('section') as HTMLElement
     expect(section.style.getPropertyValue('--card-padding-override')).toBe('0')
+  })
+
+  it('akzeptiert keine rohe Space-Skalenstufe mehr (TypeScript-Vertrag, siehe gapPurposeNaming.guard.test.ts für den Laufzeit-Scan)', () => {
+    // @ts-expect-error -- padding="3" ist seit der Zweck-Enum-Umstellung kein gültiger Wert mehr.
+    const { container } = render(<Card variant="glassStrong" padding="3">Inhalt</Card>)
+    expect(container.querySelector('section')).toBeTruthy()
   })
 })
 

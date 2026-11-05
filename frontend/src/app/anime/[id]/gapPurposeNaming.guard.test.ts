@@ -19,9 +19,13 @@ const guardedCallSiteFiles = [
   join(process.cwd(), 'src/components/anime/AnimeEdgeNavigation.tsx'),
 ]
 
+// Seit Review-Befund 2 (Phase 192, vierte Gap-Closure-Runde) gilt dieselbe Zweck-statt-Groesse-
+// Regel auch fuer Cards padding-Prop -- eine rohe Space-Skalenstufe ("padding=3") ist an diesen
+// bereits umgestellten Aufrufstellen genauso verboten wie ein rohes gap="N".
 const forbiddenRawValuePatterns = [
   /gap="[1-9]"/,
   /firstColumnWidth="(?!poster"|auto")/,
+  /padding="[1-9]"/,
 ]
 
 describe('Anime-Detail/Fansub-Bausteine: Zweck-Namen statt Groessen-/Nummernnamen fuer gap/firstColumnWidth', () => {
@@ -39,12 +43,14 @@ describe('Anime-Detail/Fansub-Bausteine: Zweck-Namen statt Groessen-/Nummernname
   it('erfasst das historische Verstoßmuster (Beispiel-Strings), damit der Guard selbst nicht stillschweigend bricht', () => {
     const rawGapSample = '<Stack gap="3">'
     const rawFirstColumnWidthSample = '<SplitLayout firstColumnWidth="200px">'
+    const rawCardPaddingSample = '<Card variant="nested" padding="4">'
 
     expect(forbiddenRawValuePatterns.some((pattern) => pattern.test(rawGapSample))).toBe(true)
     expect(forbiddenRawValuePatterns.some((pattern) => pattern.test(rawFirstColumnWidthSample))).toBe(true)
+    expect(forbiddenRawValuePatterns.some((pattern) => pattern.test(rawCardPaddingSample))).toBe(true)
 
     // Positiv-Gegenprobe: die erlaubten Zweck-Werte duerfen NICHT als Verstoss erkannt werden.
-    const allowedSample = '<Stack gap="independentBlocks"><SplitLayout firstColumnWidth="poster"><SplitLayout firstColumnWidth="auto"><SplitLayout gap="none">'
+    const allowedSample = '<Stack gap="independentBlocks"><SplitLayout firstColumnWidth="poster"><SplitLayout firstColumnWidth="auto"><SplitLayout gap="none"><Card padding="content"><Card padding="nestedBlock"><Card padding="dividedSection"><Card padding="none">'
     expect(forbiddenRawValuePatterns.some((pattern) => pattern.test(allowedSample))).toBe(false)
   })
 })
