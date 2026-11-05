@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType, HTMLAttributes, ReactNode } from 'react'
+import { Children, type CSSProperties, type ElementType, type HTMLAttributes, type ReactNode } from 'react'
 
 import { classNames } from './classNames'
 import styles from './Stack.module.css'
@@ -28,8 +28,16 @@ const GAP_PURPOSE_TOKENS: Record<StackGapPurpose, string> = {
 
 export interface StackProps extends HTMLAttributes<HTMLElement> {
   /** Abstand zwischen den Kindern, als benannter Zweck (Standard 'independentBlocks' =
-   *  var(--space-independent-blocks)). */
-  gap?: StackGapPurpose
+   *  var(--space-independent-blocks)). Der ÜBERWIEGENDE Regelfall ist ein einzelner Zweck-Wert --
+   *  einheitlicher Abstand zwischen allen Kindern, wie bisher über das native CSS-`gap` gelöst.
+   *  Ein ARRAY von Zweck-Werten ist der Ausnahmefall für einen bewusst NICHT-einheitlichen
+   *  Kind-zu-Kind-Abstandsrhythmus (z. B. eine Info-Karte, deren Titelzeile/Badges/Beschreibung/
+   *  Tags jeweils einen eigenen, fachlich begründeten Abstand zur nächsten Zeile brauchen): die
+   *  Array-Länge MUSS exakt `Kinderzahl - 1` sein (ein Wert pro LÜCKE zwischen zwei
+   *  aufeinanderfolgenden Kindern, nicht ein Wert pro Kind) -- eine abweichende Länge wirft beim
+   *  Rendern einen Fehler, damit eine spätere Kind-Änderung nie eine stillschweigend falsche
+   *  Abstandszuordnung erzeugt. */
+  gap?: StackGapPurpose | StackGapPurpose[]
   /** Querachsen-Ausrichtung der Kinder (Standard 'stretch'). */
   align?: 'start' | 'center' | 'end' | 'stretch'
   /** Zu rendernde Element-Art (Standard 'div'). */
@@ -54,6 +62,41 @@ export function Stack({
   style,
   ...props
 }: StackProps) {
+  if (Array.isArray(gap)) {
+    // Rhythmus-Modus: das native CSS-`gap` kann nur EINEN einheitlichen Abstand ausdrücken, hier
+    // wird es deshalb auf den literalen Wert '0' gesetzt und jede Lücke stattdessen über einen
+    // schlanken, ausschließlich mit `marginTop` versehenen Wrapper vor dem jeweils folgenden Kind
+    // nachgebildet -- analog zum bestehenden `--stack-gap`-Override-Hook-Muster, aber pro Lücke
+    // statt global. Kein className/keine weitere Deklaration auf dem Wrapper, damit kein neues
+    // Flächen-/Farb-/Rundungs-Surface entsteht (siehe Komponentendokumentation unten).
+    const childArray = Children.toArray(children)
+    const expectedGapCount = childArray.length - 1
+    if (gap.length !== expectedGapCount) {
+      throw new Error(
+        `Stack: Rhythmus-Array "gap" erwartet genau ${expectedGapCount} Werte (eine Lücke pro Paar ` +
+          `aufeinanderfolgender Kinder bei ${childArray.length} Kindern), erhielt aber ${gap.length}.`,
+      )
+    }
+
+    return (
+      <Component
+        {...props}
+        style={{ ...style, '--stack-gap': '0', '--stack-align': align } as CSSProperties}
+        className={classNames(styles.stack, className)}
+      >
+        {childArray.map((child, index) =>
+          index === 0 ? (
+            child
+          ) : (
+            <div key={index} style={{ marginTop: GAP_PURPOSE_TOKENS[gap[index - 1]] }}>
+              {child}
+            </div>
+          ),
+        )}
+      </Component>
+    )
+  }
+
   return (
     <Component
       {...props}

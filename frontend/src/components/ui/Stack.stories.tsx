@@ -87,3 +87,25 @@ export const AusrichtungEnd: Story = {
     ),
   },
 }
+
+export const RhythmusModus: Story = {
+  name: 'Rhythmus-Modus (Array)',
+  args: {
+    gap: ['independentBlocks', 'relatedContent'],
+    children: (
+      <>
+        <Box label="Titelzeile" />
+        <Box label="Badges (weiter Abstand zur Titelzeile)" />
+        <Box label="Beschreibung (enger Abstand zu den Badges)" />
+      </>
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Für einen bewusst NICHT-einheitlichen Abstandsrhythmus zwischen mehr als zwei Kindern, den ein einzelner, einheitlicher gap-Wert nicht ausdrücken kann -- z. B. eine Info-Karte, deren Titelzeile/Badges/Beschreibung jeweils einen eigenen, fachlich begründeten Abstand zur jeweils nächsten Zeile brauchen. Das Array trägt einen Zweck-Wert pro LÜCKE zwischen zwei aufeinanderfolgenden Kindern (hier: 2 Lücken bei 3 Kindern) -- jedes Kind außer dem ersten steckt dafür in einem schlanken, unsichtbaren Abstandshalter ohne eigene Fläche/Farbe/Rundung.',
+      },
+    },
+  },
+}
