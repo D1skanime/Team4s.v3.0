@@ -65,6 +65,14 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
    *  Standard-Polsterung jeder Card-Variante unverändert (Zero-Pixel-Diff für alle bestehenden
    *  Aufrufer). */
   padding?: CardPaddingPurpose
+  /** Rand-bis-Rand-Modus: unterhalb von 767px kollabiert Cards eigene horizontale Innenabstand-
+   *  Komponente auf 0 (die vertikale bleibt unverändert) UND das Grid-`justify-items` wechselt von
+   *  Cards implizitem Standard `stretch` auf `center` -- für einen verschachtelten Inhaltsblock,
+   *  der auf schmaler Breite bis an den Rand seines äußeren Containers reichen und seine Kinder
+   *  zentrieren soll, statt dessen Innenabstand mitzutragen. Ohne Angabe bleibt jede Variante bei
+   *  ihrem bisherigen, nicht-responsiven Polsterungs-/Ausrichtungsverhalten unverändert
+   *  (Zero-Pixel-Diff für alle bestehenden Aufrufer). */
+  bleedBelowMd?: boolean
 }
 
 export function Card({
@@ -79,6 +87,7 @@ export function Card({
   tintSurfaceAlpha,
   tintBorderAlpha,
   padding,
+  bleedBelowMd,
   className,
   children,
   style,
@@ -131,6 +140,7 @@ export function Card({
         variant === 'publicPoster' && styles.cardPublicPoster,
         variant === 'publicHeroInfo' && styles.cardPublicHeroInfo,
         hasTint && styles.cardTinted,
+        bleedBelowMd && styles.cardBleedBelowMd,
         className,
       )}
     >

@@ -160,6 +160,31 @@ export const PaddingUeberschreibung: Story = {
   ),
 }
 
+export const RandBisRandUnterhalb767px: Story = {
+  name: 'Rand-bis-Rand unterhalb 767px (bleedBelowMd)',
+  parameters: {
+    viewport: { defaultViewport: 'mobile1' },
+    docs: {
+      description: {
+        story:
+          'bleedBelowMd kollabiert unterhalb 767px Cards horizontale Polsterung auf 0 und ' +
+          'zentriert die Grid-Kinder -- für einen verschachtelten Inhaltsblock (hier die ' +
+          'Poster-Metadaten-Karte des Anime-Kopfs), der auf schmaler Breite bis an den Rand ' +
+          'seines äußeren Containers reichen soll, statt den eigenen Innenabstand mitzutragen. ' +
+          'Diese Story simuliert die schmale Breite per fester Viewport-Dekoration statt ' +
+          'tatsächlichem Fenster-Resize (narrow-viewport decorator).',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ width: 320, background: 'var(--surface-stage)', padding: 20 }}>
+      <Card variant="nested" padding="nestedBlock" bleedBelowMd>
+        <Text>Reicht unterhalb 767px bis an den Rand der äußeren Karte und zentriert ihre Kinder.</Text>
+      </Card>
+    </div>
+  ),
+}
+
 export const GlasAufHintergrund: Story = {
   name: 'Glas auf Hintergrund (alle Tönungen)',
   parameters: {

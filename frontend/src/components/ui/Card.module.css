@@ -266,4 +266,17 @@
     --text-body-color: var(--scrim-icon);
     --text-eyebrow-color: var(--scrim-icon);
   }
+
+  /* Rand-bis-Rand-Modus (bleedBelowMd-Prop, siehe Card.tsx) -- deklariert bewusst als LETZTE Regel
+     innerhalb dieses Haltepunkts: nur Einzel-Eigenschaften (padding-left/-right/justify-items)
+     statt des Shorthands `padding`, damit die vertikale Polsterung jeder Variante unangetastet
+     bleibt, UND bewusst nach jeder variantenspezifischen Mobil-Regel oben (z. B.
+     .cardPublicHeroInfo), damit diese Einzel-Eigenschaften bei gleicher Selektor-Spezifität per
+     Deklarationsreihenfolge zuverlässig gewinnen, unabhängig davon, welche Variante die Karte
+     sonst trägt. */
+  .cardBleedBelowMd {
+    padding-left: 0;
+    padding-right: 0;
+    justify-items: center;
+  }
 }
