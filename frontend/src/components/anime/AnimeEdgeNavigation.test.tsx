@@ -76,7 +76,7 @@ describe('AnimeEdgeNavigation', () => {
     await waitFor(() => expect(getAnimeList).toHaveBeenCalled())
   })
 
-  it('wechselt die Vorschau abhängig von der gehoverten/fokussierten Richtung (direkter Hook-Aufruf statt fireEvent.mouseEnter/mouseLeave)', () => {
+  it('wechselt die Vorschau abhängig von der gehoverten/fokussierten Richtung (direkter Hook-Aufruf statt simulierter Maus-/Fokus-Ereignisse)', () => {
     // Die Hover-/Fokus-Vorschauzustandslogik lebt in useAnimeEdgeNavigationHover
     // (ausgelagert aus AnimeEdgeNavigationContext) -- derselbe Zustandsautomat, den die echte
     // Vorschaukarte im Browser treibt, wird hier direkt per renderHook aufgerufen, ohne
@@ -156,7 +156,7 @@ describe('AnimeEdgeNavigation.module.css', () => {
 })
 
 describe('AnimeEdgeNavigationPreviewCard', () => {
-  it('trägt ResponsiveImages roundedThumbnail-Klasse und Cards compactPreview-Breiten-Zweck (direkter Funktionsaufruf statt fireEvent.mouseEnter)', () => {
+  it('trägt ResponsiveImages roundedThumbnail-Klasse und Cards compactPreview-Breiten-Zweck (direkter Funktionsaufruf statt simuliertem Hover-Ereignis)', () => {
     const tree = AnimeEdgeNavigationPreviewCard({
       title: 'Anime 4',
       type: 'tv',
