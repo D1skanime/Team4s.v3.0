@@ -5,12 +5,15 @@ import { describe, expect, it } from 'vitest'
 
 /**
  * Permanenter, ausnahmeloser Rückfall-Wächter für die vier zusammengesetzten Pilot-Bausteine der
- * öffentlichen Anime-Detailseite: keiner von ihnen darf eigenes `display:flex`/`grid-template`/
- * `gap:`/`padding:`/`margin` deklarieren oder eine private Grundbaustein-Variable fremd setzen --
+ * öffentlichen Anime-Detailseite: keiner von ihnen darf eigenes `display:flex`/`display:grid`/
+ * `grid-template`/`gap:`/`padding:`/`margin`/`border`/`border-radius`/`background`/`box-shadow`/
+ * eine feste `width`/`height` deklarieren oder eine private Grundbaustein-Variable fremd setzen --
  * genau dafür existieren die generischen Grundbausteine `Stack`/`Cluster`/`Card`s `padding`-Prop.
  * `detailStyleSystem.guard.test.ts` prüft ausschließlich die Seiten-CSS (`page.module.css`/
  * `page.episodes.module.css`), nie diese Baustein-Dateien selbst -- dieser Wächter schließt genau
- * diese Lücke, nur für die vier hier gelisteten Dateien (kein repo-weiter Sweep).
+ * diese Lücke, nur für die vier hier gelisteten Dateien (kein repo-weiter Sweep; die
+ * Datei-Erweiterung auf alle neun real existierenden Komposit-Dateien der fünf Pilot-Bausteine
+ * folgt im nächsten Schritt dieser Phase, Befund-Review2-R2).
  *
  * Diese Prüfung kannte in früheren Phasen-Runden eine selektor-genaue Ausnahmeliste für Fälle, die
  * ein Grundbaustein angeblich nicht abbilden konnte. Ein unabhängiger Review stellte fest, dass
@@ -19,7 +22,10 @@ import { describe, expect, it } from 'vitest'
  * zurückgeführt (Rhythmus-Array-Modus, Haltepunkt-Umkehr, Schwebe-Overlay-Modus, Zweck-benannte
  * Polsterungs-Rezepte). Die Ausnahmeliste selbst ist damit ersatzlos entfallen: ein Treffer eines
  * verbotenen Musters ist IMMER ein Verstoß, ohne jede Rückfallmöglichkeit auf eine dokumentierte
- * Einzelfall-Duldung.
+ * Einzelfall-Duldung. Ein zweiter unabhängiger Review (Runde 2) stellte zusätzlich fest, dass der
+ * Wächter bislang zu wenige Eigenschaften prüfte (Rand/Rundung/Fläche/Schatten/feste Größe fehlten
+ * komplett, `display:grid` wurde von der ursprünglichen `display:flex`-Prüfung nicht erfasst) --
+ * dieser Stand ist das Ergebnis der daraufhin durchgeführten Eigenschafts-Erweiterung.
  *
  * WICHTIG: `Stack.module.css`/`Cluster.module.css`/`SplitLayout.module.css`/`Divider.module.css`
  * werden hier bewusst NICHT geprüft -- das SIND die Grundbausteine, ihr eigenes Layout-CSS ist
@@ -73,6 +79,66 @@ function isAllZeroDeclaration(declText: string, propertyBase: 'padding' | 'margi
   return found
 }
 
+/** Generalisiert `isAllZeroDeclaration` auf Eigenschaften mit eigenen, von "0" abweichenden
+ *  Reset-Werten (z. B. "transparent" bei Rand-/Flächenfarbe, "none" bei Schatten): prüft, ob JEDES
+ *  Vorkommen der durch `propertyPattern` beschriebenen Eigenschaft in `declText` einen Wert trägt,
+ *  den `isExemptValue` als harmlosen Rücksetzer akzeptiert -- nur dann gilt die gesamte
+ *  Deklaration als legitimer Reset statt als eigenes Layout-CSS. */
+function isAllExemptDeclaration(
+  declText: string,
+  propertyPattern: string,
+  isExemptValue: (value: string) => boolean,
+): boolean {
+  const pattern = new RegExp(`${propertyPattern}\\s*:\\s*([^;}]+)`, 'g')
+  let match: RegExpExecArray | null
+  let found = false
+  while ((match = pattern.exec(declText))) {
+    found = true
+    if (!isExemptValue(match[1].trim())) return false
+  }
+  return found
+}
+
+/** `border`/`border-top`/`border-right`/`border-bottom`/`border-left` gilt als harmloser
+ *  Rücksetzer, wenn der Wert exakt "none" ist, ODER jedes Werte-Token nullwertig ist (reine
+ *  Breiten-Kurzform ohne Stil/Farbe, z. B. "0"), ODER eines der Werte-Token "transparent" lautet
+ *  (z. B. "1px solid transparent" -- ein sichtbarer Rahmen mit unsichtbarer Farbe nimmt visuell
+ *  dieselbe Reset-Rolle ein wie ein reines "none"). Bewusst NICHT geprüft: `border-width`/
+ *  `border-color`/`border-style` (Unter-Eigenschaften) -- das optionale Richtungs-Suffix der
+ *  Haupt-Regex deckt nur `-top|-right|-bottom|-left` ab, "border-width:" erfüllt dieses Suffix
+ *  nicht und wird von der `border`-Kategorie dadurch naturgemäß gar nicht erst erfasst. */
+function isBorderResetValue(value: string): boolean {
+  if (/^none$/i.test(value)) return true
+  const tokens = value.split(/\s+/)
+  if (tokens.every((token) => /^0(?:px|rem|%)?$/.test(token))) return true
+  return tokens.some((token) => /^transparent$/i.test(token))
+}
+
+/** `background`/`background-color`/`background-image` gilt als harmloser Rücksetzer bei genau
+ *  "transparent"/"none"/"inherit" -- jeder andere Wert (auch ein Grundbaustein-`var()`-Verweis)
+ *  ist eine echte Flächen-Entscheidung, die laut Addendum 2026-11-05b in den Grundbaustein gehört,
+ *  nicht in eine Komposit-Datei. */
+function isBackgroundResetValue(value: string): boolean {
+  return /^(transparent|none|inherit)$/i.test(value)
+}
+
+/** `box-shadow` gilt als harmloser Rücksetzer ausschließlich bei genau "none". */
+function isBoxShadowResetValue(value: string): boolean {
+  return /^none$/i.test(value)
+}
+
+/** `width`/`height` gelten als layoutneutral, wenn der Wert eine der browserüblichen
+ *  Standardgrößen ist (volle/automatische Größe, nullwertig, intrinsische Inhaltsgröße) ODER eine
+ *  REINE `var(...)`-Lesereferenz auf ein bereits existierendes Grundbaustein-Token ist (ohne
+ *  `calc()`, ohne Fallback-Wert, ohne Kombination mit einem Literal) -- nur ein fest codiertes
+ *  Pixel-/rem-/em-Literal oder eine komplexere Funktion (z. B. `min(100%, 260px)`) ist der
+ *  eigentliche, von Befund-Review2-R2 gemeinte Verstoß: die konkrete Größen-ENTSCHEIDUNG gehört in
+ *  den Grundbaustein (z. B. `Card`s `widthPurpose`-Prop), nicht in die Komposit-Datei. */
+function isSizeResetValue(value: string): boolean {
+  if (['100%', 'auto', '0', '0px', 'min-content', 'max-content'].includes(value)) return true
+  return /^var\(--[\w-]+\)$/.test(value)
+}
+
 interface ForbiddenPattern {
   category: string
   /** Liefert true, wenn der übergebene Deklarationstext (eine Zeile oder ein Inline-Regelkörper)
@@ -81,7 +147,10 @@ interface ForbiddenPattern {
 }
 
 const FORBIDDEN_PATTERNS: ForbiddenPattern[] = [
-  { category: 'display:flex', test: (t) => /display\s*:\s*flex\b/.test(t) },
+  // Ursprünglich nur "display:flex" (Runde 3/4) -- Befund-Review2-R2 stellte fest, dass
+  // `display:grid` (z. B. WatchlistAddButton.module.css's vormaliges `.wrapper`) unentdeckt
+  // durchrutschte, deshalb jetzt beide Werte unter einer gemeinsamen Kategorie.
+  { category: 'display', test: (t) => /display\s*:\s*(?:flex|grid)\b/.test(t) },
   { category: 'flex-direction', test: (t) => /flex-direction\s*:/.test(t) },
   { category: 'grid-template', test: (t) => /grid-template/.test(t) },
   // Negatives Lookbehind auf "-" schließt private Grundbaustein-Variablen wie --stack-gap:/
@@ -101,6 +170,38 @@ const FORBIDDEN_PATTERNS: ForbiddenPattern[] = [
     test: (t) =>
       /--(?:stack|cluster|split)-(?:gap|align|justify|wrap|first-col)\s*:/.test(t) ||
       /--card-(?:padding|radius)-override\s*:/.test(t),
+  },
+  {
+    category: 'border',
+    test: (t) =>
+      /\bborder(?:-top|-right|-bottom|-left)?\s*:/.test(t) &&
+      !isAllExemptDeclaration(t, 'border(?:-top|-right|-bottom|-left)?', isBorderResetValue),
+  },
+  {
+    // Rundung ist laut Addendum 2026-11-05b IMMER ein Grundbaustein-Entscheid, kein bloßer
+    // Rohwert-Reset -- anders als border/background/box-shadow gibt es hier bewusst KEINE
+    // Ausnahme, auch nicht für "border-radius: 0".
+    category: 'border-radius',
+    test: (t) => /\bborder-radius\s*:/.test(t),
+  },
+  {
+    category: 'background',
+    test: (t) =>
+      /\bbackground(?:-color|-image)?\s*:/.test(t) &&
+      !isAllExemptDeclaration(t, 'background(?:-color|-image)?', isBackgroundResetValue),
+  },
+  {
+    category: 'box-shadow',
+    test: (t) => /\bbox-shadow\s*:/.test(t) && !isAllExemptDeclaration(t, 'box-shadow', isBoxShadowResetValue),
+  },
+  {
+    // min-width/max-width/min-height/max-height drücken flexible GRENZEN aus, keine feste Größe
+    // -- das negative Lookbehind schließt sie bewusst aus (z. B. FansubGroupPicker.module.css's
+    // `.chip { max-width: min(100%, 260px); }`, eine häufige, bereits konforme Breiten-GRENZE).
+    category: 'width-height',
+    test: (t) =>
+      /(?<!min-)(?<!max-)\b(?:width|height)\s*:/.test(t) &&
+      !isAllExemptDeclaration(t, '(?<!min-)(?<!max-)\\b(?:width|height)', isSizeResetValue),
   },
 ]
 
@@ -180,7 +281,7 @@ function scanFile(file: GuardedFile): ScanResult {
 }
 
 describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren kein eigenes Layout-CSS', () => {
-  it('verbietet display:flex/flex-direction/grid-template/gap:/padding:/margin und fremde Grundbaustein-Variablen-Deklarationen unbedingt, ohne jede Ausnahme', () => {
+  it('verbietet display:flex/grid, flex-direction, grid-template, gap:, padding:, margin, border, border-radius, background, box-shadow, feste width/height und fremde Grundbaustein-Variablen-Deklarationen unbedingt, ohne jede Ausnahme', () => {
     const allViolations = GUARDED_COMPOSITE_FILES.flatMap((file) => scanFile(file).violations)
 
     expect(
@@ -214,40 +315,6 @@ describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren ke
       '.baz {',
       '  grid-template-columns: 1fr 1fr;',
       '}',
-    ].join('\n')
-
-    const { violations } = scanContent(sample, 'SelfTest')
-    const categories = new Set(violations.map((v) => v.category))
-
-    expect(categories).toContain('display:flex')
-    expect(categories).toContain('flex-direction')
-    expect(categories).toContain('gap')
-    expect(categories).toContain('padding')
-    expect(categories).toContain('margin')
-    expect(categories).toContain('foreign-grundbaustein-variable')
-    expect(categories).toContain('grid-template')
-  })
-
-  it('erkennt reine Null-Rücksetzer (padding:0/margin:0, z. B. ein <ul>-Reset) NICHT als Verstoß', () => {
-    const sample = '.listReset {\n  padding: 0;\n  margin: 0 0 0 0;\n  list-style: none;\n}'
-    const { violations } = scanContent(sample, 'SelfTest')
-    expect(violations).toEqual([])
-  })
-
-  it('erkennt eine var(...)-Lesereferenz auf eine fremde gap-Variable NICHT als eigene gap:-Deklaration', () => {
-    // Beispiel: eine Mobil-Korrektur, die EINEN anderen Baustein-Wert per calc()/var() liest, ohne
-    // selbst eine "gap:"-Eigenschaft zu deklarieren -- kein Verstoß.
-    const sample = '.foo {\n  margin-left: calc(-1 * var(--split-gap));\n}'
-    const { violations } = scanContent(sample, 'SelfTest')
-    expect(violations.some((v) => v.category === 'gap')).toBe(false)
-  })
-
-  // RED (Befund-Review2-R2, Task 1): die folgenden Kategorien existieren im aktuellen
-  // FORBIDDEN_PATTERNS-Stand noch NICHT -- dieser Testfall muss fehlschlagen, bis display:grid/
-  // border/border-radius/background/box-shadow/feste width/height als eigene Kategorien ergänzt
-  // sind (Eigenschaftsabdeckung, Addendum 2026-11-05b).
-  it('erfasst die erweiterten Eigenschafts-Kategorien aus Befund-Review2-R2 (display:grid, border, border-radius, background, box-shadow, width/height)', () => {
-    const sample = [
       '.grid {',
       '  display: grid;',
       '}',
@@ -272,10 +339,75 @@ describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren ke
     const categories = new Set(violations.map((v) => v.category))
 
     expect(categories).toContain('display')
+    expect(categories).toContain('flex-direction')
+    expect(categories).toContain('gap')
+    expect(categories).toContain('padding')
+    expect(categories).toContain('margin')
+    expect(categories).toContain('foreign-grundbaustein-variable')
+    expect(categories).toContain('grid-template')
     expect(categories).toContain('border')
+    // border-radius hat laut Addendum 2026-11-05b bewusst KEINE Ausnahme -- auch "0" verstößt.
     expect(categories).toContain('border-radius')
     expect(categories).toContain('background')
     expect(categories).toContain('box-shadow')
     expect(categories).toContain('width-height')
+  })
+
+  it('erkennt reine Null-/Transparenz-Rücksetzer (padding:0/margin:0/border:none/background:transparent/box-shadow:none/width:100%, z. B. ein <ul>-Reset oder ein bewusst randloser Zustand) NICHT als Verstoß', () => {
+    const sample = [
+      '.listReset {',
+      '  padding: 0;',
+      '  margin: 0 0 0 0;',
+      '  list-style: none;',
+      '}',
+      '.borderReset {',
+      '  border: none;',
+      '}',
+      '.borderReset2 {',
+      '  border: 0;',
+      '}',
+      '.borderReset3 {',
+      '  border: 1px solid transparent;',
+      '}',
+      '.borderWidthReset {',
+      // Reproduziert AnimeDetailHero.module.css's weiterhin legitime Korrektur: "border-width:"
+      // ist eine Unter-Eigenschaft, die von der "border"-Kategorie naturgemäß gar nicht erst
+      // erfasst wird (siehe isBorderResetValue-Kommentar); der Wert "0" ist zusätzlich auch für
+      // die width-height-Kategorie exempt.
+      '  border-width: 0;',
+      '}',
+      '.bgReset {',
+      '  background: transparent;',
+      '}',
+      '.shadowReset {',
+      '  box-shadow: none;',
+      '}',
+      '.sizeReset {',
+      '  width: 100%;',
+      '  height: auto;',
+      '  min-width: 0;',
+      '  max-width: min(100%, 260px);',
+      '}',
+    ].join('\n')
+    const { violations } = scanContent(sample, 'SelfTest')
+    expect(violations).toEqual([])
+  })
+
+  it('erkennt eine var(...)-Lesereferenz auf eine fremde gap-Variable NICHT als eigene gap:-Deklaration', () => {
+    // Beispiel: eine Mobil-Korrektur, die EINEN anderen Baustein-Wert per calc()/var() liest, ohne
+    // selbst eine "gap:"-Eigenschaft zu deklarieren -- kein Verstoß.
+    const sample = '.foo {\n  margin-left: calc(-1 * var(--split-gap));\n}'
+    const { violations } = scanContent(sample, 'SelfTest')
+    expect(violations.some((v) => v.category === 'gap')).toBe(false)
+  })
+
+  it('erkennt eine reine var(...)-Lesereferenz bei width/height als legitimen Grundbaustein-Token-Verweis, aber ein kombiniertes/fest codiertes Literal als echten Verstoß', () => {
+    const exemptSample = '.foo {\n  width: var(--media-frame-poster-width);\n}'
+    const { violations: exemptViolations } = scanContent(exemptSample, 'SelfTest')
+    expect(exemptViolations.some((v) => v.category === 'width-height')).toBe(false)
+
+    const violatingSample = '.foo {\n  height: calc(var(--media-frame-poster-width) + 4px);\n}'
+    const { violations: violatingViolations } = scanContent(violatingSample, 'SelfTest')
+    expect(violatingViolations.some((v) => v.category === 'width-height')).toBe(true)
   })
 })
