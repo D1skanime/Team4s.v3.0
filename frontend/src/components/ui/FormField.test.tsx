@@ -11,7 +11,7 @@ import { Switch } from './Switch'
 import { Textarea } from './Textarea'
 import { YearPicker } from './YearPicker'
 
-// Befund 25: statt eines echten DOM-Klicks wird FormField (useId-Hook, daher innerhalb von
+// Statt eines echten DOM-Klicks wird FormField (useId-Hook, daher innerhalb von
 // renderHook aufgerufen) direkt als Funktion aufgerufen und der materialisierte Baum nach dem
 // eingebetteten Switch-Element durchsucht (etabliertes Muster aus `page.test.tsx`/
 // `AnimeDetailView.test.tsx`, hier als eigene, dateilokale Kopie).
@@ -23,7 +23,7 @@ function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
 }
 
 /**
- * Verhaltensnachweis für die FormField-Autoverknüpfung (UAT-Befund 5): FormField reicht
+ * Verhaltensnachweis für die FormField-Autoverknüpfung: FormField reicht
  * id/disabled/invalid/aria-invalid/aria-describedby automatisch an genau EIN umschlossenes,
  * bekanntes Feld weiter (Input/Select/Textarea/DatePicker/YearPicker/Switch), ohne dass ein
  * expliziter htmlFor/invalid-Aufrufer etwas daran ändert.
@@ -249,7 +249,7 @@ describe('FormField Autoverknüpfung', () => {
     expect(screen.getByTestId('custom-field')).not.toBeNull()
   })
 
-  it('löst keinen Klick aus, wenn der Switch deaktiviert ist (Rückwärtskompat-Smoketest, direkter onClick-Aufruf statt Klick-Simulation, Befund 25)', () => {
+  it('löst keinen Klick aus, wenn der Switch deaktiviert ist (Rückwärtskompat-Smoketest, direkter onClick-Aufruf statt Klick-Simulation)', () => {
     const onCheckedChange = vi.fn()
     const { result } = renderHook(() => {
       const tree = FormField({ label: 'Status', children: <Switch checked={false} onCheckedChange={onCheckedChange} disabled /> })

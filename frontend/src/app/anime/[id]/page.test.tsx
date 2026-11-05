@@ -106,9 +106,8 @@ function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
     if (!isValidElement<Record<string, unknown>>(child)) return []
     // SplitLayout reicht firstColumn/secondColumn als benannte PROPS durch, nicht als
     // `children` -- ohne diesen Zweig würde der Standard-Zweig (`child.props.children`) nichts
-    // innerhalb eines noch nicht materialisierten SplitLayout-Elements finden (Befund 21: der
-    // Anime-Kopf nistet Poster-/Info-Karte seit diesem Baustein-Umbau in SplitLayout statt
-    // direkt im Hero-Grid).
+    // innerhalb eines noch nicht materialisierten SplitLayout-Elements finden (der Anime-Kopf
+    // nistet Poster-/Info-Karte in SplitLayout statt direkt im Hero-Grid).
     if (child.type === AnimeDetailHero || child.type === AnimeEpisodesSection || child.type === SplitLayout) {
       const component = child.type as (props: Record<string, unknown>) => ReactNode
       return [child, ...elements(component(child.props))]
@@ -234,8 +233,8 @@ describe('anime detail integration without invented data', () => {
   })
 
   it('gibt den Trennlinien (<hr>) eine vollständige tokenbasierte Optik statt des UA-Standardrahmens', () => {
-    // Beide Trennlinien rendern seit Befund B (192-13) über den Divider-Grundbaustein
-    // (@/components/ui/Divider) statt eines eigenen <hr> mit lokalem background/margin --
+    // Beide Trennlinien rendern über den Divider-Grundbaustein (@/components/ui/Divider)
+    // statt eines eigenen <hr> mit lokalem background/margin --
     // AnimeDetailHero.tsx/.module.css deklarieren dafür selbst kein border:none/background mehr
     // (Divider trägt seine komplette Optik selbst, siehe Divider.module.css/Divider.test.tsx).
     const heroTsx = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.tsx'), 'utf8')
@@ -254,10 +253,10 @@ describe('anime detail integration without invented data', () => {
   })
 
   it('hält die Randnavigations-Reihe nahe am oberen Hero-Rand statt vertikal über die ganze (ggf. sehr hohe) Hero-Karte zu zentrieren', () => {
-    // Seit Plan 192-25 lebt diese Positionierung nicht mehr als lokales CSS im Anime-Kopf-
-    // Baustein (.edgeNavigationOverlay entfaellt ersatzlos), sondern vollstaendig in Cluster
-    // float="controlBand" (Grundbaustein, siehe Cluster.module.css) -- AnimeDetailHero.tsx
-    // rendert die Randnavigation nur noch darueber.
+    // Diese Positionierung lebt nicht als lokales CSS im Anime-Kopf-Baustein (kein eigenes
+    // .edgeNavigationOverlay), sondern vollstaendig in Cluster float="controlBand"
+    // (Grundbaustein, siehe Cluster.module.css) -- AnimeDetailHero.tsx rendert die
+    // Randnavigation nur noch darueber.
     const heroTsx = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.tsx'), 'utf8')
     expect(heroTsx, 'AnimeDetailHero.tsx darf kein eigenes edgeNavigationOverlay-<div> mehr rendern').not.toMatch(/styles\.edgeNavigationOverlay/)
     expect(heroTsx).toMatch(/<Cluster float="controlBand" justify="center" gap="contentPair">/)
@@ -334,12 +333,12 @@ describe('anime detail integration without invented data', () => {
     expect(css).not.toMatch(/\.fansubRow|\.fansubChip/)
   })
 
-  // 261102-hlg Task 5: page.module.css wurde ueber das 450-Zeilen-Limit hinweg aufgeteilt --
-  // totes CSS (0 Treffer in AnimeDetailView.tsx) wurde beim Verschieben ersatzlos entfernt, nicht
-  // nur umgezogen. Seit Befund 21/22 (192-02) gehoeren Poster-/Info-Karten-CSS zum alleinigen
-  // Stylesheet des Anime-Kopf-Bausteins (AnimeDetailHero.module.css) statt zu zwei Seiten-eigenen
-  // Teildateien -- dieser Test liest weiterhin ALLE an dieser Seite beteiligten Stylesheets,
-  // damit ein versehentliches Wiederaufleben in irgendeiner davon auffaellt.
+  // page.module.css wurde ueber das 450-Zeilen-Limit hinweg aufgeteilt -- totes CSS (0 Treffer
+  // in AnimeDetailView.tsx) wurde beim Verschieben ersatzlos entfernt, nicht nur umgezogen.
+  // Poster-/Info-Karten-CSS gehoeren zum alleinigen Stylesheet des Anime-Kopf-Bausteins
+  // (AnimeDetailHero.module.css) statt zu zwei Seiten-eigenen Teildateien -- dieser Test liest
+  // weiterhin ALLE an dieser Seite beteiligten Stylesheets, damit ein versehentliches
+  // Wiederaufleben in irgendeiner davon auffaellt.
   it('enthaelt in keinem der beteiligten Stylesheets totes CSS (.relatedRailSection/.episodeList u. a.)', () => {
     const cssFiles = [
       'page.module.css',
@@ -372,7 +371,7 @@ describe('anime detail integration without invented data', () => {
   })
 })
 
-describe('Randnavigation serverseitig aufgelöst (Befund 19)', () => {
+describe('Randnavigation serverseitig aufgelöst', () => {
   const neighborItem = (id: number): AnimeListItem => ({ id, title: `Nachbar ${id}`, type: 'tv', status: 'done' })
 
   it('stellt die Randnavigations-HREFs bereits im Server-Baum bereit, ohne AnimeEdgeNavigation selbst aufzurufen oder auf eine Client-Hydration zu warten', async () => {

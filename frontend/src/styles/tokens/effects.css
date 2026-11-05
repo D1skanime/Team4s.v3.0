@@ -6,8 +6,8 @@
  * zusammengesetzte Bausteine und Seiten schreiben niemals ein rohes filter:/backdrop-filter:/
  * color-mix(/rgba(/hsla( selbst, sondern komponieren den fertigen Grundbaustein in der dafür
  * vorgesehenen Variante. Die fünf Rezepturen unten sind reine Verschiebungen aus components.css
- * (Befund 26, Live-UAT-Nachtrag 2026-11-04b) -- keine Wertänderung, keine Verhaltensänderung,
- * nur ein eigenes, zum jeweiligen Einsatzzweck beschriftetes Zuhause statt verstreuter Literale
+ * -- keine Wertänderung, keine Verhaltensänderung, nur ein eigenes, zum jeweiligen Einsatzzweck
+ * beschriftetes Zuhause statt verstreuter Literale
  * zwischen components.css/colors.css/palette.css. Storybook "Grundlagen/Effekte"
  * (EffectsShowcase) zeigt jede Rezeptur live über einem echten Bild; effectTokenPurity.guard.test.ts
  * hält die bereits in dieser Phase angefassten zusammengesetzten Baustein-Dateien frei von rohen

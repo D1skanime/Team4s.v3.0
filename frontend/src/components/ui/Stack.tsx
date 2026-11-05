@@ -7,9 +7,8 @@ import styles from './Stack.module.css'
  *  sondern ein benannter Einsatzzweck, der intern über ein eigenes Zweck-Token in
  *  `src/styles/tokens/layout.css` auf die unveränderte `--space-N`-Grundskala verweist. Die
  *  Namen beschreiben die tatsächliche STRUKTUR der gestapelten Kinder, nicht eine Größe
- *  (Befund D, Runde 3 -- die vormalige Benennung enthielt ein Größenwort und einen mit
- *  Seitenabschnitts-Abstand verwechselbaren Namen, obwohl beide Zwecke rein INNERHALB eines
- *  Bausteins gelten):
+ *  (die vormalige Benennung enthielt ein Größenwort und einen mit Seitenabschnitts-Abstand
+ *  verwechselbaren Namen, obwohl beide Zwecke rein INNERHALB eines Bausteins gelten):
  *  - `'independentBlocks'`: trennt voneinander unabhängige, gleichrangige Inhaltsblöcke INNERHALB
  *    eines Bausteins (z. B. Merklisten-Knopf, Trennlinie und Genre-Abschnitt im Anime-Kopf;
  *    einzelne Episodenzeilen in der Episodenliste). Niemals Abstand zwischen Seitenabschnitten --

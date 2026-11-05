@@ -90,8 +90,8 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
           // deshalb NICHT als zwei eigene Geschwister-Kinder dieser aeusseren Karte landen (das
           // wuerde einen ZWEITEN --card-gap-Abstand zwischen Header/Divider UND Divider/Liste
           // einfuegen, per Playwright-Vollbild-Byte-Diff als 26px zusaetzliche Kartenhoehe
-          // gefunden -- siehe 192-26-SUMMARY.md). Ein Stack gap="none" buendelt beide stattdessen
-          // zu einem EINZIGEN Grid-Kind, exakt wie zuvor nur das eine <div id={panelId}>.
+          // nachgewiesen). Ein Stack gap="none" buendelt beide stattdessen zu einem EINZIGEN
+          // Grid-Kind, exakt wie zuvor nur das eine <div id={panelId}>.
           <Stack gap="none">
             {/* Ersetzt den vormaligen border-top von .versionList -- die sichtbare Trennlinie
                 zum Kopfzeilenbereich kommt jetzt aus einem echten Divider-Grundbaustein statt
@@ -99,12 +99,12 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
                 (vormals exakt 1px border-top, direkt am oberen Kartenrand, ohne eigenen
                 Aussenabstand) kommt bereits vollstaendig aus dem --card-gap der aeusseren Karte. */}
             <Divider tone="onMedia" spacing="none" />
-            {/* Die verschachtelte Versionslisten-Card (vormals .versionList, eine lokale CSS-
-                Klasse mit border-width:0/border-radius:0/background:transparent) braucht keine
-                eigene CSS-Klasse mehr -- Cards seamless-Prop (Plan 192-28/192-32) zeroed Cards
-                eigenen 1px-Rahmen samt Eckenrundung und variant="flat"s Farbverlaufsflaeche
-                (`--card-flat-bg`) bereits selbst ueber eine eigene Modifikatorklasse, sodass die
-                Versionsliste randlos INNERHALB der bereits eigenstaendig gerahmten aeusseren
+            {/* Die verschachtelte Versionslisten-Card braucht keine eigene CSS-Klasse (keine
+                lokale .versionList-Klasse mit border-width:0/border-radius:0/background:
+                transparent) -- Cards seamless-Prop zeroed Cards eigenen 1px-Rahmen samt
+                Eckenrundung und variant="flat"s Farbverlaufsflaeche (`--card-flat-bg`) bereits
+                selbst ueber eine eigene Modifikatorklasse, sodass die Versionsliste randlos
+                INNERHALB der bereits eigenstaendig gerahmten aeusseren
                 Episodenkarte sitzt (direkt nachgeprueft: keine bestehende Card-Variante erreicht
                 border-width:0 UND border-radius:0 UND background:transparent gleichzeitig). Das
                 "dividedSection"-Polsterungs-Rezept (oben/seitlich/unten, siehe Card.tsx) bleibt

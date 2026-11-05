@@ -45,14 +45,14 @@ function readRootDeclarationsFromDocument(): string {
   return blocks.join('\n')
 }
 
-/** Feste Lesefolge der Grundskala-Familien (Befund 28): Farbe, Abstand, Rundung, Schatten,
+/** Feste Lesefolge der Grundskala-Familien: Farbe, Abstand, Rundung, Schatten,
  *  Schrift -- die vom Menschen vorgegebene fachliche Reihenfolge statt der alphabetischen
  *  Gruppen-Sortierung, die `groupDesignTokens` für die Bausteinwerte-Stufe weiterhin nutzt. */
 const FOUNDATION_DISPLAY_ORDER = ['color', 'space', 'radius', 'shadow', 'font']
 
 /** Rendert die tatsächliche Wirkung eines Grundskala-Werts (Farbfläche/Abstands-Balken/
  *  Rundungs-Ecke/Schatten-Muster/Schrift-Beispiel) statt nur Name und Rohwert als Text --
- *  genau die von Befund 28 verlangte "sichtbare Vorschau" je Grundwert. */
+ *  eine sichtbare Vorschau je Grundwert statt reinem Text. */
 function FoundationPreview({ groupKey, token }: { groupKey: string; token: DesignToken }) {
   switch (groupKey) {
     case 'color':
@@ -127,7 +127,7 @@ function backReferenceFor(token: DesignToken, tokensByName: Map<string, DesignTo
 
 /** Eine Bausteinwerte-Gruppe (Tier 3): jede Zeile zeigt Name/Wert wie bisher, markiert aber
  *  zusätzlich sichtbar, welche Werte noch fest codiert sind statt einen Zweck-Token zu
- *  referenzieren (reine Markierung, siehe Befund 28 -- das Aufräumen bleibt künftige Arbeit). */
+ *  referenzieren (reine Markierung -- das Aufräumen bleibt künftige Arbeit). */
 function ComponentGroupPanel({ group }: { group: DesignTokenGroup }) {
   return (
     <div className={styles.componentGroupGrid}>
@@ -165,9 +165,9 @@ export function DesignTokensShowcase() {
   const groups = groupDesignTokens(allTokens)
   const tokensByName = new Map(allTokens.map((token) => [token.name, token]))
 
-  // Teilt die automatisch gebildeten Namens-Gruppen in die drei Befund-28-Stufen auf: jede Gruppe,
-  // deren Familie keine Grundskala bildet, gehört VOLLSTÄNDIG zur Bausteinwerte-Stufe; innerhalb
-  // einer Grundskala-Familie trennt `classifyToken` zusätzlich Grundwert von Zweck-Wert.
+  // Teilt die automatisch gebildeten Namens-Gruppen in die drei Gliederungsstufen auf: jede
+  // Gruppe, deren Familie keine Grundskala bildet, gehört VOLLSTÄNDIG zur Bausteinwerte-Stufe;
+  // innerhalb einer Grundskala-Familie trennt `classifyToken` zusätzlich Grundwert von Zweck-Wert.
   const foundationGroups: { group: DesignTokenGroup; foundationTokens: DesignToken[] }[] = []
   const purposeEntries: { token: DesignToken; groupLabel: string }[] = []
   const componentGroups: DesignTokenGroup[] = []

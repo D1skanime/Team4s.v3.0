@@ -10,8 +10,8 @@
    aus Cards wiederverwendbarem 'section'-Zweck (AnimeEpisodesSection.tsx, Card padding="section")
    statt aus einer lokalen Klasse hier -- diese Datei behält die Klasse nur noch als reine
    Selektor-Verdrahtung für den Aufrufer, ohne eigene Deklaration. Der vormalige untere
-   Rand-Abstand (ebenfalls var(--space-8)) war tatsächlich Abstand zwischen Seitenabschnitten
-   (Befund 22), kein Komposit-Innenabstand -- dieser Wert ist nach page.module.css (.contentArea)
-   gewandert, dem laut Befund 22 richtigen, Seiten-eigenen Ort dafür. */
+   Rand-Abstand (ebenfalls var(--space-8)) war tatsächlich Abstand zwischen Seitenabschnitten,
+   kein Komposit-Innenabstand -- dieser Wert ist nach page.module.css (.contentArea) gewandert,
+   dem richtigen, Seiten-eigenen Ort dafür. */
 .episodesSection {
 }

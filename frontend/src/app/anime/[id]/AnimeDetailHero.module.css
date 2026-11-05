@@ -1,15 +1,13 @@
-/* Alleinige Stil-Quelle des Anime-Kopf-Bausteins (Poster-Spalte + Info-Karte). Vor Befund 21/22
-   lag dieses CSS geteilt in page.poster.module.css/page.infoCard.module.css -- der Baustein
-   besaß kein eigenes Stylesheet und übernahm fremdes, seiteneigenes CSS über
-   AnimeDetailView.styles.ts. Abstände/Umbruch/Positionierung, die jetzt die generischen
-   Stack-/Cluster-Grundbausteine übernehmen (Flex-Richtung, gap, flex-wrap, das schwebende
-   Randnavigations-Band), wurden hier vollständig entfernt; Fläche/Rundung/Farbe bleiben
-   unverändert bei den Card-Varianten. */
+/* Alleinige Stil-Quelle des Anime-Kopf-Bausteins (Poster-Spalte + Info-Karte) -- der Baustein
+   besitzt ein eigenes Stylesheet statt fremdes, seiteneigenes CSS über AnimeDetailView.styles.ts
+   zu übernehmen. Abstände/Umbruch/Positionierung übernehmen die generischen Stack-/Cluster-
+   Grundbausteine (Flex-Richtung, gap, flex-wrap, das schwebende Randnavigations-Band); Fläche/
+   Rundung/Farbe bleiben bei den Card-Varianten. */
 
-/* display:flex/flex-direction entfernt (Befund B, 192-13): redundant mit Card
+/* Kein eigenes display:flex/flex-direction hier: redundant mit Card
    variant="publicPoster"s eigener .cardPublicPoster-Regel (bereits display:flex;
    flex-direction:column;gap:0;padding:0) -- diese Card-Variante IST der Flex-Container, eine
-   zweite, identische Deklaration hier tat nichts außer sie zu duplizieren. position:relative
+   zweite, identische Deklaration hier täte nichts außer sie zu duplizieren. position:relative
    bleibt: etabliert den Positionierungskontext, den Nachfahren wie .posterMeta (eigenes
    z-index) voraussetzen. */
 .posterColumn {
@@ -22,17 +20,16 @@
   flex: 1;
 }
 
-/* Divider (@/components/ui) deckt seit Befund B (192-13) Farbe UND Abstand der Trennlinie
-   vollständig selbst ab -- hier bleibt nur noch die responsive Sichtbarkeits-Entscheidung
-   lokal, die Divider.tsx's eigene Doku für eine von außen übergebene className ausdrücklich
-   erlaubt (NIE margin/background). */
+/* Divider (@/components/ui) deckt Farbe UND Abstand der Trennlinie vollständig selbst ab --
+   hier bleibt nur noch die responsive Sichtbarkeits-Entscheidung lokal, die Divider.tsx's
+   eigene Doku für eine von außen übergebene className ausdrücklich erlaubt (NIE
+   margin/background). */
 .posterMetaCard {
   /* border-width:0 statt der von .cardNested geerbten (wenn auch unsichtbar transparenten)
      1px-Standardrahmenbreite -- diese nimmt sonst trotz Farbe:transparent weiterhin 1px
-     Layoutfläche je Seite ein (border ist keine der von Befund B verbotenen Layout-
-     Eigenschaften, nur ein Größenkorrektur-Fix, siehe 192-13-SUMMARY.md). Ohne diese Korrektur
-     würde die Karte 2px schmaler/höher gerendert als vor der Umstellung (per Playwright-Messung
-     bestätigt). */
+     Layoutfläche je Seite ein (ein reiner Größenkorrektur-Fix, keine Layout-Entscheidung).
+     Ohne diese Korrektur würde die Karte 2px schmaler/höher gerendert als mit der
+     geerbten Standardrahmenbreite (per Playwright-Messung bestätigt). */
   border-width: 0;
 }
 
@@ -101,13 +98,13 @@
    zwei getrennter (wie zuvor in den zwei Quelldateien page.poster.module.css/
    page.infoCard.module.css, jetzt in einer Datei vereinigt). */
 @media (max-width: 767px) {
-  /* Der bisherige lokale `padding:`-Wert hier (Befund B, Runde 3, 192-15) zog in Card.module.css's
-     .cardPublicPoster-Variante um (als deren eigener Mobil-Standardwert, analog zu
-     .cardPublicHeroInfos bereits etabliertem responsiven Standardwert aus 192-13) -- .posterColumn
+  /* Kein eigener lokaler `padding:`-Wert hier: der Mobil-Innenabstand lebt in Card.module.css's
+     .cardPublicPoster-Variante (als deren eigener Mobil-Standardwert, analog zu
+     .cardPublicHeroInfos bereits etabliertem responsiven Standardwert) -- .posterColumn
      IST diese Card-Variante (siehe AnimeDetailHero.tsx `Card variant="publicPoster"
-     className={styles.posterColumn}`), ein zweiter lokaler padding:-Wert hier haette Card's
-     eigenen Override-Hook ignoriert. align-items bleibt lokal (keine der von Befund B verbotenen
-     Layout-Eigenschaften). */
+     className={styles.posterColumn}`), ein zweiter lokaler padding:-Wert hier wuerde Card's
+     eigenen Override-Hook ignorieren. align-items bleibt lokal (keine Layout-Eigenschaft, die
+     bereits ein Grundbaustein abdeckt). */
   .posterColumn {
     align-items: center;
   }

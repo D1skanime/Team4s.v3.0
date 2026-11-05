@@ -197,10 +197,10 @@
   /* Eigener, responsiver Standardwert (statt eines fixen 0) -- diese Variante ist die EINZIGE
      Aufrufstelle (siehe AnimeDetailHero.tsx) und braucht pro Haltepunkt eine unterschiedliche
      Polsterung (Desktop --space-6, Mobil --space-5). Cards generischer padding-Override-Hook
-     ist ein einziger, nicht responsiver Skalenwert -- genau das fehlt hier laut Befund B
-     (192-13-SUMMARY.md): statt dafür lokales CSS im Composite-Baustein zu behalten, trägt die
-     Variante selbst ihren vollständigen, responsiven Standardwert, über den der generische
-     padding-Prop weiterhin unverändert einen abweichenden Einzelwert erzwingen kann. */
+     ist ein einziger, nicht responsiver Skalenwert -- statt dafür lokales CSS im Composite-
+     Baustein zu behalten, trägt die Variante selbst ihren vollständigen, responsiven
+     Standardwert, über den der generische padding-Prop weiterhin unverändert einen
+     abweichenden Einzelwert erzwingen kann. */
   padding: var(--card-padding-override, var(--space-6));
   overflow: hidden;
   border-color: transparent;
@@ -257,8 +257,8 @@
 
   .cardPublicPoster {
     /* Eigener, responsiver Standardwert (statt des festen 0 oben) -- derselbe Mechanismus wie
-       .cardPublicHeroInfos responsiver Standardwert (Befund B, 192-13): die einzige Aufrufstelle
-       (AnimeDetailHero.tsx, .posterColumn) brauchte diese Mobil-Polsterung bislang als lokales
+       .cardPublicHeroInfos responsiver Standardwert: die einzige Aufrufstelle
+       (AnimeDetailHero.tsx, .posterColumn) brauchte diese Mobil-Polsterung sonst als lokales
        CSS im Composite-Baustein, obwohl sie exakt zu dieser Variante gehoert (Poster-Spalte UND
        Info-Karte teilen sich den Innenabstand zur Kartenkante, oben/seitlich bei fehlender
        Bild-Randverlaengerung, siehe MediaFrame-Abschaltung unterhalb 767px). Cards generischer

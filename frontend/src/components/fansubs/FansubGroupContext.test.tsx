@@ -79,11 +79,11 @@ describe('FansubGroupContext', () => {
 })
 
 /*
- * Runde 5, Befund-Review2-R2 (192-33): Kartenpolsterung/interner Rhythmus/Aktionsreihe kommen
- * jetzt aus Card padding="contextCard" (Plan 192-28), Stack gap="relatedContent" und
- * Cluster gap="secondaryActionRow" statt lokaler padding-/margin-/display:flex-Deklarationen.
+ * Kartenpolsterung/interner Rhythmus/Aktionsreihe kommen aus Card padding="contextCard",
+ * Stack gap="relatedContent" und Cluster gap="secondaryActionRow" statt lokaler
+ * padding-/margin-/display:flex-Deklarationen.
  */
-describe('FansubGroupContext -- Runde 5: Card-Zweckstufe, Stack-Rhythmus, Cluster-navRow', () => {
+describe('FansubGroupContext -- Card-Zweckstufe, Stack-Rhythmus, Cluster-navRow', () => {
   it('traegt die Card-Zweckstufe padding="contextCard" statt eines lokalen Polsterungswerts', () => {
     const activeGroup: FansubGroupContextActiveGroup = { id: 1, slug: 'new-subs', name: 'New-Subs' }
     render(<FansubGroupContext activeGroup={activeGroup} animeSlug="buddy-complex" />)

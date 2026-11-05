@@ -27,10 +27,10 @@ function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
 describe('AnimeDetailView', () => {
   it('löst ein fehlendes Cover (coverUrl="") über den kanonischen Platzhalter-Resolver auf, nicht über den verworfenen /covers/placeholder.jpg-Literal', () => {
     // Exakt dieselben Props wie die Storybook-Story "Fehlendes Cover" (AnimeDetailView.
-    // stories.tsx) -- der Pflichtfall "fehlende Bilder", den Review-Befund 15 ursprünglich
-    // reparieren sollte, aber nur in Story-/Fixture-Dateien prüfte, nicht in dieser Komponente
-    // selbst (Regressionsfund: die Komponente hatte weiterhin ihr eigenes, nicht dekodierbares
-    // /covers/placeholder.jpg-Literal als Fallback).
+    // stories.tsx) -- der Pflichtfall "fehlende Bilder" wird hier direkt an der Komponente
+    // selbst geprüft, nicht nur in Story-/Fixture-Dateien (Regressionsfund: die Komponente
+    // hatte weiterhin ihr eigenes, nicht dekodierbares /covers/placeholder.jpg-Literal als
+    // Fallback).
     const content = AnimeDetailView({
       anime: buildAnimeDetailFixture({ cover_image: '' }),
       breadcrumbItems: [{ label: 'Anime', href: '/anime' }],

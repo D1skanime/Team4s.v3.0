@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { readGlobalsCssResolved } from '@/test/readGlobalsCss'
 
 /**
- * Deterministischer Worst-Case-Kontrastnachweis für den Fansub-Hero-Banner (UAT-Befund 2): wenn
+ * Deterministischer Worst-Case-Kontrastnachweis für den Fansub-Hero-Banner: wenn
  * ein Bannerfoto vorhanden ist, blendet `FansubHeroSection` einen zusätzlichen dunklen Scrim
  * (`.heroBodyOnBanner::before`) hinter Titel/Subtitle/MetricList ein, dessen Opazität so bemessen
  * ist, dass selbst ein rein weißes (also denkbar hellstes) Bannerfoto den Text nicht unlesbar
@@ -46,7 +46,7 @@ const badgeCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/components/ui/Badge.module.css'),
   'utf8',
 )
-// Die --badge-onmedia-*-Rezeptur wanderte mit Befund 26 von components.css nach effects.css
+// Die --badge-onmedia-*-Rezeptur wanderte von components.css nach effects.css
 // (eigenes Zuhause für Blur-/Glas-/Scrim-Zweck-Tokens) -- dieselben Werte, andere Quelldatei.
 const effectsTokensCss = fs.readFileSync(
   path.resolve(process.cwd(), 'src/styles/tokens/effects.css'),
@@ -216,8 +216,8 @@ describe('FansubHeroSection Banner-Scrim Worst-Case-Kontrast', () => {
     // Hintergrund (Chip ist selbst teiltransparent), danach der Badge-Text über diesem bereits
     // gemischten Chip-Hintergrund -- nicht nur direkt gegen den Scrim, da der Text optisch auf
     // der Chip-Fläche liegt, nicht auf dem rohen Scrim. Die Werte kommen seit der onMedia-
-    // Migration aus den festen --badge-onmedia-bg/-text-Tokens, seit Befund 26 in effects.css
-    // geführt (identisch zu den vormals von page.module.css injizierten --badge-muted-bg/-fg-
+    // Migration aus den festen --badge-onmedia-bg/-text-Tokens, in effects.css geführt
+    // (identisch zu den vormals von page.module.css injizierten --badge-muted-bg/-fg-
     // Overrides), nicht mehr aus einer von außen gesetzten CSS-Variable.
     const bgToken = extractVarValue(effectsTokensCss, ':root', 'badge-onmedia-bg')
     const fgToken = extractVarValue(effectsTokensCss, ':root', 'badge-onmedia-text')

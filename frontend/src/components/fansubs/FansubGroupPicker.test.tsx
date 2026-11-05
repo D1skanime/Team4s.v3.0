@@ -14,8 +14,8 @@ afterEach(() => {
   cleanup()
 })
 
-// Befund 25: `onSelect` wird hier nur trivial weitergeleitet (`onClick={() => onSelect(...)}`),
-// ohne eigene Fachlogik -- statt eines echten DOM-Klicks wird die Komponente direkt als Funktion
+// `onSelect` wird hier nur trivial weitergeleitet (`onClick={() => onSelect(...)}`), ohne
+// eigene Fachlogik -- statt eines echten DOM-Klicks wird die Komponente direkt als Funktion
 // aufgerufen und der gefundene `onClick`-Prop direkt invoziert (etabliertes Muster aus
 // `page.test.tsx`/`AnimeDetailView.test.tsx`, hier als eigene, dateilokale Kopie).
 function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
@@ -87,7 +87,7 @@ describe('FansubGroupPicker', () => {
     expect(document.querySelector('img')).toBeNull()
   })
 
-  it('ruft onSelect(null) bei Klick auf Alle und onSelect(id) bei Klick auf einen Gruppen-Chip auf (direkter onClick-Aufruf statt Klick-Simulation, Befund 25)', () => {
+  it('ruft onSelect(null) bei Klick auf Alle und onSelect(id) bei Klick auf einen Gruppen-Chip auf (direkter onClick-Aufruf statt Klick-Simulation)', () => {
     const options: FansubGroupPickerOption[] = [
       { id: 1, slug: 'bloody-shadow', name: 'Bloody-Shadow', logo_url: null },
       { id: 2, slug: 'flamehaze-subs', name: 'FlameHaze-subs', logo_url: null },
@@ -131,12 +131,11 @@ describe('FansubGroupPicker', () => {
 })
 
 /*
- * Runde 5, Befund-Review2-R2 (192-33): die Kreisform/Zuschnitt-Entscheidung des Gruppenlogos kommt
- * jetzt aus dem Avatar-Grundbaustein (Größenstufe "xs") statt einer lokalen .logo-CSS-Klasse; der
- * Icon-/Beschriftungs-Abstand kommt aus Buttons eigener chipGlass-Variante statt einer lokalen
- * .chip-gap-Deklaration.
+ * Die Kreisform/Zuschnitt-Entscheidung des Gruppenlogos kommt aus dem Avatar-Grundbaustein
+ * (Größenstufe "xs") statt einer lokalen .logo-CSS-Klasse; der Icon-/Beschriftungs-Abstand
+ * kommt aus Buttons eigener chipGlass-Variante statt einer lokalen .chip-gap-Deklaration.
  */
-describe('FansubGroupPicker -- Runde 5: Avatar-Logo statt lokalem <Image>, Button-eigene chipGlass-Lücke', () => {
+describe('FansubGroupPicker -- Avatar-Logo statt lokalem <Image>, Button-eigene chipGlass-Lücke', () => {
   it('rendert das Gruppenlogo ueber ein Avatar-Element (span[title]) statt eines freistehenden <img>', () => {
     const options: FansubGroupPickerOption[] = [
       { id: 1, slug: 'new-subs', name: 'New-Subs', logo_url: '/covers/logo.png' },

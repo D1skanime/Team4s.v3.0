@@ -11,13 +11,13 @@ import type { AnimeBackdropResponse, PaginatedAnimeResponse } from '@/types/anim
  * als nicht dekodierbar erwies (Commit 159-05).
  *
  * `banner_url` verweist bewusst NICHT auf denselben Platzhalter wie Poster/Logo: `AnimeInfoBanner`
- * (AnimeMediaProvider.tsx) rendert sein `<Image>` mit festen `width={600} height={180}` (10:3,
+ * (AnimeMediaProvider.tsx) rendert sein Bild mit festen `width={600} height={180}` (10:3,
  * Landscape) -- ein wiederverwendetes PORTRAIT-Bild (64x96, 2:3) hat eine eigene, vom Browser
  * bevorzugte Bitmap-Seitenverhältnis-Vorgabe (CSS `aspect-ratio: auto <attr-ratio>` tritt gegenüber
- * einem tatsächlich vorhandenen Bitmap-Seitenverhältnis zurück), wodurch `height:auto` in
- * `AnimeDetailHero.module.css`s `.infoBanner` nicht die erwarteten 180px, sondern die
- * Portrait-Bitmap-Proportion (Breite * 96/64 = Breite * 1.5) ergab -- bei voller Kartenbreite ein
- * ca. 1600px hoher, vollflächiger Block (live per Playwright vermessen, siehe 192-12-SUMMARY.md).
+ * einem tatsächlich vorhandenen Bitmap-Seitenverhältnis zurück), wodurch `height:auto` (aus
+ * ResponsiveImages `fillWidth`-Prop) nicht die erwarteten 180px, sondern die Portrait-Bitmap-
+ * Proportion (Breite * 96/64 = Breite * 1.5) ergab -- bei voller Kartenbreite ein ca. 1600px
+ * hoher, vollflächiger Block (live per Playwright vermessen).
  * `placeholder-banner.png` ist derselbe naheinige dunkle Farbton wie `placeholder.png`, nur mit der
  * tatsächlich erwarteten 600x180-Landscape-Form -- kein neues Bildmotiv, nur die korrekte Form.
  */

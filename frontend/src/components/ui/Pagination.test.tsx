@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from './Button'
 import { Pagination } from './Pagination'
 
-// Befund 25: `onPageChange`/`onShowMore`/`onShowLess` werden hier nur trivial weitergeleitet
+// `onPageChange`/`onShowMore`/`onShowLess` werden hier nur trivial weitergeleitet
 // (`onClick: () => onPageChange?.(page)` etc.), ohne eigene Fachlogik -- statt eines echten
 // DOM-Klicks wird die Komponente direkt als Funktion aufgerufen und der gefundene `onClick`-Prop
 // direkt invoziert (etabliertes Muster aus `page.test.tsx`/`AnimeDetailView.test.tsx`, hier als
@@ -48,7 +48,7 @@ describe('Pagination', () => {
   })
 
   describe('Klick-Modus', () => {
-    it('ruft onPageChange mit der angeklickten Seitenzahl auf (direkter onClick-Aufruf statt Klick-Simulation, Befund 25)', () => {
+    it('ruft onPageChange mit der angeklickten Seitenzahl auf (direkter onClick-Aufruf statt Klick-Simulation)', () => {
       const onPageChange = vi.fn()
       const { result } = renderHook(() => findButtonsByDirectCall(Pagination({ currentPage: 2, totalPages: 5, onPageChange })))
 
@@ -59,7 +59,7 @@ describe('Pagination', () => {
       expect(onPageChange).toHaveBeenCalledWith(3)
     })
 
-    it('ruft onPageChange mit der nächsten/vorherigen Seite bei Weiter/Zurück auf (direkter onClick-Aufruf statt Klick-Simulation, Befund 25)', () => {
+    it('ruft onPageChange mit der nächsten/vorherigen Seite bei Weiter/Zurück auf (direkter onClick-Aufruf statt Klick-Simulation)', () => {
       const onPageChange = vi.fn()
       const { result } = renderHook(() => findButtonsByDirectCall(Pagination({ currentPage: 2, totalPages: 5, onPageChange })))
 
@@ -215,7 +215,7 @@ describe('Pagination', () => {
       expect(screen.queryByRole('button', { name: 'Weniger anzeigen' })).toBeNull()
     })
 
-    it('ruft onShowMore bei einem direkten onClick-Aufruf auf (statt Klick-Simulation, Befund 25)', () => {
+    it('ruft onShowMore bei einem direkten onClick-Aufruf auf (statt Klick-Simulation)', () => {
       const onShowMore = vi.fn()
       const { result } = renderHook(() => findButtonsByDirectCall(Pagination({
         mode: 'loadMore', shownCount: 15, totalCount: 24, canShowMore: true, canShowLess: false,
@@ -247,7 +247,7 @@ describe('Pagination', () => {
       expect(screen.getByRole('button', { name: 'Weniger anzeigen' })).not.toBeNull()
     })
 
-    it('ruft onShowLess bei einem direkten onClick-Aufruf auf (statt Klick-Simulation, Befund 25)', () => {
+    it('ruft onShowLess bei einem direkten onClick-Aufruf auf (statt Klick-Simulation)', () => {
       const onShowLess = vi.fn()
       const { result } = renderHook(() => findButtonsByDirectCall(Pagination({
         mode: 'loadMore', shownCount: 24, totalCount: 24, canShowMore: false, canShowLess: true,

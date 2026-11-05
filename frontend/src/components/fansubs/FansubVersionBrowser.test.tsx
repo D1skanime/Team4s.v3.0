@@ -77,9 +77,9 @@ beforeEach(() => {
 afterEach(async () => { await act(async () => {}); cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('authoritative anime project navigation', () => {
-  it('verlinkt Zur-Fansub-Gruppe und Zum-Projekt ueber die jeweils aktive Gruppen-Slug (direkter Hook-Aufruf statt fireEvent.click, Befund C)', async () => {
+  it('verlinkt Zur-Fansub-Gruppe und Zum-Projekt ueber die jeweils aktive Gruppen-Slug (direkter Hook-Aufruf statt fireEvent.click)', async () => {
     // Die Gruppenwechsel-Fachlogik (welche Gruppe nach einem Klick aktiv ist) lebt in
-    // useFansubGroupSwitch (Plan 192-09); die href-Bauweise selbst (FansubGroupContext liest
+    // useFansubGroupSwitch; die href-Bauweise selbst (FansubGroupContext liest
     // activeGroup.slug direkt in ein Button-href-Template) ist trivial. Statt eines echten
     // DOM-Klicks auf die Gruppenumschalter-Buttons wird updateFansubSelection hier direkt per
     // renderHook aufgerufen und die daraus resultierende aktive Gruppen-Slug gegen dieselben
@@ -129,7 +129,7 @@ describe('authoritative anime project navigation', () => {
     expect(screen.queryByRole('link', { name: 'Zum Projekt' })).toBeNull()
   })
 
-  it('behält echte Episodentitel; das Ausklapp-Verhalten selbst wird direkt über toggleEpisodeExpansion bewiesen (Befund 25 -- kein Klick-Simulations-zu-Rerender-Nachweis mehr, das bleibt Live-UAT)', async () => {
+  it('behält echte Episodentitel; das Ausklapp-Verhalten selbst wird direkt über toggleEpisodeExpansion bewiesen (kein Klick-Simulations-zu-Rerender-Nachweis, das bleibt Live-UAT)', async () => {
     render(<FansubVersionBrowser animeID={22} animeSlug="stored-anime" fansubs={fansubs} episodes={[{
       ...DEFAULT_CLASSIFICATION,
       episode_id: 50, episode_number: 1, episode_title: 'Gespeicherter Episodentitel', version_count: 0, versions: [],
@@ -195,12 +195,12 @@ describe('authoritative anime project navigation', () => {
 })
 
 /*
- * Runde 5, Befund-Review2-R2 (192-33): Gruppen-Auswahl, Gruppen-Kontext und Episoden-Inhalt
- * teilen sich jetzt EINEN Rhythmus-Stack statt drei verstreuter lokaler margin-Werte; totes CSS
- * (.emptyBox) ist entfernt; die IntersectionObserver-Sentinels tragen ihre technische 1px-Höhe
- * als Inline-Stil statt einer CSS-Modul-Klasse.
+ * Gruppen-Auswahl, Gruppen-Kontext und Episoden-Inhalt teilen sich EINEN Rhythmus-Stack statt
+ * drei verstreuter lokaler margin-Werte; totes CSS (.emptyBox) ist entfernt; die
+ * IntersectionObserver-Sentinels tragen ihre technische 1px-Höhe als Inline-Stil statt einer
+ * CSS-Modul-Klasse.
  */
-describe('FansubVersionBrowser -- Runde 5: gemeinsamer Rhythmus-Stack statt drei verstreuter margin-Werte', () => {
+describe('FansubVersionBrowser -- gemeinsamer Rhythmus-Stack statt drei verstreuter margin-Werte', () => {
   it('FansubVersionBrowser.module.css deklariert weder .section/.emptyBox/.sentinel noch ein eigenes margin-top mehr', () => {
     const css = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubVersionBrowser.module.css'), 'utf8')
     expect(css).not.toMatch(/\.section\s*\{/)
@@ -438,14 +438,14 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     assertAllSelected()
   })
 
-  it('D-07: ein Chip-Wechsel löst einen Refetch mit dem Ziel-Slug aus (direkter Aufruf statt Klick-Simulation, Befund 25)', async () => {
+  it('D-07: ein Chip-Wechsel löst einen Refetch mit dem Ziel-Slug aus (direkter Aufruf statt Klick-Simulation)', async () => {
     const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
     const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
     await act(async () => { result.current.updateFansubSelection(7) })
     expect(resetForFilter).toHaveBeenCalledExactlyOnceWith('saved-primary')
   })
 
-  it('D-02: andere Query-Parameter bleiben beim Gruppenwechsel erhalten (direkter Aufruf statt Klick-Simulation, Befund 25)', async () => {
+  it('D-02: andere Query-Parameter bleiben beim Gruppenwechsel erhalten (direkter Aufruf statt Klick-Simulation)', async () => {
     window.history.pushState(null, '', '/anime/22?from=search')
     const resetForFilter = vi.fn<(slug: string | null) => Promise<ResetForFilterResult>>().mockResolvedValue({ ok: true, episodeCount: 0 })
     const { result } = renderHook(() => useFansubGroupSwitch({ fansubOptions: fansubs, resetForFilter }))
@@ -502,12 +502,12 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
   })
 })
 
-// Befund 25: switchTo/updateFansubSelection/resolveGroupSlugForFetch/toggleEpisodeExpansion
-// enthalten die eigentliche Fachlogik des Gruppenwechsels bzw. der Ausklapp-Umschaltung -- diese
-// Tests rufen sie DIREKT auf (per `renderHook`/`act` bzw. als reine Funktion), statt einen Klick
-// zu simulieren und auf ein Re-Render zu warten. Der echte DOM-Klick-zu-Rerender-Ablauf bleibt
-// Live-UAT-Sache (siehe `192-CONTEXT.md`s Befund-25-Entscheidung).
-describe('useFansubGroupSwitch/toggleEpisodeExpansion: direkte Logiktests ohne Rendering/fireEvent (Befund 25)', () => {
+// switchTo/updateFansubSelection/resolveGroupSlugForFetch/toggleEpisodeExpansion enthalten die
+// eigentliche Fachlogik des Gruppenwechsels bzw. der Ausklapp-Umschaltung -- diese Tests rufen
+// sie DIREKT auf (per `renderHook`/`act` bzw. als reine Funktion), statt einen Klick zu
+// simulieren und auf ein Re-Render zu warten. Der echte DOM-Klick-zu-Rerender-Ablauf bleibt
+// Live-UAT-Sache.
+describe('useFansubGroupSwitch/toggleEpisodeExpansion: direkte Logiktests ohne Rendering/fireEvent', () => {
   describe('resolveGroupSlugForFetch', () => {
     it('liefert bei weniger als 2 Optionen immer null, auch bei einem an sich gültigen Slug', () => {
       expect(resolveGroupSlugForFetch([], 'saved-primary')).toBeNull()

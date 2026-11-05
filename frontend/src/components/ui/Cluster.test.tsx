@@ -84,7 +84,7 @@ describe('Cluster', () => {
     expect(node.textContent).toBe('Inhalt')
   })
 
-  describe('collapseBelow/gapCollapsed (Haltepunkt-Umkehr, Review-Befund 1 Erweiterung B)', () => {
+  describe('collapseBelow/gapCollapsed (Haltepunkt-Umkehr)', () => {
     it('rendert einen zweistufigen Container-Query-Wrapper, wenn collapseBelow gesetzt ist', () => {
       const { container } = render(
         <Cluster collapseBelow="md" gap="contentPair" gapCollapsed="independentBlocks">
@@ -124,7 +124,7 @@ describe('Cluster', () => {
     })
   })
 
-  describe('float (Schwebe-Overlay-Modus, Review-Befund 1 Erweiterung C)', () => {
+  describe('float (Schwebe-Overlay-Modus)', () => {
     it('rendert den zweistufigen Container-Query-Wrapper mit der Schwebe-Modifikatorklasse, wenn float gesetzt ist', () => {
       const { container } = render(
         <Cluster float="controlBand" gap="contentPair" justify="center">

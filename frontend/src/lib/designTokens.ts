@@ -58,7 +58,7 @@ const GROUP_LABELS: Record<string, string> = {
   public: 'Öffentliche Seiten',
   profile: 'Profil',
   role: 'Rollen',
-  // Ergänzungen aus Befund 28 (Runde 3, 2026-11-04): explizite deutsche Namen für die
+  // Explizite deutsche Namen für die
   // Bausteinwerte-Stufe der Design-Tokens-Seite, statt sich auf die großgeschriebene
   // Rohsegment-Rückfalllogik zu verlassen -- card/button sahen zufällig bereits "gut genug"
   // aus, bekommen hier aber einen EXPLIZITEN Eintrag, die übrigen hätten ohne Eintrag ein
@@ -136,7 +136,7 @@ export function isColorLikeValue(value: string): boolean {
   return probe.style.color !== ''
 }
 
-/** Die drei Gliederungs-Stufen der Design-Tokens-Seite (Befund 28, Runde 3): "foundation" =
+/** Die drei Gliederungs-Stufen der Design-Tokens-Seite: "foundation" =
  *  rohe Grundskala mit sichtbarer Vorschau (z. B. --space-3, --radius-sm), "purpose" = benannter
  *  Verwendungszweck INNERHALB einer Grundskala, der per `var()` auf einen Grundwert verweist
  *  (z. B. --space-independent-blocks -> var(--space-3)), "component" = jeder Token, der zu keiner Grundskala
@@ -188,7 +188,7 @@ export function classifyToken(token: DesignToken, groupKey: string): TokenTier {
  *  ist (z. B. "var(--space-3)") statt eines eigenständigen Literalwerts (Zahl/Hex/Funktionsaufruf
  *  wie "4px"/"#fff"/"linear-gradient(...)"). Grundlage für die Bausteinwerte-Markierung in
  *  `DesignTokensShowcase.tsx`: ein Wert, der NICHT mit `var(` beginnt, nutzt noch keinen
- *  Zweck-Token und wird dort sichtbar markiert (Markierung, keine Korrektur -- siehe Befund 28). */
+ *  Zweck-Token und wird dort sichtbar markiert (Markierung, keine Korrektur). */
 export function isVarReference(value: string): boolean {
   return value.trimStart().startsWith('var(')
 }

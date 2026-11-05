@@ -49,9 +49,9 @@ function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
     // Der Kopf ist seit der Storybook-Komposition eine eigene reine Darstellungskomponente.
     // Für die unveränderte Cover-Invariante wird er hier wie die Seitenansicht materialisiert,
     // damit Poster, Reflexion und die an den Rotator gereichte Quelle weiterhin geprüft werden.
-    // SplitLayout reicht Poster-/Info-Spalte seit Befund 21 als firstColumn/secondColumn-PROPS
-    // durch, nicht als `children` -- ohne diesen Zweig faende der Standard-Zweig nichts
-    // innerhalb eines noch nicht materialisierten SplitLayout-Elements.
+    // SplitLayout reicht Poster-/Info-Spalte als firstColumn/secondColumn-PROPS durch, nicht
+    // als `children` -- ohne diesen Zweig faende der Standard-Zweig nichts innerhalb eines
+    // noch nicht materialisierten SplitLayout-Elements.
     if (child.type === AnimeDetailHero) {
       return [child, ...elements(AnimeDetailHero(child.props as unknown as Parameters<typeof AnimeDetailHero>[0]))]
     }

@@ -26,14 +26,14 @@ function buildEpisode(overrides: Partial<PublicGroupedEpisode> = {}): PublicGrou
 }
 
 /*
- * Befund B (Runde 3): EpisodeGlassCard.module.css darf ab sofort kein eigenes
- * display:flex/flex-direction/display:grid mehr deklarieren -- die Kopfzeilen- und die
- * Versionslisten-Anordnung kommen jetzt ueber Cluster/Stack. .versionLists vormals asymmetrische
- * Polsterung lebt seit Plan 192-26 in Cards "dividedSection"-Rezept, der vormalige border-top in
- * einem eigenstaendigen Divider-Element -- in der CSS-Datei bleiben nur noch drei eng begruendete
- * Groessenkorrekturen (keine der verbotenen Kategorien, siehe deren eigener Kommentar dort).
+ * EpisodeGlassCard.module.css darf kein eigenes display:flex/flex-direction/display:grid
+ * deklarieren -- die Kopfzeilen- und die Versionslisten-Anordnung kommen ueber Cluster/Stack.
+ * .versionLists asymmetrische Polsterung lebt in Cards "dividedSection"-Rezept, der border-top
+ * in einem eigenstaendigen Divider-Element -- in der CSS-Datei bleiben nur noch drei eng
+ * begruendete Groessenkorrekturen (keine der verbotenen Kategorien, siehe deren eigener
+ * Kommentar dort).
  */
-describe('EpisodeGlassCard.module.css -- Befund B Baustein-Reinheit', () => {
+describe('EpisodeGlassCard.module.css -- Baustein-Reinheit', () => {
   it('deklariert kein eigenes display:flex/flex-direction/display:grid mehr', () => {
     const source = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.module.css'), 'utf8')
     // Kommentare duerfen diese Begriffe als Begruendung erwaehnen (z. B. "Cluster uebernimmt
@@ -46,10 +46,9 @@ describe('EpisodeGlassCard.module.css -- Befund B Baustein-Reinheit', () => {
   })
 
   /*
-   * Runde 5, Befund-Review2-R2 (192-32): die vormalige lokale .versionList-Klasse (border-width:0;
-   * border-radius:0; background:transparent) entfaellt ersatzlos -- der randlose Modus kommt jetzt
-   * aus Cards eigenem seamless-Prop (Plan 192-28) statt einer dritten, parallelen lokalen
-   * CSS-Override-Klasse.
+   * Eine lokale .versionList-Klasse (border-width:0; border-radius:0; background:transparent)
+   * existiert bewusst nicht -- der randlose Modus kommt aus Cards eigenem seamless-Prop statt
+   * einer dritten, parallelen lokalen CSS-Override-Klasse.
    */
   it('EpisodeGlassCard.module.css deklariert keine eigene .versionList-Regel mehr', () => {
     const source = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.module.css'), 'utf8')

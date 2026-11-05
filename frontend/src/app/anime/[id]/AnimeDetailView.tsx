@@ -30,7 +30,7 @@ export interface AnimeDetailViewProps {
   episodeCount: number
   coverUrl: string
   rawFansubParam?: string
-  /** Serverseitig aufgelöste Randnavigations-Ziele (Befund 19) -- bereits vollständig berechnete
+  /** Serverseitig aufgelöste Randnavigations-Ziele -- bereits vollständig berechnete
    *  href/label/ariaLabel-Tripel, die noch vor jeder Client-Hydration im HTML stehen müssen. */
   previous: AdjacentNavigationItem | null
   next: AdjacentNavigationItem | null
@@ -86,8 +86,8 @@ export function AnimeDetailView({
         <Breadcrumbs items={breadcrumbItems} textHalo variant="scrim" />
       </div>
 
-      {/* Anime-Kopf: Card(publicHero)+SplitLayout+Randnavigations-Slot liegen seit Befund 21/22
-          vollständig in AnimeDetailHero selbst -- diese Seite ordnet nur noch den Baustein an
+      {/* Anime-Kopf: Card(publicHero)+SplitLayout+Randnavigations-Slot liegen vollständig in
+          AnimeDetailHero selbst -- diese Seite ordnet nur noch den Baustein an
           (Breitenvertrag über .heroWrapper), ohne dessen inneres Raster/Optik zu kennen. */}
       <div className={styles.heroWrapper}>
         <AnimeDetailHero

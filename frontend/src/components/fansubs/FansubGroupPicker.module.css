@@ -4,8 +4,8 @@
  * dieser Picker legt hier nur noch an, WIE Logo/Beschriftung innerhalb eines Chips Platz finden
  * und wie die Chips in einer Reihe umbrechen. Der vormalige Abstand zum jeweils folgenden
  * Geschwister-Block (Gruppen-Kontext-Karte oder Episoden-Inhalt, `.wrapper`s margin-bottom) kommt
- * jetzt aus dem gemeinsamen Rhythmus-Stack in FansubVersionBrowser.tsx (Runde 5,
- * Befund-Review2-R2) statt aus einer lokalen Deklaration hier.
+ * aus dem gemeinsamen Rhythmus-Stack in FansubVersionBrowser.tsx statt aus einer lokalen
+ * Deklaration hier.
  */
 .chip {
   max-width: min(100%, 260px);

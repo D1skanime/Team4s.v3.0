@@ -55,7 +55,7 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); clearAuthSession() })
 
 describe('watchlist client status ownership', () => {
-  it('recognizes an existing entry with refresh only and deletes through the central helper (direkter Hook-Aufruf statt Klick-Simulation, Befund 25)', async () => {
+  it('recognizes an existing entry with refresh only and deletes through the central helper (direkter Hook-Aufruf statt Klick-Simulation)', async () => {
     vi.mocked(getWatchlistEntry).mockResolvedValue(entry)
     const { result } = renderHook(() => useWatchlistAction({ animeID: 1, hasAuthSession: true, isCurrentSession: alwaysCurrentSession }))
     await act(async () => { await result.current.checkStatus() })
@@ -82,7 +82,7 @@ describe('watchlist client status ownership', () => {
     },
   )
 
-  it.each(['add', 'delete'])('shows %s failures with the global watchlist state and retains known status (direkter Hook-Aufruf statt Klick-Simulation, Befund 25)', async (action) => {
+  it.each(['add', 'delete'])('shows %s failures with the global watchlist state and retains known status (direkter Hook-Aufruf statt Klick-Simulation)', async (action) => {
     if (action === 'delete') vi.mocked(getWatchlistEntry).mockResolvedValue(entry)
     const mutate = action === 'delete' ? removeWatchlistEntry : addWatchlistEntry
     vi.mocked(mutate).mockRejectedValue(new ApiError(500, 'Änderung fehlgeschlagen.'))
@@ -166,13 +166,13 @@ describe('watchlist client status ownership', () => {
 })
 
 /*
- * Runde 5, Befund-Review2-R2 (192-32): die vormalige lokale `.wrapper { display: grid;
- * gap: 0.45rem; }`-Deklaration (ein roher rem-Wert, kein Token) entfaellt ersatzlos -- die
- * vertikale Anordnung von Knopf/Statusmeldung/Wiederholungs-Knopf kommt jetzt aus Stack
- * gap="relatedContent" (8px, gemessen gegen den vormaligen 0.45rem=7,2px-Wert -- die Differenz
- * liegt unterhalb jeder sichtbaren Pixel-Rundungs-Schwelle, siehe 192-32-SUMMARY.md).
+ * Eine lokale `.wrapper { display: grid; gap: 0.45rem; }`-Deklaration (ein roher rem-Wert,
+ * kein Token) existiert bewusst nicht -- die vertikale Anordnung von Knopf/Statusmeldung/
+ * Wiederholungs-Knopf kommt aus Stack gap="relatedContent" (8px, gemessen gegen den
+ * vormaligen 0.45rem=7,2px-Wert -- die Differenz liegt unterhalb jeder sichtbaren
+ * Pixel-Rundungs-Schwelle).
  */
-describe('WatchlistAddButton -- Runde 5: Stack statt lokalem display:grid', () => {
+describe('WatchlistAddButton -- Stack statt lokalem display:grid', () => {
   it('WatchlistAddButton.module.css deklariert kein eigenes display:grid oder einen rohen rem-Abstand mehr', () => {
     const css = readFileSync(join(process.cwd(), 'src/components/watchlist/WatchlistAddButton.module.css'), 'utf8')
     expect(css).not.toMatch(/display:\s*grid/)
@@ -193,11 +193,11 @@ describe('WatchlistAddButton -- Runde 5: Stack statt lokalem display:grid', () =
   })
 })
 
-// Befund 25: handleToggle/checkStatus enthalten die eigentliche Fachlogik des Watchlist-
+// handleToggle/checkStatus enthalten die eigentliche Fachlogik des Watchlist-
 // Hinzufügen/Entfernen-Ablaufs -- diese Tests rufen sie DIREKT per `renderHook`/`act` auf,
 // statt einen Klick zu simulieren und auf ein Re-Render zu warten. Der echte DOM-Klick-zu-
-// Rerender-Ablauf bleibt Live-UAT-Sache (siehe `192-CONTEXT.md`s Befund-25-Entscheidung).
-describe('useWatchlistAction: direkte Logiktests ohne Rendering/fireEvent (Befund 25)', () => {
+// Rerender-Ablauf bleibt Live-UAT-Sache.
+describe('useWatchlistAction: direkte Logiktests ohne Rendering/fireEvent', () => {
   describe('checkStatus', () => {
     it('setzt status=present bei einem vorhandenen Eintrag', async () => {
       vi.mocked(getWatchlistEntry).mockResolvedValue(entry)
@@ -286,7 +286,7 @@ describe('useWatchlistAction: direkte Logiktests ohne Rendering/fireEvent (Befun
       expect(result.current.status).toBe('absent')
     })
 
-    it('ist ein No-Op, solange der Watchliststatus noch nicht aufgelöst ist (Befund C -- ersetzt den bisherigen fireEvent-Klick-auf-deaktivierten-Button-Nachweis per direktem Hook-Aufruf)', async () => {
+    it('ist ein No-Op, solange der Watchliststatus noch nicht aufgelöst ist (ersetzt den bisherigen fireEvent-Klick-auf-deaktivierten-Button-Nachweis per direktem Hook-Aufruf)', async () => {
       // handleToggle guardet selbst gegen status !== 'present' && status !== 'absent' -- das
       // deckt sowohl 'loading' (dieser Test) als auch das anfängliche 'unknown' ab, bevor
       // checkStatus überhaupt einmal durchgelaufen ist. Die Button-Deaktivierung in

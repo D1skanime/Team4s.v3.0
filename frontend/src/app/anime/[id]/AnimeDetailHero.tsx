@@ -29,10 +29,10 @@ export interface AnimeDetailHeroProps {
 
 /**
  * Öffentlicher Anime-Kopf: verbindet Poster, Merklisten-Aktion und die inhaltliche Info-Karte zu
- * einer wiederverwendbar prüfbaren Seitensektion. Besitzt seit Befund 21/22 die äußere Glas-Karte
+ * einer wiederverwendbar prüfbaren Seitensektion. Besitzt die äußere Glas-Karte
  * (`Card variant="publicHero"`) und das Zwei-Spalten-Raster (`SplitLayout`) vollständig selbst --
- * vorher lagen beide Ebenen in der Seite (`AnimeDetailView.tsx`/`page.module.css`), wodurch die
- * Storybook-Story dieses Bausteins nie dieselbe Struktur wie die Live-Seite zeigte. Die äußere
+ * lägen beide Ebenen stattdessen in der Seite (`AnimeDetailView.tsx`/`page.module.css`), würde die
+ * Storybook-Story dieses Bausteins nie dieselbe Struktur wie die Live-Seite zeigen. Die äußere
  * Card bleibt dabei bewusst das EINZIGE Grid-Kind des übergeordneten Hero-Rahmens -- die beiden
  * inneren Cards (Poster/Info) sitzen nicht direkt als Geschwister im Hero-Grid, sondern innerhalb
  * von `SplitLayout`s eigenem Zwei-Spalten-Raster (siehe 192-RESEARCH.md Pitfall 3: zwei direkte

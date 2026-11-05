@@ -17,9 +17,9 @@ const forbiddenLocalDesign = [
   /filter\s*:\s*blur\(/i,
   /box-shadow\s*:/i,
   /border-radius\s*:\s*(?!var\()/i,
-  // Jedes eigene Raster gehört in den jeweiligen Baustein (z. B. AnimeDetailHero.module.css), nicht
-  // in die Seiten-CSS -- Befund 22 verbietet Seiten-Level-CSS damit dauerhaft, kein zweites Mal
-  // über einen von außen gesetzten Layout-Hook zu "entweichen".
+  // Jedes eigene Raster gehört in den jeweiligen Baustein (z. B. AnimeDetailHero.module.css),
+  // nicht in die Seiten-CSS -- diese Grenze gilt dauerhaft, kein zweites Mal über einen von
+  // außen gesetzten Layout-Hook zu "entweichen".
   /grid-template/i,
   // Deklaration (nicht bloß Referenz per var(...)) eines fremden, farbbenannten Override-Hooks
   // (z. B. --breadcrumb-link-color) direkt in der Seite -- Regressionsfund: der Guard prüfte

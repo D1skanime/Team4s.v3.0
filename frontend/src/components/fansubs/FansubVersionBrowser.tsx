@@ -252,7 +252,7 @@ function FansubVersionBrowserContent({
     )
   }
 
-  // Runde 5, Befund-Review2-R2 (192-33): die drei Geschwister-Blöcke dieses Bausteins
+  // Die drei Geschwister-Blöcke dieses Bausteins
   // (Überschrift, optionale Gruppen-Auswahl/-Kontext, Episoden-Inhalt) haben JE NACH realer
   // Render-Verzweigung unterschiedlich viele tatsächlich sichtbare Kinder (0, 1 oder 2
   // zusätzliche Blöcke zwischen Überschrift und Inhalt) -- ein Rhythmus-Array-Stack kann nur
@@ -286,7 +286,7 @@ function FansubVersionBrowserContent({
       // .wrapper-margin-bottom).
       contentColumnGaps.push('primaryContentBlocks')
       contentColumnChildren.push(<FansubGroupContext key="context" activeGroup={activeGroup} animeSlug={animeSlug} />)
-      // Gruppen-Kontext -> Episoden-Inhalt: 'supportingBlockToContent' (16px, Plan 192-30,
+      // Gruppen-Kontext -> Episoden-Inhalt: 'supportingBlockToContent' (16px,
       // vormals FansubGroupContexts eigenes .card-margin-bottom).
       contentColumnGaps.push('supportingBlockToContent')
     } else {

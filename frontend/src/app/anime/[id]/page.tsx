@@ -109,7 +109,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
   // abweichende Cover-URLs zwischen den mehreren Konsumenten in AnimeDetailView.
   const coverUrl = resolveAnimeCoverURL(anime.cover_image)
 
-  // Befund 19: die Randnavigations-HREFs müssen bereits im Server-HTML stehen, nicht erst nach
+  // Die Randnavigations-HREFs müssen bereits im Server-HTML stehen, nicht erst nach
   // der Client-Hydration. gridParams ist nur vorhanden, wenn die Seite über einen Grid-Kontext
   // (von-der-Übersicht-Link) aufgerufen wurde -- ohne Grid-Kontext gibt es keine wohldefinierte
   // Nachbarschaftsreihenfolge, die Randnavigation entfällt dann vollständig (unverändertes
