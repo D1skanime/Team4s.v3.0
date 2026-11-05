@@ -20,6 +20,11 @@ describe('Stack', () => {
     expect((container2.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('var(--space-related-content)')
   })
 
+  it('unterstützt den Zweck "captionLines" für eine enge Zwei-Zeilen-Bildunterschrift', () => {
+    const { container } = render(<Stack gap="captionLines">Inhalt</Stack>)
+    expect((container.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('var(--space-caption-lines)')
+  })
+
   it('unterstützt die beiden align-Extreme', () => {
     const { container: startContainer } = render(<Stack align="start">Inhalt</Stack>)
     expect((startContainer.firstElementChild as HTMLElement).style.getPropertyValue('--stack-align')).toBe('start')
