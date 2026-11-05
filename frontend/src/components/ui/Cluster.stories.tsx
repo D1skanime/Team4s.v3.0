@@ -138,6 +138,32 @@ export const BeschriftungMitZusatzinfo: Story = {
   },
 }
 
+export const SekundaerAktionsreihe: Story = {
+  name: 'Sekundär-Aktionsreihe (gap "secondaryActionRow")',
+  args: {
+    gap: 'secondaryActionRow',
+    justify: 'end',
+    children: (
+      <>
+        <Button type="button" variant="secondary" size="sm">
+          Zur Fansub-Gruppe
+        </Button>
+        <Button type="button" variant="secondary" size="sm">
+          Zum Projekt
+        </Button>
+      </>
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Dichte, rechtsbündige Reihe von 1-2 gleichrangigen Sekundär-Aktions-Buttons (z. B. "Zur Fansub-Gruppe"/"Zum Projekt" in `FansubGroupContext`s Navigationszeile) -- enger als "actionRow" (24px, meist durch eine Trennlinie abgesetzt) und bewusst NICHT "badgeRow" (dort explizit ohne Interaktion), obwohl beide denselben 8px-Wert tragen.',
+      },
+    },
+  },
+}
+
 export const BildMitBildunterschrift: Story = {
   name: 'Bild + Bildunterschrift (gap "mediaCaption")',
   args: {

@@ -23,6 +23,11 @@ import styles from './Cluster.module.css'
  *    wie Stacks gleichnamiger Zweck, hier für den gestapelten Zustand einer Haltepunkt-Umkehr
  *    (`collapseBelow`/`gapCollapsed`) wiederverwendet statt eines zweiten, neu erfundenen Tokens
  *    mit identischem Wert.
+ *  - `'secondaryActionRow'`: dichte, meist rechtsbündige Reihe von 1-2 gleichrangigen
+ *    Sekundär-Aktions-Buttons (z. B. "Zur Fansub-Gruppe"/"Zum Projekt" in `FansubGroupContext`s
+ *    `.navRow`) -- eigenständig von `'badgeRow'` (dort explizit OHNE Interaktion), von
+ *    `'interactiveChipRow'` (Filter-/Auswahl-Chips, 12px statt 8px) und von `'actionRow'` (24px,
+ *    meist durch eine Trennlinie vom Inhalt abgesetzt; hier gibt es keine Trennlinie).
  *  Cluster deklariert diese Enum bewusst eigenständig statt sie aus './Stack' zu importieren --
  *  Cluster ist ein eigenständiger Grundbaustein und darf laut Katalog-Taxonomie
  *  (catalogTaxonomy.test.ts) keinen anderen, selbst katalogisierten Grundbaustein importieren,
@@ -36,6 +41,7 @@ export type ClusterGapPurpose =
   | 'labelWithTrailingMeta'
   | 'mediaCaption'
   | 'independentBlocks'
+  | 'secondaryActionRow'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
  *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `ClusterGapPurpose`-Dokumentation oben). */
@@ -47,6 +53,7 @@ const GAP_PURPOSE_TOKENS: Record<ClusterGapPurpose, string> = {
   labelWithTrailingMeta: 'var(--space-label-with-trailing-meta)',
   mediaCaption: 'var(--space-media-caption)',
   independentBlocks: 'var(--space-independent-blocks)',
+  secondaryActionRow: 'var(--space-secondary-action-row)',
 }
 
 type ClusterJustify = 'start' | 'center' | 'end' | 'between'
