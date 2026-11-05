@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-24-PLAN.md
-last_updated: "2026-11-05T01:50:34.281Z"
+stopped_at: Completed 192-26-PLAN.md
+last_updated: "2026-11-05T02:15:45.071Z"
 last_activity: 2026-11-05
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 557
-  completed_plans: 547
+  completed_plans: 548
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 4 -- codex Review)) — EXECUTING
-Plan: 5 of 27
+Plan: 6 of 27
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1600,6 +1600,8 @@ Last activity: 2026-11-05
 - [Phase 192]: bleedBelowMd als Modifikatorklasse statt reinem CSS-Variablen-Hook umgesetzt — Eine reine CSS-Custom-Property kann eine Selektor-Aktivierung nicht bedingen, nur einen Wert liefern; die Klasse folgt derselben, bereits durch Cluster collapseBelow/float etablierten Technik und liegt innerhalb des dokumentierten Claude's-Discretion-Spielraums der Plan-Spezifikation
 - [Phase 192]: 192-24: Divider um spacing="none" erweitert (Rule 2) — statsRow/relatedSection ersetzen border-top durch echte Divider-Elemente, deren Vorlauf/Nachlauf vollstaendig aus dem Stack-Rhythmus-Array kommt -- Dividers bisherige symmetrische Mindestabstaende haetten den vermessenen Rhythmus sonst um deren Betrag verschoben
 - [Phase 192]: 192-24: .infoBanner erhaelt display:block (Rule 1) — Stacks Rhythmus-Array wrappt AnimeInfoBanner in ein nicht-Flex-Element, wodurch der browseruebliche Baseline-Leerraum unterhalb des inline <img> sichtbar wurde (7px); per Playwright-Byte-Diff gefunden und behoben
+- [Phase 192]: 192-26: EpisodeGlassCard-Divider und versionList-Card teilen sich einen Stack gap=none-Wrapper statt zwei Geschwister-Kinder der aeusseren display:grid-Karte zu sein -- verhindert einen zweiten --card-gap-Abstand (per Playwright als 26px zusaetzliche Kartenhoehe gefunden).
+- [Phase 192]: 192-26: ReleasePreviewRow.body/.action bekommen eine width:100%-Korrektur fuer den gestapelten Mobil-Zustand, da Clusters align-Prop (Standard center) in beiden Haltepunkt-Zustaenden gleich gilt, die Original-CSS aber nur im Desktop-Zustand explizites align-items:center hatte.
 
 ### Pending Todos
 
@@ -2390,11 +2392,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P22 | 9min | 2 tasks | 6 files |
 | Phase 192 P23 | 9min | 2 tasks | 10 files |
 | Phase 192 P24 | 31min | 2 tasks | 13 files |
+| Phase 192 P26 | 23min | 3 tasks | 10 files |
 
 ## Session Continuity
 
-Last session: 2026-11-05T01:50:34.247Z
-Stopped at: Completed 192-24-PLAN.md
+Last session: 2026-11-05T02:15:45.032Z
+Stopped at: Completed 192-26-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None

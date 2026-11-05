@@ -3051,7 +3051,7 @@ Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte 
 Abstand/Rundung.
 **Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26, Befund-A, Befund-B, Befund-C, Befund-D, Befund-27, Befund-28, Befund-Review1, Befund-Review2
 **Depends on:** Phase 191
-**Plans:** 24/27 plans executed
+**Plans:** 25/27 plans executed
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
@@ -3079,5 +3079,5 @@ Plans:
 - [x] 192-23-PLAN.md — Card: Zweck-Padding-Rezepte + Rand-bis-Rand-Modus (Review-Befund 1 Grundbaustein D + Review-Befund 2)
 - [x] 192-24-PLAN.md — AnimeDetailHero Teil 1: infoCardBody-Rhythmus (A) + titleRow-Kollaps (B)
 - [ ] 192-25-PLAN.md — AnimeDetailHero Teil 2: Randnav-Schwebe-Overlay (C) + posterMetaCard Rand-bis-Rand (D)
-- [ ] 192-26-PLAN.md — ReleasePreviewRow + EpisodeGlassCard + AnimeEdgeNavigation: Erweiterungen B/D/A anwenden
+- [x] 192-26-PLAN.md — ReleasePreviewRow + EpisodeGlassCard + AnimeEdgeNavigation: Erweiterungen B/D/A anwenden
 - [ ] 192-27-PLAN.md — Guard-Verschärfung (Ausnahmeliste entfernt) + Abschluss-Verifikation Runde 4 + 192-VERIFICATION.md-Aktualisierung
