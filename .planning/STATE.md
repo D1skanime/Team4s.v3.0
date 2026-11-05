@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-21-PLAN.md (Stack-Rhythmus-Array-Modus + 'captionLines'-Zweck)
-last_updated: "2026-11-05T00:47:23.499Z"
+stopped_at: Completed 192-22-PLAN.md (Cluster collapseBelow/gapCollapsed + float (Schwebe-Overlay-Modus))
+last_updated: "2026-11-05T01:03:37.689Z"
 last_activity: 2026-11-05
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 557
-  completed_plans: 544
+  completed_plans: 545
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 4 -- codex Review)) — EXECUTING
-Plan: 2 of 27
+Plan: 3 of 27
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1595,6 +1595,8 @@ Last activity: 2026-11-05
 - [Phase 192]: Befund C: AnimeEdgeNavigations Hover-/Fokus-Vorschauzustand in useAnimeEdgeNavigationHover ausgelagert, direkt per renderHook testbar statt fireEvent.mouseEnter/mouseLeave
 - [Phase 192]: Runde-3-Abschluss-Nachweis: Live-Seiten-Bildpaare strukturell statt pixelgenau bewertet (AnimeBackdropRotator macht Pixel-Diffs methodisch untauglich, Kontrolltest zeigte ~20% Abweichung ohne Code-Unterschied), Sichtregressions-Beleg stattdessen ueber deterministischen Storybook-Build mit harten DOM-Rect-/Farbmessungen
 - [Phase 192]: Stack-Rhythmus-Array-Modus nur als neuer Zweig (Array.isArray) implementiert, nicht als Umbau des Einzelwert-Pfads — garantiert Zero-Pixel-Diff fuer alle bestehenden Aufrufer ohne erneute visuelle Pruefung
+- [Phase 192]: Clusters collapseBelow/gapCollapsed und float teilen sich denselben Zwei-Ebenen-Container-Query-Wrapper und Container-Namen ('cluster') statt zweier getrennter Mechanismen -- beide Props sind unabhaengig voneinander kombinierbar
+- [Phase 192]: Neuer Cluster-Zweck 'independentBlocks' verweist auf dasselbe --space-independent-blocks-Token wie Stack statt ein zweites, wertgleiches Token anzulegen
 
 ### Pending Todos
 
@@ -2382,11 +2384,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P17 | 16min | 2 tasks | 5 files |
 | Phase 192 P20 | 85min | 2 tasks | 1 files |
 | Phase 192 P21 | 4min | 2 tasks | 5 files |
+| Phase 192 P22 | 9min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-11-05T00:47:23.472Z
-Stopped at: Completed 192-21-PLAN.md (Stack-Rhythmus-Array-Modus + 'captionLines'-Zweck)
+Last session: 2026-11-05T01:03:23.187Z
+Stopped at: Completed 192-22-PLAN.md (Cluster collapseBelow/gapCollapsed + float (Schwebe-Overlay-Modus))
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
