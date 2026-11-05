@@ -508,3 +508,179 @@ Runde.
   vorab festgelegt.
 
 </addendum_2026-11-04c>
+
+<addendum_2026-11-05a>
+## Nachtrag 05.11.2026 — Unabhängiger Review (codex), Runde 1 von 2, 2 blockierende [high]-Befunde
+
+Der unabhängige Review hat 2 blockierende Befunde gemeldet. Beide treffen zu und sind verbindlich
+zu beheben — keine weiteren Rückfragen. Bisherige Pläne 192-01 bis 192-20 bleiben bestehen; dies
+ist eine vierte Gap-Closure-Runde. Die folgende technische Spezifikation wurde durch direktes
+Lesen aller betroffenen Dateien erarbeitet (nicht spekuliert) und ist als konkrete Umsetzungs-
+vorgabe zu verstehen, nicht nur als Problembeschreibung.
+
+### Review-Befund 1 — `compositeLayoutPurity.guard.test.ts` lässt eine Ausnahmeliste zu
+
+**Bestätigt:** `DOCUMENTED_LAYOUT_EXCEPTIONS` (12 Einträge) erlaubt eigenes Layout-CSS in genau
+den 4 Pilot-Komposit-Dateien, die laut ursprünglicher Vorgabe (Befund 22, seit der allerersten
+Runde ohne Ausnahme formuliert: „Anime-Kopf, Episoden-Bereich, Gruppenkarte/-auswahl,
+Release-Zeile und Randnavigation ausschließlich aus Grundbausteinen") gar keine eigene
+Layout-Deklaration mehr haben dürfen. Die in Runde 3 eingeführte Praxis, nicht abbildbare Fälle
+als dokumentierte Einzelfall-Ausnahme statt als Grundbaustein-Erweiterung zu behandeln, wird hier
+ausdrücklich zurückgenommen.
+
+**Entscheidung — `DOCUMENTED_LAYOUT_EXCEPTIONS` entfällt vollständig** (inkl. der 3 zugehörigen
+Selbsttests „erfasst das historische Verstoßmuster", „erkennt reine Null-Rücksetzer nicht als
+Verstoß" bleiben als generische Scanner-Selbsttests bestehen, NUR der Test
+„DOCUMENTED_LAYOUT_EXCEPTIONS verweist nur auf Selektoren..." entfällt mit der Liste). Jeder der
+12 betroffenen Fälle wird durch eine echte, wiederverwendbare Grundbaustein-Erweiterung ersetzt
+(nicht durch eine zweite, versteckte Ausnahmeliste und nicht durch Grundbaustein-Flucht in eine
+neue, unbewachte Datei). Die folgenden Erweiterungen sind konkret spezifiziert:
+
+#### A) `Stack` — Rhythmus-Modus (nicht-einheitlicher Kind-zu-Kind-Abstand)
+
+Deckt die Fälle 1 (`.infoCardBody`), 4 (`.badges`), 5 (`.description`), 6 (`.tagsSection`-Rest-
+Margin), 7 (`.statsRow`), 8 (`.relatedSection`) ab — alle sechs sind Symptome EINER Ursache:
+`.infoCardBody`s Kinder haben unterschiedliche `margin-bottom`/`padding-top`-Werte statt eines
+einzigen `gap`.
+
+- `StackProps.gap` wird erweitert: `gap?: StackGapPurpose | StackGapPurpose[]`. Bei einem Array
+  gilt `array.length === Children.count(children) - 1` (ein Zweck-Wert pro Lücke zwischen zwei
+  aufeinanderfolgenden Kindern, nicht pro Kind).
+- Implementierung: bei Array-`gap` rendert `Stack` jedes Kind außer dem ersten in einen schlanken
+  Wrapper, der NUR `margin-top: var(--space-<zweck>)` trägt (als Klasse + Inline-Style, analog zum
+  bestehenden `--stack-gap`-Override-Hook-Muster) statt des CSS-`gap`-Vverhaltens; bei einem
+  einzelnen `StackGapPurpose`-Wert bleibt das bisherige Verhalten (CSS `gap`) unverändert
+  (Zero-Pixel-Diff für alle bestehenden Aufrufer mit einem einzelnen Zweck-Wert).
+- Neues Zweck-Token in `layout.css`: `--space-caption-lines: var(--space-1)` — „Stack: zwei
+  Textzeilen, die gemeinsam eine einzige Bildunterschrift/Beschriftung bilden (z. B. Titel+Typ der
+  Randnavigations-Vorschaukarte)." Neuer `StackGapPurpose`-Wert `'captionLines'`. Deckt Fall 12
+  (`AnimeEdgeNavigation.previewType`, 4px) ab — EIN Aufrufer reicht als Rechtfertigung, seit dieser
+  Nachtrag die „mindestens zwei Aufrufstellen"-Zurückhaltung aus Runde 3 für alle 12 Fälle
+  ausdrücklich aufhebt.
+- `.infoCardBody` wird zu `<Stack gap={[...]} className={styles.infoCardBody}>` mit den exakten,
+  bisherigen Pixel-Abständen als Array (titleRow→badges: var(--space-4)=16px entspricht keinem
+  bestehenden Zweck exakt — ggf. neuen Zweck `--space-content-pair` [bereits vorhanden, 16px,
+  Cluster-Zweck, aber Werte sind frei für Stack wiederverwendbar über denselben
+  `--space-N`-Unterbau] NICHT direkt für Stack wiederverwenden, sondern falls kein passender
+  Stack-Zweck existiert, EINEN neuen anlegen statt einen Cluster-Zweck zweckzuentfremden — exakte
+  Pixelwerte gegen die aktuelle, lebende CSS nachmessen, nicht raten). `.statsRow`/`.relatedSection`
+  verlieren ihren `border-top` zugunsten eines zwischen den jeweiligen Stack-Kindern gerenderten
+  `<Divider>`-Elements (Grundbaustein aus Plan 192-11, bereits für `.posterDivider`/`.divider`
+  etabliert) — die Lücke VOR dem Divider und NACH dem Divider werden dann je ein eigener Eintrag im
+  `gap`-Array.
+
+#### B) `Cluster` — Haltepunkt-Umkehr (Zeile↔Spalte) mit eigenem Lücken-Zweck je Zustand
+
+Deckt Fall 3 (`.titleRow`) und Fall 10 (`ReleasePreviewRow.row`) ab — identisches Muster an zwei
+Stellen.
+
+- Neue `Cluster`-Props: `collapseBelow?: 'md'` (Haltepunkt, unterhalb dessen `Cluster` von Zeile
+  auf gestapelte Spalte kippt — EIN Haltepunktwert reicht, da beide Aufrufstellen exakt 768px
+  verwenden, siehe `SplitLayout`s bereits etabliertes 'md' = 48rem) und `gapCollapsed?:
+  ClusterGapPurpose` (Lücken-Zweck im gestapelten Zustand; ohne Angabe gilt derselbe Wert wie
+  `gap`).
+- Implementierung: dasselbe Container-Query-Muster wie `SplitLayout` (siehe
+  `SplitLayout.module.css`: äußeres Element trägt NUR `container: cluster / inline-size`, das
+  eigentliche Flex-Verhalten lebt in einem inneren Kind-Element, das per `@container` abgefragt
+  wird — ein Element darf laut Spezifikation nicht gleichzeitig Container und von der eigenen
+  Container-Query betroffen sein).
+- `.titleRow` → `<Cluster collapseBelow="md" gap="contentPair" gapCollapsed="independentBlocks" justify="between">` (16px Zeile/12px Spalte — beide Zweck-Token existieren bereits unverändert,
+  keine neuen Werte nötig, nur neu zusammengesetzt).
+- `ReleasePreviewRow.row` → `<Cluster collapseBelow="md" gap="contentPair" gapCollapsed="independentBlocks" justify="between">` (identisches Muster, mit `.body` via `flex:1`
+  weiterhin wachsend und `.action` via `flex-shrink:0` weiterhin fest — diese beiden Eigenschaften
+  bleiben auf den Kindern selbst, nicht auf Cluster, da sie Eigenschaften der Kind-Elemente sind,
+  nicht des Layout-Grundbausteins).
+
+#### C) `Cluster` — Schwebe-Overlay-Modus (bedingte Flex-Existenz je Haltepunkt)
+
+Deckt Fall 9 (`.edgeNavigationOverlay`) ab — kategorisch anders als B: oberhalb des Haltepunkts
+GAR KEIN Flex (reines `position:absolute`-Overlay zur präzisen Ausrichtung auf dem Kartenrand),
+unterhalb des Haltepunkts ein normaler, im Textfluss liegender Flex-Row (zentriert).
+
+- Neue, klar benannte `Cluster`-Fähigkeit (exakte Prop-Namen als Claude's-Discretion, aber
+  Verhalten verbindlich): oberhalb eines konfigurierbaren Haltepunkts wird `Cluster`
+  `position:absolute` mit konfigurierbarem oberem Versatz/Höhe (als benannte Zweck-Props, NICHT
+  als rohe Pixelwerte) und `pointer-events:none` auf dem Container selbst, aber
+  `pointer-events:auto` auf jedem direkten Kind (ersetzt den bisherigen
+  `.edgeNavigationOverlay > * { pointer-events: auto; }`-Mechanismus als Teil des neuen
+  Grundbaustein-Verhaltens, nicht als weiterhin lokale Regel). Unterhalb des Haltepunkts: normaler
+  `Cluster`-Flex-Row mit dem bestehenden `justify="center"`/`gap`-Mechanismus.
+- Benötigte neue Zweck-Token in `layout.css` für die Overlay-Position (ersetzen die rohen
+  `top: var(--space-3)`/`height: var(--control-height-md)`-Werte aus der aktuellen
+  `.edgeNavigationOverlay`-Regel): z. B. `--overlay-offset-nav-band` / `--overlay-height-nav-band`
+  (Namen final an tatsächlichem Zweck ausrichten, nicht raten) — beide weiterhin per `var()` auf
+  die unveränderte Grundskala/bestehende Tokens verweisend (Zero-Pixel-Diff).
+
+#### D) `Card` — Zweck-benannte Polsterungs-Rezepte statt roher Stufen + Rand-bis-Rand-Modus
+
+Löst Review-Befund 2 UND die Fälle 2 (`.posterMetaCard`) und 11 (`EpisodeGlassCard.versionList`).
+
+- `Card.padding` wird von `'1'..'9' | 'none'` auf eine Zweck-Enum umgestellt, nach demselben
+  Muster wie `GAP_PURPOSE_TOKENS` in `Stack.tsx`/`Cluster.tsx`:
+  - `'content'` → `var(--space-3)` (12px) — deckt die beiden echten `padding="3"`-Aufrufstellen ab
+    (`AnimeEdgeNavigation.tsx:99` Vorschaukarte, `ReleasePreviewRow.tsx:83` Zeilen-Karte): „volle
+    Innenabstand-Polsterung für eine Card-Instanz, deren Variante selbst kaum/kein Padding mitbringt."
+  - `'nestedBlock'` → `var(--space-4)` (16px) — deckt `AnimeDetailHero.tsx:81`s bisheriges
+    `padding="4"` ab: „Innenabstand eines verschachtelten Inhaltsblocks innerhalb einer äußeren Karte."
+  - `'dividedSection'` → asymmetrisches Rezept `var(--space-3) var(--space-4) var(--space-4)` (oben/
+    seitlich/unten) — NEU, deckt Fall 11 ab (`EpisodeGlassCard.versionList`, aktuell ein reines
+    `<div>` mit `border-top` + 3-Werte-`padding`): `.versionList` wird zu einer echten verschachtelten
+    `<Card variant="flat" padding="dividedSection">`, der bisherige `border-top` wird durch ein davor
+    gerendertes `<Divider>`-Element ersetzt (identisches Muster wie bei A).
+  - `'none'` bleibt unverändert.
+  - Jede neue Stufe bekommt denselben deutschen Dokumentationskommentar-Stil wie die bestehenden
+    `GAP_PURPOSE_TOKENS`-Einträge (Zweck + konkrete Aufrufstelle als Beispiel).
+- Neue `Card`-Fähigkeit für Fall 2 (`.posterMetaCard`): ein Rand-bis-Rand-Modus unterhalb eines
+  Haltepunkts (exakter Prop-Name Claude's Discretion, z. B. `bleedBelowMd?: boolean`) — wenn
+  gesetzt: unterhalb 768px wird die horizontale Innenabstand-Komponente auf 0 reduziert (vertikale
+  bleibt unverändert) UND das Grid-`justify-items` wechselt von Cards Standardwert `stretch` auf
+  `center` (ersetzt exakt die bisherige lokale `margin-left/-right: calc(-1 * var(--space-4))` +
+  `justify-items: center`-Mobil-Regel). Technisch über denselben Override-Hook-Mechanismus wie
+  `--card-padding-override`, nur mit einem zusätzlichen, nur unterhalb des Haltepunkts aktiven
+  Selektor in `Card.module.css`.
+
+Alle 12 Fälle + beide Review-Befunde sind damit auf eine der vier obigen, jeweils real
+wiederverwendbaren Erweiterungen zurückgeführt — keine Erweiterung ist für genau einen einzigen,
+niemals wiederholbaren Spezialfall erfunden; jede beschreibt ein benanntes, generisches
+Layout-/Polsterungs-Muster, das auch künftige Bausteine außerhalb dieser Phase plausibel
+wiederverwenden könnten (auch wenn deren Migration weiterhin außerhalb dieses Auftrags bleibt).
+
+### Guard-Verschärfung
+
+`compositeLayoutPurity.guard.test.ts`: `DOCUMENTED_LAYOUT_EXCEPTIONS` und der zugehörige
+Existenz-Selbsttest entfallen vollständig. Die verbleibenden Tests (Verstoßmuster-Selbsttest,
+Null-Rücksetzer-Erkennung, fremde-Variable-Lesezugriff-Erkennung, Grundbaustein-Ausschluss)
+bleiben. Die Haupt-Prüfung muss nach der Umsetzung mit LEERER Verstoßliste über alle 4 Dateien
+grün sein, ohne jede Ausnahme.
+
+### Review-Befund 2 — Card-`padding` nimmt rohe Größenstufen
+
+Siehe Abschnitt D oben — durch die Zweck-Enum-Umstellung vollständig gelöst. Alle 3 echten
+Aufrufstellen (`AnimeEdgeNavigation.tsx:99`, `AnimeDetailHero.tsx:81`, `ReleasePreviewRow.tsx:83`)
+werden auf die neuen Zweck-Werte umgestellt; `Card.stories.tsx`/`Card.test.tsx` ziehen nach
+(„Stories ziehen mit").
+
+### Reihenfolge
+
+A, B, C, D sind voneinander unabhängig (verschiedene Grundbausteine/Dateien) und können parallel
+geplant/ausgeführt werden. Jede der 4 Komposit-Dateien wird NACH der für sie relevanten
+Grundbaustein-Erweiterung angefasst (z. B. `AnimeDetailHero.module.css` braucht A, B, D — läuft
+erst, nachdem alle drei fertig sind). Der Guard (ohne Ausnahmeliste) läuft als letzter Schritt vor
+der Abschluss-Verifikation, NACHDEM alle 4 Dateien umgestellt sind. Abschluss-Verifikation
+(vollständiger Regressionslauf + Playwright-Bildpaar-Nachweis main vs. Branch + Story vs.
+Live-Seite je Pilot-Baustein, Zero-Pixel-Diff-Bestätigung) läuft zuletzt.
+
+### Claude's Discretion
+
+- Exakte Prop-/Zweck-Namen für C (Schwebe-Overlay-Modus) und die zugehörigen neuen
+  `layout.css`-Zweck-Token-Namen, solange das beschriebene Verhalten (bedingte Flex-Existenz je
+  Haltepunkt, `pointer-events`-Semantik, Zero-Pixel-Diff) exakt erhalten bleibt.
+- Exakter Prop-Name für Ds Rand-bis-Rand-Modus.
+- Exakte neue `layout.css`-Zweck-Token-Namen/-Werte für As Stack-Rhythmus-Array an
+  `.infoCardBody` (gegen die aktuell lebende CSS nachmessen, nicht raten) — außer
+  `--space-caption-lines`, das bereits hier benannt ist.
+- Technische Umsetzung des Stack-Rhythmus-Wrapper-Mechanismus (Wrapper-`<div>` vs. andere Technik),
+  solange keine zusätzliche Fläche/Farbe/Rundung eingeführt wird und das Zero-Pixel-Diff-Ergebnis
+  Playwright-geprüft bestätigt wird.
+
+</addendum_2026-11-05a>
