@@ -4,9 +4,12 @@ import Image from 'next/image'
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react'
 
 import { ResponsiveImage } from '@/components/ui'
+import { classNames } from '@/components/ui/classNames'
 import { getAnimeBackdrops } from '@/lib/api'
 import { resolveInfoBannerURL, resolveInfoLogoURL } from '@/lib/animeBackdrops'
 import type { AnimeBackdropManifest } from '@/types/anime'
+
+import styles from './AnimeMediaProvider.module.css'
 
 const AnimeMediaManifestContext = createContext<AnimeBackdropManifest | null>(null)
 const MANIFEST_TTL_MS = 60_000
@@ -154,7 +157,7 @@ export function AnimeTitleLogo({ title, className }: { title: string; className?
       alt={`${title} Logo`}
       width={120}
       height={48}
-      className={className}
+      className={classNames(styles.titleLogo, className)}
       unoptimized
     />
   )
