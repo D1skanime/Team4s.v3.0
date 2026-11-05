@@ -288,6 +288,22 @@ Live-Abnahme vorgemerkt, siehe die "Bekannte, bewusst zurückgestellte Punkte" i
 öffentlichen Anime-Detailseite im Browser durch den Agenten selbst (Desktop + Mobil, siehe
 SUMMARY).
 
+## Nachtrag: Quick-Aufgabe 261105-ikx (Live-Sichtprüfung vor dem Review)
+
+Eine Live-Sichtprüfung des gesamten Auftrags fand einen Regressionsbefund: Episodenköpfe
+(`EpisodeGlassCard`) brachen auf schmaler Bildschirmbreite nicht wie auf `main` um, sondern
+überlappten (Titel-Slot nur 142px breit). Eine erste Korrektur (`Cluster.growFirstChild`) erwies
+sich bei der eigenen Nachprüfung als unzureichend. Nach menschlicher Entscheidung -- `Cluster`
+NICHT global ändern -- wurde ein neuer, eigenständiger Grundbaustein `StackingRow` gebaut (ordnet
+seine Teile nebeneinander an, sobald der eigene Container-Platz reicht, sonst stapelt er sie
+untereinander, über eine `@container`-Abfrage auf sich selbst statt der Bildschirmbreite).
+`EpisodeGlassCard` nutzt ihn jetzt für die Kopfzeile; `Cluster` bleibt byte-unverändert -- siehe
+[261105-ikx-SUMMARY.md](../../quick/261105-ikx-mobilansicht-der-anime-episodenzeilen-ko/SUMMARY.md).
+
+Live im Browser bei `390x844` und `1440x900` geprüft: Mobil stapelt sauber, Desktop bleibt
+einzeilig wie zuvor. Dieselbe bindende Scope-Einschränkung wie im vorherigen Nachtrag gilt auch
+hier: keine neuen Tests/Testsuiten vor der Live-Abnahme.
+
 ---
 
 *Verified: 2026-11-05*
