@@ -252,5 +252,22 @@ Zustände) sowie per main-Baseline-Strukturvergleich in diesem Plan gegengeprüf
 
 ---
 
+## Nachtrag: Quick-Aufgabe 261105-ds2 (menschlich gesichteter Review-Nachtrag)
+
+Nach Abschluss dieser Phase (Stand Plan 192-35) sichtete der Mensch den Auftrag erneut und meldete
+drei weitere [high]-Befunde gegen diese Phase zurück: einen `fireEvent.mouseEnter`-Hover-Test in
+`AnimeEdgeNavigation.test.tsx` (verletzt die verbindliche Direkt-Logik-Testregel), verbliebenes
+Layout-CSS in `ReleasePreviewRow.module.css` samt einer `width:100%`-Ausnahme im Composite-Layout-
+Guard, sowie verbliebene Befund-/Runden-/Plan-Verweise in Code-Kommentaren der Phase-192-Dateien.
+Diese drei Befunde wurden gezielt als GSD-Quick-Aufgabe (keine erneute Phasen-Diskussion/-Planung)
+unter `.planning/quick/261105-ds2-phase192-review3-fixes/` bearbeitet und technisch verifiziert
+(Status `human_needed`, 6/6 Muss-Wahrheiten bestätigt, drei Punkte für die abschließende Live-UAT
+vorgemerkt) -- siehe
+[261105-ds2-VERIFICATION.md](../../quick/261105-ds2-phase192-review3-fixes/261105-ds2-VERIFICATION.md).
+Diese Phasen-Verifikation bleibt für den Stand vor diesem Nachtrag gültig; der aktuelle Stand dieser
+Phase umfasst zusätzlich die in der Quick-Aufgabe dokumentierten Änderungen.
+
+---
+
 *Verified: 2026-11-05*
 *Verifier: Claude (Executor, Plan 192-35 -- Runde-5-Abschluss-Nachweis)*
