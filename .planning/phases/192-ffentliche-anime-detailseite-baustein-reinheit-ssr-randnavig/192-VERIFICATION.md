@@ -300,7 +300,15 @@ untereinander, über eine `@container`-Abfrage auf sich selbst statt der Bildsch
 `EpisodeGlassCard` nutzt ihn jetzt für die Kopfzeile; `Cluster` bleibt byte-unverändert -- siehe
 [261105-ikx-SUMMARY.md](../../quick/261105-ikx-mobilansicht-der-anime-episodenzeilen-ko/SUMMARY.md).
 
-Live im Browser bei `390x844` und `1440x900` geprüft: Mobil stapelt sauber, Desktop bleibt
+Eine unabhängige Sichtprüfung unmittelbar vor dem Review fand danach einen echten Regressionsbug
+in dieser Umsetzung selbst: bei `as="span"` (genau der von `EpisodeGlassCard` verwendete Fall)
+blieb der Container-Query-Namensgeber `display: inline`, worauf `container-type` laut
+CSS-Spezifikation keine Wirkung hat -- die `@container`-Abfrage griff nie, der Desktop-Zustand
+stapelte fälschlich ebenso wie Mobil (im ersten Vollbild-Screenshot nicht aufgefallen, erst ein
+gezielter Zoom-Ausschnitt auf einen einzelnen Episodenkopf deckte es auf). Mit `display: block`
+behoben und an jedem aufgeklappten Episodenkopf erneut geprüft, nicht nur dem ersten. Live im
+Browser bei `390x844` und `1440x900` auf `/anime/8` und `/anime/13` sowie in Storybook
+(`EpisodenKarte` → „Langer Titel") bestätigt: Mobil stapelt sauber, Desktop bleibt jetzt tatsächlich
 einzeilig wie zuvor. Dieselbe bindende Scope-Einschränkung wie im vorherigen Nachtrag gilt auch
 hier: keine neuen Tests/Testsuiten vor der Live-Abnahme.
 
