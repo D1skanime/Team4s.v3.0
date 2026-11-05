@@ -17,7 +17,6 @@
 .posterMeta {
   position: relative;
   z-index: var(--z-base);
-  flex: 1;
 }
 
 /* Divider (@/components/ui) deckt Farbe UND Abstand der Trennlinie vollständig selbst ab --
@@ -33,41 +32,10 @@
   border-width: 0;
 }
 
-.posterWrapper {
-  position: relative;
-  width: var(--media-frame-poster-width);
-  overflow: visible;
-}
-
-@media (max-width: 1023px) {
-  .posterWrapper {
-    width: var(--media-frame-poster-width-medium);
-  }
-}
-
-.title {
-  flex: 1;
-}
-
-.titleLogo {
-  flex-shrink: 0;
-  width: auto;
-  max-height: var(--media-logo-max-height);
-  object-fit: contain;
-}
-
 .tagsList {
   padding: 0;
   margin: 0;
   list-style: none;
-}
-
-/* padding-top/border-top (vormals die Trennlinie VOR der Statistik-Zeile) leben jetzt als
-   eigener <Divider>-Vorfahre plus zwei Einträge im Stack-Rhythmus-Array von .infoCardBody (siehe
-   AnimeDetailHero.tsx) -- align-items bleibt die einzige verbleibende, nicht abstandsbezogene
-   Ausrichtungs-Deklaration dieser Zeile. */
-.statsRow {
-  align-items: center;
 }
 
 /* .infoBanner entfällt ersatzlos: die volle Breiten-/Höhenanpassung des Banner-Bilds kommt
@@ -93,47 +61,14 @@
   display: none;
 }
 
-/* Ein einziger gemeinsamer 767px-Haltepunkt für Poster-Spalte UND Info-Karte -- beide Zonen
-   kippen an derselben Schwelle auf die gestapelte Mobil-Darstellung, deshalb ein Block statt
-   zwei getrennter (wie zuvor in den zwei Quelldateien page.poster.module.css/
-   page.infoCard.module.css, jetzt in einer Datei vereinigt). */
+/* Ein einziger gemeinsamer 767px-Haltepunkt für Poster-Spalte UND Info-Karte -- die responsive
+   Breiten-/Ausrichtungs-/Zentrierungs-Logik beider Zonen lebt inzwischen vollständig in den
+   Grundbausteinen selbst (MediaFrame widthPurpose, Card.module.css, Stack alignBelowMd, Cluster
+   justifyBelowMd); hier bleibt nur noch die lokale Sichtbarkeits-Umschaltung zwischen den beiden
+   Trennlinien-Instanzen (Desktop/Mobil, siehe JSX) übrig. */
 @media (max-width: 767px) {
-  /* Kein eigener lokaler `padding:`-Wert hier: der Mobil-Innenabstand lebt in Card.module.css's
-     .cardPublicPoster-Variante (als deren eigener Mobil-Standardwert, analog zu
-     .cardPublicHeroInfos bereits etabliertem responsiven Standardwert) -- .posterColumn
-     IST diese Card-Variante (siehe AnimeDetailHero.tsx `Card variant="publicPoster"
-     className={styles.posterColumn}`), ein zweiter lokaler padding:-Wert hier würde Card's
-     eigenen Override-Hook ignorieren. align-items bleibt lokal (keine Layout-Eigenschaft, die
-     bereits ein Grundbaustein abdeckt). */
-  .posterColumn {
-    align-items: center;
-  }
-
-  .posterWrapper {
-    width: var(--media-frame-poster-width-compact);
-  }
-
-  .posterMeta {
-    align-items: center;
-    flex: 0;
-  }
-
   .posterDivider {
     display: none;
-  }
-
-  .genresSection {
-    align-items: center;
-  }
-
-  .infoCardBody {
-    text-align: center;
-  }
-
-  .badges,
-  .tagsList,
-  .statsRow {
-    justify-content: center;
   }
 
   /* Umschalten auf die dezentere Divider-Instanz (siehe JSX): die Karte ist hier bereits

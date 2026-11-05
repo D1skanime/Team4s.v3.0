@@ -35,9 +35,9 @@ export interface AnimeDetailHeroProps {
  * Storybook-Story dieses Bausteins nie dieselbe Struktur wie die Live-Seite zeigen. Die äußere
  * Card bleibt dabei bewusst das EINZIGE Grid-Kind des übergeordneten Hero-Rahmens -- die beiden
  * inneren Cards (Poster/Info) sitzen nicht direkt als Geschwister im Hero-Grid, sondern innerhalb
- * von `SplitLayout`s eigenem Zwei-Spalten-Raster (siehe 192-RESEARCH.md Pitfall 3: zwei direkte
- * Card-Geschwister im Hero-Grid würden die responsive Zwei-Spalten-Logik komplett verlieren,
- * sobald die Seite ihren alten `--card-public-hero-columns`-Hook nicht mehr setzt).
+ * von `SplitLayout`s eigenem Zwei-Spalten-Raster -- zwei direkte Card-Geschwister im Hero-Grid
+ * würden die responsive Zwei-Spalten-Logik komplett verlieren, sobald die Seite ihren alten
+ * `--card-public-hero-columns`-Hook nicht mehr setzt).
  * Datenbeschaffung bleibt bei der Seite.
  */
 export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsResponse, edgeNavigation }: AnimeDetailHeroProps) {
@@ -63,11 +63,11 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
     // unterhalb 768px von einer Zeile auf eine gestapelte Spalte, mit je einem eigenen
     // Lücken-Zweck pro Zustand (Zeile: contentPair=16px, gestapelt: independentBlocks=12px,
     // beide Werte unverändert aus der vormaligen lokalen CSS übernommen).
-    <Cluster key="titleRow" collapseBelow="md" gap="contentPair" gapCollapsed="independentBlocks" justify="between">
-      <Heading level={1} className={styles.title}>{anime.title}</Heading>
-      <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
+    <Cluster key="titleRow" collapseBelow="md" gap="contentPair" gapCollapsed="independentBlocks" justify="between" growFirstChild>
+      <Heading level={1}>{anime.title}</Heading>
+      <AnimeTitleLogo title={anime.title} />
     </Cluster>,
-    <Cluster key="badges" gap="badgeRow" className={styles.badges}>
+    <Cluster key="badges" gap="badgeRow" className={styles.badges} justifyBelowMd="center">
       <StatusBadge status={anime.status} />
       <Badge variant="neutral">{anime.type.toUpperCase()}</Badge>
       <Badge variant="neutral">{anime.content_type}</Badge>
@@ -93,7 +93,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
             Texts eigenen --text-eyebrow-color-Hook um, wodurch "Tags" automatisch mit auf Hell
             kippt. */}
         <Text as="span" variant="eyebrow" id="tags-heading">Tags</Text>
-        <Cluster as="ul" gap="badgeRow" className={styles.tagsList} aria-labelledby="tags-heading">
+        <Cluster as="ul" gap="badgeRow" className={styles.tagsList} aria-labelledby="tags-heading" justifyBelowMd="center">
           {anime.tags!.map((tag) => <li key={tag}><LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>{tag}</LinkChip></li>)}
         </Cluster>
       </Stack>,
@@ -108,7 +108,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
       // Array lebt (siehe oben); ein zusätzlicher Eigen-Abstand der Trennlinie selbst würde diesen
       // exakt vermessenen Rhythmus sonst verfälschen.
       <Divider key="statsDivider" tone="onMedia" spacing="none" />,
-      <Cluster key="stats" gap="actionRow" className={styles.statsRow}>
+      <Cluster key="stats" gap="actionRow" className={styles.statsRow} align="center" justifyBelowMd="center">
         <Button href={embySeriesUrl!} target="_blank" rel="noopener noreferrer" variant="text" size="sm" leftIcon={<ExternalLink size={14} aria-hidden="true" />}>Emby</Button>
       </Cluster>,
     )
@@ -165,20 +165,26 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
           firstColumnWidth="poster"
           firstColumn={
             <Card variant="publicPoster" className={styles.posterColumn}>
-              <div className={styles.posterWrapper} style={{ '--poster-image': `url("${coverUrl}")` } as CSSProperties}>
-                <MediaFrame variant="posterFade" backdropImage={coverUrl} aspectRatio={2 / 3} bottomBadge={posterEpisodeBadge} className={styles.poster}>
-                  <ResponsiveImage
-                    src={coverUrl}
-                    alt={anime.title}
-                    fill
-                    sizes="(max-width: 767px) 160px, (max-width: 1023px) 220px, 260px"
-                    priority
-                    unoptimized
-                  />
-                </MediaFrame>
-              </div>
+              <MediaFrame
+                variant="posterFade"
+                widthPurpose="posterHero"
+                backdropImage={coverUrl}
+                aspectRatio={2 / 3}
+                bottomBadge={posterEpisodeBadge}
+                className={styles.poster}
+                style={{ '--poster-image': `url("${coverUrl}")` } as CSSProperties}
+              >
+                <ResponsiveImage
+                  src={coverUrl}
+                  alt={anime.title}
+                  fill
+                  sizes="(max-width: 767px) 160px, (max-width: 1023px) 220px, 260px"
+                  priority
+                  unoptimized
+                />
+              </MediaFrame>
 
-              <Stack gap="independentBlocks" className={styles.posterMeta}>
+              <Stack gap="independentBlocks" className={styles.posterMeta} alignBelowMd="center">
                 {/* variant="nested" ist die einzige bestehende, nachweislich transparente
                     Card-Variante (siehe Card.module.css .cardNested) -- trägt hier NUR den
                     Innenabstand (Card-padding-Prop), ohne eine zweite sichtbare Fläche über der
@@ -189,7 +195,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
                 <Card variant="nested" padding="nestedBlock" bleedBelowMd className={styles.posterMetaCard}>
                   <WatchlistAddButton animeID={anime.id} />
                   <Divider tone="onMedia" spacing="withinMetaBlock" className={styles.posterDivider} />
-                  <Stack gap="relatedContent" className={styles.genresSection}>
+                  <Stack gap="relatedContent" className={styles.genresSection} alignBelowMd="center">
                     <Text as="span" variant="eyebrow" tone="onScrim">Genres</Text>
                     <Cluster gap="badgeRow" className={styles.genres}>
                       {anime.genres && anime.genres.length > 0 ? anime.genres.map((genre) => (
