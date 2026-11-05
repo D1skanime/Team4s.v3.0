@@ -46,7 +46,7 @@
 }
 
 /* float="controlBand" (Schwebe-Overlay-Modus), Positionierungs-Teil: oberhalb 768px wird das
-   AEUSSERE Cluster-Wurzelelement (.clusterQueryContainer, siehe Cluster.tsx) selbst zu einem
+   ÄUSSERE Cluster-Wurzelelement (.clusterQueryContainer, siehe Cluster.tsx) selbst zu einem
    präzise auf dem Rand seines positionierten Vorfahren schwebenden Band -- `pointer-events:none`
    auf dem Wurzelelement selbst, `pointer-events:auto` auf dessen einzigem direkten Kind (dem
    inneren `.cluster`-Flex-Element, von dort per CSS-Vererbung an jeden tatsächlichen
@@ -55,10 +55,10 @@
    enthält, die ihre eigene Position selbst bestimmen. Bewusst eine normale `@media`- statt einer
    `@container`-Abfrage: eine Container-Abfrage darf laut Spezifikation nie das eigene
    Container-Wurzelelement selbst umordnen, nur dessen Nachfahren (siehe Cluster.tsx's `float`-Doku
-   für die ausfuehrliche Begruendung, warum NUR das Wurzelelement selbst -- nicht nur sein inneres
-   Flex-Kind -- vollstaendig aus einem umgebenden Flex-/Grid-`gap` herausfallen kann). z-index wie
-   die bisherige lokale --edgeNavigationOverlay-Regel: haelt das Band ueber regulaer gestapeltem
-   Seiteninhalt (z. B. .posterMeta), nicht nur ueber dem direkt darunterliegenden Rasterinhalt. */
+   für die ausführliche Begründung, warum NUR das Wurzelelement selbst -- nicht nur sein inneres
+   Flex-Kind -- vollständig aus einem umgebenden Flex-/Grid-`gap` herausfallen kann). z-index wie
+   die bisherige lokale --edgeNavigationOverlay-Regel: hält das Band über regulär gestapeltem
+   Seiteninhalt (z. B. .posterMeta), nicht nur über dem direkt darunterliegenden Rasterinhalt. */
 @media (min-width: 768px) {
   .floatControlBandRoot {
     position: absolute;
@@ -78,7 +78,7 @@
 /* float="controlBand", Mobil-Teil: unterhalb 768px liegt die Steuerelement-Reihe normal im
    Textfluss (kein eigenes Wurzel-`position:absolute` mehr, siehe oben) -- der seitliche/untere
    Rand zur Kartenkante lebt hier auf dem INNEREN Flex-Element (dessen Vorlauf-Abstand zum
-   darueberliegenden Inhalt kommt stattdessen aus einem umgebenden Stack-Abstand, siehe
+   darüberliegenden Inhalt kommt stattdessen aus einem umgebenden Stack-Abstand, siehe
    AnimeDetailHero.tsx). Oberhalb 768px bleibt die Reihe bewusst randlos (left:0/right:0 oben). */
 @media (max-width: 767px) {
   .floatControlBand {

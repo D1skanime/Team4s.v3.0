@@ -13,8 +13,8 @@ import styles from './Cluster.module.css'
  *  - `'actionRow'`: Aktionslink-Reihe, meist durch eine Trennlinie vom Inhalt oben abgesetzt.
  *  - `'labelWithTrailingMeta'`: eine Hauptbeschriftung links, eine an das Zeilenende gedrückte
  *    Zusatzinfo rechts (z. B. die Episodenkarten-Kopfzeile: Titel-Block + Versionszähler-Badge).
- *    Bewusst NICHT `'contentPair'` wiederverwendet, obwohl beide zwei Bloecke nebeneinander
- *    setzen: `'contentPair'` beschreibt zwei GLEICHRANGIGE Bloecke (var(--space-4)), hier ist der
+ *    Bewusst NICHT `'contentPair'` wiederverwendet, obwohl beide zwei Blöcke nebeneinander
+ *    setzen: `'contentPair'` beschreibt zwei GLEICHRANGIGE Blöcke (var(--space-4)), hier ist der
  *    zweite Block eine untergeordnete Zusatzinfo bei engerem Soll-Abstand (var(--space-3)).
  *  - `'mediaCaption'`: ein Vorschaubild neben seiner Bildunterschrift (z. B. die
  *    Randnavigations-Vorschaukarte: Cover-Thumbnail + Titel/Typ-Textblock).
