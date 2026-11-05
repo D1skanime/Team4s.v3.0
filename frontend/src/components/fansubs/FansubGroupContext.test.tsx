@@ -91,12 +91,17 @@ describe('FansubGroupContext -- Runde 5: Card-Zweckstufe, Stack-Rhythmus, Cluste
     expect(card.style.getPropertyValue('--card-padding-override')).toBe('var(--card-padding-context-card)')
   })
 
-  it('FansubGroupContext.module.css deklariert kein eigenes padding/display:flex/gap mehr', () => {
+  it('FansubGroupContext.module.css deklariert kein eigenes padding/margin/display:flex/gap mehr', () => {
     const css = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubGroupContext.module.css'), 'utf8')
     expect(css).not.toMatch(/\bpadding\s*:/)
+    expect(css).not.toMatch(/\bmargin\s*:/)
     expect(css).not.toMatch(/display\s*:\s*flex/)
     expect(css).not.toMatch(/\bgap\s*:/)
     expect(css).not.toMatch(/\.navRow\s*\{/)
     expect(css).not.toMatch(/\.name\s*\{/)
+    // .card existierte frueher nur wegen seiner padding-/margin-Deklarationen -- beide sind jetzt
+    // durch Card-Props bzw. den gemeinsamen Rhythmus-Stack in FansubVersionBrowser.tsx ersetzt,
+    // die leer gewordene Klasse ist deshalb ersatzlos entfernt (samt ihrer JSX-Referenz).
+    expect(css).not.toMatch(/\.card\s*\{/)
   })
 })

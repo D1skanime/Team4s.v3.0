@@ -194,6 +194,55 @@ describe('authoritative anime project navigation', () => {
   })
 })
 
+/*
+ * Runde 5, Befund-Review2-R2 (192-33): Gruppen-Auswahl, Gruppen-Kontext und Episoden-Inhalt
+ * teilen sich jetzt EINEN Rhythmus-Stack statt drei verstreuter lokaler margin-Werte; totes CSS
+ * (.emptyBox) ist entfernt; die IntersectionObserver-Sentinels tragen ihre technische 1px-Hoehe
+ * als Inline-Stil statt einer CSS-Modul-Klasse.
+ */
+describe('FansubVersionBrowser -- Runde 5: gemeinsamer Rhythmus-Stack statt drei verstreuter margin-Werte', () => {
+  it('FansubVersionBrowser.module.css deklariert weder .section/.emptyBox/.sentinel noch ein eigenes margin-top mehr', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubVersionBrowser.module.css'), 'utf8')
+    expect(css).not.toMatch(/\.section\s*\{/)
+    expect(css).not.toMatch(/\.emptyBox\s*\{/)
+    expect(css).not.toMatch(/\.sentinel\s*\{/)
+    expect(css).not.toMatch(/margin-top\s*:/)
+  })
+
+  it('rendert die Ueberschrift und beide Sentinels mit Inline-Stil statt CSS-Modul-Klasse fuer die 1px-Ankerhoehe', () => {
+    render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={stateEpisodes} />)
+    const topSentinel = screen.getByTestId('top-sentinel')
+    const bottomSentinel = screen.getByTestId('bottom-sentinel')
+    expect(topSentinel.getAttribute('style')).toContain('height: 1px')
+    expect(bottomSentinel.getAttribute('style')).toContain('height: 1px')
+    expect(topSentinel.className).toBe('')
+    expect(bottomSentinel.className).toBe('')
+  })
+
+  it('traegt bei mehreren Gruppen UND aktivem Gruppen-Kontext die Gruppen-Kontext->Inhalt-Luecke "supportingBlockToContent" vor dem Inhalts-Block', () => {
+    render(stateBrowser())
+    fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
+    // Der Episoden-Inhalts-Block (letztes Rhythmus-Kind) traegt die vom Rhythmus-Array gesetzte
+    // Luecke zu seinem VORANGEHENDEN Geschwister (hier: Gruppen-Kontext) als eigenen
+    // marginTop-Wrapper (Stacks eigener, bereits etablierter Rhythmus-Array-Mechanismus legt die
+    // Luecke IMMER auf den Wrapper des NACHFOLGENDEN Kindes, nicht des vorangehenden).
+    const topSentinel = screen.getByTestId('top-sentinel')
+    const contentNode = topSentinel.parentElement
+    const rhythmWrapper = contentNode?.parentElement
+    expect(rhythmWrapper?.style.marginTop).toBe('var(--space-supporting-block-to-content)')
+  })
+
+  it('traegt bei einer einzigen Gruppe ohne Gruppen-Kontext dieselbe Gruppen-Auswahl->Inhalt-Luecke "primaryContentBlocks" vor dem Inhalts-Block', () => {
+    render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={stateEpisodes} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Alle' }))
+    expect(screen.queryByTestId('fansub-group-context')).toBeNull()
+    const topSentinel = screen.getByTestId('top-sentinel')
+    const contentNode = topSentinel.parentElement
+    const rhythmWrapper = contentNode?.parentElement
+    expect(rhythmWrapper?.style.marginTop).toBe('var(--space-primary-content-blocks)')
+  })
+})
+
 describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)', () => {
   function classifiedEpisode(overrides: Partial<PublicGroupedEpisode> = {}): PublicGroupedEpisode {
     return {
