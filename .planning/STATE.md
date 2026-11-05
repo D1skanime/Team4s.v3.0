@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-26-PLAN.md
-last_updated: "2026-11-05T02:15:45.071Z"
+stopped_at: Completed 192-25-PLAN.md
+last_updated: "2026-11-05T03:05:12.477Z"
 last_activity: 2026-11-05
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 557
-  completed_plans: 548
+  completed_plans: 549
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 4 -- codex Review)) — EXECUTING
-Plan: 6 of 27
+Plan: 7 of 27
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1602,6 +1602,7 @@ Last activity: 2026-11-05
 - [Phase 192]: 192-24: .infoBanner erhaelt display:block (Rule 1) — Stacks Rhythmus-Array wrappt AnimeInfoBanner in ein nicht-Flex-Element, wodurch der browseruebliche Baseline-Leerraum unterhalb des inline <img> sichtbar wurde (7px); per Playwright-Byte-Diff gefunden und behoben
 - [Phase 192]: 192-26: EpisodeGlassCard-Divider und versionList-Card teilen sich einen Stack gap=none-Wrapper statt zwei Geschwister-Kinder der aeusseren display:grid-Karte zu sein -- verhindert einen zweiten --card-gap-Abstand (per Playwright als 26px zusaetzliche Kartenhoehe gefunden).
 - [Phase 192]: 192-26: ReleasePreviewRow.body/.action bekommen eine width:100%-Korrektur fuer den gestapelten Mobil-Zustand, da Clusters align-Prop (Standard center) in beiden Haltepunkt-Zustaenden gleich gilt, die Original-CSS aber nur im Desktop-Zustand explizites align-items:center hatte.
+- [Phase 192]: Plan 192-25: Cluster float="controlBand" braucht fuer korrekte Flex-/Grid-Ausschliessung die Positionierung auf dem AEUSSEREN Wurzelelement (@media statt @container) statt nur dem inneren Flex-Kind. — Eine @container-Abfrage darf laut Spezifikation nie das eigene Container-Wurzelelement selbst umordnen; ein nur innen position:absolute gesetztes Element bleibt ein 0px hoher, aber weiterhin flex-/grid-layout-teilnehmender Wrapper, der in einem umgebenden Stack-gap-Kontext trotzdem sichtbaren Abstand erzeugt hatte (erste echte Verdrahtung von float deckte diesen seit 192-22 unbemerkten Fehler auf).
 
 ### Pending Todos
 
@@ -2393,11 +2394,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P23 | 9min | 2 tasks | 10 files |
 | Phase 192 P24 | 31min | 2 tasks | 13 files |
 | Phase 192 P26 | 23min | 3 tasks | 10 files |
+| Phase 192 P25 | 80min | 2 tasks | 14 files |
 
 ## Session Continuity
 
-Last session: 2026-11-05T02:15:45.032Z
-Stopped at: Completed 192-26-PLAN.md
+Last session: 2026-11-05T03:05:12.449Z
+Stopped at: Completed 192-25-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
