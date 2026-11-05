@@ -120,17 +120,9 @@ const DOCUMENTED_LAYOUT_EXCEPTIONS: LayoutException[] = [
   // deshalb keinen Ausnahme-Eintrag mehr.
 
   // --- AnimeEdgeNavigation.module.css -------------------------------------------------------
-  {
-    file: 'AnimeEdgeNavigation',
-    selector: /\.previewType\b/,
-    reason:
-      '192-15 (neu entdeckt): 4px Zeilenabstand zwischen Titel- und Typ-Text der Vorschaukarten-' +
-      'Bildunterschrift (var(--space-1)) -- passt zu keinem bestehenden Stack-Zweck (section=12px/' +
-      'tight=8px), und mit aktuell nur dieser einen Aufrufstelle wäre ein dritter, eigens dafür ' +
-      'benannter Stack-Zweck reine Spekulation statt eines belegten Wiederverwendungsbedarfs; bleibt ' +
-      'deshalb als eng begründete Einzelfall-Ausnahme dokumentiert statt einer verfrühten ' +
-      'Grundbaustein-Erweiterung.',
-  },
+  // .previewType (vormals 192-15): entfällt seit Plan 192-26 -- der 4px-Zeilenabstand zwischen
+  // Titel- und Typ-Text kommt jetzt aus Stacks eigenem "captionLines"-Zweck (Plan 192-21), keine
+  // margin-top-Deklaration mehr vorhanden.
 ]
 
 /** Entfernt /* ... *‍/-Blockkommentare, ersetzt dabei jedes Zeichen außer Zeilenumbrüchen durch

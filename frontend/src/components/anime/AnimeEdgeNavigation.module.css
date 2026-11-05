@@ -34,7 +34,6 @@
 
 .previewType {
   display: block;
-  margin-top: var(--space-1);
 }
 
 @media (max-width: 767px) {

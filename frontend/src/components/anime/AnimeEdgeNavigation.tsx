@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { AdjacentNavigation, Card, Cluster, ResponsiveImage, Text, type AdjacentNavigationItem } from '@/components/ui'
+import { AdjacentNavigation, Card, Cluster, ResponsiveImage, Stack, Text, type AdjacentNavigationItem } from '@/components/ui'
 import { parseAnimeListParamsFromGridQuery, resolveAnimeNeighbors, type AnimeNeighbors } from '@/lib/animeGridContext'
 
 import { useAnimeEdgeNavigationHover, type EdgeNavigationDirection } from './useAnimeEdgeNavigationHover'
@@ -104,10 +104,13 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery, previous, next 
               den Browser-Standard "stretch", Clusters eigener Standard waere dagegen "center"). */}
           <Cluster gap="mediaCaption" align="stretch" wrap={false}>
             <ResponsiveImage src={previewCoverUrl} alt={previewAnime.title} width={66} height={92} className={styles.previewCover} unoptimized />
-            <div className={styles.previewMeta}>
+            {/* Der enge Zeilenabstand zwischen Titel und Typ (EINE zweizeilige Bildunterschrift)
+                kommt jetzt aus Stacks "captionLines"-Zweck statt eines lokalen margin-top auf
+                .previewType. */}
+            <Stack gap="captionLines" className={styles.previewMeta}>
               <Text tone="onScrim" className={styles.previewTitle}>{previewAnime.title}</Text>
               <Text variant="small" tone="onScrim" className={styles.previewType}>{getTypeLabel(previewAnime.type)}</Text>
-            </div>
+            </Stack>
           </Cluster>
         </Card>
       ) : null}
