@@ -1,4 +1,7 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -159,6 +162,34 @@ describe('watchlist client status ownership', () => {
     disabled(/Speichern/)
     await act(async () => next.resolve(entry))
     await known(/In Watchlist/)
+  })
+})
+
+/*
+ * Runde 5, Befund-Review2-R2 (192-32): die vormalige lokale `.wrapper { display: grid;
+ * gap: 0.45rem; }`-Deklaration (ein roher rem-Wert, kein Token) entfaellt ersatzlos -- die
+ * vertikale Anordnung von Knopf/Statusmeldung/Wiederholungs-Knopf kommt jetzt aus Stack
+ * gap="relatedContent" (8px, gemessen gegen den vormaligen 0.45rem=7,2px-Wert -- die Differenz
+ * liegt unterhalb jeder sichtbaren Pixel-Rundungs-Schwelle, siehe 192-32-SUMMARY.md).
+ */
+describe('WatchlistAddButton -- Runde 5: Stack statt lokalem display:grid', () => {
+  it('WatchlistAddButton.module.css deklariert kein eigenes display:grid oder einen rohen rem-Abstand mehr', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/watchlist/WatchlistAddButton.module.css'), 'utf8')
+    expect(css).not.toMatch(/display:\s*grid/)
+    expect(css).not.toMatch(/gap:\s*0\.45rem/)
+  })
+
+  it('rendert Knopf/Statusmeldung/Wiederholungs-Knopf innerhalb eines Stack-Elternknotens mit gap="relatedContent" (--space-related-content)', async () => {
+    const { container } = render(<WatchlistAddButton animeID={1} />)
+    // Den auf dem Mount-Effekt laufenden Status-Check (checkStatus) abwarten, bevor Zusicherungen
+    // folgen -- sonst meldet React eine act()-Warnung fuer das asynchron danach noch folgende
+    // State-Update, obwohl dieser Test selbst nur die statische Stack-Umhuellung prueft.
+    await screen.findByRole('button', { name: /Anmeldung erforderlich|Zur Watchlist|Watchliststatus/ })
+    const stackRoot = container.firstElementChild as HTMLElement | null
+    expect(stackRoot).not.toBeNull()
+    expect(stackRoot?.style.getPropertyValue('--stack-gap')).toBe('var(--space-related-content)')
+    // Stack rendert als eigenes <div>, der Button ist direktes Kind.
+    expect(stackRoot?.querySelector('button')).not.toBeNull()
   })
 })
 

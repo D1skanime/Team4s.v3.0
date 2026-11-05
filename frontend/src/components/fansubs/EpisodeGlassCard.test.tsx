@@ -45,19 +45,22 @@ describe('EpisodeGlassCard.module.css -- Befund B Baustein-Reinheit', () => {
     expect(codeOnly).not.toMatch(/display:\s*grid/)
   })
 
-  it('.versionList traegt nur noch die Card variant="flat"-Groessenkorrektur (kein eigenes padding/border-top mehr)', () => {
+  /*
+   * Runde 5, Befund-Review2-R2 (192-32): die vormalige lokale .versionList-Klasse (border-width:0;
+   * border-radius:0; background:transparent) entfaellt ersatzlos -- der randlose Modus kommt jetzt
+   * aus Cards eigenem seamless-Prop (Plan 192-28) statt einer dritten, parallelen lokalen
+   * CSS-Override-Klasse.
+   */
+  it('EpisodeGlassCard.module.css deklariert keine eigene .versionList-Regel mehr', () => {
     const source = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.module.css'), 'utf8')
-    const versionListRule = source.match(/\.versionList\s*\{([^}]+)\}/)?.[1]
-    expect(versionListRule, '.versionList must exist').toBeTruthy()
-    // Der Innenabstand kommt jetzt aus Card padding="dividedSection", die Trennlinie aus einem
-    // eigenstaendigen Divider-Element -- hier bleiben nur die drei Korrekturen, die Cards
-    // variant="flat"-Rahmen/-Rundung/-Flaeche auf das vorherige, randlose Erscheinungsbild
-    // zuruecksetzen.
-    expect(versionListRule).toMatch(/border-width:\s*0/)
-    expect(versionListRule).toMatch(/border-radius:\s*0/)
-    expect(versionListRule).toMatch(/background:\s*transparent/)
-    expect(versionListRule).not.toMatch(/padding:/)
-    expect(versionListRule).not.toMatch(/border-top:/)
+    expect(source).not.toMatch(/\.versionList\s*\{/)
+  })
+
+  it('die verschachtelte Versionslisten-Card bekommt Cards seamless-Prop statt einer lokalen Rahmen-/Rundungs-Korrektur', () => {
+    const source = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.tsx'), 'utf8')
+    const cardCallSite = source.match(/<Card id=\{panelId\}[^>]*>/)?.[0]
+    expect(cardCallSite, 'nested versionList Card call site must exist').toBeTruthy()
+    expect(cardCallSite).toMatch(/\bseamless\b/)
   })
 })
 
@@ -77,6 +80,23 @@ describe('EpisodeGlassCard -- Kopfzeile/Versionsliste ueber Cluster/Stack statt 
 
     expect(screen.getByText('Der erste Kirschblütentag')).toBeTruthy()
     expect(screen.getByText('2 Versionen')).toBeTruthy()
+  })
+
+  it('rendert die verschachtelte Versionslisten-Card mit der cardSeamless-Modifikatorklasse, wenn aufgeklappt', () => {
+    const { container } = render(
+      <EpisodeGlassCard
+        episode={buildEpisode()}
+        episodeTitle="Der erste Kirschblütentag"
+        expanded
+        onToggle={() => {}}
+        panelId="panel-seamless"
+      >
+        <span>Platzhalter</span>
+      </EpisodeGlassCard>,
+    )
+    const panel = container.querySelector('#panel-seamless')
+    expect(panel).not.toBeNull()
+    expect(panel?.className).toMatch(/cardSeamless/)
   })
 
   it('rendert die durchgereichten Release-Zeilen innerhalb eines Stack-Elternknotens, wenn aufgeklappt', () => {
