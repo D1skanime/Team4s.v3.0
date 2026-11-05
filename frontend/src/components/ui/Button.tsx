@@ -38,7 +38,9 @@ type CommonButtonProps = {
    *  Zeilenbreite einnehmen sollen, ab dort aber auf ihre natürliche Inhaltsbreite zurückfallen.
    *  Nutzt dieselbe Haltepunkt-Zahl wie `Cluster`, misst aber (anders als `Cluster`s eigene
    *  Container-Abfrage) die Fensterbreite -- bei mehreren gepolsterten Vorfahren zwischen Button
-   *  und Fensterrand je Aufrufstelle prüfen, ob beide wirklich an derselben Stelle kippen. */
+   *  und Fensterrand je Aufrufstelle prüfen, ob beide wirklich an derselben Stelle kippen. Nicht
+   *  gemeinsam mit `responsiveFullWidth` auf demselben Button verwenden -- beide steuern dieselbe
+   *  CSS-Eigenschaft in entgegengesetzte Richtungen, ohne gegenseitige Absicherung. */
   fullWidthBelowMd?: boolean
   leftIcon?: ReactNode
   rightIcon?: ReactNode
