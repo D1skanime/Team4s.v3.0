@@ -49,21 +49,10 @@
 }
 
 /*
- * .versionList ist jetzt eine echte, verschachtelte Card (variant="flat" padding="dividedSection",
- * siehe EpisodeGlassCard.tsx) statt eines reinen <div> mit lokalem padding/border-top -- der
- * Innenabstand kommt vollstaendig aus Cards "dividedSection"-Rezept, die vormalige Trennlinie aus
- * einem eigenstaendigen <Divider>-Element davor. Hier verbleiben ausschliesslich drei eng
- * begruendete Groessenkorrekturen (keine der vom Baustein-Reinheits-Guard verbotenen Kategorien
- * display/flex-direction/grid-template/gap/padding/margin): Cards Basisregel bringt fuer JEDE
- * Variante einen eigenen 1px-Rahmen samt Eckenrundung mit, und `.cardFlat` bringt zusaetzlich eine
- * fuer die helle Admin-Optik gedachte Farbverlaufsflaeche mit (`--card-flat-bg`) -- beides waere
- * hier sichtbare Mehr-Flaeche gegenueber dem vormaligen randlosen <div>, das seine Flaeche
- * ausschliesslich von der umschliessenden EpisodeGlassCard (variant="glass") geerbt hat. Per
- * Playwright-Vollbild-Byte-Diff bestaetigt: erst mit allen drei Korrekturen ist das Ergebnis
- * wieder pixelgleich zum Vor-Umstellungs-Zustand.
+ * .versionList traegt ab sofort KEINE eigene Rahmen-/Rundungs-/Flaechen-Deklaration mehr -- Cards
+ * eigener seamless-Prop (siehe EpisodeGlassCard.tsx, Plan 192-28/192-32) zeroed Cards Basis-
+ * Rahmen/-Rundung und variant="flat"s Farbverlaufsflaeche (`--card-flat-bg`) bereits selbst ueber
+ * eine eigene Modifikatorklasse. Vormals standen hier dieselben drei Werte als lokaler CSS-
+ * Override; sie sind jetzt eine real gepruefte, benannte Grundbaustein-Faehigkeit statt eines
+ * wiederholten lokalen Overrides (Befund-Review2-R2).
  */
-.versionList {
-  border-width: 0;
-  border-radius: 0;
-  background: transparent;
-}

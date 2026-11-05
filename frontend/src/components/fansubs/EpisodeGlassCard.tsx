@@ -101,11 +101,18 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
                 (vormals exakt 1px border-top, direkt am oberen Kartenrand, ohne eigenen
                 Aussenabstand) kommt bereits vollstaendig aus dem --card-gap der aeusseren Karte. */}
             <Divider tone="onMedia" spacing="none" />
-            {/* .versionList ist jetzt eine echte, verschachtelte Card mit dem "dividedSection"-
-                Polsterungs-Rezept (oben/seitlich/unten, siehe Card.tsx) statt eines reinen <div>
-                mit lokalem padding. id={panelId} wandert von diesem <div> auf die Card selbst,
-                damit DisclosureTriggers aria-controls weiterhin genau dieses Element trifft. */}
-            <Card id={panelId} variant="flat" padding="dividedSection" className={styles.versionList}>
+            {/* Die verschachtelte Versionslisten-Card (vormals .versionList, eine lokale CSS-
+                Klasse mit border-width:0/border-radius:0/background:transparent) braucht keine
+                eigene CSS-Klasse mehr -- Cards seamless-Prop (Plan 192-28/192-32) zeroed Cards
+                eigenen 1px-Rahmen samt Eckenrundung und variant="flat"s Farbverlaufsflaeche
+                (`--card-flat-bg`) bereits selbst ueber eine eigene Modifikatorklasse, sodass die
+                Versionsliste randlos INNERHALB der bereits eigenstaendig gerahmten aeusseren
+                Episodenkarte sitzt (direkt nachgeprueft: keine bestehende Card-Variante erreicht
+                border-width:0 UND border-radius:0 UND background:transparent gleichzeitig). Das
+                "dividedSection"-Polsterungs-Rezept (oben/seitlich/unten, siehe Card.tsx) bleibt
+                unveraendert. id={panelId} wandert vom vormaligen <div> auf die Card selbst, damit
+                DisclosureTriggers aria-controls weiterhin genau dieses Element trifft. */}
+            <Card id={panelId} variant="flat" padding="dividedSection" seamless>
               {/* D-20-Folgefall: die einzelnen ReleasePreviewRow-Instanzen bekommen ihren
                   Zwischenabstand ueber Stacks "independentBlocks"-Zweck (trennt voneinander
                   unabhaengige Episodenzeilen) statt eines lokalen CSS-Grids -- exakt derselbe

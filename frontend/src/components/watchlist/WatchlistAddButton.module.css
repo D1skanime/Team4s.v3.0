@@ -1,7 +1,7 @@
-.wrapper {
-  display: grid;
-  gap: 0.45rem;
-}
+/* .wrapper entfaellt ersatzlos: die vertikale Anordnung von Knopf/Statusmeldung/Wiederholungs-
+   Knopf samt deren Abstand kommt jetzt vollstaendig aus Stack gap="relatedContent" (siehe
+   WatchlistAddButton.tsx, Plan 192-32) statt eines zuvor hier lokal deklarierten Raster-Layouts
+   mit rohem Sub-Pixel-Abstandswert. */
 
 .message {
   margin: 0;
