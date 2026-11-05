@@ -86,7 +86,7 @@
      verweist unveraendert per var() auf die bestehende --space-N-/--media-frame-poster-width*-
      Grundskala; nur der benannte Zugriffspfad ist neu, der zugrunde liegende Zahlenwert bleibt
      identisch (Zero-Pixel-Diff). */
-  --space-independent-blocks: var(--space-3); /* Stack: trennt voneinander unabhaengige Inhaltsbloecke INNERHALB eines Bausteins (z. B. Merklisten-Knopf/Trennlinie/Genre-Abschnitt im Anime-Kopf, einzelne Episodenzeilen) -- NICHT Abstand zwischen Seitenabschnitten (Befund D, Runde 3: der vormalige Name "section" war damit verwechselbar). */
+  --space-independent-blocks: var(--space-3); /* Stack UND Cluster (seit Review-Befund 1, vierte Gap-Closure-Runde): trennt voneinander unabhaengige, gleichrangige Inhaltsbloecke INNERHALB eines Bausteins -- bei Stack normalerweise als CSS-gap (z. B. Merklisten-Knopf/Trennlinie/Genre-Abschnitt im Anime-Kopf, einzelne Episodenzeilen), bei Cluster als Luecken-Zweck im gestapelten Zustand einer Haltepunkt-Umkehr (`gapCollapsed`). NICHT Abstand zwischen Seitenabschnitten (Befund D, Runde 3: der vormalige Name "section" war damit verwechselbar). */
   --space-related-content: var(--space-2); /* Stack: fasst eng zusammengehoerige Inhalte dicht zusammen, die gemeinsam EINE Einheit beschreiben (ein Eyebrow-Label mit seiner Chip-Reihe, oder die Metadatenzeilen EINER Release-Zeile) -- vormals "tight" (Befund D, Runde 3: ein Groessenwort, kein Zweck). */
   --space-caption-lines: var(--space-1); /* Stack: zwei Textzeilen, die gemeinsam eine einzige Bildunterschrift/Beschriftung bilden (z. B. Titel+Typ der Randnavigations-Vorschaukarte). */
   --space-badge-row: var(--space-2); /* Cluster: dichte, rein lesbare Abzeichen-/Chip-/Tag-/Logo-Reihe ohne Interaktion. */

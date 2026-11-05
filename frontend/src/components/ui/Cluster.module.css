@@ -7,3 +7,29 @@
   justify-content: var(--cluster-justify, flex-start);
   min-width: 0;
 }
+
+/* Äußerer Container fürs zweistufige collapseBelow/float-Rendering (siehe Cluster.tsx): trägt
+   NUR `container`/`min-width` -- ein Element darf laut CSS-Spezifikation nicht gleichzeitig der
+   eigene Container-Namensgeber UND das von dessen @container-Abfrage umgeordnete Element sein
+   (identisches Muster wie SplitLayout.module.css). Wird NUR gerendert, wenn `collapseBelow` oder
+   `float` gesetzt ist -- ohne beide Props bleibt Cluster das einzelne `.cluster`-Element von oben. */
+.clusterQueryContainer {
+  container: cluster / inline-size;
+  min-width: 0;
+}
+
+/* collapseBelow="md" (Review-Befund 1 Erweiterung B): unterhalb 48rem/768px gestapelte Spalte mit
+   eigenem Lücken-Zweck (--cluster-gap-collapsed, Fallback: --cluster-gap selbst, falls
+   gapCollapsed nicht übergeben wurde) -- ab 48rem das normale, horizontale Cluster-Verhalten mit
+   dem unveränderten --cluster-gap. Derselbe Haltepunkt wie SplitLayouts bereits etabliertes 'md'. */
+.collapsibleMd {
+  flex-direction: column;
+  gap: var(--cluster-gap-collapsed, var(--cluster-gap, var(--space-2)));
+}
+
+@container cluster (min-width: 48rem) {
+  .collapsibleMd {
+    flex-direction: row;
+    gap: var(--cluster-gap, var(--space-2));
+  }
+}

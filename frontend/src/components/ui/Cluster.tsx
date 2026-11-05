@@ -18,6 +18,11 @@ import styles from './Cluster.module.css'
  *    zweite Block eine untergeordnete Zusatzinfo bei engerem Soll-Abstand (var(--space-3)).
  *  - `'mediaCaption'`: ein Vorschaubild neben seiner Bildunterschrift (z. B. die
  *    Randnavigations-Vorschaukarte: Cover-Thumbnail + Titel/Typ-Textblock).
+ *  - `'independentBlocks'`: trennt voneinander unabhängige, gleichrangige Inhaltsblöcke INNERHALB
+ *    eines Bausteins -- derselbe Zweck-Name und dasselbe Zweck-Token (`--space-independent-blocks`)
+ *    wie Stacks gleichnamiger Zweck, hier für den gestapelten Zustand einer Haltepunkt-Umkehr
+ *    (`collapseBelow`/`gapCollapsed`, Review-Befund 1 Erweiterung B) wiederverwendet statt eines
+ *    zweiten, neu erfundenen Tokens mit identischem Wert.
  *  Cluster deklariert diese Enum bewusst eigenständig statt sie aus './Stack' zu importieren --
  *  Cluster ist ein eigenständiger Grundbaustein und darf laut Katalog-Taxonomie
  *  (catalogTaxonomy.test.ts) keinen anderen, selbst katalogisierten Grundbaustein importieren,
@@ -30,6 +35,7 @@ export type ClusterGapPurpose =
   | 'actionRow'
   | 'labelWithTrailingMeta'
   | 'mediaCaption'
+  | 'independentBlocks'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
  *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `ClusterGapPurpose`-Dokumentation oben). */
@@ -40,6 +46,7 @@ const GAP_PURPOSE_TOKENS: Record<ClusterGapPurpose, string> = {
   actionRow: 'var(--space-action-row)',
   labelWithTrailingMeta: 'var(--space-label-with-trailing-meta)',
   mediaCaption: 'var(--space-media-caption)',
+  independentBlocks: 'var(--space-independent-blocks)',
 }
 
 type ClusterJustify = 'start' | 'center' | 'end' | 'between'
@@ -60,6 +67,16 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
   justify?: ClusterJustify
   /** Umbruch bei fehlendem Platz (Standard true). */
   wrap?: boolean
+  /** Haltepunkt, unterhalb dessen Cluster von einer horizontalen Zeile auf eine gestapelte Spalte
+   *  kippt (Haltepunkt-Umkehr, Review-Befund 1 Erweiterung B) -- aktuell nur `'md'` (48rem/768px,
+   *  derselbe Haltepunkt, den `SplitLayout` bereits verwendet), da bislang keine Aufrufstelle
+   *  einen zweiten Wert braucht. Ohne Angabe bleibt Cluster ein einzelnes, unverändertes
+   *  Flex-Element (Zero-Pixel-Diff für jeden bestehenden Aufrufer). */
+  collapseBelow?: 'md'
+  /** Lücken-Zweck im gestapelten Zustand unterhalb von `collapseBelow` -- ohne Angabe gilt
+   *  derselbe Zweck wie `gap` (CSS-Fallback, kein zweiter Pflichtwert). Wirkt nur, wenn
+   *  `collapseBelow` tatsächlich gesetzt ist. */
+  gapCollapsed?: ClusterGapPurpose
   /** Zu rendernde Element-Art (Standard 'div'). */
   as?: ElementType
   className?: string
@@ -70,31 +87,55 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
  * Horizontale Anordnung mehrerer Kinder mit Umbruch und token-basiertem Abstand -- der generische
  * Grundbaustein für jede Chip-/Badge-/Logo-Reihe dieser Codebasis. Setzt bewusst KEINE Fläche/
  * Farbe/Rundung selbst (siehe Stack.tsx für dieselbe Begründung).
+ *
+ * `collapseBelow`/`gapCollapsed` ist eine container-query-getriebene Zusatzfähigkeit (siehe
+ * `SplitLayout.tsx`/`.module.css` für dasselbe Grundmuster): ein Element darf laut
+ * CSS-Spezifikation nicht gleichzeitig der eigene `@container`-Namensgeber UND das von dessen
+ * Abfrage umgeordnete Element sein. Ist `collapseBelow` gesetzt, rendert Cluster deshalb
+ * zweistufig -- ein äußeres Element trägt NUR `container: cluster / inline-size`, das eigentliche
+ * Flex-Verhalten lebt in einem inneren Kind-Element. Ist `collapseBelow` NICHT gesetzt, bleibt
+ * Cluster ein einzelnes, unverändertes Element wie bisher (Zero-Pixel-Diff für jeden bestehenden
+ * Aufrufer).
  */
 export function Cluster({
   gap = 'badgeRow',
   align = 'center',
   justify = 'start',
   wrap = true,
+  collapseBelow,
+  gapCollapsed,
   as: Component = 'div',
   className,
   children,
   style,
   ...props
 }: ClusterProps) {
+  const mergedStyle = {
+    ...style,
+    '--cluster-gap': GAP_PURPOSE_TOKENS[gap],
+    '--cluster-align': align,
+    '--cluster-justify': JUSTIFY_KEYWORDS[justify],
+    '--cluster-wrap': wrap ? 'wrap' : 'nowrap',
+    ...(gapCollapsed !== undefined ? { '--cluster-gap-collapsed': GAP_PURPOSE_TOKENS[gapCollapsed] } : {}),
+  } as CSSProperties
+
+  if (collapseBelow === undefined) {
+    return (
+      <Component {...props} style={mergedStyle} className={classNames(styles.cluster, className)}>
+        {children}
+      </Component>
+    )
+  }
+
   return (
-    <Component
-      {...props}
-      style={{
-        ...style,
-        '--cluster-gap': GAP_PURPOSE_TOKENS[gap],
-        '--cluster-align': align,
-        '--cluster-justify': JUSTIFY_KEYWORDS[justify],
-        '--cluster-wrap': wrap ? 'wrap' : 'nowrap',
-      } as CSSProperties}
-      className={classNames(styles.cluster, className)}
-    >
-      {children}
+    <Component {...props} style={mergedStyle} className={classNames(styles.clusterQueryContainer, className)}>
+      {/* Eigenes Flex-Kind-Element: das `Component`-Element oben bildet nur den benannten
+       *  Container, das eigentliche Flex-Verhalten lebt hier als Nachfahre (siehe Komponentendoku
+       *  oben bzw. SplitLayout.tsx für dasselbe Grundmuster). Liest die `--cluster-*`-Variablen
+       *  per CSS-Vererbung vom äußeren Element, trägt selbst keinen Inline-Stil. */}
+      <div className={classNames(styles.cluster, collapseBelow === 'md' && styles.collapsibleMd)}>
+        {children}
+      </div>
     </Component>
   )
 }

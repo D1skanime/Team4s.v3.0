@@ -188,3 +188,34 @@ export const JustifyBetween: Story = {
     ),
   },
 }
+
+export const HaltepunktUmkehr: Story = {
+  name: 'Haltepunkt-Umkehr (collapseBelow="md")',
+  args: {
+    collapseBelow: 'md',
+    gap: 'contentPair',
+    gapCollapsed: 'independentBlocks',
+    justify: 'between',
+    children: (
+      <>
+        <Chip label="Titel + Logo" />
+        <Chip label="Externer Link" />
+      </>
+    ),
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ resize: 'horizontal', overflow: 'auto', border: '1px dashed #999', padding: 8, width: '100%', maxWidth: 900 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Kippt von einer horizontalen Zeile auf eine gestapelte Spalte, sobald der umgebende Container unter 48rem/768px schmaler wird -- ziehen Sie den gestrichelten Rahmen rechts unten enger, um den Wechsel live zu sehen. Mit eigenem, engerem Lücken-Zweck (`gapCollapsed="independentBlocks"`) für den gestapelten Zustand. Deckt zwei reale Fälle ab: die Titel+Logo-Kopfzeile des Anime-Kopfs und die Gruppenname/Avatar-Paarung einer Release-Zeile -- beide kippen an derselben 768px-Schwelle.',
+      },
+    },
+  },
+}
