@@ -3051,7 +3051,7 @@ Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte 
 Abstand/Rundung.
 **Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26, Befund-A, Befund-B, Befund-C, Befund-D, Befund-27, Befund-28, Befund-Review1, Befund-Review2
 **Depends on:** Phase 191
-**Plans:** 20/27 plans complete
+**Plans:** 21/27 plans executed
 
 Plans:
 - [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
@@ -3074,7 +3074,7 @@ Plans:
 - [x] 192-18-PLAN.md — Storybook „Grundlagen/Effekte": echtes Bildpaar statt grauer Fläche (Befund 27)
 - [x] 192-19-PLAN.md — Storybook „Grundlagen/Design-Tokens": dreistufige Neugliederung (Befund 28)
 - [x] 192-20-PLAN.md — Runde-3-Abschluss-Nachweis (voller Regressionslauf + Playwright-Bildpaare, löst 192-VERIFICATION.md ab), läuft nach 11-19
-- [ ] 192-21-PLAN.md — Stack: Rhythmus-Array-Modus + 'captionLines'-Zweck (Review-Befund 1, Grundbaustein A)
+- [x] 192-21-PLAN.md — Stack: Rhythmus-Array-Modus + 'captionLines'-Zweck (Review-Befund 1, Grundbaustein A)
 - [ ] 192-22-PLAN.md — Cluster: Haltepunkt-Umkehr (collapseBelow/gapCollapsed) + Schwebe-Overlay-Modus (Review-Befund 1, Grundbausteine B+C)
 - [ ] 192-23-PLAN.md — Card: Zweck-Padding-Rezepte + Rand-bis-Rand-Modus (Review-Befund 1 Grundbaustein D + Review-Befund 2)
 - [ ] 192-24-PLAN.md — AnimeDetailHero Teil 1: infoCardBody-Rhythmus (A) + titleRow-Kollaps (B)

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-20-PLAN.md (Runde-3-Abschluss-Nachweis, Phase 192 20/20 Plaene komplett)
-last_updated: "2026-11-04T23:56:08.269Z"
-last_activity: 2026-11-04
+stopped_at: Completed 192-21-PLAN.md (Stack-Rhythmus-Array-Modus + 'captionLines'-Zweck)
+last_updated: "2026-11-05T00:47:23.499Z"
+last_activity: 2026-11-05
 progress:
   total_phases: 57
-  completed_phases: 51
-  total_plans: 550
-  completed_plans: 543
-  percent: 89
+  completed_phases: 50
+  total_plans: 557
+  completed_plans: 544
+  percent: 88
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -452,14 +452,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 192 — Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 3 Gap-Closure)
+**Current focus:** Phase 192 — Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 4 -- codex Review)
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 3 Gap-Closure)) — EXECUTING
-Plan: 20 of 20
+Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 4 -- codex Review)) — EXECUTING
+Plan: 2 of 27
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -601,7 +601,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-11-04
+Last activity: 2026-11-05
 
 ## Accumulated Context
 
@@ -1594,6 +1594,7 @@ Last activity: 2026-11-04
 - [Phase 192]: Befund C: WatchlistAddButtons SSR-Hint-fireEvent-Test entfernt statt konvertiert -- initiallyInWatchlist ist toter Code, Garantie bereits ueber neuen direkten useWatchlistAction-No-Op-Test abgedeckt
 - [Phase 192]: Befund C: AnimeEdgeNavigations Hover-/Fokus-Vorschauzustand in useAnimeEdgeNavigationHover ausgelagert, direkt per renderHook testbar statt fireEvent.mouseEnter/mouseLeave
 - [Phase 192]: Runde-3-Abschluss-Nachweis: Live-Seiten-Bildpaare strukturell statt pixelgenau bewertet (AnimeBackdropRotator macht Pixel-Diffs methodisch untauglich, Kontrolltest zeigte ~20% Abweichung ohne Code-Unterschied), Sichtregressions-Beleg stattdessen ueber deterministischen Storybook-Build mit harten DOM-Rect-/Farbmessungen
+- [Phase 192]: Stack-Rhythmus-Array-Modus nur als neuer Zweig (Array.isArray) implementiert, nicht als Umbau des Einzelwert-Pfads — garantiert Zero-Pixel-Diff fuer alle bestehenden Aufrufer ohne erneute visuelle Pruefung
 
 ### Pending Todos
 
@@ -2380,11 +2381,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P16 | 40min | 2 tasks | 18 files |
 | Phase 192 P17 | 16min | 2 tasks | 5 files |
 | Phase 192 P20 | 85min | 2 tasks | 1 files |
+| Phase 192 P21 | 4min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-11-04T23:56:04.552Z
-Stopped at: Completed 192-20-PLAN.md (Runde-3-Abschluss-Nachweis, Phase 192 20/20 Plaene komplett)
+Last session: 2026-11-05T00:47:23.472Z
+Stopped at: Completed 192-21-PLAN.md (Stack-Rhythmus-Array-Modus + 'captionLines'-Zweck)
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
