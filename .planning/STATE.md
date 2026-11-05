@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-27-PLAN.md
-last_updated: "2026-11-05T03:34:44.035Z"
+stopped_at: Completed 192-28-PLAN.md
+last_updated: "2026-11-05T04:30:03.233Z"
 last_activity: 2026-11-05
 progress:
   total_phases: 57
-  completed_phases: 51
-  total_plans: 557
-  completed_plans: 550
-  percent: 89
+  completed_phases: 50
+  total_plans: 565
+  completed_plans: 551
+  percent: 88
 ---
 
 ## Milestone v1.4 "Coverage": COMPLETE (2026-10-17, tag `v1.4`)
@@ -452,14 +452,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 192 — Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 4 -- codex Review)
+**Current focus:** Phase 192 — Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 5 -- codex Review 2/2)
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 4 -- codex Review)) — EXECUTING
-Plan: 8 of 27
+Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 5 -- codex Review 2/2)) — EXECUTING
+Plan: 2 of 35
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1605,6 +1605,8 @@ Last activity: 2026-11-05
 - [Phase 192]: Plan 192-25: Cluster float="controlBand" braucht fuer korrekte Flex-/Grid-Ausschliessung die Positionierung auf dem AEUSSEREN Wurzelelement (@media statt @container) statt nur dem inneren Flex-Kind. — Eine @container-Abfrage darf laut Spezifikation nie das eigene Container-Wurzelelement selbst umordnen; ein nur innen position:absolute gesetztes Element bleibt ein 0px hoher, aber weiterhin flex-/grid-layout-teilnehmender Wrapper, der in einem umgebenden Stack-gap-Kontext trotzdem sichtbaren Abstand erzeugt hatte (erste echte Verdrahtung von float deckte diesen seit 192-22 unbemerkten Fehler auf).
 - [Phase 192]: compositeLayoutPurity.guard.test.ts: leere Ausnahmeliste war strukturell immer noch ein Mechanismus -- DOCUMENTED_LAYOUT_EXCEPTIONS/LayoutException/isAllowed und der Existenz-Selbsttest vollstaendig entfernt (nicht nur geleert), checkbar per grep -c == 0 plus Regressions-Canary-Beleg gegen alle 4 Pilot-Dateien
 - [Phase 192]: Pre-Runde-4-Baseline-Vergleich nutzt den Commit unmittelbar vor Plan 192-21 (9d6bdce73), nicht einen Commit vor der gesamten Phase -- isoliert exakt, was diese Runde veraendert hat
+- [Phase 192]: Card.seamless (Modifikatorklasse) neu angelegt statt bestehender Variante wiederverwendet — Direkter Vergleich bestaetigte: weder nested noch nestedFlat erreichen gleichzeitig border-width:0/border-radius:0/background:transparent (box-sizing:border-box macht 1px transparenten Rahmen messbar verschieden von border-width:0)
+- [Phase 192]: Card.widthPurpose als CSS-Variablen-Override-Hook (--card-width-override) statt Modifikatorklasse implementiert — Ein fester Breitenwert laesst sich als reiner var()-Default ausdruecken, anders als border-radius/seamless braucht er keine Selektor-AN-/ABSCHALTUNG
 
 ### Pending Todos
 
@@ -2398,11 +2400,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P26 | 23min | 3 tasks | 10 files |
 | Phase 192 P25 | 80min | 2 tasks | 14 files |
 | Phase 192 P27 | 27min | 3 tasks | 3 files |
+| Phase 192 P28 | 5min | 2 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-11-05T03:34:44.003Z
-Stopped at: Completed 192-27-PLAN.md
+Last session: 2026-11-05T04:30:03.207Z
+Stopped at: Completed 192-28-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
