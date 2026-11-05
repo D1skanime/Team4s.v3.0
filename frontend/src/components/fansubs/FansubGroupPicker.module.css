@@ -13,6 +13,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   /* Icon-/Beschriftungs-Abstand kommt jetzt aus Buttons eigener chipGlass-Variante (siehe
-     Button.module.css) statt einer lokalen Abstandsdeklaration -- das Logo wird ueber Buttons
-     leftIcon-Prop uebergeben, kein manuelles Kind-Element mehr. */
+     Button.module.css) statt einer lokalen Abstandsdeklaration -- das Logo wird über Buttons
+     leftIcon-Prop übergeben, kein manuelles Kind-Element mehr. */
 }

@@ -197,7 +197,7 @@ describe('authoritative anime project navigation', () => {
 /*
  * Runde 5, Befund-Review2-R2 (192-33): Gruppen-Auswahl, Gruppen-Kontext und Episoden-Inhalt
  * teilen sich jetzt EINEN Rhythmus-Stack statt drei verstreuter lokaler margin-Werte; totes CSS
- * (.emptyBox) ist entfernt; die IntersectionObserver-Sentinels tragen ihre technische 1px-Hoehe
+ * (.emptyBox) ist entfernt; die IntersectionObserver-Sentinels tragen ihre technische 1px-Höhe
  * als Inline-Stil statt einer CSS-Modul-Klasse.
  */
 describe('FansubVersionBrowser -- Runde 5: gemeinsamer Rhythmus-Stack statt drei verstreuter margin-Werte', () => {
@@ -222,10 +222,10 @@ describe('FansubVersionBrowser -- Runde 5: gemeinsamer Rhythmus-Stack statt drei
   it('traegt bei mehreren Gruppen UND aktivem Gruppen-Kontext die Gruppen-Kontext->Inhalt-Luecke "supportingBlockToContent" vor dem Inhalts-Block', () => {
     render(stateBrowser())
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
-    // Der Episoden-Inhalts-Block (letztes Rhythmus-Kind) traegt die vom Rhythmus-Array gesetzte
-    // Luecke zu seinem VORANGEHENDEN Geschwister (hier: Gruppen-Kontext) als eigenen
+    // Der Episoden-Inhalts-Block (letztes Rhythmus-Kind) trägt die vom Rhythmus-Array gesetzte
+    // Lücke zu seinem VORANGEHENDEN Geschwister (hier: Gruppen-Kontext) als eigenen
     // marginTop-Wrapper (Stacks eigener, bereits etablierter Rhythmus-Array-Mechanismus legt die
-    // Luecke IMMER auf den Wrapper des NACHFOLGENDEN Kindes, nicht des vorangehenden).
+    // Lücke IMMER auf den Wrapper des NACHFOLGENDEN Kindes, nicht des vorangehenden).
     const topSentinel = screen.getByTestId('top-sentinel')
     const contentNode = topSentinel.parentElement
     const rhythmWrapper = contentNode?.parentElement

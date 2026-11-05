@@ -99,7 +99,7 @@ describe('FansubGroupContext -- Runde 5: Card-Zweckstufe, Stack-Rhythmus, Cluste
     expect(css).not.toMatch(/\bgap\s*:/)
     expect(css).not.toMatch(/\.navRow\s*\{/)
     expect(css).not.toMatch(/\.name\s*\{/)
-    // .card existierte frueher nur wegen seiner padding-/margin-Deklarationen -- beide sind jetzt
+    // .card existierte früher nur wegen seiner padding-/margin-Deklarationen -- beide sind jetzt
     // durch Card-Props bzw. den gemeinsamen Rhythmus-Stack in FansubVersionBrowser.tsx ersetzt,
     // die leer gewordene Klasse ist deshalb ersatzlos entfernt (samt ihrer JSX-Referenz).
     expect(css).not.toMatch(/\.card\s*\{/)

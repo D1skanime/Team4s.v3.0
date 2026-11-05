@@ -3,13 +3,13 @@ import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-// Stack/Cluster-gap und SplitLayout-firstColumnWidth nehmen ausschliesslich benannte
+// Stack/Cluster-gap und SplitLayout-firstColumnWidth nehmen ausschließlich benannte
 // Zweck-Werte entgegen, nie eine rohe Space-Skalenstufe ("gap=2") oder einen freien
-// CSS-Laengen-String ("firstColumnWidth='200px'") -- konsistent mit jedem anderen Design-Token
-// dieses Projekts. Dieser Waechter prueft NUR die bereits auf Zweck-Werte umgestellten
+// CSS-Längen-String ("firstColumnWidth='200px'") -- konsistent mit jedem anderen Design-Token
+// dieses Projekts. Dieser Wächter prüft NUR die bereits auf Zweck-Werte umgestellten
 // Aufrufstellen-Dateien im Anime-Detail-/Fansub-Bereich (Stand Runde 5: acht Dateien), nicht den
-// gesamten Baum -- andere, davon unberuehrte Stack/Cluster/SplitLayout-Aufrufstellen im uebrigen
-// Code sind nicht Teil dieser Pruefung.
+// gesamten Baum -- andere, davon unberührte Stack/Cluster/SplitLayout-Aufrufstellen im übrigen
+// Code sind nicht Teil dieser Prüfung.
 const guardedCallSiteFiles = [
   join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.tsx'),
   join(process.cwd(), 'src/app/anime/[id]/AnimeEpisodesSection.tsx'),

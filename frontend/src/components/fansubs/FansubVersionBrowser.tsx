@@ -252,22 +252,22 @@ function FansubVersionBrowserContent({
     )
   }
 
-  // Runde 5, Befund-Review2-R2 (192-33): die drei Geschwister-Bloecke dieses Bausteins
-  // (Ueberschrift, optionale Gruppen-Auswahl/-Kontext, Episoden-Inhalt) haben JE NACH realer
-  // Render-Verzweigung unterschiedlich viele tatsaechlich sichtbare Kinder (0, 1 oder 2
-  // zusaetzliche Bloecke zwischen Ueberschrift und Inhalt) -- ein Rhythmus-Array-Stack kann nur
-  // EXAKT so viele Luecken-Werte tragen, wie tatsaechlich Kinder vorhanden sind. Die drei vormals
-  // ueber drei verschiedene Dateien verstreuten lokalen margin-Deklarationen (`.section`s
+  // Runde 5, Befund-Review2-R2 (192-33): die drei Geschwister-Blöcke dieses Bausteins
+  // (Überschrift, optionale Gruppen-Auswahl/-Kontext, Episoden-Inhalt) haben JE NACH realer
+  // Render-Verzweigung unterschiedlich viele tatsächlich sichtbare Kinder (0, 1 oder 2
+  // zusätzliche Blöcke zwischen Überschrift und Inhalt) -- ein Rhythmus-Array-Stack kann nur
+  // EXAKT so viele Lücken-Werte tragen, wie tatsächlich Kinder vorhanden sind. Die drei vormals
+  // über drei verschiedene Dateien verstreuten lokalen margin-Deklarationen (`.section`s
   // margin-top hier, `.wrapper`s margin-bottom in FansubGroupPicker, `.card`s margin-bottom in
-  // FansubGroupContext) werden deshalb GEMEINSAM durch genau diese eine Luecken-Liste ersetzt,
-  // statt durch drei eigenstaendige, unkoordinierte Werte.
+  // FansubGroupContext) werden deshalb GEMEINSAM durch genau diese eine Lücken-Liste ersetzt,
+  // statt durch drei eigenständige, unkoordinierte Werte.
   const contentColumnChildren: ReactNode[] = [
     <Heading key="heading" level={2} tone="onScrim">Episoden ({windowing.episodeCount})</Heading>,
   ]
   const contentColumnGaps: StackGapPurpose[] = []
 
   if (fansubOptions.length > 0) {
-    // Ueberschrift hat margin:0 -- zwischen ihr und der Gruppen-Auswahl war nie ein Abstand
+    // Überschrift hat margin:0 -- zwischen ihr und der Gruppen-Auswahl war nie ein Abstand
     // vorgesehen (gemessen: 0px), deshalb 'none' statt eines erfundenen Werts.
     contentColumnGaps.push('none')
     contentColumnChildren.push(
@@ -290,24 +290,24 @@ function FansubVersionBrowserContent({
       // vormals FansubGroupContexts eigenes .card-margin-bottom).
       contentColumnGaps.push('supportingBlockToContent')
     } else {
-      // Keine aktive Gruppe (z. B. "Alle" ausgewaehlt) -- die Gruppen-Auswahl ist dann das letzte
-      // unterstuetzende Element vor dem Inhalt, behaelt aber denselben 24px-Abstand wie zu einem
-      // Gruppen-Kontext (gemessen: identischer Wert in beiden Faellen, da er von der Gruppen-
+      // Keine aktive Gruppe (z. B. "Alle" ausgewählt) -- die Gruppen-Auswahl ist dann das letzte
+      // unterstützende Element vor dem Inhalt, behält aber denselben 24px-Abstand wie zu einem
+      // Gruppen-Kontext (gemessen: identischer Wert in beiden Fällen, da er von der Gruppen-
       // Auswahl selbst ausgeht, nicht vom jeweils folgenden Element).
       contentColumnGaps.push('primaryContentBlocks')
     }
   } else {
-    // Keine Fansub-Gruppen vorhanden -- Ueberschrift und Inhalt sind direkte Nachbarn, ebenfalls
-    // ohne zusaetzlichen Abstand (dieselbe 0px-Ueberschriften-Regel wie oben).
+    // Keine Fansub-Gruppen vorhanden -- Überschrift und Inhalt sind direkte Nachbarn, ebenfalls
+    // ohne zusätzlichen Abstand (dieselbe 0px-Überschriften-Regel wie oben).
     contentColumnGaps.push('none')
   }
 
   contentColumnChildren.push(
-    // D-31/D-35/Episoden-Inhalt als EIN stabiler Stack-Kindknoten (Fragmente sind fuer Stacks
-    // Luecken-Mechanik kein gueltiges Einzelkind): Fehlerzustand, oberer Sentinel, Rueckwaerts-
-    // Lade-/Fehlerzustaende, Leer-/Listenzustand, unterer Sentinel, Vorwaerts-Lade-/Fehlerzustaende
+    // D-31/D-35/Episoden-Inhalt als EIN stabiler Stack-Kindknoten (Fragmente sind für Stacks
+    // Lücken-Mechanik kein gültiges Einzelkind): Fehlerzustand, oberer Sentinel, Rückwärts-
+    // Lade-/Fehlerzustände, Leer-/Listenzustand, unterer Sentinel, Vorwärts-Lade-/Fehlerzustände
     // und Ende-Markierung bleiben untereinander exakt in ihrer bisherigen, abstandslosen Reihenfolge
-    // -- diese Gruppierung aendert nur die STRUKTUR (ein gemeinsamer Wrapper), nicht den Abstand.
+    // -- diese Gruppierung ändert nur die STRUKTUR (ein gemeinsamer Wrapper), nicht den Abstand.
     <div key="content">
       {switchState.error ? (
         <ErrorState
@@ -321,10 +321,10 @@ function FansubVersionBrowserContent({
         />
       ) : null}
 
-      {/* D-31/D-35: der obere Sentinel und die rueckwaerts-Lade-/Fehlerzustaende sind unabhaengig
-          davon sichtbar, ob die aktuelle Page (noch) Episoden enthaelt -- analog zum vormaligen
-          "Weitere laden"-Button, der ebenfalls ausserhalb der Leer-/Listen-Verzweigung stand.
-          Die 1px-Sentinel-Hoehe ist eine technische IntersectionObserver-Ankerflaeche, kein
+      {/* D-31/D-35: der obere Sentinel und die rückwärts-Lade-/Fehlerzustände sind unabhängig
+          davon sichtbar, ob die aktuelle Page (noch) Episoden enthält -- analog zum vormaligen
+          "Weitere laden"-Button, der ebenfalls außerhalb der Leer-/Listen-Verzweigung stand.
+          Die 1px-Sentinel-Höhe ist eine technische IntersectionObserver-Ankerfläche, kein
           Layout-/Abstands-Wert -- deshalb Inline-Stil statt einer CSS-Modul-Klasse (dieselbe
           Konvention wie der Windowing-Platzhalter weiter unten, `style={{ height: heightPx }}`). */}
       <div ref={windowing.topSentinelRef} aria-hidden="true" data-testid="top-sentinel" style={{ height: '1px' }} />
@@ -393,15 +393,15 @@ function FansubVersionBrowserContent({
 
   return (
     // D-12: die Trefferzahl kommt aus dem Client-Zustand, aktualisiert sich bei jedem Wechsel.
-    // tone="onScrim" (an der Ueberschrift) macht die Lesbarkeit auf der dunklen .episodesSection-
-    // Flaeche explizit (statt sich auf die seiteneigene `.episodesSection h2`-Regel zu verlassen,
-    // die zufaellig dieselbe helle Farbe ueber das rendernde <h2>-Element erzwingt) -- Heading
-    // rendert fuer `level={2}` ein echtes <h2>, die bestehende Selektor-/Groessen-/Abstand-Regel in
-    // page.episodes.module.css bleibt deshalb unveraendert gueltig. Der vormalige
-    // Card-Rand-zu-Ueberschrift-Abstand (16px roh, `.section`s margin-top) wurde NICHT ersatzlos
+    // tone="onScrim" (an der Überschrift) macht die Lesbarkeit auf der dunklen .episodesSection-
+    // Fläche explizit (statt sich auf die seiteneigene `.episodesSection h2`-Regel zu verlassen,
+    // die zufällig dieselbe helle Farbe über das rendernde <h2>-Element erzwingt) -- Heading
+    // rendert für `level={2}` ein echtes <h2>, die bestehende Selektor-/Größen-/Abstand-Regel in
+    // page.episodes.module.css bleibt deshalb unverändert gültig. Der vormalige
+    // Card-Rand-zu-Überschrift-Abstand (16px roh, `.section`s margin-top) wurde NICHT ersatzlos
     // gestrichen, sondern in Cards eigene 'section'-Polsterungsstufe verschoben (siehe
     // layout.css-Kommentar bei --card-padding-section) -- dieser Abstand liegt VOR der
-    // Ueberschrift, eine Stack-Luecke kann aber nur ZWISCHEN Kindern wirken, nie davor.
+    // Überschrift, eine Stack-Lücke kann aber nur ZWISCHEN Kindern wirken, nie davor.
     <Stack as="section" gap={contentColumnGaps}>
       {contentColumnChildren}
     </Stack>

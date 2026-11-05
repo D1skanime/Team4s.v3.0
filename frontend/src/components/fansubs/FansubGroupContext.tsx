@@ -25,9 +25,9 @@ export function FansubGroupContext({ activeGroup, animeSlug }: FansubGroupContex
 
   return (
     <Card variant="glass" padding="contextCard" data-testid="fansub-group-context">
-      {/* Name/Vorschautext/Mehr-Link/Aktionsreihe sind eng zusammengehoerige Inhalte EINER
+      {/* Name/Vorschautext/Mehr-Link/Aktionsreihe sind eng zusammengehörige Inhalte EINER
           Kontextkarte -- Stacks "relatedContent"-Zweck (8px) deckt den gesamten Rhythmus ab,
-          unabhaengig davon, ob der Vorschautext-Zweig (0 oder 2 Kinder) gerendert wird. */}
+          unabhängig davon, ob der Vorschautext-Zweig (0 oder 2 Kinder) gerendert wird. */}
       <Stack gap="relatedContent">
         <Heading level={3} tone="onScrim">{activeGroup.name}</Heading>
         {trimmedPreview ? (
