@@ -58,10 +58,15 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
   // Jeder Lückenwert ist live gegen die vormalige CSS-Rhythmusfolge vermessen (siehe SUMMARY).
   const infoCardGap: StackGapPurpose[] = ['headingToBadges', 'primaryContentBlocks']
   const infoCardChildren: ReactNode[] = [
-    <div key="titleRow" className={styles.titleRow}>
+    // Cluster statt eines eigenen display:flex;align-items;justify-content;gap: plus
+    // haltepunktabhängiger flex-direction:column-Umkehr -- collapseBelow="md" kippt Titel+Logo
+    // unterhalb 768px von einer Zeile auf eine gestapelte Spalte, mit je einem eigenen
+    // Lücken-Zweck pro Zustand (Zeile: contentPair=16px, gestapelt: independentBlocks=12px,
+    // beide Werte unverändert aus der vormaligen lokalen CSS übernommen).
+    <Cluster key="titleRow" collapseBelow="md" gap="contentPair" gapCollapsed="independentBlocks" justify="between">
       <Heading level={1} className={styles.title}>{anime.title}</Heading>
       <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
-    </div>,
+    </Cluster>,
     <Cluster key="badges" gap="badgeRow" className={styles.badges}>
       <StatusBadge status={anime.status} />
       <Badge variant="neutral">{anime.type.toUpperCase()}</Badge>

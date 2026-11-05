@@ -77,36 +77,11 @@ const DOCUMENTED_LAYOUT_EXCEPTIONS: LayoutException[] = [
   },
   {
     file: 'AnimeDetailHero',
-    selector: /\.titleRow\b/,
-    reason:
-      '192-15 (neu entdeckt beim Gründen des Guards in der tatsächlichen Dateilage statt veralteter ' +
-      'Plan-Annahmen): haltepunktabhängige Zeile-zu-Spalte-Umkehr (Titel+Logo nebeneinander ab 768px, ' +
-      'gestapelt darunter, mit unterschiedlichem gap-Wert je Haltepunkt) -- exakt dieselbe Begründung ' +
-      'wie ReleasePreviewRow.module.css .row (192-14): Cluster kennt keine haltepunktabhängige Stapel-' +
-      'vs-Reihen-Umkehr, SplitLayout erzwingt eine feste erste/flexible zweite Spalte statt einer ' +
-      'echten Richtungsumkehr.',
-  },
-  {
-    file: 'AnimeDetailHero',
     selector: /\.badges\b/,
     reason:
       '192-13 (per-child-Rhythmus-Begründung von .infoCardBody, hier einzeln auf den jeweiligen ' +
       'Kind-Selektor angewandt): margin-bottom ist Teil der bewusst nicht-einheitlichen vertikalen ' +
       'Abstandsfolge, die Stack ohne Pixel-Änderung nicht abbilden kann.',
-  },
-  {
-    file: 'AnimeDetailHero',
-    selector: /\.description\b/,
-    reason: '192-13 (dieselbe per-child-Rhythmus-Begründung wie .badges/.infoCardBody oben).',
-  },
-  {
-    file: 'AnimeDetailHero',
-    selector: /\.tagsSection\b/,
-    reason:
-      '192-13 (dieselbe per-child-Rhythmus-Begründung): nur der verbleibende Außenabstand ' +
-      '(margin, geteilte Regel mit .description) -- die frühere eigene display:flex/flex-direction/' +
-      'gap-Deklaration dieses Selektors wurde in 192-15 bereits auf Stack gap="relatedContent" umgestellt ' +
-      '(siehe AnimeDetailHero.tsx) und ist daher kein Fund mehr, nicht Teil dieser Ausnahme.',
   },
   {
     file: 'AnimeDetailHero',

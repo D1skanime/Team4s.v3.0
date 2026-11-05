@@ -47,18 +47,6 @@
   }
 }
 
-/* GUARD-AUSNAHME: die Haltepunkt-abhängige Zeile-zu-Spalte-Umkehr (Titel+Logo nebeneinander ab
-   768px, gestapelt darunter) bleibt an dieser Stelle noch lokal -- der eigentliche Zeilenrhythmus
-   zu den Geschwister-Abschnitten (margin-bottom) lebt bereits im Stack-Rhythmus-Array von
-   .infoCardBody (siehe AnimeDetailHero.tsx), nur die Richtungsumkehr selbst wartet noch auf ihre
-   eigene Migration. */
-.titleRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
 .title {
   flex: 1;
 }
@@ -189,11 +177,6 @@
 
   .infoCardBody {
     text-align: center;
-  }
-
-  .titleRow {
-    flex-direction: column;
-    gap: var(--space-3);
   }
 
   .badges,
