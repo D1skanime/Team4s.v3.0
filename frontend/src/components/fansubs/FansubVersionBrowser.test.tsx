@@ -209,7 +209,7 @@ describe('FansubVersionBrowser -- gemeinsamer Rhythmus-Stack statt drei verstreu
     expect(css).not.toMatch(/margin-top\s*:/)
   })
 
-  it('rendert die Ueberschrift und beide Sentinels mit Inline-Stil statt CSS-Modul-Klasse für die 1px-Ankerhöhe', () => {
+  it('rendert die Überschrift und beide Sentinels mit Inline-Stil statt CSS-Modul-Klasse für die 1px-Ankerhöhe', () => {
     render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={stateEpisodes} />)
     const topSentinel = screen.getByTestId('top-sentinel')
     const bottomSentinel = screen.getByTestId('bottom-sentinel')
@@ -370,7 +370,7 @@ function stateBrowser(relations: AnimeFansubRelation[] = fansubs, animeID = 22, 
 function assertGroup(id: 7 | 9) {
   const selected = fansubs[id === 7 ? 0 : 1].fansub_group!
   expect(screen.getByRole('button', { name: selected.name }).getAttribute('aria-pressed')).toBe('true')
-  // D-13: der Gruppenbereich rendert den Gruppennamen als reine Ueberschrift OHNE Link.
+  // D-13: der Gruppenbereich rendert den Gruppennamen als reine Überschrift OHNE Link.
   const context = screen.getByTestId('fansub-group-context')
   const heading = within(context).getByRole('heading', { name: selected.name })
   expect(heading).toBeTruthy()

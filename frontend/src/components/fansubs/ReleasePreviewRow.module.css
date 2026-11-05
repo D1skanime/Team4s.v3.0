@@ -52,7 +52,7 @@
  * `extras.join('   ')` liefert bereits EINEN zusammengefügten Textknoten statt mehrerer
  * Kind-Elemente, ein Flex-Container ohne mehrere Kinder hat nichts zum Umbrechen.
  * .extrasLine fällt dadurch auf dieselbe `display:block`-Regel wie .techLine/.dateLine oben
- * zurück -- keine sichtbare Aenderung, nur toter Code entfernt.
+ * zurück -- keine sichtbare Änderung, nur toter Code entfernt.
  */
 
 /*
