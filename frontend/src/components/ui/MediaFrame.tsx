@@ -6,6 +6,7 @@ import styles from './MediaFrame.module.css'
 export type MediaFrameShape = 'rect' | 'round'
 export type MediaFrameState = 'empty' | 'dragging' | 'disabled'
 export type MediaFrameVariant = 'default' | 'posterFade'
+export type MediaFrameWidthPurpose = 'posterHero'
 
 export interface MediaFrameProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Breite/Höhe, z. B. 1 für quadratisch, 16/9 für ein Breitbild. */
@@ -21,6 +22,12 @@ export interface MediaFrameProps extends Omit<HTMLAttributes<HTMLDivElement>, 'c
   children?: ReactNode
   variant?: MediaFrameVariant
   backdropImage?: string
+  /** Generischer Breiten-Zweck-Hook (aktuell ein Mitglied) -- setzt eine haltepunktabhängige
+   *  Modifikatorklasse statt eines Inline-Style-Werts, da die Posterspalte DREI responsive Breiten-
+   *  Stufen braucht (eine CSS Custom Property kann @media-bedingte Werte nicht rein über Inline-Style
+   *  ausdrücken). Ohne Angabe bleibt MediaFrame bei seiner bisherigen width:100%-Basisregel
+   *  (Zero-Pixel-Diff für jeden bestehenden Aufrufer). */
+  widthPurpose?: MediaFrameWidthPurpose
 }
 
 /**
@@ -36,6 +43,7 @@ export function MediaFrame({
   children,
   variant = 'default',
   backdropImage,
+  widthPurpose,
   className,
   style,
   ...rest
@@ -50,6 +58,7 @@ export function MediaFrame({
         state === 'dragging' && styles.mediaFrameDragging,
         state === 'disabled' && styles.mediaFrameDisabled,
         variant === 'posterFade' && styles.mediaFramePosterFade,
+        widthPurpose === 'posterHero' && styles.mediaFrameWidthPosterHero,
         className,
       )}
       style={{

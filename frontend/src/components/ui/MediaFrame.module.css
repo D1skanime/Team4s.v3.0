@@ -7,6 +7,26 @@
   background: var(--surface-sunken);
 }
 
+/* Breiten-Zweck "posterHero": ersetzt die Basisregel-Breite durch drei haltepunktabhängige
+   Stufen für die Posterspalte der Anime-Detailseite. Muss NACH der .mediaFrame-Basisregel
+   deklariert sein, damit sie deren width:100% bei gleicher Selektor-Spezifität (0,1,0) per
+   Deklarationsreihenfolge überschreibt. */
+.mediaFrameWidthPosterHero {
+  width: var(--media-frame-poster-width);
+}
+
+@media (max-width: 1023px) {
+  .mediaFrameWidthPosterHero {
+    width: var(--media-frame-poster-width-medium);
+  }
+}
+
+@media (max-width: 767px) {
+  .mediaFrameWidthPosterHero {
+    width: var(--media-frame-poster-width-compact);
+  }
+}
+
 .mediaFrameRound {
   border-radius: 50%;
 }

@@ -184,6 +184,14 @@
   box-shadow: none;
   backdrop-filter: blur(var(--card-public-hero-blur));
   -webkit-backdrop-filter: blur(var(--card-public-hero-blur));
+
+  /* Diese Variante hat strukturell immer genau zwei Kinder: das Posterbild und darunter einen
+     Stack mit Watchlist-Aktion/Trenner/Genres (siehe AnimeDetailHero.tsx) -- der Stack als
+     letztes Kind soll die nach dem Bild verbleibende Spaltenhöhe füllen. Rein strukturelle
+     Positions-Regel, referenziert bewusst keine komposit-spezifische Klasse. */
+  & > :last-child {
+    flex: 1;
+  }
 }
 
 /* Zweite Zone der Hero-Karte: anders als .cardGlass (gleichmäßig dunkle Glasfläche) bildet diese
@@ -267,6 +275,14 @@
     padding: var(--card-padding-override, var(--space-5) var(--space-5) 0);
     background: transparent;
     border-radius: 0;
+    /* Unterhalb 767px zentriert sich die Spalte statt links auszurichten (Posterbild und Stack
+       wirken sonst optisch am linken Rand hängend), und der Stack gibt seine Wachstums-Vorgabe
+       von oben auf -- er soll auf der schmalen Breite nur so hoch wie sein Inhalt sein, nicht
+       die restliche Spaltenhöhe künstlich auffüllen. */
+    align-items: center;
+    & > :last-child {
+      flex: 0;
+    }
   }
 
   /* Die Karte kippt hier auf eine einheitlich dunkle Fläche -- Titel (Heading, tone="default"),
@@ -285,6 +301,9 @@
     --heading-color: var(--scrim-text);
     --text-body-color: var(--scrim-icon);
     --text-eyebrow-color: var(--scrim-icon);
+    /* Zentriert auf der schmalen Mobilbreite den Titel, die Beschreibung und alle weiteren
+       Textnachfahren (vererbt sich automatisch, kein Zwischenelement setzt text-align zurück). */
+    text-align: center;
   }
 
   /* Rand-bis-Rand-Modus (bleedBelowMd-Prop, siehe Card.tsx) -- deklariert bewusst als LETZTE Regel
