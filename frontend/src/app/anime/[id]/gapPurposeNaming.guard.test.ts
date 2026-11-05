@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest'
 // dieser Pruefung.
 const guardedCallSiteFiles = [
   join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.tsx'),
+  join(process.cwd(), 'src/app/anime/[id]/AnimeEpisodesSection.tsx'),
   join(process.cwd(), 'src/components/fansubs/FansubGroupPicker.tsx'),
   join(process.cwd(), 'src/components/fansubs/FansubVersionBrowser.tsx'),
   join(process.cwd(), 'src/components/fansubs/ReleasePreviewRow.tsx'),

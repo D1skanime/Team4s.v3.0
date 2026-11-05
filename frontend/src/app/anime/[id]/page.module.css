@@ -59,8 +59,15 @@
   padding-top: var(--public-page-detail-hero-offset-top);
 }
 
+/* Unterer Innenabstand ist bewusst doppelt so groß wie der obere: bis zur Konsolidierung lieferte
+   zusätzlich die Episoden-Bereich-Karte selbst ein eigenes margin-bottom: var(--space-8)
+   (page.episodes.module.css) -- additiv zu diesem Innenabstand, da ein Elternelement mit eigenem
+   Innenabstand die Margin-Kollabierung mit seinem letzten Kind verhindert (zusammen 128px Abstand
+   zum Seitenende). Dieser Abstand zwischen dem letzten Seitenabschnitt und dem Seitenende ist laut
+   Befund 22 ein Seiten-Belang, gehörte aber nicht auf zwei Dateien verteilt -- jetzt an dieser
+   einen Stelle, der Betrag bleibt unverändert (Zero-Pixel-Diff, siehe 192-31-SUMMARY.md). */
 .contentArea {
-  padding: var(--space-8) 0;
+  padding: var(--space-8) 0 calc(var(--space-8) * 2);
 }
 
 @media (max-width: 767px) {

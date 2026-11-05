@@ -358,11 +358,10 @@ describe('anime detail integration without invented data', () => {
     expect(infoCard?.props.variant).toBe('publicHeroInfo')
   })
 
-  // Runde 5, unabhängiger Review Runde 2 (Befund-Review2-R2): page.episodes.module.css war trotz
-  // seines Namens die alleinige lokale Stil-Quelle des Episoden-Bereich-Komposits (volle
-  // Innenabstand-Polsterung der Rahmenkarte) statt reiner Seiten-Anordnung -- dieser Innenabstand
-  // kommt jetzt aus Cards wiederverwendbarem 'section'-Zweck (192-28) statt aus einer lokalen
-  // Klasse in der Seiten-CSS.
+  // page.episodes.module.css war trotz seines Namens die alleinige lokale Stil-Quelle des
+  // Episoden-Bereich-Komposits (volle Innenabstand-Polsterung der Rahmenkarte) statt reiner
+  // Seiten-Anordnung -- dieser Innenabstand kommt jetzt aus Cards wiederverwendbarem
+  // 'section'-Zweck statt aus einer lokalen Klasse in der Seiten-CSS.
   it('der Episoden-Bereich bezieht seine Innenabstand-Polsterung aus Cards section-Zweck statt aus lokalem CSS', async () => {
     const content = await loadContent()
     const episodesCard = elements(content).find((item) => item.type === Card && String(item.props.className ?? '').includes('episodesSection'))
