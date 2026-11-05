@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
-import { Download, ExternalLink, Save } from 'lucide-react'
+import { Download, ExternalLink, Save, Users } from 'lucide-react'
 
 import { Button } from './Button'
 
@@ -71,6 +71,22 @@ export const GlasChip: Story = {
     docs: {
       description: {
         story: 'Durchscheinender Umschalt-Chip für dunkle Glasflächen (z. B. ein Fansub-Gruppen-Filter über der Episodenliste) -- reagiert wie jeder Button auf aria-pressed, hier mit einer eigenen, hellen Formel statt der Standard-Aktiv-Farbe.',
+      },
+    },
+  },
+}
+
+export const GlasChipMitIcon: Story = {
+  name: 'Glas-Umschalt-Chip mit Icon',
+  render: () => (
+    <div style={{ display: 'flex', gap: 12, padding: 20, background: 'var(--surface-stage)' }}>
+      <Button variant="chipGlass" size="sm" leftIcon={<Users size={14} aria-hidden="true" />}>LazySubs</Button>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Zeigt den engeren Icon-/Beschriftungsabstand, den chipGlass gegenüber der 10px-Standardlücke braucht, wenn ein kleines Logo/Icon über leftIcon statt als manuelles Kind-Element übergeben wird.',
       },
     },
   },

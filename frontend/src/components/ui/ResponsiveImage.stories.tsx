@@ -53,3 +53,21 @@ export const NichtKonfigurierterPfad: Story = {
     },
   },
 }
+
+export const RundesVorschauBild: Story = {
+  name: 'Rundes Vorschau-Miniaturbild',
+  args: {
+    src: '/covers/placeholder.jpg',
+    width: 66,
+    height: 92,
+    roundedThumbnail: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Die roundedThumbnail-Prop rundet und beschneidet das Bild wie ein kleines, randloses Vorschau-/Miniaturbild (z. B. das Cover-Bild einer schwebenden Randnavigations-Vorschaukarte) -- ein Aufrufer schreibt dafür keine eigene border-radius-Regel mehr.',
+      },
+    },
+  },
+}

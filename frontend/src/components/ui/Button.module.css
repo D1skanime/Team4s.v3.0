@@ -258,6 +258,14 @@
   --button-border: var(--button-chip-glass-border);
   --button-text: var(--card-glass-text);
   --button-shadow: none;
+  /* chipGlass braucht einen engeren Icon-/Beschriftungsabstand als die 10px-Standardlücke
+     (--button-gap): es ist ein kleines Inline-Logo neben einer kurzen Chip-Beschriftung, keine
+     gepolsterte primäre Aktion. Messung gegen den bisher lokal in FansubGroupPicker.module.css
+     gesetzten Chip-Abstand (`gap: var(--space-1)`, 4px) ergab exakte Übereinstimmung -- der Wert
+     wandert hiermit vom Aufrufer in den Grundbaustein selbst, sodass ein künftiger Aufrufer das
+     Logo über leftIcon statt als manuelles Kind-Element übergeben kann, ohne den Abstand zu
+     verlieren. */
+  --button-gap: var(--space-1);
   border-radius: var(--radius-md);
   font-size: var(--button-font-size);
   font-weight: 400;
