@@ -75,19 +75,25 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
   )
 
   return (
-    // Innenabstand kommt jetzt ausschliesslich über Cards generischen padding-Override-Hook
-    // (Befund B, Runde 3) -- der zuvor hier dokumentierte Zustaendigkeits-Konflikt zwischen
+    // Innenabstand kommt ausschliesslich über Cards generischen padding-Override-Hook --
     // Cards eigenen Varianten-Regeln und einem lokalen `padding:` auf .row entfaellt dadurch, da
     // .row selbst kein `padding:` mehr deklariert. Die haltepunktabhaengige Zeile-zu-Spalte-
-    // Umkehr kommt jetzt vollstaendig über Clusters collapseBelow/gapCollapsed-Faehigkeit
+    // Umkehr kommt vollstaendig über Clusters collapseBelow/gapCollapsed-Faehigkeit
     // (identisches Muster wie AnimeDetailHero.tsxs .titleRow) statt eines eigenen
     // display:flex/flex-direction in .row.
     <Card variant="glassStrong" padding="content">
+      {/* align="stretch" reproduziert die bisherige, implizite Standard-Breitenfuellung im
+          gestapelten (Mobil-)Zustand (Flex ohne align-items setzt den Browser-Standard
+          "stretch", Clusters eigener Standard waere dagegen "center") -- im Zeilen-Zustand
+          (ab 768px) wirkt dieselbe Prop auf die Hoehe statt die Breite, dort uebernimmt
+          bereits justify="between" die Verteilung, die Button-Breite kommt aus dessen eigener
+          fullWidthBelowMd-Prop. */}
       <Cluster
         collapseBelow="md"
         gap="contentPair"
         gapCollapsed="independentBlocks"
         justify="between"
+        align="stretch"
         className={styles.row}
       >
         {groups.length > 0 ? (
@@ -114,21 +120,21 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
             {textLines}
           </Cluster>
         ) : (
-          // D-20/Pitfall 1: bei null Gruppen wird GAR KEIN umschließender Cluster gerendert --
-          // sonst würde dessen `gap` weiterhin reserviert und genau die "Lücke ohne Avatar"-
-          // Regression aus Befund 20 nachbilden, obwohl die erste Spalte leer ist.
+          // D-20: bei null Gruppen wird GAR KEIN umschließender Cluster gerendert -- sonst
+          // würde dessen `gap` weiterhin reserviert und eine "Lücke ohne Avatar" neben dem
+          // Text-Stack entstehen, obwohl die erste Spalte leer ist.
           <div className={styles.body}>{textLines}</div>
         )}
 
-        <div className={styles.action}>
-          <Button
-            href={`/anime/${animeID}/group/${linkGroupID}/releases/${version.release_version_id}`}
-            variant="secondary"
-            size="md"
-          >
-            Zum Release →
-          </Button>
-        </div>
+        <Button
+          href={`/anime/${animeID}/group/${linkGroupID}/releases/${version.release_version_id}`}
+          variant="secondary"
+          size="md"
+          fullWidthBelowMd
+          className={styles.action}
+        >
+          Zum Release →
+        </Button>
       </Cluster>
     </Card>
   )

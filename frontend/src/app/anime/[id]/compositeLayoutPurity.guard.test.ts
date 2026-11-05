@@ -16,29 +16,24 @@ import { describe, expect, it } from 'vitest'
  * nie diese Baustein-Dateien selbst -- dieser Wächter schließt genau diese Lücke, nur für die
  * neun hier gelisteten Dateien (kein repo-weiter Sweep).
  *
- * Diese Prüfung kannte in früheren Phasen-Runden eine selektor-genaue Ausnahmeliste für Fälle, die
- * ein Grundbaustein angeblich nicht abbilden konnte. Ein unabhängiger Review stellte fest, dass
+ * Diese Prüfung kannte früher eine selektor-genaue Ausnahmeliste für Fälle, die ein
+ * Grundbaustein angeblich nicht abbilden konnte. Eine genauere Prüfung stellte fest, dass
  * jede dieser Ausnahmen tatsächlich eine fehlende, nachrüstbare Grundbaustein-Fähigkeit war --
  * seitdem wurden alle betroffenen Fälle auf echte `Stack`/`Cluster`/`Card`-Erweiterungen
  * zurückgeführt (Rhythmus-Array-Modus, Haltepunkt-Umkehr, Schwebe-Overlay-Modus, Zweck-benannte
  * Polsterungs-Rezepte). Die Ausnahmeliste selbst ist damit ersatzlos entfallen: ein Treffer eines
  * verbotenen Musters ist IMMER ein Verstoß, ohne jede Rückfallmöglichkeit auf eine dokumentierte
- * Einzelfall-Duldung. Ein zweiter unabhängiger Review (Runde 2) stellte zusätzlich fest, dass der
- * Wächter weder genug Dateien (nur vier statt aller neun real existierenden Komposit-Dateien der
- * fünf Pilot-Bausteine) noch genug Eigenschaften (Rand/Rundung/Fläche/Schatten/feste Größe fehlten
- * komplett, `display:grid` wurde von der ursprünglichen `display:flex`-Prüfung nicht erfasst)
- * abdeckte -- diese Datei ist das Ergebnis der daraufhin durchgeführten Erweiterung auf beiden
- * Achsen (Befund-Review2-R2).
+ * Einzelfall-Duldung. Der Wächter deckt alle neun real existierenden Komposit-Dateien der
+ * fünf Pilot-Bausteine ab (nicht nur eine Teilmenge) und alle real vorkommenden Eigenschaften
+ * (Rand/Rundung/Fläche/Schatten/feste Größe neben `display:flex`/`display:grid`).
  *
  * WICHTIG: `Stack.module.css`/`Cluster.module.css`/`SplitLayout.module.css`/`Divider.module.css`
  * werden hier bewusst NICHT geprüft -- das SIND die Grundbausteine, ihr eigenes Layout-CSS ist
  * genau ihr Daseinszweck, kein Verstoß. Ebenfalls bewusst NICHT geprüft (und NICHT hinzugefügt):
  * `StatusBadge.module.css`/`AnimeRelations.module.css` (werden zusätzlich außerhalb der fünf
- * Pilot-Bausteine im Admin-/Profil-Bereich verwendet, eine Migration würde die seit Befund 23
- * geltende Grenze "andere Seiten nicht in diesem Auftrag umbauen" verletzen) sowie
- * `AnimeBackdropRotator.module.css` (rendert den Banner-Hintergrund, ist kein Teil eines der fünf
- * benannten Pilot-Komposite) -- siehe `192-CONTEXT.md`s Addendum 2026-11-05b für die vollständige
- * Begründung je Datei.
+ * Pilot-Bausteine im Admin-/Profil-Bereich verwendet, eine Migration würde die Grenze "andere
+ * Seiten nicht in diesem Auftrag umbauen" verletzen) sowie `AnimeBackdropRotator.module.css`
+ * (rendert den Banner-Hintergrund, ist kein Teil eines der fünf benannten Pilot-Komposite).
  *
  * Erkennung erfolgt zeilenweise über einen einfachen Selektor-Stack (keine vollständige
  * CSS-Parser-Abhängigkeit): jede Zeile, die eine Selektor-/@media-Kopfzeile öffnet (endet auf
@@ -143,15 +138,17 @@ function isBoxShadowResetValue(value: string): boolean {
   return /^none$/i.test(value)
 }
 
-/** `width`/`height` gelten als layoutneutral, wenn der Wert eine der browserüblichen
- *  Standardgrößen ist (volle/automatische Größe, nullwertig, intrinsische Inhaltsgröße) ODER eine
- *  REINE `var(...)`-Lesereferenz auf ein bereits existierendes Grundbaustein-Token ist (ohne
- *  `calc()`, ohne Fallback-Wert, ohne Kombination mit einem Literal) -- nur ein fest codiertes
- *  Pixel-/rem-/em-Literal oder eine komplexere Funktion (z. B. `min(100%, 260px)`) ist der
- *  eigentliche, von Befund-Review2-R2 gemeinte Verstoß: die konkrete Größen-ENTSCHEIDUNG gehört in
- *  den Grundbaustein (z. B. `Card`s `widthPurpose`-Prop), nicht in die Komposit-Datei. */
+/** `width`/`height` gelten als layoutneutral, wenn der Wert ein echter Rücksetzer ist (`auto`,
+ *  nullwertig, intrinsische Inhaltsgröße) ODER eine REINE `var(...)`-Lesereferenz auf ein bereits
+ *  existierendes Grundbaustein-Token ist (ohne `calc()`, ohne Fallback-Wert, ohne Kombination mit
+ *  einem Literal). `100%` gilt bewusst NICHT als Rücksetzer (anders als `auto`): eine Komposit-
+ *  Datei, die eine volle Breite/Höhe erzwingt, trifft dieselbe Größen-ENTSCHEIDUNG wie ein festes
+ *  Pixel-Literal, nur relativ statt absolut -- beides gehört in den Grundbaustein (z. B. Clusters
+ *  `align="stretch"` oder Cards `widthPurpose`-Prop), nicht in die Komposit-Datei. Jedes fest
+ *  codierte Literal oder eine komplexere Funktion (z. B. `min(100%, 260px)`) ist der eigentliche
+ *  Verstoß. */
 function isSizeResetValue(value: string): boolean {
-  if (['100%', 'auto', '0', '0px', 'min-content', 'max-content'].includes(value)) return true
+  if (['auto', '0', '0px', 'min-content', 'max-content'].includes(value)) return true
   return /^var\(--[\w-]+\)$/.test(value)
 }
 
@@ -163,9 +160,9 @@ interface ForbiddenPattern {
 }
 
 const FORBIDDEN_PATTERNS: ForbiddenPattern[] = [
-  // Ursprünglich nur "display:flex" (Runde 3/4) -- Befund-Review2-R2 stellte fest, dass
-  // `display:grid` (z. B. WatchlistAddButton.module.css's vormaliges `.wrapper`) unentdeckt
-  // durchrutschte, deshalb jetzt beide Werte unter einer gemeinsamen Kategorie.
+  // Beide Display-Werte teilen sich eine gemeinsame Kategorie, da sowohl "display:flex" als
+  // auch "display:grid" (z. B. ein eigenes Grid-Layout) denselben Verstoß darstellen: ein
+  // Komposit, das sein eigenes Kind-Layout bestimmt, statt einen Grundbaustein zu nutzen.
   { category: 'display', test: (t) => /display\s*:\s*(?:flex|grid)\b/.test(t) },
   { category: 'flex-direction', test: (t) => /flex-direction\s*:/.test(t) },
   { category: 'grid-template', test: (t) => /grid-template/.test(t) },
@@ -369,7 +366,7 @@ describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren ke
     expect(categories).toContain('width-height')
   })
 
-  it('erkennt reine Null-/Transparenz-Rücksetzer (padding:0/margin:0/border:none/background:transparent/box-shadow:none/width:100%, z. B. ein <ul>-Reset oder ein bewusst randloser Zustand) NICHT als Verstoß', () => {
+  it('erkennt reine Null-/Transparenz-Rücksetzer (padding:0/margin:0/border:none/background:transparent/box-shadow:none/height:auto, z. B. ein <ul>-Reset oder ein bewusst randloser Zustand) NICHT als Verstoß', () => {
     const sample = [
       '.listReset {',
       '  padding: 0;',
@@ -399,7 +396,6 @@ describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren ke
       '  box-shadow: none;',
       '}',
       '.sizeReset {',
-      '  width: 100%;',
       '  height: auto;',
       '  min-width: 0;',
       '  max-width: min(100%, 260px);',
@@ -407,6 +403,12 @@ describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren ke
     ].join('\n')
     const { violations } = scanContent(sample, 'SelfTest')
     expect(violations).toEqual([])
+  })
+
+  it('erkennt width: 100% jetzt als echten width-height-Verstoß (keine Ausnahme mehr für relative Vollbreite)', () => {
+    const sample = ['.fullWidth {', '  width: 100%;', '}'].join('\n')
+    const { violations } = scanContent(sample, 'SelfTest')
+    expect(violations.some((v) => v.category === 'width-height')).toBe(true)
   })
 
   it('erkennt eine var(...)-Lesereferenz auf eine fremde gap-Variable NICHT als eigene gap:-Deklaration', () => {
@@ -427,11 +429,10 @@ describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren ke
     expect(violatingViolations.some((v) => v.category === 'width-height')).toBe(true)
   })
 
-  // RED (Befund-Review2-R2, Task 2): GUARDED_COMPOSITE_FILES listet aktuell nur die ursprünglichen
-  // vier Pilot-Dateien -- dieser Testfall muss fehlschlagen, bis die fünf neu identifizierten
-  // Komposit-Dateien (FansubVersionBrowser/FansubGroupContext/FansubGroupPicker/page.episodes/
-  // WatchlistAddButton) ergänzt sind (Dateiabdeckung, Addendum 2026-11-05b).
-  it('bewacht alle neun real existierenden Komposit-Dateien der fünf Pilot-Bausteine, nicht nur die ursprünglichen vier', () => {
+  // Erzwingt dauerhaft die vollständige Dateiabdeckung: ohne diesen Test könnte
+  // GUARDED_COMPOSITE_FILES unbemerkt auf eine Teilmenge der neun real existierenden
+  // Komposit-Dateien zurückfallen, ohne dass ein anderer Test das bemerken würde.
+  it('bewacht alle neun real existierenden Komposit-Dateien der fünf Pilot-Bausteine, nicht nur eine Teilmenge', () => {
     const guardedKeys = new Set(GUARDED_COMPOSITE_FILES.map((f) => f.key))
     expect(guardedKeys).toEqual(
       new Set([

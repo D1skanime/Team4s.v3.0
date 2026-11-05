@@ -344,6 +344,19 @@
   }
 }
 
+/* Exakte Umkehrung von .buttonResponsiveBlock: auto-Breite ist hier der Standard, volle Breite
+   gilt NUR unterhalb des Clusters collapseBelow="md"-Haltepunkts (ebenfalls 767px/768px), damit
+   beide Mechanismen garantiert synchron kippen. */
+.buttonFullWidthBelowMd {
+  width: auto;
+}
+
+@media (max-width: 767px) {
+  .buttonFullWidthBelowMd {
+    width: 100%;
+  }
+}
+
 .buttonDisabled,
 .button:disabled,
 .button[aria-disabled="true"] {

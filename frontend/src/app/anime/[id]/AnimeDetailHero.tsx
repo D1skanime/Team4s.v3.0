@@ -121,7 +121,6 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
   infoCardChildren.push(
     <AnimeInfoBanner
       key="banner"
-      className={styles.infoBanner}
       divider={
         <>
           {/* Kräftigere Desktop-Stufe (tone="onMediaStrong") vs. dezentere Mobil-Stufe

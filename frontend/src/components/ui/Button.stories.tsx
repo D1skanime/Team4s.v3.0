@@ -241,6 +241,25 @@ const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
 }
 const SIZES = ['sm', 'md', 'lg'] as const
 
+export const VolleBreiteUnterhalbMd: Story = {
+  name: 'Volle Breite unterhalb md (fullWidthBelowMd)',
+  args: { fullWidthBelowMd: true, children: 'Zum Release' },
+  decorators: [
+    (Story) => (
+      <div style={{ resize: 'horizontal', overflow: 'auto', border: '1px dashed #999', padding: 8, width: '100%', maxWidth: 900 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story: 'Nimmt die volle Zeilenbreite ein, solange der umgebende Container unter 48rem/768px schmaler ist -- ziehen Sie den gestrichelten Rahmen rechts unten enger, um den Wechsel live zu sehen. Ab 768px fällt der Button auf seine natürliche Inhaltsbreite zurück (exakte Umkehrung von responsiveFullWidth).',
+      },
+    },
+  },
+}
+
 export const GroessenUndVarianten: Story = {
   name: 'Größen und Varianten',
   render: () => (

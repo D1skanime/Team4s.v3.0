@@ -7,13 +7,11 @@
   list-style: none;
 }
 
-.card {
-  width: 100%;
-}
-
-.header {
-  width: 100%;
-}
+/* .card/.header deklarieren keine eigene width mehr: Card ist ein display:grid-Block-Element
+   (width:auto füllt die verfügbare Breite seines Elternelements bereits von selbst), und
+   DisclosureTrigger ist laut eigener Doku bereits "Vollbreite" (width:100% auf seinem
+   .disclosureTrigger-Wurzelelement) -- beide lokalen width:100%-Deklarationen waren redundante
+   Wiederholungen desselben, vom jeweiligen Grundbaustein bereits garantierten Werts. */
 
 /* .headerTitleRow entfaellt: die Kopfzeilen-Anordnung (Titel-Block links, Versionszaehler
    rechtsbuendig) kommt jetzt vollstaendig ueber Cluster gap="labelWithTrailingMeta" (siehe

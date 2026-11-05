@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react'
 
+import { ResponsiveImage } from '@/components/ui'
 import { getAnimeBackdrops } from '@/lib/api'
 import { resolveInfoBannerURL, resolveInfoLogoURL } from '@/lib/animeBackdrops'
 import type { AnimeBackdropManifest } from '@/types/anime'
@@ -160,15 +161,13 @@ export function AnimeTitleLogo({ title, className }: { title: string; className?
 }
 
 export function AnimeInfoBanner({
-  className,
   divider,
 }: {
-  className?: string
   /** Trennlinie VOR dem Banner-Bild, als fertiges Element statt nur einer ClassName --
-   *  AnimeInfoBanner kennt seit Befund B (192-13) keine eigene `<hr>`-Trennlinie mehr, sondern
-   *  platziert nur noch das vom Aufrufer übergebene Element (üblicherweise der `Divider`-
-   *  Grundbaustein) an der richtigen Stelle. So bleibt Farbe/Abstand der Linie vollständig Sache
-   *  des Grundbausteins, dieser Baustein kennt dafür kein eigenes CSS mehr. */
+   *  AnimeInfoBanner kennt keine eigene `<hr>`-Trennlinie, sondern platziert nur noch das vom
+   *  Aufrufer übergebene Element (üblicherweise der `Divider`-Grundbaustein) an der richtigen
+   *  Stelle. So bleibt Farbe/Abstand der Linie vollständig Sache des Grundbausteins, dieser
+   *  Baustein kennt dafür kein eigenes CSS mehr. */
   divider?: ReactNode
 }) {
   const manifest = useAnimeMediaManifest()
@@ -179,7 +178,9 @@ export function AnimeInfoBanner({
   return (
     <>
       {divider}
-      <Image src={bannerURL} alt="" className={className} width={600} height={180} unoptimized />
+      {/* fillWidth uebernimmt die volle Breiten-/Hoehenanpassung des Banners -- der Aufrufer
+          braucht dafuer kein eigenes CSS mehr zu deklarieren. */}
+      <ResponsiveImage src={bannerURL} alt="" fillWidth width={600} height={180} unoptimized />
     </>
   )
 }

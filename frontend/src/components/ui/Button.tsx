@@ -32,6 +32,11 @@ type CommonButtonProps = {
   loading?: boolean
   fullWidth?: boolean
   responsiveFullWidth?: boolean
+  /** Exakte Umkehrung von `responsiveFullWidth`s Haltepunkt-Richtung: hier ist `auto`-Breite der
+   *  Standard, volle Breite gilt NUR unterhalb von 768px -- für Aktions-Buttons, die direkter
+   *  Bestandteil eines `Cluster collapseBelow="md"` sind und im gestapelten Zustand dessen volle
+   *  Zeilenbreite einnehmen sollen, ab dort aber auf ihre natürliche Inhaltsbreite zurückfallen. */
+  fullWidthBelowMd?: boolean
   leftIcon?: ReactNode
   rightIcon?: ReactNode
   className?: string
@@ -62,6 +67,7 @@ export function Button(props: ButtonProps) {
     loading = false,
     fullWidth = false,
     responsiveFullWidth = false,
+    fullWidthBelowMd = false,
     disabled = false,
     leftIcon,
     rightIcon,
@@ -95,6 +101,7 @@ export function Button(props: ButtonProps) {
     tone === 'line' && styles.buttonToneLine,
     fullWidth && styles.buttonBlock,
     responsiveFullWidth && styles.buttonResponsiveBlock,
+    fullWidthBelowMd && styles.buttonFullWidthBelowMd,
     disabled || loading ? styles.buttonDisabled : '',
     className,
   )

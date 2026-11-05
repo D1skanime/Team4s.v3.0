@@ -58,10 +58,8 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
         tintLightness={tint?.lightness}
         tintSurfaceAlpha={tint?.surfaceAlpha}
         tintBorderAlpha={tint?.borderAlpha}
-        className={styles.card}
       >
         <DisclosureTrigger
-          className={styles.header}
           onClick={onToggle}
           aria-controls={panelId}
           open={expanded}

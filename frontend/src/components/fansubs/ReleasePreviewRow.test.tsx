@@ -10,10 +10,10 @@ import type { PublicEpisodeVersion } from '@/types/episodeVersion'
 import { ReleasePreviewRow } from './ReleasePreviewRow'
 
 /**
- * Baut eine `PublicEpisodeVersion`-Minimalfixtur passend zu den drei in `192-CONTEXT.md`/
- * `192-UI-SPEC.md` mandatierten `ReleasePreviewRow.stories.tsx`-Varianten ("Mit allen Extras",
- * "Koop", "Ohne Logo") nach -- lokal nachgebaut statt aus der Story-Datei importiert, da
- * `ReleasePreviewRow.stories.tsx`s `buildVersion()` nicht exportiert wird.
+ * Baut eine `PublicEpisodeVersion`-Minimalfixtur passend zu den drei mandatierten
+ * `ReleasePreviewRow.stories.tsx`-Varianten ("Mit allen Extras", "Koop", "Ohne Logo") nach --
+ * lokal nachgebaut statt aus der Story-Datei importiert, da `ReleasePreviewRow.stories.tsx`s
+ * `buildVersion()` nicht exportiert wird.
  */
 function buildVersion(overrides: Partial<PublicEpisodeVersion> = {}): PublicEpisodeVersion {
   return {
@@ -39,7 +39,7 @@ function buildVersion(overrides: Partial<PublicEpisodeVersion> = {}): PublicEpis
 }
 
 /*
- * Befund 20: diese Tests pruefen die Spaltenausrichtung zwischen Gruppenname/Release-Name und
+ * Diese Tests pruefen die Spaltenausrichtung zwischen Gruppenname/Release-Name und
  * den drei Datenzeilen (Technik/Extras/Datum) rein strukturell -- jsdom berechnet kein echtes
  * Pixel-Layout (`getBoundingClientRect()` liefert hier immer Nullen), daher ist "teilt denselben
  * Eltern-Knoten" (identisches `parentElement`) der korrekte, tatsaechlich ausfuehrbare Ersatz fuer
@@ -47,7 +47,7 @@ function buildVersion(overrides: Partial<PublicEpisodeVersion> = {}): PublicEpis
  * Klassennamen geprueft (in manchen Testkonfigurationen opake Hashes), sondern ausschliesslich
  * auf DOM-Verschachtelung und Elementanzahl.
  */
-describe('ReleasePreviewRow -- Befund 20 Spaltenausrichtung', () => {
+describe('ReleasePreviewRow -- Spaltenausrichtung', () => {
   it('"Mit allen Extras": Gruppenname und alle drei Datenzeilen teilen denselben Stack-Elternknoten', () => {
     const version = buildVersion({ has_images: true, has_notes: true, has_karaoke: true })
     render(<ReleasePreviewRow version={version} animeID={1} />)
@@ -130,11 +130,11 @@ describe('ReleasePreviewRow -- Befund 20 Spaltenausrichtung', () => {
 })
 
 /*
- * Runde 5, Befund-Review2-R2 (192-32): der dezente Rand "auf dunkler Flaeche" des Gruppenlogos
- * kommt jetzt aus Avatars eigenem `bordered`-Prop (Plan 192-29) statt aus einer lokalen
- * `.logo { border: ... }`-Deklaration in ReleasePreviewRow.module.css.
+ * Der dezente Rand "auf dunkler Flaeche" des Gruppenlogos kommt aus Avatars eigenem
+ * `bordered`-Prop statt aus einer lokalen `.logo { border: ... }`-Deklaration in
+ * ReleasePreviewRow.module.css.
  */
-describe('ReleasePreviewRow -- Runde 5: Avatar-Rand ueber bordered-Prop statt lokaler CSS', () => {
+describe('ReleasePreviewRow -- Avatar-Rand ueber bordered-Prop statt lokaler CSS', () => {
   it('rendert jedes Gruppenlogo-Avatar mit der avatarBordered-Modifikatorklasse', () => {
     const version = buildVersion({
       fansub_groups: [

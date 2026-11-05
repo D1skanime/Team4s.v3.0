@@ -73,18 +73,9 @@
   align-items: center;
 }
 
-.infoBanner {
-  /* display:block hebt den browserüblichen "Baseline-Nachlauf" unterhalb eines inline
-     gerenderten Bildes auf (ein paar Pixel Reserve für den Schriftunterlängen-Bereich der
-     umgebenden Zeile) -- seit dem Stack-Rhythmus-Array-Umbau liegt das Bild innerhalb eines
-     schlanken, selbst NICHT-Flex-Wrapper-Elements (siehe AnimeDetailHero.tsx), wodurch dieser
-     sonst durch den äußeren Flex-Container automatisch aufgehobene Leerraum sonst sichtbar
-     würde (per Playwright-Messung bestätigt: 7px zusätzliche Wrapper-Höhe ohne diese Zeile). */
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
+/* .infoBanner entfaellt ersatzlos: die volle Breiten-/Hoehenanpassung des Banner-Bilds kommt
+   jetzt aus ResponsiveImages fillWidth-Prop (siehe AnimeMediaProvider.tsxs AnimeInfoBanner)
+   statt aus einer lokalen CSS-Klasse, die von aussen an das Bild durchgereicht wurde. */
 
 /* margin-top/padding-top/border-top (vormals die Trennlinie VOR dem "Verwandte Anime"-Abschnitt,
    mit responsivem margin-top) leben jetzt als eigener <Divider>-Vorfahre plus zwei Einträge im

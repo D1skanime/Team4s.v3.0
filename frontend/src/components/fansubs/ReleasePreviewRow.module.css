@@ -11,17 +11,8 @@
  * identisches Muster wie AnimeDetailHero.tsxs .titleRow.
  */
 
-/* Cluster setzt im gestapelten Mobil-Zustand bewusst KEINE eigene Haltepunkt-abhaengige
-   Querachsen-Ausrichtung (align-items bleibt fuer beide Zustaende gleich) -- ohne diese eigene
-   Breiten-Vorgabe wuerde .body im gestapelten Zustand auf seine Inhaltsbreite schrumpfen statt
-   (wie vor der Umstellung durch den impliziten Flex-Stretch-Standard) die volle Zeilenbreite zu
-   fuellen. `width` gehoert nicht zu den vom Baustein-Reinheits-Guard verbotenen Eigenschaften
-   (nur display/flex-direction/grid-template/gap/padding/margin), bleibt also eine zulaessige,
-   eng begruendete Kind-Breiten-Korrektur statt einer Cluster-Erweiterung fuer einen bislang
-   einmaligen Anwendungsfall. */
 .body {
   min-width: 0;
-  width: 100%;
 }
 
 /* Avatar liefert Fläche/Größe bereits selbst -- hier bleibt nur die Garantie, dass die
@@ -31,9 +22,9 @@
   flex-shrink: 0;
 }
 
-/* .logo entfaellt ersatzlos: der dezente Rand "auf dunkler Flaeche" kommt jetzt aus Avatars
-   eigenem bordered-Prop (Plan 192-29/192-32) statt einer lokalen border-Deklaration -- Avatar
-   liefert Flaeche/Initialen-Fallback/Rand jetzt vollstaendig selbst. */
+/* .logo entfaellt ersatzlos: der dezente Rand "auf dunkler Flaeche" kommt aus Avatars eigenem
+   bordered-Prop statt einer lokalen border-Deklaration -- Avatar liefert Flaeche/Initialen-
+   Fallback/Rand vollstaendig selbst. */
 
 .groupName {
   font-weight: 600;
@@ -57,44 +48,27 @@
 }
 
 /*
- * Rule-1-Fund (Befund B, Runde 3): `display:flex;flex-wrap:wrap;gap:var(--space-4);` war hier
- * wirkungslose Alt-CSS -- `extras.join('   ')` liefert bereits EINEN zusammengefuegten Textknoten
- * statt mehrerer Kind-Elemente, ein Flex-Container ohne mehrere Kinder hat nichts zum Umbrechen.
+ * `display:flex;flex-wrap:wrap;gap:var(--space-4);` war hier wirkungslose Alt-CSS --
+ * `extras.join('   ')` liefert bereits EINEN zusammengefuegten Textknoten statt mehrerer
+ * Kind-Elemente, ein Flex-Container ohne mehrere Kinder hat nichts zum Umbrechen.
  * .extrasLine faellt dadurch auf dieselbe `display:block`-Regel wie .techLine/.dateLine oben
  * zurueck -- keine sichtbare Aenderung, nur toter Code entfernt.
  */
 
 /*
- * .action traegt selbst KEIN eigenes Layout-CSS mehr -- `display:flex;justify-content:flex-end`
- * war hier wirkungslos: .action enthaelt immer nur EIN Kind (den Button), dessen eigene
- * `width`-Regel unten die Positionierung bereits vollstaendig bestimmt, unabhaengig vom
- * `display`-Wert des Elternelements. Die tatsaechliche Endausrichtung kommt jetzt aus Clusters
- * `justify="between"`-Prop (Desktop) bzw. aus der eigenen `width: 100%`-Breiten-Korrektur unten
- * (Mobil, aus demselben Grund wie .bodys Breiten-Korrektur oben: Cluster zentriert gestapelte
- * Kinder standardmaessig auf ihre Inhaltsbreite statt sie zu strecken).
+ * .action traegt seit dem Wechsel auf Buttons fullWidthBelowMd-Prop nur noch die Flex-ITEM-
+ * Eigenschaft `flex-shrink:0` im Zeilen-Zustand (ab 768px) -- verhindert, dass die Aktionsspalte
+ * neben der breiteren Textspalte komprimiert wird. Die eigentliche Breitenentscheidung liegt
+ * vollstaendig in Buttons eigener fullWidthBelowMd-Prop (gestapelt: volle Breite) bzw. dessen
+ * natuerlicher Inhaltsbreite (Zeilen-Zustand), nicht mehr in dieser Komposit-Datei.
  */
-.action,
-.action > a,
-.action > button {
-  width: 100%;
-}
-
-/* D-20: Desktop/Breitbild -- linke Hauptspalte (Gruppe/Technik/Extras/Datum) + rechte Aktionsspalte. */
 @media (min-width: 768px) {
   .body {
     flex: 1;
     min-width: 0;
   }
 
-  /* flex-shrink ist eine Flex-ITEM-Eigenschaft (wirkt auf .action als Kind des Cluster-
-     Grundbausteins, nicht als eigener Container) -- kein eigenstaendiges Layout-CSS. */
   .action {
     flex-shrink: 0;
-    width: auto;
-  }
-
-  .action > a,
-  .action > button {
-    width: auto;
   }
 }
