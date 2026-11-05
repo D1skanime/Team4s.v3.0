@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -72,5 +75,28 @@ describe('FansubGroupContext', () => {
     render(<FansubGroupContext activeGroup={activeGroup} animeSlug="buddy-complex" />)
     const link = screen.getByRole('link', { name: 'Zum Projekt' })
     expect(link.getAttribute('href')).toBe('/fansubs/new-subs/fansubprojekt/buddy-complex')
+  })
+})
+
+/*
+ * Runde 5, Befund-Review2-R2 (192-33): Kartenpolsterung/interner Rhythmus/Aktionsreihe kommen
+ * jetzt aus Card padding="contextCard" (Plan 192-28), Stack gap="relatedContent" und
+ * Cluster gap="secondaryActionRow" statt lokaler padding-/margin-/display:flex-Deklarationen.
+ */
+describe('FansubGroupContext -- Runde 5: Card-Zweckstufe, Stack-Rhythmus, Cluster-navRow', () => {
+  it('traegt die Card-Zweckstufe padding="contextCard" statt eines lokalen Polsterungswerts', () => {
+    const activeGroup: FansubGroupContextActiveGroup = { id: 1, slug: 'new-subs', name: 'New-Subs' }
+    render(<FansubGroupContext activeGroup={activeGroup} animeSlug="buddy-complex" />)
+    const card = screen.getByTestId('fansub-group-context')
+    expect(card.style.getPropertyValue('--card-padding-override')).toBe('var(--card-padding-context-card)')
+  })
+
+  it('FansubGroupContext.module.css deklariert kein eigenes padding/display:flex/gap mehr', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubGroupContext.module.css'), 'utf8')
+    expect(css).not.toMatch(/\bpadding\s*:/)
+    expect(css).not.toMatch(/display\s*:\s*flex/)
+    expect(css).not.toMatch(/\bgap\s*:/)
+    expect(css).not.toMatch(/\.navRow\s*\{/)
+    expect(css).not.toMatch(/\.name\s*\{/)
   })
 })
