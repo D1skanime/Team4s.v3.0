@@ -37,6 +37,18 @@ describe('Card', () => {
     expect(section.style.getPropertyValue('--card-padding-override')).toBe('0')
   })
 
+  it('bleedBelowMd ist ohne Angabe byte-identisch zum bisherigen Render (keine neue Klasse/kein neuer Inline-Stil)', () => {
+    const { container } = render(<Card variant="nested">Inhalt</Card>)
+    const section = container.querySelector('section') as HTMLElement
+    expect(section.className).not.toMatch(/cardBleedBelowMd/)
+  })
+
+  it('bleedBelowMd=true setzt die Rand-bis-Rand-Modifikatorklasse, ohne eine bestehende Variantenklasse zu ersetzen', () => {
+    const { container } = render(<Card variant="nested" bleedBelowMd>Inhalt</Card>)
+    const section = container.querySelector('section') as HTMLElement
+    expect(section.className).toMatch(/cardNested/)
+    expect(section.className).toMatch(/cardBleedBelowMd/)
+  })
 })
 
 describe('Card.module.css', () => {
@@ -55,5 +67,17 @@ describe('Card.module.css', () => {
     expect(mobileRule).toMatch(/--heading-color:\s*var\(--scrim-text\);/)
     expect(mobileRule).toMatch(/--text-body-color:\s*var\(--scrim-icon\);/)
     expect(mobileRule).toMatch(/--text-eyebrow-color:\s*var\(--scrim-icon\);/)
+  })
+
+  it('bleedBelowMd kollabiert unterhalb 767px nur die horizontale Polsterung auf 0 und zentriert die Grid-Kinder, ohne die vertikale Polsterung zu berühren', () => {
+    const mobileBlockStart = css.indexOf('@media (max-width: 767px)')
+    expect(mobileBlockStart).toBeGreaterThan(-1)
+    const bleedRule = css.slice(mobileBlockStart).match(/\.cardBleedBelowMd\s*\{([^}]+)\}/)?.[1]
+    expect(bleedRule, '.cardBleedBelowMd must exist inside the mobile media query').toBeTruthy()
+    expect(bleedRule).toMatch(/padding-left:\s*0;/)
+    expect(bleedRule).toMatch(/padding-right:\s*0;/)
+    expect(bleedRule).toMatch(/justify-items:\s*center;/)
+    expect(bleedRule).not.toMatch(/padding-top/)
+    expect(bleedRule).not.toMatch(/padding-bottom/)
   })
 })
