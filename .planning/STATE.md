@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-29-PLAN.md
-last_updated: "2026-11-05T04:44:08.987Z"
+stopped_at: Completed 192-31-PLAN.md
+last_updated: "2026-11-05T04:55:02.630Z"
 last_activity: 2026-11-05
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 565
-  completed_plans: 552
+  completed_plans: 553
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 5 -- codex Review 2/2)) — EXECUTING
-Plan: 3 of 35
+Plan: 4 of 35
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1609,6 +1609,8 @@ Last activity: 2026-11-05
 - [Phase 192]: Card.widthPurpose als CSS-Variablen-Override-Hook (--card-width-override) statt Modifikatorklasse implementiert — Ein fester Breitenwert laesst sich als reiner var()-Default ausdruecken, anders als border-radius/seamless braucht er keine Selektor-AN-/ABSCHALTUNG
 - [Phase 192]: Avatar bordered-Prop und ResponsiveImage roundedThumbnail-Prop folgen demselben boolean-Modifikatorklassen-Muster wie Cards bleedBelowMd/seamless — Ein Rand/eine Rundung ist eine An-/Abschaltung von CSS-Deklarationen, kein reiner Wert -- ResponsiveImage schuetzt zusaetzlich Zero-Pixel-Diff, indem className ohne die Prop exakt der Aufrufer-Wert bleibt
 - [Phase 192]: Button chipGlass setzt --button-gap: var(--space-1) direkt im Grundbaustein statt im Aufrufer — Wert exakt gegen den bisher lokal in FansubGroupPicker.module.css gesetzten Chip-Abstand gemessen, sodass ein kuenftiger Wechsel auf leftIcon Zero-Pixel-Diff bleibt
+- [Phase 192]: 192-31: Playwright-Messung gegen die live Seite bestaetigte, dass der vormalige Seitenende-Abstand (episodesSection margin-bottom + contentArea padding-bottom) additiv 128px betrug, nicht bereits redundant 64px -- .contentArea's padding-bottom wurde deshalb auf calc(var(--space-8) * 2) verdoppelt statt die Zeile ersatzlos zu streichen, Gesamtbetrag per erneuter Messung als unveraendert bestaetigt.
+- [Phase 192]: 192-31: page.episodes.module.css behaelt .episodesSection als leere, reine Selektor-Verdrahtung statt die Datei zu leeren oder den className-Prop zu entfernen -- vermeidet einen ungenutzten CSS-Modul-Import und haelt die Datei als stabilen Erweiterungspunkt.
 
 ### Pending Todos
 
@@ -2404,11 +2406,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P27 | 27min | 3 tasks | 3 files |
 | Phase 192 P28 | 5min | 2 tasks | 7 files |
 | Phase 192 P29 | 7min | 2 tasks | 13 files |
+| Phase 192 P31 | 9min | 1 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-11-05T04:44:08.956Z
-Stopped at: Completed 192-29-PLAN.md
+Last session: 2026-11-05T04:55:02.606Z
+Stopped at: Completed 192-31-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
