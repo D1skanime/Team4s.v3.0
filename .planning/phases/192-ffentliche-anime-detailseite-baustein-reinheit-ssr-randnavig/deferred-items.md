@@ -22,3 +22,14 @@
   Not fixed per the scope-boundary rule — none of these three files is part of this phase's
   `files_modified` across any of the 10 plans. A fourth error (native `<button>` in
   `Cluster.stories.tsx`, introduced by Plan 192-08) WAS fixed in this plan — see 192-07-SUMMARY.md.
+
+## 192-31
+
+- `src/components/fansubs/FansubVersionBrowser.tsx` (lines ~258-260) has a stale comment claiming
+  a `.episodesSection h2`-selector rule still exists in `page.episodes.module.css` ("die
+  bestehende Selektor-/Größen-/Abstand-Regel in page.episodes.module.css bleibt deshalb
+  unverändert gültig"). That selector was already absent from `page.episodes.module.css` *before*
+  this plan (confirmed via `git log -p` on the file) — it is unrelated to this plan's removal of
+  `.episodesSection`'s padding/margin-bottom. `FansubVersionBrowser.tsx` is not in this plan's
+  `files_modified`, so per the scope-boundary rule this pre-existing staleness was not corrected
+  here. A future plan touching `FansubVersionBrowser.tsx` should update that comment.
