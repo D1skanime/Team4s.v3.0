@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -124,5 +127,34 @@ describe('FansubGroupPicker', () => {
     // Button-Primitive rendert selbst ein <button>; wichtig ist, dass es genau
     // eines pro Chip gibt (kein zusätzliches handgebautes <button> daneben).
     expect(container.querySelectorAll('button').length).toBe(1)
+  })
+})
+
+/*
+ * Runde 5, Befund-Review2-R2 (192-33): die Kreisform/Zuschnitt-Entscheidung des Gruppenlogos kommt
+ * jetzt aus dem Avatar-Grundbaustein (Größenstufe "xs") statt einer lokalen .logo-CSS-Klasse; der
+ * Icon-/Beschriftungs-Abstand kommt aus Buttons eigener chipGlass-Variante statt einer lokalen
+ * .chip-gap-Deklaration.
+ */
+describe('FansubGroupPicker -- Runde 5: Avatar-Logo statt lokalem <Image>, Button-eigene chipGlass-Lücke', () => {
+  it('rendert das Gruppenlogo ueber ein Avatar-Element (span[title]) statt eines freistehenden <img>', () => {
+    const options: FansubGroupPickerOption[] = [
+      { id: 1, slug: 'new-subs', name: 'New-Subs', logo_url: '/covers/logo.png' },
+    ]
+    const { container } = render(
+      <FansubGroupPicker options={options} activeGroupId={null} showAllChip={false} onSelect={() => {}} />,
+    )
+    const avatarRoot = container.querySelector('span[title="New-Subs"]')
+    expect(avatarRoot).not.toBeNull()
+    const img = avatarRoot?.querySelector('img')
+    expect(img?.getAttribute('alt')).toBe('')
+    expect(img?.getAttribute('width')).toBe('20')
+    expect(img?.getAttribute('height')).toBe('20')
+  })
+
+  it('FansubGroupPicker.module.css deklariert weder eine .chip-gap noch eine .logo-Klasse mehr', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubGroupPicker.module.css'), 'utf8')
+    expect(css).not.toMatch(/\.logo\s*\{/)
+    expect(css).not.toMatch(/\.chip\s*\{[^}]*gap\s*:/)
   })
 })
