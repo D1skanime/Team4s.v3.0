@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-30-PLAN.md
-last_updated: "2026-11-05T05:06:39.381Z"
+stopped_at: Completed 192-32-PLAN.md
+last_updated: "2026-11-05T05:19:08.554Z"
 last_activity: 2026-11-05
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 565
-  completed_plans: 554
+  completed_plans: 555
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 5 -- codex Review 2/2)) — EXECUTING
-Plan: 5 of 35
+Plan: 6 of 35
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1614,6 +1614,8 @@ Last activity: 2026-11-05
 - [Phase 192]: 192-30: Kein dritter 24px-Stack-Token angelegt: FansubGroupPickers 24px-margin-bottom passt wert- und zweckgleich auf das bereits bestehende --space-primary-content-blocks
 - [Phase 192]: 192-30: FansubGroupContexts interner Heading-/Text-/Button-/navRow-Rhythmus bleibt beim bestehenden relatedContent-Zweck (8px) statt eines neuen Duplikat-Tokens
 - [Phase 192]: 192-30: Neue Zweck-Namen supportingBlockToContent/secondaryActionRow nach Funktion statt nach der konkreten Aufrufstelle benannt
+- [Phase 192]: WatchlistAddButtons gemessener 0.45rem (7,2px) wird durch das bestehende Stack-Zweck-Token 'relatedContent' (8px) abgebildet, kein neues Token -- Sub-Pixel-Differenz liegt unterhalb jeder sichtbaren Rundungs-Schwelle, per Playwright-Visualvergleich bestaetigt
+- [Phase 192]: 192-32: Alle vier jetzt leeren lokalen CSS-Klassen (.logo, .versionList, .wrapper) samt ihrer className-Referenz vollstaendig entfernt statt eine funktionslose Huelle zu belassen -- konsistent mit Runde 4 (192-27)
 
 ### Pending Todos
 
@@ -2411,11 +2413,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P29 | 7min | 2 tasks | 13 files |
 | Phase 192 P31 | 9min | 1 tasks | 5 files |
 | Phase 192 P30 | 6min | 2 tasks | 8 files |
+| Phase 192 P32 | 15min | 2 tasks | 13 files |
 
 ## Session Continuity
 
-Last session: 2026-11-05T05:06:39.352Z
-Stopped at: Completed 192-30-PLAN.md
+Last session: 2026-11-05T05:19:08.526Z
+Stopped at: Completed 192-32-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
