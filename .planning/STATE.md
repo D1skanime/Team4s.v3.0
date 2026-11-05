@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 192-31-PLAN.md
-last_updated: "2026-11-05T04:55:02.630Z"
+stopped_at: Completed 192-30-PLAN.md
+last_updated: "2026-11-05T05:06:39.381Z"
 last_activity: 2026-11-05
 progress:
   total_phases: 57
   completed_phases: 50
   total_plans: 565
-  completed_plans: 553
+  completed_plans: 554
   percent: 88
 ---
 
@@ -459,7 +459,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 192 (Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (Runde 5 -- codex Review 2/2)) — EXECUTING
-Plan: 4 of 35
+Plan: 5 of 35
 Status: Ready to execute
 Praeselektion/Label auf der Release-Seite, aenderbar ueber ProposalReleaseSelect) — 191-37
 (Phasenabschluss) steht noch aus, Phase ist NICHT fertig für Verifikation
@@ -1611,6 +1611,9 @@ Last activity: 2026-11-05
 - [Phase 192]: Button chipGlass setzt --button-gap: var(--space-1) direkt im Grundbaustein statt im Aufrufer — Wert exakt gegen den bisher lokal in FansubGroupPicker.module.css gesetzten Chip-Abstand gemessen, sodass ein kuenftiger Wechsel auf leftIcon Zero-Pixel-Diff bleibt
 - [Phase 192]: 192-31: Playwright-Messung gegen die live Seite bestaetigte, dass der vormalige Seitenende-Abstand (episodesSection margin-bottom + contentArea padding-bottom) additiv 128px betrug, nicht bereits redundant 64px -- .contentArea's padding-bottom wurde deshalb auf calc(var(--space-8) * 2) verdoppelt statt die Zeile ersatzlos zu streichen, Gesamtbetrag per erneuter Messung als unveraendert bestaetigt.
 - [Phase 192]: 192-31: page.episodes.module.css behaelt .episodesSection als leere, reine Selektor-Verdrahtung statt die Datei zu leeren oder den className-Prop zu entfernen -- vermeidet einen ungenutzten CSS-Modul-Import und haelt die Datei als stabilen Erweiterungspunkt.
+- [Phase 192]: 192-30: Kein dritter 24px-Stack-Token angelegt: FansubGroupPickers 24px-margin-bottom passt wert- und zweckgleich auf das bereits bestehende --space-primary-content-blocks
+- [Phase 192]: 192-30: FansubGroupContexts interner Heading-/Text-/Button-/navRow-Rhythmus bleibt beim bestehenden relatedContent-Zweck (8px) statt eines neuen Duplikat-Tokens
+- [Phase 192]: 192-30: Neue Zweck-Namen supportingBlockToContent/secondaryActionRow nach Funktion statt nach der konkreten Aufrufstelle benannt
 
 ### Pending Todos
 
@@ -2407,11 +2410,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 192 P28 | 5min | 2 tasks | 7 files |
 | Phase 192 P29 | 7min | 2 tasks | 13 files |
 | Phase 192 P31 | 9min | 1 tasks | 5 files |
+| Phase 192 P30 | 6min | 2 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-11-05T04:55:02.606Z
-Stopped at: Completed 192-31-PLAN.md
+Last session: 2026-11-05T05:06:39.352Z
+Stopped at: Completed 192-30-PLAN.md
 Last activity: 2026-10-18 - Completed 186-04-PLAN.md
 Resume file: 
 None
