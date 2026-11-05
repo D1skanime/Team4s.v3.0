@@ -219,3 +219,33 @@ export const HaltepunktUmkehr: Story = {
     },
   },
 }
+
+export const SchwebeOverlayModus: Story = {
+  name: 'Schwebe-Overlay-Modus (float="controlBand")',
+  args: {
+    float: 'controlBand',
+    gap: 'contentPair',
+    justify: 'between',
+    children: (
+      <>
+        <Chip label="← Vorheriger" />
+        <Chip label="Nächster →" />
+      </>
+    ),
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ position: 'relative', resize: 'horizontal', overflow: 'auto', border: '1px dashed #999', padding: '48px 8px 8px', width: '100%', maxWidth: 900, minHeight: 80, background: '#2228' }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Eine Steuerelement-Reihe, die oberhalb von 48rem/768px präzise als schwebendes Band auf dem oberen Rand ihres positionierten Vorfahren sitzt (z. B. die Randnavigations-Pfeile über einem Anime-Kopf) -- ziehen Sie den gestrichelten Rahmen enger, um den Wechsel in eine normale, zentrierte Zeile im Textfluss unterhalb der Schwelle zu sehen. Der Container selbst blockiert keine Klicks auf darunterliegenden Inhalt (`pointer-events:none`), nur die beiden Chips selbst bleiben anklickbar (`pointer-events:auto`).',
+      },
+    },
+  },
+}

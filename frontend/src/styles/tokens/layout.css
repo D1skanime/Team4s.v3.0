@@ -86,7 +86,7 @@
      verweist unveraendert per var() auf die bestehende --space-N-/--media-frame-poster-width*-
      Grundskala; nur der benannte Zugriffspfad ist neu, der zugrunde liegende Zahlenwert bleibt
      identisch (Zero-Pixel-Diff). */
-  --space-independent-blocks: var(--space-3); /* Stack UND Cluster (seit Review-Befund 1, vierte Gap-Closure-Runde): trennt voneinander unabhaengige, gleichrangige Inhaltsbloecke INNERHALB eines Bausteins -- bei Stack normalerweise als CSS-gap (z. B. Merklisten-Knopf/Trennlinie/Genre-Abschnitt im Anime-Kopf, einzelne Episodenzeilen), bei Cluster als Luecken-Zweck im gestapelten Zustand einer Haltepunkt-Umkehr (`gapCollapsed`). NICHT Abstand zwischen Seitenabschnitten (Befund D, Runde 3: der vormalige Name "section" war damit verwechselbar). */
+  --space-independent-blocks: var(--space-3); /* Stack UND Cluster (seit Review-Befund 1, vierte Gap-Closure-Runde): trennt voneinander unabhängige, gleichrangige Inhaltsblöcke INNERHALB eines Bausteins -- bei Stack normalerweise als CSS-gap (z. B. Merklisten-Knopf/Trennlinie/Genre-Abschnitt im Anime-Kopf, einzelne Episodenzeilen), bei Cluster als Lücken-Zweck im gestapelten Zustand einer Haltepunkt-Umkehr (`gapCollapsed`). NICHT Abstand zwischen Seitenabschnitten (Befund D, Runde 3: der vormalige Name "section" war damit verwechselbar). */
   --space-related-content: var(--space-2); /* Stack: fasst eng zusammengehoerige Inhalte dicht zusammen, die gemeinsam EINE Einheit beschreiben (ein Eyebrow-Label mit seiner Chip-Reihe, oder die Metadatenzeilen EINER Release-Zeile) -- vormals "tight" (Befund D, Runde 3: ein Groessenwort, kein Zweck). */
   --space-caption-lines: var(--space-1); /* Stack: zwei Textzeilen, die gemeinsam eine einzige Bildunterschrift/Beschriftung bilden (z. B. Titel+Typ der Randnavigations-Vorschaukarte). */
   --space-badge-row: var(--space-2); /* Cluster: dichte, rein lesbare Abzeichen-/Chip-/Tag-/Logo-Reihe ohne Interaktion. */
@@ -98,6 +98,8 @@
   --split-layout-column-poster: var(--media-frame-poster-width); /* SplitLayout: Posterspalte des Anime-Kopfs (Standardbreite, >=1024px). */
   --split-layout-column-poster-medium: var(--media-frame-poster-width-medium); /* SplitLayout: Posterspalte des Anime-Kopfs unterhalb 1024px -- spiegelt die bestehende Postergroessen-Stufe aus components.css. */
   --split-layout-gap-none: 0; /* SplitLayout: kein Abstand zwischen den beiden Spalten -- der Anime-Kopf setzt Poster- und Info-Karte direkt aneinander, der Zwischenraum zwischen den Spalten entsteht bereits ueber das Card-eigene Rahmen-/Schattenbild. */
+  --overlay-offset-control-band: var(--space-3); /* Cluster float="controlBand": oberer Versatz des schwebenden Steuerelement-Bandes zum Rand seines positionierten Vorfahren (z. B. die Randnavigation über dem Anime-Kopf) -- unverändert derselbe Wert wie die bisherige lokale --edgeNavigationOverlay-Regel. */
+  --overlay-height-control-band: var(--control-height-md); /* Cluster float="controlBand": Höhe des schwebenden Steuerelement-Bandes -- begrenzt den Positionierungskontext der darin liegenden Buttons auf Button-Höhe statt auf die ggf. viel größere Kartenhöhe. */
 }
 
 @media (min-width: 1600px) {

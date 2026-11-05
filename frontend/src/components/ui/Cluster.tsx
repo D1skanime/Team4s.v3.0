@@ -77,6 +77,15 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
    *  derselbe Zweck wie `gap` (CSS-Fallback, kein zweiter Pflichtwert). Wirkt nur, wenn
    *  `collapseBelow` tatsächlich gesetzt ist. */
   gapCollapsed?: ClusterGapPurpose
+  /** Schwebe-Overlay-Modus (Review-Befund 1 Erweiterung C): oberhalb von 48rem wird Cluster zu
+   *  einem `position:absolute`-Band, das präzise auf dem Rand seines positionierten Vorfahren
+   *  sitzt (z. B. die Randnavigations-Steuerelemente über einem Anime-Kopf) -- `pointer-events:none`
+   *  auf dem Cluster-Wurzelelement selbst, `pointer-events:auto` auf jedem direkten Kind, damit das
+   *  schwebende Band nur seine eigenen, meist schmalen interaktiven Kinder anklickbar macht und
+   *  darunterliegenden Inhalt nicht blockiert. Unterhalb von 48rem eine normale, im Textfluss
+   *  liegende Cluster-Zeile mit dem unveränderten `gap`/`justify`/`align`-Verhalten des Aufrufers.
+   *  Aktuell nur `'controlBand'`, da bislang nur ein einziger Anwendungsfall existiert. */
+  float?: 'controlBand'
   /** Zu rendernde Element-Art (Standard 'div'). */
   as?: ElementType
   className?: string
@@ -88,14 +97,14 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
  * Grundbaustein für jede Chip-/Badge-/Logo-Reihe dieser Codebasis. Setzt bewusst KEINE Fläche/
  * Farbe/Rundung selbst (siehe Stack.tsx für dieselbe Begründung).
  *
- * `collapseBelow`/`gapCollapsed` ist eine container-query-getriebene Zusatzfähigkeit (siehe
- * `SplitLayout.tsx`/`.module.css` für dasselbe Grundmuster): ein Element darf laut
+ * `collapseBelow`/`gapCollapsed` und `float` sind container-query-getriebene Zusatzfähigkeiten
+ * (siehe `SplitLayout.tsx`/`.module.css` für dasselbe Grundmuster): ein Element darf laut
  * CSS-Spezifikation nicht gleichzeitig der eigene `@container`-Namensgeber UND das von dessen
- * Abfrage umgeordnete Element sein. Ist `collapseBelow` gesetzt, rendert Cluster deshalb
+ * Abfrage umgeordnete Element sein. Ist eine der beiden Props gesetzt, rendert Cluster deshalb
  * zweistufig -- ein äußeres Element trägt NUR `container: cluster / inline-size`, das eigentliche
- * Flex-Verhalten lebt in einem inneren Kind-Element. Ist `collapseBelow` NICHT gesetzt, bleibt
- * Cluster ein einzelnes, unverändertes Element wie bisher (Zero-Pixel-Diff für jeden bestehenden
- * Aufrufer).
+ * Flex-/Positionierungsverhalten lebt in einem inneren Kind-Element. Ist KEINE der beiden Props
+ * gesetzt, bleibt Cluster ein einzelnes, unverändertes Element wie bisher (Zero-Pixel-Diff für
+ * jeden bestehenden Aufrufer).
  */
 export function Cluster({
   gap = 'badgeRow',
@@ -104,6 +113,7 @@ export function Cluster({
   wrap = true,
   collapseBelow,
   gapCollapsed,
+  float,
   as: Component = 'div',
   className,
   children,
@@ -119,7 +129,7 @@ export function Cluster({
     ...(gapCollapsed !== undefined ? { '--cluster-gap-collapsed': GAP_PURPOSE_TOKENS[gapCollapsed] } : {}),
   } as CSSProperties
 
-  if (collapseBelow === undefined) {
+  if (collapseBelow === undefined && float === undefined) {
     return (
       <Component {...props} style={mergedStyle} className={classNames(styles.cluster, className)}>
         {children}
@@ -129,11 +139,18 @@ export function Cluster({
 
   return (
     <Component {...props} style={mergedStyle} className={classNames(styles.clusterQueryContainer, className)}>
-      {/* Eigenes Flex-Kind-Element: das `Component`-Element oben bildet nur den benannten
-       *  Container, das eigentliche Flex-Verhalten lebt hier als Nachfahre (siehe Komponentendoku
-       *  oben bzw. SplitLayout.tsx für dasselbe Grundmuster). Liest die `--cluster-*`-Variablen
-       *  per CSS-Vererbung vom äußeren Element, trägt selbst keinen Inline-Stil. */}
-      <div className={classNames(styles.cluster, collapseBelow === 'md' && styles.collapsibleMd)}>
+      {/* Eigenes Flex-/Positionierungs-Kind-Element: das `Component`-Element oben bildet nur den
+       *  benannten Container, das eigentliche Verhalten lebt hier als Nachfahre (siehe
+       *  Komponentendoku oben bzw. SplitLayout.tsx für dasselbe Grundmuster). Liest die
+       *  `--cluster-*`-Variablen per CSS-Vererbung vom äußeren Element, trägt selbst keinen
+       *  Inline-Stil. */}
+      <div
+        className={classNames(
+          styles.cluster,
+          collapseBelow === 'md' && styles.collapsibleMd,
+          float === 'controlBand' && styles.floatControlBand,
+        )}
+      >
         {children}
       </div>
     </Component>

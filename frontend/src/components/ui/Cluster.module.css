@@ -33,3 +33,25 @@
     gap: var(--cluster-gap, var(--space-2));
   }
 }
+
+/* float="controlBand" (Review-Befund 1 Erweiterung C): oberhalb 48rem/768px ein präzise auf dem
+   Rand seines positionierten Vorfahren schwebendes Band -- `pointer-events:none` auf dem
+   Cluster-Wurzelelement selbst, `pointer-events:auto` auf jedem direkten Kind (sonst würde das
+   schwebende Band jeden Klick auf darunterliegenden Inhalt blockieren, obwohl es selbst meist nur
+   schmale interaktive Kinder enthält, die ihre eigene Position selbst bestimmen). Unterhalb 48rem
+   bleibt `.cluster`s normales, im Textfluss liegendes Zeilenverhalten (mit dem unveränderten
+   gap/justify/align des Aufrufers) unverändert aktiv -- kein eigener Mobil-Zweig nötig. */
+@container cluster (min-width: 48rem) {
+  .floatControlBand {
+    position: absolute;
+    top: var(--overlay-offset-control-band);
+    right: 0;
+    left: 0;
+    height: var(--overlay-height-control-band);
+    pointer-events: none;
+  }
+
+  .floatControlBand > * {
+    pointer-events: auto;
+  }
+}
