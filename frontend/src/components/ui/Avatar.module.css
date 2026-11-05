@@ -14,6 +14,16 @@
   flex-shrink: 0;
 }
 
+.avatarXs {
+  width: var(--avatar-size-xs);
+  height: var(--avatar-size-xs);
+  /* Keine eigene --avatar-font-size-xs-Stufe: bei 20px Durchmesser ist ein Initialen-Kürzel
+     ohnehin nur ein seltener Rückfall (der Haupt-Anwendungsfall ist ein kleines Gruppenlogo-
+     Bild) -- die bestehende sm-Schriftgröße bleibt lesbar genug, ohne eine weitere Font-Size-
+     Tokenstufe nur für diesen Randfall einzuführen. */
+  font-size: var(--avatar-font-size-sm);
+}
+
 .avatarSm {
   width: var(--avatar-size-sm);
   height: var(--avatar-size-sm);
@@ -26,7 +36,7 @@
   font-size: var(--avatar-font-size-lg);
 }
 
-.avatar:not(.avatarSm):not(.avatarLg) {
+.avatar:not(.avatarXs):not(.avatarSm):not(.avatarLg) {
   font-size: var(--avatar-font-size-md);
 }
 
@@ -70,4 +80,10 @@
   /* --avatar-bg bleibt bewusst unangetastet: der Standard-Fallback oben (var(--surface-sunken))
      deckt den gewünschten hellen Untergrund bereits ab. */
   --avatar-fg: var(--accent-deep);
+}
+
+/* Rand "auf dunkler Fläche" -- derselbe Ton, den Divider/Cards Glas-Varianten bereits nutzen,
+   für ein rundes Gruppen-/Identitätsbild direkt auf einem durchscheinenden/dunklen Untergrund. */
+.avatarBordered {
+  border: 1px solid var(--border-on-media);
 }
