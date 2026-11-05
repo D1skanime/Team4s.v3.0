@@ -113,17 +113,19 @@ export const AnimeKopfRhythmus: Story = {
   name: 'Anime-Kopf-Rhythmus (fünf neue Zweck-Werte)',
   args: {
     gap: ['headingToBadges', 'primaryContentBlocks', 'dividerToContent', 'none', 'dividedSectionLeadIn', 'dividerToContent'],
-    children: (
-      <>
-        <Box label="Titelzeile" />
-        <Box label="Badges (headingToBadges: eng an der Überschrift)" />
-        <Box label="Trennlinie, spacing=none (primaryContentBlocks davor)" />
-        <Box label="Statistik-Zeile (dividerToContent: Abstand nach der Trennlinie)" />
-        <Box label="Info-Banner (none: eigener Trennlinien-Vorlauf bereits vorhanden)" />
-        <Box label="Trennlinie, spacing=none (dividedSectionLeadIn davor, responsiv)" />
-        <Box label="Verwandte Anime (dividerToContent: Abstand nach der Trennlinie)" />
-      </>
-    ),
+    // WICHTIG: als echtes Array mit Keys übergeben, NICHT als einzelnes <>...</>-Fragment --
+    // Stacks Rhythmus-Array-Modus zählt die Kinder über Children.toArray(children); ein
+    // Fragment-Element zählt dabei selbst als EIN Kind (nicht als seine enthaltenen Elemente),
+    // wodurch die Längenprüfung sonst fälschlich "1 Kind" statt der tatsächlichen 7 sähe.
+    children: [
+      <Box key="title" label="Titelzeile" />,
+      <Box key="badges" label="Badges (headingToBadges: eng an der Überschrift)" />,
+      <Box key="divider1" label="Trennlinie, spacing=none (primaryContentBlocks davor)" />,
+      <Box key="stats" label="Statistik-Zeile (dividerToContent: Abstand nach der Trennlinie)" />,
+      <Box key="banner" label="Info-Banner (none: eigener Trennlinien-Vorlauf bereits vorhanden)" />,
+      <Box key="divider2" label="Trennlinie, spacing=none (dividedSectionLeadIn davor, responsiv)" />,
+      <Box key="related" label="Verwandte Anime (dividerToContent: Abstand nach der Trennlinie)" />,
+    ],
   },
   parameters: {
     docs: {
@@ -160,13 +162,13 @@ export const RhythmusModus: Story = {
   name: 'Rhythmus-Modus (Array)',
   args: {
     gap: ['independentBlocks', 'relatedContent'],
-    children: (
-      <>
-        <Box label="Titelzeile" />
-        <Box label="Badges (weiter Abstand zur Titelzeile)" />
-        <Box label="Beschreibung (enger Abstand zu den Badges)" />
-      </>
-    ),
+    // Echtes Array mit Keys statt eines einzelnen <>...</>-Fragments -- siehe Begründung an
+    // AnimeKopfRhythmus oben (Children.toArray zählt ein Fragment als EIN Kind).
+    children: [
+      <Box key="title" label="Titelzeile" />,
+      <Box key="badges" label="Badges (weiter Abstand zur Titelzeile)" />,
+      <Box key="description" label="Beschreibung (enger Abstand zu den Badges)" />,
+    ],
   },
   parameters: {
     docs: {
