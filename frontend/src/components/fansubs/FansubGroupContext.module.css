@@ -1,14 +1,12 @@
+/* Innenabstand kommt jetzt aus Card padding="contextCard" (Plan 192-28, 24px); margin-bottom
+   bleibt vorerst hier stehen -- es wird GEMEINSAM mit FansubGroupPickers .wrapper-margin-bottom
+   und FansubVersionBrowsers .section-margin-top durch EINEN Stack-Wrapper in
+   FansubVersionBrowser.tsx ersetzt (siehe dortige Begruendung). */
 .card {
-  padding: var(--space-5);
   margin-bottom: var(--space-4);
 }
 
-.name {
-  margin: 0 0 var(--space-2);
-}
-
 .storyPreview {
-  margin: 0 0 var(--space-2);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -17,12 +15,4 @@
 
 .moreLink {
   font-weight: 600;
-}
-
-.navRow {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-  justify-content: flex-end;
-  flex-wrap: wrap;
 }

@@ -11,7 +11,7 @@ const meta = {
   tags: ['autodocs'],
   decorators: [(Story) => <div style={{ position: 'relative', padding: 20 }}><BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Hintergrund" /><div style={{ position: 'relative' }}><Story /></div></div>],
   parameters: {
-    docs: { description: { component: `Besteht aus ${storybookDocsLink('Grundbausteine/Card', 'Card')} (variant="glass"), ${storybookDocsLink('Grundbausteine/Heading', 'Heading')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')} und ${storybookDocsLink('Grundbausteine/Button', 'Button')}.` } },
+    docs: { description: { component: `Besteht aus ${storybookDocsLink('Grundbausteine/Card', 'Card')} (variant="glass", eigene Innenabstand-Zweckstufe), ${storybookDocsLink('Grundbausteine/Stack', 'Stack')} (interner Name-/Vorschautext-/Aktionsreihen-Rhythmus), ${storybookDocsLink('Grundbausteine/Cluster', 'Cluster')} (rechtsbündige Sekundär-Aktionsreihe), ${storybookDocsLink('Grundbausteine/Heading', 'Heading')}, ${storybookDocsLink('Grundbausteine/Text', 'Text')} und ${storybookDocsLink('Grundbausteine/Button', 'Button')}.` } },
   },
   args: {
     activeGroup: { id: 101, slug: 'bloody-shadow', name: 'Bloody-Shadow', story_preview: 'Veröffentlicht die Folgen von Freezing als gemeinsames Projekt.' },
