@@ -40,4 +40,46 @@ describe('Stack', () => {
     expect(node.getAttribute('role')).toBe('group')
     expect(node.getAttribute('aria-label')).toBe('Gruppe')
   })
+
+  it('rendert im Rhythmus-Array-Modus pro Lücke genau einen schlanken Abstandshalter mit dem passenden Zweck-Wert und setzt --stack-gap auf 0', () => {
+    const { container } = render(
+      <Stack gap={['independentBlocks', 'relatedContent']}>
+        <span>Erste</span>
+        <span>Zweite</span>
+        <span>Dritte</span>
+      </Stack>,
+    )
+
+    const stackNode = container.firstElementChild as HTMLElement
+    expect(stackNode.style.getPropertyValue('--stack-gap')).toBe('0')
+
+    const directChildren = Array.from(stackNode.children)
+    expect(directChildren).toHaveLength(3)
+    // Erstes Kind bleibt unverpackt (kein Wrapper vor dem ersten Element).
+    expect(directChildren[0].tagName).toBe('SPAN')
+    expect(directChildren[0].textContent).toBe('Erste')
+
+    // Kinder ab Index 1 stecken in einem schlanken Wrapper, der NUR marginTop trägt.
+    expect(directChildren[1].tagName).toBe('DIV')
+    expect((directChildren[1] as HTMLElement).style.marginTop).toBe('var(--space-independent-blocks)')
+    expect(directChildren[1].className).toBe('')
+    expect(directChildren[1].textContent).toBe('Zweite')
+
+    expect(directChildren[2].tagName).toBe('DIV')
+    expect((directChildren[2] as HTMLElement).style.marginTop).toBe('var(--space-related-content)')
+    expect(directChildren[2].className).toBe('')
+    expect(directChildren[2].textContent).toBe('Dritte')
+  })
+
+  it('wirft bei einer falschen Rhythmus-Array-Länge einen beschreibenden deutschen Fehler vor jedem Render', () => {
+    expect(() =>
+      render(
+        <Stack gap={['independentBlocks']}>
+          <span>Erste</span>
+          <span>Zweite</span>
+          <span>Dritte</span>
+        </Stack>,
+      ),
+    ).toThrow(/erwartet genau 2.*erhielt aber 1/s)
+  })
 })
