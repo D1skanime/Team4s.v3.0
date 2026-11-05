@@ -18,7 +18,7 @@
   min-width: 0;
 }
 
-/* collapseBelow="md" (Review-Befund 1 Erweiterung B): unterhalb 48rem/768px gestapelte Spalte mit
+/* collapseBelow="md" (Haltepunkt-Umkehr): unterhalb 48rem/768px gestapelte Spalte mit
    eigenem Lücken-Zweck (--cluster-gap-collapsed, Fallback: --cluster-gap selbst, falls
    gapCollapsed nicht übergeben wurde) -- ab 48rem das normale, horizontale Cluster-Verhalten mit
    dem unveränderten --cluster-gap. Derselbe Haltepunkt wie SplitLayouts bereits etabliertes 'md'. */
@@ -34,7 +34,7 @@
   }
 }
 
-/* float="controlBand" (Review-Befund 1 Erweiterung C): oberhalb 48rem/768px ein präzise auf dem
+/* float="controlBand" (Schwebe-Overlay-Modus): oberhalb 48rem/768px ein präzise auf dem
    Rand seines positionierten Vorfahren schwebendes Band -- `pointer-events:none` auf dem
    Cluster-Wurzelelement selbst, `pointer-events:auto` auf jedem direkten Kind (sonst würde das
    schwebende Band jeden Klick auf darunterliegenden Inhalt blockieren, obwohl es selbst meist nur

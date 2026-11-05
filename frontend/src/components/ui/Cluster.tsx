@@ -21,8 +21,8 @@ import styles from './Cluster.module.css'
  *  - `'independentBlocks'`: trennt voneinander unabhängige, gleichrangige Inhaltsblöcke INNERHALB
  *    eines Bausteins -- derselbe Zweck-Name und dasselbe Zweck-Token (`--space-independent-blocks`)
  *    wie Stacks gleichnamiger Zweck, hier für den gestapelten Zustand einer Haltepunkt-Umkehr
- *    (`collapseBelow`/`gapCollapsed`, Review-Befund 1 Erweiterung B) wiederverwendet statt eines
- *    zweiten, neu erfundenen Tokens mit identischem Wert.
+ *    (`collapseBelow`/`gapCollapsed`) wiederverwendet statt eines zweiten, neu erfundenen Tokens
+ *    mit identischem Wert.
  *  Cluster deklariert diese Enum bewusst eigenständig statt sie aus './Stack' zu importieren --
  *  Cluster ist ein eigenständiger Grundbaustein und darf laut Katalog-Taxonomie
  *  (catalogTaxonomy.test.ts) keinen anderen, selbst katalogisierten Grundbaustein importieren,
@@ -68,16 +68,16 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
   /** Umbruch bei fehlendem Platz (Standard true). */
   wrap?: boolean
   /** Haltepunkt, unterhalb dessen Cluster von einer horizontalen Zeile auf eine gestapelte Spalte
-   *  kippt (Haltepunkt-Umkehr, Review-Befund 1 Erweiterung B) -- aktuell nur `'md'` (48rem/768px,
-   *  derselbe Haltepunkt, den `SplitLayout` bereits verwendet), da bislang keine Aufrufstelle
-   *  einen zweiten Wert braucht. Ohne Angabe bleibt Cluster ein einzelnes, unverändertes
-   *  Flex-Element (Zero-Pixel-Diff für jeden bestehenden Aufrufer). */
+   *  kippt (Haltepunkt-Umkehr) -- aktuell nur `'md'` (48rem/768px, derselbe Haltepunkt, den
+   *  `SplitLayout` bereits verwendet), da bislang keine Aufrufstelle einen zweiten Wert braucht.
+   *  Ohne Angabe bleibt Cluster ein einzelnes, unverändertes Flex-Element (Zero-Pixel-Diff für
+   *  jeden bestehenden Aufrufer). */
   collapseBelow?: 'md'
   /** Lücken-Zweck im gestapelten Zustand unterhalb von `collapseBelow` -- ohne Angabe gilt
    *  derselbe Zweck wie `gap` (CSS-Fallback, kein zweiter Pflichtwert). Wirkt nur, wenn
    *  `collapseBelow` tatsächlich gesetzt ist. */
   gapCollapsed?: ClusterGapPurpose
-  /** Schwebe-Overlay-Modus (Review-Befund 1 Erweiterung C): oberhalb von 48rem wird Cluster zu
+  /** Schwebe-Overlay-Modus: oberhalb von 48rem wird Cluster zu
    *  einem `position:absolute`-Band, das präzise auf dem Rand seines positionierten Vorfahren
    *  sitzt (z. B. die Randnavigations-Steuerelemente über einem Anime-Kopf) -- `pointer-events:none`
    *  auf dem Cluster-Wurzelelement selbst, `pointer-events:auto` auf jedem direkten Kind, damit das
