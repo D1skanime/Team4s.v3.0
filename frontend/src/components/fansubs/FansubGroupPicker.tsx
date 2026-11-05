@@ -1,8 +1,6 @@
 'use client'
 
-import Image from 'next/image'
-
-import { Button, Cluster, Stack, Text } from '@/components/ui'
+import { Avatar, Button, Cluster, Stack, Text } from '@/components/ui'
 
 import styles from './FansubGroupPicker.module.css'
 
@@ -58,10 +56,11 @@ export function FansubGroupPicker({ options, activeGroupId, showAllChip, onSelec
               aria-pressed={isActive}
               onClick={() => onSelect(option.id)}
               className={styles.chip}
+              // Kreisform/Zuschnitt des Gruppenlogos kommt jetzt aus dem Avatar-Grundbaustein
+              // (Größenstufe "xs", 20px) statt eines lokal zugeschnittenen <Image>-Elements; der
+              // Icon-Beschriftungs-Abstand übernimmt Buttons eigene chipGlass-Lücke (--button-gap).
+              leftIcon={logoURL ? <Avatar size="xs" src={logoURL} label={option.name} /> : null}
             >
-              {logoURL ? (
-                <Image src={logoURL} alt="" width={20} height={20} unoptimized className={styles.logo} />
-              ) : null}
               {option.name}
             </Button>
           )
