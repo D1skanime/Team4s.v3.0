@@ -78,10 +78,18 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
     // Innenabstand kommt jetzt ausschliesslich über Cards generischen padding-Override-Hook
     // (Befund B, Runde 3) -- der zuvor hier dokumentierte Zustaendigkeits-Konflikt zwischen
     // Cards eigenen Varianten-Regeln und einem lokalen `padding:` auf .row entfaellt dadurch, da
-    // .row selbst kein `padding:` mehr deklariert. Das responsive Flex-Row-Layout von .row bleibt
-    // eine eng dokumentierte Einzelfall-Ausnahme (siehe ReleasePreviewRow.module.css).
+    // .row selbst kein `padding:` mehr deklariert. Die haltepunktabhaengige Zeile-zu-Spalte-
+    // Umkehr kommt jetzt vollstaendig über Clusters collapseBelow/gapCollapsed-Faehigkeit
+    // (identisches Muster wie AnimeDetailHero.tsxs .titleRow) statt eines eigenen
+    // display:flex/flex-direction in .row.
     <Card variant="glassStrong" padding="content">
-      <div className={styles.row}>
+      <Cluster
+        collapseBelow="md"
+        gap="contentPair"
+        gapCollapsed="independentBlocks"
+        justify="between"
+        className={styles.row}
+      >
         {groups.length > 0 ? (
           // Avatar(e) + Text-Stack nebeneinander, NIE übereinander (wrap={false}) -- die
           // Spaltenbreite der Avatar-Gruppe passt sich dadurch von selbst der tatsächlichen
@@ -121,7 +129,7 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
             Zum Release →
           </Button>
         </div>
-      </div>
+      </Cluster>
     </Card>
   )
 }

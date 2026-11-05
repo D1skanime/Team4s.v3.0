@@ -5,29 +5,23 @@
  */
 
 /*
- * Guard-Ausnahme (Befund B, Runde 3, dokumentiert fuer den kommenden Baustein-Reinheits-Guard
- * aus Plan 192-15): .row behaelt als EINZIGE Ausnahme dieser Datei ein eigenes
- * `display:flex`/`flex-direction`/`gap`, weil keiner der bestehenden Layout-Grundbausteine die
- * hier benoetigte Haltepunkt-Umkehr abbilden kann -- unterhalb 768px muss die Zeile UNTEREINANDER
- * stehen, ab 768px NEBENEINANDER mit `justify-content: space-between`. `SplitLayout` scheidet aus:
- * seine erste Spalte ist immer die feste/schmale und die zweite immer die flexible -- hier ist es
- * genau umgekehrt (der Text-/Avatar-Block `.body` muss wachsen, die Aktionsspalte `.action` fest
- * bleiben). `Cluster` scheidet aus: er kennt keine Haltepunkt-abhaengige Stapel-vs-Reihen-Umkehr,
- * nur eine feste Ausrichtung. Der `gap`-Wert ist Teil derselben Ausnahme, kein separater Verstoss.
- * Das Innenabstand (`padding:`) liegt NICHT mehr hier, sondern kommt ueber Cards eigenen
- * `padding="3"`-Override-Hook (siehe ReleasePreviewRow.tsx).
+ * .row selbst deklariert kein eigenes Layout-CSS mehr -- die haltepunktabhaengige Zeile-zu-
+ * Spalte-Umkehr (Mobil untereinander, ab 768px nebeneinander mit justify-content:space-between)
+ * kommt vollstaendig ueber Cluster collapseBelow="md"/gapCollapsed (siehe ReleasePreviewRow.tsx),
+ * identisches Muster wie AnimeDetailHero.tsxs .titleRow.
  */
-.row {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
 
-/* Trägt die Flex-Wachstumsregel gegenüber `.action` (siehe Breakpoint unten) -- ersetzt das
-   frühere `.content`-Grid, da Avatar(e)+Textzeilen jetzt über Cluster/Stack (Grundbausteine)
-   komponiert werden statt über ein eigenes Raster. */
+/* Cluster setzt im gestapelten Mobil-Zustand bewusst KEINE eigene Haltepunkt-abhaengige
+   Querachsen-Ausrichtung (align-items bleibt fuer beide Zustaende gleich) -- ohne diese eigene
+   Breiten-Vorgabe wuerde .body im gestapelten Zustand auf seine Inhaltsbreite schrumpfen statt
+   (wie vor der Umstellung durch den impliziten Flex-Stretch-Standard) die volle Zeilenbreite zu
+   fuellen. `width` gehoert nicht zu den vom Baustein-Reinheits-Guard verbotenen Eigenschaften
+   (nur display/flex-direction/grid-template/gap/padding/margin), bleibt also eine zulaessige,
+   eng begruendete Kind-Breiten-Korrektur statt einer Cluster-Erweiterung fuer einen bislang
+   einmaligen Anwendungsfall. */
 .body {
   min-width: 0;
+  width: 100%;
 }
 
 /* Avatar liefert Fläche/Größe bereits selbst -- hier bleibt nur die Garantie, dass die
@@ -77,9 +71,12 @@
  * .action traegt selbst KEIN eigenes Layout-CSS mehr -- `display:flex;justify-content:flex-end`
  * war hier wirkungslos: .action enthaelt immer nur EIN Kind (den Button), dessen eigene
  * `width`-Regel unten die Positionierung bereits vollstaendig bestimmt, unabhaengig vom
- * `display`-Wert des Elternelements. Die tatsaechliche Endausrichtung kommt stattdessen aus
- * .row's eigenem `justify-content: space-between` (Desktop) bzw. aus `width: 100%` (Mobil).
+ * `display`-Wert des Elternelements. Die tatsaechliche Endausrichtung kommt jetzt aus Clusters
+ * `justify="between"`-Prop (Desktop) bzw. aus der eigenen `width: 100%`-Breiten-Korrektur unten
+ * (Mobil, aus demselben Grund wie .bodys Breiten-Korrektur oben: Cluster zentriert gestapelte
+ * Kinder standardmaessig auf ihre Inhaltsbreite statt sie zu strecken).
  */
+.action,
 .action > a,
 .action > button {
   width: 100%;
@@ -87,22 +84,16 @@
 
 /* D-20: Desktop/Breitbild -- linke Hauptspalte (Gruppe/Technik/Extras/Datum) + rechte Aktionsspalte. */
 @media (min-width: 768px) {
-  .row {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-
   .body {
     flex: 1;
     min-width: 0;
   }
 
-  /* flex-shrink ist eine Flex-ITEM-Eigenschaft (wirkt auf .action als Kind von .row, nicht als
-     eigener Container) -- Teil der .row-Ausnahme oben, kein eigenstaendiges Layout-CSS. */
+  /* flex-shrink ist eine Flex-ITEM-Eigenschaft (wirkt auf .action als Kind des Cluster-
+     Grundbausteins, nicht als eigener Container) -- kein eigenstaendiges Layout-CSS. */
   .action {
     flex-shrink: 0;
+    width: auto;
   }
 
   .action > a,

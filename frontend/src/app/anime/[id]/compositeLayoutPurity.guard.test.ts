@@ -108,15 +108,9 @@ const DOCUMENTED_LAYOUT_EXCEPTIONS: LayoutException[] = [
   },
 
   // --- ReleasePreviewRow.module.css --------------------------------------------------------
-  {
-    file: 'ReleasePreviewRow',
-    selector: /\.row\b/,
-    reason:
-      '192-14: haltepunktabhängige Stapel-vs-Reihen-Umkehr (Mobil untereinander, ab 768px ' +
-      'nebeneinander mit justify-content:space-between) -- SplitLayout scheidet aus (erste Spalte ' +
-      'immer fest/schmal, hier ist es umgekehrt), Cluster scheidet aus (keine Haltepunkt-abhängige ' +
-      'Umkehr). gap ist Teil derselben Ausnahme.',
-  },
+  // .row (vormals 192-14): entfällt seit Plan 192-26 -- die haltepunktabhängige Zeile-zu-Spalte-
+  // Umkehr kommt jetzt über Cluster collapseBelow="md"/gapCollapsed ab, .row selbst deklariert
+  // kein eigenes Layout-CSS mehr.
 
   // --- EpisodeGlassCard.module.css ---------------------------------------------------------
   {
