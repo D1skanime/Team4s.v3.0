@@ -16,14 +16,19 @@ import styles from './Stack.module.css'
  *    das bleibt Aufgabe der Seite selbst, nie dieses Grundbausteins.
  *  - `'relatedContent'`: fasst eng zusammengehörige Inhalte dicht zusammen, die gemeinsam EINE
  *    Einheit beschreiben (ein Eyebrow-Label mit seiner Chip-Reihe, oder die Metadatenzeilen EINER
- *    Release-Zeile). */
-export type StackGapPurpose = 'independentBlocks' | 'relatedContent'
+ *    Release-Zeile).
+ *  - `'captionLines'`: engster Abstand (nur 4px) zwischen GENAU zwei Textzeilen, die gemeinsam
+ *    EINE einzige Bildunterschrift/Beschriftung bilden (z. B. Titel- und Typzeile der
+ *    Randnavigations-Vorschaukarte) -- enger als `'relatedContent'`, da hier kein eigenständiger
+ *    zweiter Inhaltsblock entsteht, sondern nur der Zeilenumbruch EINER Beschriftung. */
+export type StackGapPurpose = 'independentBlocks' | 'relatedContent' | 'captionLines'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
  *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `StackGapPurpose`-Dokumentation oben). */
 const GAP_PURPOSE_TOKENS: Record<StackGapPurpose, string> = {
   independentBlocks: 'var(--space-independent-blocks)',
   relatedContent: 'var(--space-related-content)',
+  captionLines: 'var(--space-caption-lines)',
 }
 
 export interface StackProps extends HTMLAttributes<HTMLElement> {

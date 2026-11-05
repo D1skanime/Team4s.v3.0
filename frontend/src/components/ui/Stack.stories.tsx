@@ -88,6 +88,27 @@ export const AusrichtungEnd: Story = {
   },
 }
 
+export const Bildunterschrift: Story = {
+  name: 'Bildunterschrift (zwei Zeilen)',
+  args: {
+    gap: 'captionLines',
+    children: (
+      <>
+        <div style={{ fontWeight: 600 }}>Titelzeile der Vorschaukarte</div>
+        <div style={{ color: '#666' }}>Typ-Zeile darunter</div>
+      </>
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Für GENAU zwei Textzeilen, die gemeinsam eine einzige Bildunterschrift/Beschriftung bilden (z. B. Titel- und Typzeile der Randnavigations-Vorschaukarte) -- enger als "Zusammengehöriger Inhalt", da hier kein eigenständiger zweiter Block entsteht, sondern nur der Zeilenumbruch EINER Beschriftung.',
+      },
+    },
+  },
+}
+
 export const RhythmusModus: Story = {
   name: 'Rhythmus-Modus (Array)',
   args: {
