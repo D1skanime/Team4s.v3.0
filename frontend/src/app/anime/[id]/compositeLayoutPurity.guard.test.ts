@@ -341,7 +341,7 @@ describe('Anime-Detail/Fansub-Bausteine: zusammengesetzte Dateien deklarieren ke
       '  border-radius: 0;',
       '}',
       '.bg {',
-      '  background: var(--some-color);',
+      '  background: var(--surface-canvas);',
       '}',
       '.shadow {',
       '  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);',
