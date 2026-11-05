@@ -89,6 +89,10 @@
   --space-independent-blocks: var(--space-3); /* Stack UND Cluster (seit Review-Befund 1, vierte Gap-Closure-Runde): trennt voneinander unabhängige, gleichrangige Inhaltsblöcke INNERHALB eines Bausteins -- bei Stack normalerweise als CSS-gap (z. B. Merklisten-Knopf/Trennlinie/Genre-Abschnitt im Anime-Kopf, einzelne Episodenzeilen), bei Cluster als Lücken-Zweck im gestapelten Zustand einer Haltepunkt-Umkehr (`gapCollapsed`). NICHT Abstand zwischen Seitenabschnitten (Befund D, Runde 3: der vormalige Name "section" war damit verwechselbar). */
   --space-related-content: var(--space-2); /* Stack: fasst eng zusammengehoerige Inhalte dicht zusammen, die gemeinsam EINE Einheit beschreiben (ein Eyebrow-Label mit seiner Chip-Reihe, oder die Metadatenzeilen EINER Release-Zeile) -- vormals "tight" (Befund D, Runde 3: ein Groessenwort, kein Zweck). */
   --space-caption-lines: var(--space-1); /* Stack: zwei Textzeilen, die gemeinsam eine einzige Bildunterschrift/Beschriftung bilden (z. B. Titel+Typ der Randnavigations-Vorschaukarte). */
+  --space-heading-to-badges: var(--space-4); /* Stack: Abstand zwischen einem Überschriften-/Titelbereich und der direkt folgenden Status-/Klassifikations-Abzeichenreihe (z. B. Anime-Titel+Logo vor den Status-/Typ-/Jahr-Badges im Anime-Kopf). */
+  --space-primary-content-blocks: var(--space-5); /* Stack: trennt deutlich voneinander abgegrenzte Haupt-Inhaltsblöcke innerhalb eines Bausteins (z. B. Abzeichenreihe, Beschreibungstext, Tag-Abschnitt im Anime-Kopf) -- großzügiger als --space-independent-blocks. */
+  --space-divided-section-lead-in: var(--space-5); /* Stack: Abstand vor einer durch eine Trennlinie abgesetzten, nachrangigen Zusatzsektion (z. B. "Verwandte Anime" unterhalb des Info-Banners im Anime-Kopf) -- unterhalb 767px reduziert (siehe @media-Block unten), da der Inhalt dort bereits einspaltig gestapelt ist. */
+  --space-divider-to-content: var(--space-4); /* Stack: Abstand zwischen einer vorangehenden, eigens gerenderten Trennlinie (Divider spacing="none") und dem direkt folgenden Inhalt (z. B. Statistik-Zeile/"Verwandte Anime"-Abschnitt im Anime-Kopf, deren vormalige Rahmenlinie durch dieses Divider-Element ersetzt wurde). */
   --space-badge-row: var(--space-2); /* Cluster: dichte, rein lesbare Abzeichen-/Chip-/Tag-/Logo-Reihe ohne Interaktion. */
   --space-interactive-chip-row: var(--space-3); /* Cluster: Reihe klickbarer Filter-/Auswahl-Chips (z. B. Fansub-Gruppen-Umschalter). */
   --space-content-pair: var(--space-4); /* Cluster: zwei unterschiedliche, gleichrangige Inhaltsbloecke nebeneinander (z. B. Avatar-Gruppe neben Textspalte). */
@@ -109,5 +113,17 @@
   :root {
     --public-page-max-width: 1480px;
     --public-page-gutter: 64px;
+  }
+}
+
+/* Responsive Zweck-Token-Überschreibung: unterhalb des Mobil-Haltepunkts (767px) ist jede
+   zweispaltige Hero-Fläche bereits auf eine Spalte gestapelt, eine nachrangige Zusatzsektion
+   braucht dort entsprechend weniger visuellen Vorlauf-Abstand als auf breiten Bildschirmen. Die
+   Überschreibung wirkt überall dort, wo `var(--space-divided-section-lead-in)` gelesen wird --
+   auch in einem per Inline-Style gesetzten Stack-Rhythmus-Wrapper (CSS-Custom-Properties lösen
+   zur Laufzeit anhand der Kaskade auf, unabhängig davon, WO `var()` verwendet wird). */
+@media (max-width: 767px) {
+  :root {
+    --space-divided-section-lead-in: var(--space-4);
   }
 }

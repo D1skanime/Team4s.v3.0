@@ -33,6 +33,11 @@ describe('Divider', () => {
     expect(container.querySelector('hr')?.className).toMatch(/dividerWithinMetaBlock/)
   })
 
+  it('wendet spacing="none" als eigene Modifikator-Klasse an (kein eigener Außenabstand)', () => {
+    const { container } = render(<Divider spacing="none" />)
+    expect(container.querySelector('hr')?.className).toMatch(/dividerNoSpacing/)
+  })
+
   it('erlaubt eine zusätzliche className für rein responsive Sichtbarkeit, ohne die eigenen Klassen zu verdrängen', () => {
     const { container } = render(<Divider className="mobileHidden" />)
     const hr = container.querySelector('hr')
@@ -64,6 +69,13 @@ describe('Divider.module.css', () => {
     const rule = css.match(/\.dividerWithinMetaBlock\s*\{([^}]+)\}/)?.[1]
     expect(rule, '.dividerWithinMetaBlock muss existieren').toBeTruthy()
     expect(rule).toMatch(/margin:\s*var\(--space-1\)\s*0;/)
+    expect(rule).not.toMatch(/background/)
+  })
+
+  it('.dividerNoSpacing setzt den Außenabstand auf den Literalwert 0 (kein Zweck-Token)', () => {
+    const rule = css.match(/\.dividerNoSpacing\s*\{([^}]+)\}/)?.[1]
+    expect(rule, '.dividerNoSpacing muss existieren').toBeTruthy()
+    expect(rule).toMatch(/margin:\s*0;/)
     expect(rule).not.toMatch(/background/)
   })
 })

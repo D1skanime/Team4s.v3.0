@@ -76,6 +76,35 @@ describe('Stack', () => {
     expect(directChildren[2].textContent).toBe('Dritte')
   })
 
+  it('unterstützt die drei neuen, am Anime-Kopf-Rhythmus gemessenen Zweck-Werte', () => {
+    const { container: heading } = render(<Stack gap="headingToBadges">Inhalt</Stack>)
+    expect((heading.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('var(--space-heading-to-badges)')
+
+    const { container: primary } = render(<Stack gap="primaryContentBlocks">Inhalt</Stack>)
+    expect((primary.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('var(--space-primary-content-blocks)')
+
+    const { container: leadIn } = render(<Stack gap="dividedSectionLeadIn">Inhalt</Stack>)
+    expect((leadIn.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('var(--space-divided-section-lead-in)')
+
+    const { container: dividerToContent } = render(<Stack gap="dividerToContent">Inhalt</Stack>)
+    expect((dividerToContent.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('var(--space-divider-to-content)')
+  })
+
+  it('löst den Zweck "none" auf den Literalwert 0 auf (kein eigenes Zweck-Token) -- sowohl im Einzelwert- als auch im Rhythmus-Array-Modus', () => {
+    const { container: single } = render(<Stack gap="none">Inhalt</Stack>)
+    expect((single.firstElementChild as HTMLElement).style.getPropertyValue('--stack-gap')).toBe('0')
+
+    const { container: arrayMode } = render(
+      <Stack gap={['none', 'relatedContent']}>
+        <span>Erste</span>
+        <span>Zweite</span>
+        <span>Dritte</span>
+      </Stack>,
+    )
+    const directChildren = Array.from((arrayMode.firstElementChild as HTMLElement).children)
+    expect((directChildren[1] as HTMLElement).style.marginTop).toBe('0px')
+  })
+
   it('wirft bei einer falschen Rhythmus-Array-Länge einen beschreibenden deutschen Fehler vor jedem Render', () => {
     expect(() =>
       render(

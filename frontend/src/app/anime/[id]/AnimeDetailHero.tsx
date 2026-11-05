@@ -6,6 +6,7 @@ import { AnimeInfoBanner, AnimeTitleLogo } from '@/components/anime/AnimeMediaPr
 import { StatusBadge } from '@/components/anime/StatusBadge'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
 import { Badge, Button, Card, Cluster, Divider, Heading, LinkChip, MediaFrame, ResponsiveImage, SplitLayout, Stack, Text } from '@/components/ui'
+import type { StackGapPurpose } from '@/components/ui'
 import type { AnimeDetail, AnimeRelationsResponse } from '@/types/anime'
 
 import styles from './AnimeDetailHero.module.css'
@@ -44,6 +45,101 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
   const posterEpisodeBadge = posterEpisodeCount > 0
     ? <Badge variant="onMedia">{posterEpisodeCount === 1 ? '1 Folge' : `${posterEpisodeCount} Folgen`}</Badge>
     : null
+
+  const hasTags = Boolean(anime.tags && anime.tags.length > 0)
+  const hasStats = Boolean(embySeriesUrl)
+  const hasRelated = Boolean(relationsResponse && relationsResponse.data.length > 0)
+
+  // Die Info-Karte hat drei optionale Kinder (Tags-Abschnitt/Statistik-Zeile/Verwandte-Anime-
+  // Abschnitt) -- Kinderzahl UND Lücken-Zuordnung wechseln deshalb von Render zu Render. Kinder-
+  // und Lücken-Array werden Hand in Hand aufgebaut (Stacks Rhythmus-Array-Modus verlangt exakt
+  // einen Zweck-Wert pro Lücke zwischen zwei tatsächlich gerenderten Kindern, siehe Stack.tsx) --
+  // ein fest verdrahtetes Array wäre bei fehlendem/zusätzlichem Kind sofort falsch ausgerichtet.
+  // Jeder Lückenwert ist live gegen die vormalige CSS-Rhythmusfolge vermessen (siehe SUMMARY).
+  const infoCardGap: StackGapPurpose[] = ['headingToBadges', 'primaryContentBlocks']
+  const infoCardChildren: ReactNode[] = [
+    <div key="titleRow" className={styles.titleRow}>
+      <Heading level={1} className={styles.title}>{anime.title}</Heading>
+      <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
+    </div>,
+    <Cluster key="badges" gap="badgeRow" className={styles.badges}>
+      <StatusBadge status={anime.status} />
+      <Badge variant="neutral">{anime.type.toUpperCase()}</Badge>
+      <Badge variant="neutral">{anime.content_type}</Badge>
+      <Badge variant="neutral">{anime.year ?? 'n/a'}</Badge>
+    </Cluster>,
+    <Text key="description" className={styles.description}>{anime.description ?? 'Keine Beschreibung vorhanden.'}</Text>,
+  ]
+
+  if (hasTags) {
+    infoCardGap.push('primaryContentBlocks')
+    infoCardChildren.push(
+      // Stack statt eines eigenen display:flex;flex-direction:column;gap: -- exakt dasselbe
+      // Eyebrow-Label+Chip-Reihe-Muster wie .genresSection in der Poster-Spalte (ebenfalls Stack
+      // gap="relatedContent").
+      <Stack key="tags" gap="relatedContent" className={styles.tagsSection}>
+        {/* Gleiches Eyebrow-Label-Muster wie "Genres" in der Poster-Spalte (Text statt Heading),
+            aber mit dem zum jeweiligen Kartengrund passenden Ton statt eines gemeinsamen fest
+            verdrahteten Tons: die Info-Karte ist oben hell (siehe Card.module.css
+            .cardPublicHeroInfo), "Tags" bleibt deshalb bei der dunklen Standard-Tonalität (kein
+            tone="onScrim", UAT-Entscheidung -- helle Schrift war auf der hellen Fläche praktisch
+            unsichtbar). Unterhalb 767px kippt die Karte auf eine einheitlich dunkle Fläche;
+            Card.module.css definiert dort zusätzlich zu --heading-color/--text-body-color auch
+            Texts eigenen --text-eyebrow-color-Hook um, wodurch "Tags" automatisch mit auf Hell
+            kippt. */}
+        <Text as="span" variant="eyebrow" id="tags-heading">Tags</Text>
+        <Cluster as="ul" gap="badgeRow" className={styles.tagsList} aria-labelledby="tags-heading">
+          {anime.tags!.map((tag) => <li key={tag}><LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>{tag}</LinkChip></li>)}
+        </Cluster>
+      </Stack>,
+    )
+  }
+
+  if (hasStats) {
+    infoCardGap.push('primaryContentBlocks', 'dividerToContent')
+    infoCardChildren.push(
+      // Divider ersetzt die vormalige border-top-Trennlinie von .statsRow -- spacing="none", weil
+      // der komplette Vorlauf-/Nachlauf-Abstand bereits je als eigener Eintrag im Stack-Rhythmus-
+      // Array lebt (siehe oben); ein zusätzlicher Eigen-Abstand der Trennlinie selbst würde diesen
+      // exakt vermessenen Rhythmus sonst verfälschen.
+      <Divider key="statsDivider" tone="onMedia" spacing="none" />,
+      <Cluster key="stats" gap="actionRow" className={styles.statsRow}>
+        <Button href={embySeriesUrl!} target="_blank" rel="noopener noreferrer" variant="text" size="sm" leftIcon={<ExternalLink size={14} aria-hidden="true" />}>Emby</Button>
+      </Cluster>,
+    )
+  }
+
+  // "none": AnimeInfoBanner bringt über die eigene divider-Prop (siehe unten) bereits ihren
+  // vollständigen eigenen Vorlauf-Abstand mit -- nur wenn davor KEIN margin-bottom-tragendes
+  // Kind (Tags/Beschreibung, über "primaryContentBlocks") steht, braucht es zusätzlich 0.
+  infoCardGap.push(hasStats ? 'none' : 'primaryContentBlocks')
+  infoCardChildren.push(
+    <AnimeInfoBanner
+      key="banner"
+      className={styles.infoBanner}
+      divider={
+        <>
+          {/* Kräftigere Desktop-Stufe (tone="onMediaStrong") vs. dezentere Mobil-Stufe
+              (tone="onMedia", dieselbe Linienfarbe wie statsRow/relatedSection) -- Divider setzt
+              seine Farbe/Abstand selbst und erlaubt keinen Fremd-Override von außen, deshalb zwei
+              Instanzen statt einer einzigen mit überschriebener Farbe. Die className hier steuert
+              ausschließlich die Sichtbarkeit je Haltepunkt (siehe Divider.tsx's eigene Doku). */}
+          <Divider tone="onMediaStrong" className={styles.dividerDesktop} />
+          <Divider tone="onMedia" className={styles.dividerMobile} />
+        </>
+      }
+    />,
+  )
+
+  if (hasRelated) {
+    infoCardGap.push('dividedSectionLeadIn', 'dividerToContent')
+    infoCardChildren.push(
+      // Divider ersetzt die vormalige border-top-Trennlinie von .relatedSection -- derselbe
+      // spacing="none"-Mechanismus wie beim Statistik-Divider oben.
+      <Divider key="relatedDivider" tone="onMedia" spacing="none" />,
+      <div key="related" className={styles.relatedSection}><AnimeRelations relations={relationsResponse!.data} variant="compact" /></div>,
+    )
+  }
 
   return (
     <Card variant="publicHero">
@@ -102,64 +198,9 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
              wodurch Titel/Beschreibung automatisch mit auf Hell kippen -- keine eigene Farbregel in
              dieser Seite nötig. */
           <Card variant="publicHeroInfo" className={styles.infoCard}>
-            <div className={styles.infoCardBody}>
-              <div className={styles.titleRow}>
-                <Heading level={1} className={styles.title}>{anime.title}</Heading>
-                <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
-              </div>
-              <Cluster gap="badgeRow" className={styles.badges}>
-                <StatusBadge status={anime.status} />
-                <Badge variant="neutral">{anime.type.toUpperCase()}</Badge>
-                <Badge variant="neutral">{anime.content_type}</Badge>
-                <Badge variant="neutral">{anime.year ?? 'n/a'}</Badge>
-              </Cluster>
-              <Text className={styles.description}>{anime.description ?? 'Keine Beschreibung vorhanden.'}</Text>
-              {anime.tags && anime.tags.length > 0 ? (
-                // Stack statt eines eigenen display:flex;flex-direction:column;gap: (Befund B,
-                // Runde 3, 192-15) -- exakt dasselbe Eyebrow-Label+Chip-Reihe-Muster wie
-                // .genresSection in der Poster-Spalte (ebenfalls Stack gap="relatedContent"), nur
-                // hier bislang lokal nachgebaut statt denselben bereits etablierten Grundbaustein
-                // zu nutzen. gap="relatedContent" loest auf var(--space-related-content)=
-                // var(--space-2) auf, exakt der zuvor hier lokal deklarierte Pixelwert --
-                // Zero-Pixel-Diff.
-                <Stack gap="relatedContent" className={styles.tagsSection}>
-                  {/* Gleiches Eyebrow-Label-Muster wie "Genres" in der Poster-Spalte (Text statt
-                      Heading), aber mit dem zum jeweiligen Kartengrund passenden Ton statt eines
-                      gemeinsamen fest verdrahteten Tons: die Info-Karte ist oben hell (siehe
-                      Card.module.css .cardPublicHeroInfo), "Tags" bleibt deshalb bei der dunklen
-                      Standard-Tonalität (kein tone="onScrim", UAT-Entscheidung -- helle Schrift war
-                      auf der hellen Fläche praktisch unsichtbar). Unterhalb 767px kippt die Karte auf
-                      eine einheitlich dunkle Fläche; Card.module.css definiert dort zusätzlich zu
-                      --heading-color/--text-body-color auch Texts eigenen --text-eyebrow-color-Hook
-                      um, wodurch "Tags" automatisch mit auf Hell kippt. */}
-                  <Text as="span" variant="eyebrow" id="tags-heading">Tags</Text>
-                  <Cluster as="ul" gap="badgeRow" className={styles.tagsList} aria-labelledby="tags-heading">
-                    {anime.tags.map((tag) => <li key={tag}><LinkChip tone="scrim" href={buildFilterHref('tag', tag)}>{tag}</LinkChip></li>)}
-                  </Cluster>
-                </Stack>
-              ) : null}
-              {embySeriesUrl ? (
-                <Cluster gap="actionRow" className={styles.statsRow}>
-                  <Button href={embySeriesUrl} target="_blank" rel="noopener noreferrer" variant="text" size="sm" leftIcon={<ExternalLink size={14} aria-hidden="true" />}>Emby</Button>
-                </Cluster>
-              ) : null}
-              <AnimeInfoBanner
-                className={styles.infoBanner}
-                divider={
-                  <>
-                    {/* Kräftigere Desktop-Stufe (tone="onMediaStrong") vs. dezentere Mobil-Stufe
-                        (tone="onMedia", dieselbe Linienfarbe wie statsRow/relatedSection) --
-                        Divider setzt seine Farbe/Abstand selbst und erlaubt keinen Fremd-
-                        Override von außen, deshalb zwei Instanzen statt einer einzigen mit
-                        überschriebener Farbe. Die className hier steuert ausschließlich die
-                        Sichtbarkeit je Haltepunkt (siehe Divider.tsx's eigene Doku). */}
-                    <Divider tone="onMediaStrong" className={styles.dividerDesktop} />
-                    <Divider tone="onMedia" className={styles.dividerMobile} />
-                  </>
-                }
-              />
-              {relationsResponse && relationsResponse.data.length > 0 ? <div className={styles.relatedSection}><AnimeRelations relations={relationsResponse.data} variant="compact" /></div> : null}
-            </div>
+            <Stack gap={infoCardGap} className={styles.infoCardBody}>
+              {infoCardChildren}
+            </Stack>
           </Card>
         }
       />

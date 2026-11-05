@@ -22,8 +22,13 @@ export interface DividerProps {
    *    Meta-/Info-Blocks (z. B. zwei Metadatenzeilen im Poster-Bereich) -- knapper Abstand.
    *  - 'betweenSections' (Standard) trennt zwei eigenständige Inhaltsabschnitte innerhalb
    *    einer Karte (z. B. Titelblock vs. verwandte Inhalte) -- großzügiger Abstand.
+   *  - 'none' setzt KEINEN eigenen Außenabstand -- für den Fall, dass der komplette Vorlauf-/
+   *    Nachlauf-Abstand bereits vollständig von einem umgebenden Rhythmus-Mechanismus (z. B.
+   *    Stacks Rhythmus-Array-Modus) übernommen wird und die Trennlinie selbst nur noch die
+   *    sichtbare Linie beisteuern soll, ohne diesen fremd festgelegten Rhythmus durch einen
+   *    eigenen, nicht abschaltbaren Zusatz-Abstand zu verfälschen.
    */
-  spacing?: 'withinMetaBlock' | 'betweenSections'
+  spacing?: 'withinMetaBlock' | 'betweenSections' | 'none'
   /** Darf AUSSCHLIESSLICH für responsive Sichtbarkeit (z. B. display:none ab einem Haltepunkt)
    *  verwendet werden -- Außenabstand und Farbe bleiben allein Sache von Divider selbst, ein
    *  Aufrufer setzt über diese Klasse weder margin noch background. */
@@ -38,6 +43,7 @@ export function Divider({ tone = 'onMedia', spacing = 'betweenSections', classNa
         styles.divider,
         tone === 'onMediaStrong' && styles.dividerOnMediaStrong,
         spacing === 'withinMetaBlock' && styles.dividerWithinMetaBlock,
+        spacing === 'none' && styles.dividerNoSpacing,
         className,
       )}
     />

@@ -109,6 +109,32 @@ export const Bildunterschrift: Story = {
   },
 }
 
+export const AnimeKopfRhythmus: Story = {
+  name: 'Anime-Kopf-Rhythmus (fünf neue Zweck-Werte)',
+  args: {
+    gap: ['headingToBadges', 'primaryContentBlocks', 'dividerToContent', 'none', 'dividedSectionLeadIn', 'dividerToContent'],
+    children: (
+      <>
+        <Box label="Titelzeile" />
+        <Box label="Badges (headingToBadges: eng an der Überschrift)" />
+        <Box label="Trennlinie, spacing=none (primaryContentBlocks davor)" />
+        <Box label="Statistik-Zeile (dividerToContent: Abstand nach der Trennlinie)" />
+        <Box label="Info-Banner (none: eigener Trennlinien-Vorlauf bereits vorhanden)" />
+        <Box label="Trennlinie, spacing=none (dividedSectionLeadIn davor, responsiv)" />
+        <Box label="Verwandte Anime (dividerToContent: Abstand nach der Trennlinie)" />
+      </>
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Fünf zusätzliche Zweck-Werte, am realen Abstands-Rhythmus der Anime-Kopf-Infokarte gemessen: "headingToBadges" (Überschrift direkt vor ihrer Kennzeichnung), "primaryContentBlocks" (deutlicher Blockwechsel innerhalb der Karte), "dividedSectionLeadIn" (Vorlauf vor einer durch eine Trennlinie abgesetzten, nachrangigen Zusatzsektion, unterhalb 767px responsiv reduziert), "dividerToContent" (Abstand zwischen einer per Divider spacing="none" eingefügten Trennlinie und dem direkt folgenden Inhalt) und "none" (kein Eigen-Abstand, weil das nächste Kind seinen Abstand bereits selbst über eine eigene Trennlinien-Komponente mitbringt).',
+      },
+    },
+  },
+}
+
 export const RhythmusModus: Story = {
   name: 'Rhythmus-Modus (Array)',
   args: {

@@ -18,3 +18,7 @@
 .dividerWithinMetaBlock {
   margin: var(--space-1) 0;
 }
+
+.dividerNoSpacing {
+  margin: 0;
+}

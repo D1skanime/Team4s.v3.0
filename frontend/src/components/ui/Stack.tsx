@@ -6,7 +6,7 @@ import styles from './Stack.module.css'
 /** Zweck-Benennung von Stacks Abstandsmaß -- KEINE rohe Space-Skalenstufe mehr,
  *  sondern ein benannter Einsatzzweck, der intern über ein eigenes Zweck-Token in
  *  `src/styles/tokens/layout.css` auf die unveränderte `--space-N`-Grundskala verweist. Die
- *  beiden Namen beschreiben die tatsächliche STRUKTUR der gestapelten Kinder, nicht eine Größe
+ *  Namen beschreiben die tatsächliche STRUKTUR der gestapelten Kinder, nicht eine Größe
  *  (Befund D, Runde 3 -- die vormalige Benennung enthielt ein Größenwort und einen mit
  *  Seitenabschnitts-Abstand verwechselbaren Namen, obwohl beide Zwecke rein INNERHALB eines
  *  Bausteins gelten):
@@ -20,15 +20,56 @@ import styles from './Stack.module.css'
  *  - `'captionLines'`: engster Abstand (nur 4px) zwischen GENAU zwei Textzeilen, die gemeinsam
  *    EINE einzige Bildunterschrift/Beschriftung bilden (z. B. Titel- und Typzeile der
  *    Randnavigations-Vorschaukarte) -- enger als `'relatedContent'`, da hier kein eigenständiger
- *    zweiter Inhaltsblock entsteht, sondern nur der Zeilenumbruch EINER Beschriftung. */
-export type StackGapPurpose = 'independentBlocks' | 'relatedContent' | 'captionLines'
+ *    zweiter Inhaltsblock entsteht, sondern nur der Zeilenumbruch EINER Beschriftung.
+ *  - `'headingToBadges'`: Abstand zwischen einem Überschriften-/Titelbereich und der direkt
+ *    folgenden Status-/Klassifikations-Abzeichenreihe (z. B. Anime-Titel+Logo vor den Status-/
+ *    Typ-/Jahr-Badges im Anime-Kopf) -- eigenständig von `'independentBlocks'`, da hier eine
+ *    Überschrift unmittelbar von ihrer Kennzeichnung gefolgt wird, nicht zwei gleichrangige Blöcke.
+ *  - `'primaryContentBlocks'`: trennt deutlich voneinander abgegrenzte Haupt-Inhaltsblöcke
+ *    innerhalb eines Bausteins (z. B. Abzeichenreihe, Beschreibungstext und Tag-Abschnitt im
+ *    Anime-Kopf) -- großzügiger als `'independentBlocks'`, da hier ein inhaltlich bedeutsamerer
+ *    Blockwechsel markiert wird, aber weiterhin rein INNERHALB eines Bausteins (kein
+ *    Seitenabschnitts-Abstand).
+ *  - `'dividedSectionLeadIn'`: Abstand vor einer durch eine Trennlinie abgesetzten, nachrangigen
+ *    Zusatzsektion (z. B. "Verwandte Anime" unterhalb des Info-Banners im Anime-Kopf) --
+ *    unterhalb des Mobil-Haltepunkts (767px) responsiv reduziert, da der Inhalt dort bereits
+ *    einspaltig gestapelt ist und weniger visuellen Vorlauf braucht.
+ *  - `'dividerToContent'`: Abstand zwischen einer vorangehenden Trennlinie (spacing="none", der
+ *    komplette Vorlauf kommt bereits über einen eigenen Lücken-Eintrag) und dem direkt folgenden
+ *    Inhalt (z. B. Statistik-Zeile/"Verwandte Anime"-Abschnitt im Anime-Kopf, deren vormalige
+ *    Rahmenlinie durch ein eigenständiges `Divider`-Element ersetzt wurde).
+ *  - `'none'`: kein zusätzlicher Eigen-Abstand -- für den Fall, dass das nachfolgende Kind seinen
+ *    Abstand zum vorherigen bereits vollständig selbst mitbringt (z. B. ein Kind, dessen erstes
+ *    eigenes Element eine Trennlinien-Komponente mit eigenem Außenabstand ist). */
+export type StackGapPurpose =
+  | 'independentBlocks'
+  | 'relatedContent'
+  | 'captionLines'
+  | 'headingToBadges'
+  | 'primaryContentBlocks'
+  | 'dividedSectionLeadIn'
+  | 'dividerToContent'
+  | 'none'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
- *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `StackGapPurpose`-Dokumentation oben). */
-const GAP_PURPOSE_TOKENS: Record<StackGapPurpose, string> = {
+ *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `StackGapPurpose`-Dokumentation oben).
+ *  `'none'` wird separat als Literal `'0'` behandelt, nicht über diese Tabelle (dasselbe Muster
+ *  wie Cards `CardPaddingPurpose`). */
+const GAP_PURPOSE_TOKENS: Record<Exclude<StackGapPurpose, 'none'>, string> = {
   independentBlocks: 'var(--space-independent-blocks)',
   relatedContent: 'var(--space-related-content)',
   captionLines: 'var(--space-caption-lines)',
+  headingToBadges: 'var(--space-heading-to-badges)',
+  primaryContentBlocks: 'var(--space-primary-content-blocks)',
+  dividedSectionLeadIn: 'var(--space-divided-section-lead-in)',
+  dividerToContent: 'var(--space-divider-to-content)',
+}
+
+/** Löst einen einzelnen Zweck-Wert auf seinen CSS-Wert auf -- `'none'` ergibt den Literalwert
+ *  `'0'`, jeder andere Wert sein eigenes Zweck-Token (siehe `GAP_PURPOSE_TOKENS`). Gemeinsam von
+ *  Einzelwert- UND Rhythmus-Array-Modus genutzt, damit `'none'` in beiden Pfaden gleich behandelt wird. */
+function resolveGapValue(purpose: StackGapPurpose): string {
+  return purpose === 'none' ? '0' : GAP_PURPOSE_TOKENS[purpose]
 }
 
 export interface StackProps extends HTMLAttributes<HTMLElement> {
@@ -93,7 +134,7 @@ export function Stack({
           index === 0 ? (
             child
           ) : (
-            <div key={index} style={{ marginTop: GAP_PURPOSE_TOKENS[gap[index - 1]] }}>
+            <div key={index} style={{ marginTop: resolveGapValue(gap[index - 1]) }}>
               {child}
             </div>
           ),
@@ -105,7 +146,7 @@ export function Stack({
   return (
     <Component
       {...props}
-      style={{ ...style, '--stack-gap': GAP_PURPOSE_TOKENS[gap], '--stack-align': align } as CSSProperties}
+      style={{ ...style, '--stack-gap': resolveGapValue(gap), '--stack-align': align } as CSSProperties}
       className={classNames(styles.stack, className)}
     >
       {children}

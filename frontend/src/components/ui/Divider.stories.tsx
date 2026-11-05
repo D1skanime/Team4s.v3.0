@@ -41,3 +41,16 @@ export const OnMediaStrongWithinMetaBlock: Story = {
   name: 'Kräftig, innerhalb eines Meta-Blocks',
   args: { tone: 'onMediaStrong', spacing: 'withinMetaBlock' },
 }
+
+export const OnMediaNoSpacing: Story = {
+  name: 'Dezent, ohne eigenen Abstand',
+  args: { tone: 'onMedia', spacing: 'none' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Für den Fall, dass ein umgebender Rhythmus-Mechanismus (z. B. Stacks Rhythmus-Array-Modus) den vollständigen Vorlauf-/Nachlauf-Abstand bereits selbst trägt -- die Trennlinie steuert hier wirklich nur noch die sichtbare Linie bei, ohne den fremd festgelegten Rhythmus durch einen eigenen, nicht abschaltbaren Zusatz-Abstand zu verfälschen.',
+      },
+    },
+  },
+}

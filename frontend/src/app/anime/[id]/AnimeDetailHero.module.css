@@ -47,29 +47,16 @@
   }
 }
 
-/* GUARD-AUSNAHME (192-15, siehe 192-13-SUMMARY.md "Guard exception for 192-15"): display:flex;
-   flex-direction:column bleibt lokal -- dieser Wrapper ordnet Titelzeile/Badges/Beschreibung/
-   Tags/Statistik/Banner/Verwandte-Anime vertikal an, mit einer bewusst NICHT-einheitlichen
-   Abstandsfolge (space-4/space-5-Mischung bei .titleRow/.badges/.description/.tagsSection/
-   .statsRow/.relatedSection weiter unten). Stack kann das nicht ausdrücken, ohne den
-   tatsächlichen Pixel-Rhythmus zu verändern (Zero-Pixel-Diff-Vorgabe dieser Phase, siehe
-   192-RESEARCH.md) -- jede einzelne Lücke bräuchte einen eigenen, nicht generalisierbaren
-   gap-Wert statt eines einzigen wiederverwendbaren Zwecks. Der eigene Innenabstand (vormals hier
-   als lokale Space-6-Polsterung deklariert) lebt seit Befund B (192-13) stattdessen als
-   responsiver Standardwert direkt in Card.module.css's .cardPublicHeroInfo-Variante (Card-
-   padding-Prop kann nur einen einzigen, nicht responsiven Wert tragen -- diese Variante trägt
-   deshalb ihren vollen, pro Haltepunkt unterschiedlichen Standardwert selbst). */
-.infoCardBody {
-  display: flex;
-  flex-direction: column;
-}
-
+/* GUARD-AUSNAHME: die Haltepunkt-abhängige Zeile-zu-Spalte-Umkehr (Titel+Logo nebeneinander ab
+   768px, gestapelt darunter) bleibt an dieser Stelle noch lokal -- der eigentliche Zeilenrhythmus
+   zu den Geschwister-Abschnitten (margin-bottom) lebt bereits im Stack-Rhythmus-Array von
+   .infoCardBody (siehe AnimeDetailHero.tsx), nur die Richtungsumkehr selbst wartet noch auf ihre
+   eigene Migration. */
 .titleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: var(--space-4);
 }
 
 .title {
@@ -83,44 +70,41 @@
   object-fit: contain;
 }
 
-.badges {
-  margin-bottom: var(--space-5);
-}
-
-.description,
-.tagsSection {
-  margin: 0 0 var(--space-5);
-}
-
-/* .tagsSection traegt seit 192-15 kein eigenes display:flex/flex-direction/gap mehr -- die
-   Anordnung von Eyebrow-Label und Chip-Liste kommt jetzt ueber Stack gap="relatedContent" (siehe
-   AnimeDetailHero.tsx), exakt dasselbe bereits etablierte Muster wie .genresSection in der
-   Poster-Spalte. Der verbleibende Außenabstand (margin) in der Regel oben bleibt unveraendert. */
-
 .tagsList {
   padding: 0;
   margin: 0;
   list-style: none;
 }
 
+/* padding-top/border-top (vormals die Trennlinie VOR der Statistik-Zeile) leben jetzt als
+   eigener <Divider>-Vorfahre plus zwei Einträge im Stack-Rhythmus-Array von .infoCardBody (siehe
+   AnimeDetailHero.tsx) -- align-items bleibt die einzige verbleibende, nicht abstandsbezogene
+   Ausrichtungs-Deklaration dieser Zeile. */
 .statsRow {
   align-items: center;
-  padding-top: var(--space-4);
-  border-top: var(--border-width-thin) solid var(--border-on-media);
 }
 
 .infoBanner {
+  /* display:block hebt den browserüblichen "Baseline-Nachlauf" unterhalb eines inline
+     gerenderten Bildes auf (ein paar Pixel Reserve für den Schriftunterlängen-Bereich der
+     umgebenden Zeile) -- seit dem Stack-Rhythmus-Array-Umbau liegt das Bild innerhalb eines
+     schlanken, selbst NICHT-Flex-Wrapper-Elements (siehe AnimeDetailHero.tsx), wodurch dieser
+     sonst durch den äußeren Flex-Container automatisch aufgehobene Leerraum sonst sichtbar
+     würde (per Playwright-Messung bestätigt: 7px zusätzliche Wrapper-Höhe ohne diese Zeile). */
+  display: block;
   width: 100%;
   height: auto;
   object-fit: cover;
 }
 
+/* margin-top/padding-top/border-top (vormals die Trennlinie VOR dem "Verwandte Anime"-Abschnitt,
+   mit responsivem margin-top) leben jetzt als eigener <Divider>-Vorfahre plus zwei Einträge im
+   Stack-Rhythmus-Array von .infoCardBody (siehe AnimeDetailHero.tsx) -- min-width/overflow bleiben
+   die einzigen verbleibenden, nicht abstandsbezogenen Deklarationen (verhindern, dass ein breites
+   Slider-Kind diesen Flex-Abschnitt über seine Spaltenbreite hinaus wachsen lässt). */
 .relatedSection {
   min-width: 0;
   overflow: hidden;
-  margin-top: var(--space-5);
-  padding-top: var(--space-4);
-  border-top: var(--border-width-thin) solid var(--border-on-media);
 }
 
 /* Divider (@/components/ui) deckt Farbe UND Abstand der Trennlinie vor dem Info-Banner
@@ -216,11 +200,6 @@
   .tagsList,
   .statsRow {
     justify-content: center;
-  }
-
-  .relatedSection {
-    margin-top: var(--space-4);
-    padding-top: var(--space-4);
   }
 
   /* Umschalten auf die dezentere Divider-Instanz (siehe JSX): die Karte ist hier bereits
