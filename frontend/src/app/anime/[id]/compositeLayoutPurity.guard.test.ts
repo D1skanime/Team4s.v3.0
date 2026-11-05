@@ -113,14 +113,11 @@ const DOCUMENTED_LAYOUT_EXCEPTIONS: LayoutException[] = [
   // kein eigenes Layout-CSS mehr.
 
   // --- EpisodeGlassCard.module.css ---------------------------------------------------------
-  {
-    file: 'EpisodeGlassCard',
-    selector: /\.versionList\b/,
-    reason:
-      '192-14: asymmetrisches padding (drei unterschiedliche Seitenwerte) -- Cards padding-Prop kennt ' +
-      'nur einen einzigen, gleichmäßigen Wert, und .versionList ist selbst kein Card-Element, sondern ' +
-      'ein reiner Trennabschnitt innerhalb der umschließenden Card.',
-  },
+  // .versionList (vormals 192-14, asymmetrisches padding): seit Plan 192-26 eine echte,
+  // verschachtelte Card variant="flat" padding="dividedSection" -- das verbliebene
+  // border-width:0/border-radius:0/background:transparent dort ist KEINE der vom Guard
+  // verbotenen Kategorien (display/flex-direction/grid-template/gap/padding/margin), braucht
+  // deshalb keinen Ausnahme-Eintrag mehr.
 
   // --- AnimeEdgeNavigation.module.css -------------------------------------------------------
   {

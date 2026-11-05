@@ -49,17 +49,21 @@
 }
 
 /*
- * Guard-Ausnahme (Befund B, Runde 3, dokumentiert fuer den kommenden Baustein-Reinheits-Guard aus
- * Plan 192-15): .versionList behaelt ihr eigenes `padding:` als dokumentierte Einzelfall-
- * Ausnahme -- der Innenabstand ist ASYMMETRISCH (oben/seitlich/unten drei verschiedene Werte),
- * Cards generischer `padding`-Override-Hook (Plan 192-11) kennt dagegen nur EINEN einzigen,
- * gleichmaessigen Wert fuer alle vier Seiten. .versionList ist zudem kein eigenes Card-Element,
- * sondern ein reiner Trennabschnitt INNERHALB der umschliessenden Card -- Cards Hook greift hier
- * ohnehin nicht. `border-top` ist Teil derselben, eng begruendeten Ausnahme (visuelle Trennlinie
- * zum Kopfzeilenbereich). Das fruehere `display:grid;gap:` ist dagegen ECHTE Layout-CSS und
- * wurde durch Stack gap="independentBlocks" ersetzt (siehe EpisodeGlassCard.tsx).
+ * .versionList ist jetzt eine echte, verschachtelte Card (variant="flat" padding="dividedSection",
+ * siehe EpisodeGlassCard.tsx) statt eines reinen <div> mit lokalem padding/border-top -- der
+ * Innenabstand kommt vollstaendig aus Cards "dividedSection"-Rezept, die vormalige Trennlinie aus
+ * einem eigenstaendigen <Divider>-Element davor. Hier verbleiben ausschliesslich drei eng
+ * begruendete Groessenkorrekturen (keine der vom Baustein-Reinheits-Guard verbotenen Kategorien
+ * display/flex-direction/grid-template/gap/padding/margin): Cards Basisregel bringt fuer JEDE
+ * Variante einen eigenen 1px-Rahmen samt Eckenrundung mit, und `.cardFlat` bringt zusaetzlich eine
+ * fuer die helle Admin-Optik gedachte Farbverlaufsflaeche mit (`--card-flat-bg`) -- beides waere
+ * hier sichtbare Mehr-Flaeche gegenueber dem vormaligen randlosen <div>, das seine Flaeche
+ * ausschliesslich von der umschliessenden EpisodeGlassCard (variant="glass") geerbt hat. Per
+ * Playwright-Vollbild-Byte-Diff bestaetigt: erst mit allen drei Korrekturen ist das Ergebnis
+ * wieder pixelgleich zum Vor-Umstellungs-Zustand.
  */
 .versionList {
-  border-top: 1px solid var(--border-on-media);
-  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-width: 0;
+  border-radius: 0;
+  background: transparent;
 }

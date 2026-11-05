@@ -28,9 +28,10 @@ function buildEpisode(overrides: Partial<PublicGroupedEpisode> = {}): PublicGrou
 /*
  * Befund B (Runde 3): EpisodeGlassCard.module.css darf ab sofort kein eigenes
  * display:flex/flex-direction/display:grid mehr deklarieren -- die Kopfzeilen- und die
- * Versionslisten-Anordnung kommen jetzt ueber Cluster/Stack. Nur die asymmetrische Polsterung
- * von .versionList bleibt als dokumentierte Einzelfall-Ausnahme bestehen (siehe deren eigener
- * Kommentar in EpisodeGlassCard.module.css).
+ * Versionslisten-Anordnung kommen jetzt ueber Cluster/Stack. .versionLists vormals asymmetrische
+ * Polsterung lebt seit Plan 192-26 in Cards "dividedSection"-Rezept, der vormalige border-top in
+ * einem eigenstaendigen Divider-Element -- in der CSS-Datei bleiben nur noch drei eng begruendete
+ * Groessenkorrekturen (keine der verbotenen Kategorien, siehe deren eigener Kommentar dort).
  */
 describe('EpisodeGlassCard.module.css -- Befund B Baustein-Reinheit', () => {
   it('deklariert kein eigenes display:flex/flex-direction/display:grid mehr', () => {
@@ -44,11 +45,19 @@ describe('EpisodeGlassCard.module.css -- Befund B Baustein-Reinheit', () => {
     expect(codeOnly).not.toMatch(/display:\s*grid/)
   })
 
-  it('behaelt .versionLists asymmetrische Polsterung als einzige dokumentierte Ausnahme', () => {
+  it('.versionList traegt nur noch die Card variant="flat"-Groessenkorrektur (kein eigenes padding/border-top mehr)', () => {
     const source = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.module.css'), 'utf8')
     const versionListRule = source.match(/\.versionList\s*\{([^}]+)\}/)?.[1]
     expect(versionListRule, '.versionList must exist').toBeTruthy()
-    expect(versionListRule).toMatch(/padding:\s*var\(--space-3\)\s+var\(--space-4\)\s+var\(--space-4\)/)
+    // Der Innenabstand kommt jetzt aus Card padding="dividedSection", die Trennlinie aus einem
+    // eigenstaendigen Divider-Element -- hier bleiben nur die drei Korrekturen, die Cards
+    // variant="flat"-Rahmen/-Rundung/-Flaeche auf das vorherige, randlose Erscheinungsbild
+    // zuruecksetzen.
+    expect(versionListRule).toMatch(/border-width:\s*0/)
+    expect(versionListRule).toMatch(/border-radius:\s*0/)
+    expect(versionListRule).toMatch(/background:\s*transparent/)
+    expect(versionListRule).not.toMatch(/padding:/)
+    expect(versionListRule).not.toMatch(/border-top:/)
   })
 })
 
@@ -86,7 +95,31 @@ describe('EpisodeGlassCard -- Kopfzeile/Versionsliste ueber Cluster/Stack statt 
     const panel = container.querySelector('#panel-2')
     expect(panel).not.toBeNull()
     const releaseRow = screen.getByTestId('release-row')
-    // Stack rendert als eigenes Element zwischen dem Panel-div und der durchgereichten Zeile.
+    // Stack rendert als eigenes Element zwischen der Card (traegt jetzt panelId) und der
+    // durchgereichten Zeile.
     expect(releaseRow.parentElement?.parentElement).toBe(panel)
+
+    // Die vormalige border-top-Trennlinie ist jetzt ein echtes, eigenstaendiges Divider-Element
+    // direkt VOR der Card, die panelId traegt.
+    const divider = container.querySelector('hr[aria-hidden="true"]')
+    expect(divider).not.toBeNull()
+    expect(divider?.nextElementSibling).toBe(panel)
+  })
+
+  it('rendert weder Versionsliste noch Trennlinie, wenn zugeklappt', () => {
+    const { container } = render(
+      <EpisodeGlassCard
+        episode={buildEpisode()}
+        episodeTitle="Der erste Kirschblütentag"
+        expanded={false}
+        onToggle={() => {}}
+        panelId="panel-3"
+      >
+        <span data-testid="release-row">Zeile</span>
+      </EpisodeGlassCard>,
+    )
+
+    expect(container.querySelector('#panel-3')).toBeNull()
+    expect(container.querySelector('hr[aria-hidden="true"]')).toBeNull()
   })
 })
