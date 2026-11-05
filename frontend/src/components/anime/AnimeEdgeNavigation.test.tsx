@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import fs from 'node:fs'
 import path from 'node:path'
-import { act, cleanup, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getAnimeList } from '@/lib/api'
@@ -124,5 +124,47 @@ describe('AnimeEdgeNavigation.module.css', () => {
     const previewCardRule = css.match(/\.previewCard\s*\{([^}]+)\}/)?.[1]
     expect(previewCardRule, '.previewCard must exist').toBeTruthy()
     expect(previewCardRule).toMatch(/top:\s*calc\(100% \+ var\(--space-2\)\);/)
+  })
+
+  /*
+   * Runde 5, Befund-Review2-R2 (192-32): .previewCovers Rundung kommt jetzt aus
+   * ResponsiveImages roundedThumbnail-Prop, .previewCards Hoechstbreite aus Cards
+   * widthPurpose="compactPreview" -- beide Werte duerfen hier nicht mehr lokal stehen.
+   */
+  it('.previewCover deklariert keine eigene border-radius mehr, .previewCard keine eigene width mehr', () => {
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/anime/AnimeEdgeNavigation.module.css'), 'utf8')
+    const previewCoverRule = css.match(/\.previewCover\s*\{([^}]+)\}/)?.[1]
+    expect(previewCoverRule, '.previewCover must exist').toBeTruthy()
+    expect(previewCoverRule).not.toMatch(/border-radius\s*:/)
+    expect(previewCoverRule).not.toMatch(/object-fit\s*:/)
+
+    const previewCardRule = css.match(/\.previewCard\s*\{([^}]+)\}/)?.[1]
+    expect(previewCardRule, '.previewCard must exist').toBeTruthy()
+    expect(previewCardRule).not.toMatch(/\bwidth\s*:/)
+  })
+})
+
+describe('AnimeEdgeNavigation -- Runde 5: Vorschaubild-Rundung/Kartenbreite ueber Grundbaustein-Faehigkeiten', () => {
+  it('wendet beim Hover auf das naechste Element ResponsiveImages roundedThumbnail-Klasse und Cards compactPreview-Breiten-Override an', async () => {
+    render(
+      <AnimeEdgeNavigation
+        currentAnimeID={3}
+        gridQuery={query(2)}
+        previous={navItem(2, 1, 'prev')}
+        next={navItem(4, 2, 'next')}
+      />,
+    )
+
+    const nextLink = screen.getByRole('link', { name: 'Nächster Anime: Anime 4' })
+    await act(async () => { fireEvent.mouseEnter(nextLink) })
+
+    const previewImage = await screen.findByRole('img', { name: 'Anime 4' })
+    expect(previewImage.className).toMatch(/roundedThumbnail/)
+
+    // Card setzt die kompakte Vorschaubreite als Inline-Style-Override statt einer eigenen
+    // lokalen CSS-`width`-Deklaration (siehe Card.tsx's widthPurpose-Mechanismus).
+    const previewCardSection = previewImage.closest('section')
+    expect(previewCardSection).not.toBeNull()
+    expect(previewCardSection?.getAttribute('style')).toMatch(/--card-width-override/)
   })
 })

@@ -1,4 +1,7 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -123,5 +126,31 @@ describe('ReleasePreviewRow -- Befund 20 Spaltenausrichtung', () => {
     const stackElement = groupName.parentElement
     expect(stackElement).not.toBeNull()
     expect(stackElement?.parentElement?.children).toHaveLength(1)
+  })
+})
+
+/*
+ * Runde 5, Befund-Review2-R2 (192-32): der dezente Rand "auf dunkler Flaeche" des Gruppenlogos
+ * kommt jetzt aus Avatars eigenem `bordered`-Prop (Plan 192-29) statt aus einer lokalen
+ * `.logo { border: ... }`-Deklaration in ReleasePreviewRow.module.css.
+ */
+describe('ReleasePreviewRow -- Runde 5: Avatar-Rand ueber bordered-Prop statt lokaler CSS', () => {
+  it('rendert jedes Gruppenlogo-Avatar mit der avatarBordered-Modifikatorklasse', () => {
+    const version = buildVersion({
+      fansub_groups: [
+        { id: 1, slug: 'demo-fansub-gruppe', name: 'Demo Fansub-Gruppe', logo_url: '/covers/placeholder.jpg' },
+      ],
+    })
+    const { container } = render(<ReleasePreviewRow version={version} animeID={1} />)
+
+    const avatarRoot = container.querySelector('span[title]')
+    expect(avatarRoot).not.toBeNull()
+    expect(avatarRoot?.className).toMatch(/avatarBordered/)
+  })
+
+  it('ReleasePreviewRow.module.css deklariert keine eigene .logo-Rand-Regel mehr', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/fansubs/ReleasePreviewRow.module.css'), 'utf8')
+    expect(css).not.toMatch(/\.logo\s*\{/)
+    expect(css).not.toMatch(/border\s*:/)
   })
 })
