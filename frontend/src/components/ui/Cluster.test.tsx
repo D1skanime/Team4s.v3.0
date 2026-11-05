@@ -68,6 +68,13 @@ describe('Cluster', () => {
     )
   })
 
+  it('setzt den neuen Zweck "secondaryActionRow" (dichte, rechtsbündige Sekundär-Aktions-Reihe, fünfte Gap-Closure-Runde) als eigene CSS-Variable', () => {
+    const { container } = render(<Cluster gap="secondaryActionRow">Inhalt</Cluster>)
+    expect((container.firstElementChild as HTMLElement).style.getPropertyValue('--cluster-gap')).toBe(
+      'var(--space-secondary-action-row)',
+    )
+  })
+
   it('bleibt ohne collapseBelow/float ein einzelnes, unveraendertes Element (Zero-Pixel-Diff fuer jeden bestehenden Aufrufer)', () => {
     const { container } = render(<Cluster>Inhalt</Cluster>)
     const node = container.firstElementChild as HTMLElement
