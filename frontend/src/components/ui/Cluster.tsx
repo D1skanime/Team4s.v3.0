@@ -72,6 +72,15 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
   align?: 'start' | 'center' | 'end' | 'baseline' | 'stretch'
   /** Hauptachsen-Verteilung der Kinder (Standard 'start'). */
   justify?: ClusterJustify
+  /** Hauptachsen-Verteilung unterhalb von 767px -- ohne Angabe gilt derselbe Wert wie `justify`
+   *  (identischer Override-Hook-Mechanismus wie Stacks alignBelowMd, siehe dort für die Begründung
+   *  gegen ein Button.fullWidthBelowMd-artiges Muster). */
+  justifyBelowMd?: ClusterJustify
+  /** Lässt GENAU das erste Kind wachsen (flex:1 1 0%, min-width:0 als Standard-Flexbox-Idiom gegen
+   *  Überlauf) -- für eine Titel-Zeile, deren Heading den nach einem fix breiten Logo verbleibenden
+   *  Platz einnehmen soll. Wirkt praktisch nur oberhalb des collapseBelow-Haltepunkts (im gestapelten
+   *  Zustand ist die Hauptachse die Höhe, kein begrenzender Container). */
+  growFirstChild?: boolean
   /** Umbruch bei fehlendem Platz (Standard true). */
   wrap?: boolean
   /** Haltepunkt, unterhalb dessen Cluster von einer horizontalen Zeile auf eine gestapelte Spalte
@@ -129,6 +138,8 @@ export function Cluster({
   gap = 'badgeRow',
   align = 'center',
   justify = 'start',
+  justifyBelowMd,
+  growFirstChild,
   wrap = true,
   collapseBelow,
   gapCollapsed,
@@ -146,11 +157,16 @@ export function Cluster({
     '--cluster-justify': JUSTIFY_KEYWORDS[justify],
     '--cluster-wrap': wrap ? 'wrap' : 'nowrap',
     ...(gapCollapsed !== undefined ? { '--cluster-gap-collapsed': GAP_PURPOSE_TOKENS[gapCollapsed] } : {}),
+    ...(justifyBelowMd !== undefined ? { '--cluster-justify-below-md': JUSTIFY_KEYWORDS[justifyBelowMd] } : {}),
   } as CSSProperties
 
   if (collapseBelow === undefined && float === undefined) {
     return (
-      <Component {...props} style={mergedStyle} className={classNames(styles.cluster, className)}>
+      <Component
+        {...props}
+        style={mergedStyle}
+        className={classNames(styles.cluster, growFirstChild && styles.clusterGrowFirstChild, className)}
+      >
         {children}
       </Component>
     )
@@ -179,6 +195,7 @@ export function Cluster({
         className={classNames(
           styles.cluster,
           collapseBelow === 'md' && styles.collapsibleMd,
+          growFirstChild && styles.clusterGrowFirstChild,
           float === 'controlBand' && styles.floatControlBand,
         )}
       >

@@ -102,6 +102,11 @@ export interface StackProps extends HTMLAttributes<HTMLElement> {
   gap?: StackGapPurpose | StackGapPurpose[]
   /** Querachsen-Ausrichtung der Kinder (Standard 'stretch'). */
   align?: 'start' | 'center' | 'end' | 'stretch'
+  /** Querachsen-Ausrichtung unterhalb von 767px -- ohne Angabe gilt derselbe Wert wie `align` (CSS-
+   *  Fallback-Kette, kein zweiter Pflichtwert, identischer Override-Hook-Mechanismus wie Cards
+   *  --card-padding-override/--card-width-override, NICHT Buttons hartcodiertes fullWidthBelowMd --
+   *  dort genügt ein reiner Boolean, hier wird einer von vier Enum-Werten gebraucht). */
+  alignBelowMd?: 'start' | 'center' | 'end' | 'stretch'
   /** Zu rendernde Element-Art (Standard 'div'). */
   as?: ElementType
   className?: string
@@ -118,6 +123,7 @@ export interface StackProps extends HTMLAttributes<HTMLElement> {
 export function Stack({
   gap = 'independentBlocks',
   align = 'stretch',
+  alignBelowMd,
   as: Component = 'div',
   className,
   children,
@@ -143,7 +149,12 @@ export function Stack({
     return (
       <Component
         {...props}
-        style={{ ...style, '--stack-gap': '0', '--stack-align': align } as CSSProperties}
+        style={{
+          ...style,
+          '--stack-gap': '0',
+          '--stack-align': align,
+          ...(alignBelowMd !== undefined ? { '--stack-align-below-md': alignBelowMd } : {}),
+        } as CSSProperties}
         className={classNames(styles.stack, className)}
       >
         {childArray.map((child, index) =>
@@ -162,7 +173,12 @@ export function Stack({
   return (
     <Component
       {...props}
-      style={{ ...style, '--stack-gap': resolveGapValue(gap), '--stack-align': align } as CSSProperties}
+      style={{
+        ...style,
+        '--stack-gap': resolveGapValue(gap),
+        '--stack-align': align,
+        ...(alignBelowMd !== undefined ? { '--stack-align-below-md': alignBelowMd } : {}),
+      } as CSSProperties}
       className={classNames(styles.stack, className)}
     >
       {children}

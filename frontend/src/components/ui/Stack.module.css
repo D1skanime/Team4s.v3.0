@@ -10,3 +10,13 @@
   align-items: var(--stack-align, stretch);
   min-width: 0;
 }
+
+/* Override-Hook für eine abweichende Querachsen-Ausrichtung unterhalb von 767px (alignBelowMd-
+   Prop) -- Fallback-Kette fällt ohne Angabe auf den normalen --stack-align-Wert zurück, dann auf
+   den harten Basis-Default. Derselbe 767px-Haltepunkt wie alle übrigen Mobil-Regeln der
+   Anime-Detailseite, bewusst NICHT Clusters 768px-Container-Query-Konvention. */
+@media (max-width: 767px) {
+  .stack {
+    align-items: var(--stack-align-below-md, var(--stack-align, stretch));
+  }
+}

@@ -8,6 +8,17 @@
   min-width: 0;
 }
 
+/* Override-Hook für eine abweichende Hauptachsen-Verteilung unterhalb von 767px (justifyBelowMd-
+   Prop) -- Fallback-Kette fällt ohne Angabe auf den normalen --cluster-justify-Wert zurück, dann
+   auf den harten Basis-Default. Wirkt auf BEIDE Rendering-Pfade (siehe Cluster.tsx), da sowohl das
+   Einzelstufen-Element als auch das innere Flex-Element des Zweistufen-Pfads die Klasse .cluster
+   tragen. */
+@media (max-width: 767px) {
+  .cluster {
+    justify-content: var(--cluster-justify-below-md, var(--cluster-justify, flex-start));
+  }
+}
+
 /* Äußerer Container fürs zweistufige collapseBelow/float-Rendering (siehe Cluster.tsx): trägt
    NUR `container`/`min-width` -- ein Element darf laut CSS-Spezifikation nicht gleichzeitig der
    eigene Container-Namensgeber UND das von dessen @container-Abfrage umgeordnete Element sein
@@ -73,4 +84,13 @@
   .floatControlBand {
     padding: var(--overlay-padding-control-band-mobile);
   }
+}
+
+/* growFirstChild-Prop (siehe Cluster.tsx): Standard-Flexbox-Idiom für ein wachsendes Textkind --
+   min-width:0 erlaubt internes Umbrechen/Schrumpfen statt Überlauf am min-content. Kein Konflikt
+   mit dem Komposit-Reinheits-Wächter: min-width ist kein width/height im Sinne seiner
+   verbotenen Muster (nur ohne min-/max-Präfix erfasst). */
+.clusterGrowFirstChild > :first-child {
+  flex: 1 1 0%;
+  min-width: 0;
 }
