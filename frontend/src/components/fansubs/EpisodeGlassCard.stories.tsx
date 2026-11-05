@@ -55,9 +55,9 @@ function EpisodeGlassCardDemo({
 
 /** Episodenkarte für den öffentlichen Fansub-/Release-Browser -- besteht aus Card (Glas-Fläche +
  *  Tönungs-Hook, zusätzlich verschachtelt für die aufgeklappte Versionsliste), DisclosureTrigger
- *  (auf-/zuklappbare Kopfzeile), Divider (Trennlinie vor der Versionsliste) und Text
- *  (Episodennummer/-titel/Klassifikation/Versionszähler). Rendert immer auf Bannerhintergrund
- *  (konsistent mit Ebene 1). */
+ *  (auf-/zuklappbare Kopfzeile), Divider (Trennlinie vor der Versionsliste), Text
+ *  (Episodennummer/-titel/Klassifikation/Versionszähler) und StackingRow (responsive Kopfzeile).
+ *  Rendert immer auf Bannerhintergrund (konsistent mit Ebene 1). */
 const meta = {
   title: 'Zusammengesetzte Bausteine/EpisodenKarte',
   component: EpisodeGlassCardDemo,
@@ -71,9 +71,10 @@ const meta = {
           `aufgeklappte Versionsliste), ${storybookDocsLink('Grundbausteine/DisclosureTrigger', 'DisclosureTrigger')} ` +
           `(Kopfzeile), ${storybookDocsLink('Grundbausteine/Divider', 'Divider')} (Trennlinie vor der ` +
           `Versionsliste), ${storybookDocsLink('Grundbausteine/Text', 'Text')} (Episodennummer/-titel/` +
-          `Klassifikation/Versionszähler) und ${storybookDocsLink('Grundbausteine/Cluster', 'Cluster')} ` +
-          '(responsive Kopfzeile: `growFirstChild` lässt Titel und Klassifikation neben dem festen ' +
-          'Versionszähler im verbleibenden Platz umbrechen). Die Episodentyp→Farbton-Zuordnung (canon/filler/mixed/recap) ' +
+          `Klassifikation/Versionszähler) und ${storybookDocsLink('Grundbausteine/StackingRow', 'StackingRow')} ` +
+          '(responsive Kopfzeile: ordnet Titelblock und Versionszähler nebeneinander an und stapelt sie ' +
+          'stattdessen untereinander, sobald der eigene Platz im Titel-Slot der aufgeklappten Kopfzeile ' +
+          'dafür nicht reicht). Die Episodentyp→Farbton-Zuordnung (canon/filler/mixed/recap) ' +
           'ist Domänenwissen dieser Komponente, nicht von Card.',
       },
     },
@@ -171,7 +172,9 @@ export const LangerTitel: Story = {
     docs: {
       description: {
         story:
-          'Responsiver Kopfzeilenfall: Der lange Titel und die Klassifikation nutzen über `Cluster.growFirstChild` den verbleibenden Platz; der Versionszähler bleibt vollständig sichtbar.',
+          'Responsiver Kopfzeilenfall: Reicht der eigene Platz des Titel-Slots nicht für Titelblock und ' +
+          'Versionszähler nebeneinander (z. B. auf schmaler Bildschirmbreite), stapelt StackingRow beide ' +
+          'stattdessen untereinander -- siehe Grundbausteine/StackingRow für die isolierte Demo.',
       },
     },
   },

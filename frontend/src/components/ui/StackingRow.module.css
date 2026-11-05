@@ -1,0 +1,37 @@
+/* Äußerer Container: reiner @container-Namensgeber, trägt keine eigene Layout-Eigenschaft
+   (identisches Zweistufen-Muster wie Cluster.module.css/SplitLayout.module.css). */
+.stackingRowQueryContainer {
+  container: stacking-row / inline-size;
+  min-width: 0;
+}
+
+/* Gestapelter Standardzustand: untereinander, jedes Teil auf voller Breite -- greift, solange
+   der eigene Container-Platz nicht für die Zeilen-Anordnung reicht. */
+.stackingRow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--stacking-row-gap-stacked, var(--space-independent-blocks));
+  min-width: 0;
+}
+
+/* Erstes Teil wächst in der Zeilen-Anordnung auf den nach dem zweiten Teil verbleibenden Platz
+   (min-width:0 erlaubt internes Umbrechen/Schrumpfen statt Überlauf am min-content) -- im
+   gestapelten Zustand ohne sichtbare Wirkung (Hauptachse ist dort die Höhe, kein begrenzender
+   Container). */
+.stackingRow > :first-child {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* Zeilen-Anordnung: sobald der eigene Container-Platz reicht, Teile nebeneinander,
+   Hauptbeschriftung links wachsend, zweites Teil rechtsbündig vertikal zentriert (der Aufrufer
+   hält das zweite Teil selbst undurchbrechbar, z. B. flex-shrink:0/white-space:nowrap). */
+@container stacking-row (min-width: 20rem) {
+  .stackingRow {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--stacking-row-gap, var(--space-label-with-trailing-meta));
+  }
+}

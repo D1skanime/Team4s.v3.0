@@ -3,10 +3,10 @@
 import type { ReactNode } from 'react'
 
 import { Card } from '@/components/ui/Card'
-import { Cluster } from '@/components/ui/Cluster'
 import { DisclosureTrigger } from '@/components/ui/DisclosureTrigger'
 import { Divider } from '@/components/ui/Divider'
 import { Stack } from '@/components/ui/Stack'
+import { StackingRow } from '@/components/ui/StackingRow'
 import { Text } from '@/components/ui/Text'
 import type { PublicGroupedEpisode } from '@/types/episodeVersion'
 
@@ -64,14 +64,7 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
           aria-controls={panelId}
           open={expanded}
           title={
-            <Cluster
-              as="span"
-              gap="labelWithTrailingMeta"
-              justify="between"
-              align="center"
-              growFirstChild
-              wrap={false}
-            >
+            <StackingRow as="span" gap="labelWithTrailingMeta" gapStacked="independentBlocks">
               <span className={styles.headerText}>
                 <Text as="span" variant="meta" style={mutedOnGlassTextStyle} className={styles.episodeNumber}>
                   Folge {episode.episode_number}
@@ -86,7 +79,7 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
               <Text as="span" variant="meta" style={mutedOnGlassTextStyle} className={styles.versionCounter}>
                 {formatVersionCountLabel(episode.version_count)}
               </Text>
-            </Cluster>
+            </StackingRow>
           }
         />
 
