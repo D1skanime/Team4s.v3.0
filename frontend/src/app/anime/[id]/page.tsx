@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: AnimeDetailPageProps): Promis
 
 /**
  * Anime-Detailseite.
- * Laedt Anime-Daten sowie die textuellen Detailbereiche serverseitig. Backdrops und Theme-Videos
+ * Lädt Anime-Daten sowie die textuellen Detailbereiche serverseitig. Backdrops und Theme-Videos
  * werden nach dem ersten Render clientseitig geladen, damit das Cover sofort sichtbar ist.
  * Zeigt Poster, Beschreibung, Episodenliste mit Fansub-Filter sowie einen Kommentarbereich.
  */

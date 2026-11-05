@@ -51,10 +51,10 @@ function WatchlistAction({
 
   return (
     // relatedContent (8px): deckt den gemessenen, vormals rohen 0.45rem (7,2px)-Abstand ab -- eng
-    // zusammengehoerige Inhalte (der Watchlist-Aktions-Knopf und seine Status-/Wiederholungs-
-    // Meldung) dicht zusammen, exakt derselbe Zweck, den der Stack-Grundbaustein bereits fuer
+    // zusammengehörige Inhalte (der Watchlist-Aktions-Knopf und seine Status-/Wiederholungs-
+    // Meldung) dicht zusammen, exakt derselbe Zweck, den der Stack-Grundbaustein bereits für
     // diesen Fall dokumentiert (7,2px vs. 8px liegen unterhalb jeder sichtbaren
-    // Pixel-Rundungs-Schwelle, kein eigenes Token fuer diesen Sub-Pixel-Unterschied noetig).
+    // Pixel-Rundungs-Schwelle, kein eigenes Token für diesen Sub-Pixel-Unterschied nötig).
     <Stack gap="relatedContent">
       <Button
         variant={variant}

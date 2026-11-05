@@ -25,7 +25,7 @@ const singleFansub: AnimeFansubRelation[] = [fansubs[0]]
 const noFansubs: AnimeFansubRelation[] = []
 // GAP-11: filler_type_label/episode_type_label kommen von der DB (164-10-Backfill) statt einer
 // hardcodierten Frontend-Map; diese Konstante spiegelt nur Fixture-Defaultwerte, keine
-// Wiedereinfuehrung der entfernten Frontend-Label-Map.
+// Wiedereinführung der entfernten Frontend-Label-Map.
 const DEFAULT_CLASSIFICATION = {
   filler_type: 'unknown', episode_type: 'episode',
   filler_type_label: 'Unbekannt', episode_type_label: 'Episode',
@@ -35,7 +35,7 @@ const DEFAULT_CLASSIFICATION = {
  * 164-05: "Weitere Episoden laden" ist ein Button-Klick-Mechanismus D-27 hat ihn durch einen
  * Bottom-Sentinel (IntersectionObserver) ersetzt. Manueller Stub (analog
  * useNearViewportActivation.test.ts), jede Instanz wird erfasst, damit ein Test "den Observer,
- * der dieses Sentinel-Element beobachtet" gezielt manuell ausloesen kann.
+ * der dieses Sentinel-Element beobachtet" gezielt manuell auslösen kann.
  */
 class MockIntersectionObserver {
   static instances: MockIntersectionObserver[] = []
@@ -70,20 +70,20 @@ beforeEach(() => {
   groupedMock.mockReset()
   MockIntersectionObserver.instances = []
   vi.stubGlobal('IntersectionObserver', MockIntersectionObserver)
-  // D-01: der Gruppenzustand lebt ausschliesslich in der URL -- Rueckstellung verhindert
-  // Testverschmutzung ueber window.history hinweg (kein localStorage mehr zu leeren).
+  // D-01: der Gruppenzustand lebt ausschliesslich in der URL -- Rückstellung verhindert
+  // Testverschmutzung über window.history hinweg (kein localStorage mehr zu leeren).
   window.history.pushState(null, '', '/')
 })
 afterEach(async () => { await act(async () => {}); cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('authoritative anime project navigation', () => {
-  it('verlinkt Zur-Fansub-Gruppe und Zum-Projekt ueber die jeweils aktive Gruppen-Slug (direkter Hook-Aufruf statt fireEvent.click)', async () => {
+  it('verlinkt Zur-Fansub-Gruppe und Zum-Projekt über die jeweils aktive Gruppen-Slug (direkter Hook-Aufruf statt fireEvent.click)', async () => {
     // Die Gruppenwechsel-Fachlogik (welche Gruppe nach einem Klick aktiv ist) lebt in
     // useFansubGroupSwitch; die href-Bauweise selbst (FansubGroupContext liest
     // activeGroup.slug direkt in ein Button-href-Template) ist trivial. Statt eines echten
     // DOM-Klicks auf die Gruppenumschalter-Buttons wird updateFansubSelection hier direkt per
     // renderHook aufgerufen und die daraus resultierende aktive Gruppen-Slug gegen dieselben
-    // Pfad-Bauer geprueft, die FansubGroupContext tatsaechlich verwendet.
+    // Pfad-Bauer geprüft, die FansubGroupContext tatsächlich verwendet.
     const { result } = renderHook(() => useFansubGroupSwitch({
       fansubOptions: fansubs,
       resetForFilter: async (): Promise<ResetForFilterResult> => ({ ok: true, episodeCount: 0 }),
@@ -105,9 +105,9 @@ describe('authoritative anime project navigation', () => {
     expect(buildPublicFansubProjectPath(activeSlug()!, 'stored-anime')).toBe('/fansubs/saved-secondary/fansubprojekt/stored-anime')
   })
 
-  it('nutzt fuer Zum-Projekt weiterhin den bestehenden Encoder samt Trimmen', () => {
+  it('nutzt für Zum-Projekt weiterhin den bestehenden Encoder samt Trimmen', () => {
     render(<FansubVersionBrowser animeID={22} animeSlug=" stored/anime " fansubs={[{ ...fansubs[0], fansub_group: { id: 7, slug: ' saved-group ', name: 'Kein Slug' } }]} episodes={[]} />)
-    // Genau eine Gruppe -> automatisch aktiv, kein Klick noetig.
+    // Genau eine Gruppe -> automatisch aktiv, kein Klick nötig.
     expect(screen.getByRole('link', { name: 'Zum Projekt' }).getAttribute('href')).toBe('/fansubs/saved-group/fansubprojekt/stored%2Fanime')
   })
 
@@ -139,7 +139,7 @@ describe('authoritative anime project navigation', () => {
     // Ausklapp-Zustand -- kein Klick nötig, um den echten (nicht erfundenen) Titel zu belegen.
     const toggle = screen.getByRole('button', { name: /Gespeicherter Episodentitel/ })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    // D-15: der Hinweisblock "Keine Version dieser Gruppe verfuegbar." entfaellt ersatzlos --
+    // D-15: der Hinweisblock "Keine Version dieser Gruppe verfügbar." entfällt ersatzlos --
     // der Server liefert nie mehr eine Episode ohne mindestens eine passende Version.
     expect(screen.queryByText('Keine Version dieser Gruppe verfügbar.')).toBeNull()
     // Die Ausklapp-ÜBERGANGSLOGIK selbst ist eine reine Funktion (toggleEpisodeExpansion) --
@@ -148,7 +148,7 @@ describe('authoritative anime project navigation', () => {
   })
 
   it('gives the glass episode card a neutral surface (unknown) and no bespoke opaque-card color token', () => {
-    // 164-04: die weisse, opake Episode-Card wird durch eine glasige, klassifikationsgetoente
+    // 164-04: die weisse, opake Episode-Card wird durch eine glasige, klassifikationsgetönte
     // ersetzt (D-05). Die alten .episodeCard/.episodeHeader-Klassen sind entfernt.
     const browserCss = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubVersionBrowser.module.css'), 'utf8')
     expect(browserCss).not.toContain('.episodeCard')
@@ -209,7 +209,7 @@ describe('FansubVersionBrowser -- gemeinsamer Rhythmus-Stack statt drei verstreu
     expect(css).not.toMatch(/margin-top\s*:/)
   })
 
-  it('rendert die Ueberschrift und beide Sentinels mit Inline-Stil statt CSS-Modul-Klasse fuer die 1px-Ankerhoehe', () => {
+  it('rendert die Ueberschrift und beide Sentinels mit Inline-Stil statt CSS-Modul-Klasse für die 1px-Ankerhöhe', () => {
     render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={stateEpisodes} />)
     const topSentinel = screen.getByTestId('top-sentinel')
     const bottomSentinel = screen.getByTestId('bottom-sentinel')
@@ -219,7 +219,7 @@ describe('FansubVersionBrowser -- gemeinsamer Rhythmus-Stack statt drei verstreu
     expect(bottomSentinel.className).toBe('')
   })
 
-  it('traegt bei mehreren Gruppen UND aktivem Gruppen-Kontext die Gruppen-Kontext->Inhalt-Luecke "supportingBlockToContent" vor dem Inhalts-Block', () => {
+  it('trägt bei mehreren Gruppen UND aktivem Gruppen-Kontext die Gruppen-Kontext->Inhalt-Lücke "supportingBlockToContent" vor dem Inhalts-Block', () => {
     render(stateBrowser())
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
     // Der Episoden-Inhalts-Block (letztes Rhythmus-Kind) trägt die vom Rhythmus-Array gesetzte
@@ -232,7 +232,7 @@ describe('FansubVersionBrowser -- gemeinsamer Rhythmus-Stack statt drei verstreu
     expect(rhythmWrapper?.style.marginTop).toBe('var(--space-supporting-block-to-content)')
   })
 
-  it('traegt bei einer einzigen Gruppe ohne Gruppen-Kontext dieselbe Gruppen-Auswahl->Inhalt-Luecke "primaryContentBlocks" vor dem Inhalts-Block', () => {
+  it('trägt bei einer einzigen Gruppe ohne Gruppen-Kontext dieselbe Gruppen-Auswahl->Inhalt-Lücke "primaryContentBlocks" vor dem Inhalts-Block', () => {
     render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={stateEpisodes} />)
     fireEvent.click(screen.getByRole('button', { name: 'Alle' }))
     expect(screen.queryByTestId('fansub-group-context')).toBeNull()
@@ -260,7 +260,7 @@ describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)
     ['filler', 'Zusatzfolge'],
     ['mixed', 'Teilweise Zusatzfolge'],
     ['recap', 'Rückblick'],
-  ] as const)('Testfall %s: rendert die Kartentoenung und das Klassifikations-Label', (fillerType, label) => {
+  ] as const)('Testfall %s: rendert die Kartentönung und das Klassifikations-Label', (fillerType, label) => {
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ filler_type: fillerType, filler_type_label: label })]} />)
     expect(screen.getByText(new RegExp(label))).toBeTruthy()
   })
@@ -288,7 +288,7 @@ describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ versions: [withLogo] })]} />)
     fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
     // alt="" ist dekorativ und entfernt das <img> bewusst aus der role="img"-Accessibility-
-    // Baumsicht (ARIA-Praesentationsrolle) -- getByAltText findet es trotzdem ueber das Attribut.
+    // Baumsicht (ARIA-Präsentationsrolle) -- getByAltText findet es trotzdem über das Attribut.
     expect(screen.getByAltText('').getAttribute('src')).toBeTruthy()
   })
 
@@ -318,12 +318,12 @@ describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ versions: [withExtras] })]} />)
     fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
     // testing-library normalisiert Whitespace beim Textvergleich -- die drei Leerzeichen
-    // zwischen den Extras-Icons kollabieren auf eines, der DOM-Wert selbst bleibt unveraendert.
+    // zwischen den Extras-Icons kollabieren auf eines, der DOM-Wert selbst bleibt unverändert.
     expect(screen.getByText('📷 Bilder ♪ Karaoke')).toBeTruthy()
     expect(screen.queryByText(/📝 Notizen/)).toBeNull()
   })
 
-  it('Testfall 17: ohne Extras entfaellt die Zeile vollstaendig', async () => {
+  it('Testfall 17: ohne Extras entfällt die Zeile vollständig', async () => {
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode()]} />)
     fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
     expect(screen.queryByText(/📷 Bilder|📝 Notizen|♪ Karaoke/)).toBeNull()
@@ -399,12 +399,12 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     expect(screen.getByRole('heading', { name: fansubs[0].fansub_group!.name })).toBeTruthy()
   })
 
-  it('Testfall D: waehlt bei 2+ Gruppen ohne URL-Parameter automatisch Alle, Gruppenbereich vollstaendig ausgeblendet', () => {
+  it('Testfall D: wählt bei 2+ Gruppen ohne URL-Parameter automatisch Alle, Gruppenbereich vollständig ausgeblendet', () => {
     render(stateBrowser())
     assertAllSelected()
   })
 
-  it('Testfall E/F: ein Chip-Wechsel zeigt vollstaendig den Inhalt der neu gewaehlten Gruppe (Server-Refetch statt Client-Filter, D-07)', async () => {
+  it('Testfall E/F: ein Chip-Wechsel zeigt vollständig den Inhalt der neu gewählten Gruppe (Server-Refetch statt Client-Filter, D-07)', async () => {
     render(stateBrowser())
     fireEvent.click(screen.getByRole('button', { name: /Gruppenfolge/ }))
     groupedMock.mockResolvedValueOnce(publicPage([
@@ -433,7 +433,7 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     assertGroup(9)
   })
 
-  it('Testfall H: ein ungueltiger/entfernter initialActiveSlug faellt sauber auf Alle zurueck, ohne Fehler', () => {
+  it('Testfall H: ein ungültiger/entfernter initialActiveSlug fällt sauber auf Alle zurück, ohne Fehler', () => {
     render(stateBrowser(fansubs, 22, 'does-not-exist'))
     assertAllSelected()
   })
@@ -455,27 +455,27 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     expect(params.get('fansub')).toBe('saved-primary')
   })
 
-  it('Browser Zurueck/Vor stellt ueber popstate die vorherige Gruppenauswahl wieder her, MIT Refetch (D-09)', async () => {
+  it('Browser Zurück/Vor stellt über popstate die vorherige Gruppenauswahl wieder her, MIT Refetch (D-09)', async () => {
     render(stateBrowser())
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
     expect(screen.getByRole('button', { name: 'Anderer Gruppenname' }).getAttribute('aria-pressed')).toBe('true')
     groupedMock.mockClear()
     groupedMock.mockResolvedValueOnce({ data: { anime_id: 22, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
-    // Simuliert einen Browser-Zurueck-Schritt: die URL verliert den Parameter wieder,
+    // Simuliert einen Browser-Zurück-Schritt: die URL verliert den Parameter wieder,
     // ein popstate-Event feuert (kein erneuter pushState durch die Komponente selbst).
-    // D-09: "immer neu laden" -- kein Cache pro Gruppe, auch bei Zurueck/Vor.
+    // D-09: "immer neu laden" -- kein Cache pro Gruppe, auch bei Zurück/Vor.
     act(() => {
       window.history.pushState(null, '', window.location.pathname)
       window.dispatchEvent(new PopStateEvent('popstate'))
     })
     assertAllSelected()
-    // Kein "fansub"-Schluessel: die URL nach dem Zurueck-Schritt hat keinen Parameter mehr ("Alle").
+    // Kein "fansub"-Schlüssel: die URL nach dem Zurück-Schritt hat keinen Parameter mehr ("Alle").
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, {
       projection: 'public', limit: 24, signal: expect.any(AbortSignal),
     }), { timeout: 500 })
   })
 
-  it('Testfall I: eine Coop-Version erzeugt keinen dritten Chip, jede beteiligte Gruppe bleibt einzeln auswaehlbar (Server-Refetch, D-07)', async () => {
+  it('Testfall I: eine Coop-Version erzeugt keinen dritten Chip, jede beteiligte Gruppe bleibt einzeln auswählbar (Server-Refetch, D-07)', async () => {
     const coopVersion: PublicEpisodeVersion = {
       ...variant(30, 7),
       fansub_groups: [fansubs[0].fansub_group!, fansubs[1].fansub_group!],
@@ -484,8 +484,8 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={coopEpisodes} />)
     expect(screen.queryByText(/coop/i)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /Gemeinsame Folge/ }))
-    // Eine Coop-Version gehoert per Definition zu beiden Gruppen -- der server-gefilterte
-    // Refetch fuer jede der beiden Gruppen liefert dieselbe coopEpisodes-Antwort zurueck.
+    // Eine Coop-Version gehört per Definition zu beiden Gruppen -- der server-gefilterte
+    // Refetch für jede der beiden Gruppen liefert dieselbe coopEpisodes-Antwort zurück.
     groupedMock.mockResolvedValueOnce(publicPage(coopEpisodes))
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(1), { timeout: 500 })
@@ -622,16 +622,16 @@ function deferred<T>() {
   return { promise, resolve, reject }
 }
 describe('bounded public inventory continuation', () => {
-  // 164-05: dieser Testfall pruefte urspruenglich, dass Versionen EINER einzelnen 125-Versionen-
-  // Episode ueber mehrere Cursor-Pages hinweg client-seitig zu einer Karte zusammengefuehrt
+  // 164-05: dieser Testfall prüfte ursprünglich, dass Versionen EINER einzelnen 125-Versionen-
+  // Episode über mehrere Cursor-Pages hinweg client-seitig zu einer Karte zusammengeführt
   // werden (die alte mergeEpisodes-Funktion). Diese pre-existing-fehlschlagende Erwartung
   // (deferred-items.md, seit 164-02) ist mit dem neuen begrenzten Fenster (D-30) strukturell
-  // unvereinbar: jede Page ist unabhaengig auslagerbar/spacer-faehig (D-34) -- ein Zusammenfuehren
-  // ueber Page-Grenzen hinweg wuerde beim Auslagern einer Page die Haelfte der zusammengefuehrten
+  // unvereinbar: jede Page ist unabhängig auslagerbar/spacer-fähig (D-34) -- ein Zusammenführen
+  // über Page-Grenzen hinweg würde beim Auslagern einer Page die Hälfte der zusammengeführten
   // Episode mitentfernen. Ersetzt durch einen Test, der dieselben Aspekte (Gruppenwechsel-Refetch,
-  // Cursor-Fortsetzung ueber mehrere eigenstaendige Episoden, Ausklapp-Stabilitaet, Ende-Marker)
-  // mit dem tatsaechlich vertraglich gueltigen Modell abdeckt: mehrere DISTINKTE Episoden pro Page.
-  it('laedt mehrere eigenstaendige Episoden ueber Cursor-Pages hinweg und bleibt bei Gruppenwechseln konsistent', async () => {
+  // Cursor-Fortsetzung über mehrere eigenständige Episoden, Ausklapp-Stabilität, Ende-Marker)
+  // mit dem tatsächlich vertraglich gültigen Modell abdeckt: mehrere DISTINKTE Episoden pro Page.
+  it('lädt mehrere eigenständige Episoden über Cursor-Pages hinweg und bleibt bei Gruppenwechseln konsistent', async () => {
     const initialEpisode: PublicGroupedEpisode = { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Große Folge', version_count: 1, versions: [variant(100, 7)] }
     groupedMock.mockResolvedValueOnce(publicPage([
       { ...DEFAULT_CLASSIFICATION, episode_id: 60, episode_number: 2, episode_title: 'Zweite-Gruppe-Folge', version_count: 1, versions: [variant(200, 9)] },
@@ -666,7 +666,7 @@ describe('bounded public inventory continuation', () => {
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(3), { timeout: 500 })
     expect(screen.getByText('Erste Fortsetzungsfolge')).toBeTruthy()
     expect(screen.getByText('Zweite Fortsetzungsfolge')).toBeTruthy()
-    // Der Ausklapp-Zustand der ersten Fortsetzungsfolge ist ueber das Nachladen hinweg stabil.
+    // Der Ausklapp-Zustand der ersten Fortsetzungsfolge ist über das Nachladen hinweg stabil.
     expect(screen.getByRole('button', { name: /Erste Fortsetzungsfolge/ }).getAttribute('aria-expanded')).toBe('true')
     fireEvent.click(screen.getByRole('button', { name: /Zweite Fortsetzungsfolge/ }))
     expect(screen.getAllByRole('link', { name: 'Zum Release →' })).toHaveLength(2)
@@ -699,7 +699,7 @@ describe('bounded public inventory continuation', () => {
     await act(async () => {})
     const sentinel = screen.getByTestId('bottom-sentinel')
     act(() => { MockIntersectionObserver.fire(sentinel) })
-    act(() => { MockIntersectionObserver.fire(sentinel) }) // zweite Intersection waehrend die erste noch pendent ist -- Single-Flight.
+    act(() => { MockIntersectionObserver.fire(sentinel) }) // zweite Intersection während die erste noch pendent ist -- Single-Flight.
     expect(getGroupedEpisodes).toHaveBeenCalledTimes(1)
     await act(async () => pending.reject(new Error('test failure')))
     expect(screen.getByRole('alert').textContent).toContain('Weitere Episoden konnten nicht geladen werden.')
@@ -718,7 +718,7 @@ describe('bounded public inventory continuation', () => {
     rerender(<FansubVersionBrowser animeID={23} fansubs={[]} episodes={[]} pagination={continued('new')} />)
     await act(async () => {})
     expect(oldSignal?.aborted).toBe(true)
-    // Nach dem Route-Identity-Wechsel (animeID 22 -> 23) ist die Komponente vollstaendig neu
+    // Nach dem Route-Identity-Wechsel (animeID 22 -> 23) ist die Komponente vollständig neu
     // gemountet (key={animeID}) -- ein neues Sentinel-Element beobachten.
     act(() => { MockIntersectionObserver.fire(screen.getByTestId('bottom-sentinel')) })
     await act(async () => {

@@ -178,8 +178,8 @@ export function AnimeInfoBanner({
   return (
     <>
       {divider}
-      {/* fillWidth uebernimmt die volle Breiten-/Hoehenanpassung des Banners -- der Aufrufer
-          braucht dafuer kein eigenes CSS mehr zu deklarieren. */}
+      {/* fillWidth übernimmt die volle Breiten-/Höhenanpassung des Banners -- der Aufrufer
+          braucht dafür kein eigenes CSS mehr zu deklarieren. */}
       <ResponsiveImage src={bannerURL} alt="" fillWidth width={600} height={180} unoptimized />
     </>
   )

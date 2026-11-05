@@ -182,14 +182,14 @@ describe('anime detail integration without invented data', () => {
     }] } })
     groupedMock.mockRejectedValue(new ApiError(500, 'Versionen nicht verfügbar'))
     const content = await loadContent()
-    // Der Episoden-Badge auf dem Poster (Badge variant="onMedia", 261102-hlg) ist unabhaengig
-    // vom D-16-Bug und bleibt unveraendert -- deutsche Pluralisierung "Folgen" statt "Episodes".
+    // Der Episoden-Badge auf dem Poster (Badge variant="onMedia", 261102-hlg) ist unabhängig
+    // vom D-16-Bug und bleibt unverändert -- deutsche Pluralisierung "Folgen" statt "Episodes".
     expect(posterBadgeText(content)).toBe('12 Folgen')
     // D-16: die alte Notfall-Liste (anime.episodes, ungefiltert nach Release) darf nicht mehr rendern.
     expect(elements(content).some((item) => item.type === FansubVersionBrowser)).toBe(false)
-    // Seit 261102-hlg Task 7 rendert dieser Zweig ueber die offizielle ErrorState-Primitive --
+    // Seit 261102-hlg Task 7 rendert dieser Zweig über die offizielle ErrorState-Primitive --
     // title/description sind PROPS, keine materialisierten Children, deshalb Props-Prüfung
-    // statt textContent() (das nur ueber `.props.children` laeuft).
+    // statt textContent() (das nur über `.props.children` läuft).
     const errorState = elements(content).find((item) => item.type === ErrorState)
     expect(errorState?.props.title).toBe('Episoden konnten nicht geladen werden')
     expect(errorState?.props.description).toBe('Die Episodenliste ist derzeit nicht verfügbar. Bitte laden Sie die Seite neu.')
@@ -254,9 +254,9 @@ describe('anime detail integration without invented data', () => {
 
   it('hält die Randnavigations-Reihe nahe am oberen Hero-Rand statt vertikal über die ganze (ggf. sehr hohe) Hero-Karte zu zentrieren', () => {
     // Diese Positionierung lebt nicht als lokales CSS im Anime-Kopf-Baustein (kein eigenes
-    // .edgeNavigationOverlay), sondern vollstaendig in Cluster float="controlBand"
+    // .edgeNavigationOverlay), sondern vollständig in Cluster float="controlBand"
     // (Grundbaustein, siehe Cluster.module.css) -- AnimeDetailHero.tsx rendert die
-    // Randnavigation nur noch darueber.
+    // Randnavigation nur noch darüber.
     const heroTsx = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.tsx'), 'utf8')
     expect(heroTsx, 'AnimeDetailHero.tsx darf kein eigenes edgeNavigationOverlay-<div> mehr rendern').not.toMatch(/styles\.edgeNavigationOverlay/)
     expect(heroTsx).toMatch(/<Cluster float="controlBand" justify="center" gap="contentPair">/)
@@ -275,7 +275,7 @@ describe('anime detail integration without invented data', () => {
     expect(desktopRule).toMatch(/height:\s*var\(--overlay-height-control-band\);/)
   })
 
-  it('reicht searchParams.fansub unveraendert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
+  it('reicht searchParams.fansub unverändert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
     const boundary = await AnimeDetailPage({
       ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'bloody-shadow' }),
     })
@@ -287,13 +287,13 @@ describe('anime detail integration without invented data', () => {
     expect(browser?.props.initialActiveSlug).toBe('bloody-shadow')
   })
 
-  it('laesst initialActiveSlug undefined, wenn kein fansub-Query-Parameter vorhanden ist', async () => {
+  it('lässt initialActiveSlug undefined, wenn kein fansub-Query-Parameter vorhanden ist', async () => {
     const content = await loadContent()
     const browser = elements(content).find((item) => item.type === FansubVersionBrowser)
     expect(browser?.props.initialActiveSlug).toBeUndefined()
   })
 
-  it('D-11: reicht den ueber die Fansub-Relationen aufgeloesten Slug in die SSR-Episodenabfrage durch', async () => {
+  it('D-11: reicht den über die Fansub-Relationen aufgelösten Slug in die SSR-Episodenabfrage durch', async () => {
     vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [
       { anime_id: 22, fansub_group_id: 1, is_primary: true, created_at: '', fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } },
       { anime_id: 22, fansub_group_id: 2, is_primary: false, created_at: '', fansub_group: { id: 2, slug: 'beta-subs', name: 'Beta-Subs' } },
@@ -328,18 +328,18 @@ describe('anime detail integration without invented data', () => {
     expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, { projection: 'public', limit: 24 })
   })
 
-  it('enthaelt kein .fansubRow/.fansubChip-CSS mehr (D-13, ersatzlos entfernt)', () => {
+  it('enthält kein .fansubRow/.fansubChip-CSS mehr (D-13, ersatzlos entfernt)', () => {
     const css = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
     expect(css).not.toMatch(/\.fansubRow|\.fansubChip/)
   })
 
-  // page.module.css wurde ueber das 450-Zeilen-Limit hinweg aufgeteilt -- totes CSS (0 Treffer
+  // page.module.css wurde über das 450-Zeilen-Limit hinweg aufgeteilt -- totes CSS (0 Treffer
   // in AnimeDetailView.tsx) wurde beim Verschieben ersatzlos entfernt, nicht nur umgezogen.
-  // Poster-/Info-Karten-CSS gehoeren zum alleinigen Stylesheet des Anime-Kopf-Bausteins
+  // Poster-/Info-Karten-CSS gehören zum alleinigen Stylesheet des Anime-Kopf-Bausteins
   // (AnimeDetailHero.module.css) statt zu zwei Seiten-eigenen Teildateien -- dieser Test liest
   // weiterhin ALLE an dieser Seite beteiligten Stylesheets, damit ein versehentliches
-  // Wiederaufleben in irgendeiner davon auffaellt.
-  it('enthaelt in keinem der beteiligten Stylesheets totes CSS (.relatedRailSection/.episodeList u. a.)', () => {
+  // Wiederaufleben in irgendeiner davon auffällt.
+  it('enthält in keinem der beteiligten Stylesheets totes CSS (.relatedRailSection/.episodeList u. a.)', () => {
     const cssFiles = [
       'page.module.css',
       'AnimeDetailHero.module.css',
@@ -485,7 +485,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     expect(elements(contentUndefined).some((item) => String(item.props.className ?? '').includes('tagsSection'))).toBe(false)
   })
 
-  it('kodiert Leerzeichen und Umlaute im Tag-Link ueber URLSearchParams korrekt und rundreist zum Originalnamen (D-09)', async () => {
+  it('kodiert Leerzeichen und Umlaute im Tag-Link über URLSearchParams korrekt und rundreist zum Originalnamen (D-09)', async () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Real Robot', 'PSI-Kräfte'] } })
     const content = await loadContent()
     const tagLinks = elements(content).filter((item) => item.type === LinkChip && String(item.props.href as string).includes('tag='))
@@ -496,7 +496,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     expect(paramsFromHref(psiKraefte?.props.href as string).get('tag')).toBe('PSI-Kräfte')
   })
 
-  it('jeder Tag-Chip ist ein echter Link mit dem Namen als einzigem sichtbarem/zugaenglichem Text (Tastatur-erreichbar per Anker-Semantik)', async () => {
+  it('jeder Tag-Chip ist ein echter Link mit dem Namen als einzigem sichtbarem/zugänglichem Text (Tastatur-erreichbar per Anker-Semantik)', async () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Amnesia'] } })
     const content = await loadContent()
     const tagLink = elements(content).find((item) => item.type === LinkChip && String(item.props.href as string).includes('tag='))

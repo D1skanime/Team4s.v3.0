@@ -153,7 +153,7 @@ export function AnimeDetailHero({ anime, coverUrl, embySeriesUrl, relationsRespo
           oberhalb davon nimmt Cluster float="controlBand" sein eigenes Wurzelelement komplett aus
           dem Textfluss (position:absolute), wodurch es an diesem Stack-Abstand gar nicht erst
           teilnimmt (siehe Cluster.tsx's float-Doku für die Begründung, warum genau das
-          Wurzelelement selbst dafür zustaendig sein muss, nicht nur ein inneres Flex-Kind). */}
+          Wurzelelement selbst dafür zuständig sein muss, nicht nur ein inneres Flex-Kind). */}
       <Stack gap="contentToControlBand">
         {/* align="stretch" reproduziert exakt das bisherige Verhalten: beide Spalten waren vorher
             direkte Kinder EINES CSS-Grids (Standard-align-items:stretch), wodurch die kürzere Karte

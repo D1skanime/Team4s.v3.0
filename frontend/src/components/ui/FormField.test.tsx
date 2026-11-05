@@ -92,16 +92,16 @@ describe('FormField Autoverknüpfung', () => {
   it('löst einen Widerspruch zwischen FormField.htmlFor und einer abweichenden Kind-id zugunsten der tatsächlichen Kind-id auf', () => {
     render(
       <FormField label="Widersprüchliche IDs" htmlFor="vom-aufrufer-gemeint">
-        <Input id="tatsaechliche-kind-id" />
+        <Input id="tatsächliche-kind-id" />
       </FormField>,
     )
 
     // resolvedId bevorzugt die vorhandene Kind-id -- das Label MUSS derselben Priorität folgen,
     // sonst zeigt label[for] auf eine ID, die am Feld gar nicht existiert.
     const input = screen.getByLabelText('Widersprüchliche IDs') as HTMLInputElement
-    expect(input.id).toBe('tatsaechliche-kind-id')
+    expect(input.id).toBe('tatsächliche-kind-id')
     const label = screen.getByText('Widersprüchliche IDs')
-    expect(label.getAttribute('for')).toBe('tatsaechliche-kind-id')
+    expect(label.getAttribute('for')).toBe('tatsächliche-kind-id')
   })
 
   it('verknüpft manuell gesetztes invalid=true mit error ODER-artig (bleibt invalid)', () => {
@@ -212,13 +212,13 @@ describe('FormField Autoverknüpfung', () => {
 
   it('belässt DatePicker/YearPicker bei ihrer eigenständigen label-Prop als aria-label-Quelle, wenn sie ohne FormField (also ohne sichtbares Label) verwendet werden', () => {
     render(
-      <DatePicker id="eigenstaendig-datum" label="Veröffentlichungsdatum" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
+      <DatePicker id="eigenständig-datum" label="Veröffentlichungsdatum" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
     )
     const dateTrigger = screen.getByRole('button', { name: 'Veröffentlichungsdatum auswählen' })
     expect(dateTrigger.getAttribute('aria-labelledby')).toBeNull()
 
     render(
-      <YearPicker id="eigenstaendig-jahr" label="Erschienen" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
+      <YearPicker id="eigenständig-jahr" label="Erschienen" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
     )
     const yearTrigger = screen.getByRole('button', { name: 'Erschienen' })
     expect(yearTrigger.getAttribute('aria-labelledby')).toBeNull()

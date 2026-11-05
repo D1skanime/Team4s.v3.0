@@ -39,12 +39,12 @@ function buildVersion(overrides: Partial<PublicEpisodeVersion> = {}): PublicEpis
 }
 
 /*
- * Diese Tests pruefen die Spaltenausrichtung zwischen Gruppenname/Release-Name und
+ * Diese Tests prüfen die Spaltenausrichtung zwischen Gruppenname/Release-Name und
  * den drei Datenzeilen (Technik/Extras/Datum) rein strukturell -- jsdom berechnet kein echtes
  * Pixel-Layout (`getBoundingClientRect()` liefert hier immer Nullen), daher ist "teilt denselben
- * Eltern-Knoten" (identisches `parentElement`) der korrekte, tatsaechlich ausfuehrbare Ersatz fuer
+ * Eltern-Knoten" (identisches `parentElement`) der korrekte, tatsächlich ausführbare Ersatz für
  * "beginnt an derselben horizontalen Position". Es wird bewusst NICHT auf interne CSS-Modul-
- * Klassennamen geprueft (in manchen Testkonfigurationen opake Hashes), sondern ausschliesslich
+ * Klassennamen geprüft (in manchen Testkonfigurationen opake Hashes), sondern ausschliesslich
  * auf DOM-Verschachtelung und Elementanzahl.
  */
 describe('ReleasePreviewRow -- Spaltenausrichtung', () => {
@@ -52,13 +52,13 @@ describe('ReleasePreviewRow -- Spaltenausrichtung', () => {
     const version = buildVersion({ has_images: true, has_notes: true, has_karaoke: true })
     render(<ReleasePreviewRow version={version} animeID={1} />)
 
-    // `{ selector: 'p' }` ist noetig, da Avatar sein eigenes `label` zusaetzlich unsichtbar
-    // (VisuallyHidden) fuer Screenreader wiederholt -- ohne Einschraenkung faende `getByText`
+    // `{ selector: 'p' }` ist nötig, da Avatar sein eigenes `label` zusätzlich unsichtbar
+    // (VisuallyHidden) für Screenreader wiederholt -- ohne Einschränkung fände `getByText`
     // zwei Treffer mit identischem Text (Avatar-Beschriftung + Gruppenname-Absatz).
     const groupName = screen.getByText('Demo Fansub-Gruppe', { selector: 'p' })
     const techLine = screen.getByText('1080p · mkv · h264 · Softsub')
-    // RTL normalisiert mehrfache Leerzeichen standardmaessig zu einem einzigen -- die
-    // tatsaechlich gerenderten drei Leerzeichen zwischen den Extras-Eintraegen bleiben im DOM
+    // RTL normalisiert mehrfache Leerzeichen standardmäßig zu einem einzigen -- die
+    // tatsächlich gerenderten drei Leerzeichen zwischen den Extras-Einträgen bleiben im DOM
     // selbst erhalten, nur der Textabgleich hier vereinfacht sie.
     const extrasLine = screen.getByText('📷 Bilder 📝 Notizen ♪ Karaoke')
     const dateLine = screen.getByText('Fansub-Release vom 07.01.2024')
@@ -78,15 +78,15 @@ describe('ReleasePreviewRow -- Spaltenausrichtung', () => {
     })
     const { container } = render(<ReleasePreviewRow version={version} animeID={1} />)
 
-    // Cluster(wrap=false) passt die Avatar-Spaltenbreite der tatsaechlichen Kinderzahl an --
-    // hier muessen es GENAU zwei Avatar-Elemente sein (eines pro Gruppe), kein fest verdrahtetes
+    // Cluster(wrap=false) passt die Avatar-Spaltenbreite der tatsächlichen Kinderzahl an --
+    // hier müssen es GENAU zwei Avatar-Elemente sein (eines pro Gruppe), kein fest verdrahtetes
     // Einzel-Avatar-Mass.
     const avatarElements = container.querySelectorAll('span[title]')
     expect(avatarElements).toHaveLength(2)
 
-    // Der Gruppenname-Absatz enthaelt wegen des COOP-Zusatzes ein verschachteltes <span> --
+    // Der Gruppenname-Absatz enthält wegen des COOP-Zusatzes ein verschachteltes <span> --
     // techLine/dateLine haben keine Kind-Elemente und sind deshalb der eindeutige, nicht
-    // mehrdeutige Ankerpunkt fuer den gemeinsamen Stack-Elternknoten.
+    // mehrdeutige Ankerpunkt für den gemeinsamen Stack-Elternknoten.
     const techLine = screen.getByText('1080p · mkv · h264 · Softsub')
     const dateLine = screen.getByText('Fansub-Release vom 07.01.2024')
     const textStack = techLine.parentElement
@@ -113,13 +113,13 @@ describe('ReleasePreviewRow -- Spaltenausrichtung', () => {
     expect(dateLine.parentElement).toBe(groupName.parentElement)
   })
 
-  it('Null-Gruppen-Fall: keine umschliessende Avatar-Spalte reserviert eine leere Luecke um den Text-Stack', () => {
+  it('Null-Gruppen-Fall: keine umschliessende Avatar-Spalte reserviert eine leere Lücke um den Text-Stack', () => {
     const version = buildVersion({ fansub_groups: [] })
     const { container } = render(<ReleasePreviewRow version={version} animeID={1} />)
 
     // Ohne Gruppen gibt es keinen Avatar und keinen umschliessenden Cluster -- der Text-Stack
     // ist dann das EINZIGE Kind seines direkten Elternelements (kein Avatar-Spalten-Geschwister
-    // mehr vorhanden, das weiterhin ein `gap` reservieren wuerde).
+    // mehr vorhanden, das weiterhin ein `gap` reservieren würde).
     expect(container.querySelectorAll('span[title]')).toHaveLength(0)
 
     const groupName = screen.getByText('Unbekannt')
@@ -130,11 +130,11 @@ describe('ReleasePreviewRow -- Spaltenausrichtung', () => {
 })
 
 /*
- * Der dezente Rand "auf dunkler Flaeche" des Gruppenlogos kommt aus Avatars eigenem
+ * Der dezente Rand "auf dunkler Fläche" des Gruppenlogos kommt aus Avatars eigenem
  * `bordered`-Prop statt aus einer lokalen `.logo { border: ... }`-Deklaration in
  * ReleasePreviewRow.module.css.
  */
-describe('ReleasePreviewRow -- Avatar-Rand ueber bordered-Prop statt lokaler CSS', () => {
+describe('ReleasePreviewRow -- Avatar-Rand über bordered-Prop statt lokaler CSS', () => {
   it('rendert jedes Gruppenlogo-Avatar mit der avatarBordered-Modifikatorklasse', () => {
     const version = buildVersion({
       fansub_groups: [

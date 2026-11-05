@@ -1,8 +1,8 @@
 /*
- * ResponsiveImage traegt selbst keine eigene visuelle Grundflaeche -- diese einzelne Klasse ist
- * eine bewusst eng begrenzte, opt-in Faehigkeit fuer den wiederkehrenden Fall eines kleinen,
+ * ResponsiveImage trägt selbst keine eigene visuelle Grundfläche -- diese einzelne Klasse ist
+ * eine bewusst eng begrenzte, opt-in Fähigkeit für den wiederkehrenden Fall eines kleinen,
  * rund zugeschnittenen Vorschau-/Miniaturbilds (z. B. das Cover-Bild einer schwebenden
- * Randnavigations-Vorschaukarte), kein allgemeiner Bildrahmen fuer jedes ResponsiveImage.
+ * Randnavigations-Vorschaukarte), kein allgemeiner Bildrahmen für jedes ResponsiveImage.
  * Reproduziert exakt den bisher lokal in der jeweiligen Aufrufstelle deklarierten Wert, damit
  * eine Umstellung Zero-Pixel-Diff bleibt.
  */

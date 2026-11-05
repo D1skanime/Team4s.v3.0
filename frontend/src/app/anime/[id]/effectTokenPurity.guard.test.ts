@@ -6,10 +6,10 @@ import { describe, expect, it } from 'vitest'
 // Effekte (Blur/backdrop-filter/color-mix/Scrim-Transparenz) sind Zweck-Tokens in
 // styles/tokens/effects.css, eingesetzt nur innerhalb von components/ui/*.module.css als benannte
 // Variante -- ein zusammengesetzter Baustein oder eine Seite schreibt niemals selbst ein rohes
-// filter:/backdrop-filter:/color-mix(/rgba(/hsla(-Literal. Dieser Waechter prueft NUR die acht
+// filter:/backdrop-filter:/color-mix(/rgba(/hsla(-Literal. Dieser Wächter prüft NUR die acht
 // bereits auf dieses Muster umgestellten zusammengesetzten Baustein-Dateien, nicht den gesamten
-// Baum -- im uebrigen Frontend bestehen ca. 941 rohe Vorkommen in noch unberuehrten
-// Seiten/Komponenten, deren repo-weite Migration ausdrueckliche Folgearbeit ist.
+// Baum -- im übrigen Frontend bestehen ca. 941 rohe Vorkommen in noch unberührten
+// Seiten/Komponenten, deren repo-weite Migration ausdrückliche Folgearbeit ist.
 const guardedCompositeBlockFiles = [
   join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.module.css'),
   join(process.cwd(), 'src/components/fansubs/ReleasePreviewRow.module.css'),

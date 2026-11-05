@@ -35,7 +35,10 @@ type CommonButtonProps = {
   /** Exakte Umkehrung von `responsiveFullWidth`s Haltepunkt-Richtung: hier ist `auto`-Breite der
    *  Standard, volle Breite gilt NUR unterhalb von 768px -- für Aktions-Buttons, die direkter
    *  Bestandteil eines `Cluster collapseBelow="md"` sind und im gestapelten Zustand dessen volle
-   *  Zeilenbreite einnehmen sollen, ab dort aber auf ihre natürliche Inhaltsbreite zurückfallen. */
+   *  Zeilenbreite einnehmen sollen, ab dort aber auf ihre natürliche Inhaltsbreite zurückfallen.
+   *  Nutzt dieselbe Haltepunkt-Zahl wie `Cluster`, misst aber (anders als `Cluster`s eigene
+   *  Container-Abfrage) die Fensterbreite -- bei mehreren gepolsterten Vorfahren zwischen Button
+   *  und Fensterrand je Aufrufstelle prüfen, ob beide wirklich an derselben Stelle kippen. */
   fullWidthBelowMd?: boolean
   leftIcon?: ReactNode
   rightIcon?: ReactNode

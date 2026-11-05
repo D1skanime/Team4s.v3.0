@@ -43,7 +43,7 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
   const dateLine = formatReleaseDateLine(version.release_date)
   const linkGroupID = resolveCoopLinkGroupId(groups)
 
-  // D-20: Gruppenname/Release-Name und die drei Datenzeilen (Technik/Extras/Datum) leben in
+  // Gruppenname/Release-Name und die drei Datenzeilen (Technik/Extras/Datum) leben in
   // EINEM vertikalen Stack, damit die Datenzeilen zwangsläufig dieselbe Spalte wie der
   // Gruppenname belegen -- statt (wie vor dem Fix) als Geschwister eines einspaltigen Grids auf
   // Höhe der Avatar-Spalte zu beginnen. Einmal gebaut, unten in beiden Zweigen (mit/ohne Avatare)
@@ -76,16 +76,16 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
 
   return (
     // Innenabstand kommt ausschliesslich über Cards generischen padding-Override-Hook --
-    // Cards eigenen Varianten-Regeln und einem lokalen `padding:` auf .row entfaellt dadurch, da
-    // .row selbst kein `padding:` mehr deklariert. Die haltepunktabhaengige Zeile-zu-Spalte-
-    // Umkehr kommt vollstaendig über Clusters collapseBelow/gapCollapsed-Faehigkeit
+    // Cards eigenen Varianten-Regeln und einem lokalen `padding:` auf .row entfällt dadurch, da
+    // .row selbst kein `padding:` mehr deklariert. Die haltepunktabhängige Zeile-zu-Spalte-
+    // Umkehr kommt vollständig über Clusters collapseBelow/gapCollapsed-Fähigkeit
     // (identisches Muster wie AnimeDetailHero.tsxs .titleRow) statt eines eigenen
     // display:flex/flex-direction in .row.
     <Card variant="glassStrong" padding="content">
-      {/* align="stretch" reproduziert die bisherige, implizite Standard-Breitenfuellung im
+      {/* align="stretch" reproduziert die bisherige, implizite Standard-Breitenfüllung im
           gestapelten (Mobil-)Zustand (Flex ohne align-items setzt den Browser-Standard
-          "stretch", Clusters eigener Standard waere dagegen "center") -- im Zeilen-Zustand
-          (ab 768px) wirkt dieselbe Prop auf die Hoehe statt die Breite, dort uebernimmt
+          "stretch", Clusters eigener Standard wäre dagegen "center") -- im Zeilen-Zustand
+          (ab 768px) wirkt dieselbe Prop auf die Höhe statt die Breite, dort übernimmt
           bereits justify="between" die Verteilung, die Button-Breite kommt aus dessen eigener
           fullWidthBelowMd-Prop. */}
       <Cluster
@@ -120,7 +120,7 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
             {textLines}
           </Cluster>
         ) : (
-          // D-20: bei null Gruppen wird GAR KEIN umschließender Cluster gerendert -- sonst
+          // Bei null Gruppen wird GAR KEIN umschließender Cluster gerendert -- sonst
           // würde dessen `gap` weiterhin reserviert und eine "Lücke ohne Avatar" neben dem
           // Text-Stack entstehen, obwohl die erste Spalte leer ist.
           <div className={styles.body}>{textLines}</div>

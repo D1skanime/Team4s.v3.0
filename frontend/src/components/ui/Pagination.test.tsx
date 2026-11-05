@@ -64,14 +64,14 @@ describe('Pagination', () => {
       const { result } = renderHook(() => findButtonsByDirectCall(Pagination({ currentPage: 2, totalPages: 5, onPageChange })))
 
       const weiter = result.current.find((button) => textContent(button.props.children as ReactNode).includes('Weiter'))
-      const zurueck = result.current.find((button) => textContent(button.props.children as ReactNode).includes('Zurück'))
+      const zurück = result.current.find((button) => textContent(button.props.children as ReactNode).includes('Zurück'))
       expect(weiter).toBeTruthy()
-      expect(zurueck).toBeTruthy()
+      expect(zurück).toBeTruthy()
 
       ;(weiter!.props.onClick as () => void)()
       expect(onPageChange).toHaveBeenCalledWith(3)
 
-      ;(zurueck!.props.onClick as () => void)()
+      ;(zurück!.props.onClick as () => void)()
       expect(onPageChange).toHaveBeenCalledWith(1)
     })
 
@@ -113,10 +113,10 @@ describe('Pagination', () => {
 
       // Ohne href hat ein <a> keine implizite ARIA-Rolle "link" mehr (Button deaktiviert so
       // konsequent die Navigation) -- daher über den sichtbaren Text statt über die Rolle finden.
-      const zurueck = screen.getByText('Zurück').closest('a')
-      expect(zurueck).not.toBeNull()
-      expect(zurueck?.getAttribute('href')).toBeNull()
-      expect(zurueck?.getAttribute('aria-disabled')).toBe('true')
+      const zurück = screen.getByText('Zurück').closest('a')
+      expect(zurück).not.toBeNull()
+      expect(zurück?.getAttribute('href')).toBeNull()
+      expect(zurück?.getAttribute('aria-disabled')).toBe('true')
     })
 
     it('rendert über die Link-Komponente, wenn linkComponent übergeben wird', () => {
@@ -160,10 +160,10 @@ describe('Pagination', () => {
     it('entfernt href bei Zurück auf der ersten Seite, statt den Link zu entfernen', () => {
       render(<Pagination currentPage={1} totalPages={5} hrefPattern="/anime?page={page}" />)
 
-      const zurueck = screen.getByText('Zurück').closest('a')
-      expect(zurueck).not.toBeNull()
-      expect(zurueck?.getAttribute('href')).toBeNull()
-      expect(zurueck?.getAttribute('aria-disabled')).toBe('true')
+      const zurück = screen.getByText('Zurück').closest('a')
+      expect(zurück).not.toBeNull()
+      expect(zurück?.getAttribute('href')).toBeNull()
+      expect(zurück?.getAttribute('aria-disabled')).toBe('true')
     })
 
     it('rendert über die Link-Komponente, wenn linkComponent übergeben wird', () => {

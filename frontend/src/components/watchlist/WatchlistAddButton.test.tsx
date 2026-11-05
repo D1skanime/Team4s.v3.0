@@ -182,8 +182,8 @@ describe('WatchlistAddButton -- Stack statt lokalem display:grid', () => {
   it('rendert Knopf/Statusmeldung/Wiederholungs-Knopf innerhalb eines Stack-Elternknotens mit gap="relatedContent" (--space-related-content)', async () => {
     const { container } = render(<WatchlistAddButton animeID={1} />)
     // Den auf dem Mount-Effekt laufenden Status-Check (checkStatus) abwarten, bevor Zusicherungen
-    // folgen -- sonst meldet React eine act()-Warnung fuer das asynchron danach noch folgende
-    // State-Update, obwohl dieser Test selbst nur die statische Stack-Umhuellung prueft.
+    // folgen -- sonst meldet React eine act()-Warnung für das asynchron danach noch folgende
+    // State-Update, obwohl dieser Test selbst nur die statische Stack-Umhüllung prüft.
     await screen.findByRole('button', { name: /Anmeldung erforderlich|Zur Watchlist|Watchliststatus/ })
     const stackRoot = container.firstElementChild as HTMLElement | null
     expect(stackRoot).not.toBeNull()

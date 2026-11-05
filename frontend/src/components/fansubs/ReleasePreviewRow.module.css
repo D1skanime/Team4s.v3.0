@@ -5,9 +5,9 @@
  */
 
 /*
- * .row selbst deklariert kein eigenes Layout-CSS mehr -- die haltepunktabhaengige Zeile-zu-
+ * .row selbst deklariert kein eigenes Layout-CSS mehr -- die haltepunktabhängige Zeile-zu-
  * Spalte-Umkehr (Mobil untereinander, ab 768px nebeneinander mit justify-content:space-between)
- * kommt vollstaendig ueber Cluster collapseBelow="md"/gapCollapsed (siehe ReleasePreviewRow.tsx),
+ * kommt vollständig über Cluster collapseBelow="md"/gapCollapsed (siehe ReleasePreviewRow.tsx),
  * identisches Muster wie AnimeDetailHero.tsxs .titleRow.
  */
 
@@ -22,9 +22,9 @@
   flex-shrink: 0;
 }
 
-/* .logo entfaellt ersatzlos: der dezente Rand "auf dunkler Flaeche" kommt aus Avatars eigenem
-   bordered-Prop statt einer lokalen border-Deklaration -- Avatar liefert Flaeche/Initialen-
-   Fallback/Rand vollstaendig selbst. */
+/* .logo entfällt ersatzlos: der dezente Rand "auf dunkler Fläche" kommt aus Avatars eigenem
+   bordered-Prop statt einer lokalen border-Deklaration -- Avatar liefert Fläche/Initialen-
+   Fallback/Rand vollständig selbst. */
 
 .groupName {
   font-weight: 600;
@@ -49,21 +49,21 @@
 
 /*
  * `display:flex;flex-wrap:wrap;gap:var(--space-4);` war hier wirkungslose Alt-CSS --
- * `extras.join('   ')` liefert bereits EINEN zusammengefuegten Textknoten statt mehrerer
+ * `extras.join('   ')` liefert bereits EINEN zusammengefügten Textknoten statt mehrerer
  * Kind-Elemente, ein Flex-Container ohne mehrere Kinder hat nichts zum Umbrechen.
- * .extrasLine faellt dadurch auf dieselbe `display:block`-Regel wie .techLine/.dateLine oben
- * zurueck -- keine sichtbare Aenderung, nur toter Code entfernt.
+ * .extrasLine fällt dadurch auf dieselbe `display:block`-Regel wie .techLine/.dateLine oben
+ * zurück -- keine sichtbare Aenderung, nur toter Code entfernt.
  */
 
 /*
- * .action traegt seit dem Wechsel auf Buttons fullWidthBelowMd-Prop nur noch zwei Flex-ITEM-
+ * .action trägt seit dem Wechsel auf Buttons fullWidthBelowMd-Prop nur noch zwei Flex-ITEM-
  * Eigenschaften im Zeilen-Zustand (ab 768px): `flex-shrink:0` verhindert, dass die Aktionsspalte
- * neben der breiteren Textspalte komprimiert wird; `align-self:center` haelt den Button auf
- * seiner eigenen, von Buttons min-height bestimmten Standardhoehe (das aeussere Clusters
- * align="stretch" wuerde ihn sonst auf die volle, durch die mehrzeilige Textspalte vorgegebene
- * Zeilenhoehe strecken, da align auf BEIDEN Achsen wirkt -- gestapelt auf die Breite, in der
- * Zeile auf die Hoehe). Die eigentliche Breitenentscheidung liegt vollstaendig in Buttons eigener
- * fullWidthBelowMd-Prop (gestapelt: volle Breite) bzw. dessen natuerlicher Inhaltsbreite
+ * neben der breiteren Textspalte komprimiert wird; `align-self:center` hält den Button auf
+ * seiner eigenen, von Buttons min-height bestimmten Standardhöhe (das äußere Clusters
+ * align="stretch" würde ihn sonst auf die volle, durch die mehrzeilige Textspalte vorgegebene
+ * Zeilenhöhe strecken, da align auf BEIDEN Achsen wirkt -- gestapelt auf die Breite, in der
+ * Zeile auf die Höhe). Die eigentliche Breitenentscheidung liegt vollständig in Buttons eigener
+ * fullWidthBelowMd-Prop (gestapelt: volle Breite) bzw. dessen natürlicher Inhaltsbreite
  * (Zeilen-Zustand), nicht mehr in dieser Komposit-Datei.
  */
 @media (min-width: 768px) {

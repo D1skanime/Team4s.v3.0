@@ -136,7 +136,7 @@ describe('FansubGroupPicker', () => {
  * kommt aus Buttons eigener chipGlass-Variante statt einer lokalen .chip-gap-Deklaration.
  */
 describe('FansubGroupPicker -- Avatar-Logo statt lokalem <Image>, Button-eigene chipGlass-Lücke', () => {
-  it('rendert das Gruppenlogo ueber ein Avatar-Element (span[title]) statt eines freistehenden <img>', () => {
+  it('rendert das Gruppenlogo über ein Avatar-Element (span[title]) statt eines freistehenden <img>', () => {
     const options: FansubGroupPickerOption[] = [
       { id: 1, slug: 'new-subs', name: 'New-Subs', logo_url: '/covers/logo.png' },
     ]

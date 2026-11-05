@@ -1,5 +1,5 @@
-/* .wrapper entfaellt ersatzlos: die vertikale Anordnung von Knopf/Statusmeldung/Wiederholungs-
-   Knopf samt deren Abstand kommt vollstaendig aus Stack gap="relatedContent" (siehe
+/* .wrapper entfällt ersatzlos: die vertikale Anordnung von Knopf/Statusmeldung/Wiederholungs-
+   Knopf samt deren Abstand kommt vollständig aus Stack gap="relatedContent" (siehe
    WatchlistAddButton.tsx) statt eines zuvor hier lokal deklarierten Raster-Layouts mit rohem
    Sub-Pixel-Abstandswert. */
 

@@ -26,7 +26,7 @@ import styles from './FansubVersionBrowser.module.css'
 
 type Pagination = PublicGroupedEpisodesResponse['data']['pagination']
 
-// D-44: ein einzelner, ueberschriebener sessionStorage-Eintrag pro exaktem pathname+search --
+// D-44: ein einzelner, überschriebener sessionStorage-Eintrag pro exaktem pathname+search --
 // kein Verlauf, keine unbegrenzte Persistenz, kein Reset des Windowing-Zustands (T-164-10).
 const SCROLL_HINT_STORAGE_PREFIX = 'team4s:episodeScroll:'
 
@@ -98,11 +98,11 @@ function computeBoundaryMergedRenderPlan(pages: WindowedPage[]): {
   return { merged, firstPageIdByEpisodeId }
 }
 
-/** Misst die gerenderte Hoehe einer Page fortlaufend (ResizeObserver), damit ein evtl. spaeter
- * ausgelagerter Spacer die zuletzt bekannte, echte Hoehe uebernimmt (D-34) statt 0px. Rendert
- * absichtlich kein zusaetzliches <li>/<ul> -- die enthaltenen EpisodeGlassCard-<li>-Elemente
- * bleiben direkte Nachfahren im Accessibility-Baum (li -> listitem ist kontextunabhaengig),
- * nur ein <div> uebernimmt die Messfunktion. */
+/** Misst die gerenderte Höhe einer Page fortlaufend (ResizeObserver), damit ein evtl. später
+ * ausgelagerter Spacer die zuletzt bekannte, echte Höhe übernimmt (D-34) statt 0px. Rendert
+ * absichtlich kein zusätzliches <li>/<ul> -- die enthaltenen EpisodeGlassCard-<li>-Elemente
+ * bleiben direkte Nachfahren im Accessibility-Baum (li -> listitem ist kontextunabhängig),
+ * nur ein <div> übernimmt die Messfunktion. */
 function WindowedPageGroup({
   pageId, reportPageHeight, children,
 }: {
@@ -166,7 +166,7 @@ function FansubVersionBrowserContent({
     ? fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group ?? null
     : null
 
-  // D-34: eine Rueckwaerts-Wiederherstellung liefert ein Delta -- vor dem naechsten Paint per
+  // D-34: eine Rückwärts-Wiederherstellung liefert ein Delta -- vor dem nächsten Paint per
   // scrollBy ausgleichen, damit der sichtbare Inhalt nicht sichtbar springt.
   useLayoutEffect(() => {
     if (!windowing.scrollAnchorAdjustment || windowing.scrollAnchorAdjustment.px === 0) return
@@ -176,12 +176,12 @@ function FansubVersionBrowserContent({
 
   const hasAnyEpisodes = windowing.pages.some((page) => page.episodes.length > 0)
 
-  // D-44: auf einer echten Browser-Zurueck/Vor-Navigation (Navigation Timing API, kein neues
-  // Paket) zur selben URL eine zuvor gespeicherte, ungefaehre Scrollposition wiederherstellen --
+  // D-44: auf einer echten Browser-Zurück/Vor-Navigation (Navigation Timing API, kein neues
+  // Paket) zur selben URL eine zuvor gespeicherte, ungefähre Scrollposition wiederherstellen --
   // NICHT das mehrseitige DOM-Fenster (das bleibt bewusst bei Page 1 der frischen Navigation,
   // 164-05). Auf einem normalen Erstaufruf wird kein Hinweis gelesen oder angewendet. Der
-  // Schreibpfad ist zeitstempel-gedrosselt (kein Schreiben pro Scroll-Pixel) und ueberschreibt
-  // stets denselben Schluessel -- kein wachsender Verlauf.
+  // Schreibpfad ist zeitstempel-gedrosselt (kein Schreiben pro Scroll-Pixel) und überschreibt
+  // stets denselben Schlüssel -- kein wachsender Verlauf.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const scrollKey = SCROLL_HINT_STORAGE_PREFIX + window.location.pathname + window.location.search
@@ -205,8 +205,8 @@ function FansubVersionBrowserContent({
     return () => window.removeEventListener('scroll', handleScroll)
   }, [hasAnyEpisodes])
 
-  // D-01/D-03: die URL ist die einzige Quelle des Gruppenkontexts. Browser Zurueck/Vor
-  // liest den Parameter erneut und loest -- anders als bei 162 -- immer neu (D-09).
+  // D-01/D-03: die URL ist die einzige Quelle des Gruppenkontexts. Browser Zurück/Vor
+  // liest den Parameter erneut und löst -- anders als bei 162 -- immer neu (D-09).
   useEffect(() => {
     function handlePopState() {
       const params = new URLSearchParams(window.location.search)
@@ -226,10 +226,10 @@ function FansubVersionBrowserContent({
   function renderEpisode(episode: PublicGroupedEpisode) {
     const expanded = Boolean(expandedEpisodes[episode.episode_id])
     const summaryVersion = getSummaryVersion(episode, activeFansubGroupID)
-    // Defensive Client-Filterung fuer den Fall, dass die Versionsliste (noch) nicht
-    // serverseitig auf die aktive Gruppe eingeschraenkt ist (z. B. initialActiveSlug
+    // Defensive Client-Filterung für den Fall, dass die Versionsliste (noch) nicht
+    // serverseitig auf die aktive Gruppe eingeschränkt ist (z. B. initialActiveSlug
     // vor dem ersten Wechsel/Refetch). Coop-Versionen (mehrere fansub_groups) matchen
-    // fuer jede beteiligte Gruppe -- kein dritter Chip, kein Ausschluss (D-07/Testfall I).
+    // für jede beteiligte Gruppe -- kein dritter Chip, kein Ausschluss (D-07/Testfall I).
     const groupMatchedVersions = activeFansubGroupID !== null
       ? episode.versions.filter((item) => item.fansub_groups?.some((g) => g.id === activeFansubGroupID))
       : episode.versions

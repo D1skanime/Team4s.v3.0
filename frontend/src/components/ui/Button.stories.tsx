@@ -19,12 +19,12 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Primaer: Story = {
+export const Primär: Story = {
   name: 'Primär',
   args: { children: 'Primär' },
 }
 
-export const Sekundaer: Story = {
+export const Sekundär: Story = {
   name: 'Sekundär',
   args: { variant: 'secondary', children: 'Sekundär' },
 }
@@ -34,7 +34,7 @@ export const Dezent: Story = {
   args: { variant: 'ghost', children: 'Dezent' },
 }
 
-export const Zurueckhaltend: Story = {
+export const Zurückhaltend: Story = {
   name: 'Zurückhaltend',
   args: { variant: 'subtle', children: 'Zurückhaltend' },
 }
@@ -148,7 +148,7 @@ export const Schwebend: Story = {
   },
 }
 
-export const Laedt: Story = {
+export const Lädt: Story = {
   name: 'Lädt',
   args: { loading: true, children: 'Lädt' },
 }

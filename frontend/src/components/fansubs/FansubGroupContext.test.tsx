@@ -70,7 +70,7 @@ describe('FansubGroupContext', () => {
     expect(screen.queryByRole('link', { name: 'Zum Projekt' })).toBeNull()
   })
 
-  it('rendert den Zum-Projekt-Link ueber buildPublicFansubProjectPath, wenn beide Slugs gesetzt sind', () => {
+  it('rendert den Zum-Projekt-Link über buildPublicFansubProjectPath, wenn beide Slugs gesetzt sind', () => {
     const activeGroup: FansubGroupContextActiveGroup = { id: 1, slug: 'new-subs', name: 'New-Subs' }
     render(<FansubGroupContext activeGroup={activeGroup} animeSlug="buddy-complex" />)
     const link = screen.getByRole('link', { name: 'Zum Projekt' })
@@ -84,7 +84,7 @@ describe('FansubGroupContext', () => {
  * padding-/margin-/display:flex-Deklarationen.
  */
 describe('FansubGroupContext -- Card-Zweckstufe, Stack-Rhythmus, Cluster-navRow', () => {
-  it('traegt die Card-Zweckstufe padding="contextCard" statt eines lokalen Polsterungswerts', () => {
+  it('trägt die Card-Zweckstufe padding="contextCard" statt eines lokalen Polsterungswerts', () => {
     const activeGroup: FansubGroupContextActiveGroup = { id: 1, slug: 'new-subs', name: 'New-Subs' }
     render(<FansubGroupContext activeGroup={activeGroup} animeSlug="buddy-complex" />)
     const card = screen.getByTestId('fansub-group-context')

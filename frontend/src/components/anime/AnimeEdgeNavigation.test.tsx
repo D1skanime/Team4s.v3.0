@@ -139,8 +139,8 @@ describe('AnimeEdgeNavigation.module.css', () => {
 
   /*
    * .previewCovers Rundung kommt aus ResponsiveImages roundedThumbnail-Prop, .previewCards
-   * Hoechstbreite aus Cards widthPurpose="compactPreview" -- beide Werte duerfen hier nicht
-   * mehr lokal stehen, sonst laufen sie der Grundbaustein-Faehigkeit zuwider.
+   * Höchstbreite aus Cards widthPurpose="compactPreview" -- beide Werte dürfen hier nicht
+   * mehr lokal stehen, sonst laufen sie der Grundbaustein-Fähigkeit zuwider.
    */
   it('.previewCover deklariert keine eigene border-radius mehr, .previewCard keine eigene width mehr', () => {
     const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/anime/AnimeEdgeNavigation.module.css'), 'utf8')

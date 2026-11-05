@@ -51,7 +51,7 @@ export function AnimeEdgeNavigationPreviewCard({ title, type, coverUrl, directio
     >
       {/* Cluster statt eines eigenen display:flex -- align="stretch" reproduziert die
           bisherige, implizite Standard-Querachsen-Ausrichtung (Flex ohne align-items setzt
-          den Browser-Standard "stretch", Clusters eigener Standard waere dagegen "center"). */}
+          den Browser-Standard "stretch", Clusters eigener Standard wäre dagegen "center"). */}
       <Cluster gap="mediaCaption" align="stretch" wrap={false}>
         <ResponsiveImage src={coverUrl} alt={title} width={66} height={92} className={styles.previewCover} roundedThumbnail unoptimized />
         {/* Der enge Zeilenabstand zwischen Titel und Typ (EINE zweizeilige Bildunterschrift)

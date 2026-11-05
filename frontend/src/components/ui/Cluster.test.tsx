@@ -75,7 +75,7 @@ describe('Cluster', () => {
     )
   })
 
-  it('bleibt ohne collapseBelow/float ein einzelnes, unveraendertes Element (Zero-Pixel-Diff fuer jeden bestehenden Aufrufer)', () => {
+  it('bleibt ohne collapseBelow/float ein einzelnes, unverändertes Element (Zero-Pixel-Diff für jeden bestehenden Aufrufer)', () => {
     const { container } = render(<Cluster>Inhalt</Cluster>)
     const node = container.firstElementChild as HTMLElement
     expect(node.className).toMatch(/cluster/)
@@ -100,7 +100,7 @@ describe('Cluster', () => {
       expect(inner.textContent).toBe('Inhalt')
     })
 
-    it('loest gapCollapsed auf ein eigenes, von gap verschiedenes Zweck-Token auf', () => {
+    it('löst gapCollapsed auf ein eigenes, von gap verschiedenes Zweck-Token auf', () => {
       const { container } = render(
         <Cluster collapseBelow="md" gap="contentPair" gapCollapsed="independentBlocks">
           Inhalt
@@ -112,7 +112,7 @@ describe('Cluster', () => {
       expect(outer.style.getPropertyValue('--cluster-gap-collapsed')).toBe('var(--space-independent-blocks)')
     })
 
-    it('setzt --cluster-gap-collapsed NICHT, wenn gapCollapsed nicht uebergeben wird (CSS-Fallback auf gap greift)', () => {
+    it('setzt --cluster-gap-collapsed NICHT, wenn gapCollapsed nicht übergeben wird (CSS-Fallback auf gap greift)', () => {
       const { container } = render(
         <Cluster collapseBelow="md" gap="contentPair">
           Inhalt
@@ -148,7 +148,7 @@ describe('Cluster', () => {
       expect(node.className).not.toMatch(/clusterQueryContainer/)
     })
 
-    it('collapseBelow und float koennen unabhaengig voneinander gesetzt sein (beide loesen denselben Wrapper aus)', () => {
+    it('collapseBelow und float können unabhängig voneinander gesetzt sein (beide lösen denselben Wrapper aus)', () => {
       const { container } = render(
         <Cluster collapseBelow="md" float="controlBand">
           Inhalt
@@ -185,7 +185,7 @@ describe('Cluster', () => {
   describe('Cluster.module.css (float="controlBand" Positionierungs-Architektur)', () => {
     const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/ui/Cluster.module.css'), 'utf8')
 
-    it('setzt position:absolute/z-index/pointer-events auf .floatControlBandRoot ueber eine normale @media-Abfrage, NICHT ueber @container (ein Container darf laut Spezifikation nie das eigene Wurzelelement selbst umordnen)', () => {
+    it('setzt position:absolute/z-index/pointer-events auf .floatControlBandRoot über eine normale @media-Abfrage, NICHT über @container (ein Container darf laut Spezifikation nie das eigene Wurzelelement selbst umordnen)', () => {
       const mediaBlockStart = css.indexOf('@media (min-width: 768px)')
       expect(mediaBlockStart).toBeGreaterThan(-1)
       const rule = css.slice(mediaBlockStart).match(/\.floatControlBandRoot\s*\{([^}]+)\}/)?.[1]
@@ -193,9 +193,9 @@ describe('Cluster', () => {
       expect(rule).toMatch(/position:\s*absolute;/)
       expect(rule).toMatch(/z-index:\s*var\(--z-dropdown\);/)
       expect(rule).toMatch(/pointer-events:\s*none;/)
-      // Keine echte @container-Regel (nicht nur eine Kommentarerwaehnung des Worts) darf
+      // Keine echte @container-Regel (nicht nur eine Kommentarerwähnung des Worts) darf
       // .floatControlBandRoot selbst umordnen -- Kommentare werden vor der Prüfung entfernt,
-      // damit Fließtext ueber "@container" (wie in Cluster.tsx's eigener float-Doku) nicht
+      // damit Fließtext über "@container" (wie in Cluster.tsx's eigener float-Doku) nicht
       // fälschlich als Verstoß zählt.
       const cssWithoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '')
       expect(cssWithoutComments).not.toMatch(/@container\s+cluster[^{]*\{[^}]*\.floatControlBandRoot/)

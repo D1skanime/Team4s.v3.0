@@ -16,8 +16,8 @@ vi.mock('@/lib/api', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/api')>(),
   getAnimeByID: vi.fn(), getAnimeFansubs: vi.fn(), getGroupedEpisodes: vi.fn(),
   // getAnimeList ist defensiv mitgemockt (192-RESEARCH.md Pitfall 2): keine der bestehenden
-  // Testfaelle dieser Datei setzt bislang einen grid_query-Suchparameter, ein kuenftiger Testfall
-  // wuerde ohne diesen Eintrag sonst unbemerkt durch importOriginal auf einen echten fetch()
+  // Testfälle dieser Datei setzt bislang einen grid_query-Suchparameter, ein künftiger Testfall
+  // würde ohne diesen Eintrag sonst unbemerkt durch importOriginal auf einen echten fetch()
   // gegen das konfigurierte Backend durchfallen.
   getAnimeRelations: vi.fn(), getAnimeBackdrops: vi.fn(), getAnimeList: vi.fn(),
 }))
@@ -50,7 +50,7 @@ function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
     // Für die unveränderte Cover-Invariante wird er hier wie die Seitenansicht materialisiert,
     // damit Poster, Reflexion und die an den Rotator gereichte Quelle weiterhin geprüft werden.
     // SplitLayout reicht Poster-/Info-Spalte als firstColumn/secondColumn-PROPS durch, nicht
-    // als `children` -- ohne diesen Zweig faende der Standard-Zweig nichts innerhalb eines
+    // als `children` -- ohne diesen Zweig fände der Standard-Zweig nichts innerhalb eines
     // noch nicht materialisierten SplitLayout-Elements.
     if (child.type === AnimeDetailHero) {
       return [child, ...elements(AnimeDetailHero(child.props as unknown as Parameters<typeof AnimeDetailHero>[0]))]
@@ -133,15 +133,15 @@ describe('one bounded cover for every detail consumer', () => {
   })
 })
 
-describe('Tags-Block ohne zusaetzliche Netzwerkkosten (Auftraggeber-Mandat Punkt 4/5)', () => {
-  /** Rendert die Detailseite fuer die gegebenen Tags und zaehlt alle SSR-Datenabrufe. */
+describe('Tags-Block ohne zusätzliche Netzwerkkosten (Auftraggeber-Mandat Punkt 4/5)', () => {
+  /** Rendert die Detailseite für die gegebenen Tags und zählt alle SSR-Datenabrufe. */
   async function totalFetchCallsFor(tags: string[] | undefined): Promise<number> {
     vi.clearAllMocks()
     vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [] })
     groupedMock.mockResolvedValue({ data: { anime_id: 1, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
     vi.mocked(getAnimeRelations).mockResolvedValue({ data: [] })
     vi.mocked(getAnimeByID).mockResolvedValue({ data: {
-      id: 1, title: 'Fetch-Paritaetsfixture', type: 'tv', content_type: 'anime', status: 'done',
+      id: 1, title: 'Fetch-Paritätsfixture', type: 'tv', content_type: 'anime', status: 'done',
       view_count: 0, episodes: [], tags,
     } })
     const boundary = await AnimeDetailPage({ params: Promise.resolve({ id: '1' }) })
@@ -154,7 +154,7 @@ describe('Tags-Block ohne zusaetzliche Netzwerkkosten (Auftraggeber-Mandat Punkt
     )
   }
 
-  it('zaehlt fuer eine Detailseite MIT Tags exakt dieselbe Anzahl an Fetch-Aufrufen wie OHNE Tags', async () => {
+  it('zählt für eine Detailseite MIT Tags exakt dieselbe Anzahl an Fetch-Aufrufen wie OHNE Tags', async () => {
     const withTags = await totalFetchCallsFor(['Amnesia', 'Real Robot', 'PSI-Kräfte'])
     const withoutTags = await totalFetchCallsFor(undefined)
     expect(withTags).toBeGreaterThan(0)

@@ -70,7 +70,7 @@
   align-items: center;
 }
 
-/* .infoBanner entfaellt ersatzlos: die volle Breiten-/Hoehenanpassung des Banner-Bilds kommt
+/* .infoBanner entfällt ersatzlos: die volle Breiten-/Höhenanpassung des Banner-Bilds kommt
    jetzt aus ResponsiveImages fillWidth-Prop (siehe AnimeMediaProvider.tsxs AnimeInfoBanner)
    statt aus einer lokalen CSS-Klasse, die von aussen an das Bild durchgereicht wurde. */
 
@@ -93,7 +93,7 @@
   display: none;
 }
 
-/* Ein einziger gemeinsamer 767px-Haltepunkt fuer Poster-Spalte UND Info-Karte -- beide Zonen
+/* Ein einziger gemeinsamer 767px-Haltepunkt für Poster-Spalte UND Info-Karte -- beide Zonen
    kippen an derselben Schwelle auf die gestapelte Mobil-Darstellung, deshalb ein Block statt
    zwei getrennter (wie zuvor in den zwei Quelldateien page.poster.module.css/
    page.infoCard.module.css, jetzt in einer Datei vereinigt). */
@@ -102,7 +102,7 @@
      .cardPublicPoster-Variante (als deren eigener Mobil-Standardwert, analog zu
      .cardPublicHeroInfos bereits etabliertem responsiven Standardwert) -- .posterColumn
      IST diese Card-Variante (siehe AnimeDetailHero.tsx `Card variant="publicPoster"
-     className={styles.posterColumn}`), ein zweiter lokaler padding:-Wert hier wuerde Card's
+     className={styles.posterColumn}`), ein zweiter lokaler padding:-Wert hier würde Card's
      eigenen Override-Hook ignorieren. align-items bleibt lokal (keine Layout-Eigenschaft, die
      bereits ein Grundbaustein abdeckt). */
   .posterColumn {

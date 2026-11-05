@@ -27,17 +27,17 @@ function buildEpisode(overrides: Partial<PublicGroupedEpisode> = {}): PublicGrou
 
 /*
  * EpisodeGlassCard.module.css darf kein eigenes display:flex/flex-direction/display:grid
- * deklarieren -- die Kopfzeilen- und die Versionslisten-Anordnung kommen ueber Cluster/Stack.
+ * deklarieren -- die Kopfzeilen- und die Versionslisten-Anordnung kommen über Cluster/Stack.
  * .versionLists asymmetrische Polsterung lebt in Cards "dividedSection"-Rezept, der border-top
- * in einem eigenstaendigen Divider-Element -- in der CSS-Datei bleiben nur noch drei eng
- * begruendete Groessenkorrekturen (keine der verbotenen Kategorien, siehe deren eigener
+ * in einem eigenständigen Divider-Element -- in der CSS-Datei bleiben nur noch drei eng
+ * begründete Größenkorrekturen (keine der verbotenen Kategorien, siehe deren eigener
  * Kommentar dort).
  */
 describe('EpisodeGlassCard.module.css -- Baustein-Reinheit', () => {
   it('deklariert kein eigenes display:flex/flex-direction/display:grid mehr', () => {
     const source = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.module.css'), 'utf8')
-    // Kommentare duerfen diese Begriffe als Begruendung erwaehnen (z. B. "Cluster uebernimmt
-    // display:flex selbst") -- geprueft wird deshalb nur der tatsaechliche CSS-Regelwerk-Text,
+    // Kommentare dürfen diese Begriffe als Begründung erwähnen (z. B. "Cluster übernimmt
+    // display:flex selbst") -- geprüft wird deshalb nur der tatsächliche CSS-Regelwerk-Text,
     // nicht der volle Dateitext inklusive /* ... */-Kommentare.
     const codeOnly = source.replace(/\/\*[\s\S]*?\*\//g, '')
     expect(codeOnly).not.toMatch(/display:\s*flex/)
@@ -63,8 +63,8 @@ describe('EpisodeGlassCard.module.css -- Baustein-Reinheit', () => {
   })
 })
 
-describe('EpisodeGlassCard -- Kopfzeile/Versionsliste ueber Cluster/Stack statt lokalem Layout-CSS', () => {
-  it('rendert Titel-Block und Versionszaehler weiterhin nebeneinander in der Kopfzeile', () => {
+describe('EpisodeGlassCard -- Kopfzeile/Versionsliste über Cluster/Stack statt lokalem Layout-CSS', () => {
+  it('rendert Titel-Block und Versionszähler weiterhin nebeneinander in der Kopfzeile', () => {
     render(
       <EpisodeGlassCard
         episode={buildEpisode()}
@@ -114,12 +114,12 @@ describe('EpisodeGlassCard -- Kopfzeile/Versionsliste ueber Cluster/Stack statt 
     const panel = container.querySelector('#panel-2')
     expect(panel).not.toBeNull()
     const releaseRow = screen.getByTestId('release-row')
-    // Stack rendert als eigenes Element zwischen der Card (traegt jetzt panelId) und der
+    // Stack rendert als eigenes Element zwischen der Card (trägt jetzt panelId) und der
     // durchgereichten Zeile.
     expect(releaseRow.parentElement?.parentElement).toBe(panel)
 
-    // Die vormalige border-top-Trennlinie ist jetzt ein echtes, eigenstaendiges Divider-Element
-    // direkt VOR der Card, die panelId traegt.
+    // Die vormalige border-top-Trennlinie ist jetzt ein echtes, eigenständiges Divider-Element
+    // direkt VOR der Card, die panelId trägt.
     const divider = container.querySelector('hr[aria-hidden="true"]')
     expect(divider).not.toBeNull()
     expect(divider?.nextElementSibling).toBe(panel)

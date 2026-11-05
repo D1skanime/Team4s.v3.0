@@ -84,37 +84,37 @@ export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, pa
         />
 
         {expanded ? (
-          // Die aeussere EpisodeGlassCard (variant="glass") ist selbst ein Grundbaustein mit
+          // Die äußere EpisodeGlassCard (variant="glass") ist selbst ein Grundbaustein mit
           // display:grid + einem EINZIGEN, festen Abstands-Token zwischen all ihren direkten
-          // Kindern (--card-gap) -- Divider und die verschachtelte Versionslisten-Card duerfen
-          // deshalb NICHT als zwei eigene Geschwister-Kinder dieser aeusseren Karte landen (das
-          // wuerde einen ZWEITEN --card-gap-Abstand zwischen Header/Divider UND Divider/Liste
-          // einfuegen, per Playwright-Vollbild-Byte-Diff als 26px zusaetzliche Kartenhoehe
-          // nachgewiesen). Ein Stack gap="none" buendelt beide stattdessen zu einem EINZIGEN
+          // Kindern (--card-gap) -- Divider und die verschachtelte Versionslisten-Card dürfen
+          // deshalb NICHT als zwei eigene Geschwister-Kinder dieser äußeren Karte landen (das
+          // würde einen ZWEITEN --card-gap-Abstand zwischen Header/Divider UND Divider/Liste
+          // einfügen, per Playwright-Vollbild-Byte-Diff als 26px zusätzliche Kartenhöhe
+          // nachgewiesen). Ein Stack gap="none" bündelt beide stattdessen zu einem EINZIGEN
           // Grid-Kind, exakt wie zuvor nur das eine <div id={panelId}>.
           <Stack gap="none">
             {/* Ersetzt den vormaligen border-top von .versionList -- die sichtbare Trennlinie
                 zum Kopfzeilenbereich kommt jetzt aus einem echten Divider-Grundbaustein statt
                 einer lokalen Rahmen-Deklaration. spacing="none": der komplette Vorlauf-Abstand
                 (vormals exakt 1px border-top, direkt am oberen Kartenrand, ohne eigenen
-                Aussenabstand) kommt bereits vollstaendig aus dem --card-gap der aeusseren Karte. */}
+                Aussenabstand) kommt bereits vollständig aus dem --card-gap der äußeren Karte. */}
             <Divider tone="onMedia" spacing="none" />
             {/* Die verschachtelte Versionslisten-Card braucht keine eigene CSS-Klasse (keine
                 lokale .versionList-Klasse mit border-width:0/border-radius:0/background:
                 transparent) -- Cards seamless-Prop zeroed Cards eigenen 1px-Rahmen samt
-                Eckenrundung und variant="flat"s Farbverlaufsflaeche (`--card-flat-bg`) bereits
-                selbst ueber eine eigene Modifikatorklasse, sodass die Versionsliste randlos
-                INNERHALB der bereits eigenstaendig gerahmten aeusseren
-                Episodenkarte sitzt (direkt nachgeprueft: keine bestehende Card-Variante erreicht
+                Eckenrundung und variant="flat"s Farbverlaufsfläche (`--card-flat-bg`) bereits
+                selbst über eine eigene Modifikatorklasse, sodass die Versionsliste randlos
+                INNERHALB der bereits eigenständig gerahmten äußeren
+                Episodenkarte sitzt (direkt nachgeprüft: keine bestehende Card-Variante erreicht
                 border-width:0 UND border-radius:0 UND background:transparent gleichzeitig). Das
                 "dividedSection"-Polsterungs-Rezept (oben/seitlich/unten, siehe Card.tsx) bleibt
-                unveraendert. id={panelId} wandert vom vormaligen <div> auf die Card selbst, damit
+                unverändert. id={panelId} wandert vom vormaligen <div> auf die Card selbst, damit
                 DisclosureTriggers aria-controls weiterhin genau dieses Element trifft. */}
             <Card id={panelId} variant="flat" padding="dividedSection" seamless>
-              {/* D-20-Folgefall: die einzelnen ReleasePreviewRow-Instanzen bekommen ihren
-                  Zwischenabstand ueber Stacks "independentBlocks"-Zweck (trennt voneinander
-                  unabhaengige Episodenzeilen) statt eines lokalen CSS-Grids -- exakt derselbe
-                  Zweck, den Stack.tsx fuer "einzelne Episodenzeilen in der Episodenliste" bereits
+              {/* Die einzelnen ReleasePreviewRow-Instanzen bekommen ihren
+                  Zwischenabstand über Stacks "independentBlocks"-Zweck (trennt voneinander
+                  unabhängige Episodenzeilen) statt eines lokalen CSS-Grids -- exakt derselbe
+                  Zweck, den Stack.tsx für "einzelne Episodenzeilen in der Episodenliste" bereits
                   dokumentiert. */}
               <Stack gap="independentBlocks">{children}</Stack>
             </Card>

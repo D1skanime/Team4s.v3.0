@@ -13,12 +13,12 @@
    .disclosureTrigger-Wurzelelement) -- beide lokalen width:100%-Deklarationen waren redundante
    Wiederholungen desselben, vom jeweiligen Grundbaustein bereits garantierten Werts. */
 
-/* .headerTitleRow entfaellt: die Kopfzeilen-Anordnung (Titel-Block links, Versionszaehler
-   rechtsbuendig) kommt jetzt vollstaendig ueber Cluster gap="labelWithTrailingMeta" (siehe
-   EpisodeGlassCard.tsx) -- Cluster uebernimmt display:flex/gap/justify selbst, DisclosureTrigger
-   gibt ihm bereits ueber .disclosureTriggerTitle { flex:1 } die volle Breite vor. */
+/* .headerTitleRow entfällt: die Kopfzeilen-Anordnung (Titel-Block links, Versionszähler
+   rechtsbündig) kommt jetzt vollständig über Cluster gap="labelWithTrailingMeta" (siehe
+   EpisodeGlassCard.tsx) -- Cluster übernimmt display:flex/gap/justify selbst, DisclosureTrigger
+   gibt ihm bereits über .disclosureTriggerTitle { flex:1 } die volle Breite vor. */
 
-/* headerText traegt bewusst KEIN eigenes display:flex/flex-direction mehr: die drei Kind-Spans
+/* headerText trägt bewusst KEIN eigenes display:flex/flex-direction mehr: die drei Kind-Spans
    (Episodennummer/Titel/Klassifikation) sind bereits display:block und stapeln sich dadurch mit
    0px Standardabstand vertikal -- genau das bisherige Ergebnis des wirkungslosen
    flex-direction:column ohne eigenes gap. */
@@ -47,8 +47,8 @@
 }
 
 /*
- * .versionList traegt KEINE eigene Rahmen-/Rundungs-/Flaechen-Deklaration -- Cards eigener
+ * .versionList trägt KEINE eigene Rahmen-/Rundungs-/Flächen-Deklaration -- Cards eigener
  * seamless-Prop (siehe EpisodeGlassCard.tsx) zeroed Cards Basis-Rahmen/-Rundung und
- * variant="flat"s Farbverlaufsflaeche (`--card-flat-bg`) bereits selbst ueber eine eigene
+ * variant="flat"s Farbverlaufsfläche (`--card-flat-bg`) bereits selbst über eine eigene
  * Modifikatorklasse, statt dieselben drei Werte als lokalen CSS-Override zu wiederholen.
  */
