@@ -57,6 +57,31 @@ describe('Card', () => {
     expect(section.className).toMatch(/cardNested/)
     expect(section.className).toMatch(/cardBleedBelowMd/)
   })
+
+  it('widthPurpose ist ohne Angabe byte-identisch zum bisherigen Render (kein --card-width-override gesetzt)', () => {
+    const { container } = render(<Card variant="glassStrong">Inhalt</Card>)
+    const section = container.querySelector('section') as HTMLElement
+    expect(section.style.getPropertyValue('--card-width-override')).toBe('')
+  })
+
+  it('widthPurpose="compactPreview" setzt --card-width-override auf das eigene Zweck-Token, nicht auf ein lokales Breiten-Literal', () => {
+    const { container } = render(<Card variant="glassStrong" widthPurpose="compactPreview">Inhalt</Card>)
+    const section = container.querySelector('section') as HTMLElement
+    expect(section.style.getPropertyValue('--card-width-override')).toBe('var(--card-width-compact-preview)')
+  })
+
+  it('seamless ist ohne Angabe byte-identisch zum bisherigen Render (keine neue Klasse)', () => {
+    const { container } = render(<Card variant="flat">Inhalt</Card>)
+    const section = container.querySelector('section') as HTMLElement
+    expect(section.className).not.toMatch(/cardSeamless/)
+  })
+
+  it('seamless=true setzt die randlose Modifikatorklasse zusaetzlich zur bestehenden Variantenklasse', () => {
+    const { container } = render(<Card variant="flat" seamless>Inhalt</Card>)
+    const section = container.querySelector('section') as HTMLElement
+    expect(section.className).toMatch(/cardFlat/)
+    expect(section.className).toMatch(/cardSeamless/)
+  })
 })
 
 describe('Card.module.css', () => {
@@ -75,6 +100,23 @@ describe('Card.module.css', () => {
     expect(mobileRule).toMatch(/--heading-color:\s*var\(--scrim-text\);/)
     expect(mobileRule).toMatch(/--text-body-color:\s*var\(--scrim-icon\);/)
     expect(mobileRule).toMatch(/--text-eyebrow-color:\s*var\(--scrim-icon\);/)
+  })
+
+  it('cardSeamless zeroed Rahmenbreite/-radius/Hintergrund und steht NACH .cardFlat/.cardNested/.cardNestedFlat, damit es bei gleicher Spezifitaet gewinnt', () => {
+    const seamlessMatch = css.match(/\.cardSeamless\s*\{([^}]+)\}/)
+    expect(seamlessMatch, '.cardSeamless muss existieren').toBeTruthy()
+    const seamlessRule = seamlessMatch![1]
+    expect(seamlessRule).toMatch(/border-width:\s*0;/)
+    expect(seamlessRule).toMatch(/border-radius:\s*0;/)
+    expect(seamlessRule).toMatch(/background:\s*transparent;/)
+
+    const seamlessIndex = css.indexOf('.cardSeamless')
+    const flatIndex = css.indexOf('.cardFlat')
+    const nestedIndex = css.indexOf('.cardNested {')
+    const nestedFlatIndex = css.indexOf('.cardNestedFlat')
+    expect(seamlessIndex).toBeGreaterThan(flatIndex)
+    expect(seamlessIndex).toBeGreaterThan(nestedIndex)
+    expect(seamlessIndex).toBeGreaterThan(nestedFlatIndex)
   })
 
   it('bleedBelowMd kollabiert unterhalb 767px nur die horizontale Polsterung auf 0 und zentriert die Grid-Kinder, ohne die vertikale Polsterung zu berühren', () => {
