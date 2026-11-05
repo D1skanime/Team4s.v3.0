@@ -23,8 +23,18 @@ type CardVariant =
  *  - `'dividedSection'`: asymmetrisches Rezept (oben/seitlich/unten) für einen verschachtelten
  *    Inhaltsblock, der durch eine Trennlinie statt durch einen Rahmen vom darüberliegenden
  *    Bereich abgesetzt ist.
+ *  - `'section'` (32px): volle Innenabstand-Polsterung eines EIGENSTÄNDIGEN Seitenabschnitts
+ *    (z. B. der Episoden-Bereich-Rahmen) -- unterscheidet sich von `'nestedBlock'` (16px) durch
+ *    den größeren Wert für einen vollständigen, in sich geschlossenen Bereich statt eines
+ *    Inhaltsblocks INNERHALB einer äußeren Karte. Zu unterscheiden von `CardVariant`s gleichnamigem
+ *    `'section'`-Mitglied (`.cardSection`, eine reine Hintergrundfarb-Variante für Admin-Flächen) --
+ *    diese Prop (`padding`) und jene Prop (`variant`) sind unabhängig voneinander, keine
+ *    TypeScript-Kollision, aber leicht verwechselbar beim Lesen eines Aufrufs.
+ *  - `'contextCard'` (24px): Innenabstand einer eigenständigen Kontext-/Hinweiskarte (z. B. die
+ *    Fansub-Gruppenkontext-Karte) -- eine vollständige, für sich stehende Karte mit eigenem Rahmen,
+ *    aber kleiner als `'section'`s 32px, da sie selbst kein ganzer Seitenabschnitt ist.
  *  - `'none'`: setzt Padding auf den Literalwert `0`. */
-export type CardPaddingPurpose = 'content' | 'nestedBlock' | 'dividedSection' | 'none'
+export type CardPaddingPurpose = 'content' | 'nestedBlock' | 'dividedSection' | 'section' | 'contextCard' | 'none'
 
 /** Löst jeden Zweck-Wert auf sein eigenes, in `layout.css` deklariertes Zweck-Token auf --
  *  niemals direkt auf die rohe `--space-N`-Grundskala (siehe `CardPaddingPurpose`-Dokumentation
@@ -33,6 +43,8 @@ const PADDING_PURPOSE_TOKENS: Record<Exclude<CardPaddingPurpose, 'none'>, string
   content: 'var(--card-padding-content)',
   nestedBlock: 'var(--card-padding-nested-block)',
   dividedSection: 'var(--card-padding-divided-section)',
+  section: 'var(--card-padding-section)',
+  contextCard: 'var(--card-padding-context-card)',
 }
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {

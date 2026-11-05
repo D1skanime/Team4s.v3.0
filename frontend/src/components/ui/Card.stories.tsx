@@ -160,6 +160,44 @@ export const PaddingUeberschreibung: Story = {
   ),
 }
 
+export const AbschnittsPolsterung: Story = {
+  name: 'Innenabstand eines eigenstaendigen Seitenabschnitts (padding="section")',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'padding="section" (32px) ist fuer eine Card gedacht, die selbst EIN GANZER, ' +
+          'eigenstaendiger Seitenabschnitt ist (z. B. der Episoden-Bereich-Rahmen) -- ' +
+          'groesszuegiger als "nestedBlock" (16px, ein Block INNERHALB einer aeusseren Karte).',
+      },
+    },
+  },
+  render: () => (
+    <Card variant="section" padding="section">
+      <Text>Volle 32px-Polsterung eines eigenstaendigen Bereichs, z. B. eines Episoden-Rahmens.</Text>
+    </Card>
+  ),
+}
+
+export const KontextkartenPolsterung: Story = {
+  name: 'Innenabstand einer eigenstaendigen Kontext-/Hinweiskarte (padding="contextCard")',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'padding="contextCard" (24px) ist fuer eine eigenstaendige Kontext-/Hinweiskarte ' +
+          'gedacht (z. B. eine Fansub-Gruppenkontext-Karte) -- kleiner als "section" (32px), da ' +
+          'die Karte selbst kein ganzer Seitenabschnitt ist.',
+      },
+    },
+  },
+  render: () => (
+    <Card variant="nested" padding="contextCard">
+      <Text>24px-Polsterung einer eigenstaendigen Kontext-/Hinweiskarte.</Text>
+    </Card>
+  ),
+}
+
 export const RandBisRandUnterhalb767px: Story = {
   name: 'Rand-bis-Rand unterhalb 767px (bleedBelowMd)',
   parameters: {

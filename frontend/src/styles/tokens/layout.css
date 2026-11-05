@@ -109,6 +109,8 @@
   --card-padding-content: var(--space-3); /* Card: volle Innenabstand-Polsterung für eine Card-Instanz, deren Variante selbst kaum/kein Padding mitbringt (z. B. die glassStrong-Vorschaukarte der Randnavigation, die glassStrong-Zeilen-Karte der Release-Vorschauzeile). */
   --card-padding-nested-block: var(--space-4); /* Card: Innenabstand eines verschachtelten Inhaltsblocks innerhalb einer äußeren Karte (z. B. die Poster-Metadaten-Karte im Anime-Kopf). */
   --card-padding-divided-section: var(--space-3) var(--space-4) var(--space-4); /* Card: asymmetrisches Rezept (oben/seitlich/unten) für einen verschachtelten Inhaltsblock, der durch eine Trennlinie statt durch einen Rahmen vom darüberliegenden Bereich abgesetzt ist (z. B. die Versionsliste einer Episodenkarte). */
+  --card-padding-section: var(--space-6); /* Card: volle Innenabstand-Polsterung eines eigenstaendigen Seitenabschnitts (z. B. der Episoden-Bereich-Rahmen) -- groesser als --card-padding-nested-block (16px, ein Block INNERHALB einer aeusseren Karte), da hier die gesamte Karte selbst der eigenstaendige Abschnitt ist. */
+  --card-padding-context-card: var(--space-5); /* Card: Innenabstand einer eigenstaendigen Kontext-/Hinweiskarte (z. B. die Fansub-Gruppenkontext-Karte) -- eine fuer sich stehende Karte mit eigenem Rahmen, aber kleiner als --card-padding-section, da sie selbst kein ganzer Seitenabschnitt ist. */
 }
 
 @media (min-width: 1600px) {
