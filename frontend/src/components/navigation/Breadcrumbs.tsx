@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
+import { classNames } from '@/components/ui/classNames'
+
 import styles from './Breadcrumbs.module.css'
 
 export interface BreadcrumbItem {
@@ -13,15 +15,22 @@ export interface BreadcrumbItem {
 export interface BreadcrumbsProps {
   items: BreadcrumbItem[]
   textHalo?: boolean
+  /** 'scrim' stellt die helle Scrim-Tonalität für Breadcrumbs auf einem Foto-/Bannerhintergrund
+   *  bereit (meist zusammen mit `textHalo` genutzt) -- die dunklen Admin-Standardfarben wären
+   *  dort unlesbar. Ohne Angabe bleiben die Standardfarben aktiv. */
+  variant?: 'default' | 'scrim'
 }
 
-export function Breadcrumbs({ items, textHalo = false }: BreadcrumbsProps) {
+export function Breadcrumbs({ items, textHalo = false, variant = 'default' }: BreadcrumbsProps) {
   if (items.length === 0) {
     return null
   }
 
   return (
-    <nav aria-label="Breadcrumb" className={styles.breadcrumbs}>
+    <nav
+      aria-label="Breadcrumb"
+      className={classNames(styles.breadcrumbs, variant === 'scrim' && styles.breadcrumbsScrim)}
+    >
       <ol className={styles.breadcrumbsList}>
         {items.map((item, index) => {
           const isLast = index === items.length - 1

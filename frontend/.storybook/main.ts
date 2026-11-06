@@ -22,6 +22,13 @@ const config: StorybookConfig = {
     // unter components/fansubs/) -- ohne dieses Glob würde Storybook solche Dateien gar nicht
     // erst einlesen.
     '../src/components/fansubs/**/*.stories.@(ts|tsx)',
+    // Anime-Fachbausteine (z. B. die Randnavigation im Grid-Kontext) liegen neben den
+    // Komponenten unter components/anime und müssen wie die Fansub-Kompositionen sichtbar sein.
+    '../src/components/anime/**/*.stories.@(ts|tsx)',
+    // "Ganze Seiten"-Pilot-Stories (Server/Ansicht-Split, z. B. AnimeListView.stories.tsx) liegen
+    // neben der jeweiligen Route unter app/ statt unter components/ -- ohne dieses Glob würde
+    // Storybook sie nicht einlesen.
+    '../src/app/**/*.stories.@(ts|tsx)',
   ],
   framework: {
     name: '@storybook/nextjs',

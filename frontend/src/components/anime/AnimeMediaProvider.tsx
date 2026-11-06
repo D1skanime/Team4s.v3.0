@@ -3,9 +3,13 @@
 import Image from 'next/image'
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react'
 
+import { ResponsiveImage } from '@/components/ui'
+import { classNames } from '@/components/ui/classNames'
 import { getAnimeBackdrops } from '@/lib/api'
 import { resolveInfoBannerURL, resolveInfoLogoURL } from '@/lib/animeBackdrops'
 import type { AnimeBackdropManifest } from '@/types/anime'
+
+import styles from './AnimeMediaProvider.module.css'
 
 const AnimeMediaManifestContext = createContext<AnimeBackdropManifest | null>(null)
 const MANIFEST_TTL_MS = 60_000
@@ -153,18 +157,21 @@ export function AnimeTitleLogo({ title, className }: { title: string; className?
       alt={`${title} Logo`}
       width={120}
       height={48}
-      className={className}
+      className={classNames(styles.titleLogo, className)}
       unoptimized
     />
   )
 }
 
 export function AnimeInfoBanner({
-  className,
-  dividerClassName,
+  divider,
 }: {
-  className?: string
-  dividerClassName?: string
+  /** Trennlinie VOR dem Banner-Bild, als fertiges Element statt nur einer ClassName --
+   *  AnimeInfoBanner kennt keine eigene `<hr>`-Trennlinie, sondern platziert nur noch das vom
+   *  Aufrufer übergebene Element (üblicherweise der `Divider`-Grundbaustein) an der richtigen
+   *  Stelle. So bleibt Farbe/Abstand der Linie vollständig Sache des Grundbausteins, dieser
+   *  Baustein kennt dafür kein eigenes CSS mehr. */
+  divider?: ReactNode
 }) {
   const manifest = useAnimeMediaManifest()
   const bannerURL = useMemo(() => resolveInfoBannerURL(manifest), [manifest])
@@ -173,8 +180,10 @@ export function AnimeInfoBanner({
 
   return (
     <>
-      <hr className={dividerClassName} />
-      <Image src={bannerURL} alt="" className={className} width={600} height={180} unoptimized />
+      {divider}
+      {/* fillWidth übernimmt die volle Breiten-/Höhenanpassung des Banners -- der Aufrufer
+          braucht dafür kein eigenes CSS mehr zu deklarieren. */}
+      <ResponsiveImage src={bannerURL} alt="" fillWidth width={600} height={180} unoptimized />
     </>
   )
 }

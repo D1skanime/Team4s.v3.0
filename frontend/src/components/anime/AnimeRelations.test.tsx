@@ -1,4 +1,7 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, screen, within } from '@testing-library/react'
 
@@ -46,5 +49,27 @@ describe('AnimeRelations', () => {
     expect(formatRelationTypeLabel('summary')).toBe('Zusammenfassung')
     expect(formatRelationTypeLabel('alternative-version')).toBe('Alternative Version')
     expect(formatRelationTypeLabel('something-new')).toBe('Verwandt')
+  })
+
+  it('rendert die Ueberschrift als echtes <h2> ueber den Heading-Grundbaustein statt als rohes Element mit eigener Farbe', () => {
+    render(
+      <AnimeRelations
+        relations={[{ anime_id: 2, title: '11eyes', relation_type: 'full-story', cover_image: null, year: 2009, type: 'tv' }]}
+        variant="compact"
+      />,
+    )
+
+    const heading = screen.getByRole('heading', { name: 'Verwandte Anime' })
+    expect(heading.tagName).toBe('H2')
+    // Heading.module.css liefert ueber .heading die eigene Zweck-Farbe (--heading-color-Hook) --
+    // diese Klasse muss auf dem Element landen, sonst ginge die Ueberschrift weiterhin ueber ein
+    // rohes <h2> ohne den Hook (siehe Heading.tsx/.module.css).
+    expect(heading.className).toMatch(/heading/i)
+  })
+
+  it('setzt in AnimeRelations.module.css keine hartcodierte weisse Textfarbe mehr fuer .title -- die Farbe kommt ausschliesslich ueber Headings --heading-color-Hook', () => {
+    const source = readFileSync(join(process.cwd(), 'src/components/anime/AnimeRelations.module.css'), 'utf8')
+    expect(source).not.toMatch(/\.title\s*{[^}]*color:\s*#fff/)
+    expect(source).not.toMatch(/\.compact\s+\.title\s*{[^}]*color/)
   })
 })

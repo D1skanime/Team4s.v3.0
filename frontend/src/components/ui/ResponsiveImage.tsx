@@ -10,6 +10,8 @@ import {
   FIXED_REMOTE_IMAGE_URLS,
   configuredApiMediaPatterns,
 } from '@/lib/images/publicImagePatterns'
+import { classNames } from './classNames'
+import styles from './ResponsiveImage.module.css'
 
 const REMOTE_IMAGE_PATTERNS = [
   ...FIXED_REMOTE_IMAGE_URLS.map((url) => new URL(url)),
@@ -54,6 +56,19 @@ export type ResponsiveImageProps = Omit<ImageProps, 'src' | 'unoptimized'> & {
    *  tatsächlich gespeicherten Mediums kennt). Ohne Angabe bleibt die automatische Prüfung
    *  unverändert maßgeblich. */
   unoptimized?: boolean
+  /** Rundet das Bild und beschneidet es wie ein kleines, randloses Vorschau-/Miniaturbild (z. B.
+   *  das Cover-Bild einer schwebenden Randnavigations-Vorschaukarte) -- reproduziert exakt
+   *  `border-radius: var(--radius-sm); object-fit: cover;`, ohne dass der Aufrufer selbst eine
+   *  eigene `border-radius`-Regel schreiben muss. Ohne Angabe bleibt das Bild wie bisher
+   *  ungerundet (Zero-Pixel-Diff). */
+  roundedThumbnail?: boolean
+  /** Streckt das Bild auf die volle Breite seines Containers und skaliert die Höhe proportional
+   *  mit (z. B. ein breites Banner-Bild über einer Info-Karte) -- reproduziert exakt
+   *  `display: block; width: 100%; height: auto; object-fit: cover;`, ohne dass der Aufrufer
+   *  selbst eine eigene `width`-Regel schreiben muss. `display: block` hebt dabei den
+   *  browserüblichen "Baseline-Nachlauf" unterhalb eines inline gerenderten Bildes auf. Ohne
+   *  Angabe bleibt das Bild wie bisher auf seiner intrinsischen Breite/Höhe (Zero-Pixel-Diff). */
+  fillWidth?: boolean
 }
 
 /**
@@ -73,11 +88,11 @@ export type ResponsiveImageProps = Omit<ImageProps, 'src' | 'unoptimized'> & {
  * jedem anderen unbehandelten Bildfehler an anderer Stelle dieser Seite; kein neues eigenes
  * Fehler-Visual.
  */
-export function ResponsiveImage({ src, alt, onError, unoptimized, ...props }: ResponsiveImageProps) {
+export function ResponsiveImage({ src, alt, onError, unoptimized, roundedThumbnail = false, fillWidth = false, className, ...props }: ResponsiveImageProps) {
   const [failedOptimizedSource, setFailedOptimizedSource] = useState<string | null>(null)
   const usingDisplayOriginal = failedOptimizedSource === src
-  // Retained for observability/testing only (per P154-06) -- deliberately not read by the
-  // render below.
+  // usingDisplayOriginal wird nur für Beobachtbarkeit/Tests mitgeführt und bewusst nicht beim
+  // Rendern unten gelesen.
   void usingDisplayOriginal
 
   return (
@@ -85,6 +100,14 @@ export function ResponsiveImage({ src, alt, onError, unoptimized, ...props }: Re
       {...props}
       src={src}
       alt={alt}
+      // Ohne roundedThumbnail/fillWidth bleibt className exakt der Aufrufer-Wert (auch
+      // `undefined`) -- Zero-Pixel-Diff für jeden bestehenden Konsumenten, der diese Props
+      // nicht setzt.
+      className={
+        roundedThumbnail || fillWidth
+          ? classNames(roundedThumbnail && styles.roundedThumbnail, fillWidth && styles.fillWidth, className)
+          : className
+      }
       unoptimized={unoptimized ?? !isConfiguredForImageOptimization(src)}
       onError={(event) => {
         onError?.(event)

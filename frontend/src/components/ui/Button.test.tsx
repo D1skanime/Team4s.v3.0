@@ -35,6 +35,24 @@ describe('Button', () => {
     expect(container.querySelector('button')?.className).toMatch(/buttonProse/)
     expect(container.querySelector('button')?.className).toMatch(/buttonToneStrong/)
   })
+
+  it('stellt die globalen Merkliste-Zustände ohne lokale Klassen bereit', () => {
+    const { container, rerender } = render(<Button variant="watchlist">Zur Merkliste</Button>)
+    expect(container.querySelector('button')?.className).toMatch(/buttonWatchlist/)
+
+    rerender(<Button variant="watchlistActive">In Merkliste</Button>)
+    expect(container.querySelector('button')?.className).toMatch(/buttonWatchlistActive/)
+  })
+
+  it('stellt den Glas-Umschalt-Chip-Zustand über aria-pressed bereit (globale Form des bisherigen FansubGroupPicker-Chips)', () => {
+    const { container, rerender } = render(<Button variant="chipGlass" size="sm">Alle</Button>)
+    const button = container.querySelector('button')
+    expect(button?.className).toMatch(/buttonChipGlass/)
+    expect(button?.getAttribute('aria-pressed')).toBeNull()
+
+    rerender(<Button variant="chipGlass" size="sm" aria-pressed="true">LazySubs</Button>)
+    expect(container.querySelector('button')?.getAttribute('aria-pressed')).toBe('true')
+  })
 })
 
 describe('Button.module.css', () => {
@@ -56,5 +74,24 @@ describe('Button.module.css', () => {
       expect(index, `${selector} must exist in the stylesheet`).toBeGreaterThan(-1)
       expect(index, `${selector} must be declared after .buttonText to reliably win its inherit reset`).toBeGreaterThan(buttonTextIndex)
     }
+  })
+
+  it('deklariert .buttonChipGlass NACH .buttonSmall/.buttonLarge, damit seine Radius-/Schriftgröße-Formel zuverlässig gegen deren Größenwerte gewinnt', () => {
+    const buttonSmallIndex = css.indexOf('.buttonSmall {')
+    const buttonLargeIndex = css.indexOf('.buttonLarge {')
+    const buttonChipGlassIndex = css.indexOf('.buttonChipGlass {')
+    expect(buttonSmallIndex).toBeGreaterThan(-1)
+    expect(buttonLargeIndex).toBeGreaterThan(-1)
+    expect(buttonChipGlassIndex, '.buttonChipGlass must exist in the stylesheet').toBeGreaterThan(-1)
+    expect(buttonChipGlassIndex, '.buttonChipGlass must be declared after .buttonSmall').toBeGreaterThan(buttonSmallIndex)
+    expect(buttonChipGlassIndex, '.buttonChipGlass must be declared after .buttonLarge').toBeGreaterThan(buttonLargeIndex)
+  })
+
+  it('setzt für .buttonChipGlass einen eigenen --button-gap (4px statt der 10px-Standardlücke) für ein kleines Inline-Logo neben kurzer Chip-Beschriftung', () => {
+    const chipGlassStart = css.indexOf('.buttonChipGlass {')
+    expect(chipGlassStart, '.buttonChipGlass must exist in the stylesheet').toBeGreaterThan(-1)
+    const chipGlassEnd = css.indexOf('}', chipGlassStart)
+    const chipGlassBlock = css.slice(chipGlassStart, chipGlassEnd)
+    expect(chipGlassBlock).toMatch(/--button-gap:\s*var\(--space-1\);/)
   })
 })

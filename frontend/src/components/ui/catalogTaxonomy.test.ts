@@ -150,3 +150,52 @@ describe('Grundbausteine/* Katalogprüfung: keine stillschweigenden Grundbaustei
     })
   }
 })
+
+/**
+ * Taxonomie-Regel "Im Einsatz/*": „Im Einsatz = nur vollständige Seiten oder vollständige
+ * Abläufe" -- keine isolierten Einzelbaustein-Demos mehr. Anders als die Grundbaustein-Prüfung
+ * oben lässt sich "ist das eine vollständige Seite" nicht allein aus Importen ableiten --
+ * deshalb verlangt dieser Block eine überprüfbare strukturelle Eigenschaft: Jede Story dieser
+ * Kategorie liegt unter `src/app/` und gehört damit zu einer vollständigen App-Route oder einem
+ * dort verorteten Ablauf. Komponenten-Galerien unter `src/components/` gehören dagegen zu
+ * „Grundbausteine/*“ oder „Zusammengesetzte Bausteine/*“. Die Regel kennt keine Ausnahmeliste.
+ */
+const SRC_DIR = path.resolve(process.cwd(), 'src')
+
+/** Rekursiver *.stories.tsx-Scan über den gesamten src-Baum (node_modules/.next o. ä. existieren
+ *  unter src/ ohnehin nicht) -- "Im Einsatz/*"-Stories liegen anders als Grundbausteine/
+ *  Zusammengesetzte Bausteine NICHT nur unter components/ui, sondern auch unter
+ *  components/showcases, components/fansubs und app/**. */
+function findStoryFilesRecursively(dir: string): string[] {
+  const results: string[] = []
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      results.push(...findStoryFilesRecursively(entryPath))
+    } else if (entry.isFile() && entry.name.endsWith('.stories.tsx')) {
+      results.push(entryPath)
+    }
+  }
+  return results
+}
+
+describe('Im Einsatz/* Katalogprüfung: nur vollständige Seiten und Abläufe', () => {
+  const allStoryFiles = findStoryFilesRecursively(SRC_DIR)
+  const imEinsatzFiles = allStoryFiles.filter((absPath) => {
+    const content = fs.readFileSync(absPath, 'utf8')
+    const title = extractTitle(content)
+    return title?.startsWith('Im Einsatz/')
+  })
+
+  it('jede Story liegt unter src/app statt bei einer isolierten Komponenten-Galerie', () => {
+    const nonRouteStories = imEinsatzFiles
+      .map((absPath) => path.relative(SRC_DIR, absPath).split(path.sep).join('/'))
+      .filter((relPath) => !relPath.startsWith('app/'))
+
+    expect(
+      nonRouteStories,
+      '"Im Einsatz/*" ist ausschließlich für vollständige Seiten und Abläufe unter src/app reserviert. ' +
+        'Komponenten-Galerien nach "Grundbausteine/*" oder "Zusammengesetzte Bausteine/*" verschieben.',
+    ).toEqual([])
+  })
+})

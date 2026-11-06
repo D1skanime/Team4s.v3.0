@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
-import { NavArrow } from '@/components/ui'
+import { Heading, NavArrow } from '@/components/ui'
 import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 import styles from './AnimeRelations.module.css'
 
@@ -120,7 +120,7 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
   return (
     <section className={`${styles.relationsSection} ${isCompact ? styles.compact : ''}`}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Verwandte Anime</h2>
+        <Heading level={2} className={styles.title}>Verwandte Anime</Heading>
         {relations.length > 3 && (
           <div className={styles.sliderControls}>
             <NavArrow

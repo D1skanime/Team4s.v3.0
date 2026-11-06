@@ -151,23 +151,32 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   inklusive der beiden Typografie-Grundbausteine `Heading` (`level`/`size`
   getrennt: semantisches Tag vs. visuelle Größenstufe) und `Text` (`variant`:
   body/soft/meta/small, zusätzlich `tone="error"` für Fehlertext) sowie `Label`
-  (Feldbeschriftung mit optionaler Pflicht-Markierung) und `DisclosureTrigger`
-  (vollbreite aufklappbare Kopfzeile, Grundlage für `Accordion` -- seit dieser
-  Runde hier statt unter „Zusammengesetzte Bausteine" katalogisiert);
-  `Zusammengesetzte Bausteine/*` zeigt Primitives, die
-  sichtbar mehrere benannte Grundbausteine komponieren (17 Stories, z. B.
-  FormField, Modal, Drawer, NavArrow — jede mit einem „Besteht aus"-Hinweis in
+  (Feldbeschriftung mit optionaler Pflicht-Markierung), `DisclosureTrigger`
+  (vollbreite aufklappbare Kopfzeile, Grundlage für `Accordion`) und `LinkChip`
+  (Link in Chip-Form, `tone="glass"`/`"scrim"` für zwei durchscheinende Flächen-
+  Erscheinungen, href/children/icon/count); `Zusammengesetzte Bausteine/*` zeigt
+  Primitives, die sichtbar mehrere benannte Grundbausteine komponieren (25
+  Stories, z. B. FormField, Modal, Drawer, NavArrow, `BannerSection`
+  (Bannerbild-Hintergrund + WCAG-AA-Scrim + Komposition-Slot für z. B.
+  `AnimeBackdropRotator`), `EpisodenKarte`/`Release-Versionszeile`
+  (`components/fansubs/`, siehe unten) — jede mit einem „Besteht aus"-Hinweis in
   ihrer Autodocs-Beschreibung, als echte Storybook-Dokumentationslinks über
   `storybookDocsLink()` aus `frontend/src/lib/storybookLinks.ts`, nicht als
-  reiner Text); `Im Einsatz/*` zeigt die migrierten domänenspezifischen
-  Kompositionen (13 Stories). Eine automatische Katalogprüfung
+  reiner Text); `Im Einsatz/*` zeigt ausschließlich vollständige Seiten und
+  Abläufe unter `src/app` (derzeit die beiden Anime-Pilotseiten). Komponenten-
+  Galerien gehören nach `Grundbausteine/*` oder `Zusammengesetzte Bausteine/*`.
+  Eine automatische Katalogprüfung
   (`catalogTaxonomy.test.ts`) schlägt fehl, wenn ein
   `Grundbausteine/*`-Primitiv stillschweigend eine andere, selbst katalogisierte
   Komponente importiert, statt entweder umsortiert zu werden oder in dessen
   dokumentierter `EXCEPTIONS`-Map zu stehen. `IconButton` hat zusätzlich zu
   `default`/`floating` eine dritte Variante `ghost` (transparent, Opazitäts-Hover
   statt Rahmen/Schatten) — Basis für `NavArrow`, das darauf aufbaut statt eines
-  eigenen `<button>`-Nachbaus.
+  eigenen `<button>`-Nachbaus. `Card` hat zusätzlich zu den acht Admin-Varianten
+  zwei öffentliche Glas-Varianten (`glass`/`glassStrong`, komplett tokenbasiert)
+  mit einem generischen Tönungs-Hook (`tintHue`, 0-360°) für farbige Kartentönung
+  auf Bannerhintergrund, ohne dass Card selbst Domänenwissen (z. B. Episodentypen)
+  kennt.
 - **Verboten:** Handgebaute native `<select>`, `<input>`, `<textarea>`, `<button>`
   oder Eigen-Markup für einen Primitiv-Typ, den `@/components/ui` bereits anbietet.
   Lokale Datei-Konsistenz rechtfertigt KEIN Abweichen vom globalen Design-System;
@@ -182,6 +191,11 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   Primitive-Nutzung als Pflicht-Constraint führen (UI-Checker-Gate).
 - **Ausnahme:** Die Primitive-Definitionen selbst unter
   `frontend/src/components/ui/` dürfen native Elemente kapseln.
+- **Öffentliche Optik ist eine zweite offizielle Erscheinung, kein Admin-Abweichler:**
+  durchscheinende/dunkle Flächen auf öffentlichen Seiten (z. B. `Card variant="glass"`,
+  `LinkChip`, Ränder „auf dunkler Fläche") sind KEIN Fehler, der an die helle Admin-Optik
+  angeglichen werden muss, sondern eine zweite, gleichberechtigte, tokenbasierte Erscheinung
+  derselben Bausteine.
 - **Pflichtregel „Stories ziehen mit":** Ändert sich eine globale Primitive aus
   `@/components/ui` sichtbar (neue Variante, neuer Zustand, geändertes
   Props-Verhalten), wird im selben Auftrag die zugehörige `*.stories.tsx`-Datei

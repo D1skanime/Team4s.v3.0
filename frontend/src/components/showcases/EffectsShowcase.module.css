@@ -1,0 +1,46 @@
+/**
+ * Reine Layout-Styles der Effekte-Showcase-Seite selbst (Anordnung der 5 Beispiel-Kacheln und
+ * ihrer Vorher/Nachher-Paare) -- kein neuer Design-Token-Inhalt. Jeder Effekt liegt in
+ * effects.css, die Vorschau rendert den tatsächlichen Grundbaustein (BannerSection/LinkChip/
+ * Button/Badge), nicht eine eigene CSS-Nachbildung. Die Anordnung der Vorher/Nachher-Spalten
+ * selbst kommt aus `Cluster`/`Stack` (siehe EffectsShowcase.tsx) -- hier stehen nur die
+ * Innenmaße der Vorschau-Kacheln sowie die Breitenverteilung der beiden Spalten.
+ */
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.compare {
+  margin-bottom: var(--space-3);
+}
+
+.comparePane {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.previewFrame {
+  position: relative;
+  height: 160px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.plainImage {
+  object-fit: cover;
+}
+
+.previewSlot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meta {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}

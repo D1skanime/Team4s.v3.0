@@ -11,8 +11,8 @@ describe('storybookDocsPath', () => {
   })
 
   it('behält Umlaute bei, da Storybooks sanitize() nur eine feste Satzzeichen-/Leerzeichen-Liste ersetzt, keine generische Nicht-ASCII-Klasse', () => {
-    expect(storybookDocsPath('Im Einsatz/Öffentliche Fansub-Oberflächen')).toBe(
-      '?path=/docs/im-einsatz-öffentliche-fansub-oberflächen--docs',
+    expect(storybookDocsPath('Zusammengesetzte Bausteine/Öffentliche Fansub-Oberflächen')).toBe(
+      '?path=/docs/zusammengesetzte-bausteine-öffentliche-fansub-oberflächen--docs',
     )
   })
 })

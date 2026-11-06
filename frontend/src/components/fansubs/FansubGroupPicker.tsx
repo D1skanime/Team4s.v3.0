@@ -1,9 +1,6 @@
 'use client'
 
-import Image from 'next/image'
-
-import { Button } from '@/components/ui'
-import { classNames } from '@/components/ui/classNames'
+import { Avatar, Button, Cluster, Stack, Text } from '@/components/ui'
 
 import styles from './FansubGroupPicker.module.css'
 
@@ -34,16 +31,16 @@ export function FansubGroupPicker({ options, activeGroupId, showAllChip, onSelec
   if (options.length === 0) return null
 
   return (
-    <div className={styles.wrapper}>
-      <span className={styles.eyebrowLabel}>Fansub-Gruppe</span>
-      <div role="group" aria-label="Fansub-Gruppe" className={styles.chipRow}>
+    <Stack gap="relatedContent">
+      <Text as="span" variant="eyebrow" tone="onScrim">Fansub-Gruppe</Text>
+      <Cluster gap="interactiveChipRow" as="div" role="group" aria-label="Fansub-Gruppe">
         {showAllChip ? (
           <Button
-            variant="ghost"
+            variant="chipGlass"
             size="sm"
             aria-pressed={activeGroupId === null}
             onClick={() => onSelect(null)}
-            className={classNames(styles.chip, activeGroupId === null && styles.chipActive)}
+            className={styles.chip}
           >
             Alle
           </Button>
@@ -54,20 +51,21 @@ export function FansubGroupPicker({ options, activeGroupId, showAllChip, onSelec
           return (
             <Button
               key={option.id}
-              variant="ghost"
+              variant="chipGlass"
               size="sm"
               aria-pressed={isActive}
               onClick={() => onSelect(option.id)}
-              className={classNames(styles.chip, isActive && styles.chipActive)}
+              className={styles.chip}
+              // Kreisform/Zuschnitt des Gruppenlogos kommt jetzt aus dem Avatar-Grundbaustein
+              // (Größenstufe "xs", 20px) statt eines lokal zugeschnittenen <Image>-Elements; der
+              // Icon-Beschriftungs-Abstand übernimmt Buttons eigene chipGlass-Lücke (--button-gap).
+              leftIcon={logoURL ? <Avatar size="xs" src={logoURL} label={option.name} /> : null}
             >
-              {logoURL ? (
-                <Image src={logoURL} alt="" width={20} height={20} unoptimized className={styles.logo} />
-              ) : null}
               {option.name}
             </Button>
           )
         })}
-      </div>
-    </div>
+      </Cluster>
+    </Stack>
   )
 }

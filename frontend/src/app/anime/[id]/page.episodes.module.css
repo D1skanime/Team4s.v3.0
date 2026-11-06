@@ -1,0 +1,17 @@
+/* ==========================================================================
+   AnimeDetail Page -- Episoden-Bereich (Rahmen um FansubVersionBrowser)
+   Teil des 450-Zeilen-Splits von page.module.css, zusammengeführt über
+   AnimeDetailView.styles.ts. Die vormaligen episodeList-/episodeItem-/episodeNumber-/episodeTitle-/
+   episodeMeta-/episodeActions-/actionButton-Klassen wurden beim Verschieben ersatzlos entfernt
+   (totes CSS, 0 Treffer in AnimeDetailView.tsx -- ersetzt durch FansubVersionBrowser/
+   EpisodeGlassCard).
+
+   Die vormalige volle Innenabstand-Polsterung dieser Klasse (vormals var(--space-6)) kommt jetzt
+   aus Cards wiederverwendbarem 'section'-Zweck (AnimeEpisodesSection.tsx, Card padding="section")
+   statt aus einer lokalen Klasse hier -- diese Datei behält die Klasse nur noch als reine
+   Selektor-Verdrahtung für den Aufrufer, ohne eigene Deklaration. Der vormalige untere
+   Rand-Abstand (ebenfalls var(--space-8)) war tatsächlich Abstand zwischen Seitenabschnitten,
+   kein Komposit-Innenabstand -- dieser Wert ist nach page.module.css (.contentArea) gewandert,
+   dem richtigen, Seiten-eigenen Ort dafür. */
+.episodesSection {
+}

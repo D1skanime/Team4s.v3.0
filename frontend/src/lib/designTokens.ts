@@ -39,7 +39,7 @@ const GROUP_LABELS: Record<string, string> = {
   media: 'Medien-Kacheln',
   ui: 'UI-Akzente',
   ach: 'Erfolgsabzeichen-Farben',
-  button: 'Button-Verläufe',
+  button: 'Button',
   state: 'Status-Icons',
   status: 'Anime-Status',
   radius: 'Rundungen',
@@ -58,6 +58,18 @@ const GROUP_LABELS: Record<string, string> = {
   public: 'Öffentliche Seiten',
   profile: 'Profil',
   role: 'Rollen',
+  // Explizite deutsche Namen für die
+  // Bausteinwerte-Stufe der Design-Tokens-Seite, statt sich auf die großgeschriebene
+  // Rohsegment-Rückfalllogik zu verlassen -- card/button sahen zufällig bereits "gut genug"
+  // aus, bekommen hier aber einen EXPLIZITEN Eintrag, die übrigen hätten ohne Eintrag ein
+  // falsches oder unverständliches Rohsegment gezeigt (z. B. "Focal" statt "Fokus-Karussell").
+  card: 'Card',
+  focal: 'Fokus-Karussell',
+  split: 'Zwei-Spalten-Raster',
+  disclosure: 'Aufklapp-Kopfzeile',
+  adjacent: 'Nebeneinander',
+  date: 'Datum',
+  empty: 'Leer-Zustand',
 }
 
 function groupKeyFor(tokenName: string): string {
@@ -122,4 +134,71 @@ export function isColorLikeValue(value: string): boolean {
   const probe = document.createElement('span')
   probe.style.color = value
   return probe.style.color !== ''
+}
+
+/** Die drei Gliederungs-Stufen der Design-Tokens-Seite: "foundation" =
+ *  rohe Grundskala mit sichtbarer Vorschau (z. B. --space-3, --radius-sm), "purpose" = benannter
+ *  Verwendungszweck INNERHALB einer Grundskala, der per `var()` auf einen Grundwert verweist
+ *  (z. B. --space-independent-blocks -> var(--space-3)), "component" = jeder Token, der zu keiner Grundskala
+ *  gehört, sondern zu einem einzelnen Grundbaustein (Card/Button/Avatar/...). */
+export type TokenTier = 'foundation' | 'purpose' | 'component'
+
+/** Welche Namens-Familien überhaupt eine Grundskala im obigen Sinn bilden -- jede andere Familie
+ *  (z. B. "card", "button", "avatar") gehört vollständig zur Bausteinwerte-Stufe, da sie zu genau
+ *  einem Grundbaustein gehört statt eine wiederverwendbare Skala zu sein. Je Familie entscheidet
+ *  die Regel anhand der Namens-SEGMENTE NACH dem Familien-Präfix, ob ein konkretes Token noch
+ *  ein roher Skalenwert ("foundation") oder schon ein benannter Verwendungszweck ("purpose") ist:
+ *  - space: eine reine Zahl (--space-3) ist die Skala selbst, jeder benannte Rest
+ *    (--space-independent-blocks) ein Zweck.
+ *  - radius/shadow: ein kleines, festes Stufen-Vokabular (sm/md/lg/pill bzw. xs/sm/md/lg) ist die
+ *    Skala selbst, jeder andere Rest (--radius-surface, --shadow-inset-highlight) ein Zweck.
+ *  - font: die rohen Schriftfamilien (--font-sans/-mono) sowie die Größen-Skala
+ *    (--font-size-h1..h4/-hero/-sm) sind die Grundskala, Gewichts-Zweckwerte
+ *    (--font-weight-heading/-label) sind ein benannter Zweck.
+ *  - color: die GESAMTE Familie ist die rohe Grundpalette selbst (palette.css) -- sie enthält
+ *    keine `var()`-Zweck-Aliase auf sich selbst, jeder Alias (--bg-primary, --text-primary
+ *    usw.) führt bereits eine EIGENE Namens-Familie und gehört zur Bausteinwerte-Stufe. */
+const FOUNDATION_FAMILY_RULES: Record<string, (nameTailSegments: string[]) => boolean> = {
+  space: (tail) => tail.length === 1 && /^\d+$/.test(tail[0]),
+  radius: (tail) => tail.length === 1 && ['sm', 'md', 'lg', 'pill'].includes(tail[0]),
+  shadow: (tail) => tail.length === 1 && ['xs', 'sm', 'md', 'lg'].includes(tail[0]),
+  font: (tail) =>
+    (tail.length === 1 && ['sans', 'mono'].includes(tail[0])) ||
+    (tail[0] === 'size' && ['h1', 'h2', 'h3', 'h4', 'hero', 'sm'].includes(tail[1])),
+  color: () => true,
+}
+
+/** Familien-Schlüssel, die überhaupt eine Grundskala bilden (siehe `FOUNDATION_FAMILY_RULES`) --
+ *  von der Design-Tokens-Seite genutzt, um Grundskala-Gruppen (Tier 1) von Bausteinwerte-Gruppen
+ *  (Tier 3) zu trennen, ohne die Regel-Zuordnung selbst zu duplizieren. */
+export const FOUNDATION_GROUP_KEYS: readonly string[] = Object.keys(FOUNDATION_FAMILY_RULES)
+
+/** Ordnet ein einzelnes Token einer der drei Gliederungs-Stufen zu (siehe `TokenTier`). Bleibt
+ *  vollständig automatisch -- die Zuordnung ergibt sich ausschließlich aus dem bereits
+ *  vorhandenen Namens-Präfix (`groupKey`, von `groupKeyFor` bzw. `groupDesignTokens` berechnet)
+ *  und den Namens-Segmenten danach, keine Token-für-Token-Liste. */
+export function classifyToken(token: DesignToken, groupKey: string): TokenTier {
+  const rule = FOUNDATION_FAMILY_RULES[groupKey]
+  if (!rule) return 'component'
+  const tail = token.name.replace(/^--/, '').split('-').slice(1)
+  return rule(tail) ? 'foundation' : 'purpose'
+}
+
+/** Erkennt, ob ein deklarierter Rohwert eine direkte `var()`-Verweiskette auf ein anderes Token
+ *  ist (z. B. "var(--space-3)") statt eines eigenständigen Literalwerts (Zahl/Hex/Funktionsaufruf
+ *  wie "4px"/"#fff"/"linear-gradient(...)"). Grundlage für die Bausteinwerte-Markierung in
+ *  `DesignTokensShowcase.tsx`: ein Wert, der NICHT mit `var(` beginnt, nutzt noch keinen
+ *  Zweck-Token und wird dort sichtbar markiert (Markierung, keine Korrektur). */
+export function isVarReference(value: string): boolean {
+  return value.trimStart().startsWith('var(')
+}
+
+/** Liest den referenzierten Token-Namen aus einem `var(--x)`-Wert aus (z. B. "--space-3" aus
+ *  "var(--space-3)"), oder `null`, wenn der Wert keine var()-Verweiskette ist. Dient dem
+ *  Zweck-Tokens-Rückverweis auf der Design-Tokens-Seite ("-> 12px, Grundstufe --space-3"), ohne
+ *  eine eigene Parsing-Abhängigkeit einzuführen -- reiner Text-Regex auf dem bereits vorhandenen
+ *  `token.value`. */
+export function resolveVarReferenceName(value: string): string | null {
+  const match = /^var\(\s*(--[a-zA-Z0-9-]+)/.exec(value.trim())
+  return match ? match[1] : null
 }

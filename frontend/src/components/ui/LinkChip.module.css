@@ -1,0 +1,48 @@
+.linkChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--linkchip-padding-y) var(--linkchip-padding-x);
+  border-radius: var(--linkchip-radius);
+  font-size: var(--linkchip-font-size);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.linkChip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.linkChipGlass {
+  background: var(--linkchip-glass-bg);
+  border: 1px solid var(--linkchip-glass-border);
+  color: var(--linkchip-glass-text);
+}
+
+.linkChipGlass:hover {
+  background: var(--linkchip-glass-bg-hover);
+  border-color: var(--linkchip-glass-border-hover);
+}
+
+.linkChipScrim {
+  background: var(--linkchip-scrim-bg);
+  border: 1px solid var(--linkchip-scrim-border);
+  color: var(--linkchip-scrim-text);
+  cursor: pointer;
+}
+
+.linkChipScrim:hover {
+  background: var(--linkchip-scrim-bg-hover);
+  border-color: var(--linkchip-scrim-border-hover);
+}
+
+.linkChipIcon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.linkChipCount {
+  font-weight: 600;
+}

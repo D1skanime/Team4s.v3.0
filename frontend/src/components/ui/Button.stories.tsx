@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
-import { Download, ExternalLink, Save } from 'lucide-react'
+import { Download, ExternalLink, Save, Users } from 'lucide-react'
 
 import { Button } from './Button'
 
@@ -19,12 +19,12 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Primaer: Story = {
+export const Primär: Story = {
   name: 'Primär',
   args: { children: 'Primär' },
 }
 
-export const Sekundaer: Story = {
+export const Sekundär: Story = {
   name: 'Sekundär',
   args: { variant: 'secondary', children: 'Sekundär' },
 }
@@ -34,7 +34,7 @@ export const Dezent: Story = {
   args: { variant: 'ghost', children: 'Dezent' },
 }
 
-export const Zurueckhaltend: Story = {
+export const Zurückhaltend: Story = {
   name: 'Zurückhaltend',
   args: { variant: 'subtle', children: 'Zurückhaltend' },
 }
@@ -47,6 +47,49 @@ export const Gefahr: Story = {
 export const Erfolg: Story = {
   name: 'Erfolg',
   args: { variant: 'success', children: 'Speichern' },
+}
+
+export const Merkliste: Story = {
+  name: 'Merkliste',
+  args: { variant: 'watchlist', children: 'Zur Merkliste' },
+}
+
+export const InMerkliste: Story = {
+  name: 'In Merkliste',
+  args: { variant: 'watchlistActive', children: 'In Merkliste' },
+}
+
+export const GlasChip: Story = {
+  name: 'Glas-Umschalt-Chip',
+  render: () => (
+    <div style={{ display: 'flex', gap: 12, padding: 20, background: 'var(--surface-stage)' }}>
+      <Button variant="chipGlass" size="sm">Alle</Button>
+      <Button variant="chipGlass" size="sm" aria-pressed="true">LazySubs</Button>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Durchscheinender Umschalt-Chip für dunkle Glasflächen (z. B. ein Fansub-Gruppen-Filter über der Episodenliste) -- reagiert wie jeder Button auf aria-pressed, hier mit einer eigenen, hellen Formel statt der Standard-Aktiv-Farbe.',
+      },
+    },
+  },
+}
+
+export const GlasChipMitIcon: Story = {
+  name: 'Glas-Umschalt-Chip mit Icon',
+  render: () => (
+    <div style={{ display: 'flex', gap: 12, padding: 20, background: 'var(--surface-stage)' }}>
+      <Button variant="chipGlass" size="sm" leftIcon={<Users size={14} aria-hidden="true" />}>LazySubs</Button>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Zeigt den engeren Icon-/Beschriftungsabstand, den chipGlass gegenüber der 10px-Standardlücke braucht, wenn ein kleines Logo/Icon über leftIcon statt als manuelles Kind-Element übergeben wird.',
+      },
+    },
+  },
 }
 
 export const Warnung: Story = {
@@ -105,7 +148,7 @@ export const Schwebend: Story = {
   },
 }
 
-export const Laedt: Story = {
+export const Lädt: Story = {
   name: 'Lädt',
   args: { loading: true, children: 'Lädt' },
 }
@@ -180,7 +223,7 @@ export const AktuellAusgewaehlt: Story = {
   },
 }
 
-const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'warning', 'info', 'text', 'floating'] as const
+const VARIANTS = ['primary', 'secondary', 'ghost', 'subtle', 'danger', 'success', 'warning', 'info', 'text', 'floating', 'watchlist', 'watchlistActive', 'chipGlass'] as const
 const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   primary: 'Primär',
   secondary: 'Sekundär',
@@ -192,8 +235,30 @@ const VARIANT_LABELS: Record<(typeof VARIANTS)[number], string> = {
   info: 'Hinweis',
   text: 'Text',
   floating: 'Schwebend',
+  watchlist: 'Merkliste',
+  watchlistActive: 'In Merkliste',
+  chipGlass: 'Glas-Chip',
 }
 const SIZES = ['sm', 'md', 'lg'] as const
+
+export const VolleBreiteUnterhalbMd: Story = {
+  name: 'Volle Breite unterhalb md (fullWidthBelowMd)',
+  args: { fullWidthBelowMd: true, children: 'Zum Release' },
+  decorators: [
+    (Story) => (
+      <div style={{ resize: 'horizontal', overflow: 'auto', border: '1px dashed #999', padding: 8, width: '100%', maxWidth: 900 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story: 'Nimmt die volle Zeilenbreite ein, solange der umgebende Container unter 48rem/768px schmaler ist -- ziehen Sie den gestrichelten Rahmen rechts unten enger, um den Wechsel live zu sehen. Ab 768px fällt der Button auf seine natürliche Inhaltsbreite zurück (exakte Umkehrung von responsiveFullWidth).',
+      },
+    },
+  },
+}
 
 export const GroessenUndVarianten: Story = {
   name: 'Größen und Varianten',

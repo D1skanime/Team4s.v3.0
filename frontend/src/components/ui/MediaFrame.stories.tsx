@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { Badge } from './Badge'
 import { MediaFrame } from './MediaFrame'
+import { ResponsiveImage } from './ResponsiveImage'
 
 /**
  * Fläche mit festem Seitenverhältnis für Bild- oder Video-Inhalte, eckig oder rund, mit
@@ -67,6 +68,22 @@ export const Breitbild: Story = {
   render: (args) => (
     <div style={{ width: 320 }}>
       <MediaFrame {...args} />
+    </div>
+  ),
+}
+
+export const PosterMitFarbverlaengerung: Story = {
+  name: 'Poster mit Farbverlängerung',
+  args: {
+    aspectRatio: 2 / 3,
+    variant: 'posterFade',
+    backdropImage: '/covers/placeholder.jpg',
+  },
+  render: (args) => (
+    <div style={{ width: 220, paddingBottom: 'var(--space-8)', background: 'var(--surface-stage)' }}>
+      <MediaFrame {...args}>
+        <ResponsiveImage src="/covers/placeholder.jpg" alt="Beispielposter" fill sizes="220px" />
+      </MediaFrame>
     </div>
   ),
 }

@@ -1,10 +1,12 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+import type { CSSProperties, HTMLAttributes, ReactNode } from 'react'
 
 import { classNames } from './classNames'
 import styles from './MediaFrame.module.css'
 
 export type MediaFrameShape = 'rect' | 'round'
 export type MediaFrameState = 'empty' | 'dragging' | 'disabled'
+export type MediaFrameVariant = 'default' | 'posterFade'
+export type MediaFrameWidthPurpose = 'posterHero'
 
 export interface MediaFrameProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Breite/Höhe, z. B. 1 für quadratisch, 16/9 für ein Breitbild. */
@@ -18,6 +20,14 @@ export interface MediaFrameProps extends Omit<HTMLAttributes<HTMLDivElement>, 'c
   /** Abzeichen am unteren Rand der Fläche (z. B. ein Hinweistext beim Darüberziehen). */
   bottomBadge?: ReactNode
   children?: ReactNode
+  variant?: MediaFrameVariant
+  backdropImage?: string
+  /** Generischer Breiten-Zweck-Hook (aktuell ein Mitglied) -- setzt eine haltepunktabhängige
+   *  Modifikatorklasse statt eines Inline-Style-Werts, da die Posterspalte DREI responsive Breiten-
+   *  Stufen braucht (eine CSS Custom Property kann @media-bedingte Werte nicht rein über Inline-Style
+   *  ausdrücken). Ohne Angabe bleibt MediaFrame bei seiner bisherigen width:100%-Basisregel
+   *  (Zero-Pixel-Diff für jeden bestehenden Aufrufer). */
+  widthPurpose?: MediaFrameWidthPurpose
 }
 
 /**
@@ -31,6 +41,9 @@ export function MediaFrame({
   cornerBadge,
   bottomBadge,
   children,
+  variant = 'default',
+  backdropImage,
+  widthPurpose,
   className,
   style,
   ...rest
@@ -44,9 +57,15 @@ export function MediaFrame({
         state === 'empty' && styles.mediaFrameEmpty,
         state === 'dragging' && styles.mediaFrameDragging,
         state === 'disabled' && styles.mediaFrameDisabled,
+        variant === 'posterFade' && styles.mediaFramePosterFade,
+        widthPurpose === 'posterHero' && styles.mediaFrameWidthPosterHero,
         className,
       )}
-      style={{ aspectRatio, ...style }}
+      style={{
+        aspectRatio,
+        ...(variant === 'posterFade' && backdropImage ? { '--media-frame-backdrop-image': `url("${backdropImage}")` } : {}),
+        ...style,
+      } as CSSProperties}
     >
       {children}
       {cornerBadge ? <div className={styles.mediaFrameCorner}>{cornerBadge}</div> : null}

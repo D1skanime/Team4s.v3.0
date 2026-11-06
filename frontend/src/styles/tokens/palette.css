@@ -37,6 +37,10 @@
   --accent-dark: var(--color-primary-active);
   --accent-deep: #185fa5;
 
+  /* --avatar-size-xs (20px) ist die kleinste Stufe -- für ein rundes/eingerahmtes kleines
+     Gruppen- oder Identitätsbild innerhalb eines Chips (z. B. ein Fansub-Gruppen-Logo),
+     kleiner als die bisherige Mindeststufe sm. */
+  --avatar-size-xs: 20px;
   --avatar-size-sm: 32px;
   --avatar-size-md: 48px;
   --avatar-size-lg: 64px;

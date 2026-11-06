@@ -5,7 +5,7 @@ import { ResponsiveImage } from './ResponsiveImage'
 import { VisuallyHidden } from './VisuallyHidden'
 import styles from './Avatar.module.css'
 
-export type AvatarSize = 'sm' | 'md' | 'lg'
+export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg'
 export type AvatarColorIndex = 1 | 2 | 3 | 4 | 5 | 6
 export type AvatarTone = 'neutral' | 'accent'
 
@@ -25,6 +25,12 @@ export interface AvatarProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'chil
   /** Zeigt statt Bild/Initialen eine Zähler-Beschriftung ("+3"). `label` bleibt der vorlesbare
    *  Name (z. B. "3 weitere"). */
   count?: number
+  /** Legt einen dezenten Rand "auf dunkler Fläche" an (exakt derselbe --border-on-media-Ton, den
+   *  Divider und Cards Glas-Varianten bereits verwenden) -- für ein rundes Gruppen-/Identitäts-
+   *  bild, das direkt auf einem durchscheinenden/dunklen Untergrund sitzt (z. B. eine Fansub-
+   *  Gruppen-Zeile) und sich sonst nicht sichtbar vom Hintergrund absetzen würde. Ohne Angabe
+   *  bleibt der Avatar randlos wie bisher. */
+  bordered?: boolean
 }
 
 export function initials(label: string): string {
@@ -36,14 +42,15 @@ export function initials(label: string): string {
     .join('') || '?'
 }
 
-const SIZE_PX: Record<AvatarSize, number> = { sm: 32, md: 48, lg: 64 }
+const SIZE_PX: Record<AvatarSize, number> = { xs: 20, sm: 32, md: 48, lg: 64 }
 
 /**
- * Rundes Bild- oder Initialen-Kürzel für eine Person oder Gruppe, in drei Größenstufen. Ohne
- * Bild zeigt der Avatar die Initialen des übergebenen Namens; mit `count` stattdessen eine
- * Zähler-Beschriftung ("+3") für "N weitere".
+ * Rundes Bild- oder Initialen-Kürzel für eine Person oder Gruppe, in vier Größenstufen (die
+ * kleinste, `xs`, deckt ein rundes Gruppen-/Identitätsbild in Chip-Größe ab, z. B. ein Fansub-
+ * Gruppen-Logo). Ohne Bild zeigt der Avatar die Initialen des übergebenen Namens; mit `count`
+ * stattdessen eine Zähler-Beschriftung ("+3") für "N weitere".
  */
-export function Avatar({ label, src, size = 'md', colorIndex, tone = 'neutral', count, className, ...rest }: AvatarProps) {
+export function Avatar({ label, src, size = 'md', colorIndex, tone = 'neutral', count, bordered = false, className, ...rest }: AvatarProps) {
   const pixelSize = SIZE_PX[size]
   const accessibleLabel = typeof count === 'number' ? label : undefined
 
@@ -52,10 +59,12 @@ export function Avatar({ label, src, size = 'md', colorIndex, tone = 'neutral', 
       {...rest}
       className={classNames(
         styles.avatar,
+        size === 'xs' && styles.avatarXs,
         size === 'sm' && styles.avatarSm,
         size === 'lg' && styles.avatarLg,
         colorIndex && styles[`avatarColor${colorIndex}` as keyof typeof styles],
         tone === 'accent' && styles.avatarToneAccent,
+        bordered && styles.avatarBordered,
         className,
       )}
       aria-label={accessibleLabel}

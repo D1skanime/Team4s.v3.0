@@ -1,27 +1,20 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Image from 'next/image'
-import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-import { Button } from '@/components/ui'
-import { getAnimeList } from '@/lib/api'
-import {
-  buildAnimeDetailHref,
-  buildAnimeGridQuery,
-  parseAnimeListParamsFromGridQuery,
-} from '@/lib/animeGridContext'
-import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
-import { AnimeListItem } from '@/types/anime'
+import { AdjacentNavigation, Card, Cluster, ResponsiveImage, Stack, Text, type AdjacentNavigationItem } from '@/components/ui'
+import { parseAnimeListParamsFromGridQuery, resolveAnimeNeighbors, type AnimeNeighbors } from '@/lib/animeGridContext'
 
+import { useAnimeEdgeNavigationHover, type EdgeNavigationDirection } from './useAnimeEdgeNavigationHover'
 import styles from './AnimeEdgeNavigation.module.css'
-
-type Direction = 'prev' | 'next'
 
 interface AnimeEdgeNavigationProps {
   currentAnimeID: number
   gridQuery: string
+  /** Serverseitig bereits aufgelöste Navigations-Ziele -- die Links selbst stehen
+   *  dadurch sofort im HTML, unabhängig vom clientseitigen Vorschaukarten-Ladevorgang unten. */
+  previous: AdjacentNavigationItem | null
+  next: AdjacentNavigationItem | null
 }
 
 function getTypeLabel(type: string): string {
@@ -35,56 +28,74 @@ function getTypeLabel(type: string): string {
   return type
 }
 
-interface NeighborTarget { anime: AnimeListItem; page: number }
-interface Neighbors { prev: NeighborTarget | null; next: NeighborTarget | null }
+export interface AnimeEdgeNavigationPreviewCardProps {
+  title: string
+  type: string
+  coverUrl: string
+  direction: EdgeNavigationDirection
+}
+
+/**
+ * Hookfreie Anzeige der Hover-/Fokus-Vorschaukarte für die Randnavigation: Cover, Titel und
+ * Typ-Label eines benachbarten Animes, links- oder rechtsseitig positioniert je nach Richtung.
+ * Reine Props-Komponente, damit `roundedThumbnail`/`widthPurpose="compactPreview"` direkt per
+ * Funktionsaufruf nachweisbar sind, ohne einen echten Hover-Zustand im DOM simulieren zu müssen.
+ */
+export function AnimeEdgeNavigationPreviewCard({ title, type, coverUrl, direction }: AnimeEdgeNavigationPreviewCardProps) {
+  return (
+    <Card
+      variant="glassStrong"
+      padding="content"
+      widthPurpose="compactPreview"
+      className={`${styles.previewCard} ${direction === 'prev' ? styles.previewLeft : styles.previewRight}`}
+    >
+      {/* Cluster statt eines eigenen display:flex -- align="stretch" reproduziert die
+          bisherige, implizite Standard-Querachsen-Ausrichtung (Flex ohne align-items setzt
+          den Browser-Standard "stretch", Clusters eigener Standard wäre dagegen "center"). */}
+      <Cluster gap="mediaCaption" align="stretch" wrap={false}>
+        <ResponsiveImage src={coverUrl} alt={title} width={66} height={92} className={styles.previewCover} roundedThumbnail unoptimized />
+        {/* Der enge Zeilenabstand zwischen Titel und Typ (EINE zweizeilige Bildunterschrift)
+            kommt aus Stacks "captionLines"-Zweck statt eines lokalen margin-top auf
+            .previewType. */}
+        <Stack gap="captionLines" className={styles.previewMeta}>
+          <Text tone="onScrim" className={styles.previewTitle}>{title}</Text>
+          <Text variant="small" tone="onScrim" className={styles.previewType}>{getTypeLabel(type)}</Text>
+        </Stack>
+      </Cluster>
+    </Card>
+  )
+}
 
 export function AnimeEdgeNavigation(props: AnimeEdgeNavigationProps) {
   return <AnimeEdgeNavigationContext key={`${props.currentAnimeID}:${props.gridQuery}`} {...props} />
 }
 
-function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery }: AnimeEdgeNavigationProps) {
-  const router = useRouter()
-  const [neighbors, setNeighbors] = useState<Neighbors | null>(null)
-  const [hoverDirection, setHoverDirection] = useState<Direction | null>(null)
-  const [loadingDirection, setLoadingDirection] = useState<Direction | null>(null)
-  const requestRef = useRef<{ controller: AbortController; promise: Promise<Neighbors | null> } | null>(null)
-  const navigationRef = useRef(false)
+/**
+ * Rendert die Randnavigations-Links sofort aus den serverseitig aufgelösten `previous`/`next`-
+ * Props -- die hrefs stehen dadurch bereits im Server-HTML, unabhängig von jeder
+ * Client-Hydration. Der eigene `getAnimeList`-Aufruf über `resolveAnimeNeighbors` bleibt
+ * ausschließlich für die Hover-Vorschaukarte (Bild/Titel/Typ) erhalten -- er bestimmt NICHT
+ * mehr, ob/wohin die Navigations-Buttons zeigen.
+ */
+function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery, previous, next }: AnimeEdgeNavigationProps) {
+  const [neighbors, setNeighbors] = useState<AnimeNeighbors | null>(null)
+  const requestRef = useRef<{ controller: AbortController; promise: Promise<AnimeNeighbors | null> } | null>(null)
   const gridParams = useMemo(() => parseAnimeListParamsFromGridQuery(gridQuery), [gridQuery])
-  const previousAnime = neighbors?.prev?.anime ?? null
-  const nextAnime = neighbors?.next?.anime ?? null
-  const previewAnime = hoverDirection === 'prev' ? previousAnime : hoverDirection === 'next' ? nextAnime : null
-  const previewCoverUrl = previewAnime ? getCoverUrl(previewAnime.cover_image) : ''
+  // Hover-/Fokus-Vorschauzustand lebt in einem eigenen, direkt testbaren Hook --
+  // diese Komponente bleibt ein reiner Konsument der daraus abgeleiteten Vorschau-Werte.
+  const { hoverDirection, previewAnime, previewCoverUrl, handlersFor } = useAnimeEdgeNavigationHover(neighbors)
 
   useEffect(() => () => { requestRef.current?.controller.abort() }, [])
 
-  function loadNeighbors(): Promise<Neighbors | null> {
+  function loadNeighbors(): Promise<AnimeNeighbors | null> {
     if (!gridParams) return Promise.resolve(null)
     // Retain a successful promise for this route context. All actual interactions
     // share it, including a click that arrives during a slow hover request.
     if (requestRef.current) return requestRef.current.promise
     const controller = new AbortController()
-    const currentPage = gridParams.page ?? 1
-    const promise = (async (): Promise<Neighbors | null> => {
+    const promise = (async (): Promise<AnimeNeighbors | null> => {
       try {
-        const current = await getAnimeList(gridParams, { signal: controller.signal })
-        if (controller.signal.aborted) return null
-        const index = current.data.findIndex((anime) => anime.id === currentAnimeID)
-        const result: Neighbors = { prev: null, next: null }
-        if (index >= 0) {
-          if (index > 0) result.prev = { anime: current.data[index - 1], page: currentPage }
-          else if (currentPage > 1) {
-            const previous = await getAnimeList({ ...gridParams, page: currentPage - 1 }, { signal: controller.signal })
-            if (controller.signal.aborted) return null
-            const anime = previous.data[previous.data.length - 1]
-            if (anime) result.prev = { anime, page: currentPage - 1 }
-          }
-          if (index < current.data.length - 1) result.next = { anime: current.data[index + 1], page: currentPage }
-          else if (currentPage < current.meta.total_pages) {
-            const next = await getAnimeList({ ...gridParams, page: currentPage + 1 }, { signal: controller.signal })
-            if (controller.signal.aborted) return null
-            if (next.data[0]) result.next = { anime: next.data[0], page: currentPage + 1 }
-          }
-        }
+        const result = await resolveAnimeNeighbors(gridParams, currentAnimeID, { signal: controller.signal })
         if (controller.signal.aborted) return null
         setNeighbors(result)
         return result
@@ -99,115 +110,35 @@ function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery }: AnimeEdgeNavi
     return promise
   }
 
-  if (!gridParams) return null
+  useEffect(() => {
+    if (gridParams) void loadNeighbors()
+    // Die Route wird über den äußeren key neu gemountet; dadurch gehört der Vorabladevorgang
+    // immer zu genau einem Grid-Kontext und benötigt keinen zweiten lokalen Zustand.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  async function handleNavigate(direction: Direction) {
-    if (navigationRef.current || !gridParams) return
-    navigationRef.current = true
-    setLoadingDirection(direction)
-    const pending = loadNeighbors()
-    const request = requestRef.current
-    const result = await pending
-    if (!request || request.controller.signal.aborted) return
-    const target = result?.[direction]
-    if (!target) {
-      navigationRef.current = false
-      setLoadingDirection(null)
-      return
-    }
-    const targetQuery = buildAnimeGridQuery({ ...gridParams, page: target.page })
-    router.push(buildAnimeDetailHref(target.anime.id, targetQuery), { scroll: true })
+  /** Ergänzt ein serverseitig bereits vollständiges Navigations-Item nur um die fünf
+   *  Hover-/Fokus-Handler, die die client-seitige Vorschaukarte steuern -- href/label/ariaLabel
+   *  selbst kommen unverändert vom Server, damit sie synchron im ersten Render stehen. */
+  function withPreviewHandlers(item: AdjacentNavigationItem | null, direction: EdgeNavigationDirection): AdjacentNavigationItem | null {
+    if (!item) return null
+    return { ...item, ...handlersFor(direction) }
   }
+
+  const previousItem = withPreviewHandlers(previous, 'prev')
+  const nextItem = withPreviewHandlers(next, 'next')
 
   return (
     <>
-      {/* Linker Knopf-Wrapper */}
-      <div className={styles.buttonWrapper}>
-        <Button
-          type="button"
-          variant="primary"
-          className={styles.navButton}
-          leftIcon={<ChevronLeft size={22} />}
-          onMouseEnter={() => {
-            void loadNeighbors()
-            setHoverDirection('prev')
-          }}
-          onMouseLeave={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
-          onFocus={() => {
-            void loadNeighbors()
-            setHoverDirection('prev')
-          }}
-          onTouchStart={() => {
-            void loadNeighbors()
-          }}
-          onBlur={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
-          onClick={() => void handleNavigate('prev')}
-          disabled={(neighbors !== null && !previousAnime) || loadingDirection !== null}
-          aria-label="Vorheriger Anime"
-        >
-          Zurück
-        </Button>
-        {previewAnime && hoverDirection === 'prev' ? (
-          <div className={`${styles.previewCard} ${styles.previewLeft}`}>
-            <Image
-              src={previewCoverUrl}
-              alt={previewAnime.title}
-              width={66}
-              height={92}
-              className={styles.previewCover}
-              unoptimized={shouldUseUnoptimizedImage(previewCoverUrl)}
-            />
-            <div className={styles.previewMeta}>
-              <p className={styles.previewTitle}>{previewAnime.title}</p>
-              <p className={styles.previewType}>{getTypeLabel(previewAnime.type)}</p>
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Rechter Knopf-Wrapper */}
-      <div className={styles.buttonWrapper}>
-        <Button
-          type="button"
-          variant="primary"
-          className={styles.navButton}
-          rightIcon={<ChevronRight size={22} />}
-          onMouseEnter={() => {
-            void loadNeighbors()
-            setHoverDirection('next')
-          }}
-          onMouseLeave={() => setHoverDirection((current) => (current === 'next' ? null : current))}
-          onFocus={() => {
-            void loadNeighbors()
-            setHoverDirection('next')
-          }}
-          onTouchStart={() => {
-            void loadNeighbors()
-          }}
-          onBlur={() => setHoverDirection((current) => (current === 'next' ? null : current))}
-          onClick={() => void handleNavigate('next')}
-          disabled={(neighbors !== null && !nextAnime) || loadingDirection !== null}
-          aria-label="Nächster Anime"
-        >
-          Weiter
-        </Button>
-        {previewAnime && hoverDirection === 'next' ? (
-          <div className={`${styles.previewCard} ${styles.previewRight}`}>
-            <Image
-              src={previewCoverUrl}
-              alt={previewAnime.title}
-              width={66}
-              height={92}
-              className={styles.previewCover}
-              unoptimized={shouldUseUnoptimizedImage(previewCoverUrl)}
-            />
-            <div className={styles.previewMeta}>
-              <p className={styles.previewTitle}>{previewAnime.title}</p>
-              <p className={styles.previewType}>{getTypeLabel(previewAnime.type)}</p>
-            </div>
-          </div>
-        ) : null}
-      </div>
+      <AdjacentNavigation previous={previousItem} next={nextItem} variant="floating" ariaLabel="Anime-Navigation" />
+      {hoverDirection && previewAnime ? (
+        <AnimeEdgeNavigationPreviewCard
+          title={previewAnime.title}
+          type={previewAnime.type}
+          coverUrl={previewCoverUrl}
+          direction={hoverDirection}
+        />
+      ) : null}
     </>
   )
 }

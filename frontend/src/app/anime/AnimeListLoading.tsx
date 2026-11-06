@@ -1,3 +1,5 @@
+import { LoadingState, PageHeader } from '@/components/ui'
+
 import styles from './page.module.css'
 
 /**
@@ -7,14 +9,8 @@ import styles from './page.module.css'
 export default function AnimeListLoading() {
   return (
     <main className={styles.page}>
-      <header className={styles.header}>
-        <p className={styles.kicker}>P0 MVP</p>
-        <h1 className={styles.title}>Anime Liste</h1>
-        <p className={styles.subtitle}>Lade Daten...</p>
-      </header>
-      <div className={styles.errorBox}>
-        <p>Inhalt wird geladen.</p>
-      </div>
+      <PageHeader title="Anime" />
+      <LoadingState title="Anime wird geladen" description="Bitte einen Moment warten." />
     </main>
   )
 }

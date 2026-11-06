@@ -149,6 +149,27 @@
   box-shadow: var(--button-shadow-info-hover);
 }
 
+.buttonWatchlist,
+.buttonWatchlistActive {
+  --button-text: var(--button-watchlist-text);
+  --button-border: transparent;
+  --button-shadow: none;
+  min-height: var(--control-height-md);
+  border-radius: var(--button-watchlist-radius);
+}
+
+.buttonWatchlist {
+  --button-bg: linear-gradient(90deg, var(--button-watchlist-start), var(--button-watchlist-end));
+}
+
+.buttonWatchlistActive {
+  --button-bg: linear-gradient(90deg, var(--button-watchlist-active-start), var(--button-watchlist-active-end));
+}
+
+.buttonWatchlist:hover {
+  box-shadow: var(--button-watchlist-shadow-hover);
+}
+
 /* Offizieller "aktuell/ausgewählt"-Zustand für Pagination, Filter-Knöpfe und Umschalter: reagiert
    auf die Standard-ARIA-Attribute aria-current/aria-pressed, keine eigene Prop nötig. Greift
    unabhängig von der gewählten variant, damit z. B. eine ausgewählte Seitenzahl innerhalb einer
@@ -224,6 +245,47 @@
   font-size: var(--button-font-size-lg);
 }
 
+/* Durchscheinender Umschalt-Chip auf dunklem Glasgrund (z. B. Fansub-Gruppen-Filter in der
+   dunklen Episodenliste) -- globale Form der bisher feature-lokalen --glass-*-Variablen aus
+   FansubGroupPicker.module.css. Nutzt wie jeder Button aria-pressed für den "ausgewählt"-Zustand,
+   aber mit einer eigenen, helleren Formel statt der generischen .button[aria-pressed="true"]-
+   Regel oben, die für Flächen auf WEISSEM Grund kalibriert ist und auf dunklem Glas unsichtbar
+   bliebe. Nach .buttonSmall/.buttonLarge deklariert, damit die eigene Radius-/Schriftgröße-Formel
+   zuverlässig gegen deren jeweilige Größenwerte gewinnt (gleiche Spezifität bei
+   variant="chipGlass" size="sm", Deklarationsreihenfolge entscheidet). */
+.buttonChipGlass {
+  --button-bg: var(--button-chip-glass-bg);
+  --button-border: var(--button-chip-glass-border);
+  --button-text: var(--card-glass-text);
+  --button-shadow: none;
+  /* chipGlass braucht einen engeren Icon-/Beschriftungsabstand als die 10px-Standardlücke
+     (--button-gap): es ist ein kleines Inline-Logo neben einer kurzen Chip-Beschriftung, keine
+     gepolsterte primäre Aktion. Messung gegen den bisher lokal in FansubGroupPicker.module.css
+     gesetzten Chip-Abstand (`gap: var(--space-1)`, 4px) ergab exakte Übereinstimmung -- der Wert
+     wandert hiermit vom Aufrufer in den Grundbaustein selbst, sodass ein künftiger Aufrufer das
+     Logo über leftIcon statt als manuelles Kind-Element übergeben kann, ohne den Abstand zu
+     verlieren. */
+  --button-gap: var(--space-1);
+  border-radius: var(--radius-md);
+  font-size: var(--button-font-size);
+  font-weight: 400;
+  backdrop-filter: blur(var(--button-chip-glass-blur)) saturate(var(--button-chip-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--button-chip-glass-blur)) saturate(var(--button-chip-glass-saturate));
+}
+
+.buttonChipGlass:hover:not([aria-pressed="true"]) {
+  --button-bg: var(--button-chip-glass-bg-hover);
+  transform: none;
+  box-shadow: none;
+}
+
+.buttonChipGlass[aria-pressed="true"] {
+  background: var(--accent-dark);
+  border: var(--button-chip-glass-active-border-width) solid var(--accent-dark);
+  color: var(--button-chip-glass-active-text);
+  font-weight: 600;
+}
+
 /* Nach .buttonText deklariert, damit Größe/Gewicht zuverlässig gegen dessen eigenes
    font-size/font-weight: inherit gewinnen (identisches Muster wie .buttonSmall/.buttonLarge
    oben, die aus demselben Grund nach .buttonText stehen). */
@@ -272,6 +334,34 @@
   width: 100%;
 }
 
+.buttonResponsiveBlock {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .buttonResponsiveBlock {
+    width: auto;
+  }
+}
+
+/* Exakte Umkehrung von .buttonResponsiveBlock: auto-Breite ist hier der Standard, volle Breite
+   gilt NUR unterhalb von 767px. Nutzt bewusst dieselbe Haltepunkt-Zahl wie Clusters
+   collapseBelow="md" (@container-Abfrage, misst die verfügbare Breite des Cluster-Elements
+   selbst), diese Regel hier misst dagegen die Browser-Fensterbreite (@media) -- beide kippen
+   deshalb nur dann an exakt derselben Stelle, wenn kein Vorfahre zwischen Cluster und
+   Fensterrand eigenen Innenabstand/Rand einbringt. Bei verschachtelten Polsterungen (z. B.
+   mehrere umschließende Karten) kann es einen schmalen Bereich geben, in dem beide Zustände kurz
+   auseinanderlaufen -- je Aufrufstelle prüfen, falls mehrere gepolsterte Ebenen dazwischenliegen. */
+.buttonFullWidthBelowMd {
+  width: auto;
+}
+
+@media (max-width: 767px) {
+  .buttonFullWidthBelowMd {
+    width: 100%;
+  }
+}
+
 .buttonDisabled,
 .button:disabled,
 .button[aria-disabled="true"] {
@@ -279,4 +369,19 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* Merkliste-Varianten bleiben bewusst bei voller Deckkraft, auch wenn der Button gerade
+   funktional deaktiviert ist (z. B. "Anmeldung erforderlich" für anonyme Besucher, oder während
+   ein Vorgang läuft) -- der auffällige Verlauf soll weiterhin zur Anmeldung/Aktion einladen,
+   statt wie ein ausgegrautes Formularfeld zu wirken. Die Beschriftung selbst macht den
+   Nicht-interaktiv-Zustand bereits eindeutig. Nach der generischen Regel oben deklariert, damit
+   sie deren opacity zuverlässig gegen die gleiche Spezifität überschreibt. */
+.buttonWatchlist.buttonDisabled,
+.buttonWatchlist:disabled,
+.buttonWatchlist[aria-disabled="true"],
+.buttonWatchlistActive.buttonDisabled,
+.buttonWatchlistActive:disabled,
+.buttonWatchlistActive[aria-disabled="true"] {
+  opacity: 1;
 }

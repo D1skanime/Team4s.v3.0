@@ -1,0 +1,27 @@
+/*
+ * ResponsiveImage trägt selbst keine eigene visuelle Grundfläche -- diese einzelne Klasse ist
+ * eine bewusst eng begrenzte, opt-in Fähigkeit für den wiederkehrenden Fall eines kleinen,
+ * rund zugeschnittenen Vorschau-/Miniaturbilds (z. B. das Cover-Bild einer schwebenden
+ * Randnavigations-Vorschaukarte), kein allgemeiner Bildrahmen für jedes ResponsiveImage.
+ * Reproduziert exakt den bisher lokal in der jeweiligen Aufrufstelle deklarierten Wert, damit
+ * eine Umstellung Zero-Pixel-Diff bleibt.
+ */
+.roundedThumbnail {
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+/*
+ * Opt-in-Fähigkeit für ein breites Banner-/Hintergrundbild, das die volle Breite seines
+ * Containers einnehmen und die Höhe proportional mitskalieren soll (z. B. das Info-Banner-Bild
+ * über einer Anime-Info-Karte). `display: block` hebt den browserüblichen "Baseline-Nachlauf"
+ * unterhalb eines inline gerenderten Bildes auf -- relevant, sobald das Bild innerhalb eines
+ * schlanken, selbst NICHT-Flex-Wrapper-Elements liegt, in dem dieser sonst durch einen äußeren
+ * Flex-Container automatisch aufgehobene Leerraum sonst sichtbar würde.
+ */
+.fillWidth {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}

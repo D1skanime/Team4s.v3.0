@@ -1,122 +1,41 @@
-.buttonWrapper {
-  position: relative;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-/* Left button: shift left so center aligns with heroContainer edge */
-.buttonWrapper:first-child {
-  transform: translateX(-50%);
-}
-
-/* Right button: shift right so center aligns with heroContainer edge */
-.buttonWrapper:last-child {
-  align-items: flex-end;
-  transform: translateX(50%);
-}
-
-/* Element+Klasse-Selektor (Spezifität 0,1,1): überschreibt Buttons eigene .buttonPrimary-Klasse
-   zuverlässig, unabhängig von der CSS-Modul-Bündel-Reihenfolge -- dieselbe eigene Verlaufsfarbe
-   wie zuvor, jetzt auf dem offiziellen Button-Baustein statt eines eigenen <button>-Nachbaus. */
-button.navButton {
-  flex: 0 0 auto;
-  min-width: 96px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 196, 140, 0.65);
-  background: linear-gradient(135deg, rgba(255, 164, 91, 0.95), rgba(255, 122, 69, 0.95));
-  color: #fff;
-  box-shadow: 0 10px 20px rgba(255, 122, 69, 0.28);
-}
-
-button.navButton:hover:not(:disabled),
-button.navButton:focus-visible:not(:disabled) {
-  transform: translateY(-1px);
-  filter: brightness(1.05);
-  border-color: rgba(255, 196, 140, 0.65);
-  box-shadow: 0 10px 20px rgba(255, 122, 69, 0.28);
-}
-
-button.navButton:disabled {
-  opacity: 0.55;
-  box-shadow: none;
-}
-
+/* Positioniert sich relativ zum gemeinsamen .edgeNavigationOverlay-Container (page.infoCard.
+   module.css), der bewusst auf Button-Höhe begrenzt ist (--control-height-md) -- top:100% landet
+   dadurch exakt am unteren Rand des Buttons, nicht am unteren Rand der ganzen Hero-Karte. */
+/* Nur noch Positionierung/Sichtbarkeit -- das Bild+Text-Layout kommt ueber Cluster
+   gap="mediaCaption", der Innenabstand ueber Cards eigenen padding-Override-Hook und die
+   Hoechstbreite ueber Cards widthPurpose="compactPreview" (siehe AnimeEdgeNavigation.tsx). */
 .previewCard {
   pointer-events: none;
   position: absolute;
-  top: calc(100% + 8px);
-  width: min(260px, 90vw);
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  top: calc(100% + var(--space-2));
+  z-index: 1;
 }
 
-.previewLeft {
-  left: 0;
-}
+.previewLeft { left: var(--adjacent-nav-floating-inset-x); }
+.previewRight { right: var(--adjacent-nav-floating-inset-x); }
 
-.previewRight {
-  right: 0;
-}
-
+/* Rundung/Bildzuschnitt kommen jetzt aus ResponsiveImages roundedThumbnail-Prop -- hier bleibt
+   nur die Garantie, dass das Vorschaubild beim Schrumpfen des Clusters nicht komprimiert wird
+   (Cluster selbst setzt kein flex-shrink). */
 .previewCover {
-  border-radius: var(--radius-sm);
-  object-fit: cover;
   flex: 0 0 auto;
 }
 
-.previewMeta {
-  min-width: 0;
-}
+.previewMeta { min-width: 0; }
 
 .previewTitle {
-  margin: 0;
-  font-weight: 600;
-  font-size: 15px;
-  line-height: 1.3;
-  color: #1a1a1a;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  margin: 0;
   overflow: hidden;
+  font-weight: 600;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .previewType {
-  margin: 6px 0 0;
-  color: #666;
-  font-size: 13px;
-  font-weight: 500;
+  display: block;
 }
 
-@media (max-width: 768px) {
-  .buttonWrapper {
-    align-items: center;
-    transform: none;
-  }
-
-  .buttonWrapper:first-child {
-    transform: none;
-  }
-
-  .buttonWrapper:last-child {
-    align-items: center;
-    transform: none;
-  }
-
-  .navButton {
-    min-width: 88px;
-    height: 38px;
-    padding-inline: 12px;
-  }
-
-  .previewCard {
-    display: none;
-  }
+@media (max-width: 767px) {
+  .previewCard { display: none; }
 }

@@ -229,3 +229,36 @@ export const AutomatischVerknuepfterSwitch: Story = {
     },
   },
 }
+
+/** Drei gleichzeitig fehlerhafte Felder (Titel/Status/Beschreibung) -- bei JEDEM Feld ist NUR
+ *  `error` am FormField gesetzt, ohne manuelles `invalid` am umschlossenen Input/Select/Textarea.
+ *  Zeigt sichtbar, dass die automatische id-/aria-invalid-/aria-describedby-Verknüpfung greift,
+ *  ohne dass der Aufrufer sie am Feld selbst wiederholen muss. */
+export const MehrereFehlerGleichzeitig: Story = {
+  name: 'Mehrere Fehler gleichzeitig',
+  render: () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <FormField label="Titel" error="Titel ist bereits vergeben.">
+        <Input placeholder="z. B. Naruto" />
+      </FormField>
+      <FormField label="Status" error="Bitte einen Status wählen.">
+        <Select>
+          <option value="">-- auswählen --</option>
+          <option value="public">Öffentlich</option>
+          <option value="private">Privat</option>
+        </Select>
+      </FormField>
+      <FormField label="Beschreibung" error="Mindestens 20 Zeichen erforderlich.">
+        <Textarea placeholder="Beschreibung eingeben" />
+      </FormField>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Die Fehlerverknüpfung (id, aria-invalid, aria-describedby) erfolgt automatisch durch FormField, sobald nur `error` gesetzt wird -- auch wenn mehrere Felder einer Seite gleichzeitig einen Fehler zeigen.',
+      },
+    },
+  },
+}

@@ -3038,3 +3038,54 @@ Plans:
 - [x] 191-35-PLAN.md — Frontend: D-30 Bugfix (echter Projekttitel + Release-Vorauswahl auf der Release-Seite, ProposalFormPrefill-Erweiterung)
 - [x] 191-36-PLAN.md — Frontend: D-34 Release-Anzeige in allen drei Hinweis-Listen + schemafreie Episodenanzeige beim Eigengruppen-Pfad
 - [x] 191-37-PLAN.md — Phasenabschluss fuenfte Nachbesserung: D-36-Vorabpruefung (echter API-Check + D-35-Loeschung), DECISIONS.md, Regressionsgate, Live-UAT — **Checkpoint vom Nutzer am 2026-10-26 freigegeben, Phase 191 abgeschlossen**
+
+### Phase 192: Öffentliche Anime-Detailseite: Baustein-Reinheit, SSR-Randnavigation, Release-Zeilen-Einrückung (ki-run 261102-226d, Live-UAT-Befunde 19-26 vom 2026-11-04)
+
+**Goal:** Die öffentliche Anime-Detailseite (`/anime/[id]`) besteht in allen fünf Pilot-Bausteinen
+(Anime-Kopf, Episoden-Bereich, Fansubgruppen-Auswahl, Release-Zeile, Randnavigation) ausschließlich
+aus Grundbausteinen (neue `Stack`/`Cluster`/`SplitLayout`-Layout-Primitives statt seiteneigenem
+Hand-Layout, mit Zweck- statt Größen-/Nummernnamen für deren Props), die Randnavigation ist bereits
+im Server-HTML sichtbar statt erst nach Hydration, die Release-Zeile richtet ihre Datenzeile korrekt
+an Titel/Gruppenname aus, die auf diesem Branch neu entstandenen Klick-Interaktionstests rufen echte
+Logik direkt statt über fireEvent/userEvent auf, und Blur-/Glas-/Scrim-Effekte sind Zweck-Tokens wie
+Abstand/Rundung.
+**Requirements**: Befund-19, Befund-20, Befund-21, Befund-22, Befund-23, Befund-24, Befund-25, Befund-26, Befund-A, Befund-B, Befund-C, Befund-D, Befund-27, Befund-28, Befund-Review1, Befund-Review2, Befund-Review2-R2
+**Depends on:** Phase 191
+**Plans:** 35/35 plans complete
+
+Plans:
+- [x] 192-01-PLAN.md — Layout-Grundbausteine Stack/Cluster/SplitLayout (Befund 23)
+- [x] 192-02-PLAN.md — AnimeDetailHero besitzt Card+SplitLayout+Randnavigations-Slot vollständig (Befund 21)
+- [x] 192-03-PLAN.md — FansubGroupPicker + FansubVersionBrowser-Episodenliste auf Stack/Cluster (Befund 23)
+- [x] 192-04-PLAN.md — AnimeDetailView-Vereinfachung, page.module.css-Reinheit, Architektur-Doku (Befund 22)
+- [x] 192-05-PLAN.md — SSR-Randnavigation: resolveAnimeNeighbors serverseitig (Befund 19)
+- [x] 192-06-PLAN.md — Release-Zeilen-Einrückung über Cluster+Stack (Befund 20)
+- [x] 192-08-PLAN.md — Zweck-Namen statt Größen-/Nummernnamen für Stack/Cluster/SplitLayout-Props (Befund 24)
+- [x] 192-09-PLAN.md — Direkte Logik-Tests statt Klick-Simulation für switchTo/toggleEpisode/WatchlistAction & Co. (Befund 25)
+- [x] 192-10-PLAN.md — Effekte (Blur/Glas/Scrim) als Zweck-Tokens in effects.css (Befund 26)
+- [x] 192-07-PLAN.md — Vollständiger Regressionslauf + Playwright-Bildpaar-Nachweis (main vs. Branch, Storybook vs. Live-Seite), läuft nach 08/09/10
+- [x] 192-11-PLAN.md — Card-Padding-Override + neuer Divider-Grundbaustein (Befund B, Vorbereitung)
+- [x] 192-12-PLAN.md — SplitLayout-gap Zweck-Umstellung + Root-Cause/Fix der bestätigten Anime-Kopf-Sichtregression (Befund A + Sichtregression)
+- [x] 192-13-PLAN.md — AnimeDetailHero.module.css: eigenes Layout-CSS entfernt (Befund B)
+- [x] 192-14-PLAN.md — ReleasePreviewRow/EpisodeGlassCard/AnimeEdgeNavigation: eigenes Layout-CSS entfernt (Befund B)
+- [x] 192-15-PLAN.md — Composite-Layout-Reinheits-Guard + Doku + Befund-B-Bildnachweis (Befund B)
+- [x] 192-16-PLAN.md — Stack-Zweck-Namen 'tight'/'section' korrigiert (Befund D)
+- [x] 192-17-PLAN.md — Letzte fireEvent/userEvent-Vorkommen entfernt (Befund C)
+- [x] 192-18-PLAN.md — Storybook „Grundlagen/Effekte": echtes Bildpaar statt grauer Fläche (Befund 27)
+- [x] 192-19-PLAN.md — Storybook „Grundlagen/Design-Tokens": dreistufige Neugliederung (Befund 28)
+- [x] 192-20-PLAN.md — Runde-3-Abschluss-Nachweis (voller Regressionslauf + Playwright-Bildpaare, löst 192-VERIFICATION.md ab), läuft nach 11-19
+- [x] 192-21-PLAN.md — Stack: Rhythmus-Array-Modus + 'captionLines'-Zweck (Review-Befund 1, Grundbaustein A)
+- [x] 192-22-PLAN.md — Cluster: Haltepunkt-Umkehr (collapseBelow/gapCollapsed) + Schwebe-Overlay-Modus (Review-Befund 1, Grundbausteine B+C)
+- [x] 192-23-PLAN.md — Card: Zweck-Padding-Rezepte + Rand-bis-Rand-Modus (Review-Befund 1 Grundbaustein D + Review-Befund 2)
+- [x] 192-24-PLAN.md — AnimeDetailHero Teil 1: infoCardBody-Rhythmus (A) + titleRow-Kollaps (B)
+- [x] 192-25-PLAN.md — AnimeDetailHero Teil 2: Randnav-Schwebe-Overlay (C) + posterMetaCard Rand-bis-Rand (D)
+- [x] 192-26-PLAN.md — ReleasePreviewRow + EpisodeGlassCard + AnimeEdgeNavigation: Erweiterungen B/D/A anwenden
+- [x] 192-27-PLAN.md — Guard-Verschärfung (Ausnahmeliste entfernt) + Abschluss-Verifikation Runde 4 + 192-VERIFICATION.md-Aktualisierung
+- [x] 192-28-PLAN.md — Card: Zweck-Padding-Stufen 'section'/Kontext-Karte + Kompakt-Vorschau-Breite + EpisodeGlassCard-Rundungsloesung (Befund-Review2-R2)
+- [x] 192-29-PLAN.md — Avatar 'xs'+bordered, Button chipGlass-Abstand, ResponsiveImage-Rundung (Befund-Review2-R2)
+- [x] 192-30-PLAN.md — Neue Stack-/Cluster-Zweck-Token fuer FansubVersionBrowser-Geschwisterrhythmus + navRow (Befund-Review2-R2)
+- [x] 192-31-PLAN.md — page.episodes.module.css/AnimeEpisodesSection: Card-Zweck-Padding 'section' + Seiten-Abstand (Befund-Review2-R2)
+- [x] 192-32-PLAN.md — ReleasePreviewRow/AnimeEdgeNavigation/EpisodeGlassCard/WatchlistAddButton: Grundbaustein-Faehigkeiten anwenden (Befund-Review2-R2)
+- [x] 192-33-PLAN.md — FansubVersionBrowser/FansubGroupContext/FansubGroupPicker: Stack-Umhuellung + Grundbaustein-Faehigkeiten (Befund-Review2-R2)
+- [x] 192-34-PLAN.md — Guard-Erweiterung: 9 Dateien + 11 Eigenschafts-Kategorien, ausnahmelos (Befund-Review2-R2)
+- [x] 192-35-PLAN.md — Runde-5-Abschluss-Nachweis (voller Regressionslauf + Playwright-Bildpaare, loest 192-VERIFICATION.md ab)

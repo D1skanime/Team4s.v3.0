@@ -1,0 +1,85 @@
+/* Alleinige Stil-Quelle des Anime-Kopf-Bausteins (Poster-Spalte + Info-Karte) -- der Baustein
+   besitzt ein eigenes Stylesheet statt fremdes, seiteneigenes CSS über AnimeDetailView.styles.ts
+   zu übernehmen. Abstände/Umbruch/Positionierung übernehmen die generischen Stack-/Cluster-
+   Grundbausteine (Flex-Richtung, gap, flex-wrap, das schwebende Randnavigations-Band); Fläche/
+   Rundung/Farbe bleiben bei den Card-Varianten. */
+
+/* Kein eigenes display:flex/flex-direction hier: redundant mit Card
+   variant="publicPoster"s eigener .cardPublicPoster-Regel (bereits display:flex;
+   flex-direction:column;gap:0;padding:0) -- diese Card-Variante IST der Flex-Container, eine
+   zweite, identische Deklaration hier täte nichts außer sie zu duplizieren. position:relative
+   bleibt: etabliert den Positionierungskontext, den Nachfahren wie .posterMeta (eigenes
+   z-index) voraussetzen. */
+.posterColumn {
+  position: relative;
+}
+
+.posterMeta {
+  position: relative;
+  z-index: var(--z-base);
+}
+
+/* Divider (@/components/ui) deckt Farbe UND Abstand der Trennlinie vollständig selbst ab --
+   hier bleibt nur noch die responsive Sichtbarkeits-Entscheidung lokal, die Divider.tsx's
+   eigene Doku für eine von außen übergebene className ausdrücklich erlaubt (NIE
+   margin/background). */
+.posterMetaCard {
+  /* border-width:0 statt der von .cardNested geerbten (wenn auch unsichtbar transparenten)
+     1px-Standardrahmenbreite -- diese nimmt sonst trotz Farbe:transparent weiterhin 1px
+     Layoutfläche je Seite ein (ein reiner Größenkorrektur-Fix, keine Layout-Entscheidung).
+     Ohne diese Korrektur würde die Karte 2px schmaler/höher gerendert als mit der
+     geerbten Standardrahmenbreite (per Playwright-Messung bestätigt). */
+  border-width: 0;
+}
+
+.tagsList {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* .infoBanner entfällt ersatzlos: die volle Breiten-/Höhenanpassung des Banner-Bilds kommt
+   jetzt aus ResponsiveImages fillWidth-Prop (siehe AnimeMediaProvider.tsxs AnimeInfoBanner)
+   statt aus einer lokalen CSS-Klasse, die von aussen an das Bild durchgereicht wurde. */
+
+/* margin-top/padding-top/border-top (vormals die Trennlinie VOR dem "Verwandte Anime"-Abschnitt,
+   mit responsivem margin-top) leben jetzt als eigener <Divider>-Vorfahre plus zwei Einträge im
+   Stack-Rhythmus-Array von .infoCardBody (siehe AnimeDetailHero.tsx) -- min-width/overflow bleiben
+   die einzigen verbleibenden, nicht abstandsbezogenen Deklarationen (verhindern, dass ein breites
+   Slider-Kind diesen Flex-Abschnitt über seine Spaltenbreite hinaus wachsen lässt). */
+.relatedSection {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Divider (@/components/ui) deckt Farbe UND Abstand der Trennlinie vor dem Info-Banner
+   vollständig selbst ab -- zwei Instanzen (Desktop kräftiger tone="onMediaStrong", Mobil
+   dezenter tone="onMedia") statt einer einzigen mit einem von außen überschriebenen Ton, weil
+   Divider keinen Fremd-Override seiner privaten Farbvariable erlaubt (siehe Divider.tsx).
+   Beide Klassen hier steuern ausschließlich, WELCHE der beiden je Haltepunkt sichtbar ist. */
+.dividerMobile {
+  display: none;
+}
+
+/* Ein einziger gemeinsamer 767px-Haltepunkt für Poster-Spalte UND Info-Karte -- die responsive
+   Breiten-/Ausrichtungs-/Zentrierungs-Logik beider Zonen lebt inzwischen vollständig in den
+   Grundbausteinen selbst (MediaFrame widthPurpose, Card.module.css, Stack alignBelowMd, Cluster
+   justifyBelowMd); hier bleibt nur noch die lokale Sichtbarkeits-Umschaltung zwischen den beiden
+   Trennlinien-Instanzen (Desktop/Mobil, siehe JSX) übrig. */
+@media (max-width: 767px) {
+  .posterDivider {
+    display: none;
+  }
+
+  /* Umschalten auf die dezentere Divider-Instanz (siehe JSX): die Karte ist hier bereits
+     einheitlich dunkel, die kräftigere Desktop-Stufe (tone="onMediaStrong") wäre zu
+     kontrastreich -- dieselbe schwächere Linienfarbe wie statsRow/relatedSection
+     (beide bereits --border-on-media). */
+  .dividerDesktop {
+    display: none;
+  }
+
+  .dividerMobile {
+    display: block;
+  }
+}

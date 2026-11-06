@@ -1,0 +1,64 @@
+/* Eigenstaendig benannter Container (nicht "artwork-hero" wiederverwendet) -- mehrere
+   SplitLayout-Instanzen koennen ineinander verschachtelt sein, jede braucht ihren eigenen
+   Container-Namensraum (siehe ArtworkHero.module.css fuer dasselbe Grundmuster).
+   WICHTIG: der Container darf laut CSS-Spezifikation nicht gleichzeitig das Element sein, dessen
+   eigenes Layout von der @container-Abfrage dieses Containers geaendert wird (ein Element kann
+   nicht anhand der eigenen Groesse sich selbst neu anordnen) -- deshalb traegt DIESES Element nur
+   `container`/`min-width`, waehrend das tatsaechliche CSS-Grid (`.grid` unten) als eigenes
+   Kind-Element lebt, das als Nachfahre des Containers ueber @container abgefragt werden darf. */
+.splitLayout {
+  container: split-layout / inline-size;
+  min-width: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--split-gap, var(--space-4));
+  align-items: var(--split-align, start);
+  min-width: 0;
+}
+
+/* display:flex;flex-direction:column reicht die durch align="stretch" ausgeglichene
+   Spaltenhöhe (siehe .grid oben) an das jeweils einzige Kind weiter -- das äußere Grid stretcht
+   nur die Spalten-BOX selbst; ein normales Block-Kind würde ohne eigenen Höhenmechanismus
+   trotzdem bei seiner intrinsischen Inhaltshöhe bleiben. Spaltenbreite bleibt unverändert (Flex-
+   Querachse in Spaltenrichtung ist die Breite, Standard-align-items:stretch füllt sie wie zuvor
+   als Block-Element). */
+.firstColumn,
+.secondColumn {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.firstColumn > *,
+.secondColumn > * {
+  flex: 1;
+}
+
+/* firstColumnWidth="poster": SplitLayout kennt die Posterspalten-Breite des
+   Anime-Kopfs jetzt selbst ueber ein eigenes Zweck-Token -- der Aufrufer liefert nur noch den
+   Zweck-Namen, keinen Pixelwert mehr (ersetzt den vormals seitenspezifischen
+   --split-first-col-Override-Hook in AnimeDetailHero.module.css). */
+.columnPoster {
+  --split-first-col: var(--split-layout-column-poster);
+}
+
+@media (max-width: 1023px) {
+  .columnPoster {
+    --split-first-col: var(--split-layout-column-poster-medium);
+  }
+}
+
+/* Einziger Haltepunkt -- Schwelle 48rem/768px, identisch zu ArtworkHeros Haltepunkt (vormals ueber
+   eine `breakpoint="md"|"lg"`-Prop waehlbar; "lg" (64rem/1024px) hatte keine echte Aufrufstelle
+   mehr und ist komplett entfernt, siehe SplitLayout.tsx). Die Modifikatorklasse `.columnPoster`
+   bleibt auf dem AEUSSEREN Container-Element (siehe SplitLayout.tsx) -- die Bedingung wird deshalb
+   ueber den Vorfahren-Kombinator auf das innere `.grid`-Element angewendet, nicht auf das Element,
+   das den Container selbst bildet. */
+@container split-layout (min-width: 48rem) {
+  .splitLayout .grid {
+    grid-template-columns: var(--split-first-col, auto) minmax(0, 1fr);
+  }
+}

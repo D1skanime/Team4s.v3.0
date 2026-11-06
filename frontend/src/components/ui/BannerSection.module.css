@@ -1,0 +1,69 @@
+.bannerSection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--banner-height);
+  overflow: clip;
+  z-index: 0;
+}
+
+.backdropWrapper {
+  position: absolute;
+  inset: 0;
+  filter:
+    blur(var(--banner-backdrop-blur))
+    brightness(var(--banner-backdrop-brightness))
+    saturate(var(--banner-backdrop-saturate));
+  transform: scale(var(--banner-backdrop-scale));
+}
+
+/* Variante "anime" (siehe BannerSection.tsx): eigene, schwächere Unschärfe/Skalierung ohne
+   brightness/saturate-Abweichung plus vertikale Ausblendmaske zum Seitenhintergrund -- ersetzt
+   komplett (nicht ergänzt) den Standard-filter/transform von .backdropWrapper oben, nach
+   .backdropWrapper deklariert, damit die eigene Formel zuverlässig gewinnt (gleiche Spezifität,
+   Deklarationsreihenfolge entscheidet). */
+.backdropWrapperAnime {
+  filter: blur(var(--banner-anime-blur));
+  transform: scale(var(--banner-anime-scale));
+  mask-image: var(--banner-anime-mask);
+  -webkit-mask-image: var(--banner-anime-mask);
+}
+
+.backdropImage {
+  object-fit: cover;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-scrim-bg);
+  pointer-events: none;
+}
+
+.scrimStrong {
+  background: var(--banner-scrim-bg-strong);
+}
+
+.badge {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 767px) {
+  .bannerSection {
+    height: var(--banner-height-mobile);
+  }
+}
+
+/* fillHeight-Prop (siehe BannerSection.tsx): deklariert bewusst NACH der mobilen Haltepunkt-Regel
+   oben, damit sie deren height-Wert zuverlässig überschreibt (gleiche Selektor-Spezifität,
+   Deklarationsreihenfolge entscheidet) -- top/right/left/bottom (statt eines Höhen-Literals)
+   lässt den Browser die Höhe aus der tatsächlichen Höhe des positionierten Vorfahren berechnen,
+   unabhängig davon, ob dessen Höhe selbst erst durch variablen Inhalt entsteht (bei absolut
+   positionierten Elementen funktioniert dieser Inset-Mechanismus zuverlässig für einen
+   `height:auto`-Vorfahren, eine reine Prozent-Höhenangabe dagegen nicht). */
+.bannerSectionFillHeight {
+  inset: 0;
+  height: auto;
+}

@@ -6,7 +6,11 @@ import { classNames } from './classNames'
 import styles from './Button.module.css'
 import { Spinner } from './Spinner'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'warning' | 'info' | 'text' | 'floating'
+/** 'chipGlass' ist ein durchscheinender Umschalt-Chip für dunkle Glasflächen (z. B. ein
+ *  Fansub-Gruppen-Filter über der Episodenliste) -- reagiert wie jeder Button auf aria-pressed,
+ *  aber mit einer eigenen, hellen Formel statt der Standard-Aktiv-Farbe, die für Flächen auf
+ *  WEISSEM Grund kalibriert ist und auf dunklem Glas unsichtbar bliebe. */
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'warning' | 'info' | 'text' | 'floating' | 'watchlist' | 'watchlistActive' | 'chipGlass'
 /** 'hero' (Größe/Gewicht wie Heading size="hero") und 'prose' (1rem, wie Text variant="body")
  *  ergänzen die Steuerelement-Größen sm/md/lg um zwei Textfluss-Größen -- für `variant="text"`,
  *  das Größe/Gewicht sonst vom umgebenden Kontext erbt. */
@@ -27,6 +31,17 @@ type CommonButtonProps = {
   tone?: ButtonTone
   loading?: boolean
   fullWidth?: boolean
+  responsiveFullWidth?: boolean
+  /** Exakte Umkehrung von `responsiveFullWidth`s Haltepunkt-Richtung: hier ist `auto`-Breite der
+   *  Standard, volle Breite gilt NUR unterhalb von 768px -- für Aktions-Buttons, die direkter
+   *  Bestandteil eines `Cluster collapseBelow="md"` sind und im gestapelten Zustand dessen volle
+   *  Zeilenbreite einnehmen sollen, ab dort aber auf ihre natürliche Inhaltsbreite zurückfallen.
+   *  Nutzt dieselbe Haltepunkt-Zahl wie `Cluster`, misst aber (anders als `Cluster`s eigene
+   *  Container-Abfrage) die Fensterbreite -- bei mehreren gepolsterten Vorfahren zwischen Button
+   *  und Fensterrand je Aufrufstelle prüfen, ob beide wirklich an derselben Stelle kippen. Nicht
+   *  gemeinsam mit `responsiveFullWidth` auf demselben Button verwenden -- beide steuern dieselbe
+   *  CSS-Eigenschaft in entgegengesetzte Richtungen, ohne gegenseitige Absicherung. */
+  fullWidthBelowMd?: boolean
   leftIcon?: ReactNode
   rightIcon?: ReactNode
   className?: string
@@ -56,6 +71,8 @@ export function Button(props: ButtonProps) {
     tone = 'default',
     loading = false,
     fullWidth = false,
+    responsiveFullWidth = false,
+    fullWidthBelowMd = false,
     disabled = false,
     leftIcon,
     rightIcon,
@@ -76,6 +93,9 @@ export function Button(props: ButtonProps) {
     variant === 'info' && styles.buttonInfo,
     variant === 'text' && styles.buttonText,
     variant === 'floating' && styles.buttonFloating,
+    variant === 'watchlist' && styles.buttonWatchlist,
+    variant === 'watchlistActive' && styles.buttonWatchlistActive,
+    variant === 'chipGlass' && styles.buttonChipGlass,
     size === 'sm' && styles.buttonSmall,
     size === 'lg' && styles.buttonLarge,
     size === 'hero' && styles.buttonHero,
@@ -85,6 +105,8 @@ export function Button(props: ButtonProps) {
     tone === 'primary' && styles.buttonTonePrimary,
     tone === 'line' && styles.buttonToneLine,
     fullWidth && styles.buttonBlock,
+    responsiveFullWidth && styles.buttonResponsiveBlock,
+    fullWidthBelowMd && styles.buttonFullWidthBelowMd,
     disabled || loading ? styles.buttonDisabled : '',
     className,
   )

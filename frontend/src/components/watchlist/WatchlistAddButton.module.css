@@ -1,23 +1,7 @@
-.wrapper {
-  display: grid;
-  gap: 0.45rem;
-}
-
-.button {
-  justify-self: start;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 58%, transparent);
-  background: color-mix(in srgb, var(--accent-primary) 20%, var(--bg-secondary));
-  color: var(--text-primary);
-  padding: 0.42rem 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.button:disabled {
-  opacity: 0.65;
-  cursor: default;
-}
+/* .wrapper entfällt ersatzlos: die vertikale Anordnung von Knopf/Statusmeldung/Wiederholungs-
+   Knopf samt deren Abstand kommt vollständig aus Stack gap="relatedContent" (siehe
+   WatchlistAddButton.tsx) statt eines zuvor hier lokal deklarierten Raster-Layouts mit rohem
+   Sub-Pixel-Abstandswert. */
 
 .message {
   margin: 0;

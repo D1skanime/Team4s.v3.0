@@ -1,29 +1,43 @@
 .textBody {
+  margin: 0;
   font-size: var(--text-body-size, var(--text-body-font-size));
   color: var(--text-body-color, var(--text-body));
 }
 
 .textSoft {
+  margin: 0;
   font-size: var(--text-soft-size, var(--text-soft-font-size));
   color: var(--text-soft-color, var(--text-soft));
 }
 
 .textMeta {
+  margin: 0;
   font-size: var(--text-meta-size, var(--text-meta-font-size));
   color: var(--text-meta-color, var(--text-soft));
 }
 
 .textSmall {
+  margin: 0;
   font-size: var(--text-small-size, var(--text-small-font-size));
   color: var(--text-small-color, var(--text-faint));
 }
 
 .textEyebrow {
+  margin: 0;
   font-size: var(--text-eyebrow-size, var(--text-eyebrow-font-size));
   color: var(--text-eyebrow-color, var(--text-eyebrow));
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* Hervorgehobenes Wort/Kurzbeschriftung in unveränderter Fließtext-Größe (z. B. ein Gruppenname
+   in einer Release-Zeile) -- dieselbe Größe/Farbe wie .textBody, nur fetter. */
+.textStrong {
+  margin: 0;
+  font-size: var(--text-body-size, var(--text-body-font-size));
+  color: var(--text-body-color, var(--text-body));
+  font-weight: 600;
 }
 
 /* Nach allen Variant-Klassen deklariert, damit sie deren jeweilige Farbe zuverlässig überschreibt
@@ -38,4 +52,10 @@
    damit der Fehler-Rotton deren jeweilige Farbe zuverlässig überschreibt. */
 .textToneError {
   color: var(--text-error);
+}
+
+/* tracking="wide" (siehe Text.tsx): leichte Zeichenspreizung für eine kurze Inline-
+   Zusatzbeschriftung neben Fließtext, unabhängig von der gewählten `variant`/`tone`. */
+.textTrackingWide {
+  letter-spacing: var(--text-tracking-wide, 0.04em);
 }

@@ -3,7 +3,14 @@ import { describe, expect, it } from 'vitest'
 
 import { readGlobalsCssResolved } from '@/test/readGlobalsCss'
 
-import { extractDesignTokens, groupDesignTokens, isColorLikeValue } from './designTokens'
+import {
+  classifyToken,
+  extractDesignTokens,
+  groupDesignTokens,
+  isColorLikeValue,
+  isVarReference,
+  resolveVarReferenceName,
+} from './designTokens'
 
 describe('extractDesignTokens', () => {
   it('liest alle --name: wert;-Deklarationen aus einem :root-Block, auch über mehrere Blöcke hinweg', () => {
@@ -99,5 +106,46 @@ describe('isColorLikeValue', () => {
     expect(isColorLikeValue('0 1px 2px rgba(25, 21, 18, 0.06)')).toBe(false)
     expect(isColorLikeValue('700')).toBe(false)
     expect(isColorLikeValue('')).toBe(false)
+  })
+})
+
+describe('classifyToken', () => {
+  it('ordnet die vom Menschen genannten Eichpunkte jeweils der richtigen Stufe zu', () => {
+    expect(classifyToken({ name: '--space-3', value: '12px' }, 'space')).toBe('foundation')
+    expect(classifyToken({ name: '--space-independent-blocks', value: 'var(--space-3)' }, 'space')).toBe('purpose')
+    expect(classifyToken({ name: '--radius-sm', value: '6px' }, 'radius')).toBe('foundation')
+    expect(classifyToken({ name: '--radius-surface', value: '4px' }, 'radius')).toBe('purpose')
+  })
+
+  it('erkennt die restliche Grundskala (Schatten, Schrift, Rohfarbpalette) als "foundation"', () => {
+    expect(classifyToken({ name: '--shadow-xs', value: '0 1px 2px rgba(25, 21, 18, 0.06)' }, 'shadow')).toBe('foundation')
+    expect(classifyToken({ name: '--font-sans', value: 'Inter, sans-serif' }, 'font')).toBe('foundation')
+    expect(classifyToken({ name: '--font-size-h1', value: 'clamp(2rem, 3vw, 2.75rem)' }, 'font')).toBe('foundation')
+    expect(classifyToken({ name: '--color-primary', value: '#5f84dd' }, 'color')).toBe('foundation')
+  })
+
+  it('erkennt benannte Zweck-Werte innerhalb einer Grundskala als "purpose"', () => {
+    expect(classifyToken({ name: '--shadow-inset-highlight', value: 'rgba(255, 255, 255, 0.7)' }, 'shadow')).toBe('purpose')
+    expect(classifyToken({ name: '--font-weight-heading', value: '700' }, 'font')).toBe('purpose')
+  })
+
+  it('ordnet jeden Token, dessen Namens-Familie zu keiner Grundskala gehört, der Bausteinwerte-Stufe zu', () => {
+    expect(classifyToken({ name: '--card-gap', value: '18px' }, 'card')).toBe('component')
+    expect(classifyToken({ name: '--button-radius', value: '8px' }, 'button')).toBe('component')
+    expect(classifyToken({ name: '--adjacent-nav-gap', value: '12px' }, 'adjacent')).toBe('component')
+  })
+})
+
+describe('isVarReference / resolveVarReferenceName', () => {
+  it('erkennt eine var()-Verweiskette und liest den referenzierten Token-Namen aus', () => {
+    expect(isVarReference('var(--space-3)')).toBe(true)
+    expect(resolveVarReferenceName('var(--space-3)')).toBe('--space-3')
+  })
+
+  it('unterscheidet einen eigenständigen Literalwert von einer var()-Verweiskette', () => {
+    expect(isVarReference('4px')).toBe(false)
+    expect(isVarReference('#5f84dd')).toBe(false)
+    expect(isVarReference('linear-gradient(145deg, #ffd873, #d68e17)')).toBe(false)
+    expect(resolveVarReferenceName('4px')).toBeNull()
   })
 })

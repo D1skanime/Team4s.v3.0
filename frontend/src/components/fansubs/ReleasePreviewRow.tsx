@@ -1,14 +1,18 @@
 'use client'
 
-import Image from 'next/image'
-
+import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Cluster } from '@/components/ui/Cluster'
+import { Stack } from '@/components/ui/Stack'
+import { Text } from '@/components/ui/Text'
 import type { PublicEpisodeVersion } from '@/types/episodeVersion'
 
 import {
   formatReleaseDateLine,
   formatSubtitleType,
   formatTechValue,
+  mutedOnGlassTextStyle,
   resolveCoopLinkGroupId,
   resolveLogoUrl,
   resolveReleaseName,
@@ -39,51 +43,104 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
   const dateLine = formatReleaseDateLine(version.release_date)
   const linkGroupID = resolveCoopLinkGroupId(groups)
 
+  // Gruppenname/Release-Name und die drei Datenzeilen (Technik/Extras/Datum) leben in
+  // EINEM vertikalen Stack, damit die Datenzeilen zwangsläufig dieselbe Spalte wie der
+  // Gruppenname belegen -- statt (wie vor dem Fix) als Geschwister eines einspaltigen Grids auf
+  // Höhe der Avatar-Spalte zu beginnen. Einmal gebaut, unten in beiden Zweigen (mit/ohne Avatare)
+  // wiederverwendet, damit die fünf Textzeilen nur einmal geschrieben stehen.
+  const textLines = (
+    <Stack gap="relatedContent">
+      <Text variant="strong" tone="onScrim" className={styles.groupName}>
+        {groupNameLine}
+        {/* Reiner Text, kein Chip/Badge/Rahmen -- bleibt deshalb bewusst Text statt
+            Badge. */}
+        {isCoop ? <Text as="span" tracking="wide" style={mutedOnGlassTextStyle}> COOP</Text> : null}
+      </Text>
+      <Text style={mutedOnGlassTextStyle} className={styles.releaseName}>
+        {resolveReleaseName(version)}
+      </Text>
+
+      {techLine ? (
+        <Text style={mutedOnGlassTextStyle} className={styles.techLine}>{techLine}</Text>
+      ) : null}
+
+      {extras.length > 0 ? (
+        <Text style={mutedOnGlassTextStyle} className={styles.extrasLine}>{extras.join('   ')}</Text>
+      ) : null}
+
+      {dateLine ? (
+        <Text style={mutedOnGlassTextStyle} className={styles.dateLine}>{dateLine}</Text>
+      ) : null}
+    </Stack>
+  )
+
   return (
-    <div className={styles.row}>
-      <div className={styles.content}>
-        <div className={styles.identity}>
-          <div className={styles.logos}>
-            {groups.map((group) => {
-              const logoURL = resolveLogoUrl(group.logo_url)
-              return logoURL ? (
-                <Image
+    // Innenabstand kommt ausschliesslich über Cards generischen padding-Override-Hook --
+    // Cards eigenen Varianten-Regeln und einem lokalen `padding:` auf .row entfällt dadurch, da
+    // .row selbst kein `padding:` mehr deklariert. Die haltepunktabhängige Zeile-zu-Spalte-
+    // Umkehr kommt vollständig über Clusters collapseBelow/gapCollapsed-Fähigkeit
+    // (identisches Muster wie AnimeDetailHero.tsxs .titleRow) statt eines eigenen
+    // display:flex/flex-direction in .row.
+    <Card variant="glassStrong" padding="content">
+      {/* align="stretch" reproduziert die bisherige, implizite Standard-Breitenfüllung im
+          gestapelten (Mobil-)Zustand (Flex ohne align-items setzt den Browser-Standard
+          "stretch", Clusters eigener Standard wäre dagegen "center") -- im Zeilen-Zustand
+          (ab 768px) wirkt dieselbe Prop auf die Höhe statt die Breite, dort übernimmt
+          bereits justify="between" die Verteilung, die Button-Breite kommt aus dessen eigener
+          fullWidthBelowMd-Prop. growFirstChild lässt die Avatar-/Text-Spalte (erstes Kind) den
+          nach dem Button verbleibenden Platz einnehmen; pinLastChild hält den Button (letztes
+          Kind) dabei auf seiner eigenen Höhe statt ihn über align="stretch" auf die Höhe der
+          oft mehrzeiligen Textspalte zu strecken. */}
+      <Cluster
+        collapseBelow="md"
+        gap="contentPair"
+        gapCollapsed="independentBlocks"
+        justify="between"
+        align="stretch"
+        growFirstChild
+        pinLastChild
+        className={styles.row}
+      >
+        {groups.length > 0 ? (
+          // Avatar(e) + Text-Stack nebeneinander, NIE übereinander (wrap={false}) -- die
+          // Spaltenbreite der Avatar-Gruppe passt sich dadurch von selbst der tatsächlichen
+          // Breite an (ein Avatar im Normalfall, zwei beim Koop-Fall), ohne ein festes Maß
+          // vorzuschreiben.
+          <Cluster gap="contentPair" align="start" wrap={false} className={styles.body}>
+            {/* Avatar löst Bild+Fallback in einem Baustein: fehlt ein Gruppenlogo, zeigt Avatar
+                automatisch ein Initialen-Kürzel statt -- wie bisher -- gar nichts zu rendern. Das
+                ist eine ausdrücklich gewollte Verhaltenserweiterung, kein reiner
+                Baustein-Tausch. */}
+            <Cluster gap="badgeRow" shrink={false}>
+              {groups.map((group) => (
+                <Avatar
                   key={group.id}
-                  src={logoURL}
-                  alt=""
-                  className={styles.logo}
-                  width={36}
-                  height={36}
-                  unoptimized
+                  src={resolveLogoUrl(group.logo_url)}
+                  label={group.name}
+                  size="sm"
+                  bordered
                 />
-              ) : null
-            })}
-          </div>
-          <div className={styles.identityText}>
-            <p className={styles.groupName}>
-              {groupNameLine}
-              {isCoop ? <span className={styles.coopLabel}> COOP</span> : null}
-            </p>
-            <p className={styles.releaseName}>{resolveReleaseName(version)}</p>
-          </div>
-        </div>
+              ))}
+            </Cluster>
+            {textLines}
+          </Cluster>
+        ) : (
+          // Bei null Gruppen wird GAR KEIN umschließender Cluster gerendert -- sonst
+          // würde dessen `gap` weiterhin reserviert und eine "Lücke ohne Avatar" neben dem
+          // Text-Stack entstehen, obwohl die erste Spalte leer ist.
+          <div className={styles.body}>{textLines}</div>
+        )}
 
-        {techLine ? <p className={styles.techLine}>{techLine}</p> : null}
-
-        {extras.length > 0 ? <p className={styles.extrasLine}>{extras.join('   ')}</p> : null}
-
-        {dateLine ? <p className={styles.dateLine}>{dateLine}</p> : null}
-      </div>
-
-      <div className={styles.action}>
         <Button
           href={`/anime/${animeID}/group/${linkGroupID}/releases/${version.release_version_id}`}
           variant="secondary"
           size="md"
+          fullWidthBelowMd
+          className={styles.action}
         >
           Zum Release →
         </Button>
-      </div>
-    </div>
+      </Cluster>
+    </Card>
   )
 }

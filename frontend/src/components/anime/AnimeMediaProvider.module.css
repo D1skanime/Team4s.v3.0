@@ -1,0 +1,10 @@
+/* Eigenes Stylesheet der wiederverwendbaren AnimeTitleLogo-Komponente (nicht Teil der neun
+   bewachten Pilot-Komposit-Dateien der Anime-Detailseite -- eine Komponente bringt ihre eigene
+   intrinsische Darstellung immer selbst mit, statt sie dem Aufrufer über eine className
+   aufzuerlegen). */
+.titleLogo {
+  flex-shrink: 0;
+  width: auto;
+  max-height: var(--media-logo-max-height);
+  object-fit: contain;
+}

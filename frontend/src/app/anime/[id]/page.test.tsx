@@ -2,10 +2,10 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Children, isValidElement, Suspense, type ReactElement, type ReactNode } from 'react'
 import { cookies } from 'next/headers'
-import Link from 'next/link'
 import { AnimeInfoBanner } from '@/components/anime/AnimeMediaProvider'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
+import { Button, Card, ErrorState, LinkChip, MediaFrame, SplitLayout, Text } from '@/components/ui'
 import AnimeListPage from '../page'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -20,10 +20,14 @@ vi.mock('@/lib/api', async (importOriginal) => ({
   getAnimeRelations: vi.fn(), getWatchlistEntry: vi.fn(),
 }))
 
-import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeRelations, getWatchlistEntry } from '@/lib/api'
+import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeList, getAnimeRelations, getWatchlistEntry } from '@/lib/api'
+import { buildAnimeDetailHref, buildAnimeGridQuery } from '@/lib/animeGridContext'
 import type { PublicGroupedEpisodesOptions, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
-import type { AnimeDetail } from '@/types/anime'
+import type { AnimeDetail, AnimeListItem } from '@/types/anime'
 import AnimeDetailPage, { generateMetadata } from './page'
+import { AnimeDetailHero } from './AnimeDetailHero'
+import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
+import { AnimeEpisodesSection } from './AnimeEpisodesSection'
 
 const groupedMock = vi.mocked(getGroupedEpisodes as (animeID: number, options: PublicGroupedEpisodesOptions) => Promise<PublicGroupedEpisodesResponse>)
 
@@ -100,6 +104,14 @@ describe('loading boundaries follow resource validation', () => {
 function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
   return Children.toArray(node).flatMap((child) => {
     if (!isValidElement<Record<string, unknown>>(child)) return []
+    // SplitLayout reicht firstColumn/secondColumn als benannte PROPS durch, nicht als
+    // `children` -- ohne diesen Zweig würde der Standard-Zweig (`child.props.children`) nichts
+    // innerhalb eines noch nicht materialisierten SplitLayout-Elements finden (der Anime-Kopf
+    // nistet Poster-/Info-Karte in SplitLayout statt direkt im Hero-Grid).
+    if (child.type === AnimeDetailHero || child.type === AnimeEpisodesSection || child.type === SplitLayout) {
+      const component = child.type as (props: Record<string, unknown>) => ReactNode
+      return [child, ...elements(component(child.props))]
+    }
     return [child, ...elements(child.props.children as ReactNode)]
   })
 }
@@ -108,9 +120,28 @@ function textContent(node: ReactNode): string {
     isValidElement<{ children?: ReactNode }>(child) ? textContent(child.props.children) : String(child),
   ).join('')
 }
+/** Der Episoden-Badge hängt als `bottomBadge`-PROP an `MediaFrame`, nicht als eigenes
+ *  `.props.children` -- `elements()`/`textContent()` laufen nur über materialisierte Children,
+ *  nicht über beliebig benannte Props. Diese Hilfsfunktion findet `MediaFrame` zuerst und liest
+ *  dessen `bottomBadge`-Prop gezielt aus (selbst wieder ein noch nicht gerendertes React-Element,
+ *  `textContent` kann direkt darauf angewendet werden). */
+function posterBadgeText(content: ReactNode): string | null {
+  const frame = elements(content).find((item) => item.type === MediaFrame)
+  const badge = frame?.props.bottomBadge as ReactNode | null | undefined
+  return badge ? textContent(badge) : null
+}
+
 async function loadContent(id = '22') {
   const boundary = await AnimeDetailPage(paramsFor(id))
-  return boundary.props.children.type(boundary.props.children.props) as Promise<ReactNode>
+  const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
+    Record<string, unknown>
+  >
+  // `AnimeDetailContent` liefert seit dem Server/Ansicht-Split (261102-cb2) nur noch ein einzelnes
+  // <AnimeDetailView ... />-Element statt des vollen verschachtelten JSX-Baums direkt. `elements()`
+  // läuft nur über bereits materialisierte `.props.children`, nicht über Komponentenfunktionen --
+  // deshalb wird `AnimeDetailView` hier einmal synchron aufgerufen, um denselben verschachtelten
+  // Baum wie vor dem Split für die bestehenden Struktur-Assertions bereitzustellen.
+  return (contentElement.type as (props: Record<string, unknown>) => ReactNode)(contentElement.props) as ReactNode
 }
 
 describe('anime detail integration without invented data', () => {
@@ -134,7 +165,7 @@ describe('anime detail integration without invented data', () => {
   it('removes the fabricated rating and anime view metrics while preserving the Anime 22 Emby target', async () => {
     const content = await loadContent()
     expect(textContent(content)).not.toMatch(/7\.8|Views/)
-    const embyLink = elements(content).find((item) => item.type === 'a' && textContent(item.props.children as ReactNode).includes('Emby'))
+    const embyLink = elements(content).find((item) => item.type === Button && textContent(item.props.children as ReactNode).includes('Emby'))
     expect(embyLink?.props.href).toBe('https://anime.team4s.de/web/index.html#!/item?id=2112&serverId=8bc8ae6fe2d946fcbd21cb341832072d&context=tvshows')
   })
 
@@ -151,37 +182,118 @@ describe('anime detail integration without invented data', () => {
     }] } })
     groupedMock.mockRejectedValue(new ApiError(500, 'Versionen nicht verfügbar'))
     const content = await loadContent()
-    const text = textContent(content)
-    // Der Poster-Stat "12 Episodes" (anime.max_episodes) ist unabhaengig vom D-16-Bug und bleibt unveraendert.
-    expect(text).toContain('12 Episodes')
+    // Der Episoden-Badge auf dem Poster (Badge variant="onMedia", 261102-hlg) ist unabhängig
+    // vom D-16-Bug und bleibt unverändert -- deutsche Pluralisierung "Folgen" statt "Episodes".
+    expect(posterBadgeText(content)).toBe('12 Folgen')
     // D-16: die alte Notfall-Liste (anime.episodes, ungefiltert nach Release) darf nicht mehr rendern.
     expect(elements(content).some((item) => item.type === FansubVersionBrowser)).toBe(false)
-    expect(text).toContain('Episoden konnten nicht geladen werden.')
+    // Seit 261102-hlg Task 7 rendert dieser Zweig über die offizielle ErrorState-Primitive --
+    // title/description sind PROPS, keine materialisierten Children, deshalb Props-Prüfung
+    // statt textContent() (das nur über `.props.children` läuft).
+    const errorState = elements(content).find((item) => item.type === ErrorState)
+    expect(errorState?.props.title).toBe('Episoden konnten nicht geladen werden')
+    expect(errorState?.props.description).toBe('Die Episodenliste ist derzeit nicht verfügbar. Bitte laden Sie die Seite neu.')
+    expect(errorState?.props.compact).toBe(true)
   })
 
-  it('clips only the decorative hero banner, leaving the hero controls outside its clipping boundary', () => {
-    const css = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
-    expect(css.match(/\.heroBanner\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*(hidden|clip)/)
-    expect(css.match(/\.heroContainer\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*visible/)
-    expect(css.match(/\.page\s*\{([^}]+)\}/)?.[1]).not.toMatch(/overflow/)
+  it('zeigt die Einzahl "1 Folge" statt "1 Folgen" (261102-hlg D-03)', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, max_episodes: 1 } })
+    const content = await loadContent()
+    expect(posterBadgeText(content)).toBe('1 Folge')
   })
 
-  it('reicht searchParams.fansub unveraendert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
+  it.each([0, undefined])('blendet das Episoden-Badge bei max_episodes=%s komplett aus (261102-hlg D-03)', async (maxEpisodes) => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, max_episodes: maxEpisodes } })
+    const content = await loadContent()
+    expect(posterBadgeText(content)).toBeNull()
+  })
+
+  it('clips only the decorative banner backdrop, leaving the hero controls outside its clipping boundary', () => {
+    const bannerCss = readFileSync(join(process.cwd(), 'src/components/ui/BannerSection.module.css'), 'utf8')
+    const pageCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
+    const cardCss = readFileSync(join(process.cwd(), 'src/components/ui/Card.module.css'), 'utf8')
+    expect(bannerCss.match(/\.bannerSection\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*(hidden|clip)/)
+    expect(cardCss.match(/\.cardPublicHero\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*visible/)
+    expect(pageCss.match(/\.page\s*\{([^}]+)\}/)?.[1]).not.toMatch(/overflow/)
+  })
+
+  it('nutzt den eigenständigen Detail-Breitenvertrag (1200px/120px), nicht den allgemeinen --public-page-max-width der übrigen öffentlichen Flächen', () => {
+    const pageCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
+    const wrapperRule = pageCss.match(/\.errorPage,\s*\n\.breadcrumbsWrapper,\s*\n\.heroWrapper,\s*\n\.contentArea\s*\{([^}]+)\}/)?.[1]
+    expect(wrapperRule).toMatch(/--public-page-detail-max-width/)
+    expect(wrapperRule).toMatch(/--public-page-detail-gutter/)
+    expect(wrapperRule).not.toMatch(/--public-page-max-width\b/)
+
+    const desktopHeroRule = pageCss.slice(0, pageCss.indexOf('@media')).match(/\.heroWrapper\s*\{([^}]+)\}/)?.[1]
+    expect(desktopHeroRule).toMatch(/--public-page-detail-hero-offset-top/)
+
+    const tokensCss = readFileSync(join(process.cwd(), 'src/styles/tokens/layout.css'), 'utf8')
+    expect(tokensCss).toMatch(/--public-page-detail-max-width:\s*1200px;/)
+    expect(tokensCss).toMatch(/--public-page-detail-hero-offset-top:\s*120px;/)
+  })
+
+  it('gibt den Trennlinien (<hr>) eine vollständige tokenbasierte Optik statt des UA-Standardrahmens', () => {
+    // Beide Trennlinien rendern über den Divider-Grundbaustein (@/components/ui/Divider)
+    // statt eines eigenen <hr> mit lokalem background/margin --
+    // AnimeDetailHero.tsx/.module.css deklarieren dafür selbst kein border:none/background mehr
+    // (Divider trägt seine komplette Optik selbst, siehe Divider.module.css/Divider.test.tsx).
+    const heroTsx = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.tsx'), 'utf8')
+    expect(heroTsx, 'AnimeDetailHero.tsx darf kein eigenes <hr> mehr rendern').not.toMatch(/<hr\b/)
+    expect(heroTsx).toMatch(/<Divider tone="onMedia" spacing="withinMetaBlock"/)
+    expect(heroTsx).toMatch(/<Divider tone="onMediaStrong"/)
+    expect(heroTsx).toMatch(/<Divider tone="onMedia" className=\{styles\.dividerMobile\}/)
+
+    const heroCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.module.css'), 'utf8')
+    expect(heroCss, 'AnimeDetailHero.module.css darf keine eigene Trennlinien-Farbe/Rahmen mehr setzen').not.toMatch(/background:\s*var\(--border-on-media/)
+
+    const dividerCss = readFileSync(join(process.cwd(), 'src/components/ui/Divider.module.css'), 'utf8')
+    expect(dividerCss).toMatch(/border:\s*none;/)
+    expect(dividerCss).toMatch(/background:\s*var\(--border-on-media\);/)
+    expect(dividerCss).toMatch(/background:\s*var\(--border-on-media-strong\);/)
+  })
+
+  it('hält die Randnavigations-Reihe nahe am oberen Hero-Rand statt vertikal über die ganze (ggf. sehr hohe) Hero-Karte zu zentrieren', () => {
+    // Diese Positionierung lebt nicht als lokales CSS im Anime-Kopf-Baustein (kein eigenes
+    // .edgeNavigationOverlay), sondern vollständig in Cluster float="controlBand"
+    // (Grundbaustein, siehe Cluster.module.css) -- AnimeDetailHero.tsx rendert die
+    // Randnavigation nur noch darüber.
+    const heroTsx = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.tsx'), 'utf8')
+    expect(heroTsx, 'AnimeDetailHero.tsx darf kein eigenes edgeNavigationOverlay-<div> mehr rendern').not.toMatch(/styles\.edgeNavigationOverlay/)
+    expect(heroTsx).toMatch(/<Cluster float="controlBand" justify="center" gap="contentPair">/)
+
+    const heroCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/AnimeDetailHero.module.css'), 'utf8')
+    expect(heroCss, 'AnimeDetailHero.module.css darf kein eigenes .edgeNavigationOverlay-CSS mehr enthalten').not.toMatch(/\.edgeNavigationOverlay/)
+
+    const clusterCss = readFileSync(join(process.cwd(), 'src/components/ui/Cluster.module.css'), 'utf8')
+    const desktopRule = clusterCss.match(/@media \(min-width: 768px\)[\s\S]*?\.floatControlBandRoot\s*\{([^}]+)\}/)?.[1]
+    expect(desktopRule, '.floatControlBandRoot must exist').toBeTruthy()
+    expect(desktopRule).toMatch(/top:\s*var\(--overlay-offset-control-band\);/)
+    // Eine explizite Button-Höhe statt unbegrenzter Höhe verhindert, dass AdjacentNavigations
+    // eigenes top:0 (bzw. eine künftige 50%-Formel) irgendwo mitten im Beschreibungstext landet,
+    // sobald die Info-Spalte durch lange Beschreibungen deutlich höher als die Poster-Spalte wird
+    // (UAT-Regressionsfund: Buttons lagen über dem Fließtext).
+    expect(desktopRule).toMatch(/height:\s*var\(--overlay-height-control-band\);/)
+  })
+
+  it('reicht searchParams.fansub unverändert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
     const boundary = await AnimeDetailPage({
       ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'bloody-shadow' }),
     })
-    const content = await (boundary.props.children.type(boundary.props.children.props) as Promise<ReactNode>)
+    const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
+      Record<string, unknown>
+    >
+    const content = (contentElement.type as (props: Record<string, unknown>) => ReactNode)(contentElement.props) as ReactNode
     const browser = elements(content).find((item) => item.type === FansubVersionBrowser)
     expect(browser?.props.initialActiveSlug).toBe('bloody-shadow')
   })
 
-  it('laesst initialActiveSlug undefined, wenn kein fansub-Query-Parameter vorhanden ist', async () => {
+  it('lässt initialActiveSlug undefined, wenn kein fansub-Query-Parameter vorhanden ist', async () => {
     const content = await loadContent()
     const browser = elements(content).find((item) => item.type === FansubVersionBrowser)
     expect(browser?.props.initialActiveSlug).toBeUndefined()
   })
 
-  it('D-11: reicht den ueber die Fansub-Relationen aufgeloesten Slug in die SSR-Episodenabfrage durch', async () => {
+  it('D-11: reicht den über die Fansub-Relationen aufgelösten Slug in die SSR-Episodenabfrage durch', async () => {
     vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [
       { anime_id: 22, fansub_group_id: 1, is_primary: true, created_at: '', fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } },
       { anime_id: 22, fansub_group_id: 2, is_primary: false, created_at: '', fansub_group: { id: 2, slug: 'beta-subs', name: 'Beta-Subs' } },
@@ -216,9 +328,101 @@ describe('anime detail integration without invented data', () => {
     expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, { projection: 'public', limit: 24 })
   })
 
-  it('enthaelt kein .fansubRow/.fansubChip-CSS mehr (D-13, ersatzlos entfernt)', () => {
+  it('enthält kein .fansubRow/.fansubChip-CSS mehr (D-13, ersatzlos entfernt)', () => {
     const css = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
     expect(css).not.toMatch(/\.fansubRow|\.fansubChip/)
+  })
+
+  // page.module.css wurde über das 450-Zeilen-Limit hinweg aufgeteilt -- totes CSS (0 Treffer
+  // in AnimeDetailView.tsx) wurde beim Verschieben ersatzlos entfernt, nicht nur umgezogen.
+  // Poster-/Info-Karten-CSS gehören zum alleinigen Stylesheet des Anime-Kopf-Bausteins
+  // (AnimeDetailHero.module.css) statt zu zwei Seiten-eigenen Teildateien -- dieser Test liest
+  // weiterhin ALLE an dieser Seite beteiligten Stylesheets, damit ein versehentliches
+  // Wiederaufleben in irgendeiner davon auffällt.
+  it('enthält in keinem der beteiligten Stylesheets totes CSS (.relatedRailSection/.episodeList u. a.)', () => {
+    const cssFiles = [
+      'page.module.css',
+      'AnimeDetailHero.module.css',
+      'page.episodes.module.css',
+    ].map((file) => readFileSync(join(process.cwd(), 'src/app/anime/[id]', file), 'utf8'))
+    const combinedCss = cssFiles.join('\n')
+    expect(combinedCss).not.toMatch(
+      /\.relatedRailWrapper|\.relatedRailSection|\.episodeList|\.episodeItem|\.episodeNumber|\.episodeTitle|\.episodeMeta|\.episodeActions|\.actionButton/,
+    )
+  })
+
+  it('die Info-Karte nutzt die globale öffentliche Hero-Kartenvariante statt seiteneigenem CSS', async () => {
+    const content = await loadContent()
+    const infoCard = elements(content).find((item) => item.type === Card && String(item.props.className ?? '').includes('infoCard'))
+    expect(infoCard?.props.variant).toBe('publicHeroInfo')
+  })
+
+  // page.episodes.module.css war trotz seines Namens die alleinige lokale Stil-Quelle des
+  // Episoden-Bereich-Komposits (volle Innenabstand-Polsterung der Rahmenkarte) statt reiner
+  // Seiten-Anordnung -- dieser Innenabstand kommt jetzt aus Cards wiederverwendbarem
+  // 'section'-Zweck statt aus einer lokalen Klasse in der Seiten-CSS.
+  it('der Episoden-Bereich bezieht seine Innenabstand-Polsterung aus Cards section-Zweck statt aus lokalem CSS', async () => {
+    const content = await loadContent()
+    const episodesCard = elements(content).find((item) => item.type === Card && String(item.props.className ?? '').includes('episodesSection'))
+    expect(episodesCard?.props.padding).toBe('section')
+    const episodesCss = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.episodes.module.css'), 'utf8')
+    expect(episodesCss).not.toMatch(/padding\s*:/)
+    expect(episodesCss).not.toMatch(/margin(?:-bottom)?\s*:/)
+  })
+})
+
+describe('Randnavigation serverseitig aufgelöst', () => {
+  const neighborItem = (id: number): AnimeListItem => ({ id, title: `Nachbar ${id}`, type: 'tv', status: 'done' })
+
+  it('stellt die Randnavigations-HREFs bereits im Server-Baum bereit, ohne AnimeEdgeNavigation selbst aufzurufen oder auf eine Client-Hydration zu warten', async () => {
+    vi.mocked(getAnimeList).mockResolvedValue({
+      data: [neighborItem(21), { id: 22, title: anime.title, type: 'tv', status: 'done' }, neighborItem(23)],
+      meta: { page: 1, per_page: 3, total: 3, total_pages: 1 },
+    })
+
+    const boundary = await AnimeDetailPage({
+      ...paramsFor('22'), searchParams: Promise.resolve({ grid_query: 'per_page=3' }),
+    })
+    const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
+      Record<string, unknown>
+    >
+    // Kein waitFor()/act(), kein jsdom-Render -- AnimeDetailView wird hier nur EINMAL synchron
+    // aufgerufen (dieselbe Technik wie loadContent()), die hrefs stehen bereits auf den Props des
+    // noch nicht materialisierten AnimeEdgeNavigation-Elements, bevor dessen Funktion je läuft.
+    const content = (contentElement.type as (props: Record<string, unknown>) => ReactNode)(contentElement.props) as ReactNode
+
+    const nav = elements(content).find((item) => item.type === AnimeEdgeNavigation)
+    expect(nav?.props.previous).toEqual({
+      href: buildAnimeDetailHref(21, buildAnimeGridQuery({ per_page: 3, page: 1 })),
+      label: 'Zurück',
+      ariaLabel: 'Vorheriger Anime: Nachbar 21',
+    })
+    expect(nav?.props.next).toEqual({
+      href: buildAnimeDetailHref(23, buildAnimeGridQuery({ per_page: 3, page: 1 })),
+      label: 'Weiter',
+      ariaLabel: 'Nächster Anime: Nachbar 23',
+    })
+  })
+
+  it('lässt die Randnavigations-Props auf null stehen, wenn kein Grid-Kontext vorhanden ist (kein kaputter Link)', async () => {
+    const content = await loadContent()
+    const nav = elements(content).find((item) => item.type === AnimeEdgeNavigation)
+    expect(nav).toBeUndefined()
+    expect(getAnimeList).not.toHaveBeenCalled()
+  })
+
+  it('blendet bei fehlgeschlagenem getAnimeList genau den betroffenen Button aus, statt einen kaputten Link zu zeigen (Fail-open)', async () => {
+    vi.mocked(getAnimeList).mockRejectedValue(new ApiError(500, 'Liste nicht verfügbar'))
+    const boundary = await AnimeDetailPage({
+      ...paramsFor('22'), searchParams: Promise.resolve({ grid_query: 'per_page=3' }),
+    })
+    const contentElement = (await boundary.props.children.type(boundary.props.children.props)) as ReactElement<
+      Record<string, unknown>
+    >
+    const content = (contentElement.type as (props: Record<string, unknown>) => ReactNode)(contentElement.props) as ReactNode
+    const nav = elements(content).find((item) => item.type === AnimeEdgeNavigation)
+    expect(nav?.props.previous).toBeNull()
+    expect(nav?.props.next).toBeNull()
   })
 })
 
@@ -250,8 +454,14 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Real Robot', 'Amnesia', 'Zeitreise'] } })
     const content = await loadContent()
     const all = elements(content)
-    expect(textContent(content)).toMatch(/Tags/)
-    const tagLinks = all.filter((item) => item.type === Link && String((item.props.href as string)).includes('tag='))
+    const tagsLabel = all.find((item) => item.type === Text && textContent(item.props.children as ReactNode) === 'Tags')
+    expect(tagsLabel).toBeTruthy()
+    // UAT-Entscheidung: "Tags" sitzt auf der hellen Info-Karten-Fläche (Desktop) und muss deshalb
+    // bei der dunklen Standardtonalität bleiben (kein tone="onScrim") -- helle Schrift war dort
+    // praktisch unsichtbar. Card.module.css kippt den zugrundeliegenden --text-eyebrow-color-Hook
+    // unterhalb 767px auf die helle Tonalität um (siehe Card.test.tsx), nicht diese Seite.
+    expect(tagsLabel?.props.tone).toBeUndefined()
+    const tagLinks = all.filter((item) => item.type === LinkChip && String((item.props.href as string)).includes('tag='))
     expect(tagLinks).toHaveLength(3)
     expect(tagLinks.map((item) => textContent(item.props.children as ReactNode))).toEqual(['Real Robot', 'Amnesia', 'Zeitreise'])
   })
@@ -259,7 +469,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
   it('rendert exakt einen Chip bei genau einem Tag (kein Leer-Container)', async () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Amnesia'] } })
     const content = await loadContent()
-    const tagLinks = elements(content).filter((item) => item.type === Link && String(item.props.href as string).includes('tag='))
+    const tagLinks = elements(content).filter((item) => item.type === LinkChip && String(item.props.href as string).includes('tag='))
     expect(tagLinks).toHaveLength(1)
     expect(textContent(tagLinks[0]?.props.children as ReactNode)).toBe('Amnesia')
   })
@@ -275,10 +485,10 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     expect(elements(contentUndefined).some((item) => String(item.props.className ?? '').includes('tagsSection'))).toBe(false)
   })
 
-  it('kodiert Leerzeichen und Umlaute im Tag-Link ueber URLSearchParams korrekt und rundreist zum Originalnamen (D-09)', async () => {
+  it('kodiert Leerzeichen und Umlaute im Tag-Link über URLSearchParams korrekt und rundreist zum Originalnamen (D-09)', async () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Real Robot', 'PSI-Kräfte'] } })
     const content = await loadContent()
-    const tagLinks = elements(content).filter((item) => item.type === Link && String(item.props.href as string).includes('tag='))
+    const tagLinks = elements(content).filter((item) => item.type === LinkChip && String(item.props.href as string).includes('tag='))
     const realRobot = tagLinks.find((item) => textContent(item.props.children as ReactNode) === 'Real Robot')
     const psiKraefte = tagLinks.find((item) => textContent(item.props.children as ReactNode) === 'PSI-Kräfte')
     expect(paramsFromHref(realRobot?.props.href as string).get('tag')).toBe('Real Robot')
@@ -286,11 +496,11 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     expect(paramsFromHref(psiKraefte?.props.href as string).get('tag')).toBe('PSI-Kräfte')
   })
 
-  it('jeder Tag-Chip ist ein echter Link mit dem Namen als einzigem sichtbarem/zugaenglichem Text (Tastatur-erreichbar per Anker-Semantik)', async () => {
+  it('jeder Tag-Chip ist ein echter Link mit dem Namen als einzigem sichtbarem/zugänglichem Text (Tastatur-erreichbar per Anker-Semantik)', async () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Amnesia'] } })
     const content = await loadContent()
-    const tagLink = elements(content).find((item) => item.type === Link && String(item.props.href as string).includes('tag='))
-    expect(tagLink?.type).toBe(Link)
+    const tagLink = elements(content).find((item) => item.type === LinkChip && String(item.props.href as string).includes('tag='))
+    expect(tagLink?.type).toBe(LinkChip)
     expect(tagLink?.props).not.toHaveProperty('tabIndex')
     expect(tagLink?.props).not.toHaveProperty('onClick')
     expect(textContent(tagLink?.props.children as ReactNode)).toBe('Amnesia')
@@ -319,7 +529,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, genres: ['Action', 'Mecha'] } })
     const content = await loadContent()
     const all = elements(content)
-    const genreLinks = all.filter((item) => item.type === Link && String(item.props.href as string).includes('genre='))
+    const genreLinks = all.filter((item) => item.type === LinkChip && String(item.props.href as string).includes('genre='))
     expect(genreLinks).toHaveLength(2)
     expect(genreLinks.map((item) => textContent(item.props.children as ReactNode)).sort()).toEqual(['Action', 'Mecha'])
     for (const link of genreLinks) {
@@ -328,7 +538,7 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
 
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, genres: [] } })
     const contentNoGenres = await loadContent()
-    const placeholder = elements(contentNoGenres).find((item) => item.type === 'span' && textContent(item.props.children as ReactNode) === 'Anime')
+    const placeholder = elements(contentNoGenres).find((item) => item.type === Text && textContent(item.props.children as ReactNode) === 'Anime')
     expect(placeholder).toBeDefined()
     expect(placeholder?.props).not.toHaveProperty('href')
   })

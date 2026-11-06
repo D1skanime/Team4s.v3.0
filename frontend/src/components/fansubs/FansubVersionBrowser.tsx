@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
+import { Heading } from '@/components/ui/Heading'
 import { LoadingState } from '@/components/ui/LoadingState'
+import { Stack, type StackGapPurpose } from '@/components/ui/Stack'
 import { classNames } from '@/components/ui/classNames'
 
 import { PublicGroupedEpisode, PublicEpisodeVersion, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
@@ -14,6 +16,9 @@ import { resolveEpisodeTitle } from './episodePreviewFormat'
 import { FansubGroupContext } from './FansubGroupContext'
 import { FansubGroupPicker } from './FansubGroupPicker'
 import { ReleasePreviewRow } from './ReleasePreviewRow'
+import {
+  resolveActiveFansubGroupID, resolveGroupSlugForFetch, toggleEpisodeExpansion, useFansubGroupSwitch,
+} from './useFansubGroupSwitch'
 import { useWindowedEpisodePages, type WindowedPage } from './useWindowedEpisodePages'
 import { AnimeFansubRelation, FansubGroupSummary } from '@/types/fansub'
 
@@ -21,7 +26,7 @@ import styles from './FansubVersionBrowser.module.css'
 
 type Pagination = PublicGroupedEpisodesResponse['data']['pagination']
 
-// D-44: ein einzelner, ueberschriebener sessionStorage-Eintrag pro exaktem pathname+search --
+// D-44: ein einzelner, überschriebener sessionStorage-Eintrag pro exaktem pathname+search --
 // kein Verlauf, keine unbegrenzte Persistenz, kein Reset des Windowing-Zustands (T-164-10).
 const SCROLL_HINT_STORAGE_PREFIX = 'team4s:episodeScroll:'
 
@@ -93,11 +98,11 @@ function computeBoundaryMergedRenderPlan(pages: WindowedPage[]): {
   return { merged, firstPageIdByEpisodeId }
 }
 
-/** Misst die gerenderte Hoehe einer Page fortlaufend (ResizeObserver), damit ein evtl. spaeter
- * ausgelagerter Spacer die zuletzt bekannte, echte Hoehe uebernimmt (D-34) statt 0px. Rendert
- * absichtlich kein zusaetzliches <li>/<ul> -- die enthaltenen EpisodeGlassCard-<li>-Elemente
- * bleiben direkte Nachfahren im Accessibility-Baum (li -> listitem ist kontextunabhaengig),
- * nur ein <div> uebernimmt die Messfunktion. */
+/** Misst die gerenderte Höhe einer Page fortlaufend (ResizeObserver), damit ein evtl. später
+ * ausgelagerter Spacer die zuletzt bekannte, echte Höhe übernimmt (D-34) statt 0px. Rendert
+ * absichtlich kein zusätzliches <li>/<ul> -- die enthaltenen EpisodeGlassCard-<li>-Elemente
+ * bleiben direkte Nachfahren im Accessibility-Baum (li -> listitem ist kontextunabhängig),
+ * nur ein <div> übernimmt die Messfunktion. */
 function WindowedPageGroup({
   pageId, reportPageHeight, children,
 }: {
@@ -133,35 +138,35 @@ function FansubVersionBrowserContent({
 }: FansubVersionBrowserProps) {
   const fansubOptions = useMemo(() => collectFansubOptions(fansubs), [fansubs])
   const showAllChip = fansubOptions.length >= 2
-  // D-02: bei genau einer Gruppe wird der URL-Parameter ignoriert -- die Gruppe ist immer aktiv.
-  const [selectedSlug, setSelectedSlug] = useState<string | null>(
-    fansubOptions.length === 1 ? null : (initialActiveSlug ?? null),
-  )
-  const activeFansubGroupID = fansubOptions.length === 0
-    ? null
-    : fansubOptions.length === 1
-      ? fansubOptions[0].fansub_group!.id
-      : fansubOptions.find((relation) => relation.fansub_group?.slug === selectedSlug)?.fansub_group?.id ?? null
   const [expandedEpisodes, setExpandedEpisodes] = useState<Record<number, true>>({})
-  const activeGroup = activeFansubGroupID !== null
-    ? fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group ?? null
-    : null
 
-  // D-08/D-10: ein Gruppenwechsel hat einen eigenen Lade-/Fehlerzustand (volle Listendimmung),
-  // getrennt vom kompakten vorwaerts/rueckwaerts-Ladezustand des Infinite Scroll.
-  const [switchState, setSwitchState] = useState<{ loading: boolean; error: string | null }>({
-    loading: false, error: null,
-  })
+  // D-02: bei genau einer Gruppe wird der URL-Parameter ignoriert -- die Gruppe ist immer aktiv.
+  // Dieser Seed-Wert speist NUR den initialen Fetch-Filter von useWindowedEpisodePages (deren
+  // interner Ref nur beim allerersten Mount gelesen wird) -- der laufend aktuelle
+  // Gruppenzustand lebt danach ausschließlich in useFansubGroupSwitch weiter unten.
+  const initialSelectedSlug = fansubOptions.length === 1 ? null : (initialActiveSlug ?? null)
+  const initialActiveFansubGroupID = resolveActiveFansubGroupID(fansubOptions, initialSelectedSlug)
+  const initialActiveSlugForWindowing = initialActiveFansubGroupID !== null
+    ? fansubOptions.find((relation) => relation.fansub_group?.id === initialActiveFansubGroupID)?.fansub_group?.slug ?? null
+    : null
 
   const windowing = useWindowedEpisodePages({
     animeID,
     initialEpisodes: episodes,
     initialPagination: pagination,
-    activeFansubSlug: activeGroup?.slug ?? null,
+    activeFansubSlug: initialActiveSlugForWindowing,
     initialEpisodeCount: episodeCount,
   })
 
-  // D-34: eine Rueckwaerts-Wiederherstellung liefert ein Delta -- vor dem naechsten Paint per
+  const {
+    selectedSlug, setSelectedSlug, switchState, activeFansubGroupID, updateFansubSelection, switchTo,
+  } = useFansubGroupSwitch({ fansubOptions, initialActiveSlug, resetForFilter: windowing.resetForFilter })
+
+  const activeGroup = activeFansubGroupID !== null
+    ? fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group ?? null
+    : null
+
+  // D-34: eine Rückwärts-Wiederherstellung liefert ein Delta -- vor dem nächsten Paint per
   // scrollBy ausgleichen, damit der sichtbare Inhalt nicht sichtbar springt.
   useLayoutEffect(() => {
     if (!windowing.scrollAnchorAdjustment || windowing.scrollAnchorAdjustment.px === 0) return
@@ -171,12 +176,12 @@ function FansubVersionBrowserContent({
 
   const hasAnyEpisodes = windowing.pages.some((page) => page.episodes.length > 0)
 
-  // D-44: auf einer echten Browser-Zurueck/Vor-Navigation (Navigation Timing API, kein neues
-  // Paket) zur selben URL eine zuvor gespeicherte, ungefaehre Scrollposition wiederherstellen --
+  // D-44: auf einer echten Browser-Zurück/Vor-Navigation (Navigation Timing API, kein neues
+  // Paket) zur selben URL eine zuvor gespeicherte, ungefähre Scrollposition wiederherstellen --
   // NICHT das mehrseitige DOM-Fenster (das bleibt bewusst bei Page 1 der frischen Navigation,
   // 164-05). Auf einem normalen Erstaufruf wird kein Hinweis gelesen oder angewendet. Der
-  // Schreibpfad ist zeitstempel-gedrosselt (kein Schreiben pro Scroll-Pixel) und ueberschreibt
-  // stets denselben Schluessel -- kein wachsender Verlauf.
+  // Schreibpfad ist zeitstempel-gedrosselt (kein Schreiben pro Scroll-Pixel) und überschreibt
+  // stets denselben Schlüssel -- kein wachsender Verlauf.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const scrollKey = SCROLL_HINT_STORAGE_PREFIX + window.location.pathname + window.location.search
@@ -200,77 +205,31 @@ function FansubVersionBrowserContent({
     return () => window.removeEventListener('scroll', handleScroll)
   }, [hasAnyEpisodes])
 
-  // D-01/D-03: die URL ist die einzige Quelle des Gruppenkontexts. Browser Zurueck/Vor
-  // liest den Parameter erneut und loest -- anders als bei 162 -- immer neu (D-09).
+  // D-01/D-03: die URL ist die einzige Quelle des Gruppenkontexts. Browser Zurück/Vor
+  // liest den Parameter erneut und löst -- anders als bei 162 -- immer neu (D-09).
   useEffect(() => {
     function handlePopState() {
       const params = new URLSearchParams(window.location.search)
       const rawSlug = params.get('fansub')
       setSelectedSlug(rawSlug)
-      void switchTo(resolveGroupSlugForFetch(rawSlug))
+      void switchTo(resolveGroupSlugForFetch(fansubOptions, rawSlug))
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function resolveGroupSlugForFetch(rawSlug: string | null): string | null {
-    if (fansubOptions.length < 2 || !rawSlug) return null
-    const match = fansubOptions.find((relation) => relation.fansub_group?.slug === rawSlug)
-    return match ? rawSlug : null
-  }
-
-  async function switchTo(targetSlug: string | null) {
-    // D-09: der Wechsel bricht IMMER eine laufende Anfrage ab (vorwaerts, rueckwaerts oder ein
-    // vorheriger Wechsel) -- windowing.resetForFilter teilt sich den einzigen requestRef der
-    // Hook-Instanz, nur die letzte Auswahl darf Daten setzen.
-    setSwitchState({ loading: true, error: null })
-    const outcome = await windowing.resetForFilter(targetSlug)
-    if (outcome.ok) {
-      setSwitchState({ loading: false, error: null })
-    } else if (!outcome.aborted) {
-      setSwitchState({ loading: false, error: 'Episoden konnten nicht geladen werden.' })
-    }
-    // outcome.aborted: eine neuere switchTo-Anfrage laeuft bereits oder hat bereits committet --
-    // diese veraltete Antwort darf switchState nicht mehr anfassen.
-  }
-
-  function updateFansubSelection(groupID: number | null) {
-    // Bei genau einer Gruppe gibt es keinen Klickpfad (kein "Alle"-Chip, kein Wechsel-Chip).
-    if (fansubOptions.length < 2) return
-    const slug = groupID === null
-      ? null
-      : fansubOptions.find((relation) => relation.fansub_group?.id === groupID)?.fansub_group?.slug ?? null
-    const params = new URLSearchParams(window.location.search)
-    if (slug) params.set('fansub', slug)
-    else params.delete('fansub')
-    const query = params.toString()
-    // D-03: window.history.pushState statt der next/navigation-Router-Helfer -- diese Route
-    // ist bereits dynamisch (liest searchParams.grid_query/from) und wuerde damit einen
-    // RSC-Refetch der Seite ausloesen.
-    window.history.pushState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`)
-    setSelectedSlug(slug)
-    void switchTo(slug)
-  }
-
   function toggleEpisode(episodeNumber: number) {
-    setExpandedEpisodes((current) => {
-      if (current[episodeNumber]) {
-        const next = { ...current }
-        delete next[episodeNumber]
-        return next
-      }
-      return { ...current, [episodeNumber]: true }
-    })
+    setExpandedEpisodes((current) => toggleEpisodeExpansion(current, episodeNumber))
   }
 
   function renderEpisode(episode: PublicGroupedEpisode) {
     const expanded = Boolean(expandedEpisodes[episode.episode_id])
     const summaryVersion = getSummaryVersion(episode, activeFansubGroupID)
-    // Defensive Client-Filterung fuer den Fall, dass die Versionsliste (noch) nicht
-    // serverseitig auf die aktive Gruppe eingeschraenkt ist (z. B. initialActiveSlug
+    // Defensive Client-Filterung für den Fall, dass die Versionsliste (noch) nicht
+    // serverseitig auf die aktive Gruppe eingeschränkt ist (z. B. initialActiveSlug
     // vor dem ersten Wechsel/Refetch). Coop-Versionen (mehrere fansub_groups) matchen
-    // fuer jede beteiligte Gruppe -- kein dritter Chip, kein Ausschluss (D-07/Testfall I).
+    // für jede beteiligte Gruppe -- kein dritter Chip, kein Ausschluss (D-07/Testfall I).
     const groupMatchedVersions = activeFansubGroupID !== null
       ? episode.versions.filter((item) => item.fansub_groups?.some((g) => g.id === activeFansubGroupID))
       : episode.versions
@@ -293,39 +252,82 @@ function FansubVersionBrowserContent({
     )
   }
 
-  return (
-    <section className={styles.section}>
-      {/* D-12: die Trefferzahl kommt aus dem Client-Zustand, aktualisiert sich bei jedem Wechsel. */}
-      <h2>Episoden ({windowing.episodeCount})</h2>
+  // Die drei Geschwister-Blöcke dieses Bausteins
+  // (Überschrift, optionale Gruppen-Auswahl/-Kontext, Episoden-Inhalt) haben JE NACH realer
+  // Render-Verzweigung unterschiedlich viele tatsächlich sichtbare Kinder (0, 1 oder 2
+  // zusätzliche Blöcke zwischen Überschrift und Inhalt) -- ein Rhythmus-Array-Stack kann nur
+  // EXAKT so viele Lücken-Werte tragen, wie tatsächlich Kinder vorhanden sind. Die drei vormals
+  // über drei verschiedene Dateien verstreuten lokalen margin-Deklarationen (`.section`s
+  // margin-top hier, `.wrapper`s margin-bottom in FansubGroupPicker, `.card`s margin-bottom in
+  // FansubGroupContext) werden deshalb GEMEINSAM durch genau diese eine Lücken-Liste ersetzt,
+  // statt durch drei eigenständige, unkoordinierte Werte.
+  const contentColumnChildren: ReactNode[] = [
+    <Heading key="heading" level={2} tone="onScrim">Episoden ({windowing.episodeCount})</Heading>,
+  ]
+  const contentColumnGaps: StackGapPurpose[] = []
 
-      {fansubOptions.length > 0 ? (
-        <>
-          <FansubGroupPicker
-            options={fansubOptions.map((relation) => relation.fansub_group!)}
-            activeGroupId={activeFansubGroupID}
-            showAllChip={showAllChip}
-            onSelect={updateFansubSelection}
-          />
-          <FansubGroupContext activeGroup={activeGroup} animeSlug={animeSlug} />
-        </>
-      ) : null}
+  if (fansubOptions.length > 0) {
+    // Überschrift hat margin:0 -- zwischen ihr und der Gruppen-Auswahl war nie ein Abstand
+    // vorgesehen (gemessen: 0px), deshalb 'none' statt eines erfundenen Werts.
+    contentColumnGaps.push('none')
+    contentColumnChildren.push(
+      <FansubGroupPicker
+        key="picker"
+        options={fansubOptions.map((relation) => relation.fansub_group!)}
+        activeGroupId={activeFansubGroupID}
+        showAllChip={showAllChip}
+        onSelect={updateFansubSelection}
+      />,
+    )
 
+    if (activeGroup) {
+      // Gruppen-Auswahl -> Gruppen-Kontext: deckt sich wert- und zweckgleich mit dem bereits
+      // bestehenden 'primaryContentBlocks' (24px, vormals FansubGroupPickers eigenes
+      // .wrapper-margin-bottom).
+      contentColumnGaps.push('primaryContentBlocks')
+      contentColumnChildren.push(<FansubGroupContext key="context" activeGroup={activeGroup} animeSlug={animeSlug} />)
+      // Gruppen-Kontext -> Episoden-Inhalt: 'supportingBlockToContent' (16px,
+      // vormals FansubGroupContexts eigenes .card-margin-bottom).
+      contentColumnGaps.push('supportingBlockToContent')
+    } else {
+      // Keine aktive Gruppe (z. B. "Alle" ausgewählt) -- die Gruppen-Auswahl ist dann das letzte
+      // unterstützende Element vor dem Inhalt, behält aber denselben 24px-Abstand wie zu einem
+      // Gruppen-Kontext (gemessen: identischer Wert in beiden Fällen, da er von der Gruppen-
+      // Auswahl selbst ausgeht, nicht vom jeweils folgenden Element).
+      contentColumnGaps.push('primaryContentBlocks')
+    }
+  } else {
+    // Keine Fansub-Gruppen vorhanden -- Überschrift und Inhalt sind direkte Nachbarn, ebenfalls
+    // ohne zusätzlichen Abstand (dieselbe 0px-Überschriften-Regel wie oben).
+    contentColumnGaps.push('none')
+  }
+
+  contentColumnChildren.push(
+    // D-31/D-35/Episoden-Inhalt als EIN stabiler Stack-Kindknoten (Fragmente sind für Stacks
+    // Lücken-Mechanik kein gültiges Einzelkind): Fehlerzustand, oberer Sentinel, Rückwärts-
+    // Lade-/Fehlerzustände, Leer-/Listenzustand, unterer Sentinel, Vorwärts-Lade-/Fehlerzustände
+    // und Ende-Markierung bleiben untereinander exakt in ihrer bisherigen, abstandslosen Reihenfolge
+    // -- diese Gruppierung ändert nur die STRUKTUR (ein gemeinsamer Wrapper), nicht den Abstand.
+    <div key="content">
       {switchState.error ? (
         <ErrorState
           title="Episoden konnten nicht geladen werden."
           description={switchState.error}
           action={
-            <Button variant="secondary" onClick={() => void switchTo(resolveGroupSlugForFetch(selectedSlug))}>
+            <Button variant="secondary" onClick={() => void switchTo(resolveGroupSlugForFetch(fansubOptions, selectedSlug))}>
               Erneut versuchen
             </Button>
           }
         />
       ) : null}
 
-      {/* D-31/D-35: der obere Sentinel und die rueckwaerts-Lade-/Fehlerzustaende sind unabhaengig
-          davon sichtbar, ob die aktuelle Page (noch) Episoden enthaelt -- analog zum vormaligen
-          "Weitere laden"-Button, der ebenfalls ausserhalb der Leer-/Listen-Verzweigung stand. */}
-      <div ref={windowing.topSentinelRef} aria-hidden="true" data-testid="top-sentinel" className={styles.sentinel} />
+      {/* D-31/D-35: der obere Sentinel und die rückwärts-Lade-/Fehlerzustände sind unabhängig
+          davon sichtbar, ob die aktuelle Page (noch) Episoden enthält -- analog zum vormaligen
+          "Weitere laden"-Button, der ebenfalls außerhalb der Leer-/Listen-Verzweigung stand.
+          Die 1px-Sentinel-Höhe ist eine technische IntersectionObserver-Ankerfläche, kein
+          Layout-/Abstands-Wert -- deshalb Inline-Stil statt einer CSS-Modul-Klasse (dieselbe
+          Konvention wie der Windowing-Platzhalter weiter unten, `style={{ height: heightPx }}`). */}
+      <div ref={windowing.topSentinelRef} aria-hidden="true" data-testid="top-sentinel" style={{ height: '1px' }} />
       {windowing.backwardLoading ? <LoadingState compact title="Frühere Episoden werden geladen …" /> : null}
       {windowing.backwardError ? (
         <ErrorState
@@ -346,7 +348,9 @@ function FansubVersionBrowserContent({
           <EmptyState variant="compact" title="Keine Episoden-Versionen vorhanden" />
         )
       ) : (
-        <ul
+        <Stack
+          as="ul"
+          gap="independentBlocks"
           aria-busy={switchState.loading}
           className={classNames(styles.episodeList, switchState.loading && styles.episodeListDimmed)}
         >
@@ -371,10 +375,10 @@ function FansubVersionBrowserContent({
               return <div key={pageId} aria-hidden="true" style={{ height: heightPx }} />
             })
           })()}
-        </ul>
+        </Stack>
       )}
 
-      <div ref={windowing.bottomSentinelRef} aria-hidden="true" data-testid="bottom-sentinel" className={styles.sentinel} />
+      <div ref={windowing.bottomSentinelRef} aria-hidden="true" data-testid="bottom-sentinel" style={{ height: '1px' }} />
       {windowing.forwardLoading ? <LoadingState compact title="Weitere Episoden werden geladen …" /> : null}
       {windowing.forwardError ? (
         <ErrorState
@@ -384,6 +388,22 @@ function FansubVersionBrowserContent({
         />
       ) : null}
       {windowing.showEndMarker ? <EmptyState variant="inline" title="Das waren alle Episoden." /> : null}
-    </section>
+    </div>,
+  )
+
+  return (
+    // D-12: die Trefferzahl kommt aus dem Client-Zustand, aktualisiert sich bei jedem Wechsel.
+    // tone="onScrim" (an der Überschrift) macht die Lesbarkeit auf der dunklen .episodesSection-
+    // Fläche explizit (statt sich auf die seiteneigene `.episodesSection h2`-Regel zu verlassen,
+    // die zufällig dieselbe helle Farbe über das rendernde <h2>-Element erzwingt) -- Heading
+    // rendert für `level={2}` ein echtes <h2>, die bestehende Selektor-/Größen-/Abstand-Regel in
+    // page.episodes.module.css bleibt deshalb unverändert gültig. Der vormalige
+    // Card-Rand-zu-Überschrift-Abstand (16px roh, `.section`s margin-top) wurde NICHT ersatzlos
+    // gestrichen, sondern in Cards eigene 'section'-Polsterungsstufe verschoben (siehe
+    // layout.css-Kommentar bei --card-padding-section) -- dieser Abstand liegt VOR der
+    // Überschrift, eine Stack-Lücke kann aber nur ZWISCHEN Kindern wirken, nie davor.
+    <Stack as="section" gap={contentColumnGaps}>
+      {contentColumnChildren}
+    </Stack>
   )
 }

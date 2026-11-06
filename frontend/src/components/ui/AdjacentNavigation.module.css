@@ -9,12 +9,40 @@
   justify-content: space-between;
 }
 
+/* Füllt die volle Höhe ihres positionierten Vorfahren (top:0 .. bottom:0) -- dieser Vorfahre ist
+   bewusst auf Button-Höhe begrenzt (siehe Aufrufer, z. B. .edgeNavigationOverlay in
+   page.infoCard.module.css), NICHT auf die volle Höhe eines ggf. viel größeren Elements wie einer
+   Hero-Karte: eine 50%-Zentrierung über eine unbegrenzte Höhe würde den Button irgendwo in der
+   Mitte des Inhalts statt am Kartenrand platzieren. Spannt die volle Breite (inset:0 0) statt
+   eines horizontalen Innenabstands auf -- die Randständigkeit unten übernimmt stattdessen
+   per translateX. */
 .adjacentNavFloating {
   position: absolute;
-  inset: 50% var(--adjacent-nav-floating-inset-x) auto;
+  inset: 0 0 auto;
   justify-content: space-between;
   pointer-events: none;
-  transform: translateY(-50%);
+}
+
+/* Randständig statt eingerückt: Previous/Next sitzen je zur Hälfte innen/außen auf dem linken/
+   rechten Rand ihres positionierten Vorfahren (reproduziert die bisherige, main-Optik).
+   translateX verschiebt jedes Element um die HALBE EIGENE Breite nach außen -- dadurch landet die
+   Button-MITTE exakt auf der Kante, nicht der Button-Rand. Höhere Spezifität als die generische
+   .adjacentNavItem:hover-Regel (zwei Klassen statt einer), gewinnt deshalb unabhängig von der
+   Deklarationsreihenfolge zuverlässig gegen deren eigenes translateY. */
+.adjacentNavFloating .adjacentNavPrevious {
+  transform: translateX(-50%);
+}
+
+.adjacentNavFloating .adjacentNavNext {
+  transform: translateX(50%);
+}
+
+.adjacentNavFloating .adjacentNavPrevious:hover {
+  transform: translateX(-50%) translateY(-1px);
+}
+
+.adjacentNavFloating .adjacentNavNext:hover {
+  transform: translateX(50%) translateY(-1px);
 }
 
 .adjacentNavItem {
@@ -82,6 +110,19 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: var(--adjacent-nav-floating-mobile-padding);
     transform: none;
+  }
+
+  /* Die Randständigkeit ist ein reines Desktop-Merkmal des absolut positionierten
+     Overlay-Kontexts -- unterhalb 767px fließen Previous/Next normal in einem Zweispalten-Grid
+     am unteren Kartenrand (main-Optik), ohne Verschiebung auf die Kartenkante. */
+  .adjacentNavFloating .adjacentNavPrevious,
+  .adjacentNavFloating .adjacentNavNext {
+    transform: none;
+  }
+
+  .adjacentNavFloating .adjacentNavPrevious:hover,
+  .adjacentNavFloating .adjacentNavNext:hover {
+    transform: translateY(-1px);
   }
 
   .adjacentNavInline {

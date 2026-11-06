@@ -1,0 +1,24 @@
+/* Basisregel liefert Standard-Ton (dezent, --border-on-media) und Standard-Abstand
+   (großzügig, --space-5) -- die beiden Modifikator-Klassen unten überschreiben jeweils NUR die
+   eine Eigenschaft, die ihr Name verspricht, sodass Ton und Abstand unabhängig voneinander
+   kombinierbar bleiben (4 Kombinationen, siehe Divider.stories.tsx). Damit lassen sich beide
+   heutigen <hr>-Ausprägungen aus AnimeDetailHero.module.css (dezent+knapp bzw. kräftig+
+   großzügig) allein über Props reproduzieren, sobald eine spätere Welle diese Datei umstellt. */
+.divider {
+  height: var(--border-width-thin);
+  margin: var(--space-5) 0;
+  border: none;
+  background: var(--border-on-media);
+}
+
+.dividerOnMediaStrong {
+  background: var(--border-on-media-strong);
+}
+
+.dividerWithinMetaBlock {
+  margin: var(--space-1) 0;
+}
+
+.dividerNoSpacing {
+  margin: 0;
+}

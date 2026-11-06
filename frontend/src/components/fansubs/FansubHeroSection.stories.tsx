@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { storybookDocsLink } from '@/lib/storybookLinks'
+
 import { FansubHeroSection } from './FansubHeroSection'
 import type { FansubGroup } from '@/types/fansub'
 
@@ -9,6 +11,10 @@ import type { FansubGroup } from '@/types/fansub'
  * "Aufgelöst mit Banner" macht den UAT-Kontrastfix für den Status-Badge (variant="muted") auf
  * dem dunklen Banner-Scrim sichtbar prüfbar -- vorher gab es keinen Storybook-Zustand, der
  * eine aufgelöste Gruppe MIT Bannerfoto zeigt.
+ *
+ * Katalogisiert unter "Zusammengesetzte Bausteine", nicht "Im Einsatz": die Komponente zeigt
+ * nur eine einzelne Kopfzeilen-Sektion, keine vollständige Seite oder einen vollständigen
+ * Ablauf (Regel "Im Einsatz = nur komplette Seiten und Abläufe").
  */
 const activeGroup: FansubGroup = {
   id: 201,
@@ -63,14 +69,20 @@ const sampleStats = [
 ]
 
 const meta = {
-  title: 'Im Einsatz/Fansub-Kopfzeile',
+  title: 'Zusammengesetzte Bausteine/Fansub-Kopfzeile',
   component: FansubHeroSection,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Echte, produktive Public-Komponente (Mockdaten). Rendert Logo, Titel, Status-Badge und Kennzahlen einer Fansub-Gruppe, optional vor einem Bannerfoto mit dunklem Scrim.',
+          `Besteht aus: ${storybookDocsLink('Grundbausteine/Badge', 'Badge')} für den Status, ` +
+          `${storybookDocsLink('Grundbausteine/ResponsiveImage', 'ResponsiveImage')} für Logo/Banner, ` +
+          `${storybookDocsLink('Zusammengesetzte Bausteine/MetricList', 'MetricList')} für die Kennzahlen, ` +
+          'plus dem domänenspezifischen Bannerhintergrund PublicHeaderBackdrop (kein eigener ' +
+          'components/ui-Baustein). Echte, produktive Public-Komponente (Mockdaten). Rendert Logo, ' +
+          'Titel, Status-Badge und Kennzahlen einer Fansub-Gruppe, optional vor einem Bannerfoto ' +
+          'mit dunklem Scrim.',
       },
     },
   },

@@ -10,13 +10,21 @@
   border-radius: var(--radius-surface);
   background-color: var(--card-bg);
   background-image: var(--card-bg-gradient);
-  padding: var(--card-padding);
+  /* --card-padding-override ist derselbe generische Override-Hook wie --card-radius-override
+     weiter unten -- ein Aufrufer, der über Cards padding-Prop eine abweichende Polsterung
+     anfordert, bekommt sie HIER ohne dass diese Variante ihren eigenen Standardwert verliert. */
+  padding: var(--card-padding-override, var(--card-padding));
+  /* --card-width-override ist derselbe generische Override-Hook-Mechanismus wie
+     --card-padding-override -- ohne Angabe (widthPurpose-Prop, Card.tsx) bleibt der Standardwert
+     `auto` erhalten, identisch zum bisherigen, impliziten Block-Standardverhalten ohne jede
+     eigene width-Deklaration (Zero-Pixel-Diff für jeden bestehenden Aufrufer). */
+  width: var(--card-width-override, auto);
   box-shadow: var(--card-shadow);
 }
 
 .cardCompact {
   gap: var(--space-3);
-  padding: var(--space-4);
+  padding: var(--card-padding-override, var(--space-4));
   border-radius: var(--radius-surface);
 }
 
@@ -50,7 +58,7 @@
 
 .cardNested {
   gap: var(--space-3);
-  padding: var(--space-1) 0 0;
+  padding: var(--card-padding-override, var(--space-1) 0 0);
   border-color: transparent;
   background: transparent;
   box-shadow: none;
@@ -58,13 +66,175 @@
 
 .cardNestedFlat {
   gap: var(--space-3);
-  padding: var(--card-nested-flat-padding);
+  padding: var(--card-padding-override, var(--card-nested-flat-padding));
   /* Teilt denselben Radius-Token wie Modal/Drawer (var(--radius-surface)) statt eines zufällig
      identischen Pixelwerts -- so bleibt die Eckenrundung repo-weit an EINER Stelle pflegbar. */
   border-radius: var(--radius-surface);
   border: 1px solid var(--card-nested-flat-border-color);
   background: var(--card-nested-flat-bg);
   box-shadow: none;
+}
+
+/* Randloser Modus (seamless-Prop, Card.tsx): zeroed Rahmenbreite, Eckenrundung UND Hintergrund
+   JEDER Variante, auf der diese Klasse zusätzlich landet -- für eine Card-Instanz, die
+   flächenlos/bündig INNERHALB einer bereits eigenständig gerahmten äußeren Fläche sitzen soll
+   (z. B. eine verschachtelte Versionsliste innerhalb einer glasigen Episodenkarte, die sonst über
+   .cardFlats eigenen 1px-Rahmen samt Eckenrundung und heller Admin-Verlaufsfläche sichtbare
+   Mehr-Fläche gegenüber der umschließenden Karte hinzufügen würde). Deklariert bewusst NACH
+   .cardFlat/.cardNested/.cardNestedFlat (gleiche Selektor-Spezifität, Deklarationsreihenfolge
+   entscheidet den Gewinner), damit diese Klasse deren Rahmen-/Hintergrund-Werte zuverlässig
+   überschreibt, unabhängig davon, welche Variante die Karte sonst trägt. */
+.cardSeamless {
+  border-width: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Öffentliche Glas-Fläche (zweite offizielle Erscheinung, keine Admin-Karte, siehe Card.tsx) --
+   reproduziert den bisherigen EpisodeGlassCard-Look (6% Deckkraft, 12px Radius). Padding wird
+   bewusst auf 0 zurückgesetzt: Aufrufer wie EpisodeGlassCard bringen ihre eigene interne
+   Abstands-/Flex-Struktur mit (Kopfzeile + aufklappbare Liste), eine zusätzliche Card-Polsterung
+   würde das bestehende Layout doppelt polstern. */
+.cardGlass {
+  padding: var(--card-padding-override, 0);
+  overflow: hidden;
+  border-color: var(--card-glass-border);
+  border-top-color: var(--card-glass-border);
+  /* --card-radius-override ist ein bewusster, generischer Override-Hook (wie --card-tint-hue):
+     ein Aufrufer, dessen Glas-Fläche in ein größeres, bereits eigenständig gerundetes Layout
+     eingebettet ist, darf NUR diese eine CSS-Variable setzen (eigene Datei, eigene Klasse) statt
+     Cards private Radius-Tokens zu überschreiben. (Die öffentliche Anime-Info-Karte nutzt seit
+     ihrer eigenen Verlaufs-Variante .cardPublicHeroInfo unten keine .cardGlass-Komposition mehr.) */
+  border-radius: var(--card-radius-override, var(--card-glass-radius));
+  background-color: var(--card-glass-surface);
+  background-image: none;
+  color: var(--card-glass-text);
+  box-shadow: none;
+  backdrop-filter: blur(var(--card-glass-blur)) saturate(var(--card-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--card-glass-blur)) saturate(var(--card-glass-saturate));
+}
+
+/* Zweite, kräftigere Deckkraft-Stufe (reproduziert den bisherigen ReleasePreviewRow-Look, 10%
+   Deckkraft, 6px Radius) -- bewusst OHNE overflow:hidden (anders als .cardGlass): Aufrufer wie
+   ReleasePreviewRow haben einen fokussierbaren Button nahe am Kartenrand, dessen Fokusring sonst
+   am Kartenrand abgeschnitten würde (im Bestand ebenfalls nicht geclippt). */
+.cardGlassStrong {
+  padding: var(--card-padding-override, 0);
+  border-color: var(--card-glass-border-strong);
+  border-top-color: var(--card-glass-border-strong);
+  border-radius: var(--card-radius-override, var(--card-glass-radius-strong));
+  background-color: var(--card-glass-surface-strong);
+  background-image: none;
+  color: var(--card-glass-text);
+  box-shadow: none;
+  backdrop-filter: blur(var(--card-glass-blur-strong)) saturate(var(--card-glass-saturate-strong));
+  -webkit-backdrop-filter: blur(var(--card-glass-blur-strong)) saturate(var(--card-glass-saturate-strong));
+}
+
+.cardPublicSection {
+  padding: var(--card-padding-override, 0);
+  border-color: transparent;
+  border-radius: var(--card-public-section-radius);
+  background: var(--card-public-section-surface);
+  background-image: none;
+  box-shadow: none;
+}
+
+.cardPublicHero {
+  /* position:relative etabliert ABSICHTLICH einen eigenen Positionierungskontext: Aufrufer wie
+     die Anime-Detailseite legen ein absolut positioniertes Overlay (Randnavigation) direkt in
+     diese Karte, das sich sonst am nächsten positionierten Vorfahren außerhalb der Karte
+     ausrichten würde (z. B. einem Wrapper mit eigenem Innenabstand) statt am Kartenrand selbst. */
+  position: relative;
+  /* --card-public-hero-columns ist ein bewusster Override-Hook (wie --card-radius-override):
+     ein Aufrufer mit mehrspaltigem Hero-Inhalt (z. B. Poster- + Info-Spalte der Anime-
+     Detailseite) setzt NUR diese eine CSS-Variable über seine eigene className, statt
+     grid-template-columns selbst zu deklarieren. Eine zweite Datei, die dieselbe Eigenschaft
+     direkt setzt, würde mit .cards Basisregel um Deklarationsreihenfolge/Bundle-Ordnung
+     konkurrieren (nicht deterministisch, siehe UAT-Regressionsfund: gewann zuverlässig .cards
+     einspaltige Basisregel statt der Seiten-Vorgabe) -- der Hook macht diesen Wettlauf
+     unmöglich, da grid-template-columns für diese Variante NUR hier gesetzt wird. */
+  grid-template-columns: var(--card-public-hero-columns, minmax(0, 1fr));
+  gap: 0;
+  padding: var(--card-padding-override, 0);
+  overflow: visible;
+  border-color: var(--card-public-hero-border);
+  border-radius: var(--card-public-hero-radius);
+  background: var(--card-public-hero-bg);
+  box-shadow: var(--card-public-hero-shadow);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .cardPublicHero {
+    background: var(--card-public-hero-bg-supported);
+    backdrop-filter: blur(var(--card-public-hero-blur));
+    -webkit-backdrop-filter: blur(var(--card-public-hero-blur));
+  }
+}
+
+.cardPublicPoster {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: var(--card-padding-override, 0);
+  overflow: hidden;
+  border-color: transparent;
+  border-radius: var(--card-public-poster-radius);
+  background: var(--card-public-poster-bg);
+  box-shadow: none;
+  backdrop-filter: blur(var(--card-public-hero-blur));
+  -webkit-backdrop-filter: blur(var(--card-public-hero-blur));
+
+  /* Diese Variante hat strukturell immer genau zwei Kinder: das Posterbild und darunter einen
+     Stack mit Watchlist-Aktion/Trenner/Genres (siehe AnimeDetailHero.tsx) -- der Stack als
+     letztes Kind soll die nach dem Bild verbleibende Spaltenhöhe füllen. Rein strukturelle
+     Positions-Regel, referenziert bewusst keine komposit-spezifische Klasse. */
+  & > :last-child {
+    flex: 1;
+  }
+}
+
+/* Zweite Zone der Hero-Karte: anders als .cardGlass (gleichmäßig dunkle Glasfläche) bildet diese
+   Variante den bisherigen "oben hell, unten durchscheinend"-Verlauf der öffentlichen
+   Anime-Info-Karte nach -- oben nahezu opak hell mit dunkler Standard-Textfarbe, nach unten zur
+   dahinterliegenden Bannerfläche hin transparent werdend. Wird in Card.tsx bewusst NICHT mit
+   .cardGlass kombiniert (eigene, gegensätzliche Tonalität). Unterhalb 767px kippt die Karte auf
+   dieselbe gleichmäßig dunkle Fläche wie .cardPublicHero (eigener Breakpoint unten): der schmale
+   Verlauf hätte auf der schmalen Mobilbreite keinen Platz, sich sichtbar zu entfalten. */
+.cardPublicHeroInfo {
+  /* Eigener, responsiver Standardwert (statt eines fixen 0) -- diese Variante ist die EINZIGE
+     Aufrufstelle (siehe AnimeDetailHero.tsx) und braucht pro Haltepunkt eine unterschiedliche
+     Polsterung (Desktop --space-6, Mobil --space-5). Cards generischer padding-Override-Hook
+     ist ein einziger, nicht responsiver Skalenwert -- statt dafür lokales CSS im Composite-
+     Baustein zu behalten, trägt die Variante selbst ihren vollständigen, responsiven
+     Standardwert, über den der generische padding-Prop weiterhin unverändert einen
+     abweichenden Einzelwert erzwingen kann. */
+  padding: var(--card-padding-override, var(--space-6));
+  overflow: hidden;
+  /* border-width:0 statt der von .card geerbten (wenn auch transparenten) 1px-Standardrahmenbreite
+     -- ein transparenter Rand nimmt weiterhin 1px Fläche ein, in die der Verlaufshintergrund
+     (background-repeat:repeat, CSS-Standard) sein eigenes, fast opakes oberes Verlaufsende
+     hineinwiederholt. Dadurch erschien am unteren Kartenrand ein heller Strich (per Playwright-
+     Messung bestätigt). Komplett randlos reproduziert außerdem exakt die bisherige, randlose
+     öffentliche Info-Karte. */
+  border-width: 0;
+  border-radius: var(--card-public-hero-info-radius);
+  color: var(--card-public-hero-info-text);
+  background: var(--card-public-hero-info-bg);
+  backdrop-filter: blur(var(--card-public-hero-blur));
+  -webkit-backdrop-filter: blur(var(--card-public-hero-blur));
+}
+
+/* Generischer Tönungs-Hook: Card setzt per `tintHue`-Prop nur den Farbton (--card-tint-hue); die
+   Sättigung/Helligkeit/Deckkraft-Formel nutzt standardmäßig dieselben --card-tint-*-Tokens für
+   jede Tönung, kann aber vom Aufrufer über die optionalen *-override-Variablen (gesetzt via
+   Cards tintSaturation/tintLightness/tintSurfaceAlpha/tintBorderAlpha-Props) exakt auf einen
+   vorher abweichenden Einzelwert eingestellt werden -- Card kennt dabei weiterhin keine
+   Fachnamen wie canon/filler/mixed/recap, nur generische Zahlenwerte. */
+.cardGlass.cardTinted,
+.cardGlassStrong.cardTinted {
+  background-color: hsl(var(--card-tint-hue) var(--card-tint-saturation-override, var(--card-tint-saturation)) var(--card-tint-lightness-override, var(--card-tint-lightness)) / var(--card-tint-surface-alpha-override, var(--card-tint-surface-alpha)));
+  border-color: hsl(var(--card-tint-hue) var(--card-tint-saturation-override, var(--card-tint-saturation)) var(--card-tint-lightness-override, var(--card-tint-lightness)) / var(--card-tint-border-alpha-override, var(--card-tint-border-alpha)));
 }
 
 .cardHeader,
@@ -96,5 +266,61 @@
   .cardFooter {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .cardPublicPoster {
+    /* Eigener, responsiver Standardwert (statt des festen 0 oben) -- derselbe Mechanismus wie
+       .cardPublicHeroInfos responsiver Standardwert: die einzige Aufrufstelle
+       (AnimeDetailHero.tsx, .posterColumn) brauchte diese Mobil-Polsterung sonst als lokales
+       CSS im Composite-Baustein, obwohl sie exakt zu dieser Variante gehört (Poster-Spalte UND
+       Info-Karte teilen sich den Innenabstand zur Kartenkante, oben/seitlich bei fehlender
+       Bild-Randverlängerung, siehe MediaFrame-Abschaltung unterhalb 767px). Cards generischer
+       padding-Override-Hook bleibt unverändert ein einziger, nicht responsiver Wert für BEIDE
+       Stufen gleichzeitig. */
+    padding: var(--card-padding-override, var(--space-5) var(--space-5) 0);
+    background: transparent;
+    border-radius: 0;
+    /* Unterhalb 767px zentriert sich die Spalte statt links auszurichten (Posterbild und Stack
+       wirken sonst optisch am linken Rand hängend), und der Stack gibt seine Wachstums-Vorgabe
+       von oben auf -- er soll auf der schmalen Breite nur so hoch wie sein Inhalt sein, nicht
+       die restliche Spaltenhöhe künstlich auffüllen. */
+    align-items: center;
+    & > :last-child {
+      flex: 0;
+    }
+  }
+
+  /* Die Karte kippt hier auf eine einheitlich dunkle Fläche -- Titel (Heading, tone="default"),
+     Beschreibung (Text, variant="body") und die "Tags"-Beschriftung (Text, variant="eyebrow")
+     innerhalb lesen ihre Standardfarbe über die offiziellen Override-Hooks --heading-color/
+     --text-body-color/--text-eyebrow-color (siehe Heading.module.css/Text.module.css), NICHT
+     über eine lokale tone-Prop. Das Setzen dieser drei Hooks HIER (scoped auf Nachfahren von
+     .cardPublicHeroInfo, wirkt nirgends sonst im Rest der App) lässt sie automatisch mit auf die
+     helle Scrim-Tonalität kippen, ohne dass die Seite selbst eine Farbentscheidung treffen muss. */
+  .cardPublicHeroInfo {
+    /* Mobil-Stufe des responsiven Standardwerts von oben (--space-5 statt --space-6) --
+       derselbe Override-Fallback-Mechanismus, nur mit dem Mobil-Wert als Standard. */
+    padding: var(--card-padding-override, var(--space-5));
+    border-radius: var(--card-public-hero-info-radius-mobile);
+    background: var(--card-public-hero-bg);
+    --heading-color: var(--scrim-text);
+    --text-body-color: var(--scrim-icon);
+    --text-eyebrow-color: var(--scrim-icon);
+    /* Zentriert auf der schmalen Mobilbreite den Titel, die Beschreibung und alle weiteren
+       Textnachfahren (vererbt sich automatisch, kein Zwischenelement setzt text-align zurück). */
+    text-align: center;
+  }
+
+  /* Rand-bis-Rand-Modus (bleedBelowMd-Prop, siehe Card.tsx) -- deklariert bewusst als LETZTE Regel
+     innerhalb dieses Haltepunkts: nur Einzel-Eigenschaften (padding-left/-right/justify-items)
+     statt des Shorthands `padding`, damit die vertikale Polsterung jeder Variante unangetastet
+     bleibt, UND bewusst nach jeder variantenspezifischen Mobil-Regel oben (z. B.
+     .cardPublicHeroInfo), damit diese Einzel-Eigenschaften bei gleicher Selektor-Spezifität per
+     Deklarationsreihenfolge zuverlässig gewinnen, unabhängig davon, welche Variante die Karte
+     sonst trägt. */
+  .cardBleedBelowMd {
+    padding-left: 0;
+    padding-right: 0;
+    justify-items: center;
   }
 }

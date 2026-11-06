@@ -42,6 +42,24 @@
   flex-shrink: 0;
 }
 
+/* Variante "scrim" (Breadcrumbs variant="scrim"): helle Tonalität für Breadcrumbs auf einem
+   Foto-/Bannerhintergrund, meist zusammen mit textHalo genutzt -- die dunklen
+   Admin-Standardfarben oben (--color-text-primary/-secondary) wären dort unlesbar. Zwei Klassen
+   je Nachfahren-Selektor heben die Spezifität bewusst über die einfachen Fallback-Regeln oben,
+   damit Aufrufer (z. B. die Anime-Detailseite) ausschließlich diese Prop statt einer eigenen
+   --breadcrumb-*-Variablenzuweisung von außen brauchen. */
+.breadcrumbsScrim .breadcrumbsLink {
+  color: var(--scrim-icon);
+}
+
+.breadcrumbsScrim .breadcrumbsCurrent {
+  color: var(--scrim-text);
+}
+
+.breadcrumbsScrim .breadcrumbsSeparator {
+  color: var(--scrim-icon);
+}
+
 .textHalo {
   position: relative;
   z-index: 0;

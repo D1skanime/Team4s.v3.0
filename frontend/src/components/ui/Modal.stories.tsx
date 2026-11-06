@@ -5,7 +5,12 @@ import type { ComponentProps, ReactNode } from 'react'
 import { storybookDocsLink } from '@/lib/storybookLinks'
 
 import { Button } from './Button'
+import { Card } from './Card'
+import { FormField } from './FormField'
+import { Input } from './Input'
 import { Modal } from './Modal'
+import { Select } from './Select'
+import { Table, TableBody, TableCell, TableRow } from './Table'
 
 const meta = {
   title: 'Zusammengesetzte Bausteine/Modal',
@@ -133,4 +138,65 @@ export const LangerInhalt: Story = {
       </div>
     </ControlledModal>
   ),
+}
+
+/** Mock-Tabelle mit "Bearbeiten"-Button, der ein Modal mit einem FormField+Input/Select-Formular
+ *  öffnet -- zeigt das Modal im Kontext einer realistischen Seite statt nur isoliert als
+ *  Primitiv. */
+function ModalUeberSeiteGeoeffnetDemo() {
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState('Naruto')
+  const [status, setStatus] = useState('public')
+
+  return (
+    <>
+      <Card variant="section" title="Anime-Liste" description="Mock-Seite zur Demonstration des Modal-über-Seite-Flusses.">
+        <Table variant="compact">
+          <TableBody>
+            <TableRow>
+              <TableCell>{title}</TableCell>
+              <TableCell>{status === 'public' ? 'Öffentlich' : status === 'private' ? 'Privat' : 'Deaktiviert'}</TableCell>
+              <TableCell>
+                <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(true)}>
+                  Bearbeiten
+                </Button>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Card>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Anime bearbeiten"
+        description="Änderungen werden erst nach dem Speichern übernommen."
+        footer={(
+          <>
+            <Button variant="secondary" onClick={() => setOpen(false)}>Abbrechen</Button>
+            <Button onClick={() => setOpen(false)}>Speichern</Button>
+          </>
+        )}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <FormField label="Titel" hint="Wie im Katalog angezeigt.">
+            <Input value={title} onChange={(event) => setTitle(event.target.value)} />
+          </FormField>
+          <FormField label="Status">
+            <Select value={status} onChange={(event) => setStatus(event.target.value)}>
+              <option value="public">Öffentlich</option>
+              <option value="private">Privat</option>
+              <option value="disabled">Deaktiviert</option>
+            </Select>
+          </FormField>
+        </div>
+      </Modal>
+    </>
+  )
+}
+
+export const UeberSeiteGeoeffnet: Story = {
+  name: 'Über Seite geöffnet',
+  args: { title: 'Anime bearbeiten', children: null },
+  render: () => <ModalUeberSeiteGeoeffnetDemo />,
 }

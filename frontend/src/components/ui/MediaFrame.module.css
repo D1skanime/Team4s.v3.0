@@ -7,6 +7,26 @@
   background: var(--surface-sunken);
 }
 
+/* Breiten-Zweck "posterHero": ersetzt die Basisregel-Breite durch drei haltepunktabhängige
+   Stufen für die Posterspalte der Anime-Detailseite. Muss NACH der .mediaFrame-Basisregel
+   deklariert sein, damit sie deren width:100% bei gleicher Selektor-Spezifität (0,1,0) per
+   Deklarationsreihenfolge überschreibt. */
+.mediaFrameWidthPosterHero {
+  width: var(--media-frame-poster-width);
+}
+
+@media (max-width: 1023px) {
+  .mediaFrameWidthPosterHero {
+    width: var(--media-frame-poster-width-medium);
+  }
+}
+
+@media (max-width: 767px) {
+  .mediaFrameWidthPosterHero {
+    width: var(--media-frame-poster-width-compact);
+  }
+}
+
 .mediaFrameRound {
   border-radius: 50%;
 }
@@ -23,6 +43,66 @@
 
 .mediaFrameDisabled {
   opacity: 0.56;
+}
+
+.mediaFramePosterFade {
+  overflow: visible;
+  background: transparent;
+  border-radius: var(--media-frame-poster-radius);
+  isolation: isolate;
+  z-index: 0;
+}
+
+.mediaFramePosterFade::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: var(--media-frame-poster-bleed-inset-x) var(--media-frame-poster-bleed-inset-x) var(--media-frame-poster-bleed-bottom);
+  background-image: var(--media-frame-backdrop-image);
+  background-size: var(--media-frame-poster-bleed-size);
+  background-position: var(--media-frame-poster-bleed-position);
+  filter: blur(var(--media-frame-poster-bleed-blur)) saturate(var(--media-frame-poster-bleed-saturate));
+  opacity: var(--media-frame-poster-bleed-opacity);
+  mask-image: var(--media-frame-poster-bleed-mask);
+  -webkit-mask-image: var(--media-frame-poster-bleed-mask);
+  pointer-events: none;
+}
+
+.mediaFramePosterFade :global(img) {
+  position: relative;
+  z-index: 1;
+  border-radius: inherit;
+  object-fit: cover;
+  mask-image: var(--media-frame-poster-image-mask);
+  -webkit-mask-image: var(--media-frame-poster-image-mask);
+}
+
+@media (max-width: 767px) {
+  .mediaFramePosterFade {
+    border-radius: var(--media-frame-poster-radius-compact);
+    box-shadow: var(--media-frame-poster-shadow-compact);
+    overflow: hidden;
+  }
+
+  /* Auf der schmalen Mobilbreite hat die farbige Verlängerung (::before, bleedet seitlich über
+     den Rahmen hinaus) keinen Platz, sich sichtbar zu entfalten -- bislang blieb sie durch
+     overflow:hidden oben nur UNSICHTBAR, während die Bild-Maske darunter weiterhin zum
+     transparenten Rand hin ausblendete. Ohne die Verlängerung dahinter zeigte das dann die
+     dunkle Seitenfläche durch den transparenten Bildrand. Beide Effekte werden hier deshalb
+     explizit abgeschaltet, das Poster bleibt auf Mobilgeräten vollständig sichtbar/opak. */
+  .mediaFramePosterFade::before {
+    display: none;
+  }
+
+  .mediaFramePosterFade :global(img) {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}
+
+.mediaFramePosterFade .mediaFrameCorner,
+.mediaFramePosterFade .mediaFrameBottom {
+  z-index: 2;
 }
 
 .mediaFrameCorner {

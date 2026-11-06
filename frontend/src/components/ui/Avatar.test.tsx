@@ -33,4 +33,20 @@ describe('Avatar', () => {
     expect(screen.queryByText('MS')).toBeNull()
     expect(container.querySelector('img')).not.toBeNull()
   })
+
+  it('wendet bei size="xs" die 20px-Größenklasse an (rundes Gruppen-/Identitätsbild in Chip-Größe)', () => {
+    const { container } = render(<Avatar label="LazySubs" size="xs" src="https://example.com/logo.png" />)
+    const img = container.querySelector('img')
+    expect(img?.getAttribute('width')).toBe('20')
+    expect(img?.getAttribute('height')).toBe('20')
+    expect(container.querySelector('span')?.className).toMatch(/avatarXs/)
+  })
+
+  it('setzt ohne bordered keinen Rand, mit bordered den Rand "auf dunkler Fläche"', () => {
+    const { container, rerender } = render(<Avatar label="LazySubs" />)
+    expect(container.querySelector('span')?.className).not.toMatch(/avatarBordered/)
+
+    rerender(<Avatar label="LazySubs" bordered />)
+    expect(container.querySelector('span')?.className).toMatch(/avatarBordered/)
+  })
 })

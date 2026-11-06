@@ -1,8 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { BannerSection } from './BannerSection'
 import { Card } from './Card'
+import { Text } from './Text'
 
-/** Card-Primitive: alle acht dokumentierten Varianten aus CardProps. */
+/** Card-Primitive: alle zehn dokumentierten Varianten aus CardProps, inkl. der beiden
+ *  öffentlichen Glas-Varianten -- zweite offizielle Erscheinung derselben
+ *  Kartenfläche auf Foto-/Bannerhintergrund statt der hellen Admin-Optik. */
 const meta = {
   title: 'Grundbausteine/Card',
   component: Card,
@@ -61,4 +65,243 @@ export const Nested: Story = {
 export const NestedFlat: Story = {
   name: 'Verschachtelt flach',
   args: { variant: 'nestedFlat', title: 'Flache verschachtelte Karte', description: 'Flache Variante für verschachtelte Karten.' },
+}
+
+export const Glass: Story = {
+  name: 'Glas',
+  args: { variant: 'glass' },
+  render: (args) => (
+    <div style={{ position: 'relative', height: 200 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, padding: 20 }}>
+          <Card {...args}>
+            <Text tone="onScrim">Durchscheinende Fläche auf Bannerhintergrund (6% Deckkraft, 12px Radius).</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
+}
+
+export const GlassStrong: Story = {
+  name: 'Glas kräftig',
+  args: { variant: 'glassStrong' },
+  render: (args) => (
+    <div style={{ position: 'relative', height: 200 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, padding: 20 }}>
+          <Card {...args}>
+            <Text tone="onScrim">Kräftigere Deckkraft-Stufe (10%, 6px Radius) -- für Reihen/Listenzeilen.</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
+}
+
+export const RuhigeOeffentlicheFlaeche: Story = {
+  name: 'Ruhige öffentliche Fläche',
+  args: { variant: 'publicSection' },
+  render: (args) => (
+    <div style={{ padding: 20, background: '#1c1c1e' }}>
+      <Card {...args}><Text tone="onScrim">Zurückhaltender Rahmen für einen Bereich mit hervorgehobenen Karten darin.</Text></Card>
+    </div>
+  ),
+}
+
+export const OeffentlicherHeroRahmen: Story = {
+  name: 'Öffentlicher Hero-Rahmen',
+  args: { variant: 'publicHero' },
+  render: (args) => (
+    <div style={{ padding: 20, background: 'var(--surface-stage)' }}>
+      <Card {...args}><Text tone="onScrim">Rahmen für öffentliche Kopfbereiche mit schwebenden Steuerelementen.</Text></Card>
+    </div>
+  ),
+}
+
+export const OeffentlichePosterFlaeche: Story = {
+  name: 'Öffentliche Poster-Fläche',
+  args: { variant: 'publicPoster' },
+  render: (args) => (
+    <div style={{ padding: 20, background: 'var(--surface-stage)' }}>
+      <Card {...args}><Text tone="onScrim">Durchscheinende Fläche für Poster und ergänzende Aktionen.</Text></Card>
+    </div>
+  ),
+}
+
+export const PaddingUeberschreibung: Story = {
+  name: 'Innenabstand überschreiben (padding-Prop)',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Die glassStrong-Variante hat standardmäßig padding:0 (Aufrufer bringt eigene Struktur ' +
+          'mit) -- die padding-Prop fordert pro Instanz eine der benannten Zweck-Polsterungen an, ' +
+          'ohne dass der Aufrufer selbst eine padding-CSS-Regel schreiben müsste.',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ position: 'relative', height: 200 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 12, padding: 20 }}>
+          <Card variant="glassStrong">
+            <Text tone="onScrim">Standard (padding:0, Aufrufer polstert selbst)</Text>
+          </Card>
+          <Card variant="glassStrong" padding="content">
+            <Text tone="onScrim">padding=&quot;content&quot; (volle Innenabstand-Polsterung, z. B. Vorschaukarte der Randnavigation)</Text>
+          </Card>
+          <Card variant="glassStrong" padding="nestedBlock">
+            <Text tone="onScrim">padding=&quot;nestedBlock&quot; (Innenabstand eines verschachtelten Inhaltsblocks)</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
+}
+
+export const AbschnittsPolsterung: Story = {
+  name: 'Innenabstand eines eigenständigen Seitenabschnitts',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Die padding-Prop auf den Zweck-Wert "section" gesetzt ist für eine Card gedacht, die ' +
+          'selbst EIN GANZER, eigenständiger Seitenabschnitt ist (z. B. der Episoden-Bereich-' +
+          'Rahmen) -- großzügiger als der Zweck-Wert für einen Block INNERHALB einer äußeren ' +
+          'Karte (16px).',
+      },
+    },
+  },
+  render: () => (
+    <Card variant="section" padding="section">
+      <Text>Volle 32px-Polsterung eines eigenständigen Bereichs, z. B. eines Episoden-Rahmens.</Text>
+    </Card>
+  ),
+}
+
+export const KontextkartenPolsterung: Story = {
+  name: 'Innenabstand einer eigenständigen Kontext-/Hinweiskarte',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Die padding-Prop auf den Zweck-Wert "contextCard" gesetzt (24px) ist für eine ' +
+          'eigenständige Kontext-/Hinweiskarte gedacht (z. B. eine Fansub-Gruppenkontext-Karte) -- ' +
+          'kleiner als die Seitenabschnitts-Stufe (32px), da die Karte selbst kein ganzer ' +
+          'Seitenabschnitt ist.',
+      },
+    },
+  },
+  render: () => (
+    <Card variant="nested" padding="contextCard">
+      <Text>24px-Polsterung einer eigenständigen Kontext-/Hinweiskarte.</Text>
+    </Card>
+  ),
+}
+
+export const KompakteVorschaukarte: Story = {
+  name: 'Höchstbreite begrenzte Vorschaukarte (widthPurpose="compactPreview")',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'widthPurpose="compactPreview" begrenzt Card auf min(260px, 90vw) -- für eine schmale, ' +
+          'schwebende Vorschaukarte (z. B. eine Vorher/Nachher-Randnavigations-Vorschau), die auf ' +
+          'sehr schmalen Bildschirmen nie breiter als 90% der Viewport-Breite werden darf.',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ position: 'relative', height: 120 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, padding: 20 }}>
+          <Card variant="glassStrong" padding="content" widthPurpose="compactPreview">
+            <Text tone="onScrim">Nie breiter als 260px (bzw. 90vw auf sehr schmalen Bildschirmen).</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
+}
+
+export const RandloseVerschachtelteKarte: Story = {
+  name: 'Randlose verschachtelte Karte (seamless)',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'seamless zeroed Rahmenbreite, Eckenrundung und Hintergrund der gewählten Variante -- ' +
+          'für eine Card-Instanz, die flächenlos/bündig INNERHALB einer bereits eigenständig ' +
+          'gerahmten äußeren Fläche sitzen soll (z. B. eine verschachtelte Versionsliste innerhalb ' +
+          'einer glasigen Episodenkarte, ohne die helle Admin-Fläche der "flat"-Variante sichtbar ' +
+          'hinzuzufügen).',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ padding: 20, background: '#1c1c1e' }}>
+      <Card variant="flat" padding="dividedSection" seamless>
+        <Text>Randlos, ohne eigene Eckenrundung/Hintergrund -- erbt die Fläche des äußeren Kontexts.</Text>
+      </Card>
+    </div>
+  ),
+}
+
+export const RandBisRandUnterhalb767px: Story = {
+  name: 'Rand-bis-Rand unterhalb 767px (bleedBelowMd)',
+  parameters: {
+    viewport: { defaultViewport: 'mobile1' },
+    docs: {
+      description: {
+        story:
+          'bleedBelowMd kollabiert unterhalb 767px Cards horizontale Polsterung auf 0 und ' +
+          'zentriert die Grid-Kinder -- für einen verschachtelten Inhaltsblock (hier die ' +
+          'Poster-Metadaten-Karte des Anime-Kopfs), der auf schmaler Breite bis an den Rand ' +
+          'seines äußeren Containers reichen soll, statt den eigenen Innenabstand mitzutragen. ' +
+          'Diese Story simuliert die schmale Breite per fester Viewport-Dekoration statt ' +
+          'tatsächlichem Fenster-Resize (narrow-viewport decorator).',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ width: 320, background: 'var(--surface-stage)', padding: 20 }}>
+      <Card variant="nested" padding="nestedBlock" bleedBelowMd>
+        <Text>Reicht unterhalb 767px bis an den Rand der äußeren Karte und zentriert ihre Kinder.</Text>
+      </Card>
+    </div>
+  ),
+}
+
+export const GlasAufHintergrund: Story = {
+  name: 'Glas auf Hintergrund (alle Tönungen)',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Alle vier Episoden-Tönungen des generischen tintHue-Hooks nebeneinander -- ' +
+          'Haupthandlung (222°), Filler (2°), Gemischt (272°), Rückblick (42°).',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ position: 'relative', height: 260 }}>
+      <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund">
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 12, padding: 20, flexWrap: 'wrap' }}>
+          <Card variant="glass" tintHue={222} style={{ padding: 12 }}>
+            <Text tone="onScrim">Haupthandlung</Text>
+          </Card>
+          <Card variant="glass" tintHue={2} style={{ padding: 12 }}>
+            <Text tone="onScrim">Filler</Text>
+          </Card>
+          <Card variant="glass" tintHue={272} style={{ padding: 12 }}>
+            <Text tone="onScrim">Gemischt</Text>
+          </Card>
+          <Card variant="glass" tintHue={42} style={{ padding: 12 }}>
+            <Text tone="onScrim">Rückblick</Text>
+          </Card>
+        </div>
+      </BannerSection>
+    </div>
+  ),
 }

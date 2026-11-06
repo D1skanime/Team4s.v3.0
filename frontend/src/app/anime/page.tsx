@@ -1,20 +1,14 @@
-import Link from 'next/link'
 import { Suspense } from 'react'
 
-import { AnimeGrid } from '@/components/anime/AnimeGrid'
-import { AnimeGridScrollRestorer } from '@/components/anime/AnimeGridScrollRestorer'
-import { LetterFilter } from '@/components/anime/LetterFilter'
-import { Pagination } from '@/components/ui'
 import { getAnimeList } from '@/lib/api'
 import { buildAnimeGridQuery } from '@/lib/animeGridContext'
 import { toNumber } from '@/lib/utils'
 import { AnimeStatus, ContentType } from '@/types/anime'
 
+import { AnimeListView } from './AnimeListView'
 import AnimeListLoading from './AnimeListLoading'
-import { buildAnimeListPageHref } from './animeListPageHref'
-import styles from './page.module.css'
 
-// Diese Route haengt von Query-Parametern (A-Z-Buchstabenfilter, Pagination usw.) ab.
+// Diese Route hängt von Query-Parametern (A-Z-Buchstabenfilter, Pagination usw.) ab.
 // Daher wird Next.js gezwungen, die Seite nicht als statisch vorzurendern.
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +26,7 @@ interface AnimePageProps {
     | undefined
 }
 
-/** Aufgeloeste (nicht mehr Promise-basierte) Such-Parameter für die Anime-Listenseite. */
+/** Aufgelöste (nicht mehr Promise-basierte) Such-Parameter für die Anime-Listenseite. */
 interface ResolvedAnimeSearchParams {
     page?: string | string[]
     per_page?: string | string[]
@@ -47,7 +41,7 @@ const allowedStatuses: AnimeStatus[] = ['ongoing', 'done', 'aborted', 'licensed'
 
 /**
  * Anime-Listenseite.
- * Laedt die gefilterte Anime-Liste vom Backend und rendert das Raster mit A-Z-Filter und Pagination.
+ * Lädt die gefilterte Anime-Liste vom Backend und rendert das Raster mit A-Z-Filter und Pagination.
  * Unterstützt Query-Parameter: page, per_page, q, letter, content_type, status.
  */
 export default function AnimePage({ searchParams }: AnimePageProps) {
@@ -91,41 +85,16 @@ async function AnimeListContent({ searchParams }: AnimePageProps) {
     response = await getAnimeList(listParams)
   } catch {}
 
-  if (!response) {
-    return (
-      <main className={styles.page}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>Anime Liste</h1>
-        </header>
-        <div className={styles.errorBox}>
-          <p>Die Anime-Liste konnte aktuell nicht geladen werden.</p>
-        </div>
-      </main>
-    )
-  }
-
   const gridQuery = buildAnimeGridQuery(listParams)
 
   return (
-    <main className={styles.page}>
-      <AnimeGridScrollRestorer gridQuery={gridQuery} />
-
-      <header className={styles.header}>
-        <p className={styles.kicker}>P0 MVP</p>
-        <h1 className={styles.title}>Anime Liste</h1>
-        <p className={styles.subtitle}>
-          {response.meta.total.toLocaleString('de-DE')} Einträge mit A-Z Filter und Pagination
-        </p>
-      </header>
-
-      <LetterFilter currentLetter={letter} perPage={perPage} contentType={contentType} status={status} />
-      <AnimeGrid anime={response.data} gridQuery={gridQuery} />
-      <Pagination
-        currentPage={response.meta.page}
-        totalPages={response.meta.total_pages}
-        hrefForPage={(page) => buildAnimeListPageHref(page, { letter, perPage, contentType, status })}
-        linkComponent={Link}
-      />
-    </main>
+    <AnimeListView
+      response={response}
+      letter={letter}
+      perPage={perPage}
+      contentType={contentType}
+      status={status}
+      gridQuery={gridQuery}
+    />
   )
 }

@@ -1,0 +1,113 @@
+/* Reiner horizontaler Fluss mit Umbruch -- keine Fläche/Farbe/Rundung (siehe Cluster.tsx). */
+.cluster {
+  display: flex;
+  flex-wrap: var(--cluster-wrap, wrap);
+  gap: var(--cluster-gap, var(--space-2));
+  align-items: var(--cluster-align, center);
+  justify-content: var(--cluster-justify, flex-start);
+  min-width: 0;
+}
+
+/* Override-Hook für eine abweichende Hauptachsen-Verteilung unterhalb von 767px (justifyBelowMd-
+   Prop) -- Fallback-Kette fällt ohne Angabe auf den normalen --cluster-justify-Wert zurück, dann
+   auf den harten Basis-Default. Wirkt auf BEIDE Rendering-Pfade (siehe Cluster.tsx), da sowohl das
+   Einzelstufen-Element als auch das innere Flex-Element des Zweistufen-Pfads die Klasse .cluster
+   tragen. */
+@media (max-width: 767px) {
+  .cluster {
+    justify-content: var(--cluster-justify-below-md, var(--cluster-justify, flex-start));
+  }
+}
+
+/* Äußerer Container fürs zweistufige collapseBelow/float-Rendering (siehe Cluster.tsx): trägt
+   NUR `container`/`min-width` -- ein Element darf laut CSS-Spezifikation nicht gleichzeitig der
+   eigene Container-Namensgeber UND das von dessen @container-Abfrage umgeordnete Element sein
+   (identisches Muster wie SplitLayout.module.css). Wird NUR gerendert, wenn `collapseBelow` oder
+   `float` gesetzt ist -- ohne beide Props bleibt Cluster das einzelne `.cluster`-Element von oben. */
+.clusterQueryContainer {
+  container: cluster / inline-size;
+  min-width: 0;
+}
+
+/* collapseBelow="md" (Haltepunkt-Umkehr): unterhalb 48rem/768px gestapelte Spalte mit
+   eigenem Lücken-Zweck (--cluster-gap-collapsed, Fallback: --cluster-gap selbst, falls
+   gapCollapsed nicht übergeben wurde) -- ab 48rem das normale, horizontale Cluster-Verhalten mit
+   dem unveränderten --cluster-gap. Derselbe Haltepunkt wie SplitLayouts bereits etabliertes 'md'. */
+.collapsibleMd {
+  flex-direction: column;
+  gap: var(--cluster-gap-collapsed, var(--cluster-gap, var(--space-2)));
+}
+
+@container cluster (min-width: 48rem) {
+  .collapsibleMd {
+    flex-direction: row;
+    gap: var(--cluster-gap, var(--space-2));
+  }
+}
+
+/* float="controlBand" (Schwebe-Overlay-Modus), Positionierungs-Teil: oberhalb 768px wird das
+   ÄUSSERE Cluster-Wurzelelement (.clusterQueryContainer, siehe Cluster.tsx) selbst zu einem
+   präzise auf dem Rand seines positionierten Vorfahren schwebenden Band -- `pointer-events:none`
+   auf dem Wurzelelement selbst, `pointer-events:auto` auf dessen einzigem direkten Kind (dem
+   inneren `.cluster`-Flex-Element, von dort per CSS-Vererbung an jeden tatsächlichen
+   Inhalts-Nachfahren weitergereicht), sonst würde das schwebende Band jeden Klick auf
+   darunterliegenden Inhalt blockieren, obwohl es selbst meist nur schmale interaktive Kinder
+   enthält, die ihre eigene Position selbst bestimmen. Bewusst eine normale `@media`- statt einer
+   `@container`-Abfrage: eine Container-Abfrage darf laut Spezifikation nie das eigene
+   Container-Wurzelelement selbst umordnen, nur dessen Nachfahren (siehe Cluster.tsx's `float`-Doku
+   für die ausführliche Begründung, warum NUR das Wurzelelement selbst -- nicht nur sein inneres
+   Flex-Kind -- vollständig aus einem umgebenden Flex-/Grid-`gap` herausfallen kann). z-index wie
+   die bisherige lokale --edgeNavigationOverlay-Regel: hält das Band über regulär gestapeltem
+   Seiteninhalt (z. B. .posterMeta), nicht nur über dem direkt darunterliegenden Rasterinhalt. */
+@media (min-width: 768px) {
+  .floatControlBandRoot {
+    position: absolute;
+    z-index: var(--z-dropdown);
+    top: var(--overlay-offset-control-band);
+    right: 0;
+    left: 0;
+    height: var(--overlay-height-control-band);
+    pointer-events: none;
+  }
+
+  .floatControlBandRoot > * {
+    pointer-events: auto;
+  }
+}
+
+/* float="controlBand", Mobil-Teil: unterhalb 768px liegt die Steuerelement-Reihe normal im
+   Textfluss (kein eigenes Wurzel-`position:absolute` mehr, siehe oben) -- der seitliche/untere
+   Rand zur Kartenkante lebt hier auf dem INNEREN Flex-Element (dessen Vorlauf-Abstand zum
+   darüberliegenden Inhalt kommt stattdessen aus einem umgebenden Stack-Abstand, siehe
+   AnimeDetailHero.tsx). Oberhalb 768px bleibt die Reihe bewusst randlos (left:0/right:0 oben). */
+@media (max-width: 767px) {
+  .floatControlBand {
+    padding: var(--overlay-padding-control-band-mobile);
+  }
+}
+
+/* growFirstChild-Prop (siehe Cluster.tsx): Standard-Flexbox-Idiom für ein wachsendes Textkind --
+   min-width:0 erlaubt internes Umbrechen/Schrumpfen statt Überlauf am min-content. Kein Konflikt
+   mit dem Komposit-Reinheits-Wächter: min-width ist kein width/height im Sinne seiner
+   verbotenen Muster (nur ohne min-/max-Präfix erfasst). */
+.clusterGrowFirstChild > :first-child {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* pinLastChild-Prop (siehe Cluster.tsx): hält das letzte Kind auf seiner eigenen Höhe/Breite
+   statt es auf Clusters eigene Querachsenvorgabe (align) zu strecken, und verhindert sein
+   Schrumpfen auf der Hauptachse -- für eine abschließende Aktion neben einer mehrzeiligen
+   Textspalte. align-self ist kein width/height im Sinne des Komposit-Reinheits-Wächters. */
+.clusterPinLastChild > :last-child {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* shrink={false}-Prop (siehe Cluster.tsx): verhindert, dass DIESER Cluster selbst als Flex-Kind
+   seines Elternelements komprimiert wird -- z. B. eine Avatar-Gruppe neben einer wachsenden
+   Textspalte, die bei knappem Platz ihre volle Breite behalten soll statt zusammengedrückt zu
+   werden. */
+.clusterNoShrink {
+  flex-shrink: 0;
+}

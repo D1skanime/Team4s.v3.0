@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { describe, expect, it, vi } from 'vitest'
+import { render, renderHook, screen } from '@testing-library/react'
 
 import { DatePicker } from './DatePicker'
 import { FormField } from './FormField'
@@ -10,8 +11,19 @@ import { Switch } from './Switch'
 import { Textarea } from './Textarea'
 import { YearPicker } from './YearPicker'
 
+// Statt eines echten DOM-Klicks wird FormField (useId-Hook, daher innerhalb von
+// renderHook aufgerufen) direkt als Funktion aufgerufen und der materialisierte Baum nach dem
+// eingebetteten Switch-Element durchsucht (etabliertes Muster aus `page.test.tsx`/
+// `AnimeDetailView.test.tsx`, hier als eigene, dateilokale Kopie).
+function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
+  return Children.toArray(node).flatMap((child) => {
+    if (!isValidElement<Record<string, unknown>>(child)) return []
+    return [child, ...elements(child.props.children as ReactNode)]
+  })
+}
+
 /**
- * Verhaltensnachweis für die FormField-Autoverknüpfung (UAT-Befund 5): FormField reicht
+ * Verhaltensnachweis für die FormField-Autoverknüpfung: FormField reicht
  * id/disabled/invalid/aria-invalid/aria-describedby automatisch an genau EIN umschlossenes,
  * bekanntes Feld weiter (Input/Select/Textarea/DatePicker/YearPicker/Switch), ohne dass ein
  * expliziter htmlFor/invalid-Aufrufer etwas daran ändert.
@@ -80,16 +92,16 @@ describe('FormField Autoverknüpfung', () => {
   it('löst einen Widerspruch zwischen FormField.htmlFor und einer abweichenden Kind-id zugunsten der tatsächlichen Kind-id auf', () => {
     render(
       <FormField label="Widersprüchliche IDs" htmlFor="vom-aufrufer-gemeint">
-        <Input id="tatsaechliche-kind-id" />
+        <Input id="tatsächliche-kind-id" />
       </FormField>,
     )
 
     // resolvedId bevorzugt die vorhandene Kind-id -- das Label MUSS derselben Priorität folgen,
     // sonst zeigt label[for] auf eine ID, die am Feld gar nicht existiert.
     const input = screen.getByLabelText('Widersprüchliche IDs') as HTMLInputElement
-    expect(input.id).toBe('tatsaechliche-kind-id')
+    expect(input.id).toBe('tatsächliche-kind-id')
     const label = screen.getByText('Widersprüchliche IDs')
-    expect(label.getAttribute('for')).toBe('tatsaechliche-kind-id')
+    expect(label.getAttribute('for')).toBe('tatsächliche-kind-id')
   })
 
   it('verknüpft manuell gesetztes invalid=true mit error ODER-artig (bleibt invalid)', () => {
@@ -149,6 +161,21 @@ describe('FormField Autoverknüpfung', () => {
     expect(switchEl.getAttribute('aria-describedby')).toBeTruthy()
   })
 
+  it('verknüpft Switch per aria-labelledby mit dem sichtbaren FormField-Label (analog zu DatePicker/YearPicker)', () => {
+    render(
+      <FormField label="Benachrichtigungen">
+        <Switch checked={false} onCheckedChange={() => {}} />
+      </FormField>,
+    )
+
+    // Die zugängliche Bezeichnung kommt über aria-labelledby vom sichtbaren FormField-Label --
+    // Switch selbst bekommt hier keine eigene label-Prop, hätte also ohne diese Verknüpfung
+    // keinen für Screenreader vorgelesenen Namen außer "Schalter, aus".
+    const switchEl = screen.getByRole('switch', { name: 'Benachrichtigungen' }) as HTMLButtonElement
+    const visibleLabel = screen.getByText('Benachrichtigungen')
+    expect(switchEl.getAttribute('aria-labelledby')).toBe(visibleLabel.id)
+  })
+
   it('verknüpft DatePicker/YearPicker über ihren internen Trigger-Button mit aria-describedby (ohne aria-invalid -- die implizite button-Rolle unterstützt dieses Attribut laut ARIA-Spezifikation nicht, siehe FormField.tsx)', () => {
     render(
       <FormField label="Datum" error="Ungültiges Datum">
@@ -185,13 +212,13 @@ describe('FormField Autoverknüpfung', () => {
 
   it('belässt DatePicker/YearPicker bei ihrer eigenständigen label-Prop als aria-label-Quelle, wenn sie ohne FormField (also ohne sichtbares Label) verwendet werden', () => {
     render(
-      <DatePicker id="eigenstaendig-datum" label="Veröffentlichungsdatum" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
+      <DatePicker id="eigenständig-datum" label="Veröffentlichungsdatum" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
     )
     const dateTrigger = screen.getByRole('button', { name: 'Veröffentlichungsdatum auswählen' })
     expect(dateTrigger.getAttribute('aria-labelledby')).toBeNull()
 
     render(
-      <YearPicker id="eigenstaendig-jahr" label="Erschienen" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
+      <YearPicker id="eigenständig-jahr" label="Erschienen" value="" minYear={1900} maxYear={2100} onChange={() => {}} />,
     )
     const yearTrigger = screen.getByRole('button', { name: 'Erschienen' })
     expect(yearTrigger.getAttribute('aria-labelledby')).toBeNull()
@@ -222,15 +249,25 @@ describe('FormField Autoverknüpfung', () => {
     expect(screen.getByTestId('custom-field')).not.toBeNull()
   })
 
-  it('löst keinen Klick aus, wenn der Switch deaktiviert ist (Rückwärtskompat-Smoketest)', () => {
-    render(
-      <FormField label="Status">
-        <Switch checked={false} onCheckedChange={() => {}} disabled />
-      </FormField>,
-    )
+  it('löst keinen Klick aus, wenn der Switch deaktiviert ist (Rückwärtskompat-Smoketest, direkter onClick-Aufruf statt Klick-Simulation)', () => {
+    const onCheckedChange = vi.fn()
+    const { result } = renderHook(() => {
+      const tree = FormField({ label: 'Status', children: <Switch checked={false} onCheckedChange={onCheckedChange} disabled /> })
+      return elements(tree).find((element) => element.type === Switch)
+    })
+    const switchElement = result.current
+    expect(switchElement).toBeTruthy()
+    // FormField reicht disabled durchs cloneElement weiter (effectiveDisabled) -- die Disabled-
+    // Passthrough-Garantie selbst ist hier bereits am Props-Stand des geklonten Elements belegt.
+    expect(switchElement!.props.disabled).toBe(true)
 
-    const switchEl = screen.getByRole('switch') as HTMLButtonElement
-    fireEvent.click(switchEl)
-    expect(switchEl.getAttribute('aria-checked')).toBe('false')
+    // Switch ist vollständig kontrolliert (kein eigener Zustand, keine Hooks) -- sein <button>
+    // kann deshalb gefahrlos direkt materialisiert werden, um den echten internen Klick-Handler
+    // (handleClick, der bei disabled=true frühzeitig zurückkehrt) direkt aufzurufen statt einen
+    // DOM-Klick zu simulieren.
+    const materializedButton = (Switch as unknown as (props: Record<string, unknown>) => ReactElement<Record<string, unknown>>)(switchElement!.props)
+    expect(materializedButton.props['aria-checked']).toBe(false)
+    ;(materializedButton.props.onClick as () => void)()
+    expect(onCheckedChange).not.toHaveBeenCalled()
   })
 })

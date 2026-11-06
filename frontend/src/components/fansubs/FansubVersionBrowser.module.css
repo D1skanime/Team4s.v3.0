@@ -1,20 +1,7 @@
-.section {
-  margin-top: 16px;
-}
-
-.emptyBox {
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-white);
-  padding: 16px;
-}
-
 .episodeList {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 12px;
   /* D-34 Verteidigungslinie: native Browser-Scroll-Anchoring als Ergaenzung zur manuellen
      scrollAnchorAdjustmentPx-Korrektur, kein Ersatz dafuer (siehe FansubVersionBrowser.tsx). */
   overflow-anchor: auto;
@@ -23,8 +10,4 @@
 .episodeListDimmed {
   opacity: 0.5;
   pointer-events: none;
-}
-
-.sentinel {
-  height: 1px;
 }

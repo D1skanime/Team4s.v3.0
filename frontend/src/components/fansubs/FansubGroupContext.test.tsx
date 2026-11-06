@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -67,10 +70,38 @@ describe('FansubGroupContext', () => {
     expect(screen.queryByRole('link', { name: 'Zum Projekt' })).toBeNull()
   })
 
-  it('rendert den Zum-Projekt-Link ueber buildPublicFansubProjectPath, wenn beide Slugs gesetzt sind', () => {
+  it('rendert den Zum-Projekt-Link über buildPublicFansubProjectPath, wenn beide Slugs gesetzt sind', () => {
     const activeGroup: FansubGroupContextActiveGroup = { id: 1, slug: 'new-subs', name: 'New-Subs' }
     render(<FansubGroupContext activeGroup={activeGroup} animeSlug="buddy-complex" />)
     const link = screen.getByRole('link', { name: 'Zum Projekt' })
     expect(link.getAttribute('href')).toBe('/fansubs/new-subs/fansubprojekt/buddy-complex')
+  })
+})
+
+/*
+ * Kartenpolsterung/interner Rhythmus/Aktionsreihe kommen aus Card padding="contextCard",
+ * Stack gap="relatedContent" und Cluster gap="secondaryActionRow" statt lokaler
+ * padding-/margin-/display:flex-Deklarationen.
+ */
+describe('FansubGroupContext -- Card-Zweckstufe, Stack-Rhythmus, Cluster-navRow', () => {
+  it('trägt die Card-Zweckstufe padding="contextCard" statt eines lokalen Polsterungswerts', () => {
+    const activeGroup: FansubGroupContextActiveGroup = { id: 1, slug: 'new-subs', name: 'New-Subs' }
+    render(<FansubGroupContext activeGroup={activeGroup} animeSlug="buddy-complex" />)
+    const card = screen.getByTestId('fansub-group-context')
+    expect(card.style.getPropertyValue('--card-padding-override')).toBe('var(--card-padding-context-card)')
+  })
+
+  it('FansubGroupContext.module.css deklariert kein eigenes padding/margin/display:flex/gap mehr', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubGroupContext.module.css'), 'utf8')
+    expect(css).not.toMatch(/\bpadding\s*:/)
+    expect(css).not.toMatch(/\bmargin\s*:/)
+    expect(css).not.toMatch(/display\s*:\s*flex/)
+    expect(css).not.toMatch(/\bgap\s*:/)
+    expect(css).not.toMatch(/\.navRow\s*\{/)
+    expect(css).not.toMatch(/\.name\s*\{/)
+    // .card existierte früher nur wegen seiner padding-/margin-Deklarationen -- beide sind jetzt
+    // durch Card-Props bzw. den gemeinsamen Rhythmus-Stack in FansubVersionBrowser.tsx ersetzt,
+    // die leer gewordene Klasse ist deshalb ersatzlos entfernt (samt ihrer JSX-Referenz).
+    expect(css).not.toMatch(/\.card\s*\{/)
   })
 })
