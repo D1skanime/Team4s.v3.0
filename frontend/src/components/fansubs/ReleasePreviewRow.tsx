@@ -87,13 +87,18 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
           "stretch", Clusters eigener Standard wäre dagegen "center") -- im Zeilen-Zustand
           (ab 768px) wirkt dieselbe Prop auf die Höhe statt die Breite, dort übernimmt
           bereits justify="between" die Verteilung, die Button-Breite kommt aus dessen eigener
-          fullWidthBelowMd-Prop. */}
+          fullWidthBelowMd-Prop. growFirstChild lässt die Avatar-/Text-Spalte (erstes Kind) den
+          nach dem Button verbleibenden Platz einnehmen; pinLastChild hält den Button (letztes
+          Kind) dabei auf seiner eigenen Höhe statt ihn über align="stretch" auf die Höhe der
+          oft mehrzeiligen Textspalte zu strecken. */}
       <Cluster
         collapseBelow="md"
         gap="contentPair"
         gapCollapsed="independentBlocks"
         justify="between"
         align="stretch"
+        growFirstChild
+        pinLastChild
         className={styles.row}
       >
         {groups.length > 0 ? (

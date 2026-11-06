@@ -94,3 +94,12 @@
   flex: 1 1 0%;
   min-width: 0;
 }
+
+/* pinLastChild-Prop (siehe Cluster.tsx): hält das letzte Kind auf seiner eigenen Höhe/Breite
+   statt es auf Clusters eigene Querachsenvorgabe (align) zu strecken, und verhindert sein
+   Schrumpfen auf der Hauptachse -- für eine abschließende Aktion neben einer mehrzeiligen
+   Textspalte. align-self ist kein width/height im Sinne des Komposit-Reinheits-Wächters. */
+.clusterPinLastChild > :last-child {
+  flex-shrink: 0;
+  align-self: center;
+}

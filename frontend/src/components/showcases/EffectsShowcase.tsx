@@ -52,6 +52,27 @@ function FlatLabel({ children }: { children: ReactNode }) {
   )
 }
 
+/** Unverändertes, scharfes Bild als Hintergrund für die Chip-/Knopf-/Abzeichen-Beispiele --
+ *  bewusst NICHT `BannerSection` (die selbst Unschärfe/Abdunklung/Sättigung anwendet, siehe
+ *  deren eigene Vorschau oben): nur der jeweils demonstrierte Baustein-Effekt (Glas-/Scrim-/
+ *  Abdunklungs-Fläche des Chips/Knopfs/Abzeichens selbst) soll sich zwischen Vorher und Nachher
+ *  unterscheiden, nicht zusätzlich eine zweite, hier gar nicht gezeigte Bannerbild-Wirkung. */
+function PlainImageBackground({ children }: { children: ReactNode }) {
+  return (
+    <PreviewFrame>
+      <ResponsiveImage
+        src={FIXTURE_IMAGE}
+        alt={FIXTURE_ALT}
+        fill
+        sizes="220px"
+        unoptimized
+        className={styles.plainImage}
+      />
+      <div className={styles.previewSlot}>{children}</div>
+    </PreviewFrame>
+  )
+}
+
 /**
  * Hand-kuratierter Katalog der fünf Effekt-Beispiele aus `styles/tokens/effects.css` (Befund
  * 26): jedes Beispiel ist eine Kombination mehrerer CSS-Eigenschaften mit genau EINEM visuellen
@@ -93,22 +114,14 @@ const EFFECT_ENTRIES: EffectEntry[] = [
       'Heller, durchscheinender Chip-Hintergrund für Verlinkungen auf einer bereits hellen Glasfläche (z. B. die Poster-Spalte einer Detailseite).',
     usedBy: 'LinkChip (tone="glass")',
     before: (
-      <PreviewFrame>
-        <BannerSection imageUrl={FIXTURE_IMAGE} imageAlt={FIXTURE_ALT}>
-          <div className={styles.previewSlot}>
-            <FlatLabel>Drama</FlatLabel>
-          </div>
-        </BannerSection>
-      </PreviewFrame>
+      <PlainImageBackground>
+        <FlatLabel>Drama</FlatLabel>
+      </PlainImageBackground>
     ),
     after: (
-      <PreviewFrame>
-        <BannerSection imageUrl={FIXTURE_IMAGE} imageAlt={FIXTURE_ALT}>
-          <div className={styles.previewSlot}>
-            <LinkChip tone="glass" href="#">Drama</LinkChip>
-          </div>
-        </BannerSection>
-      </PreviewFrame>
+      <PlainImageBackground>
+        <LinkChip tone="glass" href="#">Drama</LinkChip>
+      </PlainImageBackground>
     ),
   },
   {
@@ -117,22 +130,14 @@ const EFFECT_ENTRIES: EffectEntry[] = [
       'Dunkler, blickdichterer Chip-Hintergrund für Verlinkungen auf einer fast transparenten Fläche, bei der der Chip selbst für Lesbarkeit sorgen muss.',
     usedBy: 'LinkChip (tone="scrim")',
     before: (
-      <PreviewFrame>
-        <BannerSection imageUrl={FIXTURE_IMAGE} imageAlt={FIXTURE_ALT}>
-          <div className={styles.previewSlot}>
-            <FlatLabel>Coming-of-Age</FlatLabel>
-          </div>
-        </BannerSection>
-      </PreviewFrame>
+      <PlainImageBackground>
+        <FlatLabel>Coming-of-Age</FlatLabel>
+      </PlainImageBackground>
     ),
     after: (
-      <PreviewFrame>
-        <BannerSection imageUrl={FIXTURE_IMAGE} imageAlt={FIXTURE_ALT}>
-          <div className={styles.previewSlot}>
-            <LinkChip tone="scrim" href="#">Coming-of-Age</LinkChip>
-          </div>
-        </BannerSection>
-      </PreviewFrame>
+      <PlainImageBackground>
+        <LinkChip tone="scrim" href="#">Coming-of-Age</LinkChip>
+      </PlainImageBackground>
     ),
   },
   {
@@ -141,22 +146,14 @@ const EFFECT_ENTRIES: EffectEntry[] = [
       'Durchscheinender Umschalt-Knopf für Aktionen direkt auf einem Bildhintergrund (z. B. ein Fansub-Gruppen-Filter über der Episodenliste), mit eigener Unschärfe/Sättigung statt einer deckenden Standardfläche.',
     usedBy: 'Button (variant="chipGlass")',
     before: (
-      <PreviewFrame>
-        <BannerSection imageUrl={FIXTURE_IMAGE} imageAlt={FIXTURE_ALT}>
-          <div className={styles.previewSlot}>
-            <FlatLabel>LazySubs</FlatLabel>
-          </div>
-        </BannerSection>
-      </PreviewFrame>
+      <PlainImageBackground>
+        <FlatLabel>LazySubs</FlatLabel>
+      </PlainImageBackground>
     ),
     after: (
-      <PreviewFrame>
-        <BannerSection imageUrl={FIXTURE_IMAGE} imageAlt={FIXTURE_ALT}>
-          <div className={styles.previewSlot}>
-            <Button variant="chipGlass" size="sm">LazySubs</Button>
-          </div>
-        </BannerSection>
-      </PreviewFrame>
+      <PlainImageBackground>
+        <Button variant="chipGlass" size="sm">LazySubs</Button>
+      </PlainImageBackground>
     ),
   },
   {
@@ -165,22 +162,14 @@ const EFFECT_ENTRIES: EffectEntry[] = [
       'Dunkel abgesetzter, halbtransparenter Hintergrund für ein Status-Abzeichen, das direkt auf einem Bild liegt und dort trotzdem lesbar bleiben muss.',
     usedBy: 'Badge (variant="onMedia")',
     before: (
-      <PreviewFrame>
-        <BannerSection imageUrl={FIXTURE_IMAGE} imageAlt={FIXTURE_ALT}>
-          <div className={styles.previewSlot}>
-            <FlatLabel>Ongoing</FlatLabel>
-          </div>
-        </BannerSection>
-      </PreviewFrame>
+      <PlainImageBackground>
+        <FlatLabel>Ongoing</FlatLabel>
+      </PlainImageBackground>
     ),
     after: (
-      <PreviewFrame>
-        <BannerSection imageUrl={FIXTURE_IMAGE} imageAlt={FIXTURE_ALT}>
-          <div className={styles.previewSlot}>
-            <Badge variant="onMedia">Ongoing</Badge>
-          </div>
-        </BannerSection>
-      </PreviewFrame>
+      <PlainImageBackground>
+        <Badge variant="onMedia">Ongoing</Badge>
+      </PlainImageBackground>
     ),
   },
 ]

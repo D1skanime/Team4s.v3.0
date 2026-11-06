@@ -81,6 +81,14 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
    *  Platz einnehmen soll. Wirkt praktisch nur oberhalb des collapseBelow-Haltepunkts (im gestapelten
    *  Zustand ist die Hauptachse die Höhe, kein begrenzender Container). */
   growFirstChild?: boolean
+  /** Hält GENAU das letzte Kind auf seiner eigenen Höhe/Breite statt es auf die
+   *  Cluster-Querachsenvorgabe (`align`) zu strecken, UND verhindert sein Schrumpfen auf der
+   *  Hauptachse (`flex-shrink: 0; align-self: center;`) -- für eine abschließende Aktion (z. B.
+   *  ein Button neben einer mehrzeiligen Textspalte), die ihre eigene, inhaltsbestimmte Höhe
+   *  behalten soll, auch wenn ein `align="stretch"` auf dem Cluster selbst die Textspalte auf
+   *  volle Zeilenhöhe zieht. Symmetrisch zu `growFirstChild`, wirkt ebenso praktisch nur
+   *  oberhalb des `collapseBelow`-Haltepunkts. */
+  pinLastChild?: boolean
   /** Umbruch bei fehlendem Platz (Standard true). */
   wrap?: boolean
   /** Haltepunkt, unterhalb dessen Cluster von einer horizontalen Zeile auf eine gestapelte Spalte
@@ -140,6 +148,7 @@ export function Cluster({
   justify = 'start',
   justifyBelowMd,
   growFirstChild,
+  pinLastChild,
   wrap = true,
   collapseBelow,
   gapCollapsed,
@@ -165,7 +174,12 @@ export function Cluster({
       <Component
         {...props}
         style={mergedStyle}
-        className={classNames(styles.cluster, growFirstChild && styles.clusterGrowFirstChild, className)}
+        className={classNames(
+          styles.cluster,
+          growFirstChild && styles.clusterGrowFirstChild,
+          pinLastChild && styles.clusterPinLastChild,
+          className,
+        )}
       >
         {children}
       </Component>
@@ -196,6 +210,7 @@ export function Cluster({
           styles.cluster,
           collapseBelow === 'md' && styles.collapsibleMd,
           growFirstChild && styles.clusterGrowFirstChild,
+          pinLastChild && styles.clusterPinLastChild,
           float === 'controlBand' && styles.floatControlBand,
         )}
       >

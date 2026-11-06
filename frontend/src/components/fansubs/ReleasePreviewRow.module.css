@@ -11,9 +11,9 @@
  * identisches Muster wie AnimeDetailHero.tsxs .titleRow.
  */
 
-.body {
-  min-width: 0;
-}
+/* .body trägt kein eigenes Layout-CSS mehr: das Wachsen auf den nach dem Button verbleibenden
+   Platz (Zeilen-Zustand) kommt aus dem äußeren Clusters growFirstChild-Prop (siehe
+   ReleasePreviewRow.tsx), min-width:0 ist darin bereits enthalten. */
 
 /* Avatar liefert Fläche/Größe bereits selbst -- hier bleibt nur die Garantie, dass die
    Avatar-Spalte beim Schrumpfen der Zeile nicht komprimiert wird (Cluster selbst setzt kein
@@ -55,25 +55,8 @@
  * zurück -- keine sichtbare Änderung, nur toter Code entfernt.
  */
 
-/*
- * .action trägt seit dem Wechsel auf Buttons fullWidthBelowMd-Prop nur noch zwei Flex-ITEM-
- * Eigenschaften im Zeilen-Zustand (ab 768px): `flex-shrink:0` verhindert, dass die Aktionsspalte
- * neben der breiteren Textspalte komprimiert wird; `align-self:center` hält den Button auf
- * seiner eigenen, von Buttons min-height bestimmten Standardhöhe (das äußere Clusters
- * align="stretch" würde ihn sonst auf die volle, durch die mehrzeilige Textspalte vorgegebene
- * Zeilenhöhe strecken, da align auf BEIDEN Achsen wirkt -- gestapelt auf die Breite, in der
- * Zeile auf die Höhe). Die eigentliche Breitenentscheidung liegt vollständig in Buttons eigener
- * fullWidthBelowMd-Prop (gestapelt: volle Breite) bzw. dessen natürlicher Inhaltsbreite
- * (Zeilen-Zustand), nicht mehr in dieser Komposit-Datei.
- */
-@media (min-width: 768px) {
-  .body {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .action {
-    flex-shrink: 0;
-    align-self: center;
-  }
-}
+/* .action trägt kein eigenes Layout-CSS mehr: das Nicht-Schrumpfen und die eigene Höhe statt
+   Streckung (Zeilen-Zustand) kommen aus dem äußeren Clusters pinLastChild-Prop (siehe
+   ReleasePreviewRow.tsx). Die Breitenentscheidung liegt weiterhin vollständig in Buttons
+   eigener fullWidthBelowMd-Prop (gestapelt: volle Breite, Zeilen-Zustand: natürliche
+   Inhaltsbreite). */
