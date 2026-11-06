@@ -372,6 +372,15 @@ Live im Browser geprüft: App `/anime/13` Desktop 1440px (Poster-/Infokarte ende
 Keine Konsolenfehler. Dieselbe bindende Scope-Einschränkung wie in den vorherigen Nachträgen gilt
 auch hier: keine neuen Tests/Testsuiten vor der Live-Abnahme.
 
+**Runde 2 (unabhängige Sichtprüfung vor dem Review):** `Cluster.shrink`, `Text.strong`/`tracking`
+und `SplitLayout`s Spalten-Höhenweitergabe hatten noch keine eigene Story -- drei neue Stories
+ergänzt, dabei einen eigenen Fehler im ersten `SplitLayout`-Story-Entwurf gefunden (Demo-Container
+700px lag unterhalb von `SplitLayout`s 768px-Haltepunkt) und auf 900px korrigiert. Alle betroffenen
+App-Seiten (`/anime`, `/anime/13` inkl. Episode-Aufklappen/Fansub-Filter/„Zum Release"-Button/
+Randnavigations-Hover, `/archiv`, `/members/ranking`) und Storybook-Stories erneut durchgeklickt,
+Desktop + Mobil, keine Konsolenfehler, keine fehlgeschlagenen Netzwerkanfragen. Details siehe
+`sichtpruefung.md` im ki-run-Auftragsverzeichnis.
+
 ---
 
 *Verified: 2026-11-05*

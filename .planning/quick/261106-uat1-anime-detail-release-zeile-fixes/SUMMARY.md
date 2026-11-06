@@ -128,3 +128,28 @@ Höhenquelle UND der Höhenempfänger seines eigenen Vorfahren sein). Live in St
 (leere Vorschau trotz korrektem DOM-Inhalt laut `innerText`) und sofort auf das korrekte,
 geschwister-basierte Muster umgestellt (identisch zu `ReleasePreviewRow.stories.tsx`s bereits
 funktionierendem Decorator).
+
+## Runde 2 (unabhängige Sichtprüfung vor dem Review)
+
+Beim systematischen Durchklicken aller betroffenen Seiten/Stories vor dem unabhängigen Review
+festgestellt: Drei der oben eingeführten/erweiterten Grundbaustein-Fähigkeiten
+(`Cluster.shrink`, `Text.strong`/`tracking`, `SplitLayout`s interne Spalten-Höhenweitergabe) hatten
+keine eigene Storybook-Story -- Verstoß gegen die Pflichtregel "Stories ziehen mit". Drei neue
+Stories ergänzt: `Cluster.stories.tsx` → "Nicht schrumpfende Avatar-Gruppe (shrink={false})"
+(Avatar-Gruppe neben einer erzwungen schrumpfenden Textspalte), `Text.stories.tsx` → "Hervorgehoben"
+(`variant="strong"`) und "Gespreiztes Label (tracking=\"wide\")", `SplitLayout.stories.tsx` →
+"Gestreckte Spaltenhöhe (align=\"stretch\")" (kurze/lange Spalte nebeneinander).
+
+Beim ersten Entwurf der `SplitLayout`-Story ein eigener Fehler gefunden: der Demo-Container war mit
+700px schmaler als `SplitLayout`s eigener 768px-Container-Query-Haltepunkt, die Spalten stapelten
+sich dadurch statt die zu demonstrierende Höhenangleichung nebeneinander zu zeigen -- auf 900px
+korrigiert, live erneut bestätigt (beide Spalten jetzt nebeneinander, kurze Spalte streckt sich auf
+die Höhe der langen).
+
+Live in Storybook geprüft (Desktop 1000px + Mobil 390px, alle drei neuen Stories sowie
+Regressionschecks von `BannerSection` "Standard" und `Grundlagen/Effekte`): keine Konsolenfehler.
+Zusätzlich alle betroffenen App-Seiten erneut durchgeklickt (`/anime`, `/anime/13` inkl.
+Episode-Aufklappen/Fansub-Filter/„Zum Release"-Button/Randnavigations-Hover, `/archiv`,
+`/members/ranking`, Desktop 1440px + Mobil 390px) -- alle weiterhin korrekt, keine Konsolenfehler,
+keine fehlgeschlagenen Netzwerkanfragen. `npx tsc --noEmit`/`eslint` fehlerfrei. Details siehe
+`sichtpruefung.md` im Auftragsverzeichnis.
