@@ -1,0 +1,24 @@
+/**
+ * Reines Seiten-Layout für die Kategorie "Bilder/*" -- bewusst ohne jede Rahmen-, Rundungs-,
+ * Schatten- oder Flächenfarb-/Verlaufs-Regel auf .image oder .figure: genau diese Gestaltung
+ * soll die Kategorie vermeiden, da sie das unveränderte Rohbild zeigen will.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.figure {
+  margin: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.image {
+  display: block;
+  max-width: 320px;
+  height: auto;
+}
