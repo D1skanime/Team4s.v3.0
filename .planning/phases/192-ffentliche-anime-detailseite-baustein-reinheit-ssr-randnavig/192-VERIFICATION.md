@@ -312,6 +312,22 @@ Browser bei `390x844` und `1440x900` auf `/anime/8` und `/anime/13` sowie in Sto
 einzeilig wie zuvor. Dieselbe bindende Scope-Einschränkung wie im vorherigen Nachtrag gilt auch
 hier: keine neuen Tests/Testsuiten vor der Live-Abnahme.
 
+## Nachtrag: Quick-Aufgabe 261105-cr2 (zwei offene Codex-Review-Befunde aus der Live-Abnahme)
+
+Der Mensch meldete bei der Live-Abnahme zwei weitere, vom unabhängigen Review genannte Befunde
+zurück: `ReleasePreviewRow.module.css` hatte noch eigenes Streck-/Ausrichtungs-CSS
+(`.body`/`.action`), und `EffectsShowcase.tsx`s Vorher/Nachher-Vorschauen zeigten bei vier von
+fünf Beispielen keine farbigen Bildpaare (das Vorher-Bild lief bereits durch `BannerSection`s
+eigene Unschärfe-/Abdunklungs-Wirkung). Behoben durch eine neue, zu `growFirstChild` symmetrische
+`Cluster`-Prop `pinLastChild` sowie eine neue lokale Showcase-Hilfskomponente
+`PlainImageBackground` -- siehe
+[261105-cr2-SUMMARY.md](../../quick/261105-cr2-release-zeile-effekte-vorschau/SUMMARY.md).
+
+Live im Browser bei Desktop (1440px) und Mobil (390px) geprüft, App (`/anime/8`, `/anime/13`) und
+Storybook (`Release-Versionszeile`, `Grundlagen/Effekte`): beide Befunde bestätigt behoben, keine
+Konsolenfehler. Dieselbe bindende Scope-Einschränkung wie in den vorherigen Nachträgen gilt auch
+hier: keine neuen Tests/Testsuiten vor der Live-Abnahme.
+
 ---
 
 *Verified: 2026-11-05*
