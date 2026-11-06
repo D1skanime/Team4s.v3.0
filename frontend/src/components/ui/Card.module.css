@@ -1,3 +1,24 @@
+/* Die drei generischen Override-Hooks werden hier bewusst als NICHT vererbbare Custom Properties
+   registriert (inherits: false): ohne diese Registrierung vererben sich CSS-Variablen normal an
+   Nachfahren im DOM -- eine verschachtelte Karte ohne eigenen Override (z. B. EpisodeGlassCard in
+   .cardGlass innerhalb einer .cardPublicSection mit gesetztem --card-padding-override) las sonst
+   den Innenabstand der äusseren Karte mit und wurde dadurch sichtbar zu dick. Mit `syntax: "*"`
+   gilt ein gesetzter Override-Wert nur fuer genau die Karte, die ihn selbst traegt. */
+@property --card-padding-override {
+  syntax: "*";
+  inherits: false;
+}
+
+@property --card-radius-override {
+  syntax: "*";
+  inherits: false;
+}
+
+@property --card-width-override {
+  syntax: "*";
+  inherits: false;
+}
+
 .card {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
