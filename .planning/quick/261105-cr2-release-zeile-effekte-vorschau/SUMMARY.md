@@ -50,6 +50,13 @@ selbst den Unterschied ausmacht. Eintrag 1 (demonstriert BannerSection selbst) u
   `BannerSection` zu `PlainImageBackground`.
 - `docs/FRONTEND_ARCHITEKTUR.md`: `pinLastChild` im bestehenden Cluster-Absatz dokumentiert.
 
+**Runde 2 (unabhängige Sichtprüfung vor dem Review):** `frontend/src/components/ui/Cluster.stories.tsx`
+bekam eine neue Story `WachsendeTextspalteMitFixierterAktion` -- weder `growFirstChild` noch die
+neue `pinLastChild`-Prop hatten zuvor eine eigene Story, ein Verstoß gegen die Pflichtregel
+"Stories ziehen mit". Die neue Story demonstriert beide Props zusammen anhand des echten
+`ReleasePreviewRow`-Anwendungsfalls (mehrzeilige Textspalte wächst, Aktion bleibt auf eigener
+Höhe).
+
 ## Live-Sichtprüfung
 
 **Befund 1:**
@@ -83,4 +90,6 @@ Keine Tests, Testsuiten oder Layout-Purity-Guard-Änderungen wurden hinzugefügt
 
 ## Abweichungen
 
-Keine gegenüber dem Plan.
+Runde 2 (Cluster-Story für `growFirstChild`/`pinLastChild`) war nicht im ursprünglichen Plan
+vorgesehen -- gefunden bei der unabhängigen Sichtprüfung vor dem Review als Verstoß gegen die
+Pflichtregel "Stories ziehen mit" und im selben Durchgang behoben.
