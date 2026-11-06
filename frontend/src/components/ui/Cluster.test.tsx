@@ -84,6 +84,34 @@ describe('Cluster', () => {
     expect(node.textContent).toBe('Inhalt')
   })
 
+  describe('shrink (Nicht-Schrumpfen des Clusters selbst als Flex-Kind)', () => {
+    it('setzt ohne shrink-Angabe (Standard true) keine clusterNoShrink-Klasse', () => {
+      const { container } = render(<Cluster>Inhalt</Cluster>)
+      const node = container.firstElementChild as HTMLElement
+      expect(node.className).not.toMatch(/clusterNoShrink/)
+    })
+
+    it('setzt shrink={false} die clusterNoShrink-Klasse auf das einzelstufige Wurzelelement', () => {
+      const { container } = render(<Cluster shrink={false}>Inhalt</Cluster>)
+      const node = container.firstElementChild as HTMLElement
+      expect(node.className).toMatch(/clusterNoShrink/)
+    })
+
+    it('setzt shrink={false} im Zweistufen-Pfad (collapseBelow/float gesetzt) auf das AEUSSERE Wurzelelement, nicht auf das innere Flex-Kind', () => {
+      const { container } = render(
+        <Cluster collapseBelow="md" shrink={false}>
+          Inhalt
+        </Cluster>,
+      )
+      const outer = container.firstElementChild as HTMLElement
+      expect(outer.className).toMatch(/clusterQueryContainer/)
+      expect(outer.className).toMatch(/clusterNoShrink/)
+
+      const inner = outer.firstElementChild as HTMLElement
+      expect(inner.className).not.toMatch(/clusterNoShrink/)
+    })
+  })
+
   describe('collapseBelow/gapCollapsed (Haltepunkt-Umkehr)', () => {
     it('rendert einen zweistufigen Container-Query-Wrapper, wenn collapseBelow gesetzt ist', () => {
       const { container } = render(

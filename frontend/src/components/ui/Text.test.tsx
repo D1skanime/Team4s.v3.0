@@ -55,4 +55,24 @@ describe('Text', () => {
     expect(element.tagName).toBe('SPAN')
     expect(element.className).toMatch(/textSmall/)
   })
+
+  it('rendert variant="strong" mit der textStrong-Klasse statt der body-Klasse', () => {
+    const { container } = render(<Text variant="strong">Gruppenname</Text>)
+    const element = container.firstElementChild as HTMLElement
+    expect(element.className).toMatch(/textStrong/)
+    expect(element.className).not.toMatch(/textBody/)
+  })
+
+  it('setzt ohne tracking-Angabe (Standard "normal") keine textTrackingWide-Klasse', () => {
+    const { container } = render(<Text>Fließtext</Text>)
+    const element = container.firstElementChild as HTMLElement
+    expect(element.className).not.toMatch(/textTrackingWide/)
+  })
+
+  it('setzt tracking="wide" zusätzlich zur gewählten variant, unabhängig von tone', () => {
+    const { container } = render(<Text as="span" variant="strong" tracking="wide">COOP</Text>)
+    const element = container.firstElementChild as HTMLElement
+    expect(element.className).toMatch(/textStrong/)
+    expect(element.className).toMatch(/textTrackingWide/)
+  })
 })

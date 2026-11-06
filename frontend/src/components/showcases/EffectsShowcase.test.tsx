@@ -43,11 +43,16 @@ describe('EffectsShowcase', () => {
     }
   })
 
-  it('rendert jedes der fünf Beispiele als Vorher/Nachher-Paar über dem echten Beispielbild, nicht über einer CSS-Nachbildung', () => {
+  it('rendert jedes der fünf Beispiele als Vorher/Nachher-Paar über einem echten Beispielbild, nicht über einer CSS-Nachbildung', () => {
     const { container } = render(<EffectsShowcase />)
-    const fixtureImages = container.querySelectorAll('img[alt="Beispielbild für die Effekt-Vorschau"]')
-    // Jedes der 5 Beispiele zeigt zwei Bild-Instanzen (Vorher + Nachher) desselben Fixture-Bilds.
-    expect(fixtureImages.length).toBe(10)
+    // Vier der fünf Beispiele (Glas-Chip/Scrim-Chip/Glas-Knopf/Abzeichen) teilen sich das
+    // allgemeine Fixture-Bild -- je zwei Bild-Instanzen (Vorher + Nachher) pro Beispiel.
+    const sharedFixtureImages = container.querySelectorAll('img[alt="Beispielbild für die Effekt-Vorschau"]')
+    expect(sharedFixtureImages.length).toBe(8)
+    // Der Banner-Eintrag nutzt ein eigenes, kontrastreicheres Bannerfoto-Fixture (siehe nächster
+    // Test) -- ebenfalls als Vorher/Nachher-Paar, zwei Bild-Instanzen.
+    const bannerFixtureImages = container.querySelectorAll('img[alt="Beispiel-Bannerfoto für die Unschärfe-Vorschau"]')
+    expect(bannerFixtureImages.length).toBe(2)
 
     expect(screen.getAllByText('Ohne Effekt').length).toBe(5)
     expect(screen.getAllByText('Mit Effekt').length).toBe(5)
@@ -60,6 +65,19 @@ describe('EffectsShowcase', () => {
       const src = img.getAttribute('src') ?? ''
       expect(src).toContain('cover_1775167905284')
       expect(src).not.toContain('placeholder.jpg')
+    }
+  })
+
+  it('verwendet für den Banner-Eintrag ein eigenes, kontrastreicheres Fixture-Bild statt des engen Hochformat-Coverbilds der übrigen vier Beispiele', () => {
+    const { container } = render(<EffectsShowcase />)
+    const bannerFixtureImages = container.querySelectorAll('img[alt="Beispiel-Bannerfoto für die Unschärfe-Vorschau"]')
+    expect(bannerFixtureImages.length).toBe(2)
+    for (const img of Array.from(bannerFixtureImages)) {
+      const src = img.getAttribute('src') ?? ''
+      // Dieselbe Datei, die FansubHeroSection.stories.tsx bereits als banner_url-Fixture nutzt --
+      // nicht das enge Hochformat-Coverbild der übrigen vier Beispiele.
+      expect(src).toContain('cover_1775164698913')
+      expect(src).not.toContain('cover_1775167905284')
     }
   })
 

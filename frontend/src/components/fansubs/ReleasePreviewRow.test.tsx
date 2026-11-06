@@ -154,3 +154,47 @@ describe('ReleasePreviewRow -- Avatar-Rand über bordered-Prop statt lokaler CSS
     expect(css).not.toMatch(/border\s*:/)
   })
 })
+
+/*
+ * Gruppenname-Hervorhebung, COOP-Zeichenspreizung und das Nicht-Schrumpfen der Avatar-Gruppe
+ * kamen vormals aus lokalem CSS (.logos{flex-shrink:0}, .groupName/.coopLabel{font-weight/
+ * letter-spacing}) -- jetzt aus den globalen Baustein-Faehigkeiten Cluster.shrink und
+ * Text.variant="strong"/tracking="wide". ReleasePreviewRow.module.css enthaelt dafuer keine
+ * eigene Regel mehr (siehe Test oben).
+ */
+describe('ReleasePreviewRow -- Gruppenname/COOP/Avatar-Gruppe über globale Baustein-Fähigkeiten statt lokalem CSS', () => {
+  it('rendert den Gruppennamen-Absatz mit Text variant="strong" (textStrong-Klasse)', () => {
+    const version = buildVersion()
+    render(<ReleasePreviewRow version={version} animeID={1} />)
+
+    const groupName = screen.getByText('Demo Fansub-Gruppe', { selector: 'p' })
+    expect(groupName.className).toMatch(/textStrong/)
+  })
+
+  it('rendert das COOP-Label mit Text tracking="wide" (textTrackingWide-Klasse) statt eigener letter-spacing-Regel', () => {
+    const version = buildVersion({
+      fansub_groups: [
+        { id: 1, slug: 'demo-fansub-gruppe', name: 'Demo Fansub-Gruppe' },
+        { id: 2, slug: 'zweite-gruppe', name: 'Zweite Gruppe' },
+      ],
+    })
+    render(<ReleasePreviewRow version={version} animeID={1} />)
+
+    const coopLabel = screen.getByText('COOP')
+    expect(coopLabel.className).toMatch(/textTrackingWide/)
+  })
+
+  it('rendert die Avatar-Gruppe (Koop-Fall) mit Clusters shrink={false} (clusterNoShrink-Klasse) statt eigenem flex-shrink', () => {
+    const version = buildVersion({
+      fansub_groups: [
+        { id: 1, slug: 'demo-fansub-gruppe', name: 'Demo Fansub-Gruppe' },
+        { id: 2, slug: 'zweite-gruppe', name: 'Zweite Gruppe' },
+      ],
+    })
+    const { container } = render(<ReleasePreviewRow version={version} animeID={1} />)
+
+    const avatarGroup = container.querySelector('[class*="clusterNoShrink"]')
+    expect(avatarGroup).not.toBeNull()
+    expect(avatarGroup?.querySelectorAll('span[title]')).toHaveLength(2)
+  })
+})

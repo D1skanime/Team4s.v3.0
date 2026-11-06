@@ -102,6 +102,15 @@ describe('Card.module.css', () => {
     expect(mobileRule).toMatch(/--text-eyebrow-color:\s*var\(--scrim-icon\);/)
   })
 
+  it('cardPublicHeroInfo zeroed die Rahmenbreite statt nur die -farbe, damit der Verlaufshintergrund nicht per background-repeat in eine verbleibende Randflaeche hineinwiederholt', () => {
+    const match = css.match(/\.cardPublicHeroInfo\s*\{([^}]+)\}/)
+    expect(match, '.cardPublicHeroInfo muss existieren').toBeTruthy()
+    const rule = match![1]
+    expect(rule).toMatch(/border-width:\s*0;/)
+    expect(rule).not.toMatch(/border-color:\s*transparent;/)
+    expect(rule).not.toMatch(/border-top-color:\s*transparent;/)
+  })
+
   it('cardSeamless zeroed Rahmenbreite/-radius/Hintergrund und steht NACH .cardFlat/.cardNested/.cardNestedFlat, damit es bei gleicher Spezifitaet gewinnt', () => {
     const seamlessMatch = css.match(/\.cardSeamless\s*\{([^}]+)\}/)
     expect(seamlessMatch, '.cardSeamless muss existieren').toBeTruthy()

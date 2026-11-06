@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import fs from 'node:fs'
+import path from 'node:path'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -52,5 +54,29 @@ describe('SplitLayout', () => {
   it('setzt --split-align immer, mit dem dokumentierten Standardwert "start"', () => {
     const { container } = render(<SplitLayout firstColumn={<span>A</span>} secondColumn={<span>B</span>} />)
     expect((container.firstChild as HTMLElement).style.getPropertyValue('--split-align')).toBe('start')
+  })
+})
+
+/*
+ * jsdom berechnet kein echtes Pixel-Layout -- ob firstColumn/secondColumn ihr jeweils einziges
+ * Kind tatsaechlich auf die per align="stretch" ausgeglichene Spaltenhoehe strecken, laesst sich
+ * deshalb nur ueber die zugrunde liegende CSS-Regel selbst pruefen (identisches Muster wie die
+ * Cluster.module.css/BannerSection.module.css-Deklarations-Tests in diesem Projekt), nicht ueber
+ * eine Render-Assertion.
+ */
+describe('SplitLayout.module.css (Spalten-Hoehenweitergabe)', () => {
+  const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/ui/SplitLayout.module.css'), 'utf8')
+
+  it('firstColumn/secondColumn sind display:flex;flex-direction:column, damit sie ihre eigene Hoehe an ihr jeweils einziges Kind weiterreichen', () => {
+    const rule = css.match(/\.firstColumn,\s*\n\.secondColumn\s*\{([^}]+)\}/)?.[1]
+    expect(rule, '.firstColumn,.secondColumn rule must exist').toBeTruthy()
+    expect(rule).toMatch(/display:\s*flex;/)
+    expect(rule).toMatch(/flex-direction:\s*column;/)
+  })
+
+  it('das jeweils einzige Kind von firstColumn/secondColumn bekommt flex:1, um die Spaltenhoehe tatsaechlich auszufuellen', () => {
+    const rule = css.match(/\.firstColumn\s*>\s*\*,\s*\n\.secondColumn\s*>\s*\*\s*\{([^}]+)\}/)?.[1]
+    expect(rule, '.firstColumn > *,.secondColumn > * rule must exist').toBeTruthy()
+    expect(rule).toMatch(/flex:\s*1;/)
   })
 })
