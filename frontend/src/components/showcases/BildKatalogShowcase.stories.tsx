@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { ANIME_COVER_BILD } from '@/lib/storybookBildKatalog'
 
+import { BildKatalogDocsPage } from './BildKatalogShowcase.docsPage'
 import { BildKatalogShowcase } from './BildKatalogShowcase'
 
 /**
@@ -16,6 +17,12 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     eintrag: { table: { disable: true } },
+  },
+  parameters: {
+    docs: {
+      page: BildKatalogDocsPage,
+      canvas: { sourceState: 'none' },
+    },
   },
 } satisfies Meta<typeof BildKatalogShowcase>
 
