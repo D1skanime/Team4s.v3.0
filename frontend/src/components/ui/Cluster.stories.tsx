@@ -1,8 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 import type { ReactNode } from 'react'
 
+import { ANIME_COVER_BILD, ANIME_HINTERGRUND_BILD } from '@/lib/storybookBildKatalog'
+
 import { Button } from './Button'
 import { Cluster } from './Cluster'
+import { ResponsiveImage } from './ResponsiveImage'
 
 /** Horizontale Anordnung mit Umbruch und token-basiertem Abstand -- der generische Grundbaustein
  *  für jede Chip-/Badge-/Logo-Reihe. Setzt selbst keine Fläche/Farbe/Rundung. */
@@ -272,7 +275,7 @@ export const BildMitBildunterschrift: Story = {
     wrap: false,
     children: (
       <>
-        <span style={{ width: 48, height: 68, background: '#555', borderRadius: 4, flexShrink: 0 }} />
+        <ResponsiveImage src={ANIME_COVER_BILD.pfad} alt={ANIME_COVER_BILD.altText} width={48} height={68} roundedThumbnail />
         <Chip label="Titel und Typ des Vorschaubilds" />
       </>
     ),
@@ -349,12 +352,20 @@ export const HaltepunktUmkehr: Story = {
 
 /* Gemeinsamer Rahmen-Baustein fuer beide Haltepunkt-Varianten unten: das schwebende Band
    positioniert sich relativ zu seinem positionierten Vorfahren, dieser Rahmen stellt genau das
-   bereit. Als JSX-Komponente statt eines generisch typisierten Dekorators, da Storybooks
-   DecoratorFunction-Typ keinen eigenstaendigen Funktionswert ausserhalb eines Dekorator-Arrays
-   erlaubt. */
+   bereit. Das echte Freezing-Hintergrundbild liegt bildfüllend als Bühne hinter dem Band, damit
+   sichtbar wird, ob die Leiste auch auf einem echten Hintergrundbild lesbar bleibt, statt nur auf
+   einer grauen Platzhalterfläche. Als JSX-Komponente statt eines generisch typisierten
+   Dekorators, da Storybooks DecoratorFunction-Typ keinen eigenstaendigen Funktionswert
+   ausserhalb eines Dekorator-Arrays erlaubt. */
 function FloatDemoFrame({ children }: { children: ReactNode }) {
   return (
-    <div style={{ position: 'relative', border: '1px dashed #999', padding: '48px 8px 8px', width: '100%', maxWidth: 900, minHeight: 80, background: '#2228' }}>
+    <div style={{ position: 'relative', padding: '48px 8px 8px', width: '100%', maxWidth: 900, minHeight: 80, overflow: 'hidden' }}>
+      <ResponsiveImage
+        src={ANIME_HINTERGRUND_BILD.pfad}
+        alt={ANIME_HINTERGRUND_BILD.altText}
+        fill
+        style={{ objectFit: 'cover' }}
+      />
       {children}
     </div>
   )
@@ -381,7 +392,8 @@ const schwebeOverlayDescription =
   'Container-Abfrage laut Spezifikation nie das eigene Container-Wurzelelement selbst umordnen darf, dieses ' +
   'Wurzelelement hier aber genau dasjenige ist, das verschwinden/erscheinen muss. Der Container selbst blockiert ' +
   'keine Klicks auf darunterliegenden Inhalt (`pointer-events:none`), nur die beiden Chips selbst bleiben ' +
-  'anklickbar (`pointer-events:auto`).'
+  'anklickbar (`pointer-events:auto`). Die Bühne zeigt dafür das echte Freezing-Hintergrundbild statt einer ' +
+  'grauen Platzhalterfläche, damit sich die Lesbarkeit des Bands auf einem echten Bild beurteilen lässt.'
 
 export const SchwebeOverlayModusDesktop: Story = {
   name: 'Schwebe-Overlay-Modus Desktop (float="controlBand")',
