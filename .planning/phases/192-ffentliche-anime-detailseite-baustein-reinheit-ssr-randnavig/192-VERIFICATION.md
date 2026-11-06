@@ -328,6 +328,29 @@ Storybook (`Release-Versionszeile`, `Grundlagen/Effekte`): beide Befunde bestät
 Konsolenfehler. Dieselbe bindende Scope-Einschränkung wie in den vorherigen Nachträgen gilt auch
 hier: keine neuen Tests/Testsuiten vor der Live-Abnahme.
 
+## Nachtrag: Quick-Aufgabe 261105-bnr (unabhängiger Codex-Review-Befund, Runde 1 von 1)
+
+Der unabhängige Review meldete einen weiteren Befund zu `EffectsShowcase.tsx:107`: Die
+"Mit Effekt"-Hälfte des Banner-Eintrags zeigte weiterhin keine erkennbare Farbvariation, nur eine
+graubraune Fläche. Der Befund war in der Sache korrekt (eine Zahlendetail-Korrektur: der
+behauptete `220px`-Rahmen ist tatsächlich `455px` breit, ändert aber nichts an der Gültigkeit des
+Kernbefunds). Zwei Ursachen gefunden und behoben: (1) zu schmaler Vorschau-Rahmen -- neues lokales
+`EffectEntry.layout?: 'row' | 'stacked'`-Feld, Banner-Eintrag stapelt Vorher/Nachher jetzt
+untereinander auf voller Kartenbreite; (2) das bisherige Fixture-Bild war ein enges
+Hochformat-Coverbild, das im breiten Banner-Rahmen per `object-fit: cover` zu stark hineingezoomt
+wurde -- eine neue, auf den Banner-Eintrag beschränkte Konstante `BANNER_FIXTURE_IMAGE`
+(wiederverwendet aus `FansubHeroSection.stories.tsx`, derselben Komponente, deren Unschärfe/Scrim-
+Rezeptur `BannerSection`s Standardvariante übernimmt) löst das. Siehe
+[261105-bnr-SUMMARY.md](../../quick/261105-bnr-banner-effektvorschau-erkennbar/SUMMARY.md).
+
+Live im Browser bei Desktop (1000px) und Mobil (390px) in Storybook (`Grundlagen/Effekte`) sowie
+zur Gegenprobe auf der echten Produktionsseite `/anime/8` geprüft: Banner-Eintrag zeigt jetzt klar
+unterscheidbare Farbregionen statt einer einfarbigen Fläche, keine Konsolenfehler. Dieselbe
+bindende Scope-Einschränkung wie in den vorherigen Nachträgen gilt auch hier: keine neuen
+Tests/Testsuiten vor der Live-Abnahme -- `EffectsShowcase.test.tsx`s Bildanzahl-/Quell-Assertionen
+sind durch den Fixture-Split bewusst nicht nachgezogen, der nächste Volltest nach der Live-Abnahme
+deckt das auf.
+
 ---
 
 *Verified: 2026-11-05*
