@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Check } from 'lucide-react'
 
 import { storybookDocsLink } from '@/lib/storybookLinks'
+import { ANIME_BANNER_BILD, ANIME_COVER_BILD } from '@/lib/storybookBildKatalog'
 
 import { Badge } from './Badge'
 import { Button } from './Button'
@@ -50,8 +51,22 @@ type Story = StoryObj<typeof meta>
 
 export const Standard: Story = {
   args: {
-    // Lokales Platzhalterbild statt externer Bildquelle.
-    imageUrl: '/covers/placeholder.jpg',
+    // Wie bei ProjectMemberHero: Banner als Hauptbild, Cover als Ersatzbild.
+    imageUrl: ANIME_BANNER_BILD.pfad,
+    fallbackImageUrl: ANIME_COVER_BILD.pfad,
+  },
+}
+
+export const Ersatzbild: Story = {
+  name: 'Ersatzbild (Cover)',
+  args: {
+    imageUrl: null,
+    fallbackImageUrl: ANIME_COVER_BILD.pfad,
+  },
+  parameters: {
+    docs: {
+      description: { story: 'Gruppe ohne Banner-Bild: Das Cover-Bild springt als Ersatz ein.' },
+    },
   },
 }
 
