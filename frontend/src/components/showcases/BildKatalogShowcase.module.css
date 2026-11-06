@@ -16,3 +16,23 @@
   max-width: 320px;
   height: auto;
 }
+
+/*
+ * Für breitformatige Bildtypen (z. B. Banner): .figure wird dafür zu einem Block, der die
+ * volle Breite des Storybook-Bereichs einnimmt, damit die Breitenangabe auf .imageVollbreite
+ * einen festen Bezugsrahmen hat -- das Bild skaliert dadurch über die volle Breite, bleibt
+ * aber durch height:auto im Seitenverhältnis unverändert und wird nicht beschnitten.
+ */
+.figureVollbreite {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.imageVollbreite {
+  max-width: 100%;
+  width: 100%;
+}
