@@ -24,6 +24,13 @@ export interface StorybookBildEintrag {
    * Bildtypen wie Banner, deren Seitenverhältnis bei fester Höchstbreite unnötig klein wirkt.
    */
   vollbreite?: boolean
+  /**
+   * Name des konkreten Anime, von dem dieses Beispielbild stammt -- nur gesetzt, wenn ein
+   * Bildtyp (z. B. Anime-Banner) mehrere Beispielbilder verschiedener Anime im Katalog hat,
+   * damit eine Galerie-Story die Bilder zusätzlich zur Typbezeichnung unterscheidbar
+   * beschriften kann.
+   */
+  animeName?: string
 }
 
 /**
@@ -50,7 +57,61 @@ export const ANIME_BANNER_BILD: StorybookBildEintrag = {
   pfad: '/storybook-bilder/anime-banner-freezing.jpg',
   altText: 'Banner des Anime Freezing',
   vollbreite: true,
+  animeName: 'Freezing',
 }
+
+/**
+ * Das Banner-Bild des Anime Naruto -- weiteres Beispielbild desselben Bildtyps wie
+ * {@link ANIME_BANNER_BILD}, damit die Banner-Galerie-Story mehrere echte Banner
+ * unterschiedlicher Seitenverhältnisse und Bildausschnitte nebeneinander zeigen kann.
+ */
+export const ANIME_BANNER_BILD_NARUTO: StorybookBildEintrag = {
+  id: 'anime-banner-naruto',
+  bezeichnung: 'Anime-Banner',
+  pfad: '/storybook-bilder/anime-banner-naruto.jpg',
+  altText: 'Banner des Anime Naruto',
+  vollbreite: true,
+  animeName: 'Naruto',
+}
+
+/**
+ * Das Banner-Bild des Anime Accel World: Infinite Burst -- weiteres Beispielbild desselben
+ * Bildtyps wie {@link ANIME_BANNER_BILD}.
+ */
+export const ANIME_BANNER_BILD_ACCEL_WORLD: StorybookBildEintrag = {
+  id: 'anime-banner-accel-world-infinite-burst',
+  bezeichnung: 'Anime-Banner',
+  pfad: '/storybook-bilder/anime-banner-accel-world-infinite-burst.jpg',
+  altText: 'Banner des Anime Accel World: Infinite Burst',
+  vollbreite: true,
+  animeName: 'Accel World: Infinite Burst',
+}
+
+/**
+ * Das Banner-Bild des Anime 11eyes -- weiteres Beispielbild desselben Bildtyps wie
+ * {@link ANIME_BANNER_BILD}.
+ */
+export const ANIME_BANNER_BILD_11EYES: StorybookBildEintrag = {
+  id: 'anime-banner-11eyes',
+  bezeichnung: 'Anime-Banner',
+  pfad: '/storybook-bilder/anime-banner-11eyes.jpg',
+  altText: 'Banner des Anime 11eyes',
+  vollbreite: true,
+  animeName: '11eyes',
+}
+
+/**
+ * Alle Anime-Banner-Beispielbilder im Katalog, Freezing zuerst (das ursprüngliche, bereits
+ * an anderer Stelle referenzierte Beispielbild) -- für Stories, die mehrere echte Banner
+ * gemeinsam zeigen wollen (Banner-Galerie, FocalCarousel-Demo mit echten Bildern statt
+ * Platzhaltern).
+ */
+export const ANIME_BANNER_BILDER: readonly StorybookBildEintrag[] = [
+  ANIME_BANNER_BILD,
+  ANIME_BANNER_BILD_NARUTO,
+  ANIME_BANNER_BILD_ACCEL_WORLD,
+  ANIME_BANNER_BILD_11EYES,
+]
 
 /**
  * Das Logo-Bild des Anime Freezing -- eine eigenständig in Team4S hochgeladene Datei
