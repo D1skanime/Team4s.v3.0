@@ -31,6 +31,15 @@
   text-transform: uppercase;
 }
 
+/* Hervorgehobenes Wort/Kurzbeschriftung in unveränderter Fließtext-Größe (z. B. ein Gruppenname
+   in einer Release-Zeile) -- dieselbe Größe/Farbe wie .textBody, nur fetter. */
+.textStrong {
+  margin: 0;
+  font-size: var(--text-body-size, var(--text-body-font-size));
+  color: var(--text-body-color, var(--text-body));
+  font-weight: 600;
+}
+
 /* Nach allen Variant-Klassen deklariert, damit sie deren jeweilige Farbe zuverlässig überschreibt
    (gleiche Spezifität wie jede einzelne Variant-Klasse, gewinnt über die Deklarationsreihenfolge
    in dieser Datei). Hält Text auf einem dunklen Hintergrund (z. B. ein Foto-Banner mit Scrim)
@@ -43,4 +52,10 @@
    damit der Fehler-Rotton deren jeweilige Farbe zuverlässig überschreibt. */
 .textToneError {
   color: var(--text-error);
+}
+
+/* tracking="wide" (siehe Text.tsx): leichte Zeichenspreizung für eine kurze Inline-
+   Zusatzbeschriftung neben Fließtext, unabhängig von der gewählten `variant`/`tone`. */
+.textTrackingWide {
+  letter-spacing: var(--text-tracking-wide, 0.04em);
 }

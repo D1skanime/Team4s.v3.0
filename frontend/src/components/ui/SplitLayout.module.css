@@ -19,9 +19,22 @@
   min-width: 0;
 }
 
+/* display:flex;flex-direction:column reicht die durch align="stretch" ausgeglichene
+   Spaltenhöhe (siehe .grid oben) an das jeweils einzige Kind weiter -- das äußere Grid stretcht
+   nur die Spalten-BOX selbst; ein normales Block-Kind würde ohne eigenen Höhenmechanismus
+   trotzdem bei seiner intrinsischen Inhaltshöhe bleiben. Spaltenbreite bleibt unverändert (Flex-
+   Querachse in Spaltenrichtung ist die Breite, Standard-align-items:stretch füllt sie wie zuvor
+   als Block-Element). */
 .firstColumn,
 .secondColumn {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.firstColumn > *,
+.secondColumn > * {
+  flex: 1;
 }
 
 /* firstColumnWidth="poster": SplitLayout kennt die Posterspalten-Breite des

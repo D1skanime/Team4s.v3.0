@@ -103,3 +103,11 @@
   flex-shrink: 0;
   align-self: center;
 }
+
+/* shrink={false}-Prop (siehe Cluster.tsx): verhindert, dass DIESER Cluster selbst als Flex-Kind
+   seines Elternelements komprimiert wird -- z. B. eine Avatar-Gruppe neben einer wachsenden
+   Textspalte, die bei knappem Platz ihre volle Breite behalten soll statt zusammengedrückt zu
+   werden. */
+.clusterNoShrink {
+  flex-shrink: 0;
+}

@@ -91,6 +91,13 @@ export interface ClusterProps extends HTMLAttributes<HTMLElement> {
   pinLastChild?: boolean
   /** Umbruch bei fehlendem Platz (Standard true). */
   wrap?: boolean
+  /** Schrumpfen DIESES Clusters selbst als Flex-Kind seines Elternelements (Standard true, der
+   *  normale Flexbox-Standard `flex-shrink:1`). `false` hält den Cluster auf seiner eigenen
+   *  Inhaltsbreite, auch wenn das Elternelement bei knappem Platz schrumpfen würde -- z. B. eine
+   *  Avatar-Gruppe, die trotz einer daneben wachsenden Textspalte ihre volle Breite behalten soll.
+   *  Eigenständig von `pinLastChild` (wirkt auf ein KIND dieses Clusters, nicht auf den Cluster
+   *  selbst als Kind seines Elternelements). */
+  shrink?: boolean
   /** Haltepunkt, unterhalb dessen Cluster von einer horizontalen Zeile auf eine gestapelte Spalte
    *  kippt (Haltepunkt-Umkehr) -- aktuell nur `'md'` (48rem/768px, derselbe Haltepunkt, den
    *  `SplitLayout` bereits verwendet), da bislang keine Aufrufstelle einen zweiten Wert braucht.
@@ -150,6 +157,7 @@ export function Cluster({
   growFirstChild,
   pinLastChild,
   wrap = true,
+  shrink = true,
   collapseBelow,
   gapCollapsed,
   float,
@@ -178,6 +186,7 @@ export function Cluster({
           styles.cluster,
           growFirstChild && styles.clusterGrowFirstChild,
           pinLastChild && styles.clusterPinLastChild,
+          shrink === false && styles.clusterNoShrink,
           className,
         )}
       >
@@ -197,6 +206,10 @@ export function Cluster({
         // unten -- siehe die ausführliche Begründung in der `float`-Prop-Doku oben (nur das
         // Wurzelelement selbst kann ein umgebendes Flex-/Grid-`gap` vollständig umgehen).
         float === 'controlBand' && styles.floatControlBandRoot,
+        // `shrink` betrifft, wie DIESER Cluster selbst als Flex-Kind seines Elternelements
+        // behandelt wird -- gehört deshalb auf das äußere Wurzelelement, nicht auf das innere
+        // Flex-Kind unten (dasselbe Prinzip wie bei `float` oben).
+        shrink === false && styles.clusterNoShrink,
         className,
       )}
     >

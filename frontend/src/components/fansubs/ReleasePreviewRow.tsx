@@ -50,11 +50,11 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
   // wiederverwendet, damit die fünf Textzeilen nur einmal geschrieben stehen.
   const textLines = (
     <Stack gap="relatedContent">
-      <Text tone="onScrim" className={styles.groupName}>
+      <Text variant="strong" tone="onScrim" className={styles.groupName}>
         {groupNameLine}
         {/* Reiner Text, kein Chip/Badge/Rahmen -- bleibt deshalb bewusst Text statt
             Badge. */}
-        {isCoop ? <Text as="span" style={mutedOnGlassTextStyle} className={styles.coopLabel}> COOP</Text> : null}
+        {isCoop ? <Text as="span" tracking="wide" style={mutedOnGlassTextStyle}> COOP</Text> : null}
       </Text>
       <Text style={mutedOnGlassTextStyle} className={styles.releaseName}>
         {resolveReleaseName(version)}
@@ -111,7 +111,7 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
                 automatisch ein Initialen-Kürzel statt -- wie bisher -- gar nichts zu rendern. Das
                 ist eine ausdrücklich gewollte Verhaltenserweiterung, kein reiner
                 Baustein-Tausch. */}
-            <Cluster gap="badgeRow" className={styles.logos}>
+            <Cluster gap="badgeRow" shrink={false}>
               {groups.map((group) => (
                 <Avatar
                   key={group.id}

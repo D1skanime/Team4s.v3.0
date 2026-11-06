@@ -211,8 +211,13 @@
      abweichenden Einzelwert erzwingen kann. */
   padding: var(--card-padding-override, var(--space-6));
   overflow: hidden;
-  border-color: transparent;
-  border-top-color: transparent;
+  /* border-width:0 statt der von .card geerbten (wenn auch transparenten) 1px-Standardrahmenbreite
+     -- ein transparenter Rand nimmt weiterhin 1px Fläche ein, in die der Verlaufshintergrund
+     (background-repeat:repeat, CSS-Standard) sein eigenes, fast opakes oberes Verlaufsende
+     hineinwiederholt. Dadurch erschien am unteren Kartenrand ein heller Strich (per Playwright-
+     Messung bestätigt). Komplett randlos reproduziert außerdem exakt die bisherige, randlose
+     öffentliche Info-Karte. */
+  border-width: 0;
   border-radius: var(--card-public-hero-info-radius);
   color: var(--card-public-hero-info-text);
   background: var(--card-public-hero-info-bg);

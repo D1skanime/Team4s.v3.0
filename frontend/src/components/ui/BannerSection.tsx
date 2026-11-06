@@ -19,6 +19,11 @@ export interface BannerSectionProps {
   withTextScrim?: boolean
   /** Abzeichen (z. B. ein Status-Badge) in einer eigenen Schicht über dem Scrim. */
   badge?: ReactNode
+  /** Streckt den Hintergrund-/Scrim-Bereich exakt auf die Höhe des positionierten Vorfahren
+   *  (CSS `inset:0`) statt der festen `--banner-height`/`--banner-height-mobile`-Werte der echten
+   *  Seiten-Hero-Sektion -- für Einsatzorte mit unbekannter, vom Inhalt abhängiger Höhe (z. B.
+   *  eine Storybook-Vorschau-Bühne hinter unterschiedlich hohem Beispielinhalt). */
+  fillHeight?: boolean
   /** Rendert IMMER, unabhängig von `imageUrl` -- z. B. `AnimeBackdropRotator` als eigenständiger
    *  Fachbaustein, der innerhalb dieses Abschnitts komponiert wird (kein Ersatz). */
   children?: ReactNode
@@ -40,11 +45,12 @@ export function BannerSection({
   variant = 'default',
   withTextScrim = false,
   badge,
+  fillHeight = false,
   children,
   className,
 }: BannerSectionProps) {
   return (
-    <div className={classNames(styles.bannerSection, className)}>
+    <div className={classNames(styles.bannerSection, fillHeight && styles.bannerSectionFillHeight, className)}>
       {imageUrl ? (
         <div className={classNames(styles.backdropWrapper, variant === 'anime' && styles.backdropWrapperAnime)} aria-hidden="true">
           <ResponsiveImage

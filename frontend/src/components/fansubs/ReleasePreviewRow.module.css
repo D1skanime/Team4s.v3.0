@@ -15,27 +15,22 @@
    Platz (Zeilen-Zustand) kommt aus dem äußeren Clusters growFirstChild-Prop (siehe
    ReleasePreviewRow.tsx), min-width:0 ist darin bereits enthalten. */
 
-/* Avatar liefert Fläche/Größe bereits selbst -- hier bleibt nur die Garantie, dass die
-   Avatar-Spalte beim Schrumpfen der Zeile nicht komprimiert wird (Cluster selbst setzt kein
-   `flex-shrink`). */
-.logos {
-  flex-shrink: 0;
-}
+/* .logos entfällt ersatzlos: die Avatar-Spalte nutzt jetzt Clusters eigene shrink={false}-Prop
+   statt einer lokalen flex-shrink-Deklaration -- Avatar liefert Fläche/Größe/Rand bereits selbst. */
 
 /* .logo entfällt ersatzlos: der dezente Rand "auf dunkler Fläche" kommt aus Avatars eigenem
    bordered-Prop statt einer lokalen border-Deklaration -- Avatar liefert Fläche/Initialen-
    Fallback/Rand vollständig selbst. */
 
+/* Nur noch das Umbruchverhalten bleibt lokal -- die Hervorhebung selbst kommt aus Text
+   variant="strong" (siehe ReleasePreviewRow.tsx). */
 .groupName {
-  font-weight: 600;
   word-break: break-word;
 }
 
-/* UI-SPEC decision 12: reiner Text, kein Chip/Badge/Rahmen. */
-.coopLabel {
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
+/* .coopLabel entfällt ersatzlos (UI-SPEC decision 12: reiner Text, kein Chip/Badge/Rahmen) --
+   Fettung erbt sich von der umschließenden variant="strong"-Textzeile, die Zeichenspreizung kommt
+   jetzt aus Text tracking="wide" (siehe ReleasePreviewRow.tsx). */
 
 .releaseName {
   display: block;

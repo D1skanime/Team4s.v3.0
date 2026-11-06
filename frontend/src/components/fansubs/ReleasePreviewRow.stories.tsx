@@ -53,9 +53,13 @@ const meta = {
     },
   },
   decorators: [
+    // fillHeight: die Zeile faellt je nach Story/Breite (Mobil gestapelt, "Mit allen Extras"
+    // mehrzeilig) unterschiedlich hoch aus -- die feste --banner-height/--banner-height-mobile
+    // der echten Seiten-Hero-Sektion wuerde die dunkle Buehne sonst zu frueh abschneiden und den
+    // unteren Teil der Zeile auf dem hellen Storybook-Hintergrund zeigen.
     (Story) => (
       <div style={{ position: 'relative', minHeight: 160, padding: 20 }}>
-        <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund" withTextScrim />
+        <BannerSection imageUrl="/covers/placeholder.jpg" imageAlt="Bannerhintergrund" withTextScrim fillHeight />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <Story />
         </div>

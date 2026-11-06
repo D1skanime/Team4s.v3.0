@@ -55,3 +55,15 @@
     height: var(--banner-height-mobile);
   }
 }
+
+/* fillHeight-Prop (siehe BannerSection.tsx): deklariert bewusst NACH der mobilen Haltepunkt-Regel
+   oben, damit sie deren height-Wert zuverlässig überschreibt (gleiche Selektor-Spezifität,
+   Deklarationsreihenfolge entscheidet) -- top/right/left/bottom (statt eines Höhen-Literals)
+   lässt den Browser die Höhe aus der tatsächlichen Höhe des positionierten Vorfahren berechnen,
+   unabhängig davon, ob dessen Höhe selbst erst durch variablen Inhalt entsteht (bei absolut
+   positionierten Elementen funktioniert dieser Inset-Mechanismus zuverlässig für einen
+   `height:auto`-Vorfahren, eine reine Prozent-Höhenangabe dagegen nicht). */
+.bannerSectionFillHeight {
+  inset: 0;
+  height: auto;
+}
