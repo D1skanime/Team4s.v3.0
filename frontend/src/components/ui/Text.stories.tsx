@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 
 import { Text } from './Text'
 
-/** Typografie-Grundbaustein für Fließ-/Metatext mit vier Tonalitätsstufen. */
+/** Typografie-Grundbaustein für Fließ-/Metatext mit sechs Varianten, drei Tonalitätsstufen und
+ *  einer von beiden unabhängigen Zeichenabstand-Prop (`tracking`). */
 const meta = {
   title: 'Grundbausteine/Text',
   component: Text,
@@ -35,6 +36,30 @@ export const Small: Story = {
 export const Eyebrow: Story = {
   name: 'Überzeile',
   args: { variant: 'eyebrow', children: 'Fansub-Gruppe' },
+}
+
+export const Strong: Story = {
+  name: 'Hervorgehoben',
+  args: { variant: 'strong', children: 'Demo Fansub-Gruppe' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'variant="strong" hebt ein Wort/eine Kurzbeschriftung in unveränderter Fließtext-Größe hervor (font-weight:600), z. B. ein Gruppenname in einer Release-Zeile -- ohne auf Heading auszuweichen.',
+      },
+    },
+  },
+}
+
+export const GespreiztesLabel: Story = {
+  name: 'Gespreiztes Label (tracking="wide")',
+  args: { variant: 'strong', as: 'span', tracking: 'wide', children: 'COOP' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'tracking="wide" spreizt die Zeichen leicht, unabhängig von variant/tone -- für eine kurze Inline-Zusatzbeschriftung neben Fließtext (z. B. ein "COOP"-Hinweis neben einem Gruppennamen in ReleasePreviewRow), ohne eine eigene Chip-/Badge-Fläche zu benötigen.',
+      },
+    },
+  },
 }
 
 export const InlineAusgabe: Story = {

@@ -183,6 +183,61 @@ export const WachsendeTextspalteMitFixierterAktion: Story = {
   },
 }
 
+function AvatarPlaceholder({ initials }: { initials: string }) {
+  return (
+    <span
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 32,
+        height: 32,
+        borderRadius: '50%',
+        background: '#444',
+        color: '#fff',
+        fontSize: 12,
+        flexShrink: 0,
+      }}
+    >
+      {initials}
+    </span>
+  )
+}
+
+export const NichtSchrumpfendeAvatarGruppe: Story = {
+  name: 'Nicht schrumpfende Avatar-Gruppe (shrink={false})',
+  args: {
+    gap: 'badgeRow',
+    shrink: false,
+    children: (
+      <>
+        <AvatarPlaceholder initials="DF" />
+        <AvatarPlaceholder initials="ZG" />
+      </>
+    ),
+  },
+  render: (args) => (
+    <div style={{ maxWidth: 260 }}>
+      <Cluster gap="contentPair" align="start" wrap={false}>
+        <Cluster {...args} />
+        <MultilineChip>
+          <strong>Demo Fansub-Gruppe × Zweite Gruppe</strong>
+          <br />
+          Ein sehr langer Release-Titel, der die Textspalte zum Schrumpfen zwingt
+        </MultilineChip>
+      </Cluster>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`shrink={false}` hält DIESEN Cluster auf seiner eigenen Breite, auch wenn der äußere Cluster bei knappem Platz schrumpfen würde -- z. B. die Avatar-Gruppe einer Release-Zeile, die trotz einer daneben wachsenden, langen Textspalte ihre volle Breite behalten soll (im Unterschied zu `pinLastChild`, das ein KIND dieses Clusters betrifft, nicht den Cluster selbst als Kind seines Elternelements).',
+      },
+    },
+  },
+}
+
 export const SekundaerAktionsreihe: Story = {
   name: 'Sekundär-Aktionsreihe (gap "secondaryActionRow")',
   args: {
