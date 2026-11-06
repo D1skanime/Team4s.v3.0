@@ -2,6 +2,8 @@
 
 import { X } from 'lucide-react'
 
+import { Input } from '@/components/ui'
+
 import styles from './page.module.css'
 
 interface ReleasesFilterBarProps {
@@ -66,7 +68,7 @@ export function ReleasesFilterBar({
         </button>
       </div>
       <div className={styles.searchContainer}>
-        <input
+        <Input
           type="text"
           className={styles.searchInput}
           placeholder="Suche..."

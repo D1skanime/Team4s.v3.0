@@ -135,6 +135,14 @@ export function EpisodeVersionEditorPage() {
   const segmentGroupId = primaryGroup?.id ?? null;
   const segmentVersion: string | null =
     editor.contextData?.version.release_version?.trim() || "v1";
+  // Haelt die Segment-Zuordnung (Anime/Gruppe/Version) ueber Renders hinweg referenzgleich,
+  // solange sich die drei Primitiv-Felder nicht aendern. Ohne useMemo wuerde jedes Render ein
+  // neues Objektliteral erzeugen und dadurch useReleaseVersionMedias fetcher-Hook unnoetig neu
+  // feuern (Abbruch-und-Neu-Fetch bei jedem Render statt nur bei echter Segmentaenderung).
+  const storyContext = useMemo(
+    () => ({ animeId: segmentAnimeId, groupId: segmentGroupId, version: segmentVersion }),
+    [segmentAnimeId, segmentGroupId, segmentVersion],
+  );
   const neighborNav = useEpisodeNeighborNavigation({
     animeId: segmentAnimeId,
     currentVersionId: version?.id ?? null,
@@ -376,7 +384,7 @@ export function EpisodeVersionEditorPage() {
                   contextTitle={
                     `${episodeNumber != null ? `Episode ${padEpisodeNumber(episodeNumber)}` : 'Episode'}${groupName ? ` · ${groupName}` : ''}${segmentVersion ? ` ${segmentVersion}` : ''}`
                   }
-                  storyContext={{ animeId: segmentAnimeId, groupId: segmentGroupId, version: segmentVersion }}
+                  storyContext={storyContext}
                 />
               </section>
             ) : null}

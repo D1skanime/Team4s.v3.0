@@ -53,10 +53,24 @@ export const ANIME_BANNER_BILD: StorybookBildEintrag = {
 }
 
 /**
+ * Das Logo-Bild des Anime Freezing -- eine eigenständig in Team4S hochgeladene Datei
+ * (Medienordner `media/anime/<id>/logo/`), nicht aus Jellyfin bezogen. Transparentes PNG,
+ * als feste Kopie im Repo abgelegt, damit die zugehörige Story ohne Zugriff auf diesen
+ * Medienordner funktioniert.
+ */
+export const ANIME_LOGO_BILD: StorybookBildEintrag = {
+  id: 'anime-logo',
+  bezeichnung: 'Anime-Logo',
+  pfad: '/storybook-bilder/anime-logo-freezing.png',
+  altText: 'Logo des Anime Freezing, transparentes PNG',
+}
+
+/**
  * Sammelstelle aller Bildkatalog-Einträge -- künftige weitere Bildtypen (z. B. Backdrop,
  * Gruppen-Logo) werden hier zusätzlich ergänzt, damit eine vollständige Übersicht entsteht.
  */
 export const STORYBOOK_BILD_KATALOG: readonly StorybookBildEintrag[] = [
   ANIME_COVER_BILD,
   ANIME_BANNER_BILD,
+  ANIME_LOGO_BILD,
 ]
