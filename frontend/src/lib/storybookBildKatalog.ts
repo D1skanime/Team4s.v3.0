@@ -33,7 +33,23 @@ export const ANIME_COVER_BILD: StorybookBildEintrag = {
 }
 
 /**
+ * Das echte, bereits von Jellyfin bezogene Banner-Bild des Anime Freezing (Anime-ID 13) --
+ * als feste Kopie im Repo abgelegt, damit die zugehörige Story ohne laufende
+ * Jellyfin-Verbindung funktioniert. Fachlich entspricht dieser Bildtyp dem Medienordner
+ * `media/anime/<id>/banner/`.
+ */
+export const ANIME_BANNER_BILD: StorybookBildEintrag = {
+  id: 'anime-banner',
+  bezeichnung: 'Anime-Banner',
+  pfad: '/storybook-bilder/anime-banner-freezing.jpg',
+  altText: 'Banner des Anime Freezing',
+}
+
+/**
  * Sammelstelle aller Bildkatalog-Einträge -- künftige weitere Bildtypen (z. B. Backdrop,
  * Gruppen-Logo) werden hier zusätzlich ergänzt, damit eine vollständige Übersicht entsteht.
  */
-export const STORYBOOK_BILD_KATALOG: readonly StorybookBildEintrag[] = [ANIME_COVER_BILD]
+export const STORYBOOK_BILD_KATALOG: readonly StorybookBildEintrag[] = [
+  ANIME_COVER_BILD,
+  ANIME_BANNER_BILD,
+]
