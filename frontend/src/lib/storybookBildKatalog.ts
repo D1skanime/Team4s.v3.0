@@ -18,6 +18,12 @@ export interface StorybookBildEintrag {
   pfad: string
   /** Alt-Text für das native `<img>`, beschreibt die konkrete Bildquelle. */
   altText: string
+  /**
+   * Zeigt das Bild über die volle Breite des Storybook-Bereichs statt mit der für
+   * hochkante Bildtypen (z. B. Cover) passenden festen Höchstbreite -- für breitformatige
+   * Bildtypen wie Banner, deren Seitenverhältnis bei fester Höchstbreite unnötig klein wirkt.
+   */
+  vollbreite?: boolean
 }
 
 /**
@@ -33,16 +39,17 @@ export const ANIME_COVER_BILD: StorybookBildEintrag = {
 }
 
 /**
- * Das echte, bereits von Jellyfin bezogene Banner-Bild des Anime Freezing (Anime-ID 13) --
- * als feste Kopie im Repo abgelegt, damit die zugehörige Story ohne laufende
- * Jellyfin-Verbindung funktioniert. Fachlich entspricht dieser Bildtyp dem Medienordner
- * `media/anime/<id>/banner/`.
+ * Das Banner-Bild des Anime Freezing -- eine eigenständig in Team4S hochgeladene Datei
+ * (Medienordner `media/anime/<id>/banner/`), nicht aus Jellyfin bezogen. Als feste Kopie
+ * im Repo abgelegt, damit die zugehörige Story ohne Zugriff auf diesen Medienordner
+ * funktioniert.
  */
 export const ANIME_BANNER_BILD: StorybookBildEintrag = {
   id: 'anime-banner',
   bezeichnung: 'Anime-Banner',
   pfad: '/storybook-bilder/anime-banner-freezing.jpg',
   altText: 'Banner des Anime Freezing',
+  vollbreite: true,
 }
 
 /**

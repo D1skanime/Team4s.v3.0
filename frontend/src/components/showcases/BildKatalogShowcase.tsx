@@ -15,10 +15,14 @@ import styles from './BildKatalogShowcase.module.css'
  * damit auf der Story- und Docs-Seite ausschließlich das Referenzbild im Vordergrund steht.
  */
 export function BildKatalogShowcase({ eintrag }: { eintrag: StorybookBildEintrag }) {
+  const bildClassName = eintrag.vollbreite
+    ? `${styles.image} ${styles.imageVollbreite}`
+    : styles.image
+
   return (
-    <figure className={styles.figure}>
+    <figure className={eintrag.vollbreite ? styles.figureVollbreite : styles.figure}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={eintrag.pfad} alt={eintrag.altText} className={styles.image} />
+      <img src={eintrag.pfad} alt={eintrag.altText} className={bildClassName} />
       <figcaption>
         <Text variant="strong">{eintrag.bezeichnung}</Text>
       </figcaption>
