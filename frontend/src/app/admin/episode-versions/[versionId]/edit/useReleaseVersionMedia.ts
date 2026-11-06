@@ -262,7 +262,7 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
           )
         : { data: [] }
     return [mediaResponse, capabilitiesResponseData, segmentResponse] as [ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, { data: import('@/types/admin').AdminThemeSegment[] }]
-  }, [storyContext?.animeId, storyContext?.groupId, storyContext?.version, versionId])
+  }, [storyContext, versionId])
   const { state } = useCancellableSlugState<[ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, { data: import('@/types/admin').AdminThemeSegment[] }]>({
     requestKey,
     enabled: canFetch,
