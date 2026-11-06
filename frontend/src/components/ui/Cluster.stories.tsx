@@ -138,6 +138,51 @@ export const BeschriftungMitZusatzinfo: Story = {
   },
 }
 
+function MultilineChip({ children }: { children: ReactNode }) {
+  return (
+    <span style={{ display: 'block', padding: '4px 12px', background: '#eee', border: '1px solid #ccc', borderRadius: 8, minWidth: 0 }}>
+      {children}
+    </span>
+  )
+}
+
+export const WachsendeTextspalteMitFixierterAktion: Story = {
+  name: 'Wachsende Textspalte mit fixierter Aktion (growFirstChild + pinLastChild)',
+  args: {
+    gap: 'contentPair',
+    justify: 'between',
+    align: 'stretch',
+    growFirstChild: true,
+    pinLastChild: true,
+    wrap: false,
+    children: (
+      <MultilineChip>
+        <strong>Gruppenname</strong>
+        <br />
+        Release-Titel · 1080p · mkv · h264
+        <br />
+        Veröffentlicht am 07.01.2024
+      </MultilineChip>
+    ),
+  },
+  render: (args) => (
+    <div style={{ maxWidth: 480 }}>
+      <Cluster {...args}>
+        {args.children}
+        <Button type="button" variant="secondary" size="sm">Zum Release →</Button>
+      </Cluster>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`growFirstChild` lässt die mehrzeilige Textspalte auf den nach der Aktion verbleibenden Platz wachsen; `pinLastChild` hält die Aktion dabei auf ihrer eigenen Höhe statt sie über `align="stretch"` auf die volle, durch die Textspalte vorgegebene Zeilenhöhe zu strecken (z. B. die Release-Zeile aus `ReleasePreviewRow`: Gruppenname+Metadaten links, "Zum Release"-Button rechts).',
+      },
+    },
+  },
+}
+
 export const SekundaerAktionsreihe: Story = {
   name: 'Sekundär-Aktionsreihe (gap "secondaryActionRow")',
   args: {
