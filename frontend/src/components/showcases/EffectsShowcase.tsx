@@ -25,6 +25,15 @@ import styles from './EffectsShowcase.module.css'
 const FIXTURE_IMAGE = '/covers/cover_1775167905284_2cd26cdc-2530-4914-8dd7-2a90a55b3fcd.jpg'
 const FIXTURE_ALT = 'Beispielbild für die Effekt-Vorschau'
 
+/** Eigenes Fixture-Bild nur für den Bannerbild-Hintergrund-Eintrag: `FIXTURE_IMAGE` ist ein enges
+ *  Hochformat-Coverbild (400×578px) -- im breiten, niedrigen Banner-Rahmen per `object-fit: cover`
+ *  so stark hineingezoomt, dass praktisch keine Farbvariation für die Unschärfe-Vorschau übrig
+ *  bleibt. `FansubHeroSection.stories.tsx` nutzt dieselbe Datei bereits als `banner_url`-Fixture
+ *  für die Unschärfe/Scrim-Rezeptur, die `BannerSection`s Standardvariante übernimmt -- ein bereits
+ *  etabliertes, farblich kontrastreiches Bannerfoto wird hier wiederverwendet statt neu erfunden. */
+const BANNER_FIXTURE_IMAGE = '/covers/cover_1775164698913_a216b01d-a000-4871-878d-46e3a41e08e8.jpg'
+const BANNER_FIXTURE_ALT = 'Beispiel-Bannerfoto für die Unschärfe-Vorschau'
+
 interface EffectEntry {
   name: string
   purpose: string
@@ -33,6 +42,12 @@ interface EffectEntry {
   before: ReactNode
   /** Vorschau mit der Wirkung, über dem tatsächlich genutzten Grundbaustein gerendert. */
   after: ReactNode
+  /** `'row'` (Standard) zeigt Vorher/Nachher nebeneinander auf schmaler Rahmenbreite -- passt für
+   *  Chip-/Knopf-/Abzeichen-Effekte, deren Wirkung unabhängig von der Rahmenbreite erkennbar bleibt.
+   *  `'stacked'` zeigt beide Zustände untereinander auf voller Kartenbreite -- nötig für Effekte wie
+   *  den Bannerbild-Hintergrund, deren fester Unschärferadius bei schmaler Rahmenbreite relativ zur
+   *  sichtbaren Bildfläche zu groß wird und kaum noch Farbvariation übrig lässt. */
+  layout?: 'row' | 'stacked'
 }
 
 /** Fester Vorschau-Rahmen, identisch für Vorher/Nachher, damit beide Zustände direkt
@@ -90,13 +105,14 @@ const EFFECT_ENTRIES: EffectEntry[] = [
     purpose:
       'Unscharfer, abgedunkelter Hintergrund für großflächige Bannerbilder hinter dem eigentlichen Seiteninhalt -- Unschärfe, Abdunklung, Sättigung und leichte Vergrößerung wirken dabei gemeinsam.',
     usedBy: 'BannerSection',
+    layout: 'stacked',
     before: (
       <PreviewFrame>
         <ResponsiveImage
-          src={FIXTURE_IMAGE}
-          alt={FIXTURE_ALT}
+          src={BANNER_FIXTURE_IMAGE}
+          alt={BANNER_FIXTURE_ALT}
           fill
-          sizes="220px"
+          sizes="760px"
           unoptimized
           className={styles.plainImage}
         />
@@ -104,7 +120,7 @@ const EFFECT_ENTRIES: EffectEntry[] = [
     ),
     after: (
       <PreviewFrame>
-        <BannerSection imageUrl={FIXTURE_IMAGE} imageAlt={FIXTURE_ALT} />
+        <BannerSection imageUrl={BANNER_FIXTURE_IMAGE} imageAlt={BANNER_FIXTURE_ALT} />
       </PreviewFrame>
     ),
   },
@@ -184,16 +200,29 @@ export function EffectsShowcase() {
       />
       {EFFECT_ENTRIES.map((entry) => (
         <Card key={entry.name} variant="section" title={entry.name}>
-          <Cluster gap="contentPair" align="stretch" className={styles.compare}>
-            <Stack gap="relatedContent" className={styles.comparePane}>
-              {entry.before}
-              <Text variant="meta">Ohne Effekt</Text>
+          {entry.layout === 'stacked' ? (
+            <Stack gap="relatedContent" className={styles.compare}>
+              <Stack gap="relatedContent">
+                {entry.before}
+                <Text variant="meta">Ohne Effekt</Text>
+              </Stack>
+              <Stack gap="relatedContent">
+                {entry.after}
+                <Text variant="meta">Mit Effekt</Text>
+              </Stack>
             </Stack>
-            <Stack gap="relatedContent" className={styles.comparePane}>
-              {entry.after}
-              <Text variant="meta">Mit Effekt</Text>
-            </Stack>
-          </Cluster>
+          ) : (
+            <Cluster gap="contentPair" align="stretch" className={styles.compare}>
+              <Stack gap="relatedContent" className={styles.comparePane}>
+                {entry.before}
+                <Text variant="meta">Ohne Effekt</Text>
+              </Stack>
+              <Stack gap="relatedContent" className={styles.comparePane}>
+                {entry.after}
+                <Text variant="meta">Mit Effekt</Text>
+              </Stack>
+            </Cluster>
+          )}
           <div className={styles.meta}>
             <Heading level={3} size={4}>{entry.name}</Heading>
             <Text variant="soft">{entry.purpose}</Text>
