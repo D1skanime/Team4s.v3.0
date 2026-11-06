@@ -66,6 +66,20 @@ export const ANIME_LOGO_BILD: StorybookBildEintrag = {
 }
 
 /**
+ * Das Hintergrundbild (Backdrop) des Anime Freezing -- eine eigenständig in Team4S
+ * hochgeladene Datei (Medienordner `media/anime/<id>/background/`), nicht aus Jellyfin
+ * bezogen. Als feste Kopie im Repo abgelegt, damit die zugehörige Story ohne Zugriff auf
+ * diesen Medienordner funktioniert.
+ */
+export const ANIME_HINTERGRUND_BILD: StorybookBildEintrag = {
+  id: 'anime-hintergrund',
+  bezeichnung: 'Anime-Hintergrund',
+  pfad: '/storybook-bilder/anime-hintergrund-freezing.jpg',
+  altText: 'Hintergrundbild des Anime Freezing',
+  vollbreite: true,
+}
+
+/**
  * Sammelstelle aller Bildkatalog-Einträge -- künftige weitere Bildtypen (z. B. Backdrop,
  * Gruppen-Logo) werden hier zusätzlich ergänzt, damit eine vollständige Übersicht entsteht.
  */
@@ -73,4 +87,5 @@ export const STORYBOOK_BILD_KATALOG: readonly StorybookBildEintrag[] = [
   ANIME_COVER_BILD,
   ANIME_BANNER_BILD,
   ANIME_LOGO_BILD,
+  ANIME_HINTERGRUND_BILD,
 ]
