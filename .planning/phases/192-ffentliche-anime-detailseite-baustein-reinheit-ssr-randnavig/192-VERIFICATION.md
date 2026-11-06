@@ -351,6 +351,27 @@ Tests/Testsuiten vor der Live-Abnahme -- `EffectsShowcase.test.tsx`s Bildanzahl-
 sind durch den Fixture-Split bewusst nicht nachgezogen, der nächste Volltest nach der Live-Abnahme
 deckt das auf.
 
+## Nachtrag: Quick-Aufgabe 261106-uat1 (Live-UAT-Nachbesserung, vier Befunde)
+
+Der Mensch meldete bei der Live-Abnahme vier weitere Befunde zurück: (1) heller Strich am unteren
+Rand der Infokarte (`Card.cardPublicHeroInfo` erbte weiterhin eine 1px-Randfläche trotz
+`border-color: transparent`, in die der Verlaufshintergrund hineinwiederholte -- `border-width: 0`
+behebt es vollständig), (2) dunkler, leerer Streifen unter der Posterspalte (`SplitLayout`s
+`firstColumn`/`secondColumn` reichten ihre per `align="stretch"` ausgeglichene Höhe nicht an ihr
+Kind weiter -- `display:flex;flex-direction:column` + `flex:1` behebt es), (3) eigenes Layout-CSS
+in `ReleasePreviewRow.module.css` (`.logos`/`.coopLabel`) -- drei neue Grundbaustein-Fähigkeiten
+(`Cluster shrink`, `Text variant="strong"`, `Text tracking="wide"`) ersetzen es vollständig, (4)
+Storybook "Release-Versionszeile" bei 390px (dunkle `BannerSection`-Bühne fest auf ~100px begrenzt,
+Inhalt ragte auf hellen Hintergrund -- neue Prop `BannerSection fillHeight` löst es). Siehe
+[261106-uat1-SUMMARY.md](../../quick/261106-uat1-anime-detail-release-zeile-fixes/SUMMARY.md).
+
+Live im Browser geprüft: App `/anime/13` Desktop 1440px (Poster-/Infokarte enden per
+`getBoundingClientRect()` auf exakt derselben Höhe, kein heller Rand-Strich mehr) und Mobil 390px
+(unverändert korrekt), Storybook `Release-Versionszeile` alle fünf Stories + neue
+`BannerSection`-Story, Desktop und Mobil (dunkle Bühne reicht jetzt exakt bis zum Inhaltsende).
+Keine Konsolenfehler. Dieselbe bindende Scope-Einschränkung wie in den vorherigen Nachträgen gilt
+auch hier: keine neuen Tests/Testsuiten vor der Live-Abnahme.
+
 ---
 
 *Verified: 2026-11-05*
