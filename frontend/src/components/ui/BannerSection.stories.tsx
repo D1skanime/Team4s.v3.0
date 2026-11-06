@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { ANIME_COVER_BILD, ANIME_HINTERGRUND_BILD } from '@/lib/storybookBildKatalog'
 import { storybookDocsLink } from '@/lib/storybookLinks'
 
 import { Badge } from './Badge'
@@ -32,8 +33,8 @@ const meta = {
     ),
   ],
   args: {
-    imageUrl: '/covers/placeholder.jpg',
-    imageAlt: 'Frühlingsblüten über Tokio Hintergrundbild',
+    imageUrl: ANIME_COVER_BILD.pfad,
+    imageAlt: ANIME_COVER_BILD.altText,
   },
 } satisfies Meta<typeof BannerSection>
 
@@ -56,16 +57,35 @@ export const MitStarkemScrimUndBadge: Story = {
 }
 
 export const AnimeOptik: Story = {
-  name: 'Anime-Optik',
+  name: 'Animeseite (variant anime, Cover)',
   args: { variant: 'anime' },
   parameters: {
     docs: {
       description: {
         story:
-          'variant="anime" reproduziert die bisherige, schwächer kontrastierte Backdrop-Rezeptur der ' +
-          'Anime-Detailseite (blur(20px), scale(1.1), ohne brightness/saturate-Abweichung) inklusive ' +
+          'Genau so setzt die Anime-Detailseite (AnimeDetailView) BannerSection ein: `variant="anime"` mit ' +
+          'dem Anime-Cover als unscharfer Grundfläche. Reproduziert die bisherige, schwächer kontrastierte ' +
+          'Backdrop-Rezeptur (blur(20px), scale(1.1), ohne brightness/saturate-Abweichung) inklusive ' +
           'vertikaler Ausblendmaske zum Seitenhintergrund -- sichtbar schwächer unscharf/abgedunkelt als die ' +
           'Standardvariante oben, die restliche Standardvariante (andere Aufrufer) bleibt davon unberührt.',
+      },
+    },
+  },
+}
+
+export const MitHintergrundbild: Story = {
+  name: 'Mit Hintergrundbild',
+  args: {
+    imageUrl: ANIME_HINTERGRUND_BILD.pfad,
+    imageAlt: ANIME_HINTERGRUND_BILD.altText,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Zeigt die Standardvariante mit einem breitformatigen Hintergrundbild (Backdrop) statt des ' +
+          'hochkanten Covers -- so wirkt der unscharfe, abgedunkelte Grundflächen-Scrim mit einem Bild, ' +
+          'das tatsächlich für diesen Zweck (volle Breite) hochgeladen wurde.',
       },
     },
   },
