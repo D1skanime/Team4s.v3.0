@@ -1,31 +1,47 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
-import { ANIME_BANNER_BILD } from '@/lib/storybookBildKatalog'
+import { Text } from '@/components/ui'
+import { ANIME_BANNER_BILDER } from '@/lib/storybookBildKatalog'
 
 import { BildKatalogDocsPage } from './BildKatalogShowcase.docsPage'
-import { BildKatalogShowcase } from './BildKatalogShowcase'
+import styles from './BildKatalogShowcase.module.css'
 
 /**
- * Beispielbild für den Bildtyp Anime-Banner (Freezing).
+ * Zeigt alle Anime-Banner-Beispielbilder aus dem zentralen Bildkatalog untereinander, roh wie
+ * die übrigen "Bilder/*"-Stories -- jeweils mit der Typbezeichnung und dem Namen des Anime
+ * darunter, damit sichtbar wird, wie unterschiedlich echte Banner in Seitenverhältnis und
+ * Bildausschnitt ausfallen.
  */
+function AnimeBannerGalerie() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+      {ANIME_BANNER_BILDER.map((eintrag) => (
+        <figure key={eintrag.id} className={styles.figureVollbreite}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={eintrag.pfad} alt={eintrag.altText} className={styles.imageVollbreite} />
+          <figcaption>
+            <Text variant="strong">{eintrag.bezeichnung}</Text>
+            {eintrag.animeName ? <Text variant="meta">{eintrag.animeName}</Text> : null}
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  )
+}
+
 const meta = {
   title: 'Bilder/Anime-Banner',
-  component: BildKatalogShowcase,
+  component: AnimeBannerGalerie,
   tags: ['autodocs'],
-  argTypes: {
-    eintrag: { table: { disable: true } },
-  },
   parameters: {
     docs: {
       page: BildKatalogDocsPage,
       canvas: { sourceState: 'none' },
     },
   },
-} satisfies Meta<typeof BildKatalogShowcase>
+} satisfies Meta<typeof AnimeBannerGalerie>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Standard: Story = {
-  args: { eintrag: ANIME_BANNER_BILD },
-}
+export const Standard: Story = {}

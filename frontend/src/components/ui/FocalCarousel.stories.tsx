@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { ANIME_BANNER_BILDER, ANIME_COVER_BILD } from '@/lib/storybookBildKatalog'
 import { storybookDocsLink } from '@/lib/storybookLinks'
 
 import { Card } from './Card'
@@ -10,13 +11,15 @@ import { Text } from './Text'
 
 type DemoItem = { id: number; label: string; imageUrl: string }
 
-// Lokales Platzhalterbild statt externer Bildquelle -- ausschließlich Mockdaten, keine
-// Netzwerkabhängigkeit.
+// Echte Anime-Banner aus dem zentralen Bildkatalog statt eines Platzhalterbilds, damit die
+// Demo wie eine reale Projekt-Karten-Liste wirkt. Ein Element hat bewusst keinen Banner und
+// fällt wie FansubProjectBannerCard (banner_url || cover_image) auf das Freezing-Cover
+// zurück, um auch diesen Fallback-Fall in der Demo zu zeigen.
 function demoItems(count: number): DemoItem[] {
   return Array.from({ length: count }, (_, index) => ({
     id: index,
-    label: `Szene ${index + 1}`,
-    imageUrl: '/covers/placeholder.jpg',
+    label: `Projekt ${index + 1}`,
+    imageUrl: ANIME_BANNER_BILDER[index]?.pfad ?? ANIME_COVER_BILD.pfad,
   }))
 }
 
