@@ -33,6 +33,9 @@ export const LOCAL_IMAGE_PATTERNS = [
   // (logo/banner-style assets), narrowed the same way as the other
   // namespaces above -- not a blanket /media/** wildcard.
   { pathname: '/media/fansub/**', search: '' },
+  // Statische Beispielbilder für Storybook (storybookBildKatalog.ts), damit
+  // deren Stories echte Bilder durch den Next.js-Bildoptimierer zeigen können.
+  { pathname: '/storybook-bilder/**', search: '' },
 ]
 
 export const FIXED_REMOTE_IMAGE_URLS = [
