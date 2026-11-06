@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { ANIME_COVER_BILD } from '@/lib/storybookBildKatalog'
+
 import { ResponsiveImage } from './ResponsiveImage'
 
 /**
@@ -27,13 +29,14 @@ type Story = StoryObj<typeof meta>
 export const Optimiert: Story = {
   name: 'Optimiert (konfiguriertes Muster)',
   args: {
-    src: '/covers/placeholder.jpg',
+    src: ANIME_COVER_BILD.pfad,
+    alt: ANIME_COVER_BILD.altText,
   },
   parameters: {
     docs: {
       description: {
         story:
-          'Der Pfad liegt unter `/covers/**` aus `LOCAL_IMAGE_PATTERNS` -- das Bild läuft durch den Next.js-Bildoptimierer (`unoptimized={false}`).',
+          'Der Pfad liegt unter `/storybook-bilder/**` aus `LOCAL_IMAGE_PATTERNS` -- das Bild läuft durch den Next.js-Bildoptimierer (`unoptimized={false}`).',
       },
     },
   },
@@ -57,7 +60,8 @@ export const NichtKonfigurierterPfad: Story = {
 export const RundesVorschauBild: Story = {
   name: 'Rundes Vorschau-Miniaturbild',
   args: {
-    src: '/covers/placeholder.jpg',
+    src: ANIME_COVER_BILD.pfad,
+    alt: ANIME_COVER_BILD.altText,
     width: 66,
     height: 92,
     roundedThumbnail: true,
