@@ -36,7 +36,13 @@
   font-size: var(--avatar-font-size-lg);
 }
 
-.avatar:not(.avatarXs):not(.avatarSm):not(.avatarLg) {
+.avatarXl {
+  width: var(--avatar-size-xl);
+  height: var(--avatar-size-xl);
+  font-size: var(--avatar-font-size-xl);
+}
+
+.avatar:not(.avatarXs):not(.avatarSm):not(.avatarLg):not(.avatarXl) {
   font-size: var(--avatar-font-size-md);
 }
 

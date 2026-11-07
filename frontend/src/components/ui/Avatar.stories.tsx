@@ -1,13 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 
+import { FANSUB_LOGO_BILD } from '@/lib/storybookBildKatalog'
+
 import { Avatar } from './Avatar'
 
 /**
- * Rundes Bild oder Initialen-Kürzel für eine Person oder Gruppe, in vier Größen. Zeigt ohne
+ * Rundes Bild oder Initialen-Kürzel für eine Person oder Gruppe, in fünf Größen. Zeigt ohne
  * Bild die Initialen des Namens; kann statt Bild/Initialen auch eine Zähler-Beschriftung wie
  * "+3" für "weitere Personen" anzeigen. Die kleinste Größe (`xs`) und der optionale `bordered`-
  * Rand decken das wiederkehrende Muster eines kleinen, runden Gruppen-/Identitätsbilds auf
- * dunklem Untergrund ab (z. B. ein Fansub-Gruppen-Logo in einer Chip-Zeile).
+ * dunklem Untergrund ab (z. B. ein Fansub-Gruppen-Logo in einer Chip-Zeile); die größte Größe
+ * (`xl`) deckt dasselbe Gruppen-Logo grossformatig in einer Detailansicht ab.
  */
 const meta = {
   title: 'Grundbausteine/Avatar',
@@ -28,13 +31,22 @@ export const Initialen: Story = {
 export const MitBild: Story = {
   name: 'Mit Bild',
   args: {
-    // Lokale Datei statt einer echten externen Unsplash-URL: Letztere lief als nicht gemockter
-    // Live-Request unbemerkt am MSW-Netzwerk-Mocking vorbei (Regressionsfund, siehe preview.tsx
-    // onUnhandledRequest: 'error') -- Storybook-Stories dürfen nicht von einem erreichbaren
-    // externen Dienst abhängen.
-    src: '/covers/placeholder.png',
-    label: 'Mira Sato',
+    // Das echte Fansub-Gruppenlogo aus dem zentralen Bildkatalog statt eines externen Platzhalter-
+    // Dienstes: Letzterer liefe als nicht gemockter Live-Request unbemerkt am MSW-Netzwerk-Mocking
+    // vorbei (Regressionsfund, siehe preview.tsx onUnhandledRequest: 'error') -- Storybook-Stories
+    // dürfen nicht von einem erreichbaren externen Dienst abhängen.
+    src: FANSUB_LOGO_BILD.pfad,
+    label: 'Bloody-Shadow',
   },
+  render: (args) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <Avatar {...args} size="xs" />
+      <Avatar {...args} size="sm" />
+      <Avatar {...args} size="md" />
+      <Avatar {...args} size="lg" />
+      <Avatar {...args} size="xl" />
+    </div>
+  ),
 }
 
 export const Groessen: Story = {
@@ -45,6 +57,7 @@ export const Groessen: Story = {
       <Avatar {...args} size="sm" />
       <Avatar {...args} size="md" />
       <Avatar {...args} size="lg" />
+      <Avatar {...args} size="xl" />
     </div>
   ),
 }

@@ -44,6 +44,9 @@
   --avatar-size-sm: 32px;
   --avatar-size-md: 48px;
   --avatar-size-lg: 64px;
+  /* --avatar-size-xl (96px) deckt ein grossformatiges Gruppen-/Identitätsbild ab, z. B. ein
+     Fansub-Gruppenlogo in einer Detailansicht, wo die bisherige Höchststufe lg zu klein wirkt. */
+  --avatar-size-xl: 96px;
 
   --avatar-1-bg: #eeedfe;
   --avatar-1-fg: #3c3489;
