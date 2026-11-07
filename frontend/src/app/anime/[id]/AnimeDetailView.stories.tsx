@@ -11,6 +11,7 @@ import {
 } from '../../../../.storybook/mocks/handlers'
 
 import { buildAnimeDetailHref } from '@/lib/animeGridContext'
+import { ANIME_COVER_BILD } from '@/lib/storybookBildKatalog'
 
 import { AnimeDetailView } from './AnimeDetailView'
 import {
@@ -63,11 +64,11 @@ const meta = {
     fansubStoryGroups: [],
     relationsResponse: normalRelationsResponse,
     episodeCount: 3,
-    // .png statt .jpg: derselbe bereits geprüft dekodierbare Platzhalter wie
-    // animeBackdropManifestFixture (siehe .storybook/mocks/animeFixtures.ts) -- .jpg ist nicht
-    // dekodierbar (Commit 159-05), Backdrop-Rotator-Fallback und Poster würden sonst weiterhin
-    // als kaputtes Bild rendern.
-    coverUrl: '/covers/placeholder.png',
+    // Echtes Freezing-Cover aus dem zentralen Bildkatalog statt eines Platzhalters: `coverUrl`
+    // wird in AnimeDetailView direkt als Backdrop-/Poster-Quelle gereicht, nicht über
+    // resolveAnimeCoverURL (animeBackdrops.ts) nachbearbeitet -- der Katalogpfad landet also
+    // unverändert im Bild (siehe AnimeDetailHero.stories.tsx für dasselbe Vorgehen).
+    coverUrl: ANIME_COVER_BILD.pfad,
     // previous/next sind Pflicht-Props von AnimeDetailView (serverseitig aufgelöste
     // Randnavigations-Ziele) -- ohne Grid-Kontext (gridQuery: '') liefert page.tsx stets null
     // für beide Richtungen.
