@@ -16,6 +16,10 @@ import styles from './Stack.module.css'
  *  - `'relatedContent'`: fasst eng zusammengehörige Inhalte dicht zusammen, die gemeinsam EINE
  *    Einheit beschreiben (ein Eyebrow-Label mit seiner Chip-Reihe, oder die Metadatenzeilen EINER
  *    Release-Zeile).
+ *  - `'listRows'`: Abstand zwischen gleichartigen, eigenständigen Listenzeilen, die viele
+ *    strukturell identische Einträge direkt untereinander bilden (z. B. die Episodenkarten einer
+ *    Folgenliste im öffentlichen Fansub-/Release-Browser, `FansubVersionBrowser`) -- kompakter als
+ *    `'independentBlocks'`, das für wenige, inhaltlich unterschiedliche Blöcke gedacht ist.
  *  - `'captionLines'`: engster Abstand (nur 4px) zwischen GENAU zwei Textzeilen, die gemeinsam
  *    EINE einzige Bildunterschrift/Beschriftung bilden (z. B. Titel- und Typzeile der
  *    Randnavigations-Vorschaukarte) -- enger als `'relatedContent'`, da hier kein eigenständiger
@@ -56,6 +60,7 @@ import styles from './Stack.module.css'
 export type StackGapPurpose =
   | 'independentBlocks'
   | 'relatedContent'
+  | 'listRows'
   | 'captionLines'
   | 'headingToBadges'
   | 'primaryContentBlocks'
@@ -72,6 +77,7 @@ export type StackGapPurpose =
 const GAP_PURPOSE_TOKENS: Record<Exclude<StackGapPurpose, 'none'>, string> = {
   independentBlocks: 'var(--space-independent-blocks)',
   relatedContent: 'var(--space-related-content)',
+  listRows: 'var(--space-list-rows)',
   captionLines: 'var(--space-caption-lines)',
   headingToBadges: 'var(--space-heading-to-badges)',
   primaryContentBlocks: 'var(--space-primary-content-blocks)',

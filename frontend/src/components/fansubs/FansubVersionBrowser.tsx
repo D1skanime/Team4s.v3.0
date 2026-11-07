@@ -101,8 +101,14 @@ function computeBoundaryMergedRenderPlan(pages: WindowedPage[]): {
 /** Misst die gerenderte Höhe einer Page fortlaufend (ResizeObserver), damit ein evtl. später
  * ausgelagerter Spacer die zuletzt bekannte, echte Höhe übernimmt (D-34) statt 0px. Rendert
  * absichtlich kein zusätzliches <li>/<ul> -- die enthaltenen EpisodeGlassCard-<li>-Elemente
- * bleiben direkte Nachfahren im Accessibility-Baum (li -> listitem ist kontextunabhängig),
- * nur ein <div> übernimmt die Messfunktion. */
+ * bleiben direkte Nachfahren im Accessibility-Baum (li -> listitem ist kontextunabhängig).
+ * Der äußere <div> übernimmt nur die Messfunktion (trägt das Mess-ref); der gap="listRows"-Abstand
+ * zwischen den Karten EINER Page kommt über einen inneren Stack, weil die Episodenliste aus mehreren
+ * solcher Pages besteht und das äußere Listen-gap nur ZWISCHEN den Page-Containern wirkt, nicht
+ * zwischen den Karten innerhalb einer Page -- ohne diesen inneren Stack klebten die Karten einer
+ * Page aneinander und nur an der Page-Grenze (alle 8 Folgen) entstand eine sichtbare Lücke. Stack
+ * selbst ist keine Ref-weiterreichende Komponente, daher trägt das Mess-ref den schlanken
+ * Wrapper-<div>, nicht Stack. */
 function WindowedPageGroup({
   pageId, reportPageHeight, children,
 }: {
@@ -125,7 +131,11 @@ function WindowedPageGroup({
     return () => observer.disconnect()
   }, [pageId, reportPageHeight])
 
-  return <div ref={wrapperRef} data-page-id={pageId}>{children}</div>
+  return (
+    <div ref={wrapperRef} data-page-id={pageId}>
+      <Stack gap="listRows">{children}</Stack>
+    </div>
+  )
 }
 
 export function FansubVersionBrowser(props: FansubVersionBrowserProps) {
@@ -350,7 +360,7 @@ function FansubVersionBrowserContent({
       ) : (
         <Stack
           as="ul"
-          gap="independentBlocks"
+          gap="listRows"
           aria-busy={switchState.loading}
           className={classNames(styles.episodeList, switchState.loading && styles.episodeListDimmed)}
         >

@@ -83,11 +83,11 @@ function EpisodeGlassCardListItemDemo({
 
 /** Demo-Wrapper für die Mehrfach-Listen-Story -- bildet die reale Anordnung aus
  *  `FansubVersionBrowser` nach: mehrere EpisodeGlassCard-<li>-Elemente innerhalb EINES
- *  gemeinsamen `Stack as="ul" gap="independentBlocks"` statt eines hier nachgebauten Rasters, damit
+ *  gemeinsamen `Stack as="ul" gap="listRows"` statt eines hier nachgebauten Rasters, damit
  *  eine spätere Abstandsänderung an Stack automatisch hier mitkommt. */
 function EpisodeGlassCardListDemo() {
   return (
-    <Stack as="ul" gap="independentBlocks" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+    <Stack as="ul" gap="listRows" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
       <EpisodeGlassCardListItemDemo
         episode={buildEpisode({ episode_id: 1, episode_number: 1, filler_type: 'canon', filler_type_label: 'Canon' })}
         episodeTitle="Der erste Kirschblütentag"
@@ -247,7 +247,7 @@ export const Liste: Story = {
       description: {
         story:
           'Mehrere Episodenkarten untereinander, wie im echten Fansub-/Release-Browser ' +
-          '(FansubVersionBrowser): gemeinsamer `Stack as="ul" gap="independentBlocks"` statt eines hier ' +
+          '(FansubVersionBrowser): gemeinsamer `Stack as="ul" gap="listRows"` statt eines hier ' +
           'nachgebauten Rasters, damit eine spätere Abstandsänderung an Stack automatisch mitkommt. Folge 2 ' +
           'ist Filler, damit die Farbtönung im Vergleich zu den Canon-Folgen sichtbar wird. Jede Karte hat ' +
           'ihren eigenen, unabhängigen Auf-/Zuklapp-Zustand (Folge 2 startet aufgeklappt).',
