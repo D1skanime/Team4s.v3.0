@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
 import { AnimeMediaProvider } from '@/components/anime/AnimeMediaProvider'
 import { buildAnimeDetailHref } from '@/lib/animeGridContext'
+import { ANIME_COVER_BILD } from '@/lib/storybookBildKatalog'
 import { storybookDocsLink } from '@/lib/storybookLinks'
 
 import { AnimeDetailHero } from './AnimeDetailHero'
@@ -29,10 +30,12 @@ const meta = {
   },
   args: {
     anime: buildAnimeDetailFixture(),
-    // .png statt .jpg: derselbe bereits geprüft dekodierbare Platzhalter wie
-    // animeBackdropManifestFixture (siehe .storybook/mocks/animeFixtures.ts) -- .jpg ist nicht
-    // dekodierbar (Commit 159-05).
-    coverUrl: '/covers/placeholder.png',
+    // Echtes Freezing-Cover aus dem zentralen Bildkatalog statt eines Platzhalters: `coverUrl`
+    // wird in AnimeDetailHero direkt als ResponsiveImage-`src` gereicht, nicht über
+    // resolveAnimeCoverURL (animeBackdrops.ts) nachbearbeitet -- der Katalogpfad landet also
+    // unverändert im Bild. Next.js' Bildoptimierer lässt den Pfad zu, da `/storybook-bilder/**`
+    // bereits in LOCAL_IMAGE_PATTERNS (publicImagePatterns.mjs) freigegeben ist.
+    coverUrl: ANIME_COVER_BILD.pfad,
     embySeriesUrl: null,
     relationsResponse: normalRelationsResponse,
   },
