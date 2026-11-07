@@ -5,7 +5,7 @@ import { ResponsiveImage } from './ResponsiveImage'
 import { VisuallyHidden } from './VisuallyHidden'
 import styles from './Avatar.module.css'
 
-export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg'
+export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 export type AvatarColorIndex = 1 | 2 | 3 | 4 | 5 | 6
 export type AvatarTone = 'neutral' | 'accent'
 
@@ -42,13 +42,14 @@ export function initials(label: string): string {
     .join('') || '?'
 }
 
-const SIZE_PX: Record<AvatarSize, number> = { xs: 20, sm: 32, md: 48, lg: 64 }
+const SIZE_PX: Record<AvatarSize, number> = { xs: 20, sm: 32, md: 48, lg: 64, xl: 96 }
 
 /**
- * Rundes Bild- oder Initialen-Kürzel für eine Person oder Gruppe, in vier Größenstufen (die
+ * Rundes Bild- oder Initialen-Kürzel für eine Person oder Gruppe, in fünf Größenstufen (die
  * kleinste, `xs`, deckt ein rundes Gruppen-/Identitätsbild in Chip-Größe ab, z. B. ein Fansub-
- * Gruppen-Logo). Ohne Bild zeigt der Avatar die Initialen des übergebenen Namens; mit `count`
- * stattdessen eine Zähler-Beschriftung ("+3") für "N weitere".
+ * Gruppen-Logo; die größte, `xl`, ein grossformatiges Identitätsbild in einer Detailansicht).
+ * Ohne Bild zeigt der Avatar die Initialen des übergebenen Namens; mit `count` stattdessen eine
+ * Zähler-Beschriftung ("+3") für "N weitere".
  */
 export function Avatar({ label, src, size = 'md', colorIndex, tone = 'neutral', count, bordered = false, className, ...rest }: AvatarProps) {
   const pixelSize = SIZE_PX[size]
@@ -62,6 +63,7 @@ export function Avatar({ label, src, size = 'md', colorIndex, tone = 'neutral', 
         size === 'xs' && styles.avatarXs,
         size === 'sm' && styles.avatarSm,
         size === 'lg' && styles.avatarLg,
+        size === 'xl' && styles.avatarXl,
         colorIndex && styles[`avatarColor${colorIndex}` as keyof typeof styles],
         tone === 'accent' && styles.avatarToneAccent,
         bordered && styles.avatarBordered,

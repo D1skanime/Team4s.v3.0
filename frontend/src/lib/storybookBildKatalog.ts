@@ -141,6 +141,32 @@ export const ANIME_HINTERGRUND_BILD: StorybookBildEintrag = {
 }
 
 /**
+ * Das Banner-Bild der Fansub-Gruppe Bloody-Shadow -- eine eigenständig in Team4S hochgeladene
+ * Datei (Medienordner `media/fansub/<id>/banner/`), nicht aus Jellyfin bezogen. Als feste Kopie
+ * im Repo abgelegt, damit die zugehörige Story ohne Zugriff auf diesen Medienordner funktioniert.
+ */
+export const FANSUB_BANNER_BILD: StorybookBildEintrag = {
+  id: 'fansub-banner',
+  bezeichnung: 'Fansub-Banner',
+  pfad: '/storybook-bilder/fansub-banner-bloody-shadow.jpg',
+  altText: 'Banner der Fansub-Gruppe Bloody-Shadow',
+  vollbreite: true,
+}
+
+/**
+ * Das Logo-Bild der Fansub-Gruppe Bloody-Shadow -- eine eigenständig in Team4S hochgeladene
+ * Datei (Medienordner `media/fansub/<id>/logo/`), nicht aus Jellyfin bezogen. Quadratisches PNG,
+ * als feste Kopie im Repo abgelegt, damit die zugehörige Story ohne Zugriff auf diesen
+ * Medienordner funktioniert -- dient zugleich als Beispielbild für den Avatar-Grundbaustein.
+ */
+export const FANSUB_LOGO_BILD: StorybookBildEintrag = {
+  id: 'fansub-logo',
+  bezeichnung: 'Fansub-Logo',
+  pfad: '/storybook-bilder/fansub-logo-bloody-shadow.png',
+  altText: 'Logo der Fansub-Gruppe Bloody-Shadow',
+}
+
+/**
  * Sammelstelle aller Bildkatalog-Einträge -- künftige weitere Bildtypen (z. B. Backdrop,
  * Gruppen-Logo) werden hier zusätzlich ergänzt, damit eine vollständige Übersicht entsteht.
  */
@@ -149,4 +175,6 @@ export const STORYBOOK_BILD_KATALOG: readonly StorybookBildEintrag[] = [
   ANIME_BANNER_BILD,
   ANIME_LOGO_BILD,
   ANIME_HINTERGRUND_BILD,
+  FANSUB_BANNER_BILD,
+  FANSUB_LOGO_BILD,
 ]
