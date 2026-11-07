@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import { useState } from 'react'
 
 import { BannerSection } from '@/components/ui/BannerSection'
+import { Stack } from '@/components/ui/Stack'
 import { Text } from '@/components/ui/Text'
 import { storybookDocsLink } from '@/lib/storybookLinks'
 import type { PublicGroupedEpisode } from '@/types/episodeVersion'
@@ -50,6 +51,60 @@ function EpisodeGlassCardDemo({
         <Text tone="onScrim">{versionsLabel}</Text>
       </EpisodeGlassCard>
     </ul>
+  )
+}
+
+/** Demo-Wrapper für EINE Karte innerhalb der Mehrfach-Listen-Story -- jede Karte verwaltet ihren
+ *  Auf-/Zuklapp-Zustand unabhängig von den übrigen Listeneinträgen (eigener lokaler State je Karte). */
+function EpisodeGlassCardListItemDemo({
+  episode,
+  episodeTitle,
+  initiallyExpanded = false,
+  panelId,
+}: {
+  episode: PublicGroupedEpisode
+  episodeTitle: string
+  initiallyExpanded?: boolean
+  panelId: string
+}) {
+  const [expanded, setExpanded] = useState(initiallyExpanded)
+  return (
+    <EpisodeGlassCard
+      episode={episode}
+      episodeTitle={episodeTitle}
+      expanded={expanded}
+      onToggle={() => setExpanded((value) => !value)}
+      panelId={panelId}
+    >
+      <Text tone="onScrim">Platzhalter für Release-Versionszeilen (ReleasePreviewRow).</Text>
+    </EpisodeGlassCard>
+  )
+}
+
+/** Demo-Wrapper für die Mehrfach-Listen-Story -- bildet die reale Anordnung aus
+ *  `FansubVersionBrowser` nach: mehrere EpisodeGlassCard-<li>-Elemente innerhalb EINES
+ *  gemeinsamen `Stack as="ul" gap="listRows"` statt eines hier nachgebauten Rasters, damit
+ *  eine spätere Abstandsänderung an Stack automatisch hier mitkommt. */
+function EpisodeGlassCardListDemo() {
+  return (
+    <Stack as="ul" gap="listRows" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+      <EpisodeGlassCardListItemDemo
+        episode={buildEpisode({ episode_id: 1, episode_number: 1, filler_type: 'canon', filler_type_label: 'Canon' })}
+        episodeTitle="Der erste Kirschblütentag"
+        panelId="demo-panel-list-1"
+      />
+      <EpisodeGlassCardListItemDemo
+        episode={buildEpisode({ episode_id: 2, episode_number: 2, filler_type: 'filler', filler_type_label: 'Filler' })}
+        episodeTitle="Ein ruhiger Nachmittag im Dorf"
+        initiallyExpanded
+        panelId="demo-panel-list-2"
+      />
+      <EpisodeGlassCardListItemDemo
+        episode={buildEpisode({ episode_id: 3, episode_number: 3, filler_type: 'canon', filler_type_label: 'Canon' })}
+        episodeTitle="Das Geheimnis unter der alten Brücke"
+        panelId="demo-panel-list-3"
+      />
+    </Stack>
   )
 }
 
@@ -183,4 +238,27 @@ export const LangerTitel: Story = {
     episodeTitle:
       'Die unglaublich lange Episode über das Geheimnis unter den Kirschblüten der alten Schule',
   },
+}
+
+export const Liste: Story = {
+  name: 'Liste (drei Folgen)',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Mehrere Episodenkarten untereinander, wie im echten Fansub-/Release-Browser ' +
+          '(FansubVersionBrowser): gemeinsamer `Stack as="ul" gap="listRows"` statt eines hier ' +
+          'nachgebauten Rasters, damit eine spätere Abstandsänderung an Stack automatisch mitkommt. Folge 2 ' +
+          'ist Filler, damit die Farbtönung im Vergleich zu den Canon-Folgen sichtbar wird. Jede Karte hat ' +
+          'ihren eigenen, unabhängigen Auf-/Zuklapp-Zustand (Folge 2 startet aufgeklappt).',
+      },
+    },
+  },
+  // render ersetzt die Einzelkarten-Demo vollständig durch die Mehrfach-Listen-Demo -- die
+  // Pflicht-args episode/episodeTitle bleiben ungenutzte Platzhalter, nur um den Story-Typ zu erfüllen.
+  args: {
+    episode: buildEpisode(),
+    episodeTitle: 'Der erste Kirschblütentag',
+  },
+  render: () => <EpisodeGlassCardListDemo />,
 }
