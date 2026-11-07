@@ -12,6 +12,7 @@ import {
   getAnimeList,
 } from "@/lib/api";
 import { useConfirmDialog } from "@/components/ui";
+import { StatusBadge } from "@/components/anime/StatusBadge";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { getCoverUrl } from "@/lib/utils";
 import type { AnimeListItem } from "@/types/anime";
@@ -41,11 +42,6 @@ function formatError(error: unknown): string {
   return "Anime konnte nicht gelöscht werden.";
 }
 
-/**
- * Gibt die CSS-Klasse für den Status-Badge eines Anime zurück.
- * Unterscheidet zwischen aktiv laufenden, abgeschlossenen, abgebrochenen,
- * lizenzierten und deaktivierten Einträgen.
- */
 const ANIME_TYPE_LABELS: Record<string, string> = {
   tv: "TV",
   film: "Film",
@@ -70,22 +66,6 @@ function resolveAnimeTypeLabel(type: string): string {
  */
 function formatEpisodeCount(count: number): string {
   return count === 1 ? "1 Episode" : `${count} Episoden`;
-}
-
-function resolveStatusTone(status: string): string {
-  switch (status) {
-    case "ongoing":
-      return styles.badgeSuccess;
-    case "done":
-      return styles.badgePrimary;
-    case "disabled":
-    case "aborted":
-      return styles.badgeDanger;
-    case "licensed":
-      return styles.badgeWarning;
-    default:
-      return styles.badgeMuted;
-  }
 }
 
 /**
@@ -232,11 +212,7 @@ export function AdminAnimeOverviewClient({
                   </p>
                 </div>
                 <div className={styles.badgeRow}>
-                  <span
-                    className={`${styles.badge} ${resolveStatusTone(anime.status)}`}
-                  >
-                    {anime.status}
-                  </span>
+                  <StatusBadge status={anime.status} />
                 </div>
                 <div className={styles.actionsRow}>
                   <Link
