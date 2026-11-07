@@ -2,11 +2,21 @@ import type { AnimeFansubListResponse } from '@/types/fansub'
 import type { PublicEpisodeVersion, PublicGroupedEpisode, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 import type { AnimeDetail, AnimeRelationsResponse } from '@/types/anime'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
+import { ANIME_COVER_BILD } from '@/lib/storybookBildKatalog'
+
+/**
+ * Bildet das echte Freezing-Cover aus dem zentralen Bildkatalog (Pfad unter
+ * `/storybook-bilder/`) auf die Auslieferungs-Route `/covers/display/*` ab, über die
+ * `resolveAnimeCoverURL` (animeBackdrops.ts) jeden Cover-Pfad schickt -- nur dieser
+ * Namensraum wird dort erkannt, jeder andere Pfad fällt lautlos auf den Platzhalter zurück.
+ * Die Bilddatei liegt deshalb zusätzlich als statische Kopie unter
+ * `public/covers/display/anime-cover-freezing.jpg`.
+ */
+const ANIME_COVER_AUSLIEFERUNGS_PFAD = '/covers/' + ANIME_COVER_BILD.pfad.replace(/^\/storybook-bilder\//, '')
 
 /** Realistische deutsche `AnimeDetail`-Demo-Fixture für Storybook (keine Lorem-ipsum-Platzhalter,
- *  Felder exakt aus `@/types/anime.ts`). Alle Bildpfade in dieser Datei nutzen bewusst
- *  /covers/placeholder.png statt .jpg: Letzteres ist nicht dekodierbar (siehe Commit 159-05,
- *  animeBackdrops.ts), .png ist derselbe bereits geprüft dekodierbare Platzhalter. */
+ *  Felder exakt aus `@/types/anime.ts`). `cover_image` nutzt das echte Freezing-Cover aus dem
+ *  zentralen Bildkatalog statt eines synthetischen Platzhalters. */
 export function buildAnimeDetailFixture(overrides: Partial<AnimeDetail> = {}): AnimeDetail {
   return {
     id: 1,
@@ -22,7 +32,7 @@ export function buildAnimeDetailFixture(overrides: Partial<AnimeDetail> = {}): A
     description:
       'Nach dem Umzug in eine neue Stadt findet die schüchterne Hana unerwartete Freundschaften unter den '
       + 'Kirschblüten ihrer neuen Schule -- und ein Geheimnis, das die ganze Nachbarschaft verändert.',
-    cover_image: '/covers/placeholder.png',
+    cover_image: ANIME_COVER_AUSLIEFERUNGS_PFAD,
     view_count: 0,
     episodes: [],
     ...overrides,
@@ -204,6 +214,6 @@ export const freezingGroupedEpisodesResponse: PublicGroupedEpisodesResponse = {
 /** Verwandte Anime (Prequel/Sequel) für die "Verwandte Anime"-Sektion. */
 export const normalRelationsResponse: AnimeRelationsResponse = {
   data: [
-    { anime_id: 2, title: 'Frühlingsblüten über Tokio: Sommerspecial', relation_type: 'sequel', cover_image: '/covers/placeholder.png', year: 2024, type: 'ova' },
+    { anime_id: 2, title: 'Frühlingsblüten über Tokio: Sommerspecial', relation_type: 'sequel', cover_image: ANIME_COVER_AUSLIEFERUNGS_PFAD, year: 2024, type: 'ova' },
   ],
 }
